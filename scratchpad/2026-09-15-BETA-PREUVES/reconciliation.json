@@ -1,5 +1,5 @@
 {
-  "mesure_le": "2026-09-15T10:02:33.077Z",
+  "mesure_le": "2026-09-15T10:12:57.770Z",
   "rapport": [
     {
       "nom": "sna1",
@@ -2183,6 +2183,624 @@
       ]
     },
     {
+      "nom": "n2-b15c-direct",
+      "note": "N=2 végane + omnivore, composé et écrit d'un trait le 2026-09-15",
+      "n_dishes": 14,
+      "n_preps": 5,
+      "n_shop_avant": 28,
+      "overdrawn_before": 0,
+      "overdrawn_after": 0,
+      "unreadable_drawn": 0,
+      "grown": 0,
+      "ready_after": 4682,
+      "drawn_final": 4672,
+      "reste": 10,
+      "equation_ok": true,
+      "publication": "published",
+      "shopping_rebuild": {
+        "lines": 28,
+        "requantified": 0,
+        "unchanged": 28,
+        "unquantified": 0,
+        "dropped": 0,
+        "unattributed": 0,
+        "not_purchasable": 0,
+        "needs_unbought": 0,
+        "merged": 0,
+        "model_omitted": 0,
+        "synthesized": 0,
+        "synthesized_unquantified": 0,
+        "aisle_other": 0,
+        "aisle_shelf_stable": 0,
+        "pantry_lines": 0,
+        "pantry_deducted": 0,
+        "pantry_covered": 0,
+        "pantry_unknown": 0
+      },
+      "achats_inutiles": [],
+      "achats_manquants": [],
+      "shopping_final": [
+        {
+          "ref": "turkey_breast",
+          "term": "blanc de dinde",
+          "amount": 760,
+          "unit": "g",
+          "quantity": "760 g"
+        },
+        {
+          "ref": "barley",
+          "term": "orge",
+          "amount": 182,
+          "unit": "g",
+          "quantity": "182 g"
+        },
+        {
+          "ref": "onion",
+          "term": "oignon",
+          "amount": 457,
+          "unit": "g",
+          "quantity": "457 g"
+        },
+        {
+          "ref": "olive_oil",
+          "term": "huile d'olive",
+          "amount": 271,
+          "unit": "ml",
+          "quantity": "271 ml"
+        },
+        {
+          "ref": "lentils_dry",
+          "term": "lentilles sèches",
+          "amount": 124,
+          "unit": "g",
+          "quantity": "124 g"
+        },
+        {
+          "ref": "carrot",
+          "term": "carotte",
+          "amount": 175,
+          "unit": "g",
+          "quantity": "175 g"
+        },
+        {
+          "ref": "edamame",
+          "term": "edamame",
+          "amount": 155,
+          "unit": "g",
+          "quantity": "155 g"
+        },
+        {
+          "ref": "pork_loin",
+          "term": "filet de porc",
+          "amount": 400,
+          "unit": "g",
+          "quantity": "400 g"
+        },
+        {
+          "ref": "potato",
+          "term": "pomme de terre",
+          "amount": 600,
+          "unit": "g",
+          "quantity": "600 g"
+        },
+        {
+          "ref": "chickpeas_tinned",
+          "term": "pois chiches en conserve",
+          "amount": 480,
+          "unit": "g",
+          "quantity": "480 g"
+        },
+        {
+          "ref": "couscous_wholemeal",
+          "term": "couscous complet",
+          "amount": 125,
+          "unit": "g",
+          "quantity": "125 g"
+        },
+        {
+          "ref": "bell_pepper",
+          "term": "poivron",
+          "amount": 315,
+          "unit": "g",
+          "quantity": "315 g"
+        },
+        {
+          "ref": "white_pasta",
+          "term": "pâtes de blé",
+          "amount": 150,
+          "unit": "g",
+          "quantity": "150 g"
+        },
+        {
+          "ref": "button_mushroom_cultivated_mushroom",
+          "term": "champignons de Paris",
+          "amount": 310,
+          "unit": "g",
+          "quantity": "310 g"
+        },
+        {
+          "ref": "oats",
+          "term": "flocons d'avoine",
+          "amount": 135,
+          "unit": "g",
+          "quantity": "135 g"
+        },
+        {
+          "ref": "soy_yogurt",
+          "term": "yaourt au soja nature",
+          "amount": 387,
+          "unit": "g",
+          "quantity": "387 g"
+        },
+        {
+          "ref": "soy_milk",
+          "term": "boisson au soja",
+          "amount": 215,
+          "unit": "ml",
+          "quantity": "215 ml"
+        },
+        {
+          "ref": "tofu",
+          "term": "tofu",
+          "amount": 329,
+          "unit": "g",
+          "quantity": "329 g"
+        },
+        {
+          "ref": "mixed_berries",
+          "term": "fruits rouges mélangés",
+          "amount": 33,
+          "unit": "g",
+          "quantity": "33 g"
+        },
+        {
+          "ref": "tomato",
+          "term": "tomate",
+          "amount": 345,
+          "unit": "g",
+          "quantity": "345 g"
+        },
+        {
+          "ref": "wholemeal_bread",
+          "term": "pain complet",
+          "amount": 525,
+          "unit": "g",
+          "quantity": "525 g"
+        },
+        {
+          "ref": "tahini",
+          "term": "tahini",
+          "amount": 25,
+          "unit": "g",
+          "quantity": "25 g"
+        },
+        {
+          "ref": "lemon",
+          "term": "citron",
+          "amount": 150,
+          "unit": "g",
+          "quantity": "150 g"
+        },
+        {
+          "ref": "spinach",
+          "term": "épinards",
+          "amount": 52,
+          "unit": "g",
+          "quantity": "52 g"
+        },
+        {
+          "ref": "apple",
+          "term": "pomme",
+          "amount": 309,
+          "unit": "g",
+          "quantity": "309 g"
+        },
+        {
+          "ref": "pita_wholemeal",
+          "term": "pita complète",
+          "amount": 2,
+          "unit": "unit",
+          "quantity": "2"
+        },
+        {
+          "ref": "tempeh",
+          "term": "tempeh",
+          "amount": 156,
+          "unit": "g",
+          "quantity": "156 g"
+        },
+        {
+          "ref": "walnuts",
+          "term": "noix",
+          "amount": 20,
+          "unit": "g",
+          "quantity": "20 g"
+        }
+      ],
+      "per_pot": [
+        {
+          "preparation_id": "prep_turkey_barley",
+          "surplus_minimal_g": null,
+          "title": "Dinde et orge aux oignons",
+          "cook_on": "tue",
+          "ready_before_g": 590,
+          "drawn_g": 587,
+          "ready_after_g": 590,
+          "rest_g": 3,
+          "equation_ok": true,
+          "grown": false,
+          "fit": {
+            "changed": 0,
+            "attempts": 0,
+            "factor": 1,
+            "shortfallG": null
+          },
+          "draws": {
+            "grams": 587,
+            "byDay": {
+              "wed": 286,
+              "thu": 301
+            },
+            "byMouth": {
+              "d10a7a15-cc70-4716-8ca0-d8fa93ff72a5": 587
+            }
+          },
+          "ingredients": [
+            {
+              "term": "blanc de dinde",
+              "ref": "turkey_breast",
+              "amount": 300,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "300 g",
+              "gramsRaw": 300,
+              "yieldClass": null
+            },
+            {
+              "term": "orge",
+              "ref": "barley",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "100 g",
+              "gramsRaw": 100,
+              "yieldClass": null
+            },
+            {
+              "term": "oignon",
+              "ref": "onion",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "100 g",
+              "gramsRaw": 100,
+              "yieldClass": null
+            },
+            {
+              "term": "huile d'olive",
+              "ref": "olive_oil",
+              "amount": 30,
+              "unit": "ml",
+              "state": "raw",
+              "quantity": "30 ml",
+              "gramsRaw": 30,
+              "yieldClass": null
+            }
+          ]
+        },
+        {
+          "preparation_id": "prep_lentil_barley",
+          "surplus_minimal_g": null,
+          "title": "Lentilles, orge et edamame",
+          "cook_on": "tue",
+          "ready_before_g": 842,
+          "drawn_g": 842,
+          "ready_after_g": 842,
+          "rest_g": 0,
+          "equation_ok": true,
+          "grown": false,
+          "fit": {
+            "changed": 0,
+            "attempts": 0,
+            "factor": 1,
+            "shortfallG": null
+          },
+          "draws": {
+            "grams": 842,
+            "byDay": {
+              "tue": 427,
+              "wed": 415
+            },
+            "byMouth": {
+              "0a6d665a-3c6b-4f48-82d9-c5269bf30588": 842
+            }
+          },
+          "ingredients": [
+            {
+              "term": "lentilles sèches",
+              "ref": "lentils_dry",
+              "amount": 124,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "124 g de lentilles sèches",
+              "gramsRaw": 124,
+              "yieldClass": null
+            },
+            {
+              "term": "orge",
+              "ref": "barley",
+              "amount": 82,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "82 g d'orge",
+              "gramsRaw": 82,
+              "yieldClass": null
+            },
+            {
+              "term": "oignon",
+              "ref": "onion",
+              "amount": 82,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "82 g d'oignon",
+              "gramsRaw": 82,
+              "yieldClass": null
+            },
+            {
+              "term": "carotte",
+              "ref": "carrot",
+              "amount": 103,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "103 g de carotte",
+              "gramsRaw": 103,
+              "yieldClass": null
+            },
+            {
+              "term": "edamame",
+              "ref": "edamame",
+              "amount": 155,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "155 g d'edamame",
+              "gramsRaw": 155,
+              "yieldClass": null
+            },
+            {
+              "term": "huile d'olive",
+              "ref": "olive_oil",
+              "amount": 10,
+              "unit": "ml",
+              "state": "raw",
+              "quantity": "10 ml d'huile d'olive",
+              "gramsRaw": 10,
+              "yieldClass": null
+            }
+          ]
+        },
+        {
+          "preparation_id": "prep_pork_potato",
+          "surplus_minimal_g": null,
+          "title": "Porc rôti et pommes de terre",
+          "cook_on": "tue",
+          "ready_before_g": 968,
+          "drawn_g": 965,
+          "ready_after_g": 968,
+          "rest_g": 3,
+          "equation_ok": true,
+          "grown": false,
+          "fit": {
+            "changed": 0,
+            "attempts": 0,
+            "factor": 1,
+            "shortfallG": null
+          },
+          "draws": {
+            "grams": 965,
+            "byDay": {
+              "tue": 485,
+              "wed": 480
+            },
+            "byMouth": {
+              "d10a7a15-cc70-4716-8ca0-d8fa93ff72a5": 965
+            }
+          },
+          "ingredients": [
+            {
+              "term": "filet de porc",
+              "ref": "pork_loin",
+              "amount": 400,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "400 g",
+              "gramsRaw": 400,
+              "yieldClass": null
+            },
+            {
+              "term": "pomme de terre",
+              "ref": "potato",
+              "amount": 600,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "600 g",
+              "gramsRaw": 600,
+              "yieldClass": null
+            },
+            {
+              "term": "oignon",
+              "ref": "onion",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "100 g",
+              "gramsRaw": 100,
+              "yieldClass": null
+            },
+            {
+              "term": "huile d'olive",
+              "ref": "olive_oil",
+              "amount": 30,
+              "unit": "ml",
+              "state": "raw",
+              "quantity": "30 ml",
+              "gramsRaw": 30,
+              "yieldClass": null
+            }
+          ]
+        },
+        {
+          "preparation_id": "prep_chickpea_couscous",
+          "surplus_minimal_g": null,
+          "title": "Pois chiches et couscous aux poivrons",
+          "cook_on": "tue",
+          "ready_before_g": 1261,
+          "drawn_g": 1259,
+          "ready_after_g": 1261,
+          "rest_g": 2,
+          "equation_ok": true,
+          "grown": false,
+          "fit": {
+            "changed": 0,
+            "attempts": 0,
+            "factor": 1,
+            "shortfallG": null
+          },
+          "draws": {
+            "grams": 1259,
+            "byDay": {
+              "wed": 415,
+              "thu": 844
+            },
+            "byMouth": {
+              "0a6d665a-3c6b-4f48-82d9-c5269bf30588": 1259
+            }
+          },
+          "ingredients": [
+            {
+              "term": "pois chiches en conserve",
+              "ref": "chickpeas_tinned",
+              "amount": 2,
+              "unit": "unit",
+              "state": "cooked",
+              "quantity": "2 boîtes de pois chiches de 240 g",
+              "gramsRaw": 480,
+              "yieldClass": null
+            },
+            {
+              "term": "couscous complet",
+              "ref": "couscous_wholemeal",
+              "amount": 125,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "125 g",
+              "gramsRaw": 125,
+              "yieldClass": null
+            },
+            {
+              "term": "poivron",
+              "ref": "bell_pepper",
+              "amount": 315,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "315 g",
+              "gramsRaw": 315,
+              "yieldClass": null
+            },
+            {
+              "term": "oignon",
+              "ref": "onion",
+              "amount": 175,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "175 g",
+              "gramsRaw": 175,
+              "yieldClass": null
+            },
+            {
+              "term": "huile d'olive",
+              "ref": "olive_oil",
+              "amount": 15,
+              "unit": "ml",
+              "state": "raw",
+              "quantity": "15 ml d'huile d'olive",
+              "gramsRaw": 15,
+              "yieldClass": null
+            }
+          ]
+        },
+        {
+          "preparation_id": "prep_turkey_pasta",
+          "surplus_minimal_g": null,
+          "title": "Pâtes à la dinde et aux champignons",
+          "cook_on": "tue",
+          "ready_before_g": 1021,
+          "drawn_g": 1019,
+          "ready_after_g": 1021,
+          "rest_g": 2,
+          "equation_ok": true,
+          "grown": false,
+          "fit": {
+            "changed": 0,
+            "attempts": 0,
+            "factor": 1,
+            "shortfallG": null
+          },
+          "draws": {
+            "grams": 1019,
+            "byDay": {
+              "wed": 323,
+              "thu": 696
+            },
+            "byMouth": {
+              "d10a7a15-cc70-4716-8ca0-d8fa93ff72a5": 1019
+            }
+          },
+          "ingredients": [
+            {
+              "term": "blanc de dinde",
+              "ref": "turkey_breast",
+              "amount": 460,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "460 g",
+              "gramsRaw": 460,
+              "yieldClass": null
+            },
+            {
+              "term": "pâtes de blé",
+              "ref": "white_pasta",
+              "amount": 150,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "150 g",
+              "gramsRaw": 150,
+              "yieldClass": null
+            },
+            {
+              "term": "champignons de Paris",
+              "ref": "button_mushroom_cultivated_mushroom",
+              "amount": 310,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "310 g",
+              "gramsRaw": 310,
+              "yieldClass": null
+            },
+            {
+              "term": "huile d'olive",
+              "ref": "olive_oil",
+              "amount": 30,
+              "unit": "ml",
+              "state": "raw",
+              "quantity": "30 ml",
+              "gramsRaw": 30,
+              "yieldClass": null
+            }
+          ]
+        }
+      ]
+    },
+    {
       "nom": "n4-away-tir9s1",
       "note": "plan publié N=4, Nils absent mardi ; mesuré hors handler sur la ligne écrite",
       "n_dishes": 15,
@@ -3236,6 +3854,18 @@
       "surplus_expliques": [
         "prep_shared_thu_lunch: +11 g de reste, sans croissance"
       ],
+      "unattributed": 0,
+      "needs_unbought": 0,
+      "achats_sans_recette": [],
+      "achats_manquants": [],
+      "verdict": "ok"
+    },
+    {
+      "nom": "n2-b15c-direct",
+      "pots": 5,
+      "deficits": [],
+      "hors_borne": [],
+      "surplus_expliques": [],
       "unattributed": 0,
       "needs_unbought": 0,
       "achats_sans_recette": [],

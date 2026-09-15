@@ -136,6 +136,12 @@ const cases = [
     note: "N=4 (végane, omnivore, mineure), composé en aperçu puis adopté le 2026-09-15",
   },
   {
+    // ⟳ 2026-09-15 · LOT 4 — le chemin DIRECT (sans aperçu), version figée.
+    nom: "n2-b15c-direct",
+    rel: "scratchpad/2026-09-15-BETA-PREUVES/plan-n2-b15c.json",
+    note: "N=2 végane + omnivore, composé et écrit d'un trait le 2026-09-15",
+  },
+  {
     nom: "n4-away-tir9s1",
     rel: "scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir9-s1-2026-09-14T04-20-23-468Z.json",
     note: "plan publié N=4, Nils absent mardi ; mesuré hors handler sur la ligne écrite",
