@@ -342,6 +342,12 @@ export interface OpenDraftArgs {
    * millésime du magasin.
    */
   readonly promptVersion: string;
+  /**
+   * ⟳ 2026-09-15 · LOT C — LA MÈRE, quand cette ouverture est une relance
+   * (`x-relaunch-of` du relanceur SQL). La fille porte `attempt = 2` et
+   * `relaunch_of`; le relanceur ne relance jamais une `attempt = 2`.
+   */
+  readonly relaunchOf?: string | null;
   /** Injectable pour les tests. Par défaut `new Date()`. */
   readonly now?: Date;
 }
@@ -428,6 +434,8 @@ export async function openDraft(
     request_id: args.requestId,
     idempotency_key: key,
     mode: args.mode,
+    attempt: args.relaunchOf ? 2 : 1,
+    relaunch_of: args.relaunchOf ?? null,
     request_body: args.body ?? {},
     source_version: sourceVersionOf(args.promptVersion),
   };
@@ -623,7 +631,14 @@ export async function failDraft(
       wall_ms: args.wallMs ?? null,
       finished_at: now.toISOString(),
     })
-    .eq("id", id);
+    .eq("id", id)
+    // ⟳ 2026-09-15 · LOT A — JAMAIS PAR-DESSUS `done` NI `adopted`. Depuis que
+    // la composition finit en arrière-plan, un refus TARDIF (une réponse
+    // rendue après le 202) est plié dans la ligne par `foldLateOutcome`; il
+    // arrive après la RPC qui a écrit `done`, et ne doit pas la défaire. Un
+    // `failed` peut se réécrire (le `catch` pose `compose_failed`, le pli le
+    // remplace par le jeton qui a une phrase).
+    .in("status", ["pending", "running", "failed"]);
   if (error) {
     log("fail_failed", { draftId: id, error: errorMessageOf(error) });
     return { ok: false, reason: errorMessageOf(error) };

@@ -76,10 +76,14 @@ describe("aucune panne ordinaire ne sort en clair sur l'écran", () => {
     const draft = code("frontend/src/keel/api/planDraft.ts");
     expect(draft.match(/refusalOf\(error, "composition_unavailable"\)/g)?.length)
       .toBe(3);
+    // ⟳ 2026-09-15 · LOT E — `generateHouseholdMeal` N'A PLUS DE CHEMIN D'APPEL
+    // À LUI : c'est une façade sur `composeDraft` (202 + relecture de la ligne)
+    // puis `writeFromDraft`. Le second exemplaire du transport — et son repli
+    // sur le message de la bibliothèque — a disparu avec lui.
     const foyer = code("frontend/src/keel/api/household.ts");
-    expect(foyer).toContain("`composition_unavailable: ${error.message}`");
-    expect(foyer, "la lane du foyer rend encore le message de la bibliothèque")
-      .not.toContain("?? error.message)");
+    expect(foyer, "la lane du foyer a retrouvé un transport à elle")
+      .not.toContain('functions.invoke("generate-household-meal-v1"');
+    expect(foyer).not.toContain("?? error.message)");
   });
 
   /**
@@ -115,11 +119,11 @@ describe("aucune panne ordinaire ne sort en clair sur l'écran", () => {
     );
     expect(src, "l'option de la bibliothèque est revenue: le motif redevient indistinguable")
       .not.toContain("timeout: PLAN_CLIENT_TIMEOUT_MS,");
+    // ⟳ 2026-09-15 · LOT E — la lane du foyer passe par LE MÊME transport :
+    // un aperçu accepté tôt, relu dans la ligne, puis adopté sans appel modèle.
     const foyer = code("frontend/src/keel/api/household.ts");
-    expect(foyer).toContain(
-      "setTimeout(() => deadline.abort(), PLAN_CLIENT_TIMEOUT_MS)",
-    );
-    expect(foyer).toContain("await settleInterruptedGeneration(requestId)");
+    expect(foyer).toContain("await composeDraft(input, { onProgress: args.onProgress })");
+    expect(foyer).toContain("await writeFromDraft(input, draftId, intent, args.replaces ?? null)");
   });
 
   /**

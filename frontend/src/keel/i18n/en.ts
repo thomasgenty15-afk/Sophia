@@ -7335,6 +7335,15 @@ export const en = {
   // `not_saved` dit à l'écran, et c'est pour ça qu'on peut le refaire.
   "plan.draft.cta": "Preview",
   "plan.draft.working": "Building a preview...",
+  // ── LOT B (2026-09-15) · REAL PROGRESS, READ FROM THE ROW ────────────────
+  // One line per stage the worker writes (`stage`), plus elapsed time.
+  // Before: eight timed messages, the last one frozen for four minutes.
+  "plan.progress.composing": "The model is composing the meals…",
+  "plan.progress.checking": "Checking every plate…",
+  "plan.progress.repairing": "Fixing what didn't hold…",
+  "plan.progress.writing": "Saving the plan…",
+  "plan.progress.relaunched": "Relaunched once — the first run stopped midway.",
+  "plan.progress.elapsed": "{time} elapsed",
   // ── LOT D · LE RETOUR DE FIN DE PLAN ────────────────────────────────────
   // ⚠️ LES LIBELLÉS DES QUESTIONS NE SONT PAS ICI, et c'est délibéré: ils
   // vivent dans `_shared/keel/plan_feedback.ts`, dans les DEUX langues, avec

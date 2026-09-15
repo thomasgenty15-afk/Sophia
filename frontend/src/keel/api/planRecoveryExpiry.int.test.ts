@@ -137,9 +137,14 @@ describe("l'échéance est UNE valeur, sur les trois sites", () => {
     ).toBe(PLAN_LEASE_DEADLINE_MS);
   });
 
-  it("n'est PAS le temps d'attente: on attend moins longtemps qu'on ne périme", () => {
-    // Les confondre rendait `plan_still_composing` sur un worker mort.
-    expect(PLAN_RECOVERY_WAIT_MS).toBeLessThan(PLAN_LEASE_DEADLINE_MS);
+  it("n'est PAS le temps d'attente: la LIGNE décide de la fin, l'horloge locale couvre deux baux", () => {
+    // ⟳ 2026-09-15 · LOT E — l'assertion inverse (« on attend moins longtemps
+    // qu'on ne périme ») ÉPINGLAIT LE BUG : 145 + 235 = 380 s, soixante secondes
+    // avant le bail, donc `plan_expired` était inatteignable et un worker mort
+    // se lisait « ça continue ». La relecture s'arrête désormais sur la ligne
+    // (`done`, `failed`, âge > bail) ; l'échéance locale n'est qu'un garde-fou,
+    // au-delà de la mère, d'un tick de relance et de la fille.
+    expect(PLAN_RECOVERY_WAIT_MS).toBeGreaterThanOrEqual(2 * PLAN_LEASE_DEADLINE_MS);
   });
 });
 

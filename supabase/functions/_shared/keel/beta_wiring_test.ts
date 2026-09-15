@@ -289,14 +289,19 @@ Deno.test("BÊTA 2B — l'aperçu et l'activation ont la MÊME borne client", ()
     "un état réellement relu en vol n'a plus de motif à lui",
   );
   assert(src.includes("await settleInterruptedGeneration(requestId)"));
+  // ⟳ 2026-09-15 · LOT E — Composer n'a plus de transport à lui : c'est une
+  // façade sur `composeDraft` (202 + relecture de la ligne) puis
+  // `writeFromDraft`. La borne et la reprise vivent une seule fois, dans
+  // `planDraft.ts`, épinglées juste au-dessus.
   const foyer = Deno.readTextFileSync(
     new URL("frontend/src/keel/api/household.ts", REPO),
   );
   assert(
-    foyer.includes("setTimeout(() => deadline.abort(), PLAN_CLIENT_TIMEOUT_MS)"),
-    "Composer n'a plus de borne client",
+    !foyer.includes('functions.invoke("generate-household-meal-v1"'),
+    "la lane du foyer a retrouvé un transport à elle",
   );
-  assert(foyer.includes("await settleInterruptedGeneration(requestId)"));
+  assert(foyer.includes("await composeDraft(input, { onProgress: args.onProgress })"));
+  assert(foyer.includes("await writeFromDraft(input, draftId, intent, args.replaces ?? null)"));
   assert(
     !src.includes('intent === "draft" ? {} : { timeout'),
     "une des deux intentions est encore sans borne",
@@ -317,7 +322,11 @@ Deno.test("BÊTA 2B — l'aperçu et l'activation ont la MÊME borne client", ()
   );
   assert(borne > 0 && passerelle > 0, "une des deux constantes a disparu");
   assert(borne < passerelle, `borne ${borne} >= passerelle ${passerelle}`);
-  assert(api.includes("export const PLAN_RECOVERY_WAIT_MS = 235_000;"));
+  // ⟳ 2026-09-15 · LOT E — la relecture couvre DEUX baux et un tick de relance ;
+  // 235 s s'arrêtait 60 s avant le bail, et `plan_expired` était inatteignable.
+  assert(api.includes(
+    "export const PLAN_RECOVERY_WAIT_MS = 2 * PLAN_LEASE_DEADLINE_MS + PLAN_RELAUNCH_GRACE_MS;",
+  ));
   // ⚠️ ET PAS TROP BAS NON PLUS: sous 145 s, on renonce à des générations
   // mesurées entre 116 et 144 s.
   assert(borne >= 145_000, `borne ${borne} sous les durées réelles mesurées`);

@@ -6139,6 +6139,15 @@ export const fr: TranslatedMessages = {
   // ── LE BROUILLON ────────────────────────────────────────────────────────
   "plan.draft.cta": "Prévisualiser",
   "plan.draft.working": "Composition d’un aperçu…",
+  // ── LOT B (2026-09-15) · L'AVANCEMENT RÉEL, LU DANS LA LIGNE ─────────────
+  // Une phrase par stade écrit par le worker (`stage`), plus le temps écoulé.
+  // Avant : huit phrases sur une minuterie, la dernière figée quatre minutes.
+  "plan.progress.composing": "Le modèle compose les repas…",
+  "plan.progress.checking": "On vérifie chaque assiette…",
+  "plan.progress.repairing": "On corrige ce qui ne tenait pas…",
+  "plan.progress.writing": "On range le plan…",
+  "plan.progress.relaunched": "Relancée une fois — la première s’est arrêtée en route.",
+  "plan.progress.elapsed": "{time} écoulées",
   // ── LOT D · LE RETOUR DE FIN DE PLAN ────────────────────────────────────
   // Les libellés des QUESTIONS ne sont pas ici: ils vivent dans
   // `_shared/keel/plan_feedback.ts`, dans les deux langues, avec leur lecteur

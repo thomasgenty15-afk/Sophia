@@ -138,10 +138,13 @@ describe("le câblage — le champ est parti des écrans, le jeton reste au tran
   }
 
   it("le corps de requête porte `cooking_shape` sur les deux chemins", () => {
+    // ⟳ 2026-09-15 · LOT E — la génération « directe » (Composer) est une
+    // façade sur `composeDraft` : elle pose le jeton dans l'input, et c'est le
+    // SEUL transport (`planDraft.ts`) qui le sérialise en `cooking_shape`.
     expect(
       code("frontend/src/keel/api/household.ts"),
-      "la génération directe n'envoie plus le jeton",
-    ).toContain("cooking_shape: args.cookingShape ?? null");
+      "Composer ne transmet plus le jeton à l'aperçu",
+    ).toContain("cookingShape: args.cookingShape ?? null");
     expect(
       code("frontend/src/keel/api/planDraft.ts"),
       "l'aperçu et l'adoption n'envoient plus le jeton",

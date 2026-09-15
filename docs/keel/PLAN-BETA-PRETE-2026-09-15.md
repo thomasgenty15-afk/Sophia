@@ -179,7 +179,8 @@ Verdict à rendre, un seul des trois de la passation : **bêta bloquée**, **cor
 
 ## Ce qu'on ne fait pas dans ce chantier
 
-- Pas de file d'exécution durable, pas de `waitUntil`, pas de promesse mémoire présentée comme une file. La demande reste dans le worker ; l'issue devient honnête.
+- ~~Pas de file d'exécution durable, pas de `waitUntil`, pas de promesse mémoire présentée comme une file. La demande reste dans le worker ; l'issue devient honnête.~~
+  ⟳ **Renversé le 2026-09-15**, sur un fait mesuré : Supabase tue à 150 s toute fonction qui n'a pas répondu (tous les plans), et une composition de foyer prend 244 à 281 s — la première tentée en hébergé est morte sans rien écrire. La demande ne peut donc PAS « rester dans le worker ». Ce qui tient lieu de file est la ligne `student_meal_drafts` (`mode='async'`, `stage`, `attempt`, `relaunch_of`) ; l'ordonnanceur est `pg_cron` (`keel-relaunch-meal-drafts`, une relance au plus) ; `EdgeRuntime.waitUntil` ne sert qu'à finir le travail accepté après le 202, jusqu'au mur mesuré de 400 s (`keel-runtime-probe-v1`). La phrase « pas de promesse mémoire présentée comme une file » reste vraie.
 - Pas de changement de modèle, d'effort ou de mode rapide pour gagner du temps.
 - Pas de rebranchement de la lane semaine, pas de retour des extras hors plan.
 - Pas de nouvelle campagne pour comprendre un défaut déjà enregistré.

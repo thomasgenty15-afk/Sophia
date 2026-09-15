@@ -28,11 +28,15 @@ import {
   DEFAULT_EATING_RHYTHM,
   type EatingOccasionSlot,
   type MemberPortionView,
-  PLAN_CLIENT_TIMEOUT_MS,
   parseEatingRhythm,
   readMemberPortions,
 } from "./mealGeneration";
-import { settleInterruptedGeneration } from "./planDraft";
+import {
+  type ComposeDraftInput,
+  composeDraft,
+  type DraftProgress,
+  writeFromDraft,
+} from "./planDraft";
 // ⚠️ `parseAwayMarks` ET SURTOUT PLUS `parseAwayDays` — voir `awayFrom`. Ce
 // module ne lit plus jamais la colonne d'absences sans son jeton: c'est un
 // parseur qui RETIRE de l'information, et trois écrans sur quatre passent par
@@ -1754,6 +1758,8 @@ export async function generateHouseholdMeal(args: {
    * arbitrage de semaine.
    */
   oneCookingSession: boolean;
+  /** ⟳ 2026-09-15 · LOT B — le stade de la ligne, pour l'écran qui attend. */
+  onProgress?: (progress: DraftProgress) => void;
   // ⟳ A1 (2026-09-03) — `cookTheDayBefore` A ÉTÉ RETIRÉ D'ICI, ET DU CORPS.
   // La veille n'est plus une case: `generate-household-meal-v1` la DÉRIVE
   // (`leadDayFor`) de la date de départ et de l'heure locale du maître,
@@ -1761,83 +1767,39 @@ export async function generateHouseholdMeal(args: {
   // rejouer ce verdict, et il ne doit pas essayer. Ce que le serveur rend en
   // échange est `timing`, que l'écran RÉPÈTE.
 }): Promise<HouseholdMealResult> {
-  const deadline = new AbortController();
-  const requestId = crypto.randomUUID();
-  const timer = setTimeout(() => deadline.abort(), PLAN_CLIENT_TIMEOUT_MS);
-  let data: unknown;
-  let error: { message?: string } | null = null;
-  try {
-    ({ data, error } = await supabase.functions.invoke("generate-household-meal-v1", {
-      body: {
-        // LA FORME `exact` SE SÉRIALISE EN `snake_case`, comme sur la lane
-        // individuelle: c'est le contrat de la fonction edge, et le client ne le
-        // réécrit pas.
-        window: args.window.kind === "exact"
-          ? {
-            kind: "exact",
-            starts_on: args.window.startsOn,
-            duration_days: args.window.durationDays,
-          }
-          : args.window,
-        intent: args.intent ?? "replace_current",
-        replaces: args.replaces ?? null,
-        context: args.context ?? null,
-        // `snake_case`, comme tout le reste de ce corps: c'est le contrat de la
-        // fonction edge, et le client ne le réécrit pas. `null` traverse tel
-        // quel — le serveur lit `null` comme « rien n'a été demandé ».
-        cooking_shape: args.cookingShape ?? null,
-        // L'ENVIE. Même nom que sur la lane individuelle (`preferences`), parce
-        // que c'est le nom que le SERVEUR lit — les deux lanes traversent
-        // `buildMealPrompt`, et un alias ici aurait fabriqué un champ que la
-        // fonction edge ignore poliment.
-        preferences: args.preferences,
-        // ⚠️ LE NOM DU SERVEUR. `generate-household-meal-v1` lit
-        // `body.one_cooking_session === true`; une autre orthographe ici serait
-        // une case cochée qui ne part nulle part, et rien ne le dirait.
-        one_cooking_session: args.oneCookingSession,
-      },
-      headers: { "x-request-id": requestId },
-      signal: deadline.signal,
-    }));
-  } finally {
-    clearTimeout(timer);
-  }
-  // ⛔ PAS `error.message` EN REPLI. Mesuré le 2026-09-14 sur la lane jumelle:
-  // la chaîne de la bibliothèque (« Failed to send a request to the Edge
-  // Function ») arrivait telle quelle au pied du formulaire, en anglais. Un
-  // jeton a une phrase; une chaîne libre n'en a pas, et l'écran rend ce qu'il
-  // peut. Le détail survit derrière le `:`, pour le journal du navigateur.
-  if (error) {
-    const recovered = await settleInterruptedGeneration(requestId);
-    if (recovered.kind === "written") {
-      return { ok: true, mealId: recovered.mealId, issues: [] };
-    }
-    if (recovered.kind === "done") {
-      const meal = (recovered.response.meal ?? null) as Record<string, unknown> | null;
-      return {
-        ok: recovered.response.ok === true,
-        mealId: typeof meal?.id === "string" ? meal.id : null,
-        issues: Array.isArray(recovered.response.issues)
-          ? recovered.response.issues.map(String)
-          : [],
-      };
-    }
-    if (recovered.kind === "in_flight") throw new Error("plan_still_composing");
-    if (recovered.kind === "expired") throw new Error("plan_expired");
-    if (recovered.kind === "failed") throw new Error(recovered.errorCode);
-    if (deadline.signal.aborted) throw new Error("composition_unavailable");
-    const named = await namedEdgeRefusal(error);
-    throw new Error(named ?? `composition_unavailable: ${error.message}`);
-  }
-  const row = (data ?? {}) as Record<string, unknown>;
-  // `household.spoken` / `household.silent` ne sont plus rendus par la fonction
-  // edge (lot 5). On ne les lit plus non plus: garder un lecteur tolérant
-  // laisserait croire que le champ peut revenir.
-  return {
-    ok: row.ok === true,
-    mealId: ((row.meal ?? null) as Record<string, unknown> | null)?.id as string ?? null,
-    issues: Array.isArray(row.issues) ? row.issues.map(String) : [],
+  // ══════════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-15 · LOT E — COMPOSER, C'EST UN APERÇU PUIS SON ADOPTION.
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ CETTE FONCTION AVAIT SON PROPRE TRANSPORT — un second exemplaire, ligne
+  // pour ligne, de `callGenerator` (`planDraft.ts`) : la même borne à 145 s, la
+  // même reprise, le même repli. Deux copies d'un chemin divergent au premier
+  // correctif, et le 2026-09-15 c'est exactement ce qui s'est joué : le serveur
+  // a cessé de composer DANS la requête (Supabase coupe à 150 s ce qui n'a pas
+  // répondu, et une composition de foyer en prend 244 à 281), il répond 202 et
+  // finit en arrière-plan. Un seul transport sait relire la ligne ; c'est lui.
+  //
+  // ⚠️ POURQUOI UN APERÇU PUIS UNE ADOPTION, ET PAS UNE ÉCRITURE DIRECTE : le
+  // chemin « composer et écrire » du serveur n'a AUCUN objet durable où poser
+  // un refus nommé après le modèle (`plan_not_deliverable`, `mouth_unfed`…) ;
+  // accepté tôt, il se lirait `expired` au bout de 440 s. L'aperçu, lui, a sa
+  // ligne (`student_meal_drafts`), et l'adoption ne paie aucun appel modèle :
+  // elle relit le `write_payload`, revalide et écrit dans une transaction.
+  const input: ComposeDraftInput = {
+    window: args.window,
+    context: args.context ?? null,
+    cookingShape: args.cookingShape ?? null,
+    oneCookingSession: args.oneCookingSession,
+    preferences: args.preferences,
   };
+  const intent = args.intent ?? "replace_current";
+  const draft = await composeDraft(input, { onProgress: args.onProgress });
+  // `draft` n'écrit rien : la troisième intention rend l'aperçu composé, sans plan.
+  if (intent === "draft") return { ok: true, mealId: null, issues: [] };
+  const draftId = draft.envelope.draftId;
+  if (!draftId) throw new Error("draft_not_ready");
+  const written = await writeFromDraft(input, draftId, intent, args.replaces ?? null);
+  return { ok: written.ok, mealId: written.mealId, issues: [] };
 }
 
 /**

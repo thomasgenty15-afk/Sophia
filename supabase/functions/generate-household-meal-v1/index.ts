@@ -8,6 +8,8 @@ import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
 import { logEdgeFunctionError, readableErrorMessage } from "../_shared/error-log.ts";
 import { generateWithGemini } from "../_shared/gemini.ts";
+import { keepWorking } from "../_shared/keel/edge_runtime.ts";
+import { ensureInternalRequest } from "../_shared/internal-auth.ts";
 import {
   isModelCallFailure,
   ModelCallFailed,
@@ -1467,7 +1469,111 @@ function resolveUnmergeRequest(args: {
   return { member, basePlan: carrier.plan, window: carrier.tail };
 }
 
-Deno.serve(async (req) => {
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-15 · LOT A — ACCEPTER TÔT, FINIR DANS LE WORKER
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// ⛔ LE FAIT, VÉRIFIÉ DANS LA DOC SUPABASE ET MESURÉ SUR LE PROJET HÉBERGÉ :
+// une fonction edge qui n'a pas RÉPONDU en 150 s reçoit un 504 et son isolat
+// est tué — tous les plans. Le travail ne continue au-delà que si la réponse
+// est déjà partie ET qu'il est confié à `EdgeRuntime.waitUntil()`, jusqu'au mur
+// de la machine : 400 s ici (sonde `keel-runtime-probe-v1`, 2026-09-15 : un
+// worker a vécu 392 s et fini, région eu-west-3). Une composition de foyer
+// prend 244 à 281 s : elle ne pouvait JAMAIS répondre à temps. La première
+// tentée en hébergé est morte sans rien écrire.
+//
+// CE QUE FAIT CE WRAPPER, ET RIEN D'AUTRE :
+//   · `handle` est le handler d'avant, intact — un seul `createPlanBudget`, un
+//     seul `releaseGenerationLock` dans son `finally`, tous ses `return`.
+//   · Quand `handle` a ouvert la ligne (`openDraft` + `markRunning`), il appelle
+//     `ctx.respondEarly(202)`. La course ci-dessous rend ce 202 au client et
+//     confie la suite de `handle` au runtime (`keepWorking`).
+//   · La réponse que `handle` rend ENSUITE n'a plus de client. Si c'est un
+//     succès, la RPC a déjà écrit `done`; si c'est un refus (422, 409, 503…),
+//     `foldLateOutcome` le plie dans la ligne — `failed` avec le jeton du corps,
+//     celui qui a une phrase — sinon le navigateur ne le saurait jamais.
+//   · Tout chemin qui rend AVANT `respondEarly` (gardes, 409, 402, 503) est
+//     rendu tel quel : synchrone, comme avant.
+//
+// ⛔ CE N'EST PAS UNE FILE. La promesse meurt avec le worker; ce qui survit est
+// la LIGNE, relue et relancée par la base (`keel_relaunch_meal_drafts`).
+//
+// ⚠️ `catch (failure)` ET PAS `catch (error)`, wrapper AVANT `handle` : des
+// tests épinglent que le dernier `} finally {` du fichier suit son dernier
+// `} catch (error) {`, et qu'il n'y a qu'un seul `let draftId`.
+interface EarlyAccept {
+  /** Rend cette réponse au client tout de suite; la composition continue. Une fois. */
+  respondEarly: (response: Response, draftId: string) => void;
+}
+
+/** Un uuid, et rien d'autre — pour les en-têtes du relanceur (lot C). */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+/**
+ * LE REFUS TARDIF, PLIÉ DANS LA LIGNE. Un 2xx ne touche à rien: la RPC a écrit
+ * `done`. Au-delà de 400, le jeton du corps devient `error_code` — `failDraft`
+ * refuse d'écraser `done`/`adopted`, donc un refus arrivé après l'écriture ne
+ * défait rien.
+ */
+async function foldLateOutcome(draftId: string, late: Response): Promise<void> {
+  if (late.status < 400) return;
+  const body = await late.clone().json().catch(() => ({})) as Record<string, unknown>;
+  const token = typeof body.error === "string" ? body.error.trim() : "";
+  const errorCode = token !== "" ? token : "compose_failed";
+  const detail = typeof body.detail === "string"
+    ? body.detail
+    : body.detail == null
+    ? null
+    : JSON.stringify(body.detail);
+  await failDraft(adminClient(), draftId, { errorCode, error: detail });
+  console.log(JSON.stringify({
+    tag: "keel.household_meal.late_outcome",
+    draft_id: draftId,
+    status: late.status,
+    error: errorCode,
+  }));
+}
+
+Deno.serve((req) => {
+  let settleEarly: ((early: { response: Response; draftId: string }) => void) | null = null;
+  const accepted = new Promise<{ response: Response; draftId: string }>((resolve) => {
+    settleEarly = resolve;
+  });
+  let acceptedDraftId: string | null = null;
+  const ctx: EarlyAccept = {
+    respondEarly: (response, draftId) => {
+      if (acceptedDraftId !== null) return;
+      acceptedDraftId = draftId;
+      settleEarly?.({ response, draftId });
+    },
+  };
+  // ⛔ `.catch` ICI: `handle` rend une `Response` sur toutes ses sorties, sauf
+  // si son propre `catch` jette (le journal d'erreur, par exemple). Une course
+  // sur une promesse nue ferait perdre le 202 déjà dû au client.
+  const work = handle(req, ctx).catch((failure: unknown) =>
+    jsonResponse(req, {
+      ok: false,
+      error: readableErrorMessage(failure),
+      request_id: getRequestId(req),
+    }, { status: 500 })
+  );
+  return Promise.race([
+    accepted.then((early) => ({ kind: "early" as const, ...early })),
+    work.then((response) => ({ kind: "full" as const, response })),
+  ]).then((winner) => {
+    if (winner.kind === "full") return winner.response;
+    const kept = keepWorking(work.then((late) => foldLateOutcome(winner.draftId, late)));
+    console.log(JSON.stringify({
+      tag: "keel.household_meal.accepted",
+      request_id: getRequestId(req),
+      draft_id: winner.draftId,
+      kept_alive: kept,
+    }));
+    return winner.response;
+  });
+});
+
+async function handle(req: Request, ctx: EarlyAccept): Promise<Response> {
   // ── LOT 0 (2026-09-06) · LE TEMPS MUR, QUI N'ÉTAIT MESURÉ NULLE PART ──────
   //
   // `llm_usage_events.latency_ms` mesure UN appel modèle, et seulement ceux qui
@@ -1630,15 +1736,43 @@ Deno.serve(async (req) => {
     const admin = adminClient();
 
     // --- identité: le JWT, jamais un user_id du client --------------------
-    const authHeader = req.headers.get("Authorization") ?? "";
-    const userClient = createClient(requireEnv("SUPABASE_URL"), requireEnv("SUPABASE_ANON_KEY"), {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const { data: { user }, error: authErr } = await userClient.auth.getUser();
-    if (authErr || !user) {
-      return jsonResponse(req, { error: "Unauthorized", request_id: requestId }, { status: 401 });
+    //
+    // ⟳ 2026-09-15 · LOT C — SAUF LE RELANCEUR, QUI N'A PAS DE JWT. Quand une
+    // composition meurt (bail dépassé), `keel_relaunch_meal_drafts()` re-poste
+    // la MÊME demande depuis la base, avec le secret interne des crons et la
+    // personne en `x-on-behalf-of`. La garde est celle de tous les crons
+    // (`ensureInternalRequest`) ; sans le secret, l'en-tête est ignoré et le
+    // JWT décide, comme avant. `x-relaunch-of` (la mère) ne vaut que sous le
+    // secret : la fille s'ouvre en `attempt = 2`.
+    let userId: string;
+    let relaunchOf: string | null = null;
+    if (req.headers.get("x-internal-secret") !== null) {
+      const refused = ensureInternalRequest(req);
+      if (refused) return refused;
+      const onBehalfOf = (req.headers.get("x-on-behalf-of") ?? "").trim();
+      if (!UUID_RE.test(onBehalfOf)) {
+        return jsonResponse(req, { error: "Unauthorized", request_id: requestId }, { status: 401 });
+      }
+      userId = onBehalfOf;
+      const mother = (req.headers.get("x-relaunch-of") ?? "").trim();
+      relaunchOf = UUID_RE.test(mother) ? mother : null;
+      console.log(JSON.stringify({
+        tag: "keel.household_meal.relaunch",
+        request_id: requestId,
+        user_id: userId,
+        relaunch_of: relaunchOf,
+      }));
+    } else {
+      const authHeader = req.headers.get("Authorization") ?? "";
+      const userClient = createClient(requireEnv("SUPABASE_URL"), requireEnv("SUPABASE_ANON_KEY"), {
+        global: { headers: { Authorization: authHeader } },
+      });
+      const { data: { user }, error: authErr } = await userClient.auth.getUser();
+      if (authErr || !user) {
+        return jsonResponse(req, { error: "Unauthorized", request_id: requestId }, { status: 401 });
+      }
+      userId = user.id;
     }
-    const userId = user.id;
 
     const body = await req.json().catch(() => ({} as Record<string, unknown>));
     const issues: string[] = [];
@@ -7750,7 +7884,10 @@ Deno.serve(async (req) => {
           planKind: "household",
           requestId,
           body,
-          mode: "sync",
+          // ⟳ 2026-09-15 · LOT A — `async`: la réponse part dès la ligne
+          // ouverte, la composition finit en arrière-plan (voir `respondEarly`).
+          mode: "async",
+          relaunchOf,
           promptVersion: HOUSEHOLD_PROMPT_VERSION,
         });
         if ("conflict" in opened) {
@@ -7782,6 +7919,30 @@ Deno.serve(async (req) => {
             }, { status: 202, skipErrorLog: true });
           }
           await markRunning(admin, draftId);
+          // ══════════════════════════════════════════════════════════════════
+          // ⟳ 2026-09-15 · LOT A — LA RÉPONSE PART ICI. LA COMPOSITION CONTINUE.
+          // ══════════════════════════════════════════════════════════════════
+          //
+          // Supabase coupe toute fonction qui n'a pas RÉPONDU en 150 s, et tue
+          // l'isolat; une composition de foyer prend 244 à 281 s. Mesuré le
+          // 2026-09-15: la première tentée en hébergé est morte sans rien
+          // écrire — ligne `running` jamais retouchée, verrou laissé en place.
+          //
+          // La ligne vient d'être ouverte et marquée `running`: c'est l'objet
+          // durable. On rend 202 avec son identifiant; le navigateur relit la
+          // ligne toutes les 2 s; ce worker continue jusqu'à `done` (la RPC
+          // `keel_household_complete_draft_generation`) ou jusqu'à un refus,
+          // que le wrapper plie dans la ligne (`foldLateOutcome`). Le `finally`
+          // rend le bail à la vraie fin, pas au 202.
+          ctx.respondEarly(
+            jsonResponse(req, {
+              ok: true,
+              accepted: true,
+              draft_id: draftId,
+              request_id: requestId,
+            }, { status: 202 }),
+            draftId,
+          );
         }
       } catch (error) {
         console.warn(`[${FN_NAME}] draft store open failed`, error);
@@ -11141,7 +11302,7 @@ Deno.serve(async (req) => {
       // en dessous.
       console.log(JSON.stringify({
         tag: "keel.household_meal.output_contract",
-        user_id: user.id,
+        user_id: userId,
         request_id: requestId,
         lines: outputContract.lines,
         ...outputContract.counters,
@@ -20473,4 +20634,4 @@ Deno.serve(async (req) => {
     // libération est avalée par `releaseGenerationLock` lui-même.
     await releaseGenerationLock("request_end");
   }
-});
+}

@@ -48,9 +48,12 @@ passée par les **données injectées en contexte**, pas par le TSX.
 ```
 /app/setup   l'entonnoir d'entrée (FF-060) — il se termine PAR UNE GÉNÉRATION
 /app/plan    StudentWeekPlanPage + MealBuilder — c'est ICI qu'on compose
-                 planDraft.ts route DEUX lanes selon `input.lane` :
-                   generate-meal-v1            → plan individuel
-                   generate-household-meal-v1  → plan de foyer (UNE cuisson)
+                 planDraft.ts appelle UNE lane : generate-household-meal-v1
+                 (une bouche comme six ; `generate-meal-v1` est parti le 2026-09-11)
+                 depuis le 2026-09-15 la lane RÉPOND 202 dès la ligne
+                 `student_meal_drafts` ouverte et compose en arrière-plan ; le
+                 navigateur relit la ligne (`waitForDraft`) ; une mère morte est
+                 relancée UNE fois par `keel-relaunch-meal-drafts` (pg_cron)
                  fenêtre de 1 à 7 jours (`MAX_WINDOW_DAYS`, la base l'impose)
 /app/today · /app/chat · /app/progress · /app/household
 ```

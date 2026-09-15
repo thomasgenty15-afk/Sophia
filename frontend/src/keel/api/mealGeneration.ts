@@ -75,16 +75,16 @@ import { type DayToken } from "./types";
  * (`generation_in_flight`), donc une relance est refusée avec l'identifiant de
  * la demande en cours au lieu de payer une seconde composition.
  */
+/**
+ * ⟳ 2026-09-15 · LOT E — CE QU'ELLE BORNE DÉSORMAIS : l'ACCEPTATION (un 202 en
+ * quelques secondes) et l'adoption (sans appel modèle), plus la composition.
+ * Celle-ci finit en arrière-plan et se lit dans la ligne (`waitForDraft`). La
+ * valeur reste : elle est sous la passerelle, et l'adoption vit encore sous
+ * la même borne. Le pavé ci-dessus décrit le monde d'avant ; il est gardé
+ * parce que c'est lui qui explique pourquoi 145 et pas 120.
+ */
 export const PLAN_CLIENT_TIMEOUT_MS = 145_000;
 
-/**
- * TEMPS RESTANT POUR RELIRE LA LIGNE DURABLE APRÈS LA BORNE HTTP.
- *
- * L'appel Edge est coupé à 145 s; le worker, lui, a `PLAN_REQUEST_BUDGET_MS`
- * (380 s). Cette attente ne rallonge PAS l'HTTP: elle POLLE le brouillon ou
- * le plan déjà rangés. 235 s = 380 − 145, sous la vie du worker (400 s).
- */
-export const PLAN_RECOVERY_WAIT_MS = 235_000;
 
 /**
  * ══════════════════════════════════════════════════════════════════════════
@@ -106,6 +106,32 @@ export const PLAN_RECOVERY_WAIT_MS = 235_000;
  * mesuré le 2026-09-15 sur les deux baux du 546 et du 502.
  */
 export const PLAN_LEASE_DEADLINE_MS = 440_000;
+
+/**
+ * ⟳ 2026-09-15 · LOT E — LE TEMPS QU'ON LAISSE À UNE RELANCE POUR APPARAÎTRE.
+ *
+ * Quand une ligne meurt (bail dépassé, ou `timed_out` posé par une balayeuse),
+ * le relanceur en base (`keel-relaunch-meal-drafts`, un tick par minute) ouvre
+ * UNE ligne fille. Le navigateur n'a pas le droit de dire « c'est fini » avant
+ * que ce tick ait eu le temps de passer : un tick, plus l'admission et
+ * l'ouverture — 90 s.
+ */
+export const PLAN_RELAUNCH_GRACE_MS = 90_000;
+
+/**
+ * L'ÉCHÉANCE LOCALE DE LA RELECTURE — plus longue que ce que la ligne peut vivre.
+ *
+ * ⛔ C'ÉTAIT 235 s = 380 − 145, ET C'ÉTAIT LE BUG : 145 + 235 = 380 s, soixante
+ * secondes AVANT le bail (440 s). La relecture s'arrêtait donc toujours avant
+ * que la ligne puisse être déclarée morte — `plan_expired` était inatteignable,
+ * et un worker mort se lisait « ça continue » (mesuré le 2026-09-15 en hébergé).
+ *
+ * Désormais la LIGNE décide de la fin (`done`, `failed`, ou un âge au-delà du
+ * bail) ; cette constante n'est qu'un garde-fou local, et il couvre le pire
+ * cas honnête : la ligne mère jusqu'au bail, un tick de relance, la ligne fille
+ * jusqu'au bail.
+ */
+export const PLAN_RECOVERY_WAIT_MS = 2 * PLAN_LEASE_DEADLINE_MS + PLAN_RELAUNCH_GRACE_MS;
 
 /**
  * CE QUE LA PASSERELLE COUPE, ÉCRIT ICI POUR QUE LA BORNE AIT UN POURQUOI.

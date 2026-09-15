@@ -158,7 +158,9 @@ describe("l'aperçu du plan reste le rendu unique, et il n'écrit rien", () => {
    */
   it("`composeDraft` demande bien `draft`, et `writeFromDraft` ne le fait pas", () => {
     const api = code("frontend/src/keel/api/planDraft.ts");
-    expect(api).toContain('callGenerator(input, "draft")');
+    // ⟳ 2026-09-15 · LOT B — `onProgress` voyage en 5ᵉ argument ; le préfixe
+    // suffit à épingler l'intention.
+    expect(api).toContain('callGenerator(input, "draft"');
     expect(api).toContain("const payload = await callGenerator(");
     expect(api).toContain("draft_id: draftId");
     expect(api).toContain("adopting_draft: true");
@@ -191,7 +193,11 @@ describe("l'aperçu du plan reste le rendu unique, et il n'écrit rien", () => {
     // abandonnerait des générations qui reviennent (116 à 144 s mesurées).
     const api2 = code("frontend/src/keel/api/mealGeneration.ts");
     expect(api2).toContain("export const PLAN_CLIENT_TIMEOUT_MS = 145_000;");
-    expect(api2).toContain("export const PLAN_RECOVERY_WAIT_MS = 235_000;");
+    // ⟳ 2026-09-15 · LOT E — deux baux et un tick de relance ; 235 s s'arrêtait
+    // 60 s AVANT le bail, et `plan_expired` était inatteignable.
+    expect(api2).toContain(
+      "export const PLAN_RECOVERY_WAIT_MS = 2 * PLAN_LEASE_DEADLINE_MS + PLAN_RELAUNCH_GRACE_MS;",
+    );
     expect(api2).toContain("export const GATEWAY_READ_TIMEOUT_MS = 150_000;");
     // ⛔ ET L'ANCIENNE FORME NE DOIT PAS REVENIR: c'est elle qui laissait une
     // des deux intentions sans borne.
@@ -231,7 +237,8 @@ describe("l'aperçu du plan reste le rendu unique, et il n'écrit rien", () => {
   it("un aperçu en vol se retrouve au rechargement de `/app/plan`", () => {
     const plan = code("frontend/src/keel/pages/StudentWeekPlanPage.tsx");
     expect(plan).toContain("recoverLatestDraft()");
-    expect(plan).toContain("waitForDraft(recoverable.draftId)");
+    // ⟳ 2026-09-15 · LOT B — la reprise rapporte le stade (`onProgress`).
+    expect(plan).toContain("waitForDraft(recoverable.draftId,");
   });
 
   it("un plan écrit malgré une réponse perdue sort du tunnel au rechargement", () => {

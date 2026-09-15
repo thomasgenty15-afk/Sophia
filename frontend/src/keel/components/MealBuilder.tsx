@@ -66,6 +66,8 @@ import {
 import type { PracticalConstraints } from "../api/practicalConstraints";
 import { planFailureKey } from "../copy/planRefusals";
 import { t } from "../i18n/t";
+import type { DraftProgress } from "../api/planDraft";
+import { draftProgressLabel } from "../lib/draftProgressLabel";
 import { formatBudgetAmount, formatDate } from "../i18n/format";
 import { plural } from "../i18n/plural";
 import TakeTheHandCard, { type HouseholdPlace } from "./TakeTheHandCard";
@@ -624,6 +626,8 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
    * pas, elle se relit, et une semaine neuve part vide parce qu'elle est vide.
    */
   const [building, setBuilding] = React.useState(false);
+  /** ⟳ 2026-09-15 · LOT B — le stade réel de la composition, lu dans la ligne. */
+  const [buildProgress, setBuildProgress] = React.useState<DraftProgress | null>(null);
   /** La liste de courses est dépliée ou non. Son bouton vit dans l'en-tête. */
   const [shoppingOpen, setShoppingOpen] = React.useState(false);
   /** Les sessions de cuisine, même traitement et même rang de bouton. */
@@ -1062,6 +1066,7 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
         // `api/household.ts`, trois lectures côté edge): ce qui change est ce
         // que CET écran y met, pas ce que le serveur sait lire.
         preferences: null,
+        onProgress: setBuildProgress,
       });
       // Un 200 qui dit `ok: false` n'est pas une panne de transport, et il ne
       // doit pas non plus atterrir comme un succès: il rejoint la même table
@@ -1096,6 +1101,7 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
       setFormOpen(true);
     } finally {
       setBuilding(false);
+      setBuildProgress(null);
     }
   }
 
@@ -1766,7 +1772,9 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
 
               <div className="flex flex-wrap items-center gap-2">
                 <Button type="submit" variant="primary" disabled={building}>
-                  {building ? t("meals.form.building") : t("meals.form.submit")}
+                  {building
+                    ? draftProgressLabel(buildProgress) ?? t("meals.form.building")
+                    : t("meals.form.submit")}
                 </Button>
                 {/* On ne peut renoncer que s'il y a quelque chose à retrouver
                     derrière. Sans semaine, « Cancel » ne mènerait qu'à un écran
@@ -1894,7 +1902,9 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                     setFormOpen(true);
                   }}
                 >
-                  {building ? t("meals.form.building") : t("meals.rebuild.button")}
+                  {building
+                    ? draftProgressLabel(buildProgress) ?? t("meals.form.building")
+                    : t("meals.rebuild.button")}
                 </Button>
               )}
             </div>
@@ -2025,7 +2035,9 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
           {building
             ? (
               <Card tone="dashed">
-                <p className="text-sm text-ink-soft">{t("meals.rebuild.building")}</p>
+                <p className="text-sm text-ink-soft">
+                  {draftProgressLabel(buildProgress) ?? t("meals.rebuild.building")}
+                </p>
               </Card>
             )
             : groups.length === 0

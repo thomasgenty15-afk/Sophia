@@ -41,6 +41,7 @@ import {
   PLAN_CLIENT_TIMEOUT_MS,
   PLAN_LEASE_DEADLINE_MS,
   PLAN_RECOVERY_WAIT_MS,
+  PLAN_RELAUNCH_GRACE_MS,
   readDayProperties,
   readDishes,
   readFixedIntakes,
@@ -383,9 +384,12 @@ async function recoverRequest(requestId: string): Promise<DraftRecovery> {
   const mealId = String((meal as { id?: unknown } | null)?.id ?? "").trim();
   if (mealId) return { kind: "written", mealId };
 
+  // ⟳ LOT C — la fille porte le MÊME `request_id` que sa mère et est plus
+  // récente : « la dernière ligne de cette demande » est la bonne, sans rien
+  // savoir de la relance.
   const { data, error } = await supabase
     .from("student_meal_drafts")
-    .select("id,status,response,error_code,expires_at,adopted_meal_id,created_at")
+    .select(`id,status,response,error_code,expires_at,adopted_meal_id,created_at,${RELAUNCH_COLUMNS}`)
     .eq("request_id", requestId)
     .order("created_at", { ascending: false })
     .limit(1)
@@ -403,12 +407,18 @@ async function recoverRequest(requestId: string): Promise<DraftRecovery> {
       typeof row.response === "object" && !Array.isArray(row.response)) {
       return { kind: "done", response: row.response as Record<string, unknown> };
     }
+    // Une mère morte dont la relance peut encore venir reste « en vol » le
+    // temps d'un tick ; la fille, plus récente, prendra sa place à la lecture
+    // suivante.
+    const awaitingRelaunch = relaunchable(row) && Date.now() < relaunchDeadline(row);
     if (status === "pending" || status === "running") {
-      return outOfLease(row.created_at) ? { kind: "expired" } : { kind: "in_flight" };
+      if (!outOfLease(row.created_at)) return { kind: "in_flight" };
+      return awaitingRelaunch ? { kind: "in_flight" } : { kind: "expired" };
     }
     if (status === "failed") {
-      const errorCode = String(row.error_code ?? "").trim();
-      return { kind: "failed", errorCode: errorCode || "composition_unavailable" };
+      const errorCode = rowFailureToken(String(row.error_code ?? ""));
+      if (errorCode === "plan_expired" && awaitingRelaunch) return { kind: "in_flight" };
+      return { kind: "failed", errorCode };
     }
   }
 
@@ -426,8 +436,7 @@ async function recoverRequest(requestId: string): Promise<DraftRecovery> {
     if (kind === "in_flight") return { kind: "in_flight" };
     if (kind === "expired") return { kind: "expired" };
     if (kind === "failed") {
-      const errorCode = String(status?.error_code ?? "").trim();
-      return { kind: "failed", errorCode: errorCode || "composition_unavailable" };
+      return { kind: "failed", errorCode: rowFailureToken(String(status?.error_code ?? "")) };
     }
     if (kind === "done") {
       const { data: again } = await supabase
@@ -472,7 +481,11 @@ function recoverableRow(raw: unknown): RecoverablePlanDraft {
     // ⟳ 2026-09-15 — UN RECHARGEMENT NE ROUVRE PAS UNE ATTENTE MORTE. Sans ce
     // filtre, chaque visite relançait 235 s de poll sur un brouillon dont le
     // worker était parti depuis des heures.
-    if (outOfLease(row.created_at)) return null;
+    // ⟳ LOT C — sauf si sa relance peut encore venir (une mère `async`, dans
+    // la grâce d'un tick) : `waitForDraft` suivra alors la fille.
+    if (outOfLease(row.created_at) && !(relaunchable(row) && Date.now() < relaunchDeadline(row))) {
+      return null;
+    }
     return { state: "in_flight", draftId: id };
   }
   if (status === "done" && row.response && typeof row.response === "object" &&
@@ -486,7 +499,7 @@ function recoverableRow(raw: unknown): RecoverablePlanDraft {
 export async function recoverLatestDraft(): Promise<RecoverablePlanDraft> {
   const { data, error } = await supabase
     .from("student_meal_drafts")
-    .select("id,status,response,error_code,expires_at,created_at")
+    .select(`id,status,response,error_code,expires_at,created_at,${RELAUNCH_COLUMNS}`)
     .in("status", ["pending", "running", "done"])
     .gt("expires_at", new Date().toISOString())
     .order("created_at", { ascending: false })
@@ -496,34 +509,163 @@ export async function recoverLatestDraft(): Promise<RecoverablePlanDraft> {
   return recoverableRow(data);
 }
 
+/**
+ * ⟳ 2026-09-15 · LOT B — OÙ EN EST LA COMPOSITION, LU DANS LA LIGNE.
+ *
+ * Vocabulaire fermé, miroir de `DRAFT_STAGES` (`_shared/keel/draft_store.ts`),
+ * écrit par le worker à chaque frontière. Un stade inconnu se lit `null` :
+ * l'écran garde alors sa phrase d'attente, il n'en invente pas une.
+ */
+export const DRAFT_STAGES = ["composing", "checking", "repairing", "writing"] as const;
+export type DraftStage = (typeof DRAFT_STAGES)[number];
+
+export interface DraftProgress {
+  stage: DraftStage | null;
+  /** Depuis l'ouverture de la ligne (`created_at`), pas depuis le clic. */
+  elapsedMs: number;
+  /** ⟳ LOT C — 1, ou 2 quand on suit la relance d'une mère morte. */
+  attempt: number;
+}
+
+/**
+ * ⟳ 2026-09-15 · LOT C — UNE MÈRE MORTE DONT LA RELANCE PEUT ENCORE VENIR.
+ *
+ * Le relanceur SQL (`keel-relaunch-meal-drafts`, un tick par minute) ne
+ * relance qu'une ligne `async`, `attempt = 1`, qui n'est pas une reprise
+ * locale. Pour celles-là, « morte » n'est pas terminal tout de suite : on
+ * cherche la fille, et sinon on laisse passer un tick (`PLAN_RELAUNCH_GRACE_MS`)
+ * avant de dire `plan_expired`.
+ */
+function relaunchable(row: Record<string, unknown>): boolean {
+  return String(row.mode ?? "") === "async" &&
+    Number(row.attempt ?? 1) === 1 &&
+    String(row.operation ?? "compose") !== "edit_cells";
+}
+
+/** L'instant où la grâce de relance expire, pour une ligne morte. */
+function relaunchDeadline(row: Record<string, unknown>): number {
+  const failedAt = Date.parse(String(row.finished_at ?? row.relaunched_at ?? ""));
+  const created = Date.parse(String(row.created_at ?? ""));
+  const deadAt = Number.isFinite(failedAt)
+    ? failedAt
+    : Number.isFinite(created)
+    ? created + PLAN_LEASE_DEADLINE_MS
+    : Date.now();
+  return deadAt + PLAN_RELAUNCH_GRACE_MS;
+}
+
+/** La fille d'une mère relancée, si elle existe déjà. */
+async function childOf(motherId: string): Promise<string | null> {
+  const { data } = await supabase
+    .from("student_meal_drafts")
+    .select("id")
+    .eq("relaunch_of", motherId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const id = String((data as { id?: unknown } | null)?.id ?? "").trim();
+  return id === "" ? null : id;
+}
+
+/** Les colonnes que la relance ajoute à chaque lecture d'une ligne. */
+const RELAUNCH_COLUMNS = "mode,attempt,relaunched_at,finished_at,operation:request_body->>operation";
+
+export interface WaitForDraftOptions {
+  onProgress?: (progress: DraftProgress) => void;
+  timeoutMs?: number;
+}
+
+function stageOf(raw: unknown): DraftStage | null {
+  const s = String(raw ?? "");
+  return (DRAFT_STAGES as ReadonlyArray<string>).includes(s) ? (s as DraftStage) : null;
+}
+
+/**
+ * LE JETON D'UNE LIGNE `failed`, DANS LES MOTS QUE L'ÉCRAN SAIT DIRE.
+ *
+ * `timed_out` est posé par les balayeuses (un worker mort, plus personne
+ * n'écrit) et `compose_failed` par le `catch` du handler : aucun des deux n'a
+ * de phrase, et `planRefusals` refuse une clé edge sans émetteur. Les deux
+ * jetons qui EN ONT une disent exactement la même chose — on traduit ici,
+ * une fois, plutôt que d'ajouter deux clés pour deux synonymes.
+ */
+function rowFailureToken(code: string): string {
+  const token = code.trim();
+  if (token === "timed_out") return "plan_expired";
+  if (token === "compose_failed" || token === "") return "composition_unavailable";
+  return token;
+}
+
 /** Attend la ligne déjà en vol; cette boucle ne déclenche aucune génération. */
 export async function waitForDraft(
   draftId: string,
-  timeoutMs = PLAN_RECOVERY_WAIT_MS,
+  opts: WaitForDraftOptions = {},
 ): Promise<PlanDraft> {
-  const deadline = Date.now() + timeoutMs;
+  return planDraftFromResponse(await waitForDraftRow(draftId, opts));
+}
+
+/**
+ * LA RÉPONSE BRUTE DE LA LIGNE, UNE FOIS `done`.
+ *
+ * ⟳ 2026-09-15 · LOT E — C'EST LE CHEMIN NORMAL, plus le chemin de secours. Le
+ * serveur répond 202 en quelques secondes (`accepted`) et compose en
+ * arrière-plan ; la ligne est la seule vérité, et le navigateur la relit
+ * toutes les 2 s en rapportant son stade à l'écran.
+ *
+ * LA FIN EST DÉCIDÉE PAR LA LIGNE, PAS PAR L'HORLOGE D'ICI : `done`, `failed`,
+ * ou un âge au-delà du bail (`plan_expired` — plus personne n'écrit).
+ * `plan_still_composing` ne reste que pour une échéance locale que rien n'a
+ * tranchée ; elle est plus longue que deux baux, donc jamais atteinte en
+ * pratique. Avant ce lot, la relecture s'arrêtait 60 s AVANT le bail et cette
+ * phrase-là était la seule issue possible d'un worker mort.
+ */
+async function waitForDraftRow(
+  draftId: string,
+  opts: WaitForDraftOptions = {},
+): Promise<Record<string, unknown>> {
+  const deadline = Date.now() + (opts.timeoutMs ?? PLAN_RECOVERY_WAIT_MS);
+  // ⟳ LOT C — la ligne suivie peut changer : la mère meurt, on suit sa fille.
+  let current = draftId;
   do {
     const { data, error } = await supabase
       .from("student_meal_drafts")
-      .select("id,status,response,error_code,expires_at,created_at")
-      .eq("id", draftId)
+      .select(`id,status,response,error_code,expires_at,created_at,stage,stage_at,${RELAUNCH_COLUMNS}`)
+      .eq("id", current)
       .maybeSingle();
     if (error || !data) throw new Error("composition_unavailable");
     const row = data as Record<string, unknown>;
-    const state = recoverableRow(row);
-    if (state?.state === "done") return state.draft;
-    if (String(row.status ?? "") === "failed") {
-      const code = String(row.error_code ?? "").trim();
-      throw new Error(code || "composition_unavailable");
-    }
-    // ⛔ ET SURTOUT PAS ATTENDRE JUSQU'AU BOUT: `recoverableRow` a déjà rendu
-    // `null` sur une ligne périmée, donc la boucle tournerait 235 s pour finir
-    // sur `plan_still_composing` — la phrase exactement fausse.
+    const created = Date.parse(String(row.created_at ?? ""));
+    opts.onProgress?.({
+      stage: stageOf(row.stage),
+      elapsedMs: Number.isFinite(created) ? Math.max(0, Date.now() - created) : 0,
+      attempt: Number(row.attempt ?? 1) || 1,
+    });
+    const status = String(row.status ?? "");
     if (
-      (String(row.status ?? "") === "pending" ||
-        String(row.status ?? "") === "running") && outOfLease(row.created_at)
+      (status === "done" || status === "adopted") && row.response &&
+      typeof row.response === "object" && !Array.isArray(row.response)
     ) {
-      throw new Error("plan_expired");
+      return row.response as Record<string, unknown>;
+    }
+    const dead = status === "failed" ||
+      ((status === "pending" || status === "running") && outOfLease(row.created_at));
+    if (dead) {
+      const token = status === "failed" ? rowFailureToken(String(row.error_code ?? "")) : "plan_expired";
+      // ⛔ UNE MORT N'EST TERMINALE QUE SI PERSONNE NE PEUT RELANCER. Une mère
+      // `async` a droit à UNE fille : on la cherche ; sinon on attend un tick.
+      if (token === "plan_expired" && relaunchable(row)) {
+        const child = await childOf(current);
+        if (child) {
+          current = child;
+          await new Promise((resolve) => globalThis.setTimeout(resolve, 2_000));
+          continue;
+        }
+        if (Date.now() < relaunchDeadline(row)) {
+          await new Promise((resolve) => globalThis.setTimeout(resolve, 2_000));
+          continue;
+        }
+      }
+      throw new Error(token);
     }
     if (Date.now() >= deadline) break;
     await new Promise((resolve) => globalThis.setTimeout(resolve, 2_000));
@@ -937,12 +1079,15 @@ function localTodayIso(): string {
   return `${d.getFullYear()}-${m}-${day}`;
 }
 
-export async function composeDraft(input: ComposeDraftInput): Promise<PlanDraft> {
+export async function composeDraft(
+  input: ComposeDraftInput,
+  opts: WaitForDraftOptions = {},
+): Promise<PlanDraft> {
   // ⛔ AUCUNE NOTE ICI, NI DANS LE CORPS NI AVANT (lot 4). La phrase est lue
   // par `readNote` depuis le DIALOGUE, qui attend la réponse à une éventuelle
   // question avant d'appeler ceci. Lire ici « au cas où » a déjà coûté un
   // double cran: la reprise lisait, puis l'adoption relisait la même phrase.
-  const payload = await callGenerator(input, "draft");
+  const payload = await callGenerator(input, "draft", null, {}, opts.onProgress);
   return {
     plan: {
       ...readDraftPlan(payload),
@@ -985,12 +1130,13 @@ export async function editCells(
   input: ComposeDraftInput,
   draftId: string,
   cells: ReadonlyArray<NoteCell>,
+  opts: WaitForDraftOptions = {},
 ): Promise<PlanDraft> {
   const payload = await callGenerator(input, "draft", null, {
     operation: "edit_cells",
     draft_id: draftId,
     cells: cells.map((c) => ({ day: c.day, slot: c.slot, text: c.text })),
-  });
+  }, opts.onProgress);
   return {
     plan: { ...readDraftPlan(payload), planKind: "household" },
     envelope: readDraftEnvelope(payload),
@@ -1084,6 +1230,8 @@ async function callGenerator(
    * construction : `edit_cells` est une composition à tous les autres égards.
    */
   extra: Record<string, unknown> = {},
+  /** ⟳ 2026-09-15 · LOT B — le stade de la ligne, pour l'écran qui attend. */
+  onProgress?: (progress: DraftProgress) => void,
 ): Promise<Record<string, unknown>> {
   // ⟳ 2026-09-10 · LOT 7 — UN SEUL MOTEUR, ÉCRIT EN CONSTANTE.
   // Il n'y a plus de branche à se tromper: `generate-household-meal-v1` sert
@@ -1195,6 +1343,28 @@ async function callGenerator(
     }));
   } finally {
     clearTimeout(timer);
+  }
+  // ══════════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-15 · LOT E — L'ACCEPTATION, ET LA LIGNE QUI DÉCIDE DE LA SUITE.
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // Le serveur ne compose plus dans la requête : il ouvre la ligne, répond 202
+  // en quelques secondes — `accepted`, ou `draft_in_flight` avec l'identifiant
+  // de la MÊME demande déjà en vol — et finit en arrière-plan. Supabase coupe
+  // toute fonction qui n'a pas répondu en 150 s ; une composition de foyer en
+  // prend 244 à 281. Mesuré le 2026-09-15 : la première tentée en hébergé est
+  // morte sans rien écrire.
+  //
+  // ⛔ AVANT CE LOT, LE 202 `draft_in_flight` ÉTAIT LU COMME UN PLAN VIDE (un
+  // 2xx arrive dans `data`, pas dans `error`). Les deux 202 mènent au même
+  // endroit : la ligne, relue jusqu'à `done`.
+  const early = asRecord(data);
+  const earlyDraftId = typeof early?.draft_id === "string" ? early.draft_id.trim() : "";
+  if (
+    !error && earlyDraftId !== "" &&
+    (early?.accepted === true || early?.error === "draft_in_flight")
+  ) {
+    return await waitForDraftRow(earlyDraftId, { onProgress });
   }
   if (error) {
     // ⛔ NOTRE DÉLAI N'EST PAS UNE PANNE, ET IL NE DOIT PAS SE LIRE COMME UNE.

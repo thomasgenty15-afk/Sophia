@@ -154,6 +154,7 @@ async function runHouseholdLane(house: BenchHousehold): Promise<BenchRun> {
   };
 
   const origServe = anyDeno.serve;
+  const origEdgeRuntime = (globalThis as { EdgeRuntime?: unknown }).EdgeRuntime;
   const origFetch = globalThis.fetch;
   const origLog = console.log;
   const origWarn = console.warn;
@@ -169,6 +170,17 @@ async function runHouseholdLane(house: BenchHousehold): Promise<BenchRun> {
     anyDeno.serve = (h: unknown) => {
       capturedHandler = h as (req: Request) => Promise<Response>;
       return { finished: Promise.resolve(), shutdown: () => Promise.resolve() };
+    };
+    // ⟳ 2026-09-15 · LOT A — LE RUNTIME, MODÉLISÉ. Le handler répond 202 dès la
+    // ligne de brouillon ouverte et confie la composition à
+    // `EdgeRuntime.waitUntil()`. Sans ce faux runtime, la réponse revient AVANT
+    // l'appel modèle et le banc ne verrait aucun prompt (mesuré : « HTTP 202,
+    // aucun appel modèle »). On attend les promesses confiées, comme le vrai.
+    const background: Promise<unknown>[] = [];
+    (globalThis as { EdgeRuntime?: unknown }).EdgeRuntime = {
+      waitUntil: (work: Promise<unknown>) => {
+        background.push(work);
+      },
     };
 
     const json = (value: unknown, status = 200): Response =>
@@ -320,6 +332,9 @@ async function runHouseholdLane(house: BenchHousehold): Promise<BenchRun> {
       }),
     );
     const responseBody = await res.text();
+    // La composition continue après le 202 : on attend qu'elle ait fini, comme
+    // le runtime le ferait, avant de lire le prompt qu'elle a envoyé.
+    await Promise.allSettled(background);
 
     assert(
       prompts.length > 0,
@@ -337,6 +352,11 @@ async function runHouseholdLane(house: BenchHousehold): Promise<BenchRun> {
     };
   } finally {
     anyDeno.serve = origServe;
+    if (origEdgeRuntime === undefined) {
+      delete (globalThis as { EdgeRuntime?: unknown }).EdgeRuntime;
+    } else {
+      (globalThis as { EdgeRuntime?: unknown }).EdgeRuntime = origEdgeRuntime;
+    }
     globalThis.fetch = origFetch;
     console.log = origLog;
     console.warn = origWarn;

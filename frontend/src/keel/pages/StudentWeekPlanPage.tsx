@@ -38,7 +38,9 @@ import {
   recoverLatestDraft,
   waitForDraft,
   writeFromDraft,
+  type DraftProgress,
 } from "../api/planDraft";
+import { draftProgressLabel } from "../lib/draftProgressLabel";
 import { loadMealPlans } from "../api/mealGeneration";
 // LA TABLE DES REFUS EST FERMÉE ET PARTAGÉE. Un jeton inconnu ressort tel quel,
 // jamais sous une phrase passe-partout: `note_unusable` est le seul refus que la
@@ -1176,6 +1178,8 @@ export default function StudentWeekPlanPage() {
   // d'appétit appliqué deux fois. Voir `composeDraft`.
   const [draftOpen, setDraftOpen] = React.useState(false);
   const [draftBusy, setDraftBusy] = React.useState(false);
+  /** ⟳ 2026-09-15 · LOT B — le stade réel de la composition, lu dans la ligne. */
+  const [draftProgress, setDraftProgress] = React.useState<DraftProgress | null>(null);
   const [draftFailure, setDraftFailure] = React.useState<string | null>(null);
   /**
    * LOT D — LE PLAN ÉCOULÉ QUI ATTEND SON RETOUR. `null` = il n'y en a pas, et
@@ -1814,7 +1818,7 @@ export default function StudentWeekPlanPage() {
         setDraftBusy(true);
         const recovered = recoverable.state === "done"
           ? recoverable.draft
-          : await waitForDraft(recoverable.draftId);
+          : await waitForDraft(recoverable.draftId, { onProgress: setDraftProgress });
         if (cancelled) return;
         setDraft(recovered);
         setDraftOpen(true);
@@ -1822,7 +1826,10 @@ export default function StudentWeekPlanPage() {
       } catch (error) {
         if (!cancelled) setDraftFailure(draftRefusal(error));
       } finally {
-        if (!cancelled) setDraftBusy(false);
+        if (!cancelled) {
+          setDraftBusy(false);
+          setDraftProgress(null);
+        }
       }
     })();
     return () => {
@@ -1850,7 +1857,7 @@ export default function StudentWeekPlanPage() {
       // ⚠️ LE CHEMIN DE LA PHRASE N'EST PAS PERDU: il vit dans le dialogue
       // d'aperçu (`onReadNote`, plus bas), qui LUI peut afficher la question et
       // attendre la réponse avant de recomposer.
-      const composed = await composeDraft(draftInput());
+      const composed = await composeDraft(draftInput(), { onProgress: setDraftProgress });
       setDraft(composed);
       // (voir `draftRefusal` pour la traduction du motif)
       setDraftOpen(true);
@@ -1858,6 +1865,7 @@ export default function StudentWeekPlanPage() {
       setDraftFailure(draftRefusal(e));
     } finally {
       setDraftBusy(false);
+      setDraftProgress(null);
     }
   }, [draftInput, draftRefusal]);
 
@@ -2748,7 +2756,9 @@ export default function StudentWeekPlanPage() {
                   disabled={draftBusy}
                   onClick={() => void askForDraft()}
                 >
-                  {draftBusy ? t("plan.draft.working") : t("plan.draft.cta")}
+                  {draftBusy
+                    ? draftProgressLabel(draftProgress) ?? t("plan.draft.working")
+                    : t("plan.draft.cta")}
                 </Button>
               </div>
             )

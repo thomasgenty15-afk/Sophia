@@ -55,7 +55,9 @@ import {
   recoverLatestDraft,
   waitForDraft,
   writeFromDraft,
+  type DraftProgress,
 } from "../api/planDraft";
+import { draftProgressLabel } from "../lib/draftProgressLabel";
 import CookingStyleField from "../components/CookingStyleField";
 import GroceryRunsField from "../components/GroceryRunsField";
 import GoalTiles from "../components/GoalTiles";
@@ -619,6 +621,8 @@ export default function SetupPage() {
     number | null
   >(null);
   const [busy, setBusy] = React.useState(false);
+  /** ⟳ 2026-09-15 · LOT B — le stade réel de la composition, lu dans la ligne. */
+  const [progress, setProgress] = React.useState<DraftProgress | null>(null);
   const [failure, setFailure] = React.useState<string | null>(null);
   /** Le refus des gestes de la carte des bouches — rendu SUR la carte. */
   const [mouthFailure, setMouthFailure] = React.useState<string | null>(null);
@@ -898,7 +902,7 @@ export default function SetupPage() {
         setBusy(true);
         const recovered = recoverable.state === "done"
           ? recoverable.draft
-          : await waitForDraft(recoverable.draftId);
+          : await waitForDraft(recoverable.draftId, { onProgress: setProgress });
         if (cancelled) return;
         setDraft(recovered);
         setDraftOpen(true);
@@ -908,7 +912,10 @@ export default function SetupPage() {
           setComposeFailure(refusalMessage(error));
         }
       } finally {
-        if (!cancelled) setBusy(false);
+        if (!cancelled) {
+          setBusy(false);
+          setProgress(null);
+        }
       }
     })();
     return () => {
@@ -1653,6 +1660,7 @@ export default function SetupPage() {
       setComposeFailure(error instanceof Error ? error.message : String(error));
     } finally {
       setBusy(false);
+      setProgress(null);
     }
   }
 
@@ -3202,7 +3210,7 @@ export default function SetupPage() {
       setFacts(fresh);
       let composed: PlanDraft;
       try {
-        composed = await composeDraft(draftInput());
+        composed = await composeDraft(draftInput(), { onProgress: setProgress });
       } catch (error) {
         throw new Error(refusalMessage(error));
       }
@@ -3756,7 +3764,7 @@ export default function SetupPage() {
                 disabled={busy || !verdict.ok}
                 onClick={() => guardCompose(askForDraft)}
               >
-                {busy ? <ComposingLabel /> : t("setup.plan.compose")}
+                {busy ? <ComposingLabel progress={progress} /> : t("setup.plan.compose")}
               </Button>
             ) : null}
             {isLast && !canCompose ? (
@@ -7243,7 +7251,18 @@ function RequestStep({
 const COMPOSING_MESSAGES = 8;
 const COMPOSING_TICK_MS = 15_000;
 
-function ComposingLabel() {
+/**
+ * ⟳ 2026-09-15 · LOT B — LE STADE RÉEL D'ABORD, LA MINUTERIE EN REPLI.
+ *
+ * ⛔ LES HUIT PHRASES NE PRÉTENDAIENT PAS LIRE L'AVANCEMENT, ET ÇA SE VOYAIT :
+ * 8 × 15 s = deux minutes, puis la huitième restait figée pendant les quatre
+ * minutes suivantes (mesuré le 2026-09-15 sur une composition de 6 min 20).
+ * Depuis que le serveur écrit `stage` dans la ligne et que le navigateur la
+ * relit toutes les 2 s, la première ligne est ce qui se passe VRAIMENT, avec le
+ * temps écoulé ; les phrases minutées ne servent plus qu'avant le premier
+ * stade (la ligne vient d'être ouverte) — quelques secondes.
+ */
+function ComposingLabel({ progress }: { progress: DraftProgress | null }) {
   const [index, setIndex] = React.useState(0);
 
   React.useEffect(() => {
@@ -7255,6 +7274,7 @@ function ComposingLabel() {
     return () => globalThis.clearTimeout(id);
   }, [index]);
 
+  const live = draftProgressLabel(progress);
   return (
     <>
       <Loader2 aria-hidden className="h-4 w-4 shrink-0 animate-spin" />
@@ -7263,7 +7283,7 @@ function ComposingLabel() {
           région vivante, un lecteur d'écran n'apprendrait jamais que ça
           avance. */}
       <span aria-live="polite">
-        {t(
+        {live ?? t(
           `setup.plan.composing_${index + 1}` as "setup.plan.composing_1",
         )}
       </span>
