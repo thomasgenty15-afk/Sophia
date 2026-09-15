@@ -436,3 +436,14 @@ dix, `unit_bumped` = 0, `overdrawn_after` = 0.** Rapport : `docs/keel/REPRISE-DI
 4. **Ce qui n'a pas été exercé n'est pas prouvé par la campagne.** Palier d'unité et refus de masse bloquant
    sont tenus par leurs tests seuls : aucune casserole courte en dix tirs. Le rapport le dit colonne par
    colonne.
+
+### La preuve N=2, et la règle qu'elle ajoute — 2026-09-15, 16 h
+
+Réparation réelle à N=2 prouvée sur le banc : premier jet en conserve (omnivore), Lea végane, 7 refus
+bloquants `regime_forbidden_component`, **un appel réel de 71 s, `adopt`, 7 violations retirées, 0
+ajoutée, plan écrit**. Rapport : `REPRISE-DIX-2026-09-15.md`, dernière section.
+
+5. **Une preuve hybride dit ce qui est en conserve et ce qui est réel, ligne par ligne.** Le premier jet
+   était figé, l'appel de réparation réel, le handler celui de l'arbre. Elle prouve le tour de
+   réparation, pas la fréquence du défaut au premier jet. Et avant de payer, quatre répétitions à blanc
+   ont fixé l'horloge, le régime et le compte des refus — un scénario se règle à zéro dépense.

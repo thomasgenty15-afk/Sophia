@@ -155,3 +155,48 @@ portions conformes   169 / 170 (±10 %) · complètes 164 / 170
 | 3 | ingrédients | 1325 vérifiés / 1325 lignes | estimation 0 · attente 0 | non mesurables 0 |
 | 7 | allergies déclarées | 5 bouche(s) avec matière | causes d'exclusion dans la garde : 0 | — |
 | 9 | prose de recette périmée | 0 / 1325 | | |
+
+## Preuve d'une réparation réelle utile à N=2 — 2026-09-15, 16 h, sur la configuration finale
+
+**D3 prise par le propriétaire le 15/09 : un plan livrable avec écart nommé est utilisable.** Restait le
+critère § 3.3 « une réparation réelle utile à N=2 et N=4 » : N=4 était tenu (tir 18 des 30), N=2 non
+(tir 1 des 30 : deux appels sans ramener les repas). Aucun cas naturel ne l'exerçant sur les dix, la
+preuve est faite avec le **budget ciblé distinct** que la passation prévoit, sur le banc
+(`banc-lot-F.ts`, le vrai handler importé en process, code de l'arbre après `0c955813`).
+
+| | |
+|---|---|
+| cas | `gain`, deux bouches : Max (titulaire, prise de muscle) et **Lea, déclarée végane** (`--regimes=,vegan`) |
+| premier jet | **en conserve** : la réponse réelle du 11/09 (omnivore : agneau, saumon, feta, yaourt, petits-suisses, parmesan), horloge injectée au vendredi 15 h 07, fenêtre de 14 cases |
+| défaut bloquant à l'entrée | **7 × `regime_forbidden_component`** (chaque contenant de Lea contre son régime), 24 refus, 7 bloquants, décision `call: true` |
+| appel réel | **un seul** : `gpt-5.6-luna`, tour 1, 46,5 Ko envoyés, 104,7 Ko reçus, **71,1 s** |
+| jugement | `adopt` : 26 défauts → 13, **`safety_removed: 7`, `safety_added: 0`** |
+| ce que le modèle a fait | recomposé la **base commune** en végane (tofu à la place de l'agneau, du saumon et des laitages ; parmesan retiré) sur les 7 plats, et ajouté un plat à part au titulaire ; verrou de régime après réparation : `clean`, 0 morsure |
+| sortie | **HTTP 200**, plan `af64330a…` écrit, `livrable_avec_ecarts`, 0 bloquant, 14 cases servies sur 14 |
+| écarts nommés restants (comptés) | `own_meal_dish_missing` ×6 pour le titulaire, `protein_floor_short` ×3 pour Lea, `ingredient_bought_unused` ×2, `unclassified_perishable` ×1 |
+| appels dépensés | 1 (plafond demandé 2) ; quatre répétitions à blanc avant, à zéro dépense |
+| preuve | `scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/gain-n2preuve1-2026-09-11T13-08-13-512Z.json` (journal du handler inclus) |
+
+**Ce que ça prouve** : sur la configuration finale, une bouche à régime servie sept fois contre son régime
+est ramenée à zéro violation en un appel, et le plan sort. **Ce que ça ne prouve pas** : que le premier
+jet réel commet cette erreur souvent (sur les 30, le profil végane N=2 a été livré 4 fois sur 5 sans
+réparation), ni que les écarts comptés restants sont acceptables au-delà de D3.
+
+**Deux impasses, dites.** L'allergène injecté (`--allergene`) ne convient pas : il est refusé par le
+verrou de sortie, sans passer par la réparation. Et l'échange d'ingrédient (`--echange`) ne touche ni
+les contenants ni les titres, que le contrôle de régime lit ; réduire le cas à deux composantes aurait
+demandé une fixture bricolée à la main — on a gardé le cas entier, tel que le produit le rencontre.
+
+### Table des critères, à jour
+
+| critère § 3.3 | état |
+|---|---|
+| zéro violation essentielle B1–B6 sur un plan activé | tenu |
+| ≥ 24/30 sans rattrapage | tenu (26/30, puis 10/10) |
+| ≥ 27/30 utilisables, ≥ 4/5 par profil, **lecture D3** | tenu : 27/30 et 10/10 ; par profil 5/5 sur les six des 30 sauf le profil 8 (4/5) et le profil 1 (4/5), 5/5 sur les deux des dix |
+| délai, 546, demandes sans issue | tenu |
+| réparation réelle utile N=2 et N=4 | **tenu** (tir 18 des 30 ; preuve ci-dessus) |
+| recettes, variantes, courses, adoption | tenu |
+
+Restent les opérations humaines (`db push`, `functions deploy`, CORS et clés en prod, parcours réel sur
+un compte de test) et le risque nommé des casseroles en unités (2/30, journal posé, non reproduit).
