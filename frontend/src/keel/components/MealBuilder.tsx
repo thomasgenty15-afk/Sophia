@@ -64,7 +64,7 @@ import {
   readKitchenEquipment,
 } from "../api/kitchenEquipment";
 import type { PracticalConstraints } from "../api/practicalConstraints";
-import { edgeRefusalKey } from "../copy/planRefusals";
+import { planFailureKey } from "../copy/planRefusals";
 import { t } from "../i18n/t";
 import { formatBudgetAmount, formatDate } from "../i18n/format";
 import { plural } from "../i18n/plural";
@@ -1083,7 +1083,10 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
       // est fermée et partagée avec l'écran du foyer; un jeton inconnu ressort
       // tel quel, jamais sous une phrase passe-partout.
       const raw = e instanceof Error ? e.message : String(e);
-      const key = edgeRefusalKey(raw.split(":")[0]);
+      // `planFailureKey` ET PAS `edgeRefusalKey`: `plan_still_composing` et
+      // `plan_expired` sont des issues du NAVIGATEUR (`CLIENT_OUTCOME_KEYS`),
+      // et l'autre traducteur les rendait en jeton brut (mesuré le 2026-09-15).
+      const key = planFailureKey(raw.split(":")[0]);
       setError(key ? t(key) : raw);
       // ÉCHEC: le formulaire REVIENT, avec ce qui a été saisi et le motif. La
       // semaine précédente n'a pas bougé — le moteur écrit une ligne neuve ou

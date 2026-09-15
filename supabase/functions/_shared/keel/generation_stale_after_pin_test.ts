@@ -12,6 +12,7 @@ import {
   GENERATION_LOCK_MARGIN_MS,
   PLAN_REQUEST_BUDGET_MS,
 } from "./generation_model.ts";
+import { DRAFT_STUCK_AFTER_MS } from "./draft_store.ts";
 
 const ROOT = new URL("../../../", import.meta.url);
 const SQL = await Deno.readTextFile(
@@ -20,6 +21,28 @@ const SQL = await Deno.readTextFile(
 const HANDLER = await Deno.readTextFile(
   new URL("functions/generate-household-meal-v1/index.ts", ROOT),
 );
+const SWEEPER_SQL = await Deno.readTextFile(
+  new URL("migrations/20260915181000_les_balayeuses_suivent_le_bail.sql", ROOT),
+);
+
+// ⟳ 2026-09-15 · LOT D — LES BALAYEUSES SUIVENT LE BAIL, DES DEUX CÔTÉS.
+// « 7 minutes » (420 s) était SOUS le bail (440 s) : une composition vivante
+// dans ses vingt dernières secondes de budget pouvait être marquée morte.
+Deno.test("le balayage du worker vaut le bail, pas un nombre à part", () => {
+  assertEquals(DRAFT_STUCK_AFTER_MS, PLAN_REQUEST_BUDGET_MS + GENERATION_LOCK_MARGIN_MS);
+});
+
+Deno.test("la balayeuse SQL lit keel_generation_stale_after(), plus '7 minutes'", () => {
+  assert(SWEEPER_SQL.includes("v_stale interval := public.keel_generation_stale_after();"));
+  assert(SWEEPER_SQL.includes("coalesce(started_at, created_at) < now() - v_stale"));
+  const code = SWEEPER_SQL.split("\n").filter((l) => !l.trimStart().startsWith("--")).join("\n");
+  assertEquals(code.includes("interval '7 minutes'"), false);
+  // La preuve tourne DANS la migration, dans les deux sens : vivante à 430 s,
+  // morte à 450 s. Sans le second cas, une garde qui ne balaie plus rien
+  // ressemblerait à une garde qui marche.
+  assert(SWEEPER_SQL.includes("interval '430 seconds'"));
+  assert(SWEEPER_SQL.includes("interval '450 seconds'"));
+});
 
 Deno.test("épinglage — l'échéance SQL vaut budget + marge, soit 440 s", () => {
   assertEquals(PLAN_REQUEST_BUDGET_MS + GENERATION_LOCK_MARGIN_MS, 440_000);

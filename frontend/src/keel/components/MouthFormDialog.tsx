@@ -20,7 +20,6 @@ import {
 import { mealCopy } from "../api/mealLabels";
 import { type MouthVoice, voiced, whoOf } from "../lib/mouthVoice";
 import { arrivalHorizonCopy } from "../lib/arrivalHorizon";
-import { scaleDirectionOf } from "../../../../supabase/functions/_shared/keel/weight_pace.ts";
 import {
   ageStateOfDraft,
   blockList,
@@ -1273,72 +1272,36 @@ export function MouthPreferencesFields(
   // manquants s'ouvriront au plan. Décocher ne prive donc de rien — c'est ce
   // qui rend la pré-coche acceptable.
 
-  // ── CE QUI VERROUILLE, ET SEULEMENT QUAND ÇA A UN SENS ────────────────────
-  // ⟳ 2026-09-06 — `<=` EST DEVENU `===`, ET LE `<=` ÉTAIT UN PIÈGE MASQUÉ.
-  // Il ne se voyait pas tant que l'effet ci-dessus pré-cochait exactement
-  // `floorCount` moments: on partait donc TOUJOURS à l'égalité. Sans lui, une
-  // fiche part à zéro coché — et `tickedCount <= floorCount` verrouillait la
-  // PREMIÈRE case cochée (1 <= 4), sans qu'aucune autre ne soit cochable pour
-  // la libérer. Un formulaire où le premier geste est irréversible.
-  //
-  // ⛔ 2026-09-08 — LA PRÉ-COCHE EST REVENUE, DONC LE MASQUE AUSSI: on repart
-  // à l'égalité, et un `<=` redeviendrait invisible en fiche neuve. Il ne
-  // mordrait qu'après le premier décochage — c'est-à-dire chez la personne qui
-  // essaie précisément de corriger ce qu'on lui a proposé. NE LE REMETS PAS.
-  // `oneCookingSessionField`-style: le test qui tient ça est
-  // `rhythmPrefill.int.test.ts :: « le verrou ne mord qu'à l'égalité »`.
-  //
-  // La règle juste est celle que ce fichier écrit déjà plus bas: « on peut
-  // échanger, on ne peut pas DESCENDRE ». Elle ne mord qu'À l'égalité —
-  // au-dessous, la personne est déjà sous le compte et le plan complètera;
-  // au-dessus, il reste de la marge.
   // ══════════════════════════════════════════════════════════════════════════
-  // ⛔ ON N'IMPOSE DE MANGER QU'À QUI VEUT PRENDRE DU POIDS — 2026-09-06
+  // ⛔ PLUS AUCUNE CASE N'EST GRISÉE — 2026-09-15
   // ══════════════════════════════════════════════════════════════════════════
   //
-  // Décision produit, mot pour mot: « si une personne n'a pas pour objectif de
-  // prendre du poids il faut pas qu'on impose de manger. Donc on propose
-  // 3 repas par jour mais si c'est pas pour gagner du poids on peut décocher
-  // et après l'algorithme fera comme il peut ».
+  // Décision produit: « les moments … ça doit pas être bloqué, mais en fonction
+  // de l'objectif calorique il faut que ce soit coché ». Les deux moitiés vont
+  // ensemble: on PROPOSE le compte que le corps demande (l'effet de pré-coche
+  // ci-dessus), et on ne le RETIENT jamais.
   //
-  // ── CE QUE LE VERROU FAISAIT, ET POURQUOI ÇA NE TIENT QUE DANS UN SENS ───
-  // Le plancher vient d'un plafond de MASSE: une assiette ne peut pas porter
-  // toute la journée, donc au-delà d'un certain besoin il faut plus de
-  // moments. Le raisonnement est juste, mais sa CONSÉQUENCE ne l'est que quand
-  // on cherche à faire ENTRER de l'énergie. Pour qui maintient ou perd, une
-  // journée en trois repas qui n'atteint pas tout à fait sa cible n'est pas un
-  // défaut à corriger de force: c'est une journée ordinaire, et le plan
-  // compose au mieux dans ce qu'on lui laisse.
+  // ── CE QUI VIENT D'ÊTRE RETIRÉ, ET POURQUOI ÇA NE REVIENT PAS ────────────
+  // `gainsWeight` + `floorBinds` grisaient les cases cochées dès que les
+  // retirer serait passé sous `requiredCount`, et seulement en prise de poids.
+  // Le raisonnement tenait — une assiette a un plafond de masse, donc un grand
+  // besoin réclame un moment de plus — mais sa conséquence à l'écran était une
+  // case morte: la personne coche « prendre du muscle », ses trois repas
+  // apparaissent grisés, et elle ne peut plus dire qu'elle saute le petit-
+  // déjeuner. Le plancher reste VRAI, il n'est simplement plus OPPOSABLE.
   //
-  // ⛔ ET « IMPOSER DE MANGER » N'EST PAS UNE FIGURE DE STYLE. Une case grisée
-  // sur un goûter dit à quelqu'un qu'il doit prendre une collation. À une
-  // personne qui perd du poids, c'est le produit qui se met en travers de son
-  // objectif; à une personne qui a un rapport difficile à la nourriture, c'est
-  // pire que ça. Le plancher TCA est ailleurs et reste entier
-  // (`mouthTargetKcal`, `restriction_floor`): il protège d'un déficit, il ne
-  // réclame pas un repas de plus.
+  // ⚠️ ET RIEN N'EST PERDU QUAND ELLE DÉCOCHE. Le générateur dérive le plancher
+  // lui-même (`eatingStructureFor`, le MÊME module pur que cette réponse): les
+  // moments manquants s'ouvriront au plan. C'est ce qui rend le retrait du
+  // verrou sans conséquence sur la journée composée.
   //
-  // ⚠️ LE PLANCHER CONTINUE DE SE DIRE, DANS LES DEUX CAS. Ce qui disparaît est
-  // la contrainte, jamais l'information: la phrase annonce toujours combien de
-  // moments le plan ouvrira, et c'est ce qui évite de découvrir un goûter dans
-  // son plan sans rien pour l'expliquer.
-  // ⚠️ `""` — AUCUNE DIRECTION CHOISIE — N'IMPOSE RIEN NON PLUS. Elle n'est pas
-  // « probablement une prise »: c'est une question sans réponse, et un verrou
-  // posé dessus réclamerait un repas au nom d'un objectif que personne n'a
-  // encore nommé.
-  const gainsWeight = draft.goal !== "" && scaleDirectionOf(draft.goal) === "up";
-  const floorBinds = gainsWeight && floorCount > 0 &&
-    tickedCount === floorCount;
-  // ── ET CE QUI PARLE, QUI N'EST PAS LA MÊME CHOSE ─────────────────────────
-  // La phrase couvre TOUT le dessous du plancher, verrou compris: à zéro coché
-  // elle annonce ce que le plan ouvrira, à l'égalité elle explique en plus la
-  // case grisée. Au-DESSUS, elle se tait — il n'y a plus rien à ouvrir, et une
-  // phrase qui resterait dirait une contrainte que l'écran n'applique plus.
-  //
-  // ⚠️ C'EST L'ANCIEN `floorBinds`, ET CE N'EST PAS UN HASARD: il faisait les
-  // deux travaux à la fois parce que l'écran pré-cochait exactement
-  // `floorCount` moments, ce qui collait les deux conditions l'une sur l'autre.
-  // Elles se séparent le jour où la fiche part vide.
+  // ⛔ NE REMETS PAS `<=` À LA PLACE DE `<` ICI NON PLUS. Le piège est écrit au
+  // complet dans `rhythmPrefill.int.test.ts`; il vaut pour toute condition
+  // posée sur `tickedCount`.
+  // ── CE QUI PARLE, ET SEULEMENT ÇA ────────────────────────────────────────
+  // La phrase couvre tout le dessous du plancher: à zéro coché elle annonce ce
+  // que le plan ouvrira, à l'égalité elle dit le compte que la fiche porte.
+  // Au-DESSUS, elle se tait — il n'y a plus rien à ouvrir.
   const floorSpeaks = floorCount > 0 && tickedCount <= floorCount;
 
   /**
@@ -1660,11 +1623,10 @@ export function MouthPreferencesFields(
               // « au moins N moments », parce qu'une assiette a un plafond de
               // masse. Lesquels reste le choix de la personne.
               //
-              // ⇒ ON PEUT ÉCHANGER, ON NE PEUT PAS DESCENDRE. Un moment coché
-              // se verrouille seulement quand en retirer un ferait passer sous
-              // le compte requis. Cocher `before_bed` libère aussitôt les
-              // autres, et le petit-déjeuner redevient décochable.
-              const locked = on && floorBinds;
+              // ⟳ 2026-09-15 — LE VERROU EST PARTI, ET `locked` AVEC LUI. Voir
+              // le pavé de `floorSpeaks`: on propose le compte, on ne le retient
+              // pas. Une case de cette liste n'est désactivée que pendant une
+              // écriture en cours (`props.busy`).
               return (
                 <li
                   key={slot}
@@ -1681,8 +1643,7 @@ export function MouthPreferencesFields(
                       type="checkbox"
                       className="h-4 w-4 shrink-0 accent-ink"
                       checked={on}
-                      disabled={props.busy || locked}
-                      data-mouth-slot-locked={locked ? slot : undefined}
+                      disabled={props.busy}
                       onChange={() => {
                         const current = draft.rhythm ?? [];
                         const next: EatingOccasionSlot[] = on
@@ -1806,52 +1767,40 @@ export function MouthPreferencesFields(
               {t(voiced("household.mouth.rhythm_house", voice), { who })}
             </p>
           ) : null}
-          {/* ⟳ 2026-09-10 — CE QUE LE PLAN COMPTE, ET CE QU'IL NE COMPTE PAS.
-              ⛔ ELLE REMPLACE UNE QUESTION PAR UN FAIT. Les cinq bulles
-              demandaient ce qui était pris à côté du plat pour en retrancher
-              l'énergie; le plan ne réserve plus rien hors de ce qu'il compose.
-              Sans cette phrase, quelqu'un qui ajoute du pain croirait que son
-              plan en tient compte — et rien à l'écran ne le démentirait. */}
-          <p className="mt-2 text-xs leading-5 text-ink-soft">
-            {t("household.mouth.portions_plan_only")}
-          </p>
+          {/* ⟳ 2026-09-15 — « Les portions sont calculées pour les aliments
+              prévus dans votre plan. Les ajouts personnels ne sont pas
+              inclus. » A ÉTÉ RETIRÉE, sur demande. Elle avait été posée le
+              2026-09-10 à la place des cinq bulles d'extras, pour dire ce que
+              le plan ne réserve pas. Ce qu'elle coûtait: un paragraphe de
+              gris de plus sous une liste qui en portait déjà deux, pour
+              répondre à une question que personne ne pose à cet endroit. */}
           {/* ⚠️ ON NE COCHE JAMAIS UN MOMENT SANS LE DIRE — la règle est déjà
               écrite pour le shaker, et elle vaut ici pour la même raison: un
               moment apparu tout seul, sans phrase, se lit comme un bug. */}
           {/* ── LE PLANCHER SE DIT DÈS QU'IL EXISTE — 2026-09-06 ────────────
-              ⟳ LA CONDITION ÉTAIT `floorBinds`, ET ELLE EST DEVENUE
-              `floorCount > 0`. Tant que l'écran cochait les moments tout seul,
-              les deux revenaient au même: on partait à l'égalité, donc la
-              phrase était toujours là. Depuis que plus rien n'est coché
-              d'office, `floorBinds` est faux sur une fiche neuve — et la
-              personne n'aurait plus rien pour savoir que le plan lui ouvrira
-              un goûter. Un plancher qu'on applique sans le nommer est
-              indiscernable d'une lubie du plan.
+              ⟳ LA CONDITION EST `floorCount > 0`, PAS « le verrou mord ». Un
+              plancher qu'on applique sans le nommer est indiscernable d'une
+              lubie du plan: sans cette phrase, la personne ne saurait pas d'où
+              vient le goûter coché, ni que le plan lui en ouvrira un.
 
-              ⟳ 2026-09-08 (soir) — TROIS PHRASES EMPILÉES SONT DEVENUES UNE,
-              ET L'EMPILEMENT SE CONTREDISAIT. Il rendait `rhythm_derived` +
-              `rhythm_derived_why` + `rhythm_floor_locked` à la suite: le
-              chiffre trois fois, « cochés » trois fois — et une invitation à
-              « décocher » posée juste au-dessus de la phrase qui explique que
-              les cases sont tenues. Signalé mot pour mot: « on peut pas
-              décocher les repas imposés ».
+              ⟳ 2026-09-08 (soir) — TROIS PHRASES EMPILÉES SONT DEVENUES UNE.
+              Le bloc rendait `rhythm_derived` + `rhythm_derived_why` +
+              `rhythm_floor_locked` à la suite: le chiffre trois fois,
+              « cochés » trois fois.
 
-              ⛔ UNE PHRASE PAR ÉTAT, ET CHACUNE NE NOMME QUE LE GESTE QUI
-              EXISTE. Tenu (`floorBinds`) ⇒ on ne peut qu'AJOUTER, et la phrase
-              porte alors le pourquoi, parce que c'est là qu'il sert. Libre ⇒ on
-              peut RETIRER. Les servir toutes les deux, c'était promettre un
-              geste que l'écran refuse — la cicatrice du bouton mort prise par
-              l'autre bout. */}
+              ⟳ 2026-09-15 — ET IL N'EN RESTE QU'UNE SEULE, POUR TOUT LE MONDE.
+              `rhythm_floor_locked` disait « Ils sont donc tenus — ajoutes-en un
+              pour pouvoir en retirer »: plus aucune case n'est tenue, donc
+              cette phrase décrirait un refus que l'écran n'oppose plus. La clé
+              est supprimée des deux paquets — laissée en place, elle serait
+              revenue au premier « une phrase par état ». Ce qui reste est le
+              FAIT (il faut {count} moments, on les a cochés) et le geste qui
+              existe partout: décocher. */}
           {floorSpeaks
             ? (
               <p className="text-xs leading-5 text-ink-soft">
                 {t(
-                  voiced(
-                    floorBinds
-                      ? "household.mouth.rhythm_floor_locked"
-                      : "household.mouth.rhythm_derived",
-                    voice,
-                  ),
+                  voiced("household.mouth.rhythm_derived", voice),
                   { who, count: String(floorCount) },
                 )}
               </p>
@@ -1984,14 +1933,13 @@ export function MouthPreferencesFields(
  * raison.
  */
 export function TargetAndPaceFields(
-  // ⚠️ `voice` ET `who` RESTENT DANS LE CONTRAT, ET NE SONT PLUS DESTRUCTURÉS
-  // (2026-09-03). Les deux `hint` qui les lisaient sont partis le 2026-09-01
-  // (voir les deux « PAS DE `hint` ICI » plus bas), et le lint rendait depuis
-  // « defined but never used » sur un fichier que personne ne modifiait — donc
-  // que le gate ne lintait jamais. Les six appelants les passent encore, et
-  // le prochain texte voisé les relira: on ne retire pas une prop du contrat
-  // pour faire taire une règle.
-  { draft, onChange, todayLocalIso, idPrefix }: {
+  // ⟳ 2026-09-15 — `voice` ET `who` SONT REDEVENUS LUS, ET C'ÉTAIT PRÉVU.
+  // Ils avaient cessé de l'être le 2026-09-03, quand les deux `hint` qui les
+  // lisaient sont partis; la note d'alors disait « le prochain texte voisé les
+  // relira » et refusait de les retirer du contrat pour faire taire un lint.
+  // Le texte voisé est arrivé: la phrase d'arrivée TUTOIE, et cette fiche se
+  // règle aussi pour une bouche du foyer.
+  { draft, onChange, todayLocalIso, idPrefix, voice, who }: {
     draft: MouthFormDraft;
     onChange: React.Dispatch<React.SetStateAction<MouthFormDraft>>;
     todayLocalIso: string;
@@ -2126,10 +2074,9 @@ export function TargetAndPaceFields(
                       un cran réglé ici est exécuté tel quel — en-tête de
                       `weight_pace.ts`. Il n'y a donc plus de cran qui « ne
                       change plus rien », et plus rien à dire à cette place. */}
-                  {/* ⚠️ L'HORIZON — REVENU LE 2026-09-01, À LA DEMANDE, ET
-                      IL NE REVIENT PAS NU.
+                  {/* ⚠️ L'HORIZON — IL DONNE UNE DATE DEPUIS LE 2026-09-15.
 
-                      ── CE QUE CETTE PLACE A PORTÉ ────────────────────────
+                      ── CE QUE CETTE PLACE A PORTÉ, DANS L'ORDRE ──────────
                       ① « About 12 weeks at this pace. » — retiré le
                          2026-08-22 (lot `L3`). Mesuré le même jour: l'écart
                          quotidien prescrit vaut 495 kcal/j et notre erreur
@@ -2141,30 +2088,44 @@ export function TargetAndPaceFields(
                          lignes POURQUOI il n'y avait pas de date — retirée le
                          2026-09-01: un cours de méthode servi à quelqu'un qui
                          pousse un curseur.
+                      ③ Le nombre de semaines collé à sa réserve (« le calcul
+                         du curseur, pas une date : seule la balance dira le
+                         rythme réel ») — du 2026-09-01 au 2026-09-15.
+                      ④ LA DATE, à la demande, mot pour mot: « Si tu fais
+                         attention à bien coller au plan, le xxx tu seras à ton
+                         objectif de XX kilos. C'est mathématique. »
 
-                      ── ⚠️ CE QUI REND LE CHIFFRE TENABLE AUJOURD'HUI ─────
-                      LA MESURE N'A PAS BOUGÉ. C'est la décision prise dessus
-                      qui a changé: le chiffre se rend COLLÉ à ce qu'il est —
-                      « le calcul du curseur, pas une date : seule la balance
-                      dira le rythme réel ». Les deux moitiés vivent dans UNE
-                      SEULE chaîne (`ARRIVAL_HORIZON_TEMPLATES`), donc aucun
-                      rendu ne peut prendre le nombre sans sa réserve, et
-                      `arrivalCopyCarriesItsReserve` refuse tout gabarit qui
+                      ── ⚠️ CE QUI REND LA DATE TENABLE ────────────────────
+                      LA MESURE N'A PAS BOUGÉ, et elle est recopiée en entier
+                      dans `lib/arrivalHorizon.ts`. Ce qui la tient ici est la
+                      CONDITION, pas une réserve: la date est exacte SI le plan
+                      est tenu, et la phrase le dit avant de donner le jour.
+                      Date, poids visé et condition vivent dans UNE SEULE
+                      chaîne (`ARRIVAL_HORIZON_TEMPLATES`), donc aucun rendu ne
+                      peut prendre la date sans sa condition, et
+                      `arrivalCopyCarriesItsCondition` refuse tout gabarit qui
                       la perdrait.
 
-                      ⛔ ET C'EST POUR ÇA QUE LE `hint` DU CHAMP AU-DESSUS EST
-                      PARTI: il disait « pas le moment où il sera atteint »,
-                      ce qui contredit ce paragraphe à quinze lignes de
-                      distance.
+                      ⛔ ET C'EST TOUJOURS POUR ÇA QUE LE `hint` DU CHAMP
+                      AU-DESSUS EST PARTI: il disait « pas le moment où il sera
+                      atteint », ce que cette phrase-ci contredit désormais mot
+                      pour mot.
 
                       ⚠️ TON NEUTRE, PAS AMBRE — même règle que la phrase de
                       saturation retirée plus haut. Ce n'est pas un risque,
                       c'est ce que le curseur vient de calculer.
 
+                      ⚠️ LA VOIX EST OBLIGATOIRE ICI. La phrase tutoie, et ce
+                      curseur se pousse aussi pour une bouche du foyer: sans
+                      `voice`, « tu seras à ton objectif » s'afficherait sous le
+                      prénom de quelqu'un d'autre — la cicatrice déjà payée sur
+                      cet écran avec « Tu en as coché 4 ».
+
                       ⚠️ LA PRÉMISSE EST DANS `arrivalHorizonFor`, PAS ICI:
                       cible acceptée, deux poids connus, cran vivant, écart
-                      non nul. Un `&&` de plus à l'écran serait une seconde
-                      prémisse à faire diverger de la première. */}
+                      non nul, et un jour d'aujourd'hui lisible. Un `&&` de
+                      plus à l'écran serait une seconde prémisse à faire
+                      diverger de la première. */}
                   {targetState.kind === "accepted" &&
                       targetState.horizon !== null
                     ? (
@@ -2172,6 +2133,8 @@ export function TargetAndPaceFields(
                         {arrivalHorizonCopy(
                           targetState.horizon,
                           uiLocale() === "fr" ? "fr" : "en",
+                          voice,
+                          who,
                         )}
                       </p>
                     )

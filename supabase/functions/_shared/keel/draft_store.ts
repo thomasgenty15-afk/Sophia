@@ -54,6 +54,7 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 
 import { sha256Hex, stableStringify } from "../memory/memorizer/utils.ts";
+import { GENERATION_LOCK_MARGIN_MS, PLAN_REQUEST_BUDGET_MS } from "./generation_model.ts";
 
 /** La table. Le nom vit ici et dans sa migration, nulle part ailleurs. */
 export const STUDENT_MEAL_DRAFTS_TABLE = "student_meal_drafts";
@@ -66,8 +67,17 @@ export const STUDENT_MEAL_DRAFTS_TABLE = "student_meal_drafts";
  */
 export const DRAFT_STORE_VERSION = "draft_store.v1";
 
-/** Sept minutes, le même nombre que la balayeuse SQL. */
-export const DRAFT_STUCK_AFTER_MS = 7 * 60 * 1000;
+/**
+ * L'ÂGE AU-DELÀ DUQUEL UNE LIGNE EN VOL N'A PLUS D'ÉCRIVAIN — le bail, et lui seul.
+ *
+ * ⛔ C'ÉTAIT « 7 minutes, le même nombre que la balayeuse SQL » : 420 s, sous
+ * les 440 s du bail (`PLAN_REQUEST_BUDGET_MS` + `GENERATION_LOCK_MARGIN_MS`).
+ * Une composition vivante dans ses vingt dernières secondes de budget — celles
+ * où elle ÉCRIT — pouvait être marquée morte pendant qu'elle finissait. Deux
+ * copies d'un même délai divergent ; ici il n'y en a plus qu'une par côté, et
+ * la balayeuse SQL lit `keel_generation_stale_after()` (20260915181000).
+ */
+export const DRAFT_STUCK_AFTER_MS = PLAN_REQUEST_BUDGET_MS + GENERATION_LOCK_MARGIN_MS;
 
 export const DRAFT_STATUSES = [
   "pending",
@@ -364,7 +374,7 @@ export async function sweepStuckDrafts(
     .update({
       status: "failed",
       error_code: "timed_out",
-      error: "draft_store: aucune fin apres 7 minutes",
+      error: "draft_store: aucune fin avant l'echeance du bail",
       finished_at: now.toISOString(),
     })
     .eq("user_id", userId)
@@ -490,6 +500,36 @@ export async function markRunning(
     return { ok: false, reason: errorMessageOf(error) };
   }
   return { ok: true, reason: null };
+}
+
+/**
+ * ⟳ 2026-09-15 · LOT B — OÙ EN EST LA COMPOSITION, ÉCRIT PAR CELUI QUI LA FAIT.
+ *
+ * Une fois la demande acceptée tôt (202) et finie en arrière-plan, la LIGNE est
+ * le seul endroit où le navigateur peut lire l'avancement. Vocabulaire fermé,
+ * comme `status` ; les quatre frontières sont celles du worker : avant l'appel
+ * modèle, avant les contrôles, avant une réparation, avant l'écriture.
+ */
+export const DRAFT_STAGES = ["composing", "checking", "repairing", "writing"] as const;
+export type DraftStage = (typeof DRAFT_STAGES)[number];
+
+/**
+ * Écrit le stade. NE LÈVE JAMAIS et ne rend rien : un stade qui ne s'écrit pas
+ * est un écran moins précis, pas une composition perdue. Gardé sur `running` —
+ * une ligne déjà `done`/`failed` ne reçoit pas un stade tardif.
+ */
+export async function markStage(
+  admin: DraftStoreClient,
+  id: string,
+  stage: DraftStage,
+  now: Date = new Date(),
+): Promise<void> {
+  const { error } = await admin
+    .from(STUDENT_MEAL_DRAFTS_TABLE)
+    .update({ stage, stage_at: now.toISOString() })
+    .eq("id", id)
+    .eq("status", "running");
+  if (error) log("mark_stage_failed", { draftId: id, stage, error: errorMessageOf(error) });
 }
 
 export interface CompleteDraftArgs {

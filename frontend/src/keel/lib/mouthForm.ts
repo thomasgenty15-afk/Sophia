@@ -716,17 +716,17 @@ export function paceControlFor(
  * dead-button`. Ce type porte donc le refus ET ce qui se dit du chemin sur le
  * même objet, pour qu'un rendu ne puisse pas prendre l'un sans l'autre.
  *
- * ⚠️ `weeks` EST REVENU DANS CE TYPE LE 2026-09-01, À LA DEMANDE — mais il
- * n'y est pas revenu NU. Il vit dans `horizon`, et `horizon` ne sait se rendre
- * que par `arrivalHorizonCopy`, qui colle au chiffre ce qu'il est: le calcul
- * du curseur, pas une date. La mesure qui l'avait fait retirer le 2026-08-22
- * (erreur d'estimation ±580 kcal/j > déficit visé 500 kcal/j, donc une borne
- * haute à l'infini) est toujours vraie et toujours écrite dans
- * `lib/arrivalHorizon.ts`; c'est ce que l'écran en DIT qui a changé.
+ * ⚠️ L'HORIZON A CHANGÉ DEUX FOIS DEPUIS LE 2026-08-22, ET LA MESURE QUI L'A
+ * FAIT RETIRER LA PREMIÈRE FOIS N'A JAMAIS BOUGÉ (erreur d'estimation
+ * ±580 kcal/j > déficit visé 500 kcal/j, donc une borne haute à l'infini).
+ * Elle est écrite en entier dans `lib/arrivalHorizon.ts`; c'est ce que l'écran
+ * en DIT qui a changé — un nombre de semaines collé à sa réserve le
+ * 2026-09-01, une DATE collée à sa condition le 2026-09-15.
  *
- * ⛔ NE LIS PAS `horizon.weeks` POUR LE RENDRE À LA MAIN. Le champ existe pour
- * que la phrase se compose, pas pour qu'un second écran affiche le nombre
- * sans sa réserve — c'est exactement l'état qui a coûté le lot `L3`.
+ * ⛔ NE LIS NI `horizon.weeks` NI `horizon.arrivalOn` POUR LES RENDRE À LA
+ * MAIN. Le champ existe pour que la phrase se compose, pas pour qu'un second
+ * écran affiche la date sans la condition qui la rend vraie — c'est exactement
+ * l'état qui a coûté le lot `L3`.
  */
 export type TargetWeightState =
   /** Pas de direction, ou champ vide: rien à dire. */
@@ -771,6 +771,11 @@ export function targetWeightStateFor(
       currentKg: current,
       targetKg: target,
       paceKgPerWeek: pace.kind === "slider" ? pace.value : null,
+      // ⚠️ LE JOUR D'AUJOURD'HUI TRAVERSE, IL NE SE LIT PAS PLUS BAS. C'est
+      // déjà celui que cette fonction reçoit pour l'âge et le corps: un second
+      // `new Date()` dans le module de la phrase donnerait deux « aujourd'hui »
+      // à faire diverger, et celui-là changerait à minuit.
+      todayLocalIso,
     }),
   };
 }

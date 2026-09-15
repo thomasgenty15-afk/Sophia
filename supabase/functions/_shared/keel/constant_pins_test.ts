@@ -927,6 +927,7 @@ import {
   PLAN_REQUEST_BUDGET_MS,
   PLAN_TAIL_RESERVE_MS,
 } from "./generation_model.ts";
+import { DRAFT_STUCK_AFTER_MS } from "./draft_store.ts";
 import { PLAN_REPAIR_RESERVED_AFTER } from "./plan_budget.ts";
 import {
   REPAIR_DEFECT_HARD_CHARS,
@@ -974,6 +975,14 @@ Deno.test("épinglage — une requête de plan a 380 secondes", () =>
 // `leaseDeadlinePin` côté Vitest; celle-ci épingle le terme qui les nourrit.
 Deno.test("épinglage — GENERATION_LOCK_MARGIN_MS vaut 60 secondes", () =>
   assertEquals(GENERATION_LOCK_MARGIN_MS, 60_000));
+
+// La SOMME, pas ses deux termes. `DRAFT_STUCK_AFTER_MS` est dérivé
+// (380 000 + 60 000) : `generation_stale_after_pin_test.ts` l'IMPORTE pour
+// comparer les trois copies de 440 s entre elles, donc il reste vert si les
+// deux termes bougent ensemble. Cet épinglage-ci est le seul endroit où le
+// nombre est ÉCRIT en clair, et donc le seul qui rougisse quand le bail change.
+Deno.test("épinglage — un brouillon est mort après 440 secondes", () =>
+  assertEquals(DRAFT_STUCK_AFTER_MS, 440_000));
 
 // La queue: mesure finale, ceintures, verrou de maison, écriture. Un plan
 // réparé et non écrit ne vaut rien.

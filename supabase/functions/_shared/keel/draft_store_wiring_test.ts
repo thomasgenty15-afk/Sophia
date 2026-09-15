@@ -94,8 +94,8 @@ Deno.test("BROUILLON ④ — la réponse porte `draft_id`", () => {
 
 Deno.test("⛔ BROUILLON ⑤ — une panne marque `failed`, elle ne laisse pas `running`", () => {
   // ⛔ UNE LIGNE RESTÉE `running` OCCUPE L'INDEX ET REFUSE LE BROUILLON SUIVANT
-  // jusqu'à la balayeuse — `DRAFT_STUCK_AFTER_MS` vaut sept minutes. Pour une
-  // panne d'une seconde, le bouton ne répond plus pendant sept minutes.
+  // jusqu'à la balayeuse — `DRAFT_STUCK_AFTER_MS` vaut le bail (440 s). Pour
+  // une panne d'une seconde, le bouton ne répond plus pendant sept minutes.
   assert(SRC.includes("await failDraft(adminClient(), draftId, {"));
   assert(SRC.includes('errorCode: "compose_failed"'));
   // ⛔ ET `draftId` VIT HORS DU `try`, sinon le catch global ne le verrait pas.

@@ -603,6 +603,11 @@ verify_jwt = false
 # Invoquée par cron, donc sans JWT: la garde est `x-internal-secret`.
 [functions.keel-lifecycle-email-v1]
 verify_jwt = false
+# Lot 0 (2026-09-15) — la sonde de durée de vie du worker. Interne
+# (`x-internal-secret`), appelée à la main avec la clé anon en `Authorization` :
+# le défaut `verify_jwt = true` tient, comme pour les crons.
+[functions.keel-runtime-probe-v1]
+verify_jwt = true
 # `keel-cards-v1` a été RETIRÉE ici: la fonction est partie avec le retrait des
 # résidus grand public (2026-08-08, 0 utilisateur grand public confirmé), ses
 # quatre tables card_* avec elle (20260808070000). Même règle que ci-dessous.

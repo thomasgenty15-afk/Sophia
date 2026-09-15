@@ -59,10 +59,8 @@ export type VoicedKey =
   | "household.mouth.eating_hint"
   // ── chantier-0904/FF-060 ──
   | "household.mouth.rhythm_derived"
-  // ⟳ 2026-09-08 — LE VERROU SE VOIT AUSSI, ET IL SE DISAIT EN « TU » MÊME SUR
-  // LA FICHE D'UN TIERS: « Tu en as coché 4 » sous le prénom de quelqu'un
-  // d'autre. Il prend donc une voix, comme les onze clés au-dessus.
-  | "household.mouth.rhythm_floor_locked"
+  // ⟳ 2026-09-15 — `rhythm_floor_locked` A ÉTÉ RETIRÉE D'ICI AVEC SA CLÉ. Plus
+  // aucune case n'est grisée, donc il n'y a plus d'état « tenu » à dire.
   | "household.mouth.shake_composed"
   | "household.mouth.habit_shaker_here"
   | "household.mouth.shaker_at"
@@ -97,7 +95,6 @@ const YOU: Record<VoicedKey, MessageKey> = {
   "household.mouth.eating": "household.mouth.eating_you",
   "household.mouth.eating_hint": "household.mouth.eating_hint_you",
   "household.mouth.rhythm_derived": "household.mouth.rhythm_derived_you",
-  "household.mouth.rhythm_floor_locked": "household.mouth.rhythm_floor_locked_you",
   "household.mouth.shake_composed": "household.mouth.shake_composed_you",
   "household.mouth.habit_shaker_here": "household.mouth.habit_shaker_here_you",
   "household.mouth.shaker_at": "household.mouth.shaker_at_you",

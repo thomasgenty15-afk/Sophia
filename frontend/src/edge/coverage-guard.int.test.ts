@@ -185,6 +185,17 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       // et le créneau d'un élève nommé — il écrit une bibliothèque, et l'élève
       // la lit sans placement. La fonction n'avait plus de table à écrire.
       "keel-reengage-v1",
+      // ⟳ 2026-09-15 · LOT 0 — LA SONDE DE DURÉE DE VIE. Elle ne sert aucun
+      // écran: elle MESURE combien de temps un worker vit sur le projet hébergé,
+      // parce que « 400 s en plan payant » venait de la doc et pas d'un relevé.
+      // Elle insère une ligne `keel_runtime_probes` AVANT de répondre 202, puis
+      // bat toutes les dix secondes sous `EdgeRuntime.waitUntil()`; une ligne
+      // sans `finished_at` est la preuve d'un worker coupé, pas d'un appel
+      // jamais fait. Interne (`x-internal-secret`), aucune donnée personnelle.
+      // Son mécanisme est couvert par _shared/keel/edge_runtime_test.ts
+      // (`keepWorking`: ce que le runtime accepte, et ce qu'il refuse en
+      // silence); sa table vient de 20260915180000.
+      "keel-runtime-probe-v1",
       // ⟳ A7 (chantier-0903/SUIVI) — L'AGRÉGAT DE `/app/progress`, EN UNE PASSE.
       // Elle existe pour une raison qu'aucun écran ne peut couvrir: les cinq
       // portes de l'énergie demandent la doctrine publiée et

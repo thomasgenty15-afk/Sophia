@@ -43,7 +43,7 @@ import { loadMealPlans } from "../api/mealGeneration";
 // LA TABLE DES REFUS EST FERMÉE ET PARTAGÉE. Un jeton inconnu ressort tel quel,
 // jamais sous une phrase passe-partout: `note_unusable` est le seul refus que la
 // personne peut réparer elle-même, et il doit arriver lisible.
-import { edgeRefusalKey } from "../copy/planRefusals";
+import { planFailureKey } from "../copy/planRefusals";
 import {
   type HouseholdMealView,
   type HouseholdView,
@@ -1795,7 +1795,10 @@ export default function StudentWeekPlanPage() {
    */
   const draftRefusal = React.useCallback((e: unknown): string => {
     const raw = e instanceof Error ? e.message : String(e);
-    const key = edgeRefusalKey(raw.split(":")[0]);
+    // `planFailureKey` ET PAS `edgeRefusalKey`: `plan_still_composing` et
+    // `plan_expired` sont des issues du NAVIGATEUR (`CLIENT_OUTCOME_KEYS`),
+    // et l'autre traducteur les rendait en jeton brut (mesuré le 2026-09-15).
+    const key = planFailureKey(raw.split(":")[0]);
     return key ? t(key) : raw;
   }, []);
 

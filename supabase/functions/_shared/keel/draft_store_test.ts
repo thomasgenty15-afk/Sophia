@@ -332,7 +332,10 @@ Deno.test("⛔ LE BALAYAGE PRÉCÈDE L'INSERTION, et il est SCOPÉ à la personn
   const statuses = sweep.filters.find((f) => f.fn === "in" && f.column === "status");
   assertEquals(statuses?.value, ["pending", "running"]);
   const cutoff = sweep.filters.find((f) => f.fn === "lt" && f.column === "created_at");
-  assertEquals(cutoff?.value, "2026-09-06T11:53:00.000Z");
+  // ⟳ 2026-09-15 · LOT D — le bail (440 s), plus « 7 minutes » (11:53:00). Un
+  // LITTÉRAL, pas `NOW - DRAFT_STUCK_AFTER_MS` : un test paramétré par sa propre
+  // constante reste vert quand on la change.
+  assertEquals(cutoff?.value, "2026-09-06T11:52:40.000Z");
 });
 
 Deno.test("MÊME demande déjà en vol: on RÉUTILISE, on ne relance rien", async () => {

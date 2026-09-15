@@ -105,8 +105,18 @@ const html = `<!doctype html>
   .brand { display:inline-flex; align-items:center; gap:12px; margin-bottom:40px; }
   .brand svg { width:36px; height:36px; display:block; }
   .wordmark { font-family:"Young Serif", Georgia, serif; font-size:34px; letter-spacing:-0.01em; }
-  h1 { font-family:"Young Serif", Georgia, serif; font-weight:400; font-size:78px;
-       line-height:0.99; letter-spacing:-0.015em; max-width:15ch; text-wrap:balance; }
+  /* ⟳ 78px → 62px ET 15ch → 19ch, le 2026-09-15, PARCE QUE LE TITRE A GRANDI.
+     home.hero.title_2 est passé de « Les calculs sont déjà faits. » (28 car.)
+     à « Quantités et calories : tout est calculé pour toi. » (50 car.). À 78px,
+     rendu et regardé: 6 lignes de titre, le chapô POUSSÉ HORS DE LA PLANCHE et
+     « toi. » coupé par le bord bas. La planche fait 630px de haut, dont 502
+     utiles — c'est un cadre fixe, donc c'est la taille qui cède, pas la copie.
+     ⚠️ Si le titre raccourcit un jour, ces deux valeurs se remontent: elles
+     suivent la longueur de la copie, elles ne la contraignent pas. Le contrôle
+     est visuel — node scripts/og-image.mjs puis on OUVRE le png: le chapô
+     doit être là, en entier. */
+  h1 { font-family:"Young Serif", Georgia, serif; font-weight:400; font-size:62px;
+       line-height:0.99; letter-spacing:-0.015em; max-width:19ch; text-wrap:balance; }
   .lede { margin-top:26px; font-size:25px; line-height:1.45; color:var(--ink-soft); max-width:30ch; }
   .fig { width:400px; }
 </style></head>

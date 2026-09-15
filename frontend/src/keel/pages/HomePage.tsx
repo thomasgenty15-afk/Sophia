@@ -10,8 +10,12 @@ import {
   CookingPot,
   Leaf,
   LineChart,
+  MessageCircle,
   MessageSquareText,
+  Ruler,
+  Scale,
   ShoppingBasket,
+  Snowflake,
   Sparkles,
   Utensils,
 } from "lucide-react";
@@ -44,11 +48,19 @@ import { t, type MessageKey } from "../i18n/t";
  *
  * ── CE QUE LA PAGE MONTRE, ET DANS QUEL ORDRE ─────────────────────────────
  * Le héros, l'objectif (01), les calculs et LA DÉMONSTRATION du plan (02 —
- * `components/home/PlanDemo`, fidèle aux écrans du produit), le fonctionnement
- * dans l'ordre vécu courses → cuisine → repas (03), le foyer (04), l'imprévu
- * (décrire ou photographier → comptabilisé, sans toucher au planning), les
- * arguments du quotidien, l'offre (05) avec l'accès supplémentaire expliqué
+ * `components/home/PlanDemo`, fidèle aux écrans du produit), la précision en
+ * amont (03 — pourquoi un chiffre écrit AVANT le repas vaut mieux qu'une
+ * estimation après), le fonctionnement dans l'ordre vécu courses → cuisine →
+ * repas (04), le foyer (05), l'imprévu (décrire ou photographier →
+ * comptabilisé, sans toucher au planning), Sophia qui écrit la première (06 —
+ * les canaux qui partent vraiment, vérifiés dans `keel-proactive-v1`), les
+ * arguments du quotidien, l'offre (07) avec l'accès supplémentaire expliqué
  * AVANT d'être compté, la FAQ, et la clôture.
+ *
+ * ⟳ 03 ET 06 SONT AJOUTÉES LE 2026-09-15 à la demande du propriétaire — les
+ * deux arguments qu'il jugeait absents et différenciants. Leurs clés portent
+ * les faits vérifiés et les interdits, dans `fr.ts` (`home.upstream.*`,
+ * `home.reach.*`).
  *
  * ── LE VISUEL ─────────────────────────────────────────────────────────────
  * ⚠️ Une photographie culinaire dans le héros, ce que la charte §1 interdisait
@@ -381,9 +393,46 @@ function Landing() {
         </motion.div>
       </Section>
 
-      {/* ── 03 · LE FONCTIONNEMENT, DANS L'ORDRE VÉCU ───────────────────── */}
+      {/* ── 03 · LA PRÉCISION, EN AMONT ─────────────────────────────────── */}
+      {/* ⚠️ LES CHIFFRES SONT DES MESURES, et la source est nommée à l'écran
+          (`home.upstream.source`). La page a une règle: aucun résultat
+          inventé. Ici on ne promet rien — on montre ce qu'on a mesuré. */}
+      <Section tone="alt">
+        <div className="grid items-start gap-10 lg:grid-cols-[1fr_1fr] lg:gap-14">
+          <div>
+            <Chapter n="03">{t("home.upstream.kicker")}</Chapter>
+            <Title>
+              {t("home.upstream.title_1")}
+              <br />
+              <Soft>{t("home.upstream.title_2")}</Soft>
+            </Title>
+            <p className="mt-6 max-w-[54ch] text-[16px] leading-7 text-ink-soft">{t("home.upstream.body_1")}</p>
+            <p className="mt-4 max-w-[54ch] text-[16px] leading-7 text-ink-soft">{t("home.upstream.body_2")}</p>
+          </div>
+          <ul className="grid gap-3 sm:gap-4">
+            {([
+              { Icon: Ruler, title: "home.upstream.written.title", body: "home.upstream.written.body" },
+              { Icon: LineChart, title: "home.upstream.measured.title", body: "home.upstream.measured.body" },
+              { Icon: Camera, title: "home.upstream.unplanned.title", body: "home.upstream.unplanned.body" },
+            ] as const).map(({ Icon, title, body }) => (
+              <motion.li {...reveal} key={title} className="rounded-fiche border border-line bg-paper p-4 sm:p-5">
+                <div className="flex items-center gap-3">
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-fig-100 text-fig-700">
+                    <Icon size={18} strokeWidth={1.7} aria-hidden="true" />
+                  </span>
+                  <h3 className="min-w-0 font-display text-[1.15rem] leading-snug text-ink">{t(title)}</h3>
+                </div>
+                <p className="mt-3 text-[14px] leading-6 text-ink-soft">{t(body)}</p>
+              </motion.li>
+            ))}
+            <li className="px-1 text-[13px] leading-5 text-ink-soft">{t("home.upstream.source")}</li>
+          </ul>
+        </div>
+      </Section>
+
+      {/* ── 04 · LE FONCTIONNEMENT, DANS L'ORDRE VÉCU ───────────────────── */}
       <Section>
-        <Chapter n="03">{t("home.how.kicker")}</Chapter>
+        <Chapter n="04">{t("home.how.kicker")}</Chapter>
         <div className="grid items-end gap-6 lg:grid-cols-[1fr_1fr]">
           <Title>
             {t("home.how.title_1")}
@@ -421,11 +470,11 @@ function Landing() {
         </ol>
       </Section>
 
-      {/* ── 04 · LE FOYER ───────────────────────────────────────────────── */}
+      {/* ── 05 · LE FOYER ───────────────────────────────────────────────── */}
       <Section id="a-table" tone="alt">
         <div className="grid items-center gap-10 lg:grid-cols-[1fr_1fr] lg:gap-14">
           <div>
-            <Chapter n="04">{t("home.house.kicker")}</Chapter>
+            <Chapter n="05">{t("home.house.kicker")}</Chapter>
             <Title>
               {t("home.house.title_1")}
               <br />
@@ -496,6 +545,48 @@ function Landing() {
         </div>
       </Section>
 
+      {/* ── 06 · SOPHIA ÉCRIT LA PREMIÈRE ───────────────────────────────── */}
+      {/* ⚠️ QUATRE CARTES, QUATRE CANAUX QUI PARTENT VRAIMENT — l'inventaire
+          vérifié dans le code est dans `fr.ts` au-dessus de `home.reach.*`.
+          Ajouter une carte ici sans un pas de cron derrière est exactement la
+          fuite que ce bloc de commentaires existe pour empêcher. */}
+      <Section>
+        <Chapter n="06">{t("home.reach.kicker")}</Chapter>
+        <div className="grid items-end gap-6 lg:grid-cols-[1fr_1fr]">
+          <Title>
+            {t("home.reach.title_1")}
+            <br />
+            <Soft>{t("home.reach.title_2")}</Soft>
+          </Title>
+          <p className="max-w-[48ch] text-[16px] leading-7 text-ink-soft lg:pb-2">{t("home.reach.body")}</p>
+        </div>
+        <ul className="mt-8 grid gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {([
+            { Icon: Snowflake, title: "home.reach.thaw.title", body: "home.reach.thaw.body" },
+            { Icon: Scale, title: "home.reach.weigh.title", body: "home.reach.weigh.body" },
+            { Icon: Utensils, title: "home.reach.slot.title", body: "home.reach.slot.body" },
+            { Icon: Check, title: "home.reach.feedback.title", body: "home.reach.feedback.body" },
+          ] as const).map(({ Icon, title, body }) => (
+            <motion.li {...reveal} key={title} className="rounded-fiche border border-line bg-paper p-4 sm:p-5">
+              <div className="flex items-center gap-3">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-fig-100 text-fig-700">
+                  <Icon size={18} strokeWidth={1.7} aria-hidden="true" />
+                </span>
+                <h3 className="min-w-0 font-display text-[1.15rem] leading-snug text-ink">{t(title)}</h3>
+              </div>
+              <p className="mt-3 text-[14px] leading-6 text-ink-soft">{t(body)}</p>
+            </motion.li>
+          ))}
+        </ul>
+        <p className="mt-5 text-[14px] leading-6 text-ink-soft">{t("home.reach.silence")}</p>
+        {/* ⚠️ LA PHRASE QUI REND LA MAIN, et elle n'est pas décorative: sans
+            elle, « elle vient vers toi » se lit « attends qu'elle vienne ». */}
+        <div className="mt-6 flex items-start gap-3 rounded-card bg-fig-950 px-4 py-3 text-paper">
+          <MessageCircle size={18} aria-hidden="true" className="mt-0.5 shrink-0 text-fig-300" />
+          <p className="text-sm leading-6">{t("home.reach.hand")}</p>
+        </div>
+      </Section>
+
       {/* ── EN BONUS ────────────────────────────────────────────────────── */}
       <Section tone="alt">
         <Kicker>{t("home.bonus.kicker")}</Kicker>
@@ -518,11 +609,11 @@ function Landing() {
         </ul>
       </Section>
 
-      {/* ── 05 · L'OFFRE ────────────────────────────────────────────────── */}
+      {/* ── 07 · L'OFFRE ────────────────────────────────────────────────── */}
       <Section id="offre">
         <div className="grid items-start gap-10 lg:grid-cols-[1fr_1fr] lg:gap-14">
           <div>
-            <Chapter n="05">{t("home.offer.kicker")}</Chapter>
+            <Chapter n="07">{t("home.offer.kicker")}</Chapter>
             <Title>
               {t("home.offer.title_1")}
               <br />

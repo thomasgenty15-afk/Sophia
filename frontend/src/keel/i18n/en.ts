@@ -2766,7 +2766,7 @@ export const en = {
   // ── HERO ─────────────────────────────────────────────────────────────────
   "home.hero.eyebrow": "Sophia, AI nutrition coach",
   "home.hero.title_1": "Meals for your goal.",
-  "home.hero.title_2": "The numbers are already done.",
+  "home.hero.title_2": "Quantities and calories: worked out for you.",
   "home.hero.lede": "What to eat, in what quantities, how to organise the shopping and the cooking to make it.",
   "home.hero.cta": "Discover my programme",
   "home.hero.trial": "7-day trial · Then {amount}/month · No commitment",
@@ -2774,7 +2774,7 @@ export const en = {
   "home.hero.label_pleasure": "Pleasure is part of the plan",
   "home.hero.label_menu_kicker": "On the menu",
   "home.hero.label_menu": "Your goal, as recipes.",
-  "home.hero.label_cooked": "Real dishes, not numbers.",
+  "home.hero.label_cooked": "Balanced dishes",
 
   // ── THE THREE-BENEFIT STRIP ──────────────────────────────────────────────
   "home.strip.label": "What Sophia brings",
@@ -2808,10 +2808,10 @@ export const en = {
   "home.dir.maintenance": "balanced share of every component",
 
   // ── 02 · THE NUMBERS AND THE DEMONSTRATION ───────────────────────────────
-  "home.plan.kicker": "Your meals, already worked out.",
+  "home.plan.kicker": "You can just eat.",
   "home.plan.title_1": "You know what to eat.",
   "home.plan.title_2": "And how much.",
-  "home.plan.body": "Every planned meal comes with its quantities, adjusted to your goal. Nothing to guess when you sit down to eat.",
+  "home.plan.body": "Every planned meal comes balanced, with its quantities adjusted to your goal. Nothing to guess when you sit down to eat.",
   "home.plan.photo_alt": "Roast salmon with potatoes and green vegetables",
   "home.plan.photo_kicker": "Real meals.",
   "home.plan.photo_line": "Pleasure is part of the plan.",
@@ -2849,11 +2849,33 @@ export const en = {
   "home.demo.box.bulgur": "bulgur",
   "home.demo.box.vegetables": "roast vegetables",
 
-  // ── 03 · HOW IT WORKS, IN THE ORDER YOU LIVE IT ──────────────────────────
+  // ── 03 · PRECISION, UPSTREAM ─────────────────────────────────────────────
+  // Mirror of the French block — the numbers are measurements
+  // (docs/keel/PHOTO_QUANTIFICATION.md), never promises. No digit may sit
+  // right before the word "calories" (energyBasis.int.test.ts).
+  "home.upstream.kicker": "Precision, upstream.",
+  "home.upstream.title_1": "Counting afterwards is guessing.",
+  "home.upstream.title_2": "Here, the number exists before the meal.",
+  "home.upstream.body_1":
+    "A tracking app asks you to estimate what you just ate. We measured what that is worth: across 85 real analyses, an estimate from a photo landed 26.6% under the truth on average.",
+  "home.upstream.body_2":
+    "A meal Sophia plans is known to the gram before it is cooked. The quantities are written in the plan; what you eat is what was worked out. Nothing to guess afterwards.",
+  "home.upstream.written.title": "Written before, not rebuilt after",
+  "home.upstream.written.body":
+    "The quantities of every planned meal are in your plan, before the shopping. In the evening there is nothing to remember.",
+  "home.upstream.measured.title": "Measured, not promised",
+  "home.upstream.measured.body":
+    "2.3% off when the quantities are known, against a 26.6% bias from a photo. Same model, same bench, same ground truth.",
+  "home.upstream.unplanned.title": "And the unplanned still counts",
+  "home.upstream.unplanned.body":
+    "An off-plan dish gets described or photographed. Sophia estimates it, says so, and you can correct the number.",
+  "home.upstream.source": "Measured on 85 real analyses, USDA ground truth. These are not promises.",
+
+  // ── 04 · HOW IT WORKS, IN THE ORDER YOU LIVE IT ──────────────────────────
   "home.how.kicker": "From the shopping to the meals.",
-  "home.how.title_1": "Everything lines up.",
-  "home.how.title_2": "You do the cooking.",
-  "home.how.lede": "A useful plan is a plan you can actually put on your plate.",
+  "home.how.title_1": "Sophia thinks of everything.",
+  "home.how.title_2": "All you do is cook.",
+  "home.how.lede": "You save the time it takes to decide, hunt for recipes and organise the shopping.",
   "home.how.shop.title": "Your shopping",
   "home.how.shop.body":
     "You know when to go shopping and what to buy for the planned preparations.",
@@ -2864,7 +2886,7 @@ export const en = {
   "home.how.eat.body":
     "You find the planned meals for each person, with quantities worked out from the needs and goals you entered.",
 
-  // ── 04 · THE HOUSEHOLD ───────────────────────────────────────────────────
+  // ── 05 · THE HOUSEHOLD ───────────────────────────────────────────────────
   "home.house.kicker": "There is room for the others.",
   "home.house.title_1": "Your goal.",
   "home.house.title_2": "Their appetite.",
@@ -2899,6 +2921,31 @@ export const en = {
   "home.life.demo.photo_example": "A photo of the plate, taken at the table.",
   "home.life.demo.send": "Send",
 
+  // ── 06 · SOPHIA WRITES FIRST ─────────────────────────────────────────────
+  // Mirror of the French block: every card names a channel that really sends
+  // today (keel-proactive-v1 + keel-reengage-v1). The evening check-in is
+  // gone (2026-09-08) — nothing here claims "did you eat the planned meal".
+  "home.reach.kicker": "Sophia writes first.",
+  "home.reach.title_1": "She comes to you.",
+  "home.reach.title_2": "At the right moment, not every night.",
+  "home.reach.body":
+    "Sophia does not wait for you to open the app. She writes when there is a reason, and a message left unanswered is never repeated.",
+  "home.reach.thaw.title": "The night before a session",
+  "home.reach.thaw.body":
+    "“Tonight, take the chicken out of the freezer.” The reminder lands between 6 and 8 pm, the day before, when something needs to thaw.",
+  "home.reach.weigh.title": "Your weigh-in",
+  "home.reach.weigh.body":
+    "Every two days if you are losing weight, every five when building muscle. The next plan is worked out from what you weigh today.",
+  "home.reach.slot.title": "The meal the plan does not cover",
+  "home.reach.slot.body":
+    "Lunch out? She asks what you had, so your day is complete.",
+  "home.reach.feedback.title": "The end of a plan",
+  "home.reach.feedback.body":
+    "On the last evening, she asks what worked and what did not. The next plan takes it into account.",
+  "home.reach.silence": "And if you go quiet for a few days: one word, just one.",
+  "home.reach.hand":
+    "You ask a question, she answers. What she sends on her own can be switched off; what she answers when you write, never.",
+
   // ── AS A BONUS — the everyday arguments ──────────────────────────────────
   "home.bonus.kicker": "As a bonus",
   "home.bonus.title": "What changes day to day.",
@@ -2915,7 +2962,7 @@ export const en = {
   "home.bonus.time.body":
     "Preparations are grouped into sessions, by the days you have and the time you can give.",
 
-  // ── 05 · THE OFFER ───────────────────────────────────────────────────────
+  // ── 07 · THE OFFER ───────────────────────────────────────────────────────
   "home.offer.kicker": "Shall we sit down?",
   "home.offer.title_1": "Your next week starts",
   "home.offer.title_2": "with a meal.",
@@ -5250,9 +5297,7 @@ export const en = {
   // « léger » pour dire « rien », et le plan composerait quand même un repas.
   "household.mouth.light_hint":
     "A light moment weighs less in the day; the others take up the difference. It is still a meal — to skip one, leave the moment unticked.",
-  // ⟳ 2026-09-10 — see fr.ts: this one line replaces the six extras keys.
-  "household.mouth.portions_plan_only":
-    "Portions are calculated for the foods your plan includes. Anything you add yourself is not counted.",
+  // ⟳ 2026-09-15 — `portions_plan_only` was removed; see fr.ts for why.
   "household.mouth.habit_shaker_here": "{who}’s shaker sits at this moment.",
   "household.mouth.habit_shaker_here_you": "Your shaker sits at this moment.",
   "household.mouth.shaker_at": "When {who} takes it",
@@ -8006,10 +8051,8 @@ export const en = {
     "{who} needs {count} moments a day. We ticked them — untick the ones {who} doesn't have.",
   "household.mouth.rhythm_derived_you":
     "You need {count} moments a day. We ticked them — untick the ones you don't have.",
-  "household.mouth.rhythm_floor_locked":
-    "{who} needs {count} moments a day: one plate can only hold so much. They are held — add one more to be able to remove any.",
-  "household.mouth.rhythm_floor_locked_you":
-    "You need {count} moments a day: one plate can only hold so much. They are held — add one more to be able to remove any.",
+  // ⟳ 2026-09-15 — `rhythm_floor_locked` (+ `_you`) was removed; see fr.ts.
+  // No box is ever held now, so there is no "held" state left to name.
   "household.mouth.shake_composed":
     "The plan will build {who} a drinkable shake in the afternoon. If {who} already has their own, add it below and the plan will leave it alone.",
   "household.mouth.shake_composed_you":

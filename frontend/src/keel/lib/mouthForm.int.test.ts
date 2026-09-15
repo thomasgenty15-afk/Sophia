@@ -473,30 +473,37 @@ describe("le poids visé — le refus est NOMMÉ", () => {
     });
   });
 
-  it("⛔ L3′ — accepté → l'horizon, avec son nombre de semaines", () => {
-    // ⚠️ CE TEST A CHANGÉ DE CAMP DEUX FOIS, ET LES DEUX SONT DES DÉCISIONS.
+  it("⛔ accepté → l'horizon, avec sa date d'arrivée", () => {
+    // ⚠️ CE TEST A CHANGÉ DE CAMP TROIS FOIS, ET LES TROIS SONT DES DÉCISIONS.
     //   · avant le 2026-08-22 : `expect(state.weeks).toBe(12)`;
     //   · lot `L3` : `expect(state.horizon).toBe("no_arrival_date")` — mesuré
     //     le même jour, l'écart quotidien prescrit vaut 495 kcal/j et notre
     //     erreur d'estimation ±580 kcal/j, donc l'écart RÉELLEMENT exécuté vit
     //     dans [-85 … 1075] kcal/j, il traverse zéro, et les semaines
     //     réellement possibles allaient « de 6 à JAMAIS »;
-    //   · 2026-09-01, à la demande : le nombre revient.
+    //   · 2026-09-01, à la demande : le nombre revient, collé à sa réserve;
+    //   · 2026-09-15, à la demande : c'est une DATE, collée à sa condition.
     //
-    // ⛔ LA MESURE CI-DESSUS N'A PAS ÉTÉ INFIRMÉE, et c'est pour ça que le
-    // nombre ne revient PAS NU: `arrivalHorizonCopy` le colle à ce qu'il est
-    // (le calcul du curseur, pas une date), dans une seule chaîne.
+    // ⛔ LA MESURE CI-DESSUS N'A PAS ÉTÉ INFIRMÉE, et c'est pour ça que la
+    // date ne sort PAS NUE: `arrivalHorizonCopy` la colle à la condition qui
+    // la rend vraie (« si tu colles au plan »), dans une seule chaîne.
     const state = targetWeightStateFor(
       draftOf({ ...LOSING, targetWeightKg: "55" }),
       TODAY,
     );
     expect(state.kind).toBe("accepted");
     if (state.kind !== "accepted") return;
-    // 5 kg à 0,45 kg/semaine, arrondi AU SUPÉRIEUR.
-    expect(state.horizon).toEqual({ kind: "weeks_at_this_pace", weeks: 12 });
-    // ⚠️ LA SURFACE N'A PAS CHANGÉ DE FORME: le nombre vit DANS `horizon`, et
+    // 5 kg à 0,45 kg/semaine, arrondi AU SUPÉRIEUR → 12 semaines, donc 84
+    // jours après `TODAY` (2026-08-18).
+    expect(state.horizon).toEqual({
+      kind: "weeks_at_this_pace",
+      weeks: 12,
+      arrivalOn: "2026-11-10",
+      targetKg: 55,
+    });
+    // ⚠️ LA SURFACE N'A PAS CHANGÉ DE FORME: la date vit DANS `horizon`, et
     // pas à côté. Un second champ au niveau de l'état serait exactement le
-    // chemin par lequel un écran rendrait le chiffre sans sa réserve.
+    // chemin par lequel un écran rendrait la date sans sa condition.
     expect(Object.keys(state).sort()).toEqual(["horizon", "kind"]);
   });
 

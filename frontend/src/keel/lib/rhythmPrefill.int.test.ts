@@ -188,71 +188,67 @@ describe("l'effet est CÂBLÉ dans la fiche, et il lit la bonne moitié", () => 
       .toBeGreaterThan(-1);
   });
 
-  it("⛔ LE VERROU DU PLANCHER NE MORD QU'À L'ÉGALITÉ", () => {
-    // `<=` redeviendrait invisible en fiche neuve maintenant que la pré-coche
-    // repart à l'égalité: il ne mordrait qu'après le PREMIER décochage,
-    // c'est-à-dire chez la personne qui essaie de corriger la proposition.
+  it("⛔ PLUS AUCUNE CASE N'EST GRISÉE — le verrou n'existe plus", () => {
+    // ══════════════════════════════════════════════════════════════════════
+    // 2026-09-15 — « ça doit pas être bloqué, mais en fonction de l'objectif
+    // calorique il faut que ce soit coché ». Les deux moitiés vont ensemble et
+    // ce fichier tient les deux: la pré-coche au-dessus, l'absence de verrou
+    // ici.
+    // ══════════════════════════════════════════════════════════════════════
     //
-    // ⚠️ ON MESURE `floorBinds`, ET SEULEMENT LUI. `floorSpeaks` porte un `<=`
-    // parfaitement juste — la phrase se dit tant qu'on est AU PLUS au compte —
-    // et un grep large sur `tickedCount <=` confondrait les deux, donc
-    // interdirait une ligne correcte. Le test s'est cassé exactement là.
-    const binds = DIALOG.slice(
-      DIALOG.indexOf("const floorBinds ="),
-      DIALOG.indexOf(";", DIALOG.indexOf("const floorBinds =")),
+    // ⛔ LE TEST PORTE SUR TROIS SYMBOLES, ET PAS UN SEUL. `floorBinds` retiré
+    // mais `data-mouth-slot-locked` laissé en place rendrait un attribut vide;
+    // `disabled` laissé sur autre chose que `props.busy` regriserait la case
+    // par un autre chemin. Les trois ensemble sont ce qui prouve qu'une case
+    // cochée reste cliquable.
+    expect(DIALOG, "`floorBinds` est revenu").not.toMatch(/floorBinds\s*=/);
+    expect(DIALOG, "l'attribut de verrou est revenu")
+      .not.toMatch(/data-mouth-slot-locked/);
+    const box = DIALOG.slice(
+      DIALOG.indexOf('id={`mouth-rhythm-${slot}`}'),
+      DIALOG.indexOf("onChange={() => {", DIALOG.indexOf('id={`mouth-rhythm-${slot}`}')),
     );
-    expect(binds, "le verrou a disparu").toMatch(/tickedCount === floorCount/);
-    expect(binds, "le `<=` est revenu sur le VERROU").not.toMatch(/tickedCount <=/);
+    expect(box, "la case se désactive sur autre chose qu'une écriture en cours")
+      .toMatch(/disabled=\{props\.busy\}/);
   });
 });
 
 // ===========================================================================
-// ⟳ 2026-09-08 (soir) — UNE PHRASE PAR ÉTAT, ET CHACUNE NE PROMET QUE LE GESTE
-// QUI EXISTE.
+// ⟳ 2026-09-15 — UNE SEULE PHRASE, POUR TOUT LE MONDE.
 //
-// ⛔ LE DÉFAUT QUE CE BLOC FERME, SIGNALÉ MOT POUR MOT: « on peut pas décocher
-// les repas imposés ». Trois phrases s'empilaient sous les six cases — le
-// chiffre trois fois, « cochés » trois fois — et les deux premières invitaient
-// à DÉCOCHER pendant que la troisième expliquait que les cases sont tenues.
-// C'est la cicatrice du bouton mort prise par l'autre bout: on ne cache pas le
-// refus, on promet son contraire.
+// Ce bloc en tenait DEUX, une par état: « libre » (on peut décocher) et
+// « tenu » (les cases sont grisées, on ne peut qu'ajouter). Le verrou a été
+// retiré le 2026-09-15 — plus personne n'est dans l'état « tenu », et
+// `rhythm_floor_locked` a été supprimée des deux paquets.
+//
+// ⛔ CE QUI SURVIT DU LOT DE 2026-09-08, ET C'EST LA MOITIÉ QUI COMPTE: la
+// phrase ne nomme QUE des gestes qui existent. « Décoche ceux que tu ne prends
+// pas » n'est vrai que parce qu'aucune case ne refuse le clic — les deux tests
+// ci-dessous le mesurent ensemble, ici et dans le bloc du dessus.
 // ===========================================================================
 
-const LOCKED = ["household.mouth.rhythm_floor_locked", "household.mouth.rhythm_floor_locked_you"] as const;
 const FREE = ["household.mouth.rhythm_derived", "household.mouth.rhythm_derived_you"] as const;
 
-describe("une phrase par état, et jamais les deux", () => {
-  it("⛔ L'ÉTAT LIBRE PROPOSE DE RETIRER, ET SEULEMENT ÇA", () => {
+describe("une seule phrase, et elle ne promet que le geste qui existe", () => {
+  it("⛔ ELLE PROPOSE DE RETIRER — et l'écran le permet vraiment", () => {
     for (const key of FREE) {
       expect(fr[key], `fr · ${key}`).toMatch(/décoche/i);
       expect(en[key], `en · ${key}`).toMatch(/untick/i);
     }
   });
 
-  it("⛔ L'ÉTAT TENU NE PROPOSE JAMAIS DE RETIRER — c'est le défaut signalé", () => {
-    // La garde du lot. Une phrase qui dit « décoche » sur des cases grisées
-    // envoie quelqu'un buter contre un contrôle désactivé.
-    for (const key of LOCKED) {
-      expect(fr[key], `fr · ${key} invite à décocher`).not.toMatch(/décoche/i);
-      expect(en[key], `en · ${key} invite à décocher`).not.toMatch(/untick/i);
+  it("⛔ LA PHRASE DE L'ÉTAT TENU A DISPARU DES DEUX PAQUETS", () => {
+    // Laissée en place, elle serait revenue au premier « une phrase par
+    // état » — et elle décrirait un refus que l'écran n'oppose plus.
+    for (const key of [
+      "household.mouth.rhythm_floor_locked",
+      "household.mouth.rhythm_floor_locked_you",
+    ]) {
+      expect(fr).not.toHaveProperty(key);
+      expect(en).not.toHaveProperty(key);
     }
-  });
-
-  it("⛔ ET IL NOMME LA SORTIE: ajouter", () => {
-    // Une case grise sans issue est un bouton mort — cicatrice mesurée trois
-    // fois sur cet écran. La sortie est le seul geste possible: en cocher un
-    // de plus.
-    for (const key of LOCKED) {
-      expect(fr[key], `fr · ${key}`).toMatch(/ajoute/i);
-      expect(en[key], `en · ${key}`).toMatch(/add/i);
-    }
-  });
-
-  it("⛔ ET IL PORTE LE POURQUOI, puisque la phrase autonome a disparu", () => {
-    expect(fr["household.mouth.rhythm_floor_locked"]).toMatch(/une assiette ne peut pas tout porter/i);
-    expect(en["household.mouth.rhythm_floor_locked"]).toMatch(/one plate can only hold so much/i);
-    // ⛔ `rhythm_derived_why` N'EXISTE PLUS: elle se servait dans les deux
-    // états, dont celui où elle n'expliquait rien de contraignant.
+    // ⛔ `rhythm_derived_why` N'EXISTE PLUS NON PLUS: elle se servait dans les
+    // deux états, dont celui où elle n'expliquait rien de contraignant.
     expect(fr).not.toHaveProperty("household.mouth.rhythm_derived_why");
     expect(en).not.toHaveProperty("household.mouth.rhythm_derived_why");
   });
@@ -265,7 +261,7 @@ describe("une phrase par état, et jamais les deux", () => {
     // Sans plafond, la phrase regrossit au premier ajout « utile » — chacun
     // l'étant pris seul. Le seuil est celui de l'empilement d'avant, divisé
     // par deux: de quoi dire un fait et un geste, pas une leçon.
-    for (const key of [...FREE, ...LOCKED]) {
+    for (const key of FREE) {
       for (const [lang, pack] of [["fr", fr], ["en", en]] as const) {
         const words = pack[key].split(/\s+/).length;
         expect(words, `${lang} · ${key} fait ${words} mots`).toBeLessThanOrEqual(30);
@@ -273,20 +269,23 @@ describe("une phrase par état, et jamais les deux", () => {
     }
   });
 
-  it("⛔ ET L'ÉCRAN N'EN REND QU'UNE — l'empilement ne revient pas", () => {
-    // La contradiction ne venait pas des mots, elle venait du `+`. Le rendu
-    // choisit donc, il ne concatène plus.
+  it("⛔ ET L'ÉCRAN N'EN REND QU'UNE — ni empilement, ni branche", () => {
+    // La contradiction ne venait pas des mots, elle venait du `+`. Le rendu ne
+    // concatène plus — et depuis le 2026-09-15 il ne CHOISIT plus non plus:
+    // une branche laissée ici serait un état mort qui attend sa clé.
     const block = DIALOG.slice(DIALOG.indexOf("{floorSpeaks"), DIALOG.indexOf("LE SHAKER COMPOSÉ"));
-    expect(block).toMatch(/floorBinds\s*\?\s*"household\.mouth\.rhythm_floor_locked"/);
+    expect(block).toMatch(/voiced\("household\.mouth\.rhythm_derived", voice\)/);
+    expect(block, "la branche du verrou est revenue")
+      .not.toMatch(/rhythm_floor_locked/);
     expect(block, "les deux phrases se concatènent encore")
       .not.toMatch(/rhythm_derived_why/);
   });
 
-  it("⛔ ET LE VERROU A UNE VOIX: il ne tutoie plus la fiche d'un tiers", () => {
+  it("⛔ ET ELLE A UNE VOIX: elle ne tutoie plus la fiche d'un tiers", () => {
     // « Tu en as coché 4 » s'affichait sous le prénom de quelqu'un d'autre.
-    expect(fr["household.mouth.rhythm_floor_locked"]).toMatch(/\{who\}/);
-    expect(fr["household.mouth.rhythm_floor_locked_you"]).not.toMatch(/\{who\}/);
-    expect(en["household.mouth.rhythm_floor_locked"]).toMatch(/\{who\}/);
-    expect(en["household.mouth.rhythm_floor_locked_you"]).not.toMatch(/\{who\}/);
+    expect(fr["household.mouth.rhythm_derived"]).toMatch(/\{who\}/);
+    expect(fr["household.mouth.rhythm_derived_you"]).not.toMatch(/\{who\}/);
+    expect(en["household.mouth.rhythm_derived"]).toMatch(/\{who\}/);
+    expect(en["household.mouth.rhythm_derived_you"]).not.toMatch(/\{who\}/);
   });
 });

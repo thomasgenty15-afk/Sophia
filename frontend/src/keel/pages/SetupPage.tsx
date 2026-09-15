@@ -7,7 +7,7 @@ import { Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { useAuth } from "../../context/AuthContext";
-import { edgeRefusalKey } from "../copy/planRefusals";
+import { planFailureKey } from "../copy/planRefusals";
 import { setupMissKey } from "../copy/setupMisses";
 import { LocaleSwitch } from "../components/LocaleSwitch";
 import { BrandMark } from "../components/BrandMark";
@@ -244,10 +244,17 @@ type Load =
  * Un jeton inconnu retombe sur le message brut, jamais sur une phrase
  * générique: un refus qu'on n'a pas prévu doit rester VISIBLE, sinon on le
  * découvre six mois plus tard dans un ticket.
+ *
+ * ⛔ `planFailureKey` ET PAS `edgeRefusalKey`. Mesuré le 2026-09-15 sur le
+ * projet hébergé: la composition coupée par la passerelle a levé
+ * `plan_still_composing`, et cet écran l'a rendu EN JETON BRUT sous le bouton
+ * de fin — la phrase existait, mais `edgeRefusalKey` ne lit que les refus du
+ * SERVEUR, et ce jeton-là est une issue décidée par le NAVIGATEUR
+ * (`CLIENT_OUTCOME_KEYS`). Seul `planFailureKey` lit les deux tables.
  */
 function refusalMessage(error: unknown): string {
   const raw = error instanceof Error ? error.message : String(error);
-  const key = edgeRefusalKey(raw.split(":")[0]?.trim() ?? "");
+  const key = planFailureKey(raw.split(":")[0]?.trim() ?? "");
   return key ? t(key) : raw;
 }
 

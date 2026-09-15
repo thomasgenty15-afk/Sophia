@@ -509,6 +509,7 @@ import {
 import {
   failDraft,
   markRunning,
+  markStage,
   loadDraftForAdoption,
   openDraft,
 } from "../_shared/keel/draft_store.ts";
@@ -8413,6 +8414,8 @@ Deno.serve(async (req) => {
       // marquage, le `catch` extérieur rendait 500 avec le message brut du
       // fournisseur — « OpenAI error: Rate limit reached » — sur une surface
       // lue par quelqu'un. Voir `model_call_failure.ts`.
+      // ⟳ 2026-09-15 · LOT B — le stade, pour l'écran qui relit la ligne.
+      if (draftId) await markStage(admin, draftId, "composing");
       result = await appelModele("composition", () =>
         generateWithGemini(
         built.systemPrompt + household.systemSuffix,
@@ -8468,6 +8471,8 @@ Deno.serve(async (req) => {
         request_id: requestId,
       }, { status: 502 });
     }
+    // ⟳ 2026-09-15 · LOT B — le modèle a rendu ; ce qui suit est déterministe.
+    if (draftId) await markStage(admin, draftId, "checking");
 
     // Hissés en `const` pour la même raison que sur la lane individuelle: la
     // relance FF-037 doit repasser par EXACTEMENT les mêmes verrous, et deux
@@ -19079,6 +19084,8 @@ Deno.serve(async (req) => {
             // jette est un appel PARTI: le compter seulement au retour ferait
             // dire « zéro appel » à une requête qui en a payé deux.
             c4CallsMade += 1;
+            // ⟳ 2026-09-15 · LOT B — un second appel modèle ; l'écran le dit.
+            if (draftId) await markStage(admin, draftId, "repairing");
             const answer = await appelModele("repair", () =>
               generateWithGemini(
               c4System.text,
@@ -19868,6 +19875,8 @@ Deno.serve(async (req) => {
               planFoods: planVocabularyOf(dishes, preparationsWritten),
             },
           };
+        // ⟳ 2026-09-15 · LOT B — dernier stade avant que la ligne devienne `done`.
+        await markStage(admin, draftId, "writing");
         const storedRpc = await admin.rpc("keel_household_complete_draft_generation", {
           p_household: held.householdId,
           p_request: held.requestId,

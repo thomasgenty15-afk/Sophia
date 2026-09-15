@@ -514,53 +514,100 @@ describe("le curseur — quatre états, et deux d'entre eux sont des PHRASES", (
     }
   });
 
-  it("⛔ L3′ — LE NOMBRE DE SEMAINES SE REND, AVEC SA RÉSERVE", () => {
-    // ⚠️ CE TEST EST L'ARME DU LOT, ET IL A CHANGÉ DE CAMP DEUX FOIS. Il a
+  it("⛔ LA DATE D'ARRIVÉE SE REND, AVEC SA CONDITION", () => {
+    // ⚠️ CE TEST EST L'ARME DU LOT, ET IL A CHANGÉ DE CAMP TROIS FOIS. Il a
     // exigé `toContain("About 12 weeks")`, puis son contraire strict
     // (`not.toMatch(/\d+\s*(weeks?|semaines?)/i)`, lot `L3` du 2026-08-22),
-    // et depuis le 2026-09-01, à la demande, le nombre est de retour.
+    // puis le nombre collé à sa réserve (2026-09-01), et depuis le
+    // 2026-09-15, à la demande, une DATE collée à sa condition.
     //
-    // ⛔ CE QU'IL GARDE MAINTENANT N'EST PAS « le chiffre est là »: c'est
-    // « le chiffre n'est JAMAIS là tout seul ». La mesure qui l'avait fait
-    // retirer (erreur d'estimation ±580 kcal/j > déficit visé 500 kcal/j,
-    // donc une borne haute à l'infini) n'a pas été infirmée — c'est la
-    // réserve à l'écran qui la porte.
+    // ⛔ CE QU'IL GARDE N'A JAMAIS CHANGÉ DE FORME: « le chiffre n'est JAMAIS
+    // là tout seul ». La mesure qui l'avait fait retirer (erreur d'estimation
+    // ±580 kcal/j > déficit visé 500 kcal/j, donc une borne haute à l'infini)
+    // n'a pas été infirmée — c'est la CONDITION à l'écran qui la porte
+    // maintenant, à la place de la réserve.
+    const DRAFT = {
+      ...ADULT_COMPLETE,
+      goal: "fat_loss" as const,
+      targetWeightKg: "55",
+    };
+    // ⚠️ SUJET EXPLICITE: le défaut du montage est une bouche TIERCE, et la
+    // phrase change de voix avec lui. Le cas voisé vit dans le test suivant.
+    const SELF = { existing: true, hasAccount: true, isSelf: true } as const;
     for (const locale of ["en", "fr"] as const) {
-      const body = text(html({
-        draft: { ...ADULT_COMPLETE, goal: "fat_loss", targetWeightKg: "55" },
-        locale,
-      }));
-      // ① le nombre — 60 kg → 55 kg à 0,45 kg/semaine, arrondi au supérieur.
-      expect(body).toMatch(/12\s*(weeks|semaines)/);
-      // ② ⛔ ET SA RÉSERVE, DANS LA MÊME FENÊTRE. C'est l'assertion qui
+      const body = text(html({ draft: DRAFT, locale, subject: SELF }));
+      // ① LA DATE — 60 kg → 55 kg à 0,45 kg/semaine = 12 semaines arrondies au
+      // supérieur, donc 84 jours après `TODAY` (2026-08-18).
+      expect(body).toContain(locale === "fr" ? "10 novembre 2026" : "10 November 2026");
+      // ⛔ ET LE NOMBRE DE SEMAINES NE SE REND PLUS À CÔTÉ. Deux façons de dire
+      // le même horizon divergent au premier arrondi changé.
+      expect(body).not.toMatch(/12\s*(weeks|semaines)/);
+      // ② ⛔ ET SA CONDITION, DANS LA MÊME FENÊTRE. C'est l'assertion qui
       // compte: sans elle, ce test redeviendrait celui d'avant le lot `L3`.
       expect(body).toContain(decode(
-        arrivalHorizonCopy({ kind: "weeks_at_this_pace", weeks: 12 }, locale),
+        arrivalHorizonCopy(
+          {
+            kind: "weeks_at_this_pace",
+            weeks: 12,
+            arrivalOn: "2026-11-10",
+            targetKg: 55,
+          },
+          locale,
+          "self",
+          "Zoe",
+        ),
       ));
-      // ⚠️ ET LES MOTS DE LA RÉSERVE EN DUR, PAS SEULEMENT PAR LE CATALOGUE.
+      // ⚠️ ET LES MOTS DE LA CONDITION EN DUR, PAS SEULEMENT PAR LE CATALOGUE.
       // L'assertion du dessus se paramètre par la chaîne qu'elle vérifie:
-      // vider la réserve du gabarit la laisserait VERTE (cicatrice
+      // vider la condition du gabarit la laisserait VERTE (cicatrice
       // `test-parameterized-by-its-own-constant`). Ces deux-là mordent.
       expect(body).toContain(
-        locale === "fr" ? "pas une date" : "not a date",
+        locale === "fr" ? "Si tu colles au plan" : "Stick to the plan",
       );
       expect(body).toContain(
-        locale === "fr" ? "la balance" : "the scale",
+        locale === "fr" ? "C'est mathématique" : "It is arithmetic",
       );
+      // ⛔ ET LE POIDS VISÉ EST NOMMÉ: une date sur rien n'est pas lisible.
+      expect(body).toContain("55 kg");
       // ③ ⛔ ET AUCUNE FOURCHETTE: la borne haute des semaines est l'infini,
       // donc « 12 à 24 » serait une seconde promesse, fausse comme l'autre.
       expect(body).not.toMatch(/\d+\s*(à|to)\s*\d+\s*(weeks|semaines)/i);
       // ④ ⛔ ET PLUS DE `hint` SOUS « POIDS VISÉ »: il disait « pas le moment
-      // où il sera atteint » / « not when it will be reached », ce qui
-      // contredit le paragraphe rendu quinze lignes plus bas.
+      // où il sera atteint » / « not when it will be reached », ce que la
+      // phrase rendue quinze lignes plus bas contredit MOT POUR MOT.
       expect(body).not.toMatch(
         /pas le moment où il sera atteint|not when it will be reached/i,
       );
-      // ⑤ ⛔ NI SON ANCÊTRE, QUI SURPROMETTAIT: « il donne une date d'arrivée ».
-      expect(body).not.toMatch(
-        /donne une date d'arrivée|gives a date to arrive on/i,
-      );
+      // ⑤ ⛔ ET LA RÉSERVE D'AVANT NE TRAÎNE NULLE PART. Elle disait « pas une
+      // date » au-dessus d'un écran qui en donne une.
+      expect(body).not.toMatch(/pas une date|not a date|la balance|the scale/i);
     }
+  });
+
+  it("⛔ LA VOIX SUIT LE SUJET — la date d'un tiers ne se tutoie pas", () => {
+    // « Tu seras à ton objectif » sous le prénom de quelqu'un d'autre est la
+    // cicatrice déjà payée sur cet écran avec « Tu en as coché 4 ».
+    const DRAFT = {
+      ...ADULT_COMPLETE,
+      firstName: "Lea",
+      goal: "fat_loss" as const,
+      targetWeightKg: "55",
+    };
+    const self = text(html({
+      draft: DRAFT,
+      locale: "fr",
+      subject: { existing: true, hasAccount: true, isSelf: true },
+    }));
+    expect(self).toContain("Si tu colles au plan");
+
+    const other = text(html({
+      draft: DRAFT,
+      locale: "fr",
+      subject: { existing: true, hasAccount: false, isSelf: false },
+    }));
+    expect(other).toContain("Si Lea colle au plan");
+    expect(other, "l'écran tutoie la fiche de quelqu'un d'autre")
+      .not.toContain("Si tu colles au plan");
   });
 
   it("⛔ L3′ — SANS CURSEUR, AUCUNE DURÉE NE SE REND", () => {
@@ -2331,14 +2378,22 @@ describe("⟳ ce qui est pris à côté du plat n'est plus demandé", () => {
     expect(body).not.toContain(decode(en["household.mouth.takes_bread"]));
   });
 
-  it("⚠️ ET UNE PHRASE PREND LEUR PLACE — sinon le retrait se devine", () => {
-    // ⛔ LE CAS QUI PASSE. Sans lui, « les bulles ont disparu » et « la section
-    // entière a disparu » se relisent pareil — et quelqu'un qui ajoute du pain
-    // croirait que son plan en tient compte.
-    const body = text(prefsHtml({ draft: lunchOnly }));
-    expect(body).toContain(decode(en["household.mouth.portions_plan_only"]));
-    expect(text(prefsHtml({ draft: lunchOnly, locale: "fr" })))
-      .toContain(decode(fr["household.mouth.portions_plan_only"]));
+  it("⟳ 2026-09-15 — ET LA PHRASE QUI AVAIT PRIS LEUR PLACE EST PARTIE AUSSI", () => {
+    // ⛔ LA PRÉMISSE, ARMÉE D'ABORD. Sans elle, « la phrase a disparu » et « la
+    // section entière a disparu » se relisent pareil, et ce cas resterait vert
+    // le jour où le bloc des moments cesserait de se rendre.
+    const body = text(prefsHtml({ draft: lunchOnly, locale: "fr" }));
+    expect(body, "le bloc des moments ne se rend plus: la mesure est sans objet")
+      .toContain("Coche les moments où");
+    // « Les portions sont calculées pour les aliments prévus dans votre plan.
+    // Les ajouts personnels ne sont pas inclus. » — retirée sur demande. La
+    // clé n'existe plus dans aucun des deux paquets, donc on mesure le TEXTE.
+    for (const bout of ["ajouts personnels", "Anything you add yourself"]) {
+      expect(text(prefsHtml({ draft: lunchOnly })), bout).not.toContain(bout);
+      expect(body, bout).not.toContain(bout);
+    }
+    expect(fr).not.toHaveProperty("household.mouth.portions_plan_only");
+    expect(en).not.toHaveProperty("household.mouth.portions_plan_only");
   });
 });
 
@@ -2355,43 +2410,55 @@ const OPENED: EatingStructure = {
   reason: "derived",
 };
 
-describe("FF-060 — le verrou est un PLANCHER DE COMPTE, pas des moments nommés", () => {
-  // ⛔ CE QUI ÉTAIT FAUX AU PREMIER JET, MESURÉ À L'ÉCRAN LE 2026-09-04. Le
-  // verrou portait sur `structure.opened`. Sur une fiche où rien n'est coché,
-  // la dérivation ouvre les quatre moments depuis rien — donc les quatre se
-  // verrouillaient, et la personne ne pouvait PLUS JAMAIS dire qu'elle saute le
-  // petit-déjeuner. Un produit qui interdit de décrire ses propres repas a
-  // cessé d'être un produit.
+describe("FF-060 — le plancher SE DIT, et il ne retient plus rien", () => {
+  // ── CE QUE CE BLOC A MESURÉ, DANS L'ORDRE ────────────────────────────────
+  // 2026-09-04  le verrou portait sur `structure.opened`: sur une fiche vide,
+  //             les quatre moments ouverts se grisaient d'un coup, et la
+  //             personne ne pouvait plus dire qu'elle saute le petit-déjeuner.
+  // 2026-09-06  il devient un PLANCHER DE COMPTE (« au moins N », jamais « ces
+  //             N-là »), et il ne mord plus qu'en prise de poids.
+  // 2026-09-15  IL DISPARAÎT. Décision produit: « ça doit pas être bloqué, mais
+  //             en fonction de l'objectif calorique il faut que ce soit coché ».
+  //             La pré-coche reste (elle est mesurée dans `rhythmPrefill`),
+  //             l'opposabilité s'en va.
   //
-  // La contrainte réelle a toujours été « au moins N moments », jamais « ces
-  // N-là »: lesquels reste le choix de la personne.
+  // ⚠️ CE QUI RESTE VRAI ET QUE CE BLOC TIENT ENCORE: le plancher continue de
+  // SE DIRE. Ce qui disparaît est la contrainte, jamais l'information — sans
+  // la phrase, on découvrirait un goûter dans son plan sans rien pour
+  // l'expliquer.
 
   const rythme = (...slots: EatingOccasion[]) =>
     slots.map((slot) => ({ slot, size: null }));
 
   /**
-   * ⟳ 2026-09-06 — LES CAS DE VERROU DÉCLARENT UNE PRISE DE POIDS, ET C'EST LA
-   * MOITIÉ DU LOT. Le plancher ne retient plus que là: « si une personne n'a
-   * pas pour objectif de prendre du poids il faut pas qu'on impose de manger »
-   * (décision produit, à l'écran). Sans ce `goal`, ces cas mesureraient un
-   * verrou qui n'existe plus pour personne — et le dernier cas du bloc le
-   * PROUVE par l'autre bout.
+   * ⚠️ LA PRISE DE POIDS RESTE NOMMÉE ICI, ET C'EST LE CAS QUI COMPTE. C'était
+   * la SEULE direction qui verrouillait: un cas écrit sans `goal` mesurerait
+   * l'absence d'un verrou qui n'avait de toute façon jamais mordu là.
    */
   const GAINS = { goal: "muscle_gain" as const };
 
-  it("au plancher, les moments cochés se verrouillent — EN PRISE DE POIDS", () => {
+  it("⛔ AU PLANCHER, EN PRISE DE POIDS, RIEN N'EST GRISÉ — le cas qui verrouillait", () => {
     const h = prefsHtml({
       draft: { ...GAINS, rhythm: rythme("breakfast", "lunch", "snack_pm", "dinner") },
       structure: { ...OPENED, requiredCount: 4 },
       locale: "fr",
     });
-    expect(h).toContain('data-mouth-slot-locked="breakfast"');
-    expect(h).toContain('data-mouth-slot-locked="snack_pm"');
+    // LA PRÉMISSE, ARMÉE: on est bien dans l'état qui grisait — quatre cochés
+    // pour quatre requis. Sans elle, l'absence ci-dessous serait l'absence du
+    // bloc entier.
+    expect(h, "le bloc des moments ne se rend plus").toContain("mouth-rhythm-breakfast");
+    expect(h).toContain("4 moments par jour");
+    expect(h).not.toContain("data-mouth-slot-locked");
+    for (const slot of ["breakfast", "lunch", "snack_pm", "dinner"]) {
+      const bloc = h.slice(h.indexOf(`mouth-rhythm-${slot}`));
+      expect(bloc.slice(0, bloc.indexOf(">")), `${slot} est grisé`)
+        .not.toContain("disabled");
+    }
   });
 
   it("⛔ UN MOMENT NON COCHÉ N'EST JAMAIS VERROUILLÉ — on peut toujours en AJOUTER", () => {
     const h = prefsHtml({
-      draft: { rhythm: rythme("breakfast", "lunch", "snack_pm", "dinner") },
+      draft: { ...GAINS, rhythm: rythme("breakfast", "lunch", "snack_pm", "dinner") },
       structure: { ...OPENED, requiredCount: 4 },
       locale: "fr",
     });
@@ -2400,7 +2467,7 @@ describe("FF-060 — le verrou est un PLANCHER DE COMPTE, pas des moments nommé
     expect(bloc.slice(0, bloc.indexOf(">"))).not.toContain("disabled");
   });
 
-  it("⛔ AU-DESSUS DU PLANCHER, TOUT SE DÉVERROUILLE — l'ÉCHANGE est permis", () => {
+  it("⛔ AU-DESSUS DU PLANCHER NON PLUS — l'ÉCHANGE est permis", () => {
     // Cinq cochés pour quatre requis: la personne peut retirer celui qu'elle
     // veut. C'est exactement le geste que le premier jet interdisait.
     const h = prefsHtml({
@@ -2448,39 +2515,22 @@ describe("FF-060 — le verrou est un PLANCHER DE COMPTE, pas des moments nommé
     expect(h).toContain("4 moments par jour");
   });
 
-  it("⛔ ET LE POURQUOI EST DANS L'ÉTAT QUI CONTRAINT, PAS DANS LES DEUX", () => {
-    // ⟳ 2026-09-08 (soir) — `rhythm_derived_why` était une TROISIÈME phrase,
-    // servie dans les deux états. Sans verrou elle n'explique aucune
-    // contrainte: elle allonge. Elle est donc pliée dans la phrase du verrou,
-    // où elle dit pourquoi une case ne se décoche pas.
-    const tenu = prefsHtml({
-      draft: { ...GAINS, rhythm: rythme("breakfast", "lunch", "snack_pm", "dinner") },
-      structure: { ...OPENED, requiredCount: 4 },
-      locale: "fr",
-    });
-    expect(tenu).toContain("une assiette ne peut pas tout porter");
-
-    const libre = prefsHtml({
-      draft: { rhythm: rythme("breakfast", "lunch", "snack_pm", "dinner") },
-      structure: OPENED,
-      locale: "fr",
-    });
-    expect(libre, "la leçon se sert encore quand rien ne contraint")
-      .not.toContain("une assiette ne peut pas tout porter");
-  });
-
-  it("⛔ L'ÉTAT TENU NE PROPOSE PAS DE DÉCOCHER — les cases sont grisées", () => {
-    // Signalé mot pour mot: « on peut pas décocher les repas imposés ». La
-    // phrase du verrou ne doit donc jamais nommer ce geste-là; elle nomme
-    // l'ajout, qui est le seul possible.
+  it("⛔ UNE SEULE PHRASE, MÊME EN PRISE DE POIDS — et elle nomme le décochage", () => {
+    // ⟳ 2026-09-15 — LE SENS DE CE CAS S'EST INVERSÉ, ET C'EST VOULU. Il
+    // mesurait l'inverse: l'état « tenu » ne devait JAMAIS dire « décoche »,
+    // parce que les cases étaient grisées (signalé mot pour mot: « on peut pas
+    // décocher les repas imposés »). Plus rien n'est grisé, donc la phrase du
+    // verrou n'a plus d'objet et le geste qu'elle interdisait est redevenu le
+    // seul qu'on nomme.
     const h = prefsHtml({
       draft: { ...GAINS, rhythm: rythme("breakfast", "lunch", "snack_pm", "dinner") },
       structure: { ...OPENED, requiredCount: 4 },
       locale: "fr",
     });
-    expect(h).toContain("data-mouth-slot-locked");
-    expect(h, "l'écran invite à un geste qu'il refuse").not.toContain("décoche");
-    expect(h, "la sortie n'est plus nommée").toContain("ajoutes-en un");
+    expect(h).toContain("décoche");
+    expect(h, "la phrase du verrou est revenue")
+      .not.toContain("une assiette ne peut pas tout porter");
+    expect(h, "la sortie de l'état tenu est revenue").not.toContain("ajoutes-en un");
   });
 
   it("⛔ LA PHRASE N'ÉCRIT JAMAIS UN KCAL", () => {
@@ -2533,7 +2583,6 @@ describe("FF-060 — le verrou est un PLANCHER DE COMPTE, pas des moments nommé
       structure: { ...OPENED, opened: [], requiredCount: 4 },
       locale: "fr",
     });
-    expect(h).toContain("data-mouth-slot-locked");
     expect(h).toContain("4 moments par jour");
   });
 
@@ -2553,20 +2602,23 @@ describe("FF-060 — le verrou est un PLANCHER DE COMPTE, pas des moments nommé
 
   /**
    * ══════════════════════════════════════════════════════════════════════════
-   * ⛔ ON N'IMPOSE DE MANGER QU'À QUI VEUT PRENDRE DU POIDS — 2026-09-06
+   * ⛔ ON N'IMPOSE DE MANGER À PERSONNE — 2026-09-06, élargi le 2026-09-15
    * ══════════════════════════════════════════════════════════════════════════
    *
-   * Décision produit, mot pour mot: « si une personne n'a pas pour objectif de
+   * 2026-09-06, mot pour mot: « si une personne n'a pas pour objectif de
    * prendre du poids il faut pas qu'on impose de manger […] on peut décocher
-   * et après l'algorithme fera comme il peut ».
+   * et après l'algorithme fera comme il peut ». La prise de poids gardait donc
+   * son verrou, et cette boucle couvrait les trois AUTRES directions.
    *
-   * ⚠️ LES TROIS AUTRES DIRECTIONS, PAS UNE. Une garde codée sur `fat_loss`
-   * seul laisserait le verrou mordre en maintien, qui est le cas le plus
-   * courant du produit — et `""` est la fiche qu'on est en train de remplir,
-   * donc la première que quiconque voit.
+   * 2026-09-15, mot pour mot: « ça doit pas être bloqué ». Plus d'exception:
+   * `muscle_gain` a rejoint la liste, et la boucle couvre les quatre.
+   *
+   * ⚠️ LES QUATRE, PAS UNE. Une garde codée sur une seule direction laisserait
+   * le verrou mordre ailleurs — et `""` est la fiche qu'on est en train de
+   * remplir, donc la première que quiconque voit.
    */
-  for (const goal of ["fat_loss", "maintenance", ""] as const) {
-    it(`⛔ AUCUN VERROU HORS PRISE DE POIDS — goal « ${goal || "non choisi"} »`, () => {
+  for (const goal of ["fat_loss", "maintenance", "muscle_gain", ""] as const) {
+    it(`⛔ AUCUN VERROU, QUELLE QUE SOIT LA DIRECTION — goal « ${goal || "non choisi"} »`, () => {
       const h = prefsHtml({
         // MÊME PLANCHER, MÊMES MOMENTS COCHÉS que le cas qui verrouille
         // au-dessus: seule la direction change.
