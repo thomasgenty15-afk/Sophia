@@ -30,6 +30,11 @@
  * garde qui refuse tout aussi.
  */
 import { assert, assertAlmostEquals, assertEquals } from "jsr:@std/assert@1";
+import {
+  densityCorridorFor,
+  MAX_ASKABLE_DENSITY_PER_100G,
+  type PlateBounds,
+} from "./portion_sizing.ts";
 
 import {
   buildCompositionIndex,
@@ -239,6 +244,8 @@ Deno.test("① les huit faux manques par pluriel disparaissent", () => {
     index: INDEX,
     plan: planDesPluriels() as unknown as Record<string, unknown>,
     pantryTerms: [],
+    // ⟳ 2026-09-12 · FERMETURE LOT 2 — rien de déduit dans ce cas.
+    pantryCoveredG: new Map<string, number>(),
   });
   assertEquals(audit.identities, 6, "six identités, pas douze libellés");
   assertEquals(audit.rows.filter((r) => r.state === "not_bought").length, 0);
@@ -260,7 +267,12 @@ Deno.test("① LE CAS QUI MORD — retirer réellement un ingrédient de la list
   plan.shopping_list = (plan.shopping_list as { term: string }[]).filter(
     (l) => l.term !== "citrons",
   );
-  const audit = shoppingIdentityAudit({ index: INDEX, plan, pantryTerms: [] });
+  const audit = shoppingIdentityAudit({
+    index: INDEX,
+    plan,
+    pantryTerms: [],
+    pantryCoveredG: new Map<string, number>(),
+  });
   const manques = audit.rows.filter((r) => r.state === "not_bought");
   assertEquals(manques.length, 1);
   assertEquals(manques[0].identity, "lemon");
@@ -273,7 +285,12 @@ Deno.test("② LE CAS QUI MORD — sous-acheter une quantité", () => {
   for (const l of plan.shopping_list as { term: string; quantity: string }[]) {
     if (l.term === "citrons") l.quantity = "40 g";
   }
-  const audit = shoppingIdentityAudit({ index: INDEX, plan, pantryTerms: [] });
+  const audit = shoppingIdentityAudit({
+    index: INDEX,
+    plan,
+    pantryTerms: [],
+    pantryCoveredG: new Map<string, number>(),
+  });
   const courts = audit.rows.filter((r) => r.state === "short");
   assertEquals(courts.length, 1);
   assertEquals(courts[0].identity, "lemon");
@@ -283,7 +300,12 @@ Deno.test("② LE CAS QUI MORD — sous-acheter une quantité", () => {
   for (const l of plan.shopping_list as { term: string; quantity: string }[]) {
     if (l.term === "citrons") l.quantity = "100 g";
   }
-  const assez = shoppingIdentityAudit({ index: INDEX, plan, pantryTerms: [] });
+  const assez = shoppingIdentityAudit({
+    index: INDEX,
+    plan,
+    pantryTerms: [],
+    pantryCoveredG: new Map<string, number>(),
+  });
   assertEquals(assez.rows.filter((r) => r.state === "short").length, 0);
 });
 
@@ -296,6 +318,8 @@ Deno.test("③ le garde-manger déclare une PRÉSENCE, jamais un stock", () => {
     index: INDEX,
     plan,
     pantryTerms: ["citron"],
+    // ⟳ 2026-09-12 · FERMETURE LOT 2 — rien de déduit dans ce cas.
+    pantryCoveredG: new Map<string, number>(),
   });
   const ligne = audit.rows.find((r) => r.identity === "lemon");
   // ⛔ NI `not_bought` (il est là) NI `covered_measured` (on ne sait pas combien).
@@ -307,6 +331,8 @@ Deno.test("③ le garde-manger déclare une PRÉSENCE, jamais un stock", () => {
     index: INDEX,
     plan: planDesPluriels() as unknown as Record<string, unknown>,
     pantryTerms: [],
+    // ⟳ 2026-09-12 · FERMETURE LOT 2 — rien de déduit dans ce cas.
+    pantryCoveredG: new Map<string, number>(),
   });
   assertEquals(achete.rows.find((r) => r.identity === "lemon")?.state, "covered_measured");
 });
@@ -316,7 +342,12 @@ Deno.test("③ un conditionnement non convertible est un contrôle INCOMPLET", (
   for (const l of plan.shopping_list as { term: string; quantity: string }[]) {
     if (l.term === "citrons") l.quantity = "2 filets";
   }
-  const audit = shoppingIdentityAudit({ index: INDEX, plan, pantryTerms: [] });
+  const audit = shoppingIdentityAudit({
+    index: INDEX,
+    plan,
+    pantryTerms: [],
+    pantryCoveredG: new Map<string, number>(),
+  });
   const ligne = audit.rows.find((r) => r.identity === "lemon");
   assertEquals(ligne?.state, "check_incomplete");
   // ⛔ AUCUN MANQUE CHIFFRÉ N'EST INVENTÉ.
@@ -344,7 +375,12 @@ Deno.test("③ l'alias EXPLICITE du plan : le même libellé des deux côtés", 
     preparations: [],
     shopping_list: [{ term: "pita complète", quantity: "120 g", aisle: "bakery" }],
   };
-  const audit = shoppingIdentityAudit({ index: INDEX, plan, pantryTerms: [] });
+  const audit = shoppingIdentityAudit({
+    index: INDEX,
+    plan,
+    pantryTerms: [],
+    pantryCoveredG: new Map<string, number>(),
+  });
   assertEquals(audit.identities, 1, "une seule identité, pas deux");
   assertEquals(audit.rows[0].identity, "pita_wholemeal");
   assertEquals(audit.rows[0].state, "covered_measured");
@@ -356,6 +392,8 @@ Deno.test("③ l'alias EXPLICITE du plan : le même libellé des deux côtés", 
     index: INDEX,
     plan: { ...plan, shopping_list: [{ term: "pain pita", quantity: "120 g", aisle: "bakery" }] },
     pantryTerms: [],
+    // ⟳ 2026-09-12 · FERMETURE LOT 2 — rien de déduit dans ce cas.
+    pantryCoveredG: new Map<string, number>(),
   });
   assertEquals(autre.rows.find((r) => r.identity === "pita_wholemeal")?.state, "not_bought");
 });
@@ -377,6 +415,8 @@ Deno.test("③ un arrondi de panier n'est pas un manque, 10 % en est un", () => 
         shopping_list: [{ term: "tomates", quantity: achete, aisle: "produce" }],
       },
       pantryTerms: [],
+    // ⟳ 2026-09-12 · FERMETURE LOT 2 — rien de déduit dans ce cas.
+    pantryCoveredG: new Map<string, number>(),
     }).rows[0];
   // 440 g pour 446,82 requis : 1,5 % — un arrondi de panier.
   assertEquals(faire("440 g").state, "covered_measured");
@@ -400,7 +440,12 @@ Deno.test("④ le besoin est en poids CRU/ACHETABLE, jamais la masse cuite", () 
     preparations: [],
     shopping_list: [{ term: "riz", quantity: "100 g", aisle: "grains" }],
   };
-  const audit = shoppingIdentityAudit({ index: INDEX, plan, pantryTerms: [] });
+  const audit = shoppingIdentityAudit({
+    index: INDEX,
+    plan,
+    pantryTerms: [],
+    pantryCoveredG: new Map<string, number>(),
+  });
   const ligne = audit.rows.find((r) => r.identity === "white_rice");
   assertAlmostEquals(ligne?.neededRawG ?? -1, 100, 0.001);
   assertEquals(ligne?.state, "covered_measured");
@@ -441,6 +486,8 @@ const CELL_SAT_LUNCH: AuditCell = {
   gramsMax: null,
   densityMin: null,
   densityMax: null,
+  densityMinExact: null,
+  densityMaxExact: null,
 };
 
 Deno.test("⑤ un titre n'est pas une portion — la case sort `no_portion`", () => {
@@ -486,7 +533,7 @@ Deno.test("⑤ la garde REFUSE la case sans portion, et seulement elle", () => {
     { ...ctxAvec({ cells: rows, days: [] }), policy: FINAL_GATE_POLICY_LOT_4 },
   );
   assertEquals(strict.ok, false);
-  assertEquals(finalGateDelivery(strict).state, "not_deliverable");
+  assertEquals(finalGateDelivery(strict, []).state, "not_deliverable");
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -519,6 +566,8 @@ Deno.test("⑥ un bac partagé donne sa part à chacun, et le DIT", () => {
     gramsMax: null,
     densityMin: null,
     densityMax: null,
+    densityMinExact: null,
+    densityMaxExact: null,
   }));
   const rows = cellNutritionTable({ index: INDEX, plan, cells, portionsArePersonal: true });
   assertEquals(rows.length, 2);
@@ -594,6 +643,7 @@ Deno.test("⑧ le cas de Paul : 126,1 g pour un plancher de 176", () => {
     servedKcal: 2455.69,
     deltaPct: ((2455.69 - 2454) / 2454) * 100,
     proteinG: 126.1,
+    proteinRoundingG: null,
     protein: { coveredFloorG: 176, reason: "applied_full_day" },
     state: "conforme" as const,
   };
@@ -605,7 +655,7 @@ Deno.test("⑧ le cas de Paul : 126,1 g pour un plancher de 176", () => {
   assertEquals(outcome.counters.checked.protein_days, 1);
   assert(outcome.refusals[0].detail.includes("126,1".replace(",", ".")));
   // ⛔ LE VERDICT DE LIVRAISON N'EST PAS « CONFORME ».
-  assertEquals(finalGateDelivery(outcome).state, "deliverable_with_gaps");
+  assertEquals(finalGateDelivery(outcome, []).state, "deliverable_with_gaps");
 });
 
 Deno.test("⑧ LE CAS QUI PASSE — la même journée avec 180 g ne mord pas", () => {
@@ -618,6 +668,7 @@ Deno.test("⑧ LE CAS QUI PASSE — la même journée avec 180 g ne mord pas", (
     servedKcal: 2455.69,
     deltaPct: 0.07,
     proteinG: 180,
+    proteinRoundingG: null,
     protein: { coveredFloorG: 176, reason: "applied_full_day" },
     state: "conforme" as const,
   };
@@ -654,7 +705,7 @@ Deno.test("⑨ une fenêtre partielle ne met pas toute la journée sur le dîner
     dayFloorG: 176,
     perMealFloorG: null,
     abstention: "none",
-    coveredBudgetKcal: 858.9,
+    coveredBudgetGrossKcal: 858.9,
     dayTargetKcal: 2454,
     fixedProteinG: null,
   });
@@ -666,7 +717,7 @@ Deno.test("⑨ une fenêtre partielle ne met pas toute la journée sur le dîner
     dayFloorG: 176,
     perMealFloorG: null,
     abstention: "none",
-    coveredBudgetKcal: 2454,
+    coveredBudgetGrossKcal: 2454,
     dayTargetKcal: 2454,
     fixedProteinG: null,
   });
@@ -679,7 +730,7 @@ Deno.test("⑨ les apports fixes sont comptés UNE fois, et jamais devinés", ()
     dayFloorG: 100,
     perMealFloorG: null,
     abstention: "none",
-    coveredBudgetKcal: 2000,
+    coveredBudgetGrossKcal: 2000,
     dayTargetKcal: 2000,
     fixedProteinG: 30,
   });
@@ -690,7 +741,7 @@ Deno.test("⑨ les apports fixes sont comptés UNE fois, et jamais devinés", ()
     dayFloorG: 100,
     perMealFloorG: null,
     abstention: "none",
-    coveredBudgetKcal: 2000,
+    coveredBudgetGrossKcal: 2000,
     dayTargetKcal: 2000,
     fixedProteinG: null,
   });
@@ -703,7 +754,7 @@ Deno.test("⑨ une enveloppe `per_portion` s'abstient, et dit laquelle des deux"
       dayFloorG: null,
       perMealFloorG: null,
       abstention: "protected",
-      coveredBudgetKcal: 2000,
+      coveredBudgetGrossKcal: 2000,
       dayTargetKcal: 2000,
       fixedProteinG: null,
     }).reason,
@@ -714,7 +765,7 @@ Deno.test("⑨ une enveloppe `per_portion` s'abstient, et dit laquelle des deux"
       dayFloorG: null,
       perMealFloorG: null,
       abstention: "no_body",
-      coveredBudgetKcal: 2000,
+      coveredBudgetGrossKcal: 2000,
       dayTargetKcal: 2000,
       fixedProteinG: null,
     }).reason,
@@ -771,7 +822,7 @@ Deno.test("⑨ une journée à trou est NON MESURABLE, pas en écart", () => {
 Deno.test("⑩ les trois états, et un plan propre les distingue", () => {
   assertEquals([...DELIVERY_STATES], ["conforme", "deliverable_with_gaps", "not_deliverable"]);
   const propre = finalPlanGate(minimalPlan(), ctxAvec({ cells: [], days: [] }));
-  const verdict = finalGateDelivery(propre);
+  const verdict = finalGateDelivery(propre, []);
   assertEquals(verdict.state, "conforme");
   // ⛔ ET « CONFORME » NE VEUT PAS DIRE « TOUT A ÉTÉ REGARDÉ ». Sur ce plan
   // minimal, presque rien n'a tourné — et la liste le dit, nommément.
@@ -791,7 +842,7 @@ Deno.test("⑩ un contrôle INCOMPLET n'est ni un écart ni un défaut", () => {
     }],
   });
   assertEquals(outcome.refusals.length, 0, "⛔ aucun refus : rien n'accuse le plan");
-  const verdict = finalGateDelivery(outcome);
+  const verdict = finalGateDelivery(outcome, []);
   assertEquals(verdict.state, "conforme");
   assertEquals(verdict.incomplete.find((i) => i.control === "shopping_quantity")?.count, 1);
 });
@@ -816,6 +867,15 @@ function refus(over: Partial<GateRefusal> & { cause: GateRefusal["cause"] }): Ga
 
 function defaut(over: Partial<RepairDefect> & { kind: RepairDefect["kind"] }): RepairDefect {
   return {
+    // ⟳ 2026-09-12 · FERMETURE LOT 1 — L'ADRESSE STRUCTURÉE. Requise et
+    // nullable: un défaut fabriqué à la main dit explicitement qu'il n'en porte
+    // pas, au lieu de laisser le champ absent parler à sa place.
+    cause: null,
+    date: null,
+    preparationId: null,
+    // ⟳ 2026-09-13 · LOT 2 — `sessionIndex` est REQUIS et nullable.
+    sessionIndex: null,
+    source: "gate",
     day: null,
     slot: null,
     dish: null,
@@ -823,6 +883,8 @@ function defaut(over: Partial<RepairDefect> & { kind: RepairDefect["kind"] }): R
     detail: "",
     repairable: true,
     magnitude: null,
+    // ⟳ 2026-09-12 · LOT 2 — `measure` est REQUIS et nullable.
+    measure: null,
     ...over,
   };
 }
@@ -910,6 +972,26 @@ Deno.test("⑪ toutes les causes de la garde sont classées — aucune n'est oub
   assert(classees.some((d) => d.kind === "missing_meal"));
   assert(classees.some((d) => d.kind === "sizing"));
   assert(classees.some((d) => d.kind === "protein"));
+  // ══════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-14 · BÊTA 1A — TOUTE CAUSE QUI BLOQUE DOIT ÊTRE RÉPARABLE.
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ C'EST L'INVARIANT QUE LE TEST CI-DESSUS NE TENAIT PAS. Il comptait les
+  // lignes et vérifiait que les cinq natures existaient — une cause neuve
+  // tombait donc dans le repli « inconnue ⇒ preference, NON réparable » sans
+  // rien faire rougir. Or une cause en `refuse` qui n'est pas réparable est un
+  // verrou qui refuse le plan et n'ouvre aucune porte: la personne voit son
+  // plan rejeté et le produit n'a rien à tenter. C'est exactement le contraire
+  // de « un incident ordinaire a une issue autonome ».
+  const parCause = new Map(classees.map((d) => [d.cause, d]));
+  for (const cause of FINAL_GATE_CAUSES) {
+    if (FINAL_GATE_POLICY_LOT_4[cause] !== "refuse") continue;
+    assertEquals(
+      parCause.get(cause)?.repairable,
+      true,
+      `« ${cause} » bloque le plan et aucun appel ne peut le corriger`,
+    );
+  }
 });
 
 Deno.test("⑪ un plan non livrable n'écrase PAS un plan valide", () => {
@@ -958,6 +1040,9 @@ function ctxAvec(
     // ⚠️ AUCUNE BOUCHE : ce décor n'exerce QUE les causes de nutrition, et une
     // grille non vide allumerait `cell_without_dish` sur un plan vide.
     mouths: [],
+    // Aucune bouche, donc aucune obligation: la grille a tourné, elle ne doit
+    // rien. `null` dirait « elle n'a pas tourné », ce qui serait faux ici.
+    dedicated: [],
     energy: null,
     boxContract: null,
     exclusions: { table: [], byMember: [] },
@@ -994,6 +1079,8 @@ function cellRow(over: {
     targetKcal: over.targetKcal,
     servedKcal: over.servedKcal,
     proteinG: null,
+    proteinRoundingG: null,
+    densityRoundingPer100G: null,
     grams: over.servedKcal === null ? null : 400,
     densityPer100G: over.servedKcal === null ? null : over.servedKcal / 4,
     sharedWith: 1,
@@ -1018,7 +1105,152 @@ function dayRow(over: {
     servedKcal: 1000,
     deltaPct: 0,
     proteinG: over.proteinG,
+    proteinRoundingG: null,
     protein: { coveredFloorG: over.coveredFloorG, reason: over.reason },
     state: "conforme" as const,
   };
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-12 · ÉTAPE C1 — LE DOUBLE COMPTAGE DES APPORTS FIXES
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Le plan de clôture: « calculer la part protéique couverte AVANT la
+// soustraction des apports fixes, puis retirer leurs protéines UNE FOIS ; ne
+// pas réduire simultanément le besoin par un ratio énergétique déjà net ET par
+// une deuxième soustraction protéique ».
+
+Deno.test("⛔ C1 · le ratio prend le budget BRUT, la protéine se retire UNE fois", () => {
+  // Le décor, en nombres ronds pour que l'arithmétique se lise:
+  //   journée 2 000 kcal · plancher 100 g · shaker de 200 kcal et 24 g,
+  //   fenêtre = la journée entière.
+  //   brut   = 2 000  →  fraction 1,00  →  100 g  →  −24  =  76 g
+  //   net    = 1 800  →  fraction 0,90  →   90 g  →  −24  =  66 g  ⛔ deux fois
+  const juste = proteinFloorAllocation({
+    dayFloorG: 100,
+    perMealFloorG: null,
+    abstention: "none",
+    coveredBudgetGrossKcal: 2000,
+    dayTargetKcal: 2000,
+    fixedProteinG: 24,
+  });
+  assertAlmostEquals(juste.coveredFloorG ?? -1, 76, 0.001);
+  assertEquals(juste.reason, "applied_full_day");
+
+  // LE CAS QUI MORD, ÉCRIT EXPLICITEMENT: passer le budget NET rendait 66 g.
+  // Dix grammes de protéine de moins par jour, pour un seul pot, et dans le
+  // sens qui abaisse une exigence.
+  const double = proteinFloorAllocation({
+    dayFloorG: 100,
+    perMealFloorG: null,
+    abstention: "none",
+    coveredBudgetGrossKcal: 1800,
+    dayTargetKcal: 2000,
+    fixedProteinG: 24,
+  });
+  assertAlmostEquals(double.coveredFloorG ?? -1, 66, 0.001);
+  assert(
+    (juste.coveredFloorG ?? 0) > (double.coveredFloorG ?? 0),
+    "⛔ le double comptage abaisse le plancher — c'est ce qu'on ferme",
+  );
+});
+
+Deno.test("⛔ C1 · sans apport fixe, brut = net et RIEN ne bouge", () => {
+  // La propriété qui rend ce lot posable sans déplacer un seul plan existant:
+  // quand personne ne déclare rien, `coveredBudgetGrossKcal` vaut exactement
+  // `coveredBudgetKcal` et `fixedProteinG` vaut `null`.
+  const sans = proteinFloorAllocation({
+    dayFloorG: 176,
+    perMealFloorG: null,
+    abstention: "none",
+    coveredBudgetGrossKcal: 858.9,
+    dayTargetKcal: 2454,
+    fixedProteinG: null,
+  });
+  assertAlmostEquals(sans.coveredFloorG ?? -1, 176 * (858.9 / 2454), 0.001);
+  assertEquals(sans.reason, "applied_covered_window");
+});
+
+Deno.test("⛔ C1 · une fenêtre PARTIELLE avec shaker: les deux règles se composent", () => {
+  // Fenêtre partielle ET apport fixe, pour vérifier qu'aucune des deux
+  // corrections n'avale l'autre: fraction sur le brut (1 000 / 2 000 = 0,50),
+  // puis une seule soustraction de 24 g.
+  const part = proteinFloorAllocation({
+    dayFloorG: 100,
+    perMealFloorG: null,
+    abstention: "none",
+    coveredBudgetGrossKcal: 1000,
+    dayTargetKcal: 2000,
+    fixedProteinG: 24,
+  });
+  assertAlmostEquals(part.coveredFloorG ?? -1, 26, 0.001);
+  assertEquals(part.reason, "applied_covered_window");
+  // ⛔ ET JAMAIS SOUS ZÉRO: un shaker plus gros que la part couverte ne crée
+  // pas un plancher négatif.
+  const enorme = proteinFloorAllocation({
+    dayFloorG: 100,
+    perMealFloorG: null,
+    abstention: "none",
+    coveredBudgetGrossKcal: 1000,
+    dayTargetKcal: 2000,
+    fixedProteinG: 90,
+  });
+  assertEquals(enorme.coveredFloorG, 0);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-14 · BÊTA 1C ⑤ — ON JUGE SUR LA BORNE EXACTE, ON ÉNONCE L'ENTIER
+//
+// ⛔ DÉFAUT ② DE LA CLÔTURE DU 2026-09-14: « 218 g là où le partage décide 216
+// ⇒ densité 241,1 pour un plafond ENTIER de 241 (couloir exact 241,27) ». Le
+// nombre arrondi existe pour être DIT à un modèle; s'en servir comme seuil
+// invente un dépassement de 0,1 kcal/100 g qui n'existe pas.
+// ═══════════════════════════════════════════════════════════════════════════
+
+/** Des bornes d'assiette réduites à ce que le couloir en lit. */
+function bornes(min: number, max: number, preferred: number): PlateBounds {
+  return {
+    min,
+    max,
+    preferred,
+    physicalMax: max,
+    appetiteFactor: 1,
+    densityFloorPerG: 0,
+    band: "adult",
+    slotClass: "main",
+    source: "age_known",
+    boundSource: "appetite",
+  } as unknown as PlateBounds;
+}
+
+Deno.test("BÊTA 1C ⑤ — 241,1 sous un plafond exact de 241,27 est CONFORME", () => {
+  const corridor = densityCorridorFor({
+    targetKcal: 700,
+    // 700 kcal entre 290 g et 500 g ⇒ Dmax exact = 700/290×100 = 241,379…
+    bounds: bornes(290, 500, 395),
+  });
+  assert(corridor !== null);
+  // ⛔ LES DEUX NOMBRES EXISTENT, ET ILS DIFFÈRENT: c'est tout le sujet.
+  assertEquals(corridor.maxPer100G, 241);
+  assert(corridor.maxExactPer100G > 241);
+  assert(corridor.maxExactPer100G < 242);
+  // ⚠️ ET L'ENTIER RESTE EN DESSOUS DE L'EXACT, jamais au-dessus: un
+  // dépassement réel ne peut pas disparaître par l'arrondi.
+  assert(corridor.maxPer100G <= corridor.maxExactPer100G);
+  assert(corridor.minPer100G >= corridor.minExactPer100G);
+});
+
+Deno.test("BÊTA 1C ⑤ — la borne exacte est plafonnée comme l'entier", () => {
+  // ⛔ SANS ÇA, LE VERDICT JUGERAIT CONTRE UNE BORNE QUE LA CONSIGNE N'A JAMAIS
+  // PORTÉE. `MAX_ASKABLE_DENSITY_PER_100G` est une politique du moteur: elle
+  // s'applique aux deux formes du couloir, ou à aucune.
+  const corridor = densityCorridorFor({
+    targetKcal: 4099,
+    bounds: bornes(300, 700, 500),
+  });
+  assert(corridor !== null);
+  assertEquals(corridor.incompatible, "above_askable_cap");
+  assertEquals(corridor.minPer100G, MAX_ASKABLE_DENSITY_PER_100G);
+  assertEquals(corridor.minExactPer100G, MAX_ASKABLE_DENSITY_PER_100G);
+  assertEquals(corridor.maxExactPer100G, MAX_ASKABLE_DENSITY_PER_100G);
+});

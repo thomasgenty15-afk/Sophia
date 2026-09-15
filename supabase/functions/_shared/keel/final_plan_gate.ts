@@ -413,6 +413,14 @@ export interface CellNutritionRow {
    */
   readonly grams?: number | null;
   readonly densityPer100G?: number | null;
+  /**
+   * ⟳ 2026-09-15 · BÊTA — la borne d'arrondi de la case. Ici elle ne sert QUE
+   * la phrase du refus: le verdict `bounds_off` est rendu par l'audit
+   * (`cellStateOf`), qui la lit en champ requis. Optionnelle ici, elle ne
+   * désarme rien — elle n'arme rien non plus.
+   */
+  readonly proteinRoundingG?: number | null;
+  readonly densityRoundingPer100G?: number | null;
   /** Une portion INDIVIDUELLE est-elle attendue sur cette case ? */
   readonly portionExpected: boolean;
   readonly state:
@@ -435,6 +443,14 @@ export interface DayNutritionRow {
   readonly servedKcal: number | null;
   readonly deltaPct: number | null;
   readonly proteinG: number | null;
+  /**
+   * ⟳ 2026-09-15 · BÊTA — LA BORNE D'ARRONDI DU JOUR, CALCULÉE PAR L'AUDIT
+   * (Σ ½ g × protéine au gramme de chaque item + 0,05 g par boîte). Le plancher
+   * est tenu quand `proteinG + proteinRoundingG ≥ plancher`. ⛔ REQUIS ET
+   * NULLABLE: `null` = inconnue, lue comme zéro — jamais un `?` qui ferait de
+   * l'oubli d'un appelant une tolérance.
+   */
+  readonly proteinRoundingG: number | null;
   readonly protein: {
     readonly coveredFloorG: number | null;
     readonly reason: string;
@@ -839,6 +855,12 @@ export interface FinalGateChecked {
    * un trou, et il se lit séparément de `protein_protected`.
    */
   readonly protein_unmeasured: number;
+  /**
+   * ⟳ 2026-09-15 · BÊTA — Journées SOUS le plancher de moins que la borne
+   * d'arrondi calculée (`proteinRoundingG`): comptées tenues, et comptées ICI
+   * pour que le bilan dise combien de journées la borne a fermées.
+   */
+  readonly protein_within_rounding: number;
 }
 
 export interface FinalGateCounters {
@@ -2612,6 +2634,7 @@ export function finalPlanGate(
   let proteinDays = 0;
   let proteinProtected = 0;
   let proteinUnmeasured = 0;
+  let proteinWithinRounding = 0;
   const nutrition = ctx.nutrition ?? null;
   if (nutrition !== null) {
     for (const cell of nutrition.cells) {
@@ -2699,7 +2722,14 @@ export function finalPlanGate(
             ? "masse et densité non transmises"
             : `${spacedInt(cell.grams)} g cuits, ${
               spacedInt(cell.densityPer100G)
-            } kcal/100 g`;
+            } kcal/100 g` + (
+              cell.densityRoundingPer100G === undefined ||
+                cell.densityRoundingPer100G === null
+                ? ""
+                : `, borne d'arrondi ${
+                  Math.round(cell.densityRoundingPer100G * 100) / 100
+                } kcal/100 g`
+            );
         refuse("cell_bounds_off", {
           day: cell.day,
           slot: cell.slot,
@@ -2756,6 +2786,15 @@ export function finalPlanGate(
       }
       proteinDays++;
       if (day.proteinG >= floor) continue;
+      // ⟳ 2026-09-15 · BÊTA — LA BORNE D'ARRONDI, CALCULÉE PAR L'AUDIT. Une
+      // journée sous le plancher de moins que ce que l'écriture en grammes
+      // entiers peut déplacer est tenue — et comptée à part. Au-delà, c'est la
+      // recette qui manque de protéine, et la phrase dit ce que la borne vaut.
+      const rounding = day.proteinRoundingG ?? 0;
+      if (day.proteinG + rounding >= floor) {
+        proteinWithinRounding++;
+        continue;
+      }
       const percent = Math.round((day.proteinG / floor) * 100);
       refuse("protein_floor_short", {
         // ⟳ 2026-09-12 · ÉTAPE C4 — même raison qu'au-dessus: c'est cette clé
@@ -2767,7 +2806,9 @@ export function finalPlanGate(
           Math.round(day.proteinG * 10) / 10
         } g de protéine pour un plancher couvert de ${
           Math.round(floor * 10) / 10
-        } g (${percent} %, ${day.protein.reason})`,
+        } g (${percent} %, ${day.protein.reason}, borne d'arrondi ${
+          Math.round(rounding * 10) / 10
+        } g)`,
       });
     }
   }
@@ -2804,6 +2845,7 @@ export function finalPlanGate(
       protein_days: proteinDays,
       protein_protected: proteinProtected,
       protein_unmeasured: proteinUnmeasured,
+      protein_within_rounding: proteinWithinRounding,
     },
     refusals_by_cause: byCause,
     repairs_by_kind: byKind,

@@ -15731,6 +15731,8 @@ Deno.serve(async (req) => {
       unmeasurable: 0,
       grown: 0,
       fit_attempts: 0,
+      // ⟳ 2026-09-15 · BÊTA — les paliers d'unité (`bumpCountableToReadyMass`).
+      unit_bumped: 0,
       overdrawn_before: 0,
       overdrawn_after: 0,
       unreadable_drawn: 0,
@@ -15950,9 +15952,35 @@ Deno.serve(async (req) => {
             }).readyG,
         );
         potReconcile.fit_attempts += fitted.attempts;
+        // ⟳ 2026-09-15 · BÊTA — LA CASSEROLE QUI NE GROSSIT PAS DIT DE QUOI ELLE
+        // EST FAITE. Tirs 6 et 13 des 30: `prep_cod` (1 041 g pour 1 066) et
+        // `prep_egg_batch` (352 g pour 363) sont sortis en 422 après huit
+        // pesées sans qu'une ligne bouge — et rien n'a journalisé LES LIGNES
+        // (terme, nombre, unité, prose). Rejouées hors ligne depuis le premier
+        // jet, les deux recettes grossissent; celles du handler, redimensionnées
+        // avant, ne sont archivées nulle part. Cette ligne ferme ce trou: le
+        // prochain refus de masse explique lui-même sa casserole.
+        if (fitted.changed === 0 && (fitted.shortfallG ?? 0) > 0) {
+          console.error(JSON.stringify({
+            tag: "keel.household_meal.pot_grow_stuck",
+            request_id: requestId,
+            preparation_id: prep.id,
+            drawn_g: Math.round(drawn),
+            ready_g: Math.round(currentReady),
+            attempts: fitted.attempts,
+            lines: prep.ingredients.map((i) => ({
+              term: i.term,
+              amount: i.amount,
+              unit: i.unit,
+              quantity: i.quantity,
+              grams_raw: i.gramsRaw,
+            })),
+          }));
+        }
         if (fitted.changed > 0) {
           prep.ingredients.splice(0, prep.ingredients.length, ...fitted.items);
           potReconcile.grown++;
+          potReconcile.unit_bumped += fitted.unitBumps;
           potReconcile.lines_scaled += fitted.changed;
           potReconcile.lines_untouched += prep.ingredients.length - fitted.changed;
         }

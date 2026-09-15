@@ -332,6 +332,274 @@ export interface ScaleResult<T> {
   capped: string[];
 }
 
+export interface ReadyMassFit<T> extends ScaleResult<T> {
+  /** La masse réellement relue sur les ingrédients d'entrée. */
+  readyBeforeG: number | null;
+  /** La masse réellement relue sur les ingrédients rendus. */
+  readyAfterG: number | null;
+  /** Combien de pesées candidates ont été nécessaires. */
+  attempts: number;
+  /** Facteur appliqué aux ingrédients d'origine. 1 = aucune mutation. */
+  factor: number;
+  /** Zéro seulement quand la casserole produite couvre les prélèvements. */
+  shortfallG: number | null;
+  /**
+   * ⟳ 2026-09-15 · BÊTA — combien de PALIERS D'UNITÉ ont été ajoutés (un œuf,
+   * une demi-cuillère) quand aucun facteur ne déplaçait les dénombrables.
+   * Voir `bumpCountableToReadyMass`. Zéro = le facteur seul a suffi, ou rien.
+   */
+  unitBumps: number;
+}
+
+/**
+ * AGRANDIT UNE CASSEROLE JUSQU'À UNE MASSE PRÊTE MESURÉE, PAS SUPPOSÉE.
+ *
+ * Le facteur naïf `drawn / ready` ne suffit pas : `scaleIngredients` arrondit
+ * les lignes achetables et `measurePreparation` applique ensuite les
+ * rendements de cuisson. Cette fonction ferme la boucle sur la mesure réelle.
+ * Elle part toujours des ingrédients d'origine (jamais d'arrondis cumulés),
+ * cherche d'abord une borne suffisante, puis garde la plus petite candidate
+ * qui couvre effectivement les prélèvements.
+ *
+ * `measureReadyG` est injectée afin que ce module reste pur et que l'appelant
+ * emploie exactement son moteur de masse prête. Une mesure illisible reste
+ * illisible : elle n'est jamais convertie en zéro ni déclarée conforme.
+ */
+export function growIngredientsToReadyMass<T extends ScalableIngredient>(
+  ingredients: readonly T[],
+  drawnG: number,
+  measureReadyG: (items: readonly T[]) => number | null,
+  maxFactor = 4,
+): ReadyMassFit<T> {
+  const original = ingredients.map((item) => ({ ...item }));
+  const readyBefore = measureReadyG(original);
+  const validReady = readyBefore !== null && Number.isFinite(readyBefore) &&
+    readyBefore > 0;
+  const validDrawn = Number.isFinite(drawnG) && drawnG >= 0;
+  if (!validReady || !validDrawn) {
+    return {
+      items: original,
+      changed: 0,
+      capped: [],
+      readyBeforeG: validReady ? readyBefore : null,
+      readyAfterG: validReady ? readyBefore : null,
+      attempts: 0,
+      factor: 1,
+      shortfallG: null,
+      unitBumps: 0,
+    };
+  }
+  if (readyBefore >= drawnG) {
+    return {
+      items: original,
+      changed: 0,
+      capped: [],
+      readyBeforeG: readyBefore,
+      readyAfterG: readyBefore,
+      attempts: 0,
+      factor: 1,
+      shortfallG: 0,
+      unitBumps: 0,
+    };
+  }
+
+  const ceiling = Math.max(1, maxFactor);
+  let low = 1;
+  let high = Math.min(ceiling, Math.max(1.01, drawnG / readyBefore));
+  let attempts = 0;
+  let bestUnder: ReadyMassFit<T> = {
+    items: original,
+    changed: 0,
+    capped: [],
+    readyBeforeG: readyBefore,
+    readyAfterG: readyBefore,
+    attempts,
+    factor: 1,
+    shortfallG: drawnG - readyBefore,
+    unitBumps: 0,
+  };
+  let bestEnough: ReadyMassFit<T> | null = null;
+
+  const probe = (factor: number): ReadyMassFit<T> => {
+    const scaled = scaleIngredients(original, factor, undefined, Infinity);
+    const readyAfter = measureReadyG(scaled.items);
+    attempts++;
+    return {
+      ...scaled,
+      readyBeforeG: readyBefore,
+      readyAfterG: readyAfter,
+      attempts,
+      factor,
+      shortfallG: readyAfter === null || !Number.isFinite(readyAfter)
+        ? null
+        : Math.max(0, drawnG - readyAfter),
+      unitBumps: 0,
+    };
+  };
+
+  // Trouver une borne haute réellement suffisante. Le petit surcroît évite
+  // de rester sur le même palier d'arrondi quand la première candidate manque.
+  while (true) {
+    const candidate = probe(high);
+    const measured = candidate.readyAfterG;
+    if (measured !== null && Number.isFinite(measured)) {
+      if (measured >= drawnG) {
+        bestEnough = candidate;
+        break;
+      }
+      if ((bestUnder.readyAfterG ?? -Infinity) < measured) bestUnder = candidate;
+    }
+    if (high >= ceiling || attempts >= 8) {
+      // ⟳ 2026-09-15 · BÊTA — LE PALIER D'UNITÉ, avant de rendre le déficit.
+      const bumped = bumpCountableToReadyMass(
+        original,
+        { items: bestUnder.items, factor: bestUnder.factor },
+        drawnG,
+        measureReadyG,
+      );
+      attempts += bumped.measured;
+      if (bumped.fit !== null) {
+        return {
+          items: bumped.fit.items,
+          changed: bumped.fit.changed,
+          capped: bestUnder.capped,
+          readyBeforeG: readyBefore,
+          readyAfterG: bumped.fit.readyAfterG,
+          attempts,
+          factor: bumped.fit.factor,
+          shortfallG: 0,
+          unitBumps: bumped.fit.bumps,
+        };
+      }
+      return { ...bestUnder, attempts };
+    }
+    const correction = measured !== null && measured > 0
+      ? drawnG / measured
+      : 1.1;
+    high = Math.min(ceiling, Math.max(high * 1.02, high * correction * 1.01));
+  }
+
+  // Les arrondis rendent la fonction en escalier. Une recherche binaire garde
+  // la plus petite marche suffisante, puis la mesure finale en est la preuve.
+  for (let i = 0; i < 14; i++) {
+    const mid = (low + high) / 2;
+    const candidate = probe(mid);
+    const measured = candidate.readyAfterG;
+    if (measured !== null && Number.isFinite(measured) && measured >= drawnG) {
+      bestEnough = candidate.readyAfterG! < bestEnough.readyAfterG!
+        ? candidate
+        : bestEnough;
+      high = mid;
+    } else {
+      if (
+        measured !== null && Number.isFinite(measured) &&
+        (bestUnder.readyAfterG ?? -Infinity) < measured
+      ) bestUnder = candidate;
+      low = mid;
+    }
+  }
+  return { ...bestEnough, attempts };
+}
+
+/** Combien de paliers d'unité on s'autorise avant de rendre la casserole déficitaire telle quelle. */
+export const MAX_UNIT_BUMPS = 3;
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ 2026-09-15 · BÊTA — LE PALIER D'UNITÉ
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ LE DÉFAUT MESURÉ (tirs 6 et 13 de la campagne des 30): une casserole
+ * faite d'œufs et de boîtes, courte de 11 g puis de 25 g. Le facteur cherché
+ * au-dessus reste sous ×1,2 après huit pesées, et à ce facteur « 2 œufs »
+ * s'arrondit à 2, « 1 boîte » à 1: RIEN NE BOUGE, la fonction rendait la
+ * casserole d'origine, et le plan ENTIER était refusé
+ * (422 `preparation_quantity_unreconciled`) pour un œuf.
+ *
+ * Ici on ajoute UNE unité (une demi-cuillère pour les cuillères) à la ligne
+ * dénombrable qui couvre le manque en dépassant le moins; si aucune ne suffit
+ * seule, on garde celle qui rapproche le plus et on recommence, au plus
+ * `MAX_UNIT_BUMPS` fois. On part des ingrédients D'ORIGINE (facteur 1); si le
+ * palier seul ne suffit pas, on repart de la meilleure candidate sous la
+ * cible (ses lignes pesées déjà étirées). La prose est réécrite par le MÊME
+ * `rewriteCountableQuantity` que le facteur: une ligne dont la prose n'est
+ * pas réécrivable (« 1 tin » → 2 changerait le pluriel) n'est pas touchée,
+ * comme avant.
+ *
+ * ⚠️ CE N'EST PAS UNE TOLÉRANCE. La casserole rendue est MESURÉE ≥ prélevé,
+ * par la même fonction de mesure que tout le reste. Une casserole sans
+ * dénombrable, ou dont aucun palier ne suffit, reste déficitaire et le dit.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+function bumpCountableToReadyMass<T extends ScalableIngredient>(
+  original: readonly T[],
+  fallback: { items: readonly T[]; factor: number },
+  drawnG: number,
+  measureReadyG: (items: readonly T[]) => number | null,
+): {
+  fit: { items: T[]; changed: number; readyAfterG: number; bumps: number; factor: number } | null;
+  measured: number;
+} {
+  let measured = 0;
+  const measure = (items: readonly T[]): number | null => {
+    measured++;
+    const g = measureReadyG(items);
+    return g === null || !Number.isFinite(g) ? null : g;
+  };
+  const tryFrom = (
+    base: readonly T[],
+    factor: number,
+  ): { items: T[]; changed: number; readyAfterG: number; bumps: number; factor: number } | null => {
+    let items: T[] = base.map((i) => ({ ...i }));
+    let ready = measure(items);
+    let bumps = 0;
+    while (bumps < MAX_UNIT_BUMPS) {
+      let best: { items: T[]; ready: number } | null = null;
+      for (const [idx, ing] of items.entries()) {
+        const unit = String(ing.unit ?? "").toLowerCase();
+        const countable = unit === "unit" || SPOON_UNITS.has(unit);
+        if (!countable || ing.amount === null || !Number.isFinite(ing.amount)) continue;
+        const step = SPOON_UNITS.has(unit) ? 0.5 : 1;
+        const next = ing.amount + step;
+        const prose = rewriteCountableQuantity(ing.quantity, ing.amount, next);
+        if (prose === null) continue;
+        const candidate: T[] = items.map((i, j) =>
+          j === idx ? { ...i, amount: next, quantity: prose, gramsRaw: null } : i
+        );
+        const g = measure(candidate);
+        if (g === null || (ready !== null && g <= ready)) continue;
+        if (best === null) {
+          best = { items: candidate, ready: g };
+          continue;
+        }
+        const bestEnough = best.ready >= drawnG;
+        const enough = g >= drawnG;
+        // Suffisant: le plus petit suffisant. Sinon: le plus grand.
+        if (enough ? (!bestEnough || g < best.ready) : (!bestEnough && g > best.ready)) {
+          best = { items: candidate, ready: g };
+        }
+      }
+      if (best === null) return null;
+      items = best.items;
+      ready = best.ready;
+      bumps++;
+      if (ready >= drawnG) {
+        const changed = items.filter((it, k) => it.amount !== original[k]?.amount).length;
+        return { items, changed, readyAfterG: ready, bumps, factor };
+      }
+    }
+    return null;
+  };
+  const fromOriginal = tryFrom(original, 1);
+  if (fromOriginal !== null) return { fit: fromOriginal, measured };
+  if (fallback.factor !== 1) {
+    const fromFallback = tryFrom(fallback.items, fallback.factor);
+    if (fromFallback !== null) return { fit: fromFallback, measured };
+  }
+  return { fit: null, measured };
+}
+
 /**
  * DEUX FACTEURS, PARCE QU'UN SEUL NE PEUT PAS TENIR DEUX PROMESSES.
  *
@@ -615,7 +883,30 @@ export function scaleIngredients<T extends ScalableIngredient>(
     // Le compteur `capped` ne se déclenche donc que quand le plafond MORD
     // vraiment. Un lot déjà au-dessus de la borne sort inchangé plutôt que
     // tronqué, et ce n'est pas la même information.
-    if (unit === "g" && next > maxSingleG) {
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-14 · BÊTA 1C — ET IL NE BLOQUE PAS NON PLUS UNE RÉDUCTION
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ LE DÉFAUT, MESURÉ SUR LE TIR `sna1`. Ce garde-fou a été écrit pour que
+    // le plafond « refuse de grandir, jamais de rapetisser ». Il faisait
+    // l'inverse dès que le RÉSULTAT d'un rétrécissement restait au-dessus de
+    // 500 g — c'est-à-dire sur toute casserole cuisinée pour plusieurs.
+    //
+    // Une casserole de 900 g de poulet, facteur 0,73 : `next = 660`, donc
+    // `next > maxSingleG`, donc `next = max(900, 500) = 900`, donc
+    // `next === amount`, donc **ligne inchangée**. Le lot le plus lourd d'une
+    // préparation ne pouvait jamais rétrécir.
+    //
+    // Ce que ça coûtait, en chiffres : `pot_reconcile` décidait de retirer
+    // **170 g** et n'en retirait que **7** (1 793 g prêts → 1 786), parce que
+    // seule la ligne d'huile — 18 g, sous le plafond — bougeait. La moitié
+    // ACHAT du rétrécissement suivait quand même (les courses se reconstruisent
+    // depuis ces ingrédients), la moitié MASSE jamais.
+    //
+    // ⚠️ `next > amount` EST TOUTE LA CORRECTION, et elle ne touche QUE la
+    // réduction : une croissance au-dessus du plafond est bornée exactement
+    // comme avant, avec son compteur `capped`.
+    if (unit === "g" && next > amount && next > maxSingleG) {
       next = Math.max(amount, maxSingleG);
       if (next !== amount) capped.push(ing.term);
     }

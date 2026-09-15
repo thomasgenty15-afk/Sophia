@@ -26,6 +26,7 @@ function jour(over: Partial<DayNutritionRow> = {}): DayNutritionRow {
     servedKcal: 1900,
     deltaPct: -0.05,
     proteinG: 100,
+    proteinRoundingG: null,
     protein: { floorG: null, reason: null } as unknown as DayNutritionRow["protein"],
     state: "conforme",
     ...over,

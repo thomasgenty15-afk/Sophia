@@ -932,6 +932,8 @@ import {
   REPAIR_DEFECT_HARD_CHARS,
   REPAIR_MAX_BLOCKS,
 } from "./plan_defect_pass.ts";
+import { GRAMS_ROUNDING_HALF_STEP, PROTEIN_DISPLAY_HALF_STEP } from "./mouth_energy.ts";
+import { MAX_UNIT_BUMPS } from "./portion_scaling.ts";
 import { GENERATION_REFUSAL_STATUS } from "./generation_context.ts";
 import { MOUTH_FACT_FIELDS } from "./resolved_mouth.ts";
 import { PACE_UNAVAILABLE_REASONS } from "./weight_pace.ts";
@@ -1288,3 +1290,16 @@ Deno.test("épinglage — PLAN_PROJECTION_HARD_CHARS vaut 24 000", () =>
 // Même raison que ci-dessus, à l'entrée du prompt initial cette fois.
 Deno.test("épinglage — SLOT_CONTRACT_MAX_LINES vaut 32", () =>
   assertEquals(SLOT_CONTRACT_MAX_LINES, 32));
+
+// ⟳ 2026-09-15 · BÊTA — LA BORNE D'ARRONDI EST CALCULÉE À PARTIR DE DEUX PAS
+// D'ÉCRITURE, et ces deux pas sont des faits du moteur, pas des réglages: un
+// item de boîte s'écrit au gramme entier (`Math.round` dans le
+// dimensionnement), la protéine d'une boîte au dixième. Changer l'un sans
+// changer l'écriture rendrait une borne qui ne borne plus rien.
+Deno.test("épinglage — GRAMS_ROUNDING_HALF_STEP vaut un demi-gramme", () =>
+  assertEquals(GRAMS_ROUNDING_HALF_STEP, 0.5));
+Deno.test("épinglage — PROTEIN_DISPLAY_HALF_STEP vaut un demi-dixième de gramme", () =>
+  assertEquals(PROTEIN_DISPLAY_HALF_STEP, 0.05));
+// Le palier d'unité s'arrête à trois: au-delà, ce n'est plus « un œuf de plus »,
+// c'est une autre recette, et c'est au modèle de l'écrire.
+Deno.test("épinglage — MAX_UNIT_BUMPS vaut 3", () => assertEquals(MAX_UNIT_BUMPS, 3));

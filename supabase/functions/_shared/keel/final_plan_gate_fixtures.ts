@@ -284,7 +284,12 @@ const HOUSEHOLD_ENERGY_ROWS = [
     memberId: NORA,
     breakfast: { target: 410, served: 404 },
     dinner: { target: 600, served: 594 },
-    protein: { breakfast: 15, dinner: 31, floorMon: 29 },
+    // ⟳ 2026-09-15 · BÊTA — LE CAS QUI PASSE DE LA BORNE D'ARRONDI. Nora est
+    // à 28,8 g pour un plancher de 29, et ses items écrits en grammes entiers
+    // peuvent porter 0,3 g: la journée est TENUE, et comptée dans
+    // `protein_within_rounding` — le dénominateur que le cas propre doit
+    // faire tourner, comme les autres.
+    protein: { breakfast: 15, dinner: 28.8, floorMon: 29, rounding: 0.3 },
   },
 ] as const;
 
@@ -338,6 +343,11 @@ export const CLEAN_HOUSEHOLD_CONTEXT: GateContext = {
       },
     ],
   },
+  // ⟳ 2026-09-14 · BÊTA 1A — LA GRILLE A TOURNÉ ET NE DOIT AUCUN PLAT À
+  // PERSONNE: les quatre bouches mangent la base végétarienne, qui est la
+  // ligne la plus stricte de la table. `[]` et `null` ne disent PAS la même
+  // chose — `null` serait « la question n'a pas été posée ».
+  dedicated: [],
   strictestRegime: "vegetarian",
   houseRuleLabels: ["nutella"],
   pantryTerms: ["huile d'olive"],
@@ -442,6 +452,7 @@ export const CLEAN_HOUSEHOLD_CONTEXT: GateContext = {
         servedKcal: breakfast.served,
         deltaPct: null,
         proteinG: null,
+        proteinRoundingG: null,
         protein: { coveredFloorG: null, reason: "coverage_unknown" },
         state: "unmeasurable" as const,
       },
@@ -454,6 +465,7 @@ export const CLEAN_HOUSEHOLD_CONTEXT: GateContext = {
         servedKcal: dinner.served,
         deltaPct: pct(dinner.served, dinner.target),
         proteinG: protein.dinner,
+        proteinRoundingG: "rounding" in protein ? protein.rounding : null,
         protein: { coveredFloorG: protein.floorMon, reason: "applied_covered_window" },
         state: "conforme" as const,
       },
@@ -538,6 +550,8 @@ export const SOLO_CONTEXT: GateContext = {
   energy: [{ memberId: SOLO, envelopeKcal: 2100, deliveredKcal: 2020 }],
   boxContract: null,
   exclusions: { table: [], byMember: [] },
+  // Un solo n'a pas de table: aucune bouche ne peut diverger d'elle-même.
+  dedicated: [],
   strictestRegime: null,
   houseRuleLabels: [],
   pantryTerms: [],
@@ -581,6 +595,7 @@ export const SOLO_CONTEXT: GateContext = {
         servedKcal: 553,
         deltaPct: pct(553, 560),
         proteinG: 21,
+        proteinRoundingG: null,
         protein: { coveredFloorG: 20, reason: "applied_covered_window" },
         state: "conforme",
       },

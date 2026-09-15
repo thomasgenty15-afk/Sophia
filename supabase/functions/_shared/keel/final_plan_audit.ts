@@ -780,6 +780,14 @@ export interface CellNutritionRow {
   readonly grams: number | null;
   readonly densityPer100G: number | null;
   readonly proteinG: number | null;
+  /**
+   * ⟳ 2026-09-15 · BÊTA — LA BORNE D'ARRONDI, CALCULÉE PAR `boxNutrition`
+   * (voir `BoxItemsNutrition`). Sur un contenant partagé, la borne protéique
+   * est divisée comme la protéine; la borne de densité est celle du contenant.
+   * ⛔ REQUIS ET NULLABLES, jamais `?`: `null` = pas mesuré, jamais « zéro ».
+   */
+  readonly proteinRoundingG: number | null;
+  readonly densityRoundingPer100G: number | null;
   /** Le motif NOMMÉ du silence de `boxNutrition`. `null` = un chiffre est sorti. */
   readonly gap: string | null;
   readonly deltaPct: number | null;
@@ -807,6 +815,8 @@ export interface DayNutritionRow {
   readonly servedKcal: number | null;
   readonly deltaPct: number | null;
   readonly proteinG: number | null;
+  /** ⟳ 2026-09-15 · BÊTA — la somme des bornes d'arrondi des cases du jour. */
+  readonly proteinRoundingG: number | null;
   readonly protein: ProteinFloorAllocation;
   readonly state: "conforme" | "energy_off" | "unmeasurable";
 }
@@ -903,6 +913,8 @@ export function cellNutritionTable(args: {
     kcal: number | null;
     grams: number;
     proteinG: number | null;
+    proteinRounding: number | null;
+    densityRounding: number | null;
     gap: string | null;
     sharedWith: number;
   }>();
@@ -921,11 +933,15 @@ export function cellNutritionTable(args: {
         const share = (v: number | null): number | null => v === null ? null : v / eaters;
         const kcal = share(box.kcal);
         const protein = share(box.proteinG);
+        const proteinRounding = share(box.proteinRoundingG);
+        const densityRounding = box.densityRoundingPer100G;
         if (prev === undefined) {
           served.set(key, {
             kcal,
             grams: box.grams / eaters,
             proteinG: protein,
+            proteinRounding,
+            densityRounding,
             // ⛔ LE MOTIF SURVIT AU CHIFFRE. Un contenant illisible dans une
             // case qui en porte deux rend la case incomplète, et son motif est
             // la seule chose qui dise pourquoi.
@@ -938,6 +954,16 @@ export function cellNutritionTable(args: {
           kcal: prev.kcal === null || kcal === null ? null : prev.kcal + kcal,
           grams: prev.grams + box.grams / eaters,
           proteinG: prev.proteinG === null || protein === null ? null : prev.proteinG + protein,
+          proteinRounding: prev.proteinRounding === null || proteinRounding === null
+            ? null
+            : prev.proteinRounding + proteinRounding,
+          // Deux contenants sur une case: on garde la plus grande des deux
+          // bornes de densité — pas leur somme, la borne porte sur un mélange.
+          densityRounding: prev.densityRounding === null
+            ? densityRounding
+            : densityRounding === null
+            ? prev.densityRounding
+            : Math.max(prev.densityRounding, densityRounding),
           gap: prev.gap ?? box.gap,
           sharedWith: Math.max(prev.sharedWith, eaters),
         });
@@ -971,11 +997,21 @@ export function cellNutritionTable(args: {
       grams,
       densityPer100G: density,
       proteinG: hit?.proteinG ?? null,
+      proteinRoundingG: hit?.proteinRounding ?? null,
+      densityRoundingPer100G: hit?.densityRounding ?? null,
       gap: hit?.gap ?? null,
       deltaPct: delta === null ? null : delta * 100,
       sharedWith: hit?.sharedWith ?? 0,
       portionExpected,
-      state: cellStateOf(cell, { hasPortion, portionExpected, kcal, grams, density, delta }),
+      state: cellStateOf(cell, {
+        hasPortion,
+        portionExpected,
+        kcal,
+        grams,
+        density,
+        delta,
+        densityRounding: hit?.densityRounding ?? null,
+      }),
     };
   });
 }
@@ -998,6 +1034,8 @@ function cellStateOf(
     grams: number | null;
     density: number | null;
     delta: number | null;
+    /** ⟳ 2026-09-15 · BÊTA — la borne d'arrondi de la densité, `null` = inconnue. */
+    densityRounding: number | null;
   },
 ): CellState {
   if (!m.hasPortion) return m.portionExpected ? "no_portion" : "not_personal";
@@ -1012,10 +1050,15 @@ function cellStateOf(
   // ⟳ 2026-09-14 · BÊTA 1C ⑤ — ON JUGE SUR LES BORNES EXACTES. Voir le pavé de
   // `densityMinExact`. Les entiers restent ce qu'on ÉNONCE; ce qu'on MESURE se
   // compare à ce que le contrat vaut vraiment.
+  // ⟳ 2026-09-15 · BÊTA — LA BORNE D'ARRONDI EST CALCULÉE, PAS DÉCRÉTÉE. Une
+  // case dont la densité est sous le couloir de MOINS que ce que l'arrondi
+  // au gramme de ses items peut déplacer (`densityRoundingOf`) n'est pas hors
+  // couloir: l'écriture entière l'y a mise. Au-delà, c'est la recette.
+  const rounding = m.densityRounding ?? 0;
   if (
     m.density !== null &&
-    ((cell.densityMinExact !== null && m.density < cell.densityMinExact) ||
-      (cell.densityMaxExact !== null && m.density > cell.densityMaxExact))
+    ((cell.densityMinExact !== null && m.density + rounding < cell.densityMinExact) ||
+      (cell.densityMaxExact !== null && m.density - rounding > cell.densityMaxExact))
   ) return "bounds_off";
   return "conforme";
 }
@@ -1275,6 +1318,9 @@ export function dayNutritionTable(args: {
     const protein = mine.every((c) => c.proteinG !== null)
       ? mine.reduce((n, c) => n + (c.proteinG ?? 0), 0)
       : null;
+    const proteinRounding = protein === null
+      ? null
+      : mine.reduce((n, c) => n + (c.proteinRoundingG ?? 0), 0);
     const complete = measured.length === mine.length && mine.length > 0;
     const budget = d.coveredBudgetKcal;
     const delta = complete && budget !== null && budget > 0
@@ -1289,6 +1335,7 @@ export function dayNutritionTable(args: {
       servedKcal: measured.length > 0 ? served : null,
       deltaPct: delta === null ? null : delta * 100,
       proteinG: protein,
+      proteinRoundingG: proteinRounding,
       protein: d.protein,
       state: delta === null
         ? "unmeasurable"

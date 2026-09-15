@@ -8,6 +8,7 @@ import {
   type ScalableIngredient,
   scaleFactorFor,
   scaleFactorsFor,
+  growIngredientsToReadyMass,
   scaleIngredients,
 } from "./portion_scaling.ts";
 import { ENERGY_DIRECTION_MARGIN, envelopeFor,
@@ -195,6 +196,47 @@ Deno.test("LA PROSE SUIT LE CHIFFRE — sinon la liste de courses ment", () => {
   // Et `gramsRaw` est REMIS À NULL, pas recalculé à la main: seul le résolveur
   // connaît les rendements cru/cuit.
   assertEquals(r.items[0].gramsRaw, null);
+});
+
+Deno.test("B4 — une casserole déficitaire grandit jusqu'à couvrir les boîtes après arrondi", () => {
+  const r = growIngredientsToReadyMass(
+    [ing({ term: "lentils", amount: 100, quantity: "100 g" })],
+    135,
+    (items) => Number(items[0]?.amount ?? 0),
+  );
+
+  assertEquals(r.readyBeforeG, 100);
+  assertEquals(r.readyAfterG, 135);
+  assertEquals(r.shortfallG, 0);
+  assertEquals(r.items[0].quantity, "135 g");
+  assert(r.changed > 0);
+});
+
+Deno.test("B4 — la décision suit la masse prête mesurée, pas le facteur cru", () => {
+  const r = growIngredientsToReadyMass(
+    [ing({ term: "rice", amount: 100, quantity: "100 g" })],
+    181,
+    // Rendement volontairement non proportionnel : 80 g d'eau absorbée ne
+    // sont pas une ligne que le facteur cru peut simplement multiplier.
+    (items) => Number(items[0]?.amount ?? 0) + 80,
+  );
+
+  assertEquals(r.readyBeforeG, 180);
+  assert((r.readyAfterG ?? 0) >= 181, `masse finale insuffisante: ${r.readyAfterG}`);
+  assertEquals(r.shortfallG, 0);
+});
+
+Deno.test("B4 — une casserole impossible à agrandir reste explicitement déficitaire", () => {
+  const r = growIngredientsToReadyMass(
+    [ing({ term: "broth", amount: null, unit: null, quantity: "a bowl" })],
+    120,
+    () => 100,
+  );
+
+  assertEquals(r.changed, 0);
+  assertEquals(r.readyAfterG, 100);
+  assertEquals(r.shortfallG, 20);
+  assert(r.attempts > 0);
 });
 
 Deno.test("un ingrédient ne dépasse jamais le plafond, et le dit", () => {
@@ -791,4 +833,130 @@ Deno.test("⛔ LE CORRECTEUR AGIT EXACTEMENT QUAND LE VERDICT ÉCHOUERAIT — pa
     resolvedShare: 1,
   });
   assertEquals(bothFine, null, "un plan déjà juste sur les deux axes a été remué");
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-14 · BÊTA 1C — « UN PLAFOND NE RÉDUIT JAMAIS » DISAIT L'INVERSE
+//
+// ⛔ LE DÉFAUT, MESURÉ SUR LE TIR `sna1`. Le garde-fou du plafond était écrit
+// pour que le maximum d'un ingrédient « refuse de grandir, jamais de
+// rapetisser ». Il faisait l'inverse dès que le RÉSULTAT d'une réduction
+// restait au-dessus de 500 g, c'est-à-dire sur toute casserole cuisinée pour
+// plusieurs: `next = max(amount, 500)` ramenait au montant d'origine, donc
+// `next === amount`, donc ligne inchangée.
+//
+// Prix mesuré: `pot_reconcile` décidait de retirer 170 g et n'en retirait que
+// **7** — seule la ligne d'huile, sous le plafond, bougeait.
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("BÊTA 1C — une casserole AU-DESSUS du plafond rétrécit quand même", () => {
+  const items = [
+    { term: "blanc de poulet", amount: 900, unit: "g", quantity: "900 g", gramsRaw: 900, state: null },
+    { term: "huile d'olive", amount: 18, unit: "g", quantity: "18 g", gramsRaw: 18, state: null },
+  ];
+  const out = scaleIngredients(items, 0.73);
+  // ⛔ AVANT CE LOT: 900 × 0,73 = 657 > 500 ⇒ `max(900, 500)` ⇒ 900 ⇒ inchangé.
+  // ⚠️ 655 ET PAS 657: au-dessus de 20 g, `roundAmount` arrondit au pas de 5 —
+  // une liste de courses ne demande pas 657 g de poulet.
+  assertEquals(out.items[0].amount, 655);
+  assertEquals(out.items[1].amount, 13);
+  assertEquals(out.changed, 2);
+  // ⚠️ ET LE COMPTEUR DU PLAFOND NE BOUGE PAS: il n'a rien borné.
+  assertEquals(out.capped, []);
+});
+
+Deno.test("BÊTA 1C — LE CAS QUI PASSE: une CROISSANCE au-dessus du plafond reste bornée", () => {
+  // ⛔ LA MOITIÉ QUI PROUVE QUE LE PLAFOND EXISTE ENCORE. C'est le défaut du
+  // 2026-08-12 qui l'a fait écrire: un facteur ×1,32 sur 1 kg de cuisses
+  // ramené à 500 g RETIRAIT 500 g de poulet en cherchant à agrandir.
+  const items = [
+    { term: "cuisses de poulet", amount: 1000, unit: "g", quantity: "1000 g", gramsRaw: 1000, state: null },
+  ];
+  const out = scaleIngredients(items, 1.32);
+  // Un lot DÉJÀ au-dessus de la borne sort inchangé plutôt que tronqué.
+  assertEquals(out.items[0].amount, 1000);
+  assertEquals(out.changed, 0);
+  assertEquals(out.capped, []);
+});
+
+Deno.test("BÊTA 1C — une croissance qui FRANCHIT le plafond y est ramenée, et comptée", () => {
+  const items = [
+    { term: "riz", amount: 400, unit: "g", quantity: "400 g", gramsRaw: 400, state: null },
+  ];
+  const out = scaleIngredients(items, 2);
+  // 800 > 500 ⇒ ramené à 500, et le compteur le DIT.
+  assertEquals(out.items[0].amount, 500);
+  assertEquals(out.changed, 1);
+  assertEquals(out.capped, ["riz"]);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-15 · BÊTA — LE PALIER D'UNITÉ (`bumpCountableToReadyMass`)
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Les tirs 6 et 13 de la campagne des 30: une casserole d'œufs et de boîtes,
+// courte de 11 g puis de 25 g. Le facteur ne déplace aucun dénombrable sous
+// ×1,25, et le plan ENTIER sortait en 422 pour un œuf.
+
+Deno.test("le palier d'unité — une casserole d'œufs et de boîtes courte de 11 g gagne UN œuf, pas un refus", () => {
+  const eggs = ing({ term: "eggs", amount: 2, unit: "unit", quantity: "2 eggs", gramsRaw: null });
+  const tins = ing({
+    term: "chickpeas",
+    amount: 2,
+    unit: "unit",
+    quantity: "2 tins of chickpeas",
+    gramsRaw: null,
+  });
+  // 50 g l'œuf, 240 g la boîte: 580 g prêts, 591 g prélevés.
+  const mesure = (items: readonly ScalableIngredient[]) =>
+    items.reduce((n, i) => n + (i.term === "eggs" ? 50 : 240) * (i.amount ?? 0), 0);
+  const r = growIngredientsToReadyMass([eggs, tins], 591, mesure);
+  assertEquals(r.readyBeforeG, 580);
+  // ⛔ LE FACTEUR SEUL NE FAISAIT RIEN: huit pesées sous ×1,25, « 2 œufs »
+  // reste 2. Le palier ajoute l'unité qui couvre le manque en dépassant le
+  // moins — un œuf (630 g), pas une boîte (820 g).
+  assertEquals(r.unitBumps, 1);
+  assertEquals(r.changed, 1);
+  assertEquals(r.factor, 1);
+  assertEquals(r.readyAfterG, 630);
+  assertEquals(r.shortfallG, 0);
+  assertEquals(r.items[0].amount, 3);
+  assertEquals(r.items[0].quantity, "3 eggs");
+  assertEquals(r.items[0].gramsRaw, null);
+  assertEquals(r.items[1].amount, 2);
+  assert(r.attempts > 8, `les pesées du palier se comptent: ${r.attempts}`);
+});
+
+Deno.test("le palier d'unité — « 1 tin » ne devient pas « 2 tin »: sans prose réécrivable, la casserole reste déficitaire et le dit", () => {
+  const tin = ing({ term: "tuna", amount: 1, unit: "unit", quantity: "1 tin of tuna", gramsRaw: null });
+  const r = growIngredientsToReadyMass([tin], 150, (items) => 140 * (items[0].amount ?? 0));
+  assertEquals(r.unitBumps, 0);
+  assertEquals(r.changed, 0);
+  assertEquals(r.readyAfterG, 140);
+  assertEquals(r.shortfallG, 10);
+});
+
+Deno.test("le palier d'unité — une demi-cuillère est un palier réel", () => {
+  const oil = ing({ term: "oil", amount: 1, unit: "tbsp", quantity: "1 tbsp olive oil", gramsRaw: null });
+  const tins = ing({ term: "beans", amount: 3, unit: "unit", quantity: "3 tins of beans", gramsRaw: null });
+  // 15 g la cuillère, 240 g la boîte: 735 g prêts, 741 g prélevés.
+  const mesure = (items: readonly ScalableIngredient[]) =>
+    items.reduce((n, i) => n + (i.unit === "tbsp" ? 15 : 240) * (i.amount ?? 0), 0);
+  const r = growIngredientsToReadyMass([oil, tins], 741, mesure);
+  assertEquals(r.unitBumps, 1);
+  assertEquals(r.items[0].amount, 1.5);
+  assertEquals(r.items[0].quantity, "1.5 tbsp olive oil");
+  assertEquals(r.items[1].amount, 3);
+  assertEquals(r.readyAfterG, 742.5);
+  assertEquals(r.shortfallG, 0);
+});
+
+Deno.test("le palier d'unité — LE CAS QUI PASSE SANS LUI: quand le facteur suffit, aucun palier n'est compté", () => {
+  const r = growIngredientsToReadyMass(
+    [ing({ term: "lentils", amount: 100, quantity: "100 g" })],
+    135,
+    (items) => Number(items[0]?.amount ?? 0),
+  );
+  assertEquals(r.unitBumps, 0);
+  assertEquals(r.shortfallG, 0);
 });

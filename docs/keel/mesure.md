@@ -394,3 +394,45 @@ par tir, journal moteur archivé dans chaque artefact. Bilan complet, anomalies 
   sur 2 (une violation de régime fermée en un appel). Sur un écart compté, hier : 0 sur 2. La
   politique qui réserve l'appel aux défauts bloquants a été décidée sur ce chiffre, et cette campagne
   l'a mesurée : 18 plans partis avec un écart nommé sans dépenser un appel.
+
+## Ce que la borne d'arrondi, calculée, a mesuré hors ligne — 2026-09-15, 15 h, avant la reprise des dix
+
+Le bilan des 30 qualifiait neuf écarts « d'arrondi » **sur leur taille en pourcentage** (−0 à −4 % sous le plancher, à un point du couloir). C'était une qualification, pas une mesure. Avant de rejouer, la borne a été **calculée** — ce que l'écriture des items en grammes entiers peut réellement déplacer (`boxNutrition` : `proteinRoundingG`, `densityRoundingPer100G`) — puis rejouée sans appel sur les 9 plans à écarts, par le même lecteur que l'audit du produit (`borne-hors-ligne.ts`). Le rejeu reproduit les grammes de l'instrument au dixième (59,6 · 173,7 · 171,0 …) : c'est bien la même mesure.
+
+| écart | plans | mesures | manque enregistré | borne calculée | fermés à coup sûr | impossibles | indécidables |
+|---|---|---|---|---|---|---|---|
+| `protein_floor_short` | 4 (profil 9, Paul) | 10 jours | 1,3 à 5,0 g | 0,11 à 0,44 g/jour | **0** | **10** | 0 |
+| `cell_bounds_off` (densité) | 5 (profils 7 et 8) | 6 cases | 0,7 à 1,0 kcal/100 g | 0 à 0,11 kcal/100 g | **0** | **3** | 3 (à l'entier du couloir affiché : 250,04 pour un plafond affiché 250 ; 99,78 pour un plancher affiché 100 ; une case non rejouable) |
+
+**Plans dont tous les écarts ferment : 0 sur 9.** Le nombre annoncé (« neuf écarts d'arrondi ») était faux ; le nombre mesuré est zéro. Ce qui manque à Paul (N=4), c'est 1 à 5 g de protéine par jour **dans la recette** ; ce qui manque aux cases de densité, c'est un point de couloir **dans la recette**. La borne reste dans le moteur parce qu'elle est juste — elle dit ce que l'arrondi explique, donc ce qu'il n'explique pas — mais elle ne change pas le verdict des 30.
+
+### Les quatre règles que cette mesure ajoute
+
+1. **Un écart n'est « d'arrondi » que si une borne calculée le couvre.** Un pourcentage n'est pas une borne. La borne se calcule à partir des grammes et des densités des items, elle se porte jusqu'à la garde, et elle se rejoue hors ligne avant tout appel.
+2. **Le rejeu hors ligne se fait par le lecteur du produit, et il prouve d'abord qu'il mesure la même chose** (les grammes de l'instrument retrouvés au dixième). Sans cette égalité, il décrit un autre plan.
+3. **Ce que le rejeu ne sait pas, il le dit en trois verdicts** — fermé à coup sûr, impossible, indécidable — bornés par ce qui est archivé à l'entier (plancher, couloir). Un « peut-être » compté comme un « oui » est le mensonge du bilan précédent.
+4. **Deux casseroles refusées ne se rejouent pas depuis le premier jet** : la recette archivée est celle d'avant dimensionnement (832 g mesurés contre 1 041 g au journal pour `prep_cod`). Le palier d'unité est prouvé par ses tests et par les tirs réels, pas par ce rejeu — et c'est écrit.
+
+## Ce que la reprise des dix a mesuré — 2026-09-15, 15 h 19 → 15 h 40, version corrigée (arbre de travail après `0833f300`)
+
+Profils 7 et 9 en alternance, cinq fois chacun, sur la version qui porte la borne d'arrondi calculée, le
+palier d'unité, le refus de masse bloquant. **10 / 10 livrés en un appel, 0 réparation, 0 verrou, p95 137 s.
+Conformes 4 / 10** (profil 7 : 3/5 ; profil 9 : 1/5). Six écarts nommés, six dans la recette :
+`protein_floor_short` ×6 journées sur deux plans N=4 (−0,9 g à −15 %), `cell_bounds_off` ×3 (125, 133,0 et
+140,0 pour des couloirs à 134 et 141), `cell_energy_off` ×1 (−10,7 %). **`protein_within_rounding` = 0 sur
+dix, `unit_bumped` = 0, `overdrawn_after` = 0.** Rapport : `docs/keel/REPRISE-DIX-2026-09-15.md`.
+
+### Les quatre règles que cette reprise ajoute
+
+1. **Un compteur neuf se lit sur la campagne qui le suit, et son zéro est un résultat.** `protein_within_rounding`
+   à zéro sur dix plans dit que la borne n'a tenu aucune journée ; c'est la confirmation en direct du rejeu
+   hors ligne, et elle vaut plus que le rejeu.
+2. **Pendant une campagne, aucune écriture sous `supabase/functions/`, tests compris.** `functions serve`
+   recharge à toute écriture et la requête en vol meurt en 502 (tir 1 du premier lancement, 45,9 s, zéro
+   appel). Éditer avant, redémarrer par le script, tirer, éditer après.
+3. **L'instrument suit le produit, ou il le dit.** Deux cases du tir 9 sont « hors couloir » pour l'instrument
+   (couloir entier) et conformes pour le produit (couloir exact, 1C ⑤). Un désaccord se nomme dans le
+   rapport avec les deux nombres ; on ne choisit pas celui qui arrange.
+4. **Ce qui n'a pas été exercé n'est pas prouvé par la campagne.** Palier d'unité et refus de masse bloquant
+   sont tenus par leurs tests seuls : aucune casserole courte en dix tirs. Le rapport le dit colonne par
+   colonne.

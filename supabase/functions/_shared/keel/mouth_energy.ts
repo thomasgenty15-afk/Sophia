@@ -445,12 +445,77 @@ export function boxKcalByItems(
  * `proteins` à `null` = l'appelant ne demande pas la protéine; le champ sort
  * alors `null` sans qu'aucun référentiel ne soit interrogé pour rien.
  */
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ 2026-09-15 · BÊTA — LA BORNE D'ARRONDI, CALCULÉE — JAMAIS UN POURCENTAGE
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ CE QUE LA CAMPAGNE DES 30 A MONTRÉ: des journées à 61,9 g de protéine pour
+ * un plancher de 62, des cases à 133 kcal/100 g pour un couloir qui commence à
+ * 134. Avant de décider si c'est « d'arrondi », il faut savoir DE COMBIEN
+ * l'arrondi peut déplacer la mesure. Ce nombre se calcule, il ne se devine pas.
+ *
+ * Deux arrondis touchent une boîte, et deux seulement:
+ *   · chaque item s'écrit en grammes ENTIERS (`Math.round` dans le
+ *     dimensionnement): au plus ½ g d'erreur par item;
+ *   · la protéine de la boîte est rendue au dixième de gramme: ½ dixième.
+ *
+ * `proteinRoundingG` = Σ ½ g × (protéine au gramme de la casserole de l'item)
+ *                      + la part de frais au prorata + 0,05 g.
+ * `densityRoundingPer100G` = ce que ½ g par item peut déplacer la densité de
+ *                      la boîte — voir `densityRoundingOf`.
+ *
+ * ⚠️ CES DEUX NOMBRES SONT PETITS (de l'ordre du gramme et du dixième de
+ * kcal/100 g), et c'est le point: ils disent ce que l'arrondi explique, et
+ * donc ce qu'il N'EXPLIQUE PAS.
+ */
+export interface BoxItemsNutrition {
+  readonly kcal: number | null;
+  readonly proteinG: number | null;
+  readonly gap: MouthEnergyGap | null;
+  /** `null` quand la protéine n'est pas mesurable. */
+  readonly proteinRoundingG: number | null;
+  /** `null` quand l'énergie n'est pas mesurable. */
+  readonly densityRoundingPer100G: number | null;
+}
+
+/** Un item de boîte s'écrit en grammes entiers: l'arrondi vaut au plus un demi-gramme. */
+export const GRAMS_ROUNDING_HALF_STEP = 0.5;
+/** La protéine d'une boîte est rendue au dixième de gramme: un demi-dixième par boîte. */
+export const PROTEIN_DISPLAY_HALF_STEP = 0.05;
+
+/**
+ * LA BORNE D'ARRONDI DE LA DENSITÉ D'UNE BOÎTE, EN kcal/100 g.
+ *
+ * Chaque terme (g_i grammes à d_i kcal/g) est arrondi au gramme, δ_i ∈ [−½, ½].
+ * Au premier ordre la densité d̄ = kcal/G bouge d'au plus ½ × Σ|d_i − d̄| / G.
+ * Un seul terme qui remplit la boîte rend 0: arrondir sa masse ne change pas
+ * sa densité. Une boîte de casserole + frais rend un nombre de l'ordre du
+ * dixième de kcal/100 g.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function densityRoundingOf(
+  terms: readonly { g: number; perG: number }[],
+  kcal: number,
+  grams: number,
+): number {
+  if (!(grams > 0) || terms.length === 0) return 0;
+  // Un seul terme qui remplit la boîte: zéro EXACT, pas un résidu flottant de
+  // `(g × d) / g − d`.
+  if (terms.length === 1 && terms[0].g >= grams) return 0;
+  const mean = kcal / grams;
+  let spread = 0;
+  for (const t of terms) spread += Math.abs(t.perG - mean);
+  return (GRAMS_ROUNDING_HALF_STEP * spread / grams) * 100;
+}
+
 export function boxNutritionByItems(
   index: CompositionIndex,
   dish: MouthEnergyDish,
   densities: ReadonlyMap<string, number | null>,
   proteins: ReadonlyMap<string, number | null> | null,
-): Array<{ kcal: number | null; proteinG: number | null; gap: MouthEnergyGap | null }> | null {
+): BoxItemsNutrition[] | null {
   if (dish.boxes.length === 0 || !boxesCarryPreparationIds(dish)) return null;
   const totalGrams = dish.boxes.reduce((n, b) => n + boxGramsOf(b), 0);
   const freshGrams = dish.boxes.map((box) =>
@@ -479,7 +544,7 @@ export function boxNutritionByItems(
   return dish.boxes.map((box, i) => {
     const grams = boxGramsOf(box);
     if (grams <= 0 || totalGrams <= 0) {
-      return { kcal: null, proteinG: null, gap: "empty_box" as const };
+      return { kcal: null, proteinG: null, proteinRoundingG: null, densityRoundingPer100G: null, gap: "empty_box" as const };
     }
     let kcal = 0;
     // ⚠️ `null` DÈS QU'UNE CASSEROLE NE REND PAS SA PROTÉINE, et l'énergie
@@ -487,41 +552,57 @@ export function boxNutritionByItems(
     // jamais des grammes de protéine: compter la casserole à zéro rendrait une
     // somme amputée qui a l'air d'un résultat.
     let protein: number | null = proteins === null ? null : 0;
+    // ⟳ 2026-09-15 · BÊTA — les termes de la borne d'arrondi (`densityRoundingOf`).
+    const terms: { g: number; perG: number }[] = [];
+    let proteinRounding = 0;
     for (const item of box.items) {
       const g = Number(item.grams);
       if (!Number.isFinite(g) || g <= 0) continue;
       if (typeof item.preparationId !== "string") continue;
       const density = densities.get(item.preparationId);
       if (density === null || density === undefined) {
-        return { kcal: null, proteinG: null, gap: "dish_incomplete" as const };
+        return { kcal: null, proteinG: null, proteinRoundingG: null, densityRoundingPer100G: null, gap: "dish_incomplete" as const };
       }
       kcal += g * density;
+      terms.push({ g, perG: density });
       if (protein !== null) {
         const perG = proteins?.get(item.preparationId);
         if (perG === null || perG === undefined) protein = null;
-        else protein += g * perG;
+        else {
+          protein += g * perG;
+          proteinRounding += GRAMS_ROUNDING_HALF_STEP * perG;
+        }
       }
     }
     if (own !== null) {
       if (!own.complete || own.kcal === null) {
-        return { kcal: null, proteinG: null, gap: "dish_incomplete" as const };
+        return { kcal: null, proteinG: null, proteinRoundingG: null, densityRoundingPer100G: null, gap: "dish_incomplete" as const };
       }
       const share = freshTotal > 0 ? freshGrams[i] / freshTotal : grams / totalGrams;
       const ownShare = own.kcal * share;
       const boundedShare = (own.boundedKcal ?? 0) * share;
       if (boundedShare > UNRESOLVED_ENERGY_TOLERANCE * (kcal + ownShare)) {
-        return { kcal: null, proteinG: null, gap: "dish_incomplete" as const };
+        return { kcal: null, proteinG: null, proteinRoundingG: null, densityRoundingPer100G: null, gap: "dish_incomplete" as const };
       }
       kcal += ownShare;
+      if (freshGrams[i] > 0) terms.push({ g: freshGrams[i], perG: ownShare / freshGrams[i] });
       if (protein !== null) {
         if (own.proteinG === null) protein = null;
-        else protein += own.proteinG * share;
+        else {
+          protein += own.proteinG * share;
+          // La part de frais suit les grammes frais, eux aussi entiers.
+          if (freshTotal > 0) {
+            proteinRounding += own.proteinG * (GRAMS_ROUNDING_HALF_STEP / freshTotal);
+          }
+        }
       }
     }
     return {
       kcal,
       proteinG: protein === null ? null : Math.round(protein * 10) / 10,
       gap: null,
+      proteinRoundingG: protein === null ? null : proteinRounding + PROTEIN_DISPLAY_HALF_STEP,
+      densityRoundingPer100G: densityRoundingOf(terms, kcal, grams),
     };
   });
 }
@@ -612,6 +693,9 @@ export interface BoxEnergy {
 export interface BoxNutrition extends BoxEnergy {
   /** `null` quand la protéine n'est pas mesurable — jamais zéro. */
   proteinG: number | null;
+  /** ⟳ 2026-09-15 · BÊTA — la borne d'arrondi, voir `BoxItemsNutrition`. */
+  proteinRoundingG: number | null;
+  densityRoundingPer100G: number | null;
 }
 
 /**
@@ -715,7 +799,7 @@ export function boxNutrition(args: {
         grams,
       };
       if (total <= 0 || grams <= 0) {
-        out.push({ ...common, kcal: null, proteinG: null, gap: "empty_box" as const });
+        out.push({ ...common, kcal: null, proteinG: null, proteinRoundingG: null, densityRoundingPer100G: null, gap: "empty_box" as const });
         continue;
       }
       if (byItems !== null) {
@@ -723,12 +807,14 @@ export function boxNutrition(args: {
           ...common,
           kcal: byItems[j].kcal,
           proteinG: byItems[j].proteinG,
+          proteinRoundingG: byItems[j].proteinRoundingG,
+          densityRoundingPer100G: byItems[j].densityRoundingPer100G,
           gap: byItems[j].gap,
         });
         continue;
       }
       if (!energy.complete || energy.kcal === null) {
-        out.push({ ...common, kcal: null, proteinG: null, gap: "dish_incomplete" as const });
+        out.push({ ...common, kcal: null, proteinG: null, proteinRoundingG: null, densityRoundingPer100G: null, gap: "dish_incomplete" as const });
         continue;
       }
       // ⚠️ LE CHEMIN LEGACY (aucun item ne cite sa casserole) GARDE SON PRORATA
@@ -741,6 +827,12 @@ export function boxNutrition(args: {
         proteinG: foldedProtein === null
           ? null
           : Math.round(foldedProtein * (grams / total) * 10) / 10,
+        // Une boîte sans items: sa masse entière est arrondie au gramme, et
+        // son mélange est homogène — la densité ne bouge pas.
+        proteinRoundingG: foldedProtein === null
+          ? null
+          : GRAMS_ROUNDING_HALF_STEP * (foldedProtein / total) + PROTEIN_DISPLAY_HALF_STEP,
+        densityRoundingPer100G: 0,
         gap: null,
       });
     }

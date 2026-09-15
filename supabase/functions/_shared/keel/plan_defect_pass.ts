@@ -503,6 +503,23 @@ export interface OutOfBoundsPlate {
  *
  * PURE: no I/O, no clock, no randomness.
  */
+/**
+ * ⟳ 2026-09-15 · BÊTA — LA CAUSE DU REFUS DE MASSE, NOMMÉE SUR LE CONSTAT.
+ *
+ * ⛔ C'EST LE JETON QUE LE HANDLER REND EN 422
+ * (`detail: ["preparation_quantity_unreconciled"]`,
+ * `generate-household-meal-v1/index.ts`) — le MÊME mot, pour que la décision
+ * de réparation compte ce constat comme BLOQUANT. Sans lui, le journal disait
+ * `plan_repair_skipped:no_blocking_defect` sur un plan que la ligne suivante
+ * refusait tout entier (tirs 6 et 13 de la campagne des 30). Le constat reste
+ * `repairable: false` — un appel modèle ne fait pas cette arithmétique — donc
+ * la décision rend `nothing_repairable`, qui est la vérité.
+ *
+ * ⚠️ Le littéral reste écrit tel quel dans le handler: la garde des refus ne
+ * lit que les littéraux (`refusal-token-guard-reads-only-literals`).
+ */
+export const POT_MASS_UNRECONCILED_CAUSE = "preparation_quantity_unreconciled";
+
 export function defectsFromQuantities(args: {
   readonly roundedToZero: readonly RoundedToZeroLine[];
   readonly potsOverdrawn: number;
@@ -541,7 +558,7 @@ export function defectsFromQuantities(args: {
       day: null,
       slot: null,
       dish: null,
-      cause: null,
+      cause: POT_MASS_UNRECONCILED_CAUSE,
       date: null,
       // ⚠️ AUCUNE PRÉPARATION NOMMÉE, et c'est la vérité de ce compteur: il
       // agrège N casseroles en une phrase. En nommer une serait choisir au
@@ -762,7 +779,12 @@ export function collectPlanDefects(
   return {
     defects,
     repairable: defects.filter((d) => d.repairable),
-    blocking: defects.filter((d) => d.cause !== null && causesBloquantes.has(d.cause as never)),
+    // ⟳ 2026-09-15 · BÊTA — le refus de masse est bloquant par construction
+    // (le handler le rend en 422), même s'il n'est pas un refus de la garde.
+    blocking: defects.filter((d) =>
+      d.cause !== null &&
+      (causesBloquantes.has(d.cause as never) || d.cause === POT_MASS_UNRECONCILED_CAUSE)
+    ),
     byKind,
     bySource: {
       gate: fromGate.length,
