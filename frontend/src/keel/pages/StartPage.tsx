@@ -16,7 +16,6 @@ import { PublicFooter, PublicHeader } from "../components/PublicHeader";
 import ServerUnreachable from "../components/ServerUnreachable";
 import { Button } from "../components/ui/Button";
 import { isProSurfaceHidden } from "../../security/proSurface";
-import { OfferLines } from "../components/ui/OfferLines";
 import { t } from "../i18n/t";
 import { chosenUiLocale, signupProfileLocale } from "../i18n/runtime";
 import { type UiLocale } from "../i18n/catalog";
@@ -616,20 +615,29 @@ export default function StartPage() {
         lede={isRepair ? t("start.repair.body") : t("start.lead")}
       />
 
-      {/* ⚠️ L'OFFRE EST REMONTÉE AU-DESSUS DE LA FICHE LE 2026-09-01, ET C'EST
-          LA CORRECTION LA PLUS CHÈRE DU LOT. Elle vivait SOUS le bouton
-          d'envoi: quelqu'un qui arrivait de `/families` avec « premier mois
-          offert » en tête trouvait ici un prix nu, après le geste, et rien sur
-          la gratuité — la seule page qui l'annonçait ne la répétait pas là où
-          elle décide. Le bloc est maintenant le MÊME qu'en amont
-          (`ui/OfferLines.tsx`, namespace `offer`), et il se lit avant le
-          premier champ.
+      {/* ⛔ PLUS D'OFFRE SUR CETTE PAGE — retirée le 2026-09-18 à la demande du
+          propriétaire. Lis ce qui suit avant de la remettre « par sécurité ».
+
+          Le bloc (`ui/OfferLines.tsx`, namespace `offer`) avait été REMONTÉ ici
+          le 2026-09-01, au-dessus de la fiche, et c'était la correction la plus
+          chère de son lot: quatre pages de vente annonçaient quatre offres
+          différentes, et « premier mois offert » disparaissait justement sur
+          `/start`, c'est-à-dire au moment de décider. Ce qui a changé depuis:
+          il n'y a plus qu'UNE page de vente (`/`, refonte du 2026-09-08), elle
+          porte le prix, l'essai et l'accès supplémentaire, et elle est le seul
+          chemin normal jusqu'ici.
+
+          ⚠️ CE QUE ÇA COÛTE, ÉCRIT POUR QUE PERSONNE NE LE REDÉCOUVRE: qui
+          arrive sur `/start` par un lien direct s'inscrit sans avoir vu de prix.
+          Le composant reste monté par `/app/billing`, et le namespace `offer`
+          reste ouvert à cette page dans `i18n/catalog.ts` — remettre une ligne
+          est une édition, pas une réécriture.
+
           ⚠️ `start.price` a été retirée des deux packs. Le pack ANGLAIS y
           écrivait « 11,99 € a month … plus 2 € » — virgule décimale et symbole
           à droite, convention française servie à un lecteur anglophone. Les
-          montants passent désormais par `formatPrice`, qui ne peut pas se
-          tromper de convention. */}
-      {!isRepair && <OfferLines className="mt-6" />}
+          montants passent par `formatPrice`, qui ne peut pas se tromper de
+          convention. */}
 
       <Sheet label={isRepair ? t("start.sheet.repair") : t("start.sheet.form")}>
         <form onSubmit={isRepair ? repair : signUp} className="space-y-5">

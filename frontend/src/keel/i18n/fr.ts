@@ -2133,7 +2133,7 @@ export const fr: TranslatedMessages = {
   // doit faire ATTENDRE quelqu'un: « ton coach prépare ton plan » est faux dans
   // ce produit, le coach ne prépare rien pour personne (docs/keel/MODEL.md).
   // Le bouton compose, et l'écran suivant est le plan.
-  "setup.title": "Installez votre cuisine",
+  "setup.title": "Organisons-nous",
   "setup.subtitle": "Trois étapes, et votre premier plan.",
   "setup.progress": "Étape {n} sur {total}",
   "setup.loading": "On reprend où vous en étiez…",

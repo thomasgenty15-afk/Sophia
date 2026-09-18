@@ -4662,7 +4662,7 @@ export const en = {
   // plan. Toute copie qui fait ATTENDRE quelqu'un est fausse dans ce produit —
   // le coach ne prépare rien pour personne (docs/keel/MODEL.md).
   // ═════════════════════════════════════════════════════════════════════════
-  "setup.title": "Set up your kitchen",
+  "setup.title": "Let’s get organised",
   "setup.subtitle": "Three steps, then your first plan.",
   "setup.progress": "Step {n} of {total}",
   "setup.loading": "Loading where you got to…",
