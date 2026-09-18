@@ -4682,6 +4682,27 @@ export function buildMealPrompt(args: {
     daysToFill: daysToEat.length || 7,
     merge: args.merge,
   });
+  // ══════════════════════════════════════════════════════════════════════
+  // LA GRILLE — LES CASES À REMPLIR, ÉNUMÉRÉES
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ ELLE SORT D'`emptySlotsIn`, APPELÉE AVEC ZÉRO PLAT, ET C'EST LE POINT.
+  // Le constat de trous (`shown_plan_gaps`) et le contrôle final comptent déjà
+  // leur grille avec cette fonction-là; un second calcul ici aurait divergé au
+  // premier absent, au premier apport fixe ou au premier jour de cuisine — et
+  // la consigne aurait alors réclamé des cases que le contrôle ne compte pas.
+  //
+  // ⚠️ `cookOnlyDay: null` PARCE QUE `daysToEat` L'A DÉJÀ RETIRÉ. Le repasser
+  // ici le retirerait deux fois, ce qui est inoffensif aujourd'hui et faux le
+  // jour où `daysToEat` cesse de le filtrer.
+  const cellsToFill = emptySlotsIn({
+    days: daysToEat,
+    cookOnlyDay: null,
+    rhythm,
+    dishes: [],
+    awayDays: args.awayDays ?? [],
+    fixedIntakes: args.fixedIntakes,
+  });
   // Les absences, en prose, une ligne par jour. Calculées ici pour être
   // insérées plus bas dans la même liste que le reste des contraintes.
   const awayLines = (args.awayDays ?? []).map((a) =>
@@ -5510,8 +5531,40 @@ export function buildMealPrompt(args: {
         // repas de trop; quelqu'un qui s'effondre à 17h n'avait aucun endroit
         // où le dire, et sa journée s'arrêtait au déjeuner puis reprenait au
         // dîner. La règle est la même — pas de trou — mais sur SA journée.
-        `every day of the stretch needs ${occasionList(rhythm)}. A day missing ` +
-        "one of those is a hole, and the student did not ask for a partial week.",
+        // ── ⛔ LA GRILLE EST ÉNUMÉRÉE, ET SON NOMBRE EST UN PLANCHER ───────
+        //
+        // Cette consigne était UNE PHRASE — « every day of the stretch needs
+        // breakfast, lunch and dinner » — et le seul NOMBRE que le modèle
+        // lisait était `at most ${cap}`, c'est-à-dire un PLAFOND. Rien ne lui
+        // disait combien de plats il DEVAIT rendre.
+        //
+        // Mesuré le 2026-09-18 sur le foyer `5e0c3825` (6 jours du dimanche au
+        // vendredi, 3 bouches, aucun rythme déclaré donc 18 cases): **12 plats
+        // rendus sur 18**, le dimanche entier sauté, puis 422
+        // `plan_not_deliverable` après 197 s et deux réparations. Le modèle
+        // n'avait enfreint AUCUN chiffre: 12 plats sur 18 autorisés, 3 sessions
+        // de cuisine sur 6. Il avait obéi aux trois règles chiffrées — plafond
+        // de plats, plafond de sessions, une recette cuisinée une seule fois —
+        // et laissé tomber la seule qui était en prose.
+        //
+        // ⛔ ON LUI DONNE DONC LA LISTE, PLUS LA RÈGLE. Les cases sont
+        // énumérées `jour/moment` dans l'ordre de la fenêtre, leur nombre est
+        // dit PLANCHER en toutes lettres, et la relecture est demandée avant la
+        // réponse. Une liste se coche; une règle se négocie.
+        //
+        // ⚠️ LE PLANCHER NE PEUT PAS DÉPASSER LE PLAFOND, par construction:
+        // `cellsToFill` retire les absents et les apports fixes de la grille
+        // dont `baseCap` est le produit entier, et `cap` vaut `baseCap` plus le
+        // supplément de fusion. Les deux nombres ne peuvent donc que se
+        // rejoindre, jamais se croiser.
+        `cells to fill: ${cellsToFill.length}, and here is every single one:`,
+        emptySlotsLine(cellsToFill),
+        `Return one dish for EACH of those ${cellsToFill.length} cells. ` +
+        `${cellsToFill.length} is a FLOOR, not a number to approach: a cell ` +
+        "left without a dish is a hole, and this table did not ask for a " +
+        "partial stretch. Before you answer, walk that list from its first " +
+        "`day/slot` to its last and check that every one of them carries a " +
+        "dish; compose the ones that do not.",
         // `baseCap`, PAS `cap` — voir les deux nombres en tête de fonction.
         `cooking sessions: at most ${batchSessionBudget(baseCap)} for the whole ` +
         "stretch. Most lunches and dinners must therefore come from BATCHES — " +
@@ -5584,6 +5637,21 @@ export function buildMealPrompt(args: {
           ? [`the stretch opens on ${args.windowStartsOn} (ISO date)`]
           : []),
         `days to fill, in this order: ${daysToEat.join(", ")}`,
+        // ⛔ NOMMER LE JOUR NE SUFFIT PAS, IL FAUT CONTREDIRE L'A PRIORI.
+        // La liste commençait par `sun` et portait déjà « ne décale pas pour
+        // commencer aujourd'hui »; le modèle a quand même composé lundi →
+        // vendredi et rendu zéro plat le dimanche (2026-09-18, foyer
+        // `5e0c3825`). Une donnée qui contredit l'habitude du modèle sans la
+        // NOMMER se fait lisser. Cette ligne dit l'habitude, puis la dément.
+        ...(daysToEat[0] !== undefined && daysToEat[0] !== "mon"
+          ? [
+            `This stretch does NOT start on Monday. Its first day is ` +
+            `${dayProse(daysToEat[0])}, and that ${dayProse(daysToEat[0])} ` +
+            "carries its meals exactly like every other day of the list. A " +
+            "plan whose first dish falls on Monday is a plan that dropped its " +
+            "opening day.",
+          ]
+          : []),
         "Do not use any other day token. Fill exactly those days, in that " +
         "order, starting at the first one -- do not shift the list to begin " +
         "today, and do not add a day before it.",

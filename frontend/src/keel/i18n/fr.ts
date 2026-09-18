@@ -539,10 +539,10 @@ export const fr: TranslatedMessages = {
   "home.life.demo.photo_example": "Une photo de l’assiette, prise à table.",
   "home.life.demo.send": "Envoyer",
   "home.reach.kicker": "Le suivi au quotidien",
-  "home.reach.title_1": "Sophia vient vers toi.",
+  "home.reach.title_1": "Sophia te fait signe.",
   "home.reach.title_2": "Au bon moment.",
   "home.reach.body":
-    "Tu n’as rien à déclencher. Elle écrit la première quand ça compte : la veille d’une cuisson, le matin d’une pesée, ou après un repas que le plan ne couvrait pas.",
+    "Tu n’as rien à penser. Elle t’écrit la veille d’une cuisson, le matin d’une pesée, ou après un repas que le plan ne couvrait pas.",
   "home.reach.thaw.title": "La veille d’une session",
   "home.reach.thaw.body":
     "« Ce soir, sors le poulet du congélateur. » Le rappel arrive entre 18 h et 20 h, la veille, quand un article doit décongeler.",

@@ -614,16 +614,50 @@ Deno.test("R6 — DÉSARMEMENT: sans apport, la consigne est identique AU CARACT
   assert(!empty.userMessage.includes("WHAT THEY ALREADY HAVE"));
   assert(!empty.userMessage.includes("ALREADY"));
   assert(!empty.userMessage.includes("fixed intake"));
+  // ══════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-18 — L'APPORT FIXE A UNE SECONDE CONTRIBUTION, ET ELLE EST DUE
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // La consigne ÉNUMÈRE désormais les cases à remplir, et un apport fixe en
+  // PREND une: la grille rétrécit avec lui. C'est très exactement ce que ce lot
+  // promet — « those moments are TAKEN » —, et ce serait faux si la liste des
+  // cases ne bougeait pas. On le PROUVE ici plutôt que de le neutraliser en
+  // silence: sans ces trois lignes, un `cellsToFill` qui ignorerait les apports
+  // laisserait le test vert tout en réclamant au modèle un petit-déjeuner du
+  // lundi que le parseur jetterait derrière.
+  const cellsOf = (msg: string) =>
+    /^cells to fill: (\d+), and here is every single one:\n([^\n]*)$/m.exec(msg);
+  const cellsEmpty = cellsOf(empty.userMessage);
+  const cellsWith = cellsOf(withIntake.userMessage);
+  assert(cellsEmpty !== null && cellsWith !== null);
+  assertEquals(Number(cellsEmpty[1]), 6); // mon + sat, trois moments chacun
+  assertEquals(Number(cellsWith[1]), 5); // le shaker prend le lundi matin
+  assert(cellsEmpty[2].includes("mon/breakfast"));
+  assert(!cellsWith[2].includes("mon/breakfast"));
+
   // Le retrait de l'apport rend EXACTEMENT la chaîne d'avant, au caractère
   // près: c'est la seule comparaison qui attrape une ligne vide de trop.
   // Le bloc est SPREADÉ dans la liste des sections, jointe par « \n »: sa
   // contribution exacte est donc ses lignes jointes PLUS le séparateur qui le
   // suit. Retirer l'un sans l'autre laisserait la ligne vide qu'on traque.
+  //
+  // ⚠️ LA GRILLE EST NORMALISÉE DES DEUX CÔTÉS, ET UNIQUEMENT ELLE. Son écart
+  // vient d'être prouvé trois lignes plus haut; le reste du message doit rester
+  // identique au caractère près, y compris le rappel « those N cells » qui suit
+  // la liste.
+  const flattenCells = (msg: string) =>
+    msg
+      .replace(
+        /^cells to fill: \d+, and here is every single one:\n[^\n]*$/m,
+        "«GRILLE»",
+      )
+      .replace(/those \d+ cells/, "those «N» cells")
+      .replace(/\d+ is a FLOOR/, "«N» is a FLOOR");
   const removed = withIntake.userMessage.replace(
     fixedIntakePromptLines([intake()]).join("\n") + "\n",
     "",
   );
-  assertEquals(removed, empty.userMessage);
+  assertEquals(flattenCells(removed), flattenCells(empty.userMessage));
 });
 
 Deno.test("la consigne dit en NÉGATIF ce qui est pris", () => {

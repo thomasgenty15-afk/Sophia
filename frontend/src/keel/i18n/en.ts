@@ -2920,10 +2920,10 @@ export const en = {
   "home.life.demo.photo_example": "A photo of the plate, taken at the table.",
   "home.life.demo.send": "Send",
   "home.reach.kicker": "Everyday support",
-  "home.reach.title_1": "Sophia comes to you.",
+  "home.reach.title_1": "Sophia checks in.",
   "home.reach.title_2": "At the right moment.",
   "home.reach.body":
-    "Nothing to trigger. She writes first when it matters: the night before a cooking session, on a weigh-in morning, or after a meal the plan did not cover.",
+    "Nothing to keep in mind. She writes the night before a cooking session, on a weigh-in morning, or after a meal the plan did not cover.",
   "home.reach.thaw.title": "The night before a session",
   "home.reach.thaw.body":
     "“Tonight, take the chicken out of the freezer.” The reminder lands between 6 and 8 pm, the day before, when something needs to thaw.",

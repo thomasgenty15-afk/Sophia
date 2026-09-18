@@ -18674,13 +18674,41 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
         maxFridgeDays: MAX_FRIDGE_DAYS,
         // ⚠️ LA MÊME GRILLE QUE LE DIMENSIONNEMENT, pas une seconde
         // projection: `byMouth` porte exactement `{memberId, regime, cells}`.
-        mouths: householdGrid.byMouth,
+        //
+        // ══════════════════════════════════════════════════════════════════
+        // ⛔ `mouthCells` ET PAS `householdGrid.byMouth` — LE JOUR DE CUISINE
+        //    N'EST PAS UNE JOURNÉE DE REPAS (2026-09-18)
+        // ══════════════════════════════════════════════════════════════════
+        //
+        // `householdCells` reçoit bien `cookOnlyDay`, mais ne s'en sert QUE
+        // pour incrémenter `counters.cook_day_cells`: les cases de la veille
+        // restent dans `byMouth`. Le détecteur d'amont le savait et filtrait
+        // (`mouthCells`, plus haut); la garde finale, elle, lisait la grille
+        // brute — et `expectedCells` est construit tel quel depuis `mouths`.
+        //
+        // Conséquence mesurée le 2026-09-18 en HTTP réel sur staging
+        // (`8573207c…`): fenêtre reculée d'un jour par « je cuisine la veille »,
+        // samedi devenu jour de cuisine, et le contrôle final a réclamé un
+        // petit-déjeuner, un déjeuner et un dîner CE SAMEDI-LÀ. Trois
+        // `cell_without_dish` que le modèle ne pouvait pas remplir — la
+        // consigne lui interdit d'écrire un plat ce jour-là — donc 422
+        // `plan_not_deliverable` garanti dès que la veille est prise.
+        //
+        // ⚠️ `windowDays` GARDE LA FENÊTRE ENTIÈRE, juste en dessous: la veille
+        // en fait partie (elle situe les casseroles et la fraîcheur). Ce qui
+        // change ici est ce qui DOIT PORTER UN PLAT, rien d'autre.
+        mouths: mouthCells,
         // ⟳ 2026-09-14 · BÊTA 1A — CE QUE LA GRILLE DOIT, APLATI. La MÊME
         // décision que `dishBearingMembers`, que le bloc de régime du prompt et
         // que la liste fermée du parseur: `cells[].dedicated`, lue une fois.
         // Une seconde résolution ici rouvrirait exactement la porte que le
         // § 2.2 a fermée le 2026-09-14.
-        dedicated: householdGrid.cells.flatMap((c) =>
+        // ⛔ LE MÊME RETRAIT QUE `mouths` JUSTE AU-DESSUS, et pour la même
+        // raison: un `dedicated_dish_missing` réclamé sur le jour de cuisine
+        // est un plat que la consigne interdit d'écrire.
+        dedicated: householdGrid.cells.filter((c) =>
+          cookOnlyDay === null || c.day !== cookOnlyDay
+        ).flatMap((c) =>
           c.dedicated.map((d) => ({
             day: c.day,
             slot: c.slot,

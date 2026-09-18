@@ -52,13 +52,35 @@ Deno.test("BÊTA 1A — la garde finale reçoit les obligations de LA grille, pa
   // quatrième liste rouvrirait la porte fermée le 2026-09-14 (§ 2.2), où le
   // même message commandait un plat à part à la personne que la casserole
   // servait déjà.
+  //
+  // ⟳ 2026-09-18 — LA SOURCE EST TOUJOURS LA GRILLE, LE JOUR DE CUISINE EN
+  // MOINS. `householdCells` laisse les cases de la veille dans sa sortie (il
+  // ne fait qu'en compter le nombre), et une obligation de plat dédié posée ce
+  // jour-là réclame un plat que la consigne interdit d'écrire. Le filtre est
+  // donc DANS l'expression, sur la même et unique source.
   assert(
-    HANDLER.includes("dedicated: householdGrid.cells.flatMap((c) =>"),
+    HANDLER.includes("dedicated: householdGrid.cells.filter((c) =>"),
     "les obligations passées à la garde ne viennent plus de la grille",
   );
+  assert(
+    HANDLER.includes("cookOnlyDay === null || c.day !== cookOnlyDay"),
+    "le jour de cuisine réclame de nouveau un plat dédié",
+  );
   assertEquals(
-    HANDLER.split("dedicated: householdGrid.cells.flatMap").length - 1,
+    HANDLER.split("dedicated: householdGrid.cells").length - 1,
     1,
+  );
+  // ⛔ ET LES CASES QUI DOIVENT PORTER UN PLAT SONT CELLES DU DÉTECTEUR
+  // D'AMONT, PAS LA GRILLE BRUTE. Les deux lecteurs de trous doivent compter
+  // la même chose: sinon la veille est un trou pour l'un et pas pour l'autre,
+  // et le plan est refusé pour des cases que personne ne pouvait remplir.
+  assert(
+    HANDLER.includes("mouths: mouthCells,"),
+    "la garde finale relit la grille brute, jour de cuisine compris",
+  );
+  assert(
+    HANDLER.includes("cells: row.cells.filter((c) => c.day !== cookOnlyDay),"),
+    "le détecteur d'amont ne retire plus le jour de cuisine",
   );
 });
 
