@@ -57,12 +57,13 @@ Deno.test("recordPlanRefusal — le contexte interne prime sur le corps public",
     status: 422,
     body: { error: "plan_not_deliverable", refusals: [{ cause: "energy_floor", detail: null }] },
     context: {
+      token: null,
       startsOn: "2026-09-21",
       durationDays: 5,
       refusals: [{ cause: "energy_floor", detail: "1 240 kcal < 1 500" }],
       unevaluated: [],
       incomplete: [],
-      validation: { state: "refused" },
+      verdict: { state: "refused" },
       plan: { dishes: [{ title: "x" }], preparations: [], cooking_sessions: [] },
       rounds: 3,
       callsMade: 3,
@@ -134,4 +135,35 @@ Deno.test("recordPlanRefusal — une insertion qui échoue ne lève pas", async 
     attempt: null,
   });
   assertEquals(ok, false);
+});
+
+Deno.test("recordPlanRefusal — un plan LIVRÉ avec écarts est journalisé sous son propre jeton, HTTP 200", async () => {
+  const { admin, inserts } = fakeAdmin();
+  await recordPlanRefusal(admin, {
+    who: WHO,
+    requestId: "req-5",
+    draftId: "d-5",
+    mode: "async",
+    status: 200,
+    body: { ok: true, draft: true },
+    context: {
+      token: "deliverable_with_gaps",
+      startsOn: "2026-09-16",
+      durationDays: 6,
+      refusals: [{ cause: "cell_energy_off", day: "wed", slot: "snack_pm", detail: "+62 % contre 455 kcal visées" }],
+      unevaluated: [],
+      incomplete: [],
+      verdict: { state: "livrable_avec_ecarts" },
+      plan: { dishes: [], preparations: [], cooking_sessions: [] },
+      rounds: 2,
+      callsMade: 1,
+      promptVersion: "v33",
+      generationModel: "gpt-5.6-luna",
+    },
+    wallMs: 128_400,
+    attempt: 1,
+  });
+  assertEquals(inserts[0].row.token, "deliverable_with_gaps");
+  assertEquals(inserts[0].row.http_status, 200);
+  assertEquals((inserts[0].row.refusals as Array<{ detail: string }>)[0].detail, "+62 % contre 455 kcal visées");
 });

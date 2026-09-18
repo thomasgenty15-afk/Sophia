@@ -223,6 +223,14 @@ export function PlanValidationNotice(props: {
   portions: readonly MemberPortionView[];
   /** `useMealEnergy().showing` : la porte d'affichage calorique de la personne. */
   showEnergy: boolean;
+  /**
+   * ⟳ 2026-09-16 — OÙ CE BANDEAU EST LU. Sur un plan ÉCRIT, le pied dit « il a
+   * été enregistré » ; dans l'APERÇU, rien ne l'est tant qu'on n'adopte pas —
+   * et le même pied faisait croire le contraire (lu tel quel par un
+   * utilisateur le 2026-09-16 : « il a été enregistré » sur un brouillon que
+   * personne n'avait adopté). Défaut `written` pour les appelants d'avant.
+   */
+  context?: "written" | "preview";
 }) {
   const v = props.validation;
   // ⛔ `null` = LA GARDE N'A PAS TOURNÉ, OU LE PLAN EST PLUS VIEUX QUE CE LOT.
@@ -280,7 +288,9 @@ export function PlanValidationNotice(props: {
           </ul>
         </>
       )}
-      <p className="mt-2 text-xs text-ink-soft">{t("plan.validation.intact")}</p>
+      <p className="mt-2 text-xs text-ink-soft">
+        {t(props.context === "preview" ? "plan.validation.preview_intact" : "plan.validation.intact")}
+      </p>
     </div>
   );
 }

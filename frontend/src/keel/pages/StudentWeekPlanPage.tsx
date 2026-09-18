@@ -11,7 +11,6 @@ import Modal from "../components/ui/Modal";
 import SetupSection from "../components/ui/SetupSection";
 import MealBuilder from "../components/MealBuilder";
 import MyShareCard from "../components/plan/MyShareCard";
-import PlanByPerson from "../components/plan/PlanByPerson";
 import PlanDraftDialog from "../components/plan/PlanDraftDialog";
 // LOT D — le retour de fin de plan. Les questions viennent du module serveur,
 // jamais d'une seconde table écrite ici.
@@ -24,7 +23,7 @@ import {
   questionsFor,
   submitPlanFeedback,
 } from "../api/planFeedback";
-import { windowDates, windowDayOrder } from "../api/mealWindow";
+import { windowDayOrder } from "../api/mealWindow";
 import { selectMyShare } from "../api/myShare";
 import { useAuth } from "../../context/AuthContext";
 import { type ComposePlace, mayCompose } from "../api/planRouting";
@@ -1221,6 +1220,8 @@ export default function StudentWeekPlanPage() {
     current: { startsOn: string; durationDays: number; mealId: string | null } | null;
     next: { startsOn: string; durationDays: number } | null;
   }>({ current: null, next: null });
+  /** ⟳ 2026-09-16 — monte à chaque relecture des plans ; `MealBuilder` relit dessus. */
+  const [plansVersion, setPlansVersion] = React.useState(0);
   // `situation` a disparu du formulaire — voir le commentaire de `saveGoal`.
   const [goalDraft, setGoalDraft] = React.useState({
     // Repli du 2026-08-18: valait `"health"`, retiré du vocabulaire. Un
@@ -1394,6 +1395,8 @@ export default function StudentWeekPlanPage() {
     } catch {
       setLivePlans({ current: null, next: null });
     }
+    // « Tes repas » (MealBuilder) charge ses plans lui-même : on lui dit qu'ils ont bougé.
+    setPlansVersion((v) => v + 1);
   }, []);
 
   const refresh = React.useCallback(async () => {
@@ -2596,6 +2599,7 @@ export default function StudentWeekPlanPage() {
           rhythm={parseEatingRhythm(pc.eating_rhythm)}
           awayDays={parseAwayMarks(pc.away_days)}
           onAwaySaved={saveAwayDays}
+          plansVersion={plansVersion}
           onHouseholdComposed={async () => {
             const uid = (await supabase.auth.getUser()).data.user?.id;
             if (uid) await refreshHousehold(uid);
@@ -2680,50 +2684,14 @@ export default function StudentWeekPlanPage() {
             montre autrement, ou on l'abandonne » est ouverte et appartient à
             l'humain. */}
 
-        {/* ── 9bis · QUI MANGE QUOI (2026-08-14) ─────────────────────────
-            ⚠️ C'EST LA RÉPONSE À LA QUESTION QUE « À TABLE » POSAIT MAL, et
-            c'est pour ça qu'elle se monte exactement là où l'autre était. Les
-            MÊMES parts (`member_portions`), mais dans une grille, à côté du
-            plat qu'elles servent — pas récitées en liste loin du plan. Ce
-            n'est pas une perte, c'est un déplacement.
-
-            « Normalement il devrait y avoir autant de vues que de personnes
-            dans le foyer. Là on sait pas qui mange quoi. » — 2026-08-14.
-
-            ⛔ `isOwner` EST LA GARDE, ET ELLE EST PASSÉE, PAS DEVINÉE. Cette
-            vue rend la part de TOUT LE MONDE; `MyShareCard` juste au-dessus
-            interdit explicitement « la part d'un autre » à un secondaire, et
-            celle-ci en serait le contournement si elle lui était rendue. Elle
-            est sûre pour le maître seul: c'est lui qui a saisi les bouches.
-
-            ⚠️ ZÉRO APPEL MODÈLE. `householdMeal` est déjà lu par cet écran
-            (`loadHouseholdMeal`); cette vue n'ajoute aucune requête, aucune
-            colonne, aucune génération. */}
-        {householdMeal
-          ? (() => {
-            const days = windowDayOrder(
-              householdMeal.startsOn,
-              householdMeal.durationDays,
-            );
-            // `windowDates` est une TABLE jeton→date, pas une liste: on la lit
-            // DANS L'ORDRE DES COLONNES pour que les deux ne puissent pas se
-            // décaler. Même geste que `PlanResult`, et pour la même raison.
-            const dates = windowDates(
-              householdMeal.startsOn,
-              householdMeal.durationDays,
-            );
-            return (
-              <PlanByPerson
-                days={days}
-                dates={days.map((d) => dates[d] ?? "")}
-                today={browserLocalDate()}
-                dishes={householdMeal.dishes}
-                portions={householdMeal.portions}
-                isOwner={isOwner}
-              />
-            );
-          })()
-          : null}
+        {/* ── 9bis · « QUI MANGE QUOI » — RETIRÉE LE 2026-09-16 ─────────────
+            La grille par personne (`PlanByPerson`) doublait la lecture des
+            parts : le plan par jour porte déjà la part de chacun sur chaque
+            plat, et « ta part » (`MyShareCard`) dit à une personne ce qu'elle
+            mange. Décision du propriétaire, à la lecture du plan sur staging :
+            « il faut supprimer entièrement la section ». Le moteur n'est pas
+            touché — `member_portions` est toujours écrit et toujours lu par
+            les plats. */}
 
         {/* ── 10 · L'APERÇU (Lot C) ───────────────────────────────────────
             SOUS le plan et sous « à table »: on prévisualise la semaine

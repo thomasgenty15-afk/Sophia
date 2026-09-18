@@ -57,6 +57,7 @@ import { mayCompose } from "../api/planRouting";
 // « TOUT DANS UNE SESSION DE CUISINE » — la case, et la porte qui la conditionne.
 import OneCookingSessionField from "./OneCookingSessionField";
 import KitchenEquipmentCard from "./KitchenEquipmentCard";
+import { kitchenToolLabel } from "./kitchenToolLabel";
 import CookingStyleField from "./CookingStyleField";
 import GroceryRunsField from "./GroceryRunsField";
 import {
@@ -197,6 +198,31 @@ export interface MealBuilderProps {
    * fausses.
    */
   onHouseholdComposed?: () => Promise<void>;
+  /**
+   * ⟳ 2026-09-16 — LA PAGE DIT QUAND LES PLANS ONT CHANGÉ. « Tes repas » se
+   * chargeait UNE fois, au montage : une adoption faite depuis le dialogue de la
+   * page écrivait le plan, « Qui mange quoi » le voyait (la page relit), et
+   * cette section restait sur « Rien de composé » jusqu'à un rechargement —
+   * mesuré sur staging le 2026-09-16, plan `c5815127` écrit et invisible ici.
+   * Chaque incrément relance la lecture ; la valeur n'a pas d'autre sens.
+   */
+  plansVersion?: number;
+}
+
+/**
+ * COMBIEN DE MOMENTS UNE BOUCHE ÉCARTE DANS CETTE FENÊTRE — le chiffre que la
+ * ligne de présence affiche, et que le lien du solo porte après son libellé.
+ * Un jour marqué sans créneau vaut tous les créneaux du rythme.
+ */
+function awayMomentsInWindow(
+  marks: readonly AwayMark[],
+  dayTokens: readonly string[],
+  slotsPerDay: number,
+): number {
+  const inWindow = new Set<string>(dayTokens);
+  return marks
+    .filter((a) => inWindow.has(a.day))
+    .reduce((n, a) => n + (a.slots.length === 0 ? slotsPerDay : a.slots.length), 0);
 }
 
 export default function MealBuilder(props: MealBuilderProps = {}) {
@@ -366,13 +392,15 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
   }, [windowStart, windowEnd]);
 
   /** Combien de moments sont écartés DANS cette fenêtre — pour le bouton. */
-  const awayInWindow = React.useMemo(() => {
-    const inWindow = new Set<string>(askedDays.tokens);
-    const slots = (props.rhythm ?? []).length;
-    return (props.awayDays ?? [])
-      .filter((a) => inWindow.has(a.day))
-      .reduce((n, a) => n + (a.slots.length === 0 ? slots : a.slots.length), 0);
-  }, [askedDays, props.awayDays, props.rhythm]);
+  const awayInWindow = React.useMemo(
+    () =>
+      awayMomentsInWindow(
+        props.awayDays ?? [],
+        askedDays.tokens,
+        (props.rhythm ?? []).length,
+      ),
+    [askedDays, props.awayDays, props.rhythm],
+  );
 
   const windowRequest = React.useMemo<MealWindowRequest>(() => ({
     kind: "exact",
@@ -606,6 +634,10 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
    * comparé sur les trois états par `api/freezerMirror.int.test.ts`.
    */
   const hasFreezer = hasFreezerDeclared(readKitchenEquipment(planConstraints));
+  /** Les outils déclarés, pour le titre de la carte repliée: « Four · Plaques ». */
+  const equipmentSummary = (readKitchenEquipment(planConstraints) ?? [])
+    .map(kitchenToolLabel)
+    .join(" · ");
   /**
    * ⟳ 2026-09-10 · LOT 7 — `preferences` / `preferencesCarried` SONT PARTIS.
    *
@@ -765,7 +797,7 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
     return () => {
       cancelled = true;
     };
-  }, [userId]);
+  }, [userId, props.plansVersion]);
 
   // LES COCHES. La liaison vit dans `lib/useMealTicks.ts` et pas ici: cet écran
   // et `/app/today` rendent le MÊME plat, et deux liaisons auraient fini par
@@ -935,6 +967,28 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
       }),
     });
   }, [budget, budgetMarket, askedDays, props.rhythm, props.awayDays, household]);
+
+  /**
+   * LE BOUTON DIT CE QUI PART: combien de jours, pour combien de bouches. Le
+   * titre de la section ne le disait pas, et le clic vivait 1 400 px plus bas
+   * que les dates. Le compte des bouches est celui du foyer, pas celui des
+   * présents: les couverts se déduisent repas par repas côté moteur.
+   */
+  const submitLabel = React.useMemo(() => {
+    const days = askedDays.tokens.length;
+    const people = household?.members.length ?? 1;
+    return t("meals.form.submit_for")
+      .replace(
+        "{days}",
+        plural(days, t("meals.form.window_days_one"), t("meals.form.window_days_other"))
+          .replace("{n}", String(days)),
+      )
+      .replace(
+        "{people}",
+        plural(people, t("meals.form.people_one"), t("meals.form.people_other"))
+          .replace("{n}", String(people)),
+      );
+  }, [askedDays, household]);
 
   async function build(event: React.FormEvent) {
     event.preventDefault();
@@ -1338,7 +1392,12 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                     servait à préciser une fenêtre; les deux dates le font
                     seules. Le geste qui manquait est plus fin: dans cette
                     fenêtre-là, quels MOMENTS je mange chez moi. */}
-                {props.onAwaySaved && (
+                {/* ⟳ 2026-09-16 — PLUS DE DOUBLE ENTRÉE POUR LE MAÎTRE. Ce lien
+                    ouvre SA grille (source `self`); dès qu'il a une ligne dans
+                    « Qui mange à la maison » juste en dessous, c'est cette
+                    ligne qui l'ouvre, et le lien se tait. Il reste pour qui
+                    n'a pas de ligne: un compte sans foyer chargé. */}
+                {props.onAwaySaved && !household?.me && (
                   <button
                     type="button"
                     onClick={() => setPickerOpen(true)}
@@ -1399,9 +1458,20 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                   avant de fusionner. Une rangée de pastilles réécrite ici
                   aurait perdu les trois. */}
               <details className="group rounded-card border border-line-strong bg-paper p-4">
+                {/* ⟳ 2026-09-16 — FERMÉE, LA CARTE DIT QUAND MÊME CE QU'ELLE
+                    CONTIENT. La case « tout cuisiner en une seule fois » se
+                    grise sans congélateur et renvoie ici: il fallait déplier
+                    pour savoir s'il était coché. Les outils déclarés se lisent
+                    dans le titre, et l'accordéon ne s'ouvre plus que pour
+                    corriger. */}
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
-                  <span className="text-label font-semibold uppercase text-ink-soft">
-                    {t("setup.equipment.title")}
+                  <span className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                    <span className="text-label font-semibold uppercase text-ink-soft">
+                      {t("setup.equipment.title")}
+                    </span>
+                    {equipmentSummary !== "" && (
+                      <span className="text-xs text-ink-soft">{equipmentSummary}</span>
+                    )}
                   </span>
                   <ChevronDown
                     aria-hidden
@@ -1435,7 +1505,21 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                   trois gestes. La grille de présence, juste en dessous, est la
                   question qui le remplace. */}
 
-              {/* ── QUI EST LÀ, JOUR PAR JOUR — UNE LIGNE PAR BOUCHE ────────
+              {/* ── QUI MANGE À LA MAISON — UNE LIGNE PAR BOUCHE, ET SON ÉTAT ──
+                  ⟳ 2026-09-16 — TROIS CARTES SONT DEVENUES TROIS LIGNES. Chaque
+                  bouche portait un gros bouton identique et rien de son état:
+                  il fallait ouvrir trois fenêtres pour savoir qui manque. La
+                  ligne dit « là à tous les repas » ou « n repas ailleurs »,
+                  comptés sur CETTE fenêtre, et le geste est un lien.
+
+                  ⛔ LE MAÎTRE N'A PLUS DEUX ENTRÉES. Sa ligne ouvre la grille
+                  de SA déclaration (`practical_constraints.away_days`, source
+                  `self`) — celle que le lien sous les dates ouvrait, et qui se
+                  tait dès qu'il a une ligne ici. Les autres bouches gardent la
+                  marque du maître (`household_members.away_days`, source
+                  `household`). D14 tient les deux sources séparées; l'écran
+                  n'en montre qu'une par personne — celle que son lien édite.
+
                   ⚠️ C'EST LA MÊME GRILLE QUE PARTOUT AILLEURS, MONTÉE N FOIS.
                   Elle reprend les jours HORS fenêtre tels quels au `save`,
                   sinon marquer un week-end effacerait « jeudi midi ». Une
@@ -1447,78 +1531,96 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                   recopierait la déclaration de la personne dans la colonne du
                   maître, où elle survivrait à sa rétractation. */}
               {household && (
-                <Field
-                  label={t("plan.request.presence_title")}
-                  hint={t("plan.request.presence_intro")}
-                >
-                  <ul className="space-y-3">
-                    {household.members.map((member) => (
-                      <li
-                        key={member.memberId}
-                        className="flex flex-wrap items-center justify-between gap-3 rounded-card border border-line-strong bg-fig-50/40 p-4"
-                      >
-                        <span className="text-base font-semibold text-ink">
-                          {member.displayName}
-                        </span>
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          size="sm"
-                          disabled={pickerBusy}
-                          onClick={() =>
-                            setAwayFor(
-                              awayFor === member.memberId ? null : member.memberId,
-                            )}
+                <Field label={t("plan.request.presence_title")}>
+                  <ul className="divide-y divide-line rounded-card border border-line-strong bg-paper px-4">
+                    {household.members.map((member) => {
+                      const isMe = member.memberId === household.me?.memberId;
+                      const editsSelf = isMe && props.onAwaySaved !== undefined;
+                      const marks = editsSelf ? (props.awayDays ?? []) : member.awayHousehold;
+                      const away = awayMomentsInWindow(
+                        marks,
+                        askedDays.tokens,
+                        (member.eatingSlots ?? props.rhythm ?? []).length,
+                      );
+                      return (
+                        <li
+                          key={member.memberId}
+                          className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 py-2.5"
                         >
-                          {t("plan.request.presence_open")}
-                        </Button>
-                        {/* MONTÉE MÊME FERMÉE — `Modal` rend `null` sans
-                            démonter — donc une grille modifiée survit à une
-                            fermeture accidentelle. Même posture que sur les
-                            deux autres écrans qui la montent.
+                          <span className="min-w-0">
+                            <span className="block text-sm font-medium text-ink">
+                              {member.displayName}
+                            </span>
+                            <span
+                              className={`block text-xs ${away > 0 ? "text-fig-700" : "text-ink-soft"}`}
+                            >
+                              {away === 0
+                                ? t("plan.request.presence_all_home")
+                                : plural(
+                                  away,
+                                  t("plan.request.presence_away_one"),
+                                  t("plan.request.presence_away_other"),
+                                ).replace("{n}", String(away))}
+                            </span>
+                          </span>
+                          {/* UN LIEN, DONC LA MARQUE (charte §2) — le même que
+                              celui du solo sous les dates. */}
+                          <button
+                            type="button"
+                            disabled={pickerBusy}
+                            onClick={() =>
+                              editsSelf
+                                ? setPickerOpen(true)
+                                : setAwayFor(
+                                  awayFor === member.memberId ? null : member.memberId,
+                                )}
+                            className="text-xs font-medium text-fig-700 underline underline-offset-2 hover:text-fig-800 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            {t("plan.request.presence_open")}
+                          </button>
+                          {/* MONTÉE MÊME FERMÉE — `Modal` rend `null` sans
+                              démonter — donc une grille modifiée survit à une
+                              fermeture accidentelle. Pas pour le maître: sa
+                              grille est celle du solo, montée plus bas.
 
-                            ⚠️ `away={member.awayHousehold}` ET RIEN D'AUTRE:
-                            l'union avec `awaySelf` ferait recopier la
-                            déclaration de la personne dans la colonne du
-                            maître, où elle survivrait à sa rétractation.
-
-                            ⚠️ `eatingSlots === null` NE VEUT PAS DIRE « NE
-                            MANGE JAMAIS »: il veut dire « aux moments de la
-                            maison », le repli du produit. Passer `[]` rendrait
-                            une grille SANS LIGNE — une bouche qu'on ne peut pas
-                            marquer absente — et ça se lirait comme une panne.
-                            On retombe donc sur le rythme de la personne qui
-                            compose, qui est celui de la maison.
-
-                            ⚠️ PLUS DE `size: null` FABRIQUÉ ICI: le roster rend
-                            la taille depuis le 2026-08-14, et la grille la
-                            reçoit telle quelle. Le `as EatingOccasionSlot[]`
-                            qui l'accompagnait a disparu avec — un `as` sur un
-                            type étranger désarme le typecheck, cicatrice
-                            mesurée de ce dépôt. */}
-                        <MealPickerGrid
-                          open={awayFor === member.memberId}
-                          onClose={() => setAwayFor(null)}
-                          days={askedDays.tokens}
-                          dates={askedDays.dates}
-                          rhythm={member.eatingSlots ?? (props.rhythm ?? [])}
-                          away={member.awayHousehold}
-                          busy={pickerBusy}
-                          onSave={async (next) => {
-                            setPickerBusy(true);
-                            try {
-                              await setMemberAway(member.memberId, next);
-                              setHousehold(await loadHousehold(userId));
-                            } finally {
-                              setPickerBusy(false);
-                            }
-                          }}
-                        />
-                      </li>
-                    ))}
+                              ⚠️ `away={member.awayHousehold}` ET RIEN D'AUTRE
+                              (voir le pavé au-dessus). `eatingSlots === null`
+                              veut dire « aux moments de la maison », pas « ne
+                              mange jamais »: on retombe sur le rythme de qui
+                              compose. Le roster rend la taille depuis le
+                              2026-08-14, la grille la reçoit telle quelle. */}
+                          {!editsSelf && (
+                            <MealPickerGrid
+                              open={awayFor === member.memberId}
+                              onClose={() => setAwayFor(null)}
+                              days={askedDays.tokens}
+                              dates={askedDays.dates}
+                              rhythm={member.eatingSlots ?? (props.rhythm ?? [])}
+                              away={member.awayHousehold}
+                              busy={pickerBusy}
+                              onSave={async (next) => {
+                                setPickerBusy(true);
+                                try {
+                                  await setMemberAway(member.memberId, next);
+                                  setHousehold(await loadHousehold(userId));
+                                } finally {
+                                  setPickerBusy(false);
+                                }
+                              }}
+                            />
+                          )}
+                        </li>
+                      );
+                    })}
                   </ul>
                 </Field>
               )}
+
+              {/* LA COUPURE ENTRE « QUAND, POUR QUI » ET « COMMENT ». Trois
+                  groupes, deux traits: les dates et les bouches; la cuisine et
+                  les courses; l'envie. Aucun titre de groupe: les libellés des
+                  champs suffisent, et l'écran avait déjà trop de texte. */}
+              <div className="border-t border-line" />
 
               {/* ══════════════════════════════════════════════════════════
                   ⛔ « LES JOURS OÙ TU CUISINES » A ÉTÉ RETIRÉ — 2026-09-01
@@ -1653,7 +1755,6 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                   l'étape 3, au champ près. */}
               <Field
                 label={t("plan.cooking.budget_label")}
-                hint={t("plan.cooking.budget_hint")}
                 htmlFor="meals-budget"
               >
                 <input
@@ -1702,6 +1803,8 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                   </p>
                 )}
               </Field>
+
+              <div className="border-t border-line" />
 
               {/* ── ⛔ ICI SE TENAIT « COMMENT TU CUISINES CETTE SEMAINE » —
                   RETIRÉ LE 2026-09-06, sur le même geste que dans l'entonnoir
@@ -1774,7 +1877,7 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                 <Button type="submit" variant="primary" disabled={building}>
                   {building
                     ? draftProgressLabel(buildProgress) ?? t("meals.form.building")
-                    : t("meals.form.submit")}
+                    : submitLabel}
                 </Button>
                 {/* On ne peut renoncer que s'il y a quelque chose à retrouver
                     derrière. Sans semaine, « Cancel » ne mènerait qu'à un écran

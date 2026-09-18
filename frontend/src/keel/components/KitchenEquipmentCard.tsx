@@ -2,7 +2,6 @@ import React from "react";
 
 import { supabase } from "../../lib/supabase";
 import { t } from "../i18n/t";
-import type { MessageKey } from "../i18n/t";
 import {
   initialKitchenSelection,
   KITCHEN_TOOLS,
@@ -12,6 +11,7 @@ import {
   toggleKitchenTool,
 } from "../api/kitchenEquipment";
 import type { PracticalConstraints } from "../api/practicalConstraints";
+import { kitchenToolLabel } from "./kitchenToolLabel";
 import { Button } from "./ui/Button";
 import { Card, SectionLabel } from "./ui/Card";
 import { Field } from "./ui/Field";
@@ -51,29 +51,6 @@ import { Field } from "./ui/Field";
 // les rangées existantes n'ont pas: sans lui, un lecteur d'écran annonce sept
 // boutons dont aucun ne dit s'il est actif — et la couleur seule ne porte
 // jamais un état.
-
-/**
- * LES MOTS VIVENT ICI, PAS DANS LE MODULE D'API.
- *
- * Règle mesurée sur `api/cookingShape.ts` (2026-08-15): `pageSeams.int.test.ts`
- * attribue chaque littéral de clé à TOUTES les pages qui atteignent le module,
- * et un module d'API atteint par `/join-household` y ferait entrer un
- * namespace que cette page ne déclare pas. Les jetons voyagent, les mots
- * restent.
- *
- * ⚠️ UN LITTÉRAL PAR OUTIL, ET PAS UNE CLÉ FABRIQUÉE (`setup.equipment.tool_${
- * tool}`): une clé calculée est invisible au scanner statique, donc à la garde
- * de langue — c'est ce qui a laissé passer des écrans à moitié anglais.
- */
-const TOOL_LABEL: Record<KitchenTool, MessageKey> = {
-  oven: "setup.equipment.tool_oven",
-  stovetop: "setup.equipment.tool_stovetop",
-  microwave: "setup.equipment.tool_microwave",
-  freezer: "setup.equipment.tool_freezer",
-  air_fryer: "setup.equipment.tool_air_fryer",
-  pressure_cooker: "setup.equipment.tool_pressure_cooker",
-  blender: "setup.equipment.tool_blender",
-};
 
 export interface KitchenEquipmentCardProps {
   /** Ce que la colonne porte déjà — les autres clés ne sont pas écrasées. */
@@ -186,7 +163,7 @@ export default function KitchenEquipmentCard(props: KitchenEquipmentCardProps) {
                       void save(next);
                     }}
                   >
-                    {t(TOOL_LABEL[tool])}
+                    {kitchenToolLabel(tool)}
                   </Button>
                 );
               })}

@@ -99,6 +99,14 @@ describe("un kcal affiché porte sa base", () => {
 
   const ENERGY_KEYS_WITH_A_BASIS = [
     "coach.student.numbers.maintenance_value",
+    // ⟳ 2026-09-18 — LA LANDING MONTRE LE KCAL DE SON REPAS D'EXEMPLE, base
+    // `plan_quantities` comme `meals.energy.dish`: le chiffre vient des grammes
+    // que la fixture de démonstration écrit (`planDemoData`, `DemoDish.kcal`),
+    // pas d'une photo. La clé a la MÊME FORME que `meals.energy.dish` (« {kcal}
+    // kcal ») et la même discipline: la base est rendue À CÔTÉ, dans le même
+    // bloc, par `home.plan.summary.energy` — la colonne des repas ne peut pas
+    // afficher l'une sans l'autre (`planDemo.int.test.ts` l'éprouve).
+    "home.flow.energy",
     "household.mouth.shaker_summary",
     // ⚠️ LA VITRINE — base `weight_range` / `weight_range_with_direction`
     // (`ENERGY_TARGET_BASES`, `_shared/keel/energy_target.ts`). C'est la

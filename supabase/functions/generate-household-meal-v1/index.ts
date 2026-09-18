@@ -1610,14 +1610,14 @@ Deno.serve((req) => {
     if (winner.kind === "full") {
       // Un refus rendu tout de suite (chemin synchrone) est consigné APRÈS la
       // réponse, sans la retarder : le runtime garde l'isolat pour la promesse.
-      if (isPlanRefusal(winner.response.status, false)) {
+      if (isPlanRefusal(winner.response.status, false) || ctx.refused !== null) {
         keepWorking(journalRefusalWithBody(winner.response, "sync", null));
       }
       return winner.response;
     }
     const kept = keepWorking(work.then(async (late) => {
       await foldLateOutcome(winner.draftId, late, Math.round(performance.now() - wrapperT0));
-      if (isPlanRefusal(late.status, true)) {
+      if (isPlanRefusal(late.status, true) || ctx.refused !== null) {
         await journalRefusalWithBody(late, "async", winner.draftId);
       }
     }));
@@ -19844,6 +19844,28 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
       });
     (writePayload.generated_from as Record<string, unknown>).validation =
       planValidation;
+    // ⟳ LOT R — LES ÉCARTS D'UN PLAN LIVRABLE SONT JOURNALISÉS AUSSI, avec leurs
+    // chiffres. Mesuré le 2026-09-16 sur staging : dix écarts (six cases de
+    // goûter, quatre jours de protéine), tous `number_protected`, et aucun moyen
+    // de dire de combien — le détail est masqué à l'écriture, par règle, et il
+    // n'existait nulle part ailleurs. Ici il est gardé (service_role seulement).
+    // Un refus bloquant posé plus bas (③/④) remplace ce contexte.
+    if (gateDelivery !== null && gateDelivery.gaps.length > 0) {
+      ctx.refused = {
+        token: "deliverable_with_gaps",
+        startsOn,
+        durationDays,
+        refusals: gateDelivery.gaps,
+        unevaluated: gateDelivery.unevaluated,
+        incomplete: gateDelivery.incomplete,
+        verdict: planValidation,
+        plan: { dishes: meal.dishes, preparations: meal.preparations, cooking_sessions: meal.cooking_sessions },
+        rounds: c4Round + 1,
+        callsMade: c4CallsMade,
+        promptVersion: HOUSEHOLD_PROMPT_VERSION,
+        generationModel: keelGenerationModel(),
+      };
+    }
 
     // ════════════════════════════════════════════════════════════════════════
     // ⟳ 2026-09-12 · ÉTAPE C5 — LA PORTE: RIEN N'EST ÉCRIT NI ACTIVÉ
@@ -20539,12 +20561,13 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
       }));
       // ⟳ LOT R — ce que le corps public ne dit pas, pour `keel_plan_refusals`.
       ctx.refused = {
+        token: null,
         startsOn,
         durationDays,
         refusals: [],
         unevaluated: [],
         incomplete: [],
-        validation: planValidation,
+        verdict: planValidation,
         plan: { dishes: meal.dishes, preparations: meal.preparations, cooking_sessions: meal.cooking_sessions },
         rounds: c4Round + 1,
         callsMade: c4CallsMade,
@@ -20583,12 +20606,13 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
       // ⟳ LOT R — LES MOTIFS EXACTS, DÉTAIL COMPRIS, et le candidat refusé :
       // c'est ce que le 422 masque à l'écran et ce que l'amélioration exige.
       ctx.refused = {
+        token: null,
         startsOn,
         durationDays,
         refusals: publication.delivery.blocking,
         unevaluated: publication.delivery.unevaluated,
         incomplete: publication.delivery.incomplete,
-        validation: planValidation,
+        verdict: planValidation,
         plan: { dishes: meal.dishes, preparations: meal.preparations, cooking_sessions: meal.cooking_sessions },
         rounds: c4Round + 1,
         callsMade: c4CallsMade,

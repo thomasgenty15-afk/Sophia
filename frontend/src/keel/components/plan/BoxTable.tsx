@@ -233,9 +233,18 @@ function BoxRow(
             Même cran et même gris que « · pour n »: c'est une précision de
             lecture, pas un statut. Le nombre sort d'un champ typé et entre
             dans un `<span>` — jamais dans une phrase composée (R4). */}
-        {energy !== null && (
+        {/* ⟳ 2026-09-16 — PAS DE KCAL SUR UN CONTENANT PARTIEL. L'énergie est
+            celle du REPAS (part de marmite + accompagnements du jour) ; l'écrire
+            à côté d'un contenant qui ne tient que la part de marmite ferait
+            lire 1 213 kcal sur 588 g de dinde. */}
+        {energy !== null && !line.partial && (
           <span className="text-label tabular-nums text-ink-soft">
             {mealCopy("meals.boxes.energy", { n: energy.kcal })}
+          </span>
+        )}
+        {context === "session" && line.partial && (
+          <span className="text-label text-ink-soft">
+            {mealCopy("meals.boxes.rest_on_the_day")}
           </span>
         )}
         {line.shared && (

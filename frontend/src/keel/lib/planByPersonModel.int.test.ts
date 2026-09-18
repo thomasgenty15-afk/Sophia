@@ -279,7 +279,12 @@ describe("les gardes d'affichage (câblage)", () => {
       .join("\n");
   }
 
-  const VIEW = "frontend/src/keel/components/plan/PlanByPerson.tsx";
+  // ⟳ 2026-09-16 — LA VUE « QUI MANGE QUOI » (`PlanByPerson.tsx`) A ÉTÉ RETIRÉE,
+  // décision du propriétaire à la lecture du plan sur staging. Les gardes qui
+  // ne tenaient qu'à elle (types de props, `isOwner` requis, site de montage,
+  // silence à une bouche) partent avec elle. Celle des MOTS reste : elle
+  // protège la liste par jour, la séparation « pour la table / pour Untel »
+  // et le modèle, tous encore montés.
 
   it("aucun objectif, aucun poids, aucune calorie ne peut atteindre ces vues", () => {
     // LOT 1 (2026-08-17): la liste par jour (`DishListByDay` et son modèle)
@@ -287,7 +292,7 @@ describe("les gardes d'affichage (câblage)", () => {
     // desserre pas.
     // LOT 3 (2026-08-17): la séparation « pour la table / pour Untel » dans la
     // vue jour lit les MÊMES parts. La ceinture s'étend à elle aussi.
-    const src = code(VIEW) + code("frontend/src/keel/lib/planByPersonModel.ts") +
+    const src = code("frontend/src/keel/lib/planByPersonModel.ts") +
       code("frontend/src/keel/components/plan/DishListByDay.tsx") +
       code("frontend/src/keel/lib/dishListByDay.ts") +
       code("frontend/src/keel/lib/planDaySlots.ts") +
@@ -298,47 +303,6 @@ describe("les gardes d'affichage (câblage)", () => {
     }
   });
 
-  /**
-   * ⛔ LA CEINTURE STRUCTURELLE, ET ELLE VAUT PLUS QUE LA PRÉCÉDENTE.
-   *
-   * Le test du dessus interdit des MOTS; celui-ci interdit un CHEMIN. Les deux
-   * seuls types d'entrée de la vue sont `MemberPortionView` (bouche, prénom,
-   * instruction de service, parts) et `HouseholdDishView` (titre, jour, moment,
-   * `uses`). Aucun des deux n'a de champ où un objectif pourrait passer, donc
-   * un mineur ne peut pas avoir d'objectif affiché — il n'y a nulle part où en
-   * mettre un. Le jour où quelqu'un passe `HouseholdMemberView` (qui porte
-   * `goal`) à ce composant, ce test devient rouge.
-   */
-  it("la vue ne reçoit que des parts et des plats, jamais un membre de roster", () => {
-    const src = code(VIEW);
-    expect(src, "un type porteur d'objectif est entré dans les props")
-      .not.toContain("HouseholdMemberView");
-    expect(src).toContain("MemberPortionView");
-    expect(src).toContain("HouseholdDishView");
-  });
-
-  it("`isOwner` est REQUIS et ferme le rendu — la part d'un autre ne fuit pas", () => {
-    const src = code(VIEW);
-    // REQUIS: pas de `isOwner?`, pas de valeur par défaut. `false` est une
-    // affirmation, pas un défaut — « paramètre de garde optionnel = garde
-    // désarmée ».
-    expect(src, "la garde est devenue optionnelle").toMatch(/^\s*isOwner: boolean;/m);
-    expect(src, "la garde ne ferme plus le rendu").toContain(
-      "if (!props.isOwner) return null;",
-    );
-  });
-
-  it("le site de montage passe la garde au lieu de la deviner", () => {
-    const src = code("frontend/src/keel/pages/StudentWeekPlanPage.tsx");
-    expect(src, "la vue est montée sans sa garde").toMatch(
-      /<PlanByPerson[\s\S]*?isOwner=\{isOwner\}/,
-    );
-  });
-
-  it("à une seule bouche, la vue se tait — elle n'a pas de sujet", () => {
-    const src = code(VIEW);
-    expect(src).toContain("if (props.portions.length < 2) return null;");
-  });
 });
 
 // ---------------------------------------------------------------------------

@@ -1178,3 +1178,84 @@ describe("BoxTable — le kcal d'un contenant à un nom", () => {
     expect(html).not.toContain("kcal");
   });
 });
+
+// ---------------------------------------------------------------------------
+// 4 — ⟳ 2026-09-16 · LE BOXING NE PÈSE QUE CE QUE LA SESSION PRODUIT
+// ---------------------------------------------------------------------------
+//
+// Mesuré sur staging le 2026-09-16 : un déjeuner ASSEMBLÉ le jeudi (une part de
+// « Dinde à l'orge » sortie de la marmite du mercredi, plus tortilla, laitue et
+// tomate ajoutées à table) apparaissait dans le Boxing du mercredi avec ses
+// 43 g de tortilla et 29 g de laitue à peser — trois jours avant qu'on les
+// achète. Le contenant de la session tient LA PART DE MARMITE ; le reste, c'est
+// le jour qui le dit (`boxLinesForDish`, carte du plat).
+describe("⟳ 2026-09-16 — le contenant d'une session ne tient que les parts de marmite", () => {
+  function assembledLunch(): GeneratedDish {
+    return dish({
+      day: "thu",
+      slot: "lunch",
+      title: "Tortilla, dinde, orge et feta",
+      uses: [{ preparation_id: "prep_lunch_wed", servings: 1, kept: "fridge" as const }],
+      boxes: [
+        {
+          id: "box_thu_lunch_peregrine",
+          member_ids: [PEREGRINE_ID],
+          items: [
+            { preparation_id: "prep_lunch_wed", term: "dinde à l'orge", grams: 588 },
+            { preparation_id: null, term: "tortilla complète", grams: 43 },
+            { preparation_id: null, term: "laitue", grams: 29 },
+            { preparation_id: null, term: "tomate", grams: 36 },
+          ],
+          legacy_total_grams: null,
+        },
+      ],
+    });
+  }
+
+  it("dans la session : la part de marmite seule, le total recomptée, et le contenant dit qu'il est partiel", () => {
+    const [line] = boxLinesForSession(["prep_lunch_wed"], [assembledLunch()], ROSTER);
+    expect(line.items.map((i) => i.term)).toEqual(["dinde à l'orge"]);
+    expect(line.total).toBe(588);
+    expect(line.partial).toBe(true);
+  });
+
+  it("dans le jour : le repas entier, rien de partiel", () => {
+    const [line] = boxLinesForDish(assembledLunch(), ROSTER);
+    expect(line.items.map((i) => i.term)).toEqual(["dinde à l'orge", "tortilla complète", "laitue", "tomate"]);
+    expect(line.total).toBe(588 + 43 + 29 + 36);
+    expect(line.partial).toBe(false);
+  });
+
+  it("deux marmites d'une même session restent ensemble dans le contenant (toutes casseroles confondues)", () => {
+    const [line] = boxLinesForSession(["prep_chicken"], [twoBoxDish()], ROSTER);
+    expect(line.items.map((i) => i.term)).toEqual(["roast chicken", "rice"]);
+    expect(line.partial).toBe(false);
+  });
+
+  it("un contenant qui ne tiendrait que du frais n'est pas à remplir à la session", () => {
+    const freshOnly = dish({
+      uses: [{ preparation_id: "prep_lunch_wed", servings: 1, kept: "fridge" as const }],
+      boxes: [{
+        id: "box_fresh",
+        member_ids: [PEREGRINE_ID],
+        items: [{ preparation_id: null, term: "salade", grams: 120 }],
+        legacy_total_grams: null,
+      }],
+    });
+    expect(boxLinesForSession(["prep_lunch_wed"], [freshOnly], ROSTER)).toEqual([]);
+  });
+
+  it("à l'écran : un contenant partiel dit que le reste se fait le jour même, et ne porte PAS les kcal du repas", () => {
+    const lines = boxLinesForSession(["prep_lunch_wed"], [assembledLunch()], ROSTER);
+    const energy = (id: string) => (id === "box_thu_lunch_peregrine" ? { kcal: 1213 } : null);
+    const text = decode(textOf(createElement(BoxTable, {
+      lines,
+      context: "session",
+      boxEnergy: energy as never,
+    })));
+    expect(text).toContain(en["meals.boxes.rest_on_the_day"]);
+    expect(text).not.toContain("1213");
+    expect(text).not.toContain("tortilla");
+    expect(fr["meals.boxes.rest_on_the_day"]).toBeTruthy();
+  });
+});

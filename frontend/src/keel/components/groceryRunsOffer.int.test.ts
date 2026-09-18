@@ -85,7 +85,8 @@ const offered = (markup: string) =>
 describe("l'écran ne propose que ce que le plan fera", () => {
   it("sans contrainte, les trois cadences", () => {
     expect(offered(html())).toEqual([1, 2, 3]);
-    expect(html()).toContain(say(en["plan.cooking.runs_hint"]));
+    // ⟳ 2026-09-16 — SANS PLAFOND, AUCUN MOTIF: l'aide générale a été retirée.
+    expect(html()).not.toContain(say(en["plan.cooking.runs_capped_style"]));
   });
 
   it("« le moins possible » retire la troisième, ET DIT POURQUOI", () => {
@@ -97,9 +98,6 @@ describe("l'écran ne propose que ce que le plan fera", () => {
     // motif se lit comme une panne, et envoie chercher le réglage manquant
     // dans le mauvais écran.
     expect(markup).toContain(say(en["plan.cooking.runs_capped_style"]));
-    expect(markup, "l'aide générale s'empile sous le motif").not.toContain(
-      say(en["plan.cooking.runs_hint"]),
-    );
   });
 
   it("⛔ LE PLAFOND DE FENÊTRE EST LA CONSERVATION, pas le compte de jours", () => {

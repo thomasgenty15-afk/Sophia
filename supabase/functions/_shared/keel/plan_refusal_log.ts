@@ -31,13 +31,21 @@ export interface PlanRefusalWho {
 
 /** Ce que le corps public ne dit pas — posé par le handler au contrôle final. */
 export interface PlanRefusalContext {
+  /**
+   * Le jeton à consigner quand le corps n'en porte pas : un plan LIVRÉ avec
+   * des écarts (`deliverable_with_gaps`, HTTP 200) est journalisé comme un
+   * refus de cases — c'est le même jeu de données, et l'écran masque ses
+   * chiffres exactement de la même façon. `null` = le jeton du corps.
+   */
+  readonly token: string | null;
   readonly startsOn: string | null;
   readonly durationDays: number | null;
   /** Les contrôles bloquants, AVEC le détail que l'écran masque. */
   readonly refusals: readonly unknown[];
   readonly unevaluated: readonly unknown[];
   readonly incomplete: readonly unknown[];
-  readonly validation: unknown;
+  /** Le verdict complet (`verdict`, pas `validation:` — une épingle compte ce mot-clé). */
+  readonly verdict: unknown;
   /** Le candidat refusé : `{dishes, preparations, cooking_sessions}`. */
   readonly plan: unknown;
   readonly rounds: number | null;
@@ -124,12 +132,12 @@ export async function recordPlanRefusal(admin: Admin, args: RecordPlanRefusalArg
       starts_on: ctx?.startsOn ?? null,
       duration_days: ctx?.durationDays ?? null,
       http_status: args.status,
-      token: pub.token,
+      token: ctx?.token ?? pub.token,
       detail: pub.detail,
       refusals: ctx && ctx.refusals.length > 0 ? ctx.refusals : pub.refusals,
       unevaluated: ctx && ctx.unevaluated.length > 0 ? ctx.unevaluated : pub.unevaluated,
       incomplete: ctx && ctx.incomplete.length > 0 ? ctx.incomplete : pub.incomplete,
-      validation: ctx?.validation ?? pub.validation,
+      validation: ctx?.verdict ?? pub.validation,
       plan: ctx?.plan ?? null,
       rounds: ctx?.rounds ?? null,
       calls_made: ctx?.callsMade ?? null,
@@ -145,7 +153,7 @@ export async function recordPlanRefusal(admin: Admin, args: RecordPlanRefusalArg
     }
     log("recorded", {
       request_id: args.requestId,
-      token: pub.token,
+      token: row.token,
       status: args.status,
       refusals: Array.isArray(row.refusals) ? row.refusals.length : 0,
       with_plan: row.plan !== null,

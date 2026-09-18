@@ -317,6 +317,12 @@ describe("pack français de la vitrine", () => {
       // Les six autres phrases `meals.energy.*` qui le contiennent, elles,
       // diffèrent bien (« sur la journée », « dont {addon} ajoutées »…).
       "meals.energy.dish",
+      // ⟳ 2026-09-18 — LE MÊME « {kcal} kcal », CELUI DE LA LANDING. La colonne
+      // des repas de `/` reprend la forme de `meals.energy.dish` mot pour mot,
+      // donc elle tombe sur le même mur pour la même raison: une unité ne se
+      // traduit pas. La phrase qui dit D'OÙ VIENT ce chiffre, elle, est bien
+      // rédigée dans les deux langues (`home.plan.summary.energy`).
+      "home.flow.energy",
       // LOT 2 — « {n} min », la durée du geste du jour J, seule avec son
       // nombre. Même raison que `meals.energy.dish` et que les vingt-deux
       // `unit.*`: « min » est le symbole international de la minute, et il

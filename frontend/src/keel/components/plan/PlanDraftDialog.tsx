@@ -537,6 +537,7 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
             validation={draft.validation}
             portions={draft.memberPortions}
             showEnergy={energy.showing}
+            context="preview"
           />
         </div>
       )}

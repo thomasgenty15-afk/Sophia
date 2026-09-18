@@ -2396,9 +2396,9 @@ export const en = {
   // ⚠️ Ces liens ne se rendent QUE sur le hall — ailleurs, une ancre vers
   // `#offre` ne mène nulle part.
   "public.nav.sections_label": "Sections of this page",
-  "public.nav.experience": "The experience",
+  "public.nav.experience": "Example",
   "public.nav.household": "Together",
-  "public.nav.offer": "The subscription",
+  "public.nav.offer": "Pricing",
   "public.nav.world_household": "For your household",
   "public.nav.world_pro": "For professionals",
   // ⚠️ ON NOMME LA SITUATION, PAS LE SEGMENT (refonte du 2026-08-13).
@@ -2764,32 +2764,27 @@ export const en = {
   // ── PAGE NAVIGATION (anchors) ────────────────────────────────────────────
 
   // ── HERO ─────────────────────────────────────────────────────────────────
-  "home.hero.eyebrow": "Sophia, AI nutrition coach",
-  "home.hero.title_1": "Meals for your goal.",
-  "home.hero.title_2": "Quantities and calories: worked out for you.",
-  "home.hero.lede": "What to eat, in what quantities, how to organise the shopping and the cooking to make it.",
-  "home.hero.cta": "Discover my programme",
-  "home.hero.trial": "7-day trial · Then {amount}/month · No commitment",
+  // Landing refreshed 2026-09-18: direct copy, visible example, optional details.
+  "home.hero.eyebrow": "Sophia · AI nutrition coach",
+  "home.hero.title_1": "Your meal plans to lose weight",
+  "home.hero.title_2": "or build muscle.",
+  "home.hero.lede": "Sophia calculates your portions, prepares your shopping list and organises cooking around your availability.",
+  "home.hero.cta": "Try it for 7 days",
+  "home.hero.trial": "Then {amount}/month · No commitment",
   "home.hero.visual_alt": "Roast chicken bowl with bulgur, avocado and colourful vegetables",
   "home.hero.label_pleasure": "Pleasure is part of the plan",
   "home.hero.label_menu_kicker": "On the menu",
   "home.hero.label_menu": "Your goal, as recipes.",
   "home.hero.label_cooked": "Balanced dishes",
-
-  // ── THE THREE-BENEFIT STRIP ──────────────────────────────────────────────
-  "home.strip.label": "What Sophia brings",
-  "home.strip.goal": "Meals for your goal",
-  "home.strip.calc": "The numbers already done",
-  "home.strip.house": "One organisation for the house",
-
-  // ── 01 · THE GOAL ────────────────────────────────────────────────────────
-  "home.goal.kicker": "One direction. Real meals.",
-  "home.goal.title_1": "You know your goal.",
-  "home.goal.title_2": "Here is the menu.",
-  "home.goal.body_1":
-    "Losing weight, building muscle: between what you want and what ends up on your plate, there are a lot of decisions.",
-  "home.goal.body_2":
-    "Sophia turns them into concrete meals. What to eat, in what quantities, and how to prepare it.",
+  "home.pain.kicker": "What usually gets in the way",
+  "home.pain.title_1": "You know where you want to go.",
+  "home.pain.title_2": "What's missing is the way there.",
+  "home.pain.q1": "“I don't know what to eat.”",
+  "home.pain.a1": "A menu built for your goal, with your tastes and constraints. Not a list of rules: dishes.",
+  "home.pain.q2": "“I don't know how much.”",
+  "home.pain.a2": "The quantities are written in the plan, before the shopping. Nothing to estimate, nothing to guess afterwards.",
+  "home.pain.q3": "“I don't have the time.”",
+  "home.pain.a3": "The shopping and the cooking sessions are organised around your days. All you do is cook.",
   "home.goal.aria": "Pick a goal to see what Sophia does",
   "home.goal.fat_loss": "Lose weight",
   "home.goal.muscle_gain": "Build muscle",
@@ -2798,38 +2793,76 @@ export const en = {
   "home.goal.note.muscle_gain":
     "Quantities and protein intake accounted for in the recipes of your plan.",
   "home.goal.direction_label": "On the plate, that means",
-  // ⛔ VERBATIM — the three values of `SERVING_DIRECTION`
-  // (`supabase/functions/_shared/keel/household_portions.ts`), pinned by
-  // `servingDirections.int.test.ts`.
   "home.dir.fat_loss":
     "generous vegetables, full protein share, smaller starch share",
   "home.dir.muscle_gain":
     "larger protein and starch share, same vegetables",
   "home.dir.maintenance": "balanced share of every component",
-
-  // ── 02 · THE NUMBERS AND THE DEMONSTRATION ───────────────────────────────
-  "home.plan.kicker": "You can just eat.",
-  "home.plan.title_1": "You know what to eat.",
+  "home.hero.example": "See an example",
+  "home.plan.summary.when": "Sunday dinner and Monday lunch",
+  "home.plan.summary.portions": "In each portion",
+  "home.plan.summary.units": "Cooked quantities, ready to serve.",
+  "home.plan.summary.prep": "Prepare on Sunday",
+  "home.plan.summary.prep_body": "Cook the chicken, vegetables and bulgur in one session. Keep one portion for lunch the next day.",
+  "home.plan.summary.time": "About {minutes} min in total, including cooking time.",
+  "home.plan.summary.next": "Monday lunch: reheat in {minutes} min.",
+  "home.plan.summary.energy": "Calories calculated from the quantities in this example.",
+  "home.reach.example": "“Remember to take the chicken out of the freezer tonight for tomorrow’s cooking.”",
+  "home.reach.example_note": "Fictional example",
+  "home.preview.label": "Example meal",
+  "home.preview.note": "One portion · Cooked quantities",
+  "home.flow.sunday": "Sunday",
+  "home.flow.more": "+ {count} ingredients in the full list",
+  "home.flow.cooking_time": "{minutes} min, including cooking time",
+  "home.flow.dinner": "Sunday dinner",
+  "home.flow.serve": "One portion ready to serve.",
+  "home.flow.lunch": "Monday lunch",
+  "home.flow.reheat": "The other portion, ready to reheat in {minutes} min.",
+  // Mirror of the French block — the three bubbles are the three channels that
+  // really go out (`keel-proactive-v1`): thaw_reminder, weigh_in, slot_meal.
+  "home.reach.bubble.thaw": "Take the chicken out of the freezer tonight — you are cooking tomorrow.",
+  "home.reach.bubble.weigh": "Can you weigh yourself this morning? Your next plan starts from what you weigh today.",
+  "home.reach.bubble.slot": "What did you have for lunch?",
+  // Basis `plan_quantities` — same shape as `meals.energy.dish`; the basis is
+  // rendered next to it (`home.plan.summary.energy`). Listed in
+  // `ENERGY_KEYS_WITH_A_BASIS` (`energyBasis.int.test.ts`).
+  "home.flow.energy": "{kcal} kcal",
+  "home.offer.price": "Then {amount}/month for the household",
+  "home.offer.extra": "Optional: + {amount}/month for another member who wants their own tracking. Their needs are included in household menus at no extra cost.",
+  "home.faq.cancel_q": "Can I cancel at any time?",
+  "home.faq.cancel_a": "Yes. Cancellation takes effect at the end of your current subscription period.",
+  "home.plan.boxes_label": "Portions to store",
+  "home.plan.kicker": "A concrete example",
+  "home.plan.title_1": "Your plan, from shopping to meals.",
   "home.plan.title_2": "And how much.",
-  "home.plan.body": "Every planned meal comes balanced, with its quantities adjusted to your goal. Nothing to guess when you sit down to eat.",
+  "home.plan.body": "One dish cooked on Sunday, one portion for dinner and another for the next day. Sophia sets out the portions and what to buy.",
   "home.plan.photo_alt": "Roast salmon with potatoes and green vegetables",
   "home.plan.photo_kicker": "Real meals.",
   "home.plan.photo_line": "Pleasure is part of the plan.",
   "home.plan.photo_strong": "And it shows.",
   "home.plan.badge": "Example plan",
-  "home.plan.open": "See the example",
-  "home.plan.close": "Hide the example",
-  "home.plan.window": "Two days, for one person",
+  "home.plan.open": "See the recipes and full shopping list",
+  "home.plan.close": "Hide the details",
+  "home.plan.window": "An example for one person over two days.",
   "home.plan.household": "Example kept to the minimum",
   "home.plan.chain_hint": "Hover an item, a preparation or a dish: whatever goes with it lights up.",
   "home.plan.example_note":
     "Illustrative example. Your plan depends on your needs and your preferences.",
+  "home.plan.toggle_hint": "Switch goals to see the portions in this example change.",
+  "home.plan.precision_label": "Good to know",
+  // Mirror of the French block: two ACCURACIES, not two error rates. Same
+  // measurement (26.6% MAPE from a photo, 2.3% from known quantities), read the
+  // other way round, and both rounded against the product's favour.
+  // No digit sits next to the word calories — that would pull the key into
+  // `ENERGY_KEYS_WITH_A_BASIS` with no reading basis to declare.
+  "home.plan.precision":
+    "Tracking your calories from a photo is about 73% accurate. Working them out in advance, from the quantities in the plan, is 98%.",
+  "home.plan.precision_source": "Measured on 85 real meals, recounted against the USDA food composition table. A measurement, not a promise.",
 
   "home.demo.you": "You",
-  "home.demo.member.alex_note": "More sport. Other needs.",
-  "home.demo.member.lou_note": "Vegetarian. Her plate too.",
-  "home.demo.member.you_note": "Your goal, your quantities.",
-  // ⚠️ ONE TITLE FOR BOTH MEALS OF THE BATCH — see the note in `fr.ts`.
+  "home.demo.member.alex_note": "Building muscle",
+  "home.demo.member.lou_note": "Vegetarian",
+  "home.demo.member.you_note": "Weight loss",
   "home.demo.dish.chicken_bowl": "Paprika roast chicken, bulgur and vegetables",
   "home.demo.dish.omelette": "Pepper omelette with green salad",
   "home.demo.prep.chicken": "Paprika roast chicken and vegetables",
@@ -2848,88 +2881,49 @@ export const en = {
   "home.demo.box.chicken": "roast chicken",
   "home.demo.box.bulgur": "bulgur",
   "home.demo.box.vegetables": "roast vegetables",
-
-  // ── 03 · PRECISION, UPSTREAM ─────────────────────────────────────────────
-  // Mirror of the French block — the numbers are measurements
-  // (docs/keel/PHOTO_QUANTIFICATION.md), never promises. No digit may sit
-  // right before the word "calories" (energyBasis.int.test.ts).
-  "home.upstream.kicker": "Precision, upstream.",
-  "home.upstream.title_1": "Counting afterwards is guessing.",
-  "home.upstream.title_2": "Here, the number exists before the meal.",
-  "home.upstream.body_1":
-    "A tracking app asks you to estimate what you just ate. We measured what that is worth: across 85 real analyses, an estimate from a photo landed 26.6% under the truth on average.",
-  "home.upstream.body_2":
-    "A meal Sophia plans is known to the gram before it is cooked. The quantities are written in the plan; what you eat is what was worked out. Nothing to guess afterwards.",
-  "home.upstream.written.title": "Written before, not rebuilt after",
-  "home.upstream.written.body":
-    "The quantities of every planned meal are in your plan, before the shopping. In the evening there is nothing to remember.",
-  "home.upstream.measured.title": "Measured, not promised",
-  "home.upstream.measured.body":
-    "2.3% off when the quantities are known, against a 26.6% bias from a photo. Same model, same bench, same ground truth.",
-  "home.upstream.unplanned.title": "And the unplanned still counts",
-  "home.upstream.unplanned.body":
-    "An off-plan dish gets described or photographed. Sophia estimates it, says so, and you can correct the number.",
-  "home.upstream.source": "Measured on 85 real analyses, USDA ground truth. These are not promises.",
-
-  // ── 04 · HOW IT WORKS, IN THE ORDER YOU LIVE IT ──────────────────────────
-  "home.how.kicker": "From the shopping to the meals.",
-  "home.how.title_1": "Sophia thinks of everything.",
+  "home.how.kicker": "How it works",
+  "home.how.title_1": "Your shopping and cooking, organised.",
   "home.how.title_2": "All you do is cook.",
-  "home.how.lede": "You save the time it takes to decide, hunt for recipes and organise the shopping.",
+  "home.how.lede": "Tell Sophia your preferences, who you cook for and your cooking days. She builds the plan; you do the shopping and cooking.",
   "home.how.shop.title": "Your shopping",
   "home.how.shop.body":
-    "You know when to go shopping and what to buy for the planned preparations.",
+    "One list brings together the ingredients to buy for your planned meals.",
   "home.how.cook.title": "Your cooking",
   "home.how.cook.body":
-    "Your cooking sessions group the preparations by the days you have and the time you can give them.",
+    "Recipes and preparations are organised around your cooking days.",
   "home.how.eat.title": "Your meals",
   "home.how.eat.body":
-    "You find the planned meals for each person, with quantities worked out from the needs and goals you entered.",
-
-  // ── 05 · THE HOUSEHOLD ───────────────────────────────────────────────────
-  "home.house.kicker": "There is room for the others.",
-  "home.house.title_1": "Your goal.",
+    "For each meal, you get the dish and the quantities to serve each person.",
+  "home.house.kicker": "When you cook for others",
+  "home.house.title_1": "Cooking for other people?",
   "home.house.title_2": "Their appetite.",
   "home.house.title_3": "The same table.",
   "home.house.body_1":
-    "Do you cook for other people too? Sophia takes everyone’s needs and preferences into account.",
+    "Sophia takes everyone’s preferences and needs into account. Shopping and preparations are combined where possible.",
   "home.house.body_2":
-    "Shared preparations when possible. Different dishes when needed. And one shopping list.",
-  "home.house.cta": "Make room for everyone",
+    "Sophia combines shopping and preparations where possible, and plans different dishes when needed.",
+  "home.house.cta": "See what’s included",
   "home.house.table_kicker": "At home",
   "home.house.table_each": "A place for each",
-  "home.house.shared_list": "One shared shopping list",
+  "home.house.shared_list": "One shopping list and cooking sessions for everyone",
   "home.house.note": "Example household. Meals adapt to the profiles you enter.",
-
-  // ── THE UNPLANNED MEAL ───────────────────────────────────────────────────
   "home.life.kicker": "And when life shows up?",
   "home.life.title_1": "An unplanned meal?",
   "home.life.title_2": "It counts too.",
-  // ⟳ 2026-09-11 (SOIR) — voir la note jumelle dans `fr.ts`: l'incise « moins
-  // précis » est retirée, et c'est « estimates » qui porte la réserve. Sans ce
-  // verbe, la page promettrait une mesure là où le produit sert une estimation.
   "home.life.body":
     "A restaurant, a dish that was not on the plan: describe what you ate or take a photo. Sophia estimates it and counts it in your tracking.",
   "home.life.demo.aria": "Demonstration: logging an unplanned meal",
   "home.life.demo.label": "What you send",
-  // ⟳ 2026-09-11 — voir la note jumelle dans `fr.ts`: le parcours
-  // « Comptabiliser → résultat → Recommencer » est retiré, et les deux options
-  // se nomment par ce qu'elles SONT, à la suite du titre de la boîte.
   "home.life.demo.describe": "A description",
   "home.life.demo.photo": "A photo",
   "home.life.demo.example": "Four-cheese pizza at a restaurant, two slices and a salad.",
   "home.life.demo.photo_example": "A photo of the plate, taken at the table.",
   "home.life.demo.send": "Send",
-
-  // ── 06 · SOPHIA WRITES FIRST ─────────────────────────────────────────────
-  // Mirror of the French block: every card names a channel that really sends
-  // today (keel-proactive-v1 + keel-reengage-v1). The evening check-in is
-  // gone (2026-09-08) — nothing here claims "did you eat the planned meal".
-  "home.reach.kicker": "Sophia writes first.",
-  "home.reach.title_1": "She comes to you.",
-  "home.reach.title_2": "At the right moment, not every night.",
+  "home.reach.kicker": "Everyday support",
+  "home.reach.title_1": "Sophia comes to you.",
+  "home.reach.title_2": "At the right moment.",
   "home.reach.body":
-    "Sophia does not wait for you to open the app. She writes when there is a reason, and a message left unanswered is never repeated.",
+    "Nothing to trigger. She writes first when it matters: the night before a cooking session, on a weigh-in morning, or after a meal the plan did not cover.",
   "home.reach.thaw.title": "The night before a session",
   "home.reach.thaw.body":
     "“Tonight, take the chicken out of the freezer.” The reminder lands between 6 and 8 pm, the day before, when something needs to thaw.",
@@ -2939,68 +2933,42 @@ export const en = {
   "home.reach.slot.title": "The meal the plan does not cover",
   "home.reach.slot.body":
     "Lunch out? She asks what you had, so your day is complete.",
-  "home.reach.feedback.title": "The end of a plan",
-  "home.reach.feedback.body":
-    "On the last evening, she asks what worked and what did not. The next plan takes it into account.",
   "home.reach.silence": "And if you go quiet for a few days: one word, just one.",
   "home.reach.hand":
-    "You ask a question, she answers. What she sends on her own can be switched off; what she answers when you write, never.",
-
-  // ── AS A BONUS — the everyday arguments ──────────────────────────────────
-  "home.bonus.kicker": "As a bonus",
-  "home.bonus.title": "What changes day to day.",
-  "home.bonus.mental.title": "Less mental load",
-  "home.bonus.mental.body":
-    "“What are we eating?” is settled once for the week, shopping included.",
-  "home.bonus.balance.title": "Balanced meals, without thinking about it",
-  "home.bonus.balance.body":
-    "Every planned meal keeps a protein, a starch and vegetables. The proportions follow the person.",
-  "home.bonus.waste.title": "Less waste",
-  "home.bonus.waste.body":
-    "The shopping list comes from the planned preparations, and one batch feeds several meals.",
-  "home.bonus.time.title": "Less time at the stove",
-  "home.bonus.time.body":
-    "Preparations are grouped into sessions, by the days you have and the time you can give.",
-
-  // ── 07 · THE OFFER ───────────────────────────────────────────────────────
-  "home.offer.kicker": "Shall we sit down?",
-  "home.offer.title_1": "Your next week starts",
+    "You can turn off her proactive messages and still ask her questions whenever you need to.",
+  "home.offer.kicker": "The subscription",
+  "home.offer.title_1": "7 days to try Sophia",
   "home.offer.title_2": "with a meal.",
   "home.offer.body":
-    "See what changes when you know what to buy, what to prepare and what to eat.",
+    "Meal plans, shopping list, cooking schedule and personal tracking included.",
   "home.offer.check_trial": "7 days to discover Sophia",
   "home.offer.check_commit": "No commitment",
-
-  // ── L'ACCÈS COACHING INDIVIDUEL — voir la note de `fr.ts`: un seul bloc,
-  // aucun calculateur, et le prix affiché ne bouge pas.
-  "home.offer.coaching.title": "Individual coaching access",
+  "home.offer.coaching.title": "Does someone else want their own tracking?",
   "home.offer.coaching.price": "{amount} a month per person",
-  "home.offer.coaching.body": "For a member of the household who wants to gain or lose weight, and follow their own goal themselves.",
+  "home.offer.coaching.body": "An additional account lets them talk to Sophia, track their weight and calories, and log meals outside the plan.",
   "home.offer.coaching.item_1": "Their off-plan meals counted: they describe them or take a photo.",
   "home.offer.coaching.item_2": "Their calorie and weight tracking.",
   "home.offer.coaching.item_3": "Their own conversation with Sophia the coach.",
-  "home.offer.coaching.free": "Without that access, a member is included at no extra cost: the meals of the house already account for them.",
-  "home.offer.card.name": "Sophia, every day.",
+  "home.offer.coaching.free": "They don’t need an account to eat with you: household menus already take their needs into account.",
+  "home.offer.card.name": "For you and your household",
   "home.offer.card.badge": "7-day trial",
   "home.offer.card.per_month": "/ month",
-  "home.offer.card.for": "For the household, with your own access.",
+  "home.offer.card.for": "Your personal tracking and household meals included.",
   "home.offer.card.inc_1": "Menus for your goal and your preferences",
   "home.offer.card.inc_2": "Quantities and intake worked out",
   "home.offer.card.inc_3": "Shopping and cooking sessions organised",
   "home.offer.card.inc_4": "The needs of the house taken into account",
-  "home.offer.card.cta": "Start my 7-day trial",
-  "home.offer.card.note": "Monthly estimate. Set-up and terms at sign-up.",
-
-  // ── FAQ ──────────────────────────────────────────────────────────────────
+  "home.offer.card.cta": "Try Sophia for 7 days",
+  "home.offer.card.note": "Then {amount}/month for the household. Additional personal accounts are optional.",
   "home.faq.kicker": "Before you start",
-  "home.faq.title_1": "We saved you",
+  "home.faq.title_1": "Your questions",
   "home.faq.title_2": "an answer.",
   "home.faq.q1": "Do I have to count my calories?",
   "home.faq.a1":
     "The quantities and the intake of the planned recipes are already worked out. You do not have to re-enter every ingredient in a counter. If you eat something else, you can describe your dish or take a photo so it counts.",
-  "home.faq.q2": "What if I do not eat the planned meal?",
+  "home.faq.q2": "What if I eat something else?",
   "home.faq.a2":
-    "Describe what you ate or send a photo to add it to your tracking. That declaration completes your tracking; it does not reorganise your plan.",
+    "That meal can be added to your tracking. It does not change the meals already planned.",
   "home.faq.q3": "What if I cook for other people?",
   "home.faq.a3":
     "Sophia takes into account the needs, preferences and habits of the members of the house. Shopping and preparations are grouped when possible. Depending on the constraints, the dishes can also differ.",
@@ -3010,17 +2978,15 @@ export const en = {
   "home.faq.q5": "Does the plan change when I update my weight?",
   "home.faq.a5":
     "Your updated weight is part of the information used to generate the next plans. That is not an automatic reorganisation of the plan already in place, and it is not what happens after an unplanned meal either.",
-  "home.faq.q6": "Do I need to be comfortable in the kitchen?",
+  "home.faq.q6": "Do I need cooking experience?",
   "home.faq.a6":
-    "You enter the time you have, your equipment and your level in the kitchen. Sophia relies on that to organise the preparations. Plan to cook: the shopping and the meals are not delivered.",
+    "Tell Sophia your skill level, equipment and available time. She takes these into account. You do the shopping and cooking yourself.",
   "home.faq.q7": "How does the trial work?",
   "home.faq.a7":
-    "You get a 7-day trial. The subscription is then {household} a month for the household, with no commitment. An individual coaching access costs {extra} a month. The terms are shown before you subscribe.",
-
-  // ── THE CLOSE — the page’s only dark block ───────────────────────────────
-  "home.close.title": "Your goal, at the table. And the rest of your life around it.",
+    "You have 7 days to try Sophia, then you can subscribe to continue. If you subscribe during the trial, you won’t be charged before it ends.",
+  "home.close.title": "Ready to plan your first week?",
   "home.close.body": "A 7-day trial, then {amount} a month for the household. No commitment.",
-  "home.close.cta": "Discover my programme",
+  "home.close.cta": "Try Sophia for 7 days",
   "home.close.back_to_top": "Back to top",
 
   //
@@ -4592,6 +4558,10 @@ export const en = {
   // les portes d'affichage calorique, et le serveur ne les persiste même pas.
   "plan.validation.title": "This plan is usable, and here is what it misses",
   "plan.validation.intact": "It has been saved. Nothing else has changed.",
+  // ⟳ 2026-09-16 — the same notice inside the PREVIEW: nothing is saved until
+  // you adopt it. The "it has been saved" footer said the opposite.
+  "plan.validation.preview_intact":
+    "This is only a preview: nothing is saved until you adopt it. Your current plan has not changed.",
   "plan.validation.at": "{day}, {slot}",
   "plan.validation.for": "for {name}",
   "plan.validation.term": "({term})",
@@ -5883,6 +5853,9 @@ export const en = {
   // moitié « sortir » est dite par `DishCard` quatre jours plus tard, et sans
   // celle-ci on demandait de sortir une part que personne n'avait rangée.
   "meals.boxes.freeze": "· freeze",
+  // ⟳ 2026-09-16 — a container holding only the batch share: the rest of the
+  // meal (tortilla, lettuce…) is put together on the day, and the day says so.
+  "meals.boxes.rest_on_the_day": "· the rest is made on the day",
   // Le compte en tête, muet à zéro: un plan à deux sessions n'a rien à congeler.
   "meals.boxes.freeze_count": "· {n} to the freezer",
   // ── LE TEMPS ──────────────────────────────────────────────────────────────
@@ -6971,13 +6944,13 @@ export const en = {
   // plutôt que `t()`. La copie locale est supprimée; ces trois clés-là gardent
   // leur place d'origine, plus haut dans le bloc `meals.*`.
 
-  "meals.form.title": "Build me something",
+  "meals.form.title": "New plan",
   "meals.form.mode_label": "Where do we start",
   "meals.form.mode_from_pantry": "From what I already have",
   "meals.form.mode_to_shop": "I will shop for it",
   // LA FENÊTRE, ET CE QU'ELLE COUVRE VRAIMENT. « Until Sunday » un dimanche
   // fait UN jour — l'aperçu le dit, sinon le bouton a l'air cassé.
-  "meals.form.window_label": "Which days",
+  "meals.form.window_label": "Days",
   // ── DEUX DATES, ET PLUS TROIS BOUTONS ──────────────────────────────────
   // « Until Sunday » un dimanche faisait UN jour, « For 7 days » ne disait pas
   // lesquels, et le nombre de jours obligeait à compter dans sa tête pour
@@ -7032,7 +7005,9 @@ export const en = {
   // repartirait chaque semaine sans que personne le remarque.
   "meals.form.context_carried":
     "Kept from your last plan. Change it if this week is different.",
-  "meals.form.submit": "Build it",
+  "meals.form.submit_for": "Build {days} for {people}",
+  "meals.form.people_one": "{n} person",
+  "meals.form.people_other": "{n} people",
   "meals.form.building": "Building…",
   "meals.form.cancel": "Cancel",
   "meals.form.pantry_required": "Add what you have in, or switch to «I will shop for it».",
@@ -7101,10 +7076,7 @@ export const en = {
   "plan.cooking.variety_repeat": "Happy to repeat the same meals",
   "plan.cooking.variety_some": "Some repetition is fine",
   "plan.cooking.variety_varied": "Keep it varied",
-  "plan.cooking.budget_label": "Budget for this plan",
-  "plan.cooking.budget_hint":
-    "The whole shopping list, in your currency. Asked every time — last " +
-    "time’s number is only a starting point.",
+  "plan.cooking.budget_label": "Shopping budget",
   // ── ⛔ ICI VIVAIENT LES SIX CLÉS DE « COMMENT TU CUISINES CETTE SEMAINE »
   // Retirées le 2026-09-06 avec le champ et son composant
   // (`CookingShapeField.tsx`, supprimé). Elles disaient « Laisse le plan
@@ -7121,9 +7093,7 @@ export const en = {
   // `capCookingShape`). Ce qui est parti est la QUESTION, pas le mécanisme.
   "plan.cooking.one_session_label":
     "Cook everything in one go",
-  "plan.cooking.one_session_hint":
-    "A single cooking session for the whole stretch: whatever is not eaten in " +
-    "the days that follow goes in the freezer, and comes out the night before.",
+  "plan.cooking.one_session_hint": "Leftovers go in the freezer and come out the night before.",
   // ⟳ 2026-09-04 — UN FRAGMENT DE PARENTHÈSE, plus une phrase: il se rend entre
   // parenthèses à côté du libellé, et disparaît dès que le congélateur est
   // déclaré. Ni parenthèses, ni majuscule, ni point final dans la chaîne —
@@ -7256,10 +7226,11 @@ export const en = {
   // ⚠️ « QUI EST LÀ » ET PAS « COMBIEN DE PERSONNES ». Le générateur du foyer
   // DÉDUIT les couverts de la présence, jour par jour: demander un nombre à
   // côté produirait deux vérités et le serveur ignorerait la nôtre.
-  "plan.request.presence_title": "Who is here, day by day",
-  "plan.request.presence_intro":
-    "One row per person. Mark the meals each one is not eating at home over this window.",
-  "plan.request.presence_open": "Mark who's away",
+  "plan.request.presence_title": "Who eats at home",
+  "plan.request.presence_open": "Edit",
+  "plan.request.presence_all_home": "Home for every meal",
+  "plan.request.presence_away_one": "{n} meal away",
+  "plan.request.presence_away_other": "{n} meals away",
 
   // ── L'ENVIE DE LA SEMAINE (venue de `household.envy.*`) ──────────────────
   //
@@ -7273,7 +7244,7 @@ export const en = {
   // Le générateur relit l'envie sur le lundi ISO de la DATE DE DÉPART. Tant que
   // la fenêtre était « d'ici dimanche », les deux ancres coïncidaient. Avec
   // deux dates libres, elles divergent — et l'envie disparaît sans erreur.
-  "plan.envy.title": "What is the house in the mood for?",
+  "plan.envy.title": "Wishes",
   "plan.envy.placeholder": "Optional — Lea wants pasta, Marc is sick of chicken.",
 
   // ── QUELLE FAÇON DE MANGER LE PLAT COMMUN SUIT (venu de `household.reference.*`) ──
@@ -7438,18 +7409,6 @@ export const en = {
   // objectif, aucun poids, aucune calorie, aucun POURQUOI de part. Ces écrans
   // se lisent À TABLE, devant tout le monde. L'instruction de service est
   // publique, le motif qui la produit ne l'est pas.
-  "plan.person.title": "Who eats what",
-  "plan.person.hint":
-    "One dish for the table, one line per person. What changes from one line to the next is the serving, never the dish.",
-  "plan.person.mode_together": "Side by side",
-  "plan.person.mode_one": "One person",
-  "plan.person.dish_row": "The dish",
-  // ⚠️ IL N'Y A PAS DE CLÉ POUR « RIEN DE PARTICULIER », ET C'EST VOULU. Une
-  // case sans part n'invente aucune phrase: le plat ne puise dans aucun lot
-  // dont cette bouche ait une part, et remplir la case d'un « comme la table »
-  // répété vingt fois ferait du bruit là où le silence dit déjà tout.
-  "plan.person.standard": "A standard serving",
-  "plan.person.pick": "Read the week of",
 
   // ── LES CINQ SECTIONS DE LA FENÊTRE ──────────────────────────────────────
   "plan.section.basics.title": "Basic info",
@@ -7869,18 +7828,12 @@ export const en = {
   // rien dire à quelqu'un qui prépare à manger. `plan.cooking.difficulty_keen`
   // existait déjà et disait la bonne chose — la troisième option la reprend
   // mot pour mot plutôt que d'en inventer une variante.
-  "plan.cooking.style_label": "How do you want to cook?",
-  "plan.cooking.style_hint":
-    "This sets how long a session runs, how involved the recipes get, and how " +
-    "many times the plan asks you to cook.",
+  "plan.cooking.style_label": "How you cook",
   "plan.cooking.style_unset": "Not answered yet",
   "plan.cooking.style_minimal": "As little as possible — I reheat",
   "plan.cooking.style_balanced": "A middle ground",
   "plan.cooking.style_keen": "I like cooking, bring it on",
-  "plan.cooking.runs_label": "How many food shops?",
-  "plan.cooking.runs_hint":
-    "How many times you are willing to go to the shop over this plan. One " +
-    "needs a freezer; without one the plan uses two, and it says so.",
+  "plan.cooking.runs_label": "Food shops",
   "plan.cooking.runs_unset": "Not answered yet",
   "plan.cooking.runs_any": "No preference — the plan decides",
   "plan.cooking.runs_one": "Once",

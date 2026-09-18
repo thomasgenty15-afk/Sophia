@@ -7,8 +7,8 @@ import { UntickForm } from "../DishCard";
 import { t } from "../../i18n/t";
 
 // LOT 1 — LA LISTE D'UN PLAN, PAR JOUR. Extraite du rendu par jour de
-// `PlanByPerson.OnePerson`, pour être montée trois fois: la semaine d'une
-// bouche (`OnePerson`), « ce que la maison cuisine » (`HouseholdPlanCard`) et
+// l'ancienne grille « Qui mange quoi » (`PlanByPerson`, retirée le 2026-09-16),
+// pour être montée par « ce que la maison cuisine » (`HouseholdPlanCard`) et
 // les plats communs de « ta part » (`MyShareCard`). Trois listes plates
 // écrites séparément divergeraient au premier correctif.
 //
@@ -47,7 +47,7 @@ import { t } from "../../i18n/t";
  *   · `HouseholdPlanCard` → `null`. « Ce que la maison cuisine » est une
  *     lecture; ses coches à lui vivent sur `/app/plan`, dans sa part. Deux
  *     surfaces de coche pour le même fait divergeraient à l'écran.
- *   · `PlanByPerson.OnePerson` → `null` par construction: `buildPersonWeek`
+ *   · l'ancienne grille par personne (retirée) → `null` par construction: `buildPersonWeek`
  *     n'émet aucune position (`dishIndex: null`), et le dit là-bas.
  *
  * ⚠️ UNE POSITION MANQUANTE FERME LA CASE, MÊME AVEC UN BINDER. C'est la

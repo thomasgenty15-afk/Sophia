@@ -211,11 +211,12 @@ export default function GroceryRunsField(props: GroceryRunsFieldProps) {
   return (
     <Field
       label={t("plan.cooking.runs_label")}
-      /* ⚠️ LE MOTIF REMPLACE L'AIDE GÉNÉRALE, il ne s'ajoute pas. Deux
-         paragraphes sous un seul `<select>` se lisent comme un avertissement;
-         et la nuance du congélateur que porte l'aide générale est déjà dite
-         par la case juste au-dessus, qui la conditionne. */
-      hint={t(limit === null ? "plan.cooking.runs_hint" : CAPPED_KEYS[limit], days)}
+      /* ⟳ 2026-09-16 — PLUS D'AIDE GÉNÉRALE: seul un MOTIF s'affiche, quand
+         l'offre est plafonnée. L'ancienne phrase expliquait le moteur
+         (« une seule demande un congélateur… ») à qui n'avait encore rien
+         choisi, et la case juste au-dessus dit déjà la nuance du congélateur.
+         Deux paragraphes sous un `<select>` se lisaient comme un avertissement. */
+      hint={limit === null ? undefined : t(CAPPED_KEYS[limit], days)}
       htmlFor={props.id}
     >
       <select

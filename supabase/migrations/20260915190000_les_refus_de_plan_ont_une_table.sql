@@ -8,8 +8,11 @@
 -- statut ; `meal_composition_verdicts` exige un `meal_id`, qu'un plan refusé
 -- n'a pas. « Comment on fait pour s'améliorer ? » — avec ceci.
 --
--- UNE LIGNE PAR PLAN REFUSÉ APRÈS APPEL MODÈLE, quel que soit le chemin
--- (aperçu accepté tôt ou composition synchrone) : le jeton, les motifs EXACTS
+-- UNE LIGNE PAR PLAN REFUSÉ APRÈS APPEL MODÈLE — ET PAR PLAN LIVRÉ AVEC DES
+-- ÉCARTS (`deliverable_with_gaps`, HTTP 200) : un écart est un refus de case,
+-- et l'écran masque ses chiffres de la même façon (mesuré le 2026-09-16 : dix
+-- écarts, tous `number_protected`, aucun chiffre nulle part). Quel que soit le
+-- chemin (aperçu accepté tôt ou composition synchrone) : le jeton, les motifs EXACTS
 -- (le `detail` que `publicRefusals` masque à l'écran pour les causes
 -- caloriques est gardé ici — service_role seulement, jamais rendu), les
 -- contrôles non évalués et incomplets, le verdict de validation, LE CANDIDAT
@@ -57,7 +60,8 @@ comment on table public.keel_plan_refusals is
 comment on column public.keel_plan_refusals.token is
   'Le jeton du refus tel que rendu au client : plan_not_deliverable, '
   'plan_validation_unavailable, house_rule_violated, empty_meal, '
-  'draft_not_composed, meal_unparseable, composition_unavailable…';
+  'draft_not_composed, meal_unparseable, composition_unavailable… — ou '
+  'deliverable_with_gaps (http_status 200) pour un plan LIVRE avec des ecarts.';
 comment on column public.keel_plan_refusals.refusals is
   'La liste des controles bloquants : {cause, day, slot, member_id, term, detail}. '
   'Le detail des causes caloriques est present ici et masque a l''ecran.';

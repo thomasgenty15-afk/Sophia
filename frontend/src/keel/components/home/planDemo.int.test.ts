@@ -6,7 +6,7 @@ import { en } from "../../i18n/en";
 import { fr } from "../../i18n/fr";
 import { setChosenUiLocaleForTest } from "../../i18n/runtime";
 import { boxLidLabel } from "../../lib/mealBoxes";
-import PlanDemo, { PlanDemoBody } from "./PlanDemo";
+import PlanDemo, { MealPreview, PlanDemoBody } from "./PlanDemo";
 import {
   type DemoDish,
   boxLinesForDish,
@@ -209,7 +209,7 @@ describe("le rendu français reprend les libellés du produit, dans l'ordre véc
     for (const key of [
       "meals.grid.eating_out",
       "meals.result.day_session",
-      "meals.boxes.title",
+      "home.plan.boxes_label",
       "meals.boxes.ready_not_raw",
       "meals.boxes.title_dish",
       "meals.energy.basis",
@@ -247,18 +247,51 @@ describe("le rendu français reprend les libellés du produit, dans l'ordre véc
   });
 });
 
-describe("la carte est pliée, et elle dit ce qu'elle contient", () => {
-  it("plie l'exemple mais garde son badge, son contenu annoncé et son bouton", () => {
+describe("un aperçu visible, des détails facultatifs", () => {
+  it("montre les trois étapes sans ouvrir le planning détaillé", () => {
     atPath("/");
     const html = decode(renderToStaticMarkup(createElement(PlanDemo, { goal: "fat_loss" })));
-    // Ce qui décide du clic reste lisible.
-    expect(html).toContain(fr["home.plan.badge"]);
+    const shopping = html.indexOf(fr["home.how.shop.title"]);
+    const cooking = html.indexOf(fr["home.how.cook.title"]);
+    const meals = html.indexOf(fr["home.how.eat.title"]);
+    expect(shopping).toBeGreaterThan(0);
+    expect(cooking).toBeGreaterThan(shopping);
+    expect(meals).toBeGreaterThan(cooking);
     expect(html).toContain(fr["home.plan.window"]);
-    expect(html).toContain(fr["home.plan.open"]);
     expect(html).toContain('aria-expanded="false"');
-    // Et rien du corps n'est rendu tant qu'on n'a pas ouvert.
-    expect(html).not.toContain(fr["meals.result.day_session"]);
-    expect(html).not.toContain(fr["home.plan.example_note"]);
+    expect(html).not.toContain(fr["meals.boxes.title"]);
+  });
+
+  it("le kcal de chaque repas est visible, se déplace avec l’objectif, et dit sa base", () => {
+    // ⛔ LE CHIFFRE ET SA BASE SONT INSÉPARABLES. `home.flow.energy` est un kcal
+    // NU (« {kcal} kcal », même forme que `meals.energy.dish`): ce qui l'autorise
+    // est que la phrase qui dit d'où il vient est rendue dans le MÊME bloc. Un
+    // jour où l'on retire la note pour gagner une ligne, c'est ici que ça rougit
+    // — et `energyBasis.int.test.ts` nomme ce test comme sa garde d'écran.
+    atPath("/");
+    for (const goal of ["fat_loss", "muscle_gain"] as const) {
+      const html = decode(renderToStaticMarkup(createElement(PlanDemo, { goal })));
+      for (const id of ["sun_dinner", "mon_lunch"]) {
+        const dish = DEMO_DISHES.find((d) => d.id === id)!;
+        expect(html, `${id}/${goal}`).toContain(`${dish.kcal![goal]} kcal`);
+      }
+      expect(html).toContain(fr["home.plan.summary.energy"]);
+    }
+    // et il CHANGE d'un objectif à l'autre — sinon le chiffre serait décoratif.
+    const lean = decode(renderToStaticMarkup(createElement(PlanDemo, { goal: "fat_loss" })));
+    expect(lean).not.toContain(`${DEMO_DISHES[0].kcal!.muscle_gain} kcal`);
+  });
+
+  it("l’aperçu du repas reprend les portions de la démonstration, pour chaque objectif", () => {
+    atPath("/");
+    for (const goal of ["fat_loss", "muscle_gain"] as const) {
+      const html = decode(renderToStaticMarkup(createElement(MealPreview, { goal })));
+      expect(html).toContain(fr["home.preview.label"]);
+      for (const item of DEMO_DISHES[0].boxItems) {
+        expect(html).toContain(fr[item.termKey as keyof typeof fr]);
+        expect(html).toContain(`${item.grams[goal]} g`);
+      }
+    }
   });
 });
 

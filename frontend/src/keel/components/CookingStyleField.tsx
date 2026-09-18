@@ -67,7 +67,6 @@ export default function CookingStyleField(props: CookingStyleFieldProps) {
   return (
     <Field
       label={t("plan.cooking.style_label")}
-      hint={t("plan.cooking.style_hint")}
       htmlFor={props.id}
     >
       <select

@@ -65,6 +65,14 @@ describe("le jour civil est celui du serveur", () => {
 
 describe("un seul état à la fois, et payer gagne", () => {
   const today = "2026-09-13";
+  // ⛔ UNE ÉCHÉANCE NE S'ÉCRIT PAS EN DUR ICI. `isSubscriptionActive`
+  // (`lib/entitlements.ts`) compare `current_period_end` à `Date.now()` —
+  // l'horloge RÉELLE — et NON au `today` injecté juste au-dessus. Une date figée
+  // devient donc passée toute seule: celle du cas « en essai » valait
+  // 2026-09-16, et le 2026-09-18 elle a fait rougir le gate sans qu'une seule
+  // ligne de code ait bougé. Ce que ces deux cas testent est le STATUT, pas le
+  // calendrier: l'échéance doit seulement être ouverte, aujourd'hui et toujours.
+  const echeanceOuverte = new Date(Date.now() + 30 * 86_400_000).toISOString();
 
   it("hors foyer avant tout le reste", () => {
     expect(householdBillingKind({
@@ -79,7 +87,7 @@ describe("un seul état à la fois, et payer gagne", () => {
   it("un abonné à qui il reste trois jours d'essai est ABONNÉ", () => {
     expect(householdBillingKind({
       coverage: coverage(),
-      subscription: { status: "active", current_period_end: "2026-10-15T00:00:00Z" },
+      subscription: { status: "active", current_period_end: echeanceOuverte },
       today,
     })).toBe("subscribed");
   });
@@ -87,7 +95,7 @@ describe("un seul état à la fois, et payer gagne", () => {
   it("un abonnement Stripe en essai compte comme payé — c'est le paiement anticipé", () => {
     expect(householdBillingKind({
       coverage: coverage(),
-      subscription: { status: "trialing", current_period_end: "2026-09-16T00:00:00Z" },
+      subscription: { status: "trialing", current_period_end: echeanceOuverte },
       today,
     })).toBe("subscribed");
   });

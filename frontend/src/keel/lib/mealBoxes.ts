@@ -165,6 +165,14 @@ export interface BoxLine {
    * congélateur où personne ne l'a mise.
    */
   frozen: boolean;
+  /**
+   * ⟳ 2026-09-16 — VRAI QUAND CE CONTENANT NE TIENT QU'UNE PARTIE DU REPAS : la
+   * part de marmite produite par la session. Le reste (tortilla, laitue, tomate
+   * d'un plat assemblé le jour même) n'entre pas dans ce contenant-là, et c'est
+   * le jour qui le dit. Mesuré le 2026-09-16 : « Boxing » faisait peser le
+   * mercredi 588 g de dinde ET 43 g de tortilla pour un plat monté le jeudi.
+   */
+  partial: boolean;
 }
 
 /**
@@ -251,6 +259,13 @@ function oneLine(
    * Set()`, et ça se dit.
    */
   frozenPreparations: ReadonlySet<string>,
+  /**
+   * `true` = ne garder que les PARTS DE MARMITE (`preparation_id` posé) : ce
+   * qu'une session produit et met en boîte. Les items frais (`null`) sont
+   * ajoutés le jour même, à table — toutes casseroles confondues, mais pas la
+   * salade.
+   */
+  potSharesOnly = false,
 ): BoxLine {
   const wanted = new Set(box.member_ids);
   // ⚠️ L'ORDRE DES PRÉNOMS SUIT `portions`, PAS `member_ids`. Deux contenants du
@@ -261,7 +276,10 @@ function oneLine(
     .map((p) => p.displayName);
   const eaterCount = box.member_ids.length;
   const eatersLabel = eatersLabelFor(eaters, eaterCount);
-  const items = box.items.map((it) => ({ term: it.term, grams: it.grams }));
+  const kept = potSharesOnly
+    ? box.items.filter((it) => it.preparation_id !== null)
+    : box.items;
+  const items = kept.map((it) => ({ term: it.term, grams: it.grams }));
   return {
     id: box.id,
     eaters,
@@ -276,8 +294,11 @@ function oneLine(
     // par composant, et sa somme est bien une quantité de bac.
     total: items.length > 0
       ? items.reduce((sum, it) => sum + it.grams, 0)
+      : potSharesOnly
+      ? 0
       : (box.legacy_total_grams ?? 0),
     shared: eaterCount > 1,
+    partial: kept.length < box.items.length,
     // ⚠️ `some`, PAS `every`: un contenant qui mélange une part congelée et une
     // part fraîche se remplit quand même au congélateur — c'est le geste le plus
     // contraignant qui décide, comme partout où une garde compose.
@@ -305,7 +326,22 @@ export function boxLinesForSession(
   const wanted = new Set(preparationIds);
   return dishes
     .filter((dish) => dish.uses.some((u) => wanted.has(u.preparation_id)))
-    .flatMap((dish) => boxLinesForDish(dish, portions));
+    // ⟳ 2026-09-16 — CE QU'UNE SESSION MET EN BOÎTE, C'EST CE QU'ELLE PRODUIT.
+    // Un plat assemblé le jour même (`same_day: assemble`) tient UNE part de
+    // marmite (`preparation_id` de cette session) ET des accompagnements frais
+    // (`preparation_id: null`) ajoutés à table. Lister les seconds ici faisait
+    // peser le mercredi 43 g de tortilla et 29 g de laitue pour un plat monté
+    // le jeudi — la vue du JOUR (`boxLinesForDish`) garde le repas entier.
+    .flatMap((dish) => {
+      const meal = mealLabelFor(dish.day, dish.slot);
+      const frozenPreparations = new Set(
+        dish.uses.filter((u) => u.kept === "freezer").map((u) => u.preparation_id),
+      );
+      return dish.boxes
+        .map((box) => oneLine(box, meal, dish.title, portions, frozenPreparations, true))
+        // Un contenant qui ne tiendrait rien de cette session n'est pas à remplir.
+        .filter((line) => line.items.length > 0 || line.total > 0);
+    });
 }
 
 /**

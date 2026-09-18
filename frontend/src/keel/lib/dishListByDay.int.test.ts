@@ -119,11 +119,17 @@ describe("groupDishListByDay", () => {
 });
 
 /**
- * LES TROIS MONTAGES, TESTÉS SUR LA SOURCE.
+ * LES MONTAGES, TESTÉS SUR LA SOURCE.
+ *
+ * ⟳ 2026-09-16 — ILS ÉTAIENT TROIS. La grille « Qui mange quoi »
+ * (`PlanByPerson`) a été retirée: elle doublait la lecture, et le motif est
+ * écrit en tête de `DishListByDay.tsx`. Sa garde partait avec elle. L'INTERDIT
+ * QU'ELLE PORTAIT NE PART PAS: « une vue de LECTURE du maître ne coche pas »
+ * (A8.1, FF-058 R11) reste tenu juste en dessous, sur `HouseholdPlanCard`.
  *
  * ⚠️ COMMENTAIRES RETIRÉS — cicatrice `caller-audit-must-strip-comments`.
  */
-describe("les trois montages de la liste par jour", () => {
+describe("les montages de la liste par jour", () => {
   const ROOT = resolve(__dirname, "../../../..");
 
   function code(rel: string): string {
@@ -140,29 +146,6 @@ describe("les trois montages de la liste par jour", () => {
       .join("\n");
   }
 
-  it("la semaine d'une bouche rend la liste extraite, SANS case (A8.1, R11)", () => {
-    const src = code("frontend/src/keel/components/plan/PlanByPerson.tsx");
-    expect(src, "`OnePerson` ne rend plus la liste par jour").toContain(
-      "<DishListByDay groups={week}",
-    );
-    // ⛔ LA MOITIÉ AJOUTÉE PAR A8.1, ET C'EST UN INTERDIT PRODUIT. Cette vue
-    // est celle du MAÎTRE, qui y parcourt la semaine de chaque bouche. Une
-    // case y serait le maître déclarant la consommation d'un profil réclamé à
-    // sa place — FF-058 R11: la consommation est un fait de PERSONNE.
-    //
-    // MUTATION QUI DOIT ROUGIR: passer ici le binder de `MyShareCard`.
-    //
-    // ⟳ A8.3 (2026-09-03) — LA MÊME GARDE, ET LA BOÎTE AVEC. `boxNotes` est
-    // fermé ici pour une cause qui n'est pas celle de la case: `buildPersonWeek`
-    // n'émet AUCUNE position (`dishIndex: null`), donc ni l'une ni l'autre
-    // n'aurait de plat où s'attacher. Les deux sont pinnées ENSEMBLE plutôt
-    // qu'en deux `toContain` séparés: c'est l'appel COMPLET qui doit rester
-    // fermé, et deux vérifications indépendantes resteraient vertes si l'une
-    // des deux props disparaissait de la ligne.
-    expect(src, "une case ou une boîte est apparue dans la vue PAR PERSONNE du maître")
-      .toContain("<DishListByDay groups={week} bindTick={null} boxNotes={null} />");
-  });
-
   it("⛔ « ce que la maison cuisine » ne coche pas non plus (A8.1)", () => {
     // La seconde surface de LECTURE. Ses coches à lui vivent dans sa part, sur
     // `/app/plan`: deux endroits pour le même fait finiraient par montrer deux
@@ -172,10 +155,10 @@ describe("les trois montages de la liste par jour", () => {
       .toContain("bindTick={null}");
   });
 
-  it("⛔ « ta part » est la SEULE des trois à cocher — et par la liaison unique", () => {
+  it("⛔ « ta part » est la SEULE à cocher — et par la liaison unique", () => {
     const card = code("frontend/src/keel/components/plan/MyShareCard.tsx");
-    // LE CAS QUI PASSE. Sans lui, les deux `bindTick={null}` ci-dessus
-    // seraient une garde parfaite sur une porte qui ne s'ouvre nulle part.
+    // LE CAS QUI PASSE. Sans lui, le `bindTick={null}` ci-dessus
+    // serait une garde parfaite sur une porte qui ne s'ouvre nulle part.
     expect(card, "« ta part » ne lie plus aucune case").toContain("bindTick={");
     expect(card, "« ta part » ne passe plus par `bindAt`").toContain(
       "ticks.bindAt(",

@@ -10,6 +10,9 @@ import {
   boxLinesForSession,
   DEMO_DAYS,
   DEMO_DISHES,
+  DEMO_GROCERIES,
+  DEMO_PREPS,
+  DEMO_SESSIONS,
   DEMO_SILENCES,
   DEMO_SLOTS,
   type DemoBoxLine,
@@ -80,50 +83,85 @@ function useChain() {
 
 type Chain = ReturnType<typeof useChain>;
 
-/**
- * L'EXEMPLE, PLIÉ PAR DÉFAUT — décidé le 2026-09-08.
- *
- * ── POURQUOI PLIÉ, ET PAS SEULEMENT PLIABLE ───────────────────────────────
- * La section 02 se lit d'abord en une phrase (« Chaque repas prévu arrive avec
- * ses quantités »). L'exemple est la PREUVE de cette phrase: on va le chercher
- * quand on doute, pas avant. Déplié d'office, il pousse le foyer, l'imprévu et
- * l'offre sous mille pixels de grammes — c'est le reproche exact qui a fait
- * réduire la fixture (« vraiment énorme »).
- *
- * ⚠️ CE QUI RESTE VISIBLE PLIÉ EST CE QUI DÉCIDE DU CLIC: le badge, et ce que
- * l'exemple contient (« Deux jours, pour une personne »). Un bouton seul, sous
- * un titre, ne dit pas ce qu'on va ouvrir.
- *
- * ⚠️ LE PLIAGE EST L'IDIOME DU PRODUIT, pas une invention de la landing: les
- * courses du jour et la session de cuisine se replient de la même façon, avec
- * le même couple `aria-expanded` / `aria-controls`.
- */
+/** A readable meal preview in the hero; quantities come from the shared fixture. */
+export function MealPreview({ goal }: PlanDemoProps) {
+  const dish = DEMO_DISHES[0];
+  return <div className="w-full rounded-fiche border border-line bg-paper-2 p-5 sm:p-6">
+    <p className="text-xs font-semibold uppercase tracking-wide text-fig-700">{t("home.preview.label")}</p>
+    <p className="mt-3 font-display text-[1.35rem] leading-snug text-ink">{t(dish.titleKey)}</p>
+    <ul className="mt-4 divide-y divide-line">
+      {dish.boxItems.map((item) => <li key={item.termKey} className="flex items-baseline justify-between gap-3 py-2 text-sm">
+        <span className="text-ink-soft">{t(item.termKey)}</span>
+        <strong className="shrink-0 font-medium tabular-nums text-ink">{item.grams[goal]} g</strong>
+      </li>)}
+    </ul>
+    <p className="mt-3 text-xs leading-5 text-ink-soft">{t("home.preview.note")}</p>
+  </div>;
+}
+
+/** One continuous shopping → cooking → meals example; details stay optional. */
 export default function PlanDemo({ goal }: PlanDemoProps) {
   const [open, setOpen] = React.useState(false);
   const panelId = React.useId();
-
-  return (
-    <div className="rounded-fiche border border-line bg-paper p-4 shadow-[0_18px_50px_rgba(42,28,35,0.06)] sm:p-6">
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-        <span className="rounded-full bg-fig-700 px-3 py-1 text-label font-semibold uppercase text-paper">
-          {t("home.plan.badge")}
-        </span>
-        <span className="text-[13px] text-ink-soft">
-          {t("home.plan.window")} · {t("home.plan.household")}
-        </span>
-        <button
-          type="button"
-          aria-expanded={open}
-          aria-controls={panelId}
-          onClick={() => setOpen((v) => !v)}
-          className="ml-auto min-h-6 shrink-0 text-sm font-medium text-fig-700 underline underline-offset-2 hover:text-fig-800"
-        >
-          {t(open ? "home.plan.close" : "home.plan.open")}
-        </button>
-      </div>
-      {open && <div id={panelId}><PlanDemoBody goal={goal} /></div>}
-    </div>
-  );
+  const dinner = DEMO_DISHES.find((dish) => dish.id === "sun_dinner")!;
+  const nextDish = DEMO_DISHES.find((dish) => dish.id === "mon_lunch")!;
+  const groceries = DEMO_GROCERIES.filter((item) => ["chicken_thighs", "bulgur", "carrots"].includes(item.id));
+  return <div>
+    <p className="text-sm text-ink-soft">{t("home.plan.window")}</p>
+    <ol className="mt-4 grid divide-y divide-line overflow-hidden rounded-fiche border border-line bg-paper md:grid-cols-3 md:divide-x md:divide-y-0">
+      <li className="p-5 sm:p-6">
+        <h3 className="font-display text-xl text-ink">{t("home.how.shop.title")}</h3>
+        <p className="mt-1 text-xs text-fig-700">{t("home.flow.sunday")}</p>
+        <ul className="mt-4 space-y-2">
+          {groceries.map((item) => <li key={item.id} className="flex items-baseline justify-between gap-3 text-sm">
+            <span className="text-ink-soft">{t(item.termKey)}</span><span className="shrink-0 tabular-nums text-ink">{item.quantity}</span>
+          </li>)}
+        </ul>
+        <p className="mt-3 text-xs text-ink-soft">{t("home.flow.more", { count: DEMO_GROCERIES.length - groceries.length })}</p>
+      </li>
+      <li className="p-5 sm:p-6">
+        <h3 className="font-display text-xl text-ink">{t("home.how.cook.title")}</h3>
+        <p className="mt-1 text-xs text-fig-700">{t("home.flow.sunday")}</p>
+        <ul className="mt-4 space-y-2 text-sm text-ink-soft">{DEMO_PREPS.map((prep) => <li key={prep.id}>{t(prep.titleKey)}</li>)}</ul>
+        <p className="mt-4 text-sm font-medium text-ink">{t("home.flow.cooking_time", { minutes: DEMO_SESSIONS[0].totalMinutes })}</p>
+      </li>
+      <li className="p-5 sm:p-6">
+        <h3 className="font-display text-xl text-ink">{t("home.how.eat.title")}</h3>
+        {/* ⚠️ LE KCAL EST LE CHIFFRE QUE LA COLONNE VEND, DONC IL EST LU AVANT LA
+            phrase: il vient des grammes de la fixture (`DemoDish.kcal`), et il
+            se déplace avec l'objectif comme les grammes. Sa BASE est la ligne du
+            bas (`home.plan.summary.energy`) — les deux sont dans ce même bloc, et
+            un chiffre d'énergie sans sa base est exactement ce que
+            `energyBasis.int.test.ts` existe pour empêcher. */}
+        <dl className="mt-4 space-y-4 text-sm">
+          <div>
+            <dt className="flex items-baseline justify-between gap-3">
+              <span className="font-semibold text-ink">{t("home.flow.dinner")}</span>
+              <strong className="shrink-0 rounded-full bg-fig-100 px-2.5 py-1 text-[15px] font-semibold tabular-nums text-fig-700">
+                {t("home.flow.energy", { kcal: dinner.kcal![goal] })}
+              </strong>
+            </dt>
+            <dd className="mt-1 text-ink-soft">{t("home.flow.serve")}</dd>
+          </div>
+          <div>
+            <dt className="flex items-baseline justify-between gap-3">
+              <span className="font-semibold text-ink">{t("home.flow.lunch")}</span>
+              <strong className="shrink-0 rounded-full bg-fig-100 px-2.5 py-1 text-[15px] font-semibold tabular-nums text-fig-700">
+                {t("home.flow.energy", { kcal: nextDish.kcal![goal] })}
+              </strong>
+            </dt>
+            <dd className="mt-1 text-ink-soft">{t("home.flow.reheat", { minutes: nextDish.sameDay!.minutes })}</dd>
+          </div>
+        </dl>
+        <p className="mt-4 border-t border-line pt-3 text-xs leading-5 text-ink-soft">{t("home.plan.summary.energy")}</p>
+      </li>
+    </ol>
+    <button type="button" aria-expanded={open} aria-controls={panelId} onClick={() => setOpen((value) => !value)}
+      className="mt-3 inline-flex min-h-11 items-center text-sm font-medium text-fig-700 underline underline-offset-4 hover:text-fig-800">
+      {t(open ? "home.plan.close" : "home.plan.open")}
+    </button>
+    <div id={panelId} hidden={!open}>{open && <PlanDemoBody goal={goal} />}</div>
+  </div>;
 }
 
 /**
@@ -323,7 +361,7 @@ function BoxingTable({ lines }: { lines: readonly DemoBoxLine[] }) {
   return (
     <div className="mt-3 rounded-card border border-line bg-paper-2 px-3 py-2">
       <div className="flex flex-wrap items-baseline gap-x-2">
-        <p className="text-label font-semibold uppercase tracking-wide text-ink-soft">{mealCopy("meals.boxes.title")}</p>
+        <p className="text-label font-semibold uppercase tracking-wide text-ink-soft">{t("home.plan.boxes_label")}</p>
         <span className="text-label tabular-nums text-ink-soft">
           {lines.length === 1
             ? mealCopy("meals.boxes.count_one")

@@ -94,9 +94,9 @@ export const fr: TranslatedMessages = {
   // ⚠️ Ces liens ne se rendent QUE sur le hall — ailleurs, une ancre vers
   // `#offre` ne mène nulle part.
   "public.nav.sections_label": "Sections de cette page",
-  "public.nav.experience": "L’expérience",
+  "public.nav.experience": "Exemple",
   "public.nav.household": "À plusieurs",
-  "public.nav.offer": "L’abonnement",
+  "public.nav.offer": "Tarifs",
   // « Chez vous » et non « Pour votre foyer »: le mot foyer est administratif,
   // et l'en-tête a 71 px sur un téléphone. « Chez vous » dit la même chose,
   // plus court, et c'est ce qu'on dirait à voix haute.
@@ -366,90 +366,27 @@ export const fr: TranslatedMessages = {
     "Perdre du poids ou prendre du muscle : Sophia compose tes repas, calcule les quantités et organise tes courses et ta cuisine. 7 jours d’essai.",
 
 
-  // ── LE HÉROS ─────────────────────────────────────────────────────────────
-  // ⚠️ LE TITRE EST LA PROPOSITION DE VALEUR DU BRIEF §2, MOT POUR MOT, choisie
-  // par le propriétaire le 2026-09-08 contre celui du prototype (« Mange pour
-  // ton objectif. / Vis pour tout le reste. »). La seconde ligne d'alors
-  // demandait d'être décodée: aucun sujet concret derrière « tout le reste ».
-  //
-  // ⚠️ ET LE RESTE DE L'ÉCRAN A ÉTÉ AJUSTÉ AVEC, sinon il bégayait:
-  //   · le sur-titre disait « Ton objectif. Ça commence à table. » — « ton
-  //     objectif » revenait trois mots plus bas. Il est TRIMÉ, pas réécrit;
-  //   · le chapô disait « Des repas pour toi, les quantités déjà calculées »,
-  //     c'est-à-dire le titre une seconde fois. Il porte maintenant le
-  //     MÉCANISME (brief §2), qui est ce que le titre ne dit pas;
-  //   · l'étiquette du visuel disait « Déjà calculé. Vraiment cuisiné. »,
-  //     troisième « déjà calculé » du même écran.
-  // ⚠️ LE SUR-TITRE NOMME LE PRODUIT AVANT DE LE VENDRE — décidé le 2026-09-09.
-  // Il disait « Ça commence à table. », une phrase d'ambiance: le visiteur
-  // lisait « Sophia » dans l'en-tête et « Des repas pour ton objectif » en
-  // titre, sans que rien ne dise CE QUE Sophia est ni pourquoi ça porte un
-  // prénom. Le sur-titre est le seul emplacement où la réponse tient sans
-  // pousser le titre plus bas.
-  // ⛔ « Coach nutritionnelle », jamais « nutritionniste »: le second est un
-  // titre protégé en France. Et « IA » est dit, pas sous-entendu.
-  //
-  // ⟳ LE TITRE NOMME CE QUI EST CALCULÉ — décidé par le propriétaire le
-  // 2026-09-15. Il disait « Les calculs sont déjà faits. »: la ligne ne disait
-  // pas calculs DE QUOI, et « calculs » tout seul ne se rattache à rien que le
-  // visiteur puisse se représenter.
-  //
-  // ⚠️ DEUX NOMS, PAS TROIS, ET C'EST UNE CONTRAINTE MESURÉE, pas une
-  // préférence. La version à trois noms (« Quantités, calories, équilibre : … »)
-  // a été essayée dans le navigateur sur la vraie page: le H1 passe de 4 à
-  // 7 lignes et le bouton « Découvrir mon programme » tombe à 802 px sur une
-  // fenêtre de 1440×760 — SOUS la ligne de flottaison d'un portable 13". À deux
-  // noms: 5 lignes, bouton à 670 px, tout reste visible.
-  // ⛔ Et NON, élargir `max-w-[14ch]` sur le H1 ne rattrape rien: mesuré, la
-  // boîte fait 542 px alors que 14ch en fait 559 — ce n'est pas le `14ch` qui
-  // contraint, c'est la colonne de `lg:grid-cols-[1.05fr_0.95fr]`. Gagner de la
-  // largeur ici veut dire rétrécir la photo.
-  //
-  // ⚠️ « CALORIES » EST UNE PROMESSE QUE LE PRODUIT TIENT SOUS CONDITIONS.
-  // `_shared/keel/energy_gate.ts` ferme le chiffre derrière quatre portes, dans
-  // cet ordre: plancher TCA, mineur ou âge inconnu, doctrine du coach,
-  // interrupteur élève. Quelqu'un sous la porte ① lira ce titre et ne verra
-  // jamais le nombre. Arbitrage assumé par le propriétaire le 2026-09-15; c'est
-  // écrit ici pour que personne ne le redécouvre en croyant à un bug.
-  "home.hero.eyebrow": "Sophia, coach nutritionnelle IA",
-  "home.hero.title_1": "Des repas pour ton objectif.",
-  "home.hero.title_2": "Quantités et calories : tout est calculé pour toi.",
-  // ⚠️ PAS DE « et » AVANT « comment »: la phrase en portait DEUX (« … et
-  // comment organiser les courses et la cuisine »). L'énumération se ferme
-  // sans conjonction, et le seul « et » restant relie les courses à la cuisine.
-  "home.hero.lede": "Quoi manger, en quelles quantités, comment organiser les courses et la cuisine pour les préparer.",
-  "home.hero.cta": "Découvrir mon programme",
-  // Le montant vient de `PRICES.household` par `formatPrice`.
-  "home.hero.trial": "7 jours d’essai · Puis {amount}/mois · Sans engagement",
+  // Landing refreshed 2026-09-18: direct copy, visible example, optional details.
+  "home.hero.eyebrow": "Sophia · Coach nutritionnelle IA",
+  "home.hero.title_1": "Tes menus pour perdre du poids",
+  "home.hero.title_2": "ou prendre du muscle.",
+  "home.hero.lede": "Sophia calcule tes portions, prépare ta liste de courses et organise la cuisine selon tes disponibilités.",
+  "home.hero.cta": "Essayer pendant 7 jours",
+  "home.hero.trial": "Puis {amount}/mois · Sans engagement",
   "home.hero.visual_alt": "Bowl de poulet rôti, boulgour, avocat et légumes colorés",
   "home.hero.label_pleasure": "Le plaisir fait partie du plan",
   "home.hero.label_menu_kicker": "Au menu",
   "home.hero.label_menu": "Ton objectif, en recettes.",
-  // ⟳ LA PASTILLE A CESSÉ DE NIER LES CHIFFRES — 2026-09-15, même décision que
-  // le titre. Elle disait « Des plats, pas des chiffres. » et se retrouvait à
-  // quinze centimètres d'un H1 qui annonce des calories: le même écran disait
-  // les deux. ⛔ Ne pas la remettre telle quelle tant que le titre nomme un
-  // chiffre. Le mot « équilibre » vient du titre, où il coûtait deux lignes
-  // (voir le bloc du H1); ici il ne coûte rien.
-  // ⛔ ET PAS « déjà calculé » NON PLUS: ce label l'a dit jusqu'au 2026-09-08
-  // (« Déjà calculé. Vraiment cuisiné. ») et faisait le troisième du même
-  // écran. Le H1 porte ce mot une fois; la pastille ne le reprend pas.
   "home.hero.label_cooked": "Des plats équilibrés",
-
-  // ── LE BANDEAU DES TROIS BÉNÉFICES ───────────────────────────────────────
-  "home.strip.label": "Les bénéfices Sophia",
-  "home.strip.goal": "Des repas pour ton objectif",
-  "home.strip.calc": "Les calculs déjà faits",
-  "home.strip.house": "Une organisation pour la maison",
-
-  // ── 01 · L'OBJECTIF ──────────────────────────────────────────────────────
-  "home.goal.kicker": "Un cap. Des repas.",
-  "home.goal.title_1": "Tu connais ton objectif.",
-  "home.goal.title_2": "Voici le menu.",
-  "home.goal.body_1":
-    "Perdre du poids, prendre du muscle : entre ce que tu veux et ce que tu mets dans ton assiette, il y a beaucoup de décisions.",
-  "home.goal.body_2":
-    "Sophia les transforme en repas concrets. Quoi manger, en quelles quantités, et comment les préparer.",
+  "home.pain.kicker": "Ce qui bloque, d’habitude",
+  "home.pain.title_1": "Tu sais où tu veux aller.",
+  "home.pain.title_2": "C’est le chemin qui manque.",
+  "home.pain.q1": "« Je ne sais pas quoi manger. »",
+  "home.pain.a1": "Un menu composé pour ton objectif, avec tes goûts et tes contraintes. Pas une liste de règles : des plats.",
+  "home.pain.q2": "« Je ne sais pas combien. »",
+  "home.pain.a2": "Les quantités sont écrites dans le plan, avant les courses. Rien à estimer, rien à deviner après coup.",
+  "home.pain.q3": "« Je n’ai pas le temps. »",
+  "home.pain.a3": "Les courses et les sessions de cuisine sont organisées selon tes jours. Tu n’as plus qu’à cuisiner.",
   "home.goal.aria": "Choisir un objectif pour découvrir Sophia",
   "home.goal.fat_loss": "Perdre du poids",
   "home.goal.muscle_gain": "Prendre du muscle",
@@ -458,113 +395,100 @@ export const fr: TranslatedMessages = {
   "home.goal.note.muscle_gain":
     "Des quantités et des apports en protéines pris en compte dans les recettes de ton planning.",
   "home.goal.direction_label": "Dans l’assiette, ça donne",
-  // ⚠️ Ce choix change les quantités de « Toi » dans l'EXEMPLE plus bas. Il ne
-  // calcule rien pour le visiteur et ne génère aucun plan — dit tel quel.
-  // ── LES CONSIGNES DE SERVICE, TRADUCTION FIDÈLE DE `SERVING_DIRECTION` ───
-  // L'anglais est épinglé sur le moteur par `servingDirections.int.test.ts`;
-  // le français dit la même chose, et rien d'autre.
   "home.dir.fat_loss":
     "légumes généreux, part de protéine entière, part de féculent plus petite",
   "home.dir.muscle_gain":
     "part de protéine et de féculent plus grande, mêmes légumes",
   "home.dir.maintenance": "part équilibrée de chaque composant",
-
-  // ── 02 · LES CALCULS ET LA DÉMONSTRATION ─────────────────────────────────
-  // ⛔ « Les calculs sont servis » a été rejeté. Intitulé direct.
-  //
-  // ⟳ LE KICKER PORTE LA PROMESSE, PLUS LE MÉCANISME — 2026-09-15. Il disait
-  // « Tes repas, déjà calculés. », écrit quand le H1 disait « Les calculs sont
-  // déjà faits. » Le H1 dit maintenant « tout est calculé pour toi »: le kicker
-  // était devenu la même phrase, 400 px plus bas.
-  //
-  // ⚠️ LES TROIS ÉTAGES DE CETTE SECTION DISENT TROIS CHOSES DIFFÉRENTES, et
-  // c'est la seule règle à tenir ici: le kicker dit ce que ça fait (la
-  // promesse), le titre dit ce que tu sais (quoi manger, et combien), le corps
-  // dit pourquoi c'est vrai (les quantités arrivent avec le repas). Un étage
-  // qui reprend le vocabulaire d'un autre les ramène à deux.
-  //
-  // ⛔ UNE LISTE DE NOMS ICI SERAIT LE H1 UNE SECONDE FOIS. « Équilibre
-  // nutritionnel, quantité, calories… » a été proposé et écarté le 2026-09-15:
-  // même forme que le H1 (liste + chute) et deux des trois noms y sont déjà.
-  // ⛔ Et « équilibre NUTRITIONNEL » promet plus que ce que le produit fait: il
-  // décide des PARTS (`home.dir.*`), pas une couverture en vitamines et
-  // minéraux. Rien sur cette page ne montrerait ce mot-là.
-  "home.plan.kicker": "Tu peux manger tranquille.",
-  // ⛔ CE BLOC DISAIT « Plus de goût. / Moins de calculs. » ET « Tu n'as pas à
-  // ressaisir chaque ingrédient après avoir mangé ». Retiré le 2026-09-08 par
-  // le propriétaire, et la raison vaut pour toute copie future de cette page:
-  // ces deux phrases définissent le produit par une CORVÉE QUE SEUL UN
-  // UTILISATEUR D'APPLICATION DE COMPTAGE A CONNUE. Pour tous les autres —
-  // c'est-à-dire la cible — elles ne suppriment rien, elles décrivent un
-  // problème qu'ils n'ont pas.
-  //
-  // Le bénéfice universel est l'inverse, et il est POSITIF: la quantité est
-  // décidée à ta place. Celui qui n'a jamais compté ne sait pas combien se
-  // servir, c'est sa question; celui qui compte y lit en plus la fin de la
-  // saisie. La question du comptage garde sa place en FAQ (`home.faq.q1`), où
-  // c'est le LECTEUR qui la pose au lieu qu'on la lui affirme.
-  //
-  // ⛔ NE JAMAIS PROMETTRE « RIEN À PESER » ICI. Le Boxing du produit donne des
-  // grammes par contenant (`meals.boxes.*`), et la démonstration juste à côté
-  // les affiche. « Rien à estimer » est vrai; « rien à peser » serait faux.
-  "home.plan.title_1": "Tu sais quoi manger.",
+  "home.hero.example": "Voir un exemple",
+  "home.plan.summary.when": "Dimanche soir et lundi midi",
+  "home.plan.summary.portions": "Dans chaque portion",
+  "home.plan.summary.units": "Quantités cuites, prêtes à servir.",
+  "home.plan.summary.prep": "À préparer le dimanche",
+  "home.plan.summary.prep_body": "Tu cuis le poulet, les légumes et le boulgour en une session. Tu gardes une portion pour le déjeuner du lendemain.",
+  "home.plan.summary.time": "Environ {minutes} min au total, cuisson comprise.",
+  "home.plan.summary.next": "Lundi midi : à réchauffer en {minutes} min.",
+  "home.plan.summary.energy": "Calories calculées à partir des quantités de cet exemple.",
+  "home.reach.example": "« Pense à sortir le poulet du congélateur ce soir pour ta cuisine de demain. »",
+  "home.reach.example_note": "Exemple fictif",
+  "home.preview.label": "Exemple de repas",
+  "home.preview.note": "Une portion · Quantités après cuisson",
+  "home.flow.sunday": "Dimanche",
+  "home.flow.more": "+ {count} ingrédients dans la liste complète",
+  "home.flow.cooking_time": "{minutes} min, cuisson comprise",
+  "home.flow.dinner": "Dimanche soir",
+  "home.flow.serve": "Une portion à servir.",
+  "home.flow.lunch": "Lundi midi",
+  "home.flow.reheat": "L’autre portion, à réchauffer en {minutes} min.",
+  // ⟳ 2026-09-18 — LA SECTION NE MONTRE PLUS UNE QUESTION POSÉE À SOPHIA,
+  // MAIS LES MESSAGES QU'ELLE ENVOIE D'ELLE-MÊME. Les trois bulles portent les
+  // trois canaux qui partent vraiment (`keel-proactive-v1`): `thaw_reminder`,
+  // `weigh_in`, `slot_meal`. Une quatrième bulle inventée serait une promesse
+  // sans expéditeur.
+  "home.reach.bubble.thaw": "Ce soir, sors le poulet du congélateur : tu cuisines demain.",
+  "home.reach.bubble.weigh": "Tu peux te peser ce matin ? Ton prochain plan part de ce que tu pèses aujourd’hui.",
+  "home.reach.bubble.slot": "Qu’est-ce que tu as mangé ce midi ?",
+  // ⚠️ LE KCAL DE L'EXEMPLE — base `plan_quantities`, comme `meals.energy.dish`
+  // dont cette clé reprend la forme MOT POUR MOT: le chiffre vient des grammes
+  // que la fixture écrit, jamais d'une photo. Le chiffre est nu ICI et sa base
+  // est rendue À CÔTÉ (`home.plan.summary.energy`), exactement comme le produit
+  // le fait sous une carte de plat. La clé est inscrite dans
+  // `ENERGY_KEYS_WITH_A_BASIS` (`energyBasis.int.test.ts`): tout kcal neuf y passe.
+  "home.flow.energy": "{kcal} kcal",
+  "home.offer.price": "Puis {amount}/mois pour le foyer",
+  "home.offer.extra": "En option : + {amount}/mois pour un autre membre qui souhaite son propre suivi. Ses besoins sont pris en compte dans les menus sans supplément.",
+  "home.faq.cancel_q": "Puis-je résilier quand je veux ?",
+  "home.faq.cancel_a": "Oui. La résiliation prend effet à la fin de la période d’abonnement en cours.",
+  "home.plan.boxes_label": "Les portions à conserver",
+  "home.plan.kicker": "Un exemple concret",
+  "home.plan.title_1": "Ton planning, des courses aux repas.",
   "home.plan.title_2": "Et combien.",
-  // ⚠️ « ÉQUILIBRÉ » SE PLACE CONTRE « REPAS », PAS CONTRE « QUANTITÉS » — la
-  // version proposée le 2026-09-15 disait « … ajustées à ton objectif et
-  // équilibré »: `ajustées` s'accorde avec `quantités` (fém. plur.) et
-  // `équilibré` ne s'accordait avec rien. L'adjectif est remonté à côté du nom
-  // qu'il qualifie.
-  // ⛔ ET LA SECONDE PHRASE RESTE: c'est elle qui PROUVE le kicker (« Tu peux
-  // manger tranquille »). Retirée, la promesse de l'étage du dessus ne repose
-  // plus sur rien. Rappel du 2026-09-08: « rien à estimer » est vrai, « rien à
-  // peser » serait faux — le produit donne des grammes par contenant.
-  "home.plan.body": "Chaque repas prévu arrive équilibré, avec ses quantités ajustées à ton objectif. Rien à estimer au moment de passer à table.",
+  "home.plan.body": "Un plat cuisiné le dimanche, une portion pour le soir et une autre pour le lendemain. Sophia précise les quantités à servir et ce qu’il faut acheter.",
   "home.plan.photo_alt": "Saumon rôti avec pommes de terre et légumes verts",
   "home.plan.photo_kicker": "De vrais repas.",
   "home.plan.photo_line": "Le plaisir fait partie du plan.",
   "home.plan.photo_strong": "Et ça se voit.",
   "home.plan.badge": "Exemple de planning",
-  // Le pliage de l'exemple — même idiome que les cartes du produit
-  // (« Voir la liste », « Voir le déroulé »).
-  "home.plan.open": "Voir l’exemple",
-  "home.plan.close": "Masquer l’exemple",
-  "home.plan.window": "Deux jours, pour une personne",
+  "home.plan.open": "Voir les recettes et la liste complète",
+  "home.plan.close": "Masquer les détails",
+  "home.plan.window": "Exemple pour une personne, sur deux jours.",
   "home.plan.household": "Exemple réduit au minimum",
-  "home.plan.chain_hint": "Survole un article, une préparation ou un plat : ce qui va avec s’allume.",
+  "home.plan.chain_hint": "Survole un article, une préparation ou un plat : ce qui va avec s’allume.",
   "home.plan.example_note":
     "Exemple illustratif. Ton planning dépend de tes besoins et de tes préférences.",
-
-  // Les prénoms des deux autres membres vivent dans le code (ils ne se
-  // traduisent pas); « Toi » se traduit.
-  "home.demo.you": "Toi",
-  "home.demo.member.alex_note": "Plus de sport. D’autres besoins.",
-  "home.demo.member.lou_note": "Végétarienne. Son assiette aussi.",
-  "home.demo.member.you_note": "Ton objectif, tes quantités.",
-  // Les plats de l'exemple.
-  // ⚠️ UN SEUL TITRE POUR DEUX ASSIETTES IDENTIQUES, ET C'EST UNE
-  // CORRECTION DU 2026-09-08. L'exemple servait « Poulet rôti au paprika,
-  // boulgour et légumes » le dimanche et « Bowl de poulet, boulgour et
-  // légumes rôtis » le lundi: MÊME fournée, MÊMES grammes, MÊMES kcal, deux
-  // noms. Illisible (« c'est le même plat mais pas le même nom ? »), et
-  // surtout contraire au brief §1: rebaptiser une fournée en un autre plat le
-  // lendemain, c'est exactement la promesse « les préparations de la veille
-  // trouvent une nouvelle assiette » que le propriétaire a retirée.
-  // Ce que le lendemain change est déjà dit par le produit: « À réchauffer
-  // 5 min » et « Depuis … — cuisiné Dimanche ».
+  "home.plan.toggle_hint": "Change d’objectif pour voir les portions de cet exemple.",
+  // ⚠️ LE LIBELLÉ DE L'ENCART, ET IL NE PROMET RIEN: ce qui suit est une
+  // MESURE (85 analyses, vérité terrain USDA — docs/keel/PHOTO_QUANTIFICATION.md),
+  // pas un argument de vente. « Bon à savoir » annonce un fait vérifiable;
+  // « La précision Sophia » annoncerait une qualité, et ce serait faux.
+  "home.plan.precision_label": "Bon à savoir",
+  // ⚠️ DEUX PRÉCISIONS, PAS DEUX ERREURS — troisième écriture, 2026-09-18. Elle
+  // a donné deux taux d'erreur nus (« 2,3 % d'écart », « 26,6 % de biais »): un
+  // lecteur ne sait ni de quoi ils parlent, ni lequel est le bon. La mesure est
+  // la même, retournée: `docs/keel/PHOTO_QUANTIFICATION.md` donne une MAPE de
+  // 26,6 % sur photo (⇒ 73 % de précision) et de 2,3 % sur quantités connues
+  // (⇒ 98 %). Les deux arrondis vont dans le sens DÉFAVORABLE au produit: 73,4
+  // se dit 73, et 97,7 se dit 98 — jamais « 70 % » pour la photo, qui
+  // creuserait l'écart d'un chiffre que personne n'a mesuré.
   //
-  // ⛔ LA RÈGLE N'EST PAS « MÊME FOURNÉE ⇒ MÊME NOM ». Une casserole de riz
-  // nourrit légitimement « riz au tofu » et « riz au poulet »; c'est l'assiette
-  // identique au gramme près qui interdit le second nom, pas le partage d'une
-  // casserole.
+  // ⛔ AUCUN CHIFFRE COLLÉ AU MOT « CALORIES » ICI: un nombre suivi de ce mot
+  // fait entrer la clé dans `ENERGY_KEYS_WITH_A_BASIS` (`energyBasis.int.test.ts`),
+  // où elle devrait déclarer une base de lecture qu'elle n'a pas — elle parle
+  // d'une méthode, elle ne rapporte le kcal d'aucun repas.
+  "home.plan.precision":
+    "Suivre ses calories à partir d’une photo, c’est environ 73 % de précision. Les calculer à l’avance, à partir des quantités du plan, c’est 98 %.",
+  "home.plan.precision_source": "Mesuré sur 85 repas réels, recomptés contre la table de composition de l’USDA. Une mesure, pas une promesse.",
+  "home.demo.you": "Toi",
+  "home.demo.member.alex_note": "Prise de muscle",
+  "home.demo.member.lou_note": "Végétarienne",
+  "home.demo.member.you_note": "Perte de poids",
   "home.demo.dish.chicken_bowl": "Poulet rôti au paprika, boulgour et légumes",
   "home.demo.dish.omelette": "Omelette aux poivrons et salade verte",
-  // Les préparations, et ce qu'on cuisine réellement dedans.
   "home.demo.prep.chicken": "Poulet rôti au paprika et légumes",
   "home.demo.prep.bulgur": "Boulgour au citron",
   "home.demo.prep.chicken_method": "Enfourne les hauts de cuisse et les légumes à 200 °C, paprika et huile d’olive, 45 minutes.",
   "home.demo.prep.bulgur_method": "Cuis le boulgour, puis ajoute le zeste et le jus du citron.",
   "home.demo.run.sun": "Lance le four. Le poulet et les légumes enfournés, cuis le boulgour. Laisse refroidir avant de mettre en boîte la part de lundi.",
-  // Les articles de courses, par rayon.
   "home.demo.ing.chicken_thighs": "Hauts de cuisse de poulet",
   "home.demo.ing.peppers": "Poivrons",
   "home.demo.ing.carrots": "Carottes",
@@ -573,192 +497,52 @@ export const fr: TranslatedMessages = {
   "home.demo.ing.bulgur": "Boulgour",
   "home.demo.ing.eggs": "Œufs",
   "home.demo.ing.smoked_paprika": "Paprika fumé",
-  // Ce qu'on met dans les contenants.
   "home.demo.box.chicken": "poulet rôti",
   "home.demo.box.bulgur": "boulgour",
   "home.demo.box.vegetables": "légumes rôtis",
-
-  // ── 03 · LA PRÉCISION, EN AMONT ──────────────────────────────────────────
-  // ⟳ SECTION AJOUTÉE LE 2026-09-15 à la demande du propriétaire: « les apps de
-  // tracking c'est pas précis, le tracking est mieux en amont ». C'est l'un
-  // des deux arguments qu'il juge absents de la page et différenciants.
-  //
-  // ⚠️ CHAQUE CHIFFRE ICI EST UNE MESURE, PAS UNE PROMESSE — et la source est
-  // `docs/keel/PHOTO_QUANTIFICATION.md`: 85 appels réels, vérité terrain USDA.
-  // Biais −26,6 % en condition photo nue; MAPE 2,3 % quand les quantités sont
-  // FOURNIES. Ces 2,3 % ont été mesurés sur des grammes recalculés par une
-  // table — ce qui est EXACTEMENT ce qu'est un repas prévu (`plan_quantities`).
-  // Ils ne valent PAS pour un nombre tapé à la main (FF-062, avertissement
-  // sur R11): ne jamais les rattacher à la correction d'un chiffre.
-  // Le même chiffre est déjà public, mot pour mot, dans `join.grade.two_body`.
-  //
-  // ⛔ NE PAS DIRE « jamais depuis une photo ». Le produit ESTIME un repas hors
-  // plan (photo ou description, `home.life.body`), le dit comme une estimation
-  // (la base est dans la clé, `energyBasis.int.test.ts`) et laisse corriger
-  // (R11). La différence vendue ici n'est pas « pas de photo », c'est: LE
-  // REPAS PRÉVU EST CONNU AVANT D'ÊTRE MANGÉ, et l'imprévu compte quand même.
-  //
-  // ⚠️ LA RÈGLE DU 2026-09-08 TIENT TOUJOURS: on ne définit pas le produit par
-  // une corvée que seul un utilisateur d'appli de comptage a connue. L'appli
-  // de suivi est nommée UNE fois, dans le titre, comme point de comparaison;
-  // tout le reste dit ce que Sophia fait, au positif.
-  //
-  // ⛔ `energyBasis.int.test.ts` lit `(\d|\{…\})\s*(kcal|calories?)`: aucun
-  // chiffre ne doit précéder directement le mot « calories » dans ce bloc.
-  "home.upstream.kicker": "La précision, en amont.",
-  "home.upstream.title_1": "Compter après coup, c’est deviner.",
-  "home.upstream.title_2": "Ici, le chiffre existe avant le repas.",
-  "home.upstream.body_1":
-    "Une appli de suivi te demande d’estimer ce que tu viens de manger. On a mesuré ce que ça vaut : sur 85 analyses réelles, une estimation à partir d’une photo tombait en moyenne 26,6 % sous la vérité.",
-  "home.upstream.body_2":
-    "Un repas prévu par Sophia est connu au gramme avant d’être cuisiné. Les quantités sont écrites dans le plan ; ce que tu manges est ce qui a été calculé. Rien à deviner après coup.",
-  "home.upstream.written.title": "Écrit avant, pas reconstruit après",
-  "home.upstream.written.body":
-    "Les quantités de chaque repas prévu sont dans ton plan, avant les courses. Le soir, il n’y a rien à se rappeler.",
-  "home.upstream.measured.title": "Mesuré, pas promis",
-  "home.upstream.measured.body":
-    "2,3 % d’écart quand les quantités sont connues, contre 26,6 % de biais sur une photo. Même modèle, même banc d’essai, même vérité terrain.",
-  "home.upstream.unplanned.title": "Et l’imprévu compte quand même",
-  "home.upstream.unplanned.body":
-    "Un plat hors plan se décrit ou se photographie. Sophia l’estime, le dit comme une estimation, et tu peux corriger le chiffre.",
-  "home.upstream.source": "Mesures sur 85 analyses réelles, vérité terrain USDA. Ce ne sont pas des promesses.",
-
-  // ── 04 · LE FONCTIONNEMENT, DANS L'ORDRE VÉCU ────────────────────────────
-  "home.how.kicker": "Des courses aux repas.",
-  // ⟳ 2026-09-15 — LE TITRE DIT QUI FAIT QUOI. Il disait « Tout s’enchaîne. /
-  // À toi de cuisiner. »; « tout s’enchaîne » était déjà dit DEUX fois dans la
-  // même section — par le kicker (« Des courses aux repas ») et par les trois
-  // cartes qui MONTRENT l’enchaînement. La version actuelle nomme le partage
-  // des rôles au lieu de redire la chaîne.
-  //
-  // ⛔ ET C’EST LA FORME QUI PROTÈGE LE MODÈLE. « Mode autopilot activé » a été
-  // proposé en kicker le 2026-09-15 et écarté: la section s’intitule « À toi de
-  // cuisiner » et ses trois cartes s’appellent « TES courses », « TA cuisine »,
-  // « TES repas ». Sophia décide; la personne fait les courses et cuisine.
-  // Une copie qui promet que ça tourne tout seul se dément à la ligne suivante
-  // et se découvre à J+1, devant une session de cuisine à tenir.
-  "home.how.title_1": "Sophia pense à tout.",
+  "home.how.kicker": "Comment ça marche",
+  "home.how.title_1": "Tes courses et ta cuisine, organisées.",
   "home.how.title_2": "Tu n’as plus qu’à cuisiner.",
-  // ⟳ 2026-09-15 — LE CHAPÔ DIT QUEL TEMPS, PAS « du temps ». Il a porté deux
-  // versions écartées le même jour: « Un planning utile, c’est un planning que
-  // tu peux mettre dans ton assiette. » (une maxime qui DÉFINIT un mot au lieu
-  // de dire ce que le produit fait), puis « Sophia pense à tout pour te faire
-  // gagner du temps. » — qui répétait le titre mot pour mot dès que le titre
-  // est devenu « Sophia pense à tout. ».
-  // ⚠️ LES TROIS NOMMÉS SONT CE QUE LE PRODUIT FAIT VRAIMENT À TA PLACE:
-  // décider, chercher les recettes, organiser les courses. La cuisine n’y est
-  // pas, et elle ne doit jamais y entrer — c’est exactement ce que le titre
-  // vient de rendre à la personne.
-  "home.how.lede": "Tu gagnes le temps de décider, de chercher les recettes et d’organiser les courses.",
+  "home.how.lede": "Tu renseignes tes goûts, les personnes à table et tes jours de cuisine. Sophia prépare le planning ; tu fais les courses et tu cuisines.",
   "home.how.shop.title": "Tes courses",
   "home.how.shop.body":
-    "Tu sais quand faire les courses et quoi acheter pour les préparations prévues.",
+    "Une liste regroupe les ingrédients à acheter pour les repas prévus.",
   "home.how.cook.title": "Ta cuisine",
   "home.how.cook.body":
-    "Tes sessions de cuisine regroupent les préparations selon tes jours disponibles et le temps que tu peux y consacrer.",
+    "Les recettes et les préparations sont réparties sur tes jours de cuisine.",
   "home.how.eat.title": "Tes repas",
   "home.how.eat.body":
-    "Tu retrouves les repas prévus pour chacun, avec les quantités calculées selon les besoins et les objectifs renseignés.",
-
-  // ── 05 · LE FOYER ────────────────────────────────────────────────────────
-  "home.house.kicker": "Il y a de la place pour les autres.",
-  "home.house.title_1": "Ton objectif.",
+    "Pour chaque repas, tu retrouves le plat et les quantités à servir à chacun.",
+  "home.house.kicker": "Si tu cuisines pour d’autres",
+  "home.house.title_1": "Tu cuisines pour d’autres personnes ?",
   "home.house.title_2": "Leur appétit.",
   "home.house.title_3": "La même table.",
   "home.house.body_1":
-    "Tu cuisines aussi pour d’autres personnes ? Sophia tient compte des besoins et des préférences de chacun.",
+    "Sophia tient compte des goûts et des besoins de chacun. Les courses et les préparations sont regroupées quand c’est possible.",
   "home.house.body_2":
-    "Des préparations communes quand c’est possible. Des plats différents quand c’est nécessaire. Et des courses rassemblées.",
-  "home.house.cta": "Faire une place à tout le monde",
+    "Sophia regroupe les courses et les préparations quand c’est possible, et prévoit des plats différents si nécessaire.",
+  "home.house.cta": "Voir ce qui est inclus",
   "home.house.table_kicker": "À la maison",
   "home.house.table_each": "Chacun sa place",
-  "home.house.shared_list": "Une liste de courses commune",
+  "home.house.shared_list": "Une liste de courses et des sessions de cuisine communes",
   "home.house.note": "Exemple de foyer. Les repas s’adaptent aux profils renseignés.",
-
-  // ── L'IMPRÉVU ─────────────────────────────────────────────────────────────
-  // ⟳ 2026-09-11 — LA DÉMONSTRATION N'EST PLUS UN PARCOURS, C'EST UNE IMAGE.
-  // Elle jouait « décrire ou photographier → comptabilisé »: un bouton
-  // « Comptabiliser » révélait trois phrases de résultat, avec un
-  // « Recommencer ». Retiré sur demande. Ce que la boîte montre maintenant est
-  // ce qu'on ENVOIE — une description ou une photo, et le bouton d'envoi du
-  // composeur — et rien de plus.
-  //
-  // ⚠️ LA PROMESSE « ça compte » N'A PAS DISPARU DE LA PAGE: elle est dans
-  // `home.life.body`, juste au-dessus, et dans `home.life.title_2`. Ce qui est
-  // parti avec l'effet, c'est la seule phrase qui disait que le PLANNING ne
-  // bouge pas (`…demo.untouched`). Elle n'est plus dite nulle part; si elle
-  // doit revenir, sa place est dans le corps, pas derrière un clic.
-  "home.life.kicker": "Et quand la vie s’invite ?",
-  "home.life.title_1": "Un repas imprévu ?",
+  "home.life.kicker": "Et quand la vie s’invite ?",
+  "home.life.title_1": "Un repas imprévu ?",
   "home.life.title_2": "Il compte aussi.",
-  // ⟳ 2026-09-11 (SOIR) — « C'EST MOINS PRÉCIS » EST RETIRÉ, ET LA RÉSERVE
-  // RESTE. Décision du propriétaire: la phrase s'excusait sur une page de
-  // vente. Ce qu'elle protégeait ne disparaît pas pour autant — un repas
-  // décrit ou photographié n'est PAS pesé, et le produit le dit partout
-  // ailleurs (l'accusé du journal écrit « environ X kcal », `EnergyBasisNote`
-  // nomme la base de chaque chiffre, la photo est refusée comme mesure:
-  // −26,6 % de biais, systématique).
-  //
-  // ⛔ C'EST « ESTIME » QUI PORTE LA RÉSERVE MAINTENANT, et il doit rester.
-  // « Sophia le comptabilise » tout court promettrait une mesure là où le
-  // produit sert une estimation — la seule chose que cette page ne doit pas
-  // faire. Le verbe dit la même chose que l'ancienne incise, sans la lire
-  // comme un regret.
   "home.life.body":
-    "Un resto, un plat différent de ce qui était prévu : décris ce que tu as mangé ou prends-le en photo. Sophia l’estime et le comptabilise dans ton suivi.",
-  "home.life.demo.aria": "Démonstration : déclarer un repas imprévu",
+    "Un resto, un plat différent de ce qui était prévu : décris ce que tu as mangé ou prends-le en photo. Sophia l’estime et le comptabilise dans ton suivi.",
+  "home.life.demo.aria": "Démonstration : déclarer un repas imprévu",
   "home.life.demo.label": "Ce que tu envoies",
-  // Les DEUX formes de l'envoi, nommées par ce qu'elles SONT et pas par le
-  // geste: la boîte s'appelle « Ce que tu envoies », donc ses deux options se
-  // lisent à la suite du titre — « une description », « une photo ».
   "home.life.demo.describe": "Une description",
   "home.life.demo.photo": "Une photo",
   "home.life.demo.example": "Pizza quatre fromages au resto, deux parts et une salade.",
   "home.life.demo.photo_example": "Une photo de l’assiette, prise à table.",
-  // ⛔ CE N'EST PAS UN BOUTON, C'EST LE DESSIN D'UN BOUTON. La boîte montre le
-  // composeur de l'app; rien ici n'envoie quoi que ce soit. Il est donc rendu
-  // en `aria-hidden` — un « Envoyer » annoncé à un lecteur d'écran sur une page
-  // de vente promettrait une action qui n'existe pas.
   "home.life.demo.send": "Envoyer",
-
-  // ── 06 · SOPHIA ÉCRIT LA PREMIÈRE ────────────────────────────────────────
-  // ⟳ SECTION AJOUTÉE LE 2026-09-15 à la demande du propriétaire: « Sophia
-  // vient vers toi, relance, répond aux questions, te dit quand décongeler ».
-  // Second argument jugé absent et différenciant.
-  //
-  // ⚠️ CHAQUE CARTE NOMME UN CANAL QUI PART RÉELLEMENT AUJOURD'HUI — vérifié
-  // dans le code le 2026-09-15, pas dans une fiche:
-  //   · le rappel de la veille ..... `runThawReminderStep` (18h-20h, la veille
-  //     d'une session, quand un article congelé à l'achat doit sortir) ;
-  //   · la pesée ................... `runWeighInStep` (2 jours perte/maintien,
-  //     5 jours prise de masse — `weigh_in.ts`) ;
-  //   · le repas hors plan ......... `runSlotMealStep` (un créneau déclaré
-  //     `eating_out` que le plan ne compose pas — `slot_meal_ask.ts`) ;
-  //   · la fin d'un plan ........... `runPlanFeedbackStep` (le dernier soir) ;
-  //   · le mot après un silence .... `keel-reengage-v1` (72 h, une fois).
-  // Les quatre premiers vivent dans `keel-proactive-v1`. L'autorité produit est
-  // FF-062; le réglage `chat.settings.checkins.help` dit la même liste.
-  //
-  // ⛔ « ELLE TE DEMANDE SI TU AS BIEN MANGÉ LE REPAS PRÉVU » N'EST PAS DIT, ET
-  // NE DOIT PAS L'ÊTRE. Le bilan du soir (`keel-daily-pulse-v1`) est SUPPRIMÉ
-  // depuis le 2026-09-08 (migration `20260908010000`). Le repas prévu se coche
-  // à l'écran, sur /app/today. Ce que Sophia DEMANDE, c'est le repas que le
-  // plan n'a pas composé — et c'est ce que la carte dit.
-  //
-  // ⚠️ AUCUNE COPIE NE DOIT FAIRE ATTENDRE (CLAUDE.md). Cette section décrit
-  // ce qui arrive SANS qu'on l'ait demandé; elle finit donc par la phrase qui
-  // rend la main: elle répond quand tu écris, et le reste se coupe d'un
-  // réglage. Sinon un visiteur lirait « Sophia s'occupe de te parler » comme
-  // « attends qu'elle te parle ».
-  //
-  // ⛔ UN MESSAGE SANS RÉPONSE NE SE RÉPÈTE JAMAIS (FF-062 §3, hors périmètre
-  // engageant). C'est la règle qui rend ces canaux acceptables, et c'est
-  // pour ça qu'elle est dans le chapô et pas dans une note.
-  "home.reach.kicker": "Sophia écrit la première.",
-  "home.reach.title_1": "Elle vient vers toi.",
-  "home.reach.title_2": "Au bon moment, pas tous les soirs.",
+  "home.reach.kicker": "Le suivi au quotidien",
+  "home.reach.title_1": "Sophia vient vers toi.",
+  "home.reach.title_2": "Au bon moment.",
   "home.reach.body":
-    "Sophia n’attend pas que tu ouvres l’app. Elle écrit quand il y a une raison, et un message sans réponse ne se répète pas.",
+    "Tu n’as rien à déclencher. Elle écrit la première quand ça compte : la veille d’une cuisson, le matin d’une pesée, ou après un repas que le plan ne couvrait pas.",
   "home.reach.thaw.title": "La veille d’une session",
   "home.reach.thaw.body":
     "« Ce soir, sors le poulet du congélateur. » Le rappel arrive entre 18 h et 20 h, la veille, quand un article doit décongeler.",
@@ -767,116 +551,61 @@ export const fr: TranslatedMessages = {
     "Tous les deux jours si tu perds du poids, tous les cinq en prise de masse. Le plan suivant est calculé sur ce que tu pèses aujourd’hui.",
   "home.reach.slot.title": "Le repas que le plan ne couvre pas",
   "home.reach.slot.body":
-    "Tu déjeunes dehors ? Elle te demande ce que tu as pris, pour que ta journée soit complète.",
-  "home.reach.feedback.title": "La fin d’un plan",
-  "home.reach.feedback.body":
-    "Le dernier soir, elle te demande ce qui a marché et ce qui n’a pas marché. Le plan suivant en tient compte.",
-  "home.reach.silence": "Et si tu disparais quelques jours : un mot, un seul.",
+    "Tu déjeunes dehors ? Elle te demande ce que tu as pris, pour que ta journée soit complète.",
+  "home.reach.silence": "Et si tu disparais quelques jours : un mot, un seul.",
   "home.reach.hand":
-    "Tu poses une question, elle répond. Ce qu’elle envoie d’elle-même se coupe d’un réglage ; ce qu’elle répond quand tu écris, jamais.",
-
-  // ── EN BONUS — les arguments du quotidien ────────────────────────────────
-  // Des conséquences de ce que le produit fait, pas des promesses chiffrées:
-  // aucune durée, aucune économie, aucun résultat inventé.
-  "home.bonus.kicker": "Et en bonus",
-  "home.bonus.title": "Ce que ça change au quotidien.",
-  "home.bonus.mental.title": "Moins de charge mentale",
-  "home.bonus.mental.body":
-    "La question « on mange quoi ? » est réglée une fois pour la semaine, courses comprises.",
-  "home.bonus.balance.title": "Des repas équilibrés, sans y penser",
-  "home.bonus.balance.body":
-    "Chaque repas prévu garde une protéine, un féculent et des légumes. Les proportions suivent la personne.",
-  "home.bonus.waste.title": "Moins de gaspillage",
-  "home.bonus.waste.body":
-    "La liste de courses vient des préparations prévues, et une fournée nourrit plusieurs repas.",
-  "home.bonus.time.title": "Moins de temps aux fourneaux",
-  "home.bonus.time.body":
-    "Les préparations sont regroupées en sessions, selon tes jours disponibles et le temps que tu as.",
-
-  // ── 07 · L'OFFRE ─────────────────────────────────────────────────────────
-  "home.offer.kicker": "On passe à table ?",
-  "home.offer.title_1": "Ta prochaine semaine commence",
+    "Tu peux désactiver les messages qu’elle envoie d’elle-même et continuer à lui poser tes questions.",
+  "home.offer.kicker": "L’abonnement",
+  "home.offer.title_1": "7 jours pour essayer Sophia",
   "home.offer.title_2": "par un repas.",
   "home.offer.body":
-    "Découvre ce que ça change de savoir quoi acheter, quoi préparer et quoi manger.",
+    "Menus, liste de courses, planning de cuisine et suivi personnel inclus.",
   "home.offer.check_trial": "7 jours pour découvrir Sophia",
   "home.offer.check_commit": "Sans engagement",
-
-  // ══════════════════════════════════════════════════════════════════════
-  // L'ACCÈS COACHING INDIVIDUEL — UN SEUL BLOC, ET AUCUN CALCULATEUR.
-  // ══════════════════════════════════════════════════════════════════════
-  //
-  // ⛔ CE QU'IL Y AVAIT, ET POURQUOI C'ÉTAIT FAUX (2026-09-08). L'option était
-  // dite DEUX FOIS et de deux façons: un encart « Quelqu'un d'autre veut
-  // suivre son objectif ? » à gauche, et un SÉLECTEUR « Accès individuels
-  // supplémentaires » dans la carte, qui ajoutait 1,99 € au prix affiché.
-  // Verbatim du propriétaire: « c'est pas clair le lien entre cet encart et
-  // l'accès coaching personnalisé, il faudrait l'unifier », et « je pense pas
-  // que permettre de l'ajouter dans le prix ce soit une bonne idée ».
-  //
-  // ⛔ LE COMPTEUR EST RETIRÉ, PAS DÉPLACÉ. Un compteur posé sous un prix
-  // PROMET une configuration: on l'a réglé, donc on croit avoir choisi. Or il
-  // ne configurait rien — ni l'abonnement, ni le parcours d'inscription (c'est
-  // écrit noir sur blanc dans `home.offer.card.note`). Il faisait aussi monter
-  // le prix de tête du foyer à chaque clic, sur la seule surface où l'on
-  // décide. Le prix affiché est désormais celui du foyer, et rien ne le bouge.
-  //
-  // ⚠️ « Sinon ils sont pris en compte gratuitement » EST UN FAIT, pas un
-  // argument: `PRICES.household` couvre la maison entière et
-  // `PRICES.claimedProfile` n'achète qu'un ACCÈS (`i18n/prices.ts`). Sans cette
-  // phrase, le tarif se lit comme un prix par bouche à table — la confusion
-  // exacte que le brief du 2026-09-08 demande de fermer.
-  //
-  // ⚠️ LES TROIS LIGNES SONT DES GESTES, DICTÉS PAR LE PROPRIÉTAIRE. Ne pas y
-  // ajouter de promesse qui n'a pas d'écran derrière.
-  "home.offer.coaching.title": "Accès coaching individuel",
+  "home.offer.coaching.title": "Un autre membre veut son propre suivi ?",
   "home.offer.coaching.price": "{amount} par mois et par personne",
-  "home.offer.coaching.body": "Pour un membre du foyer qui veut gagner ou perdre du poids, et suivre son objectif lui-même.",
-  "home.offer.coaching.item_1": "Ses repas hors plan comptés : il les décrit ou les prend en photo.",
+  "home.offer.coaching.body": "L’accès supplémentaire lui permet de parler à Sophia, de suivre son poids et ses calories, et de renseigner ses repas hors planning.",
+  "home.offer.coaching.item_1": "Ses repas hors plan comptés : il les décrit ou les prend en photo.",
   "home.offer.coaching.item_2": "Son suivi des calories et de son poids.",
   "home.offer.coaching.item_3": "Sa conversation avec la coach Sophia.",
-  "home.offer.coaching.free": "Sans cet accès, un membre est pris en compte gratuitement : les repas de la maison tiennent déjà compte de lui.",
-  "home.offer.card.name": "Sophia, au quotidien.",
+  "home.offer.coaching.free": "Pas besoin de cet accès pour manger avec toi : ses besoins sont déjà pris en compte dans les menus du foyer.",
+  "home.offer.card.name": "Pour toi et ta maison",
   "home.offer.card.badge": "7 jours d’essai",
   "home.offer.card.per_month": "/ mois",
-  "home.offer.card.for": "Pour le foyer, avec ton accès personnel.",
+  "home.offer.card.for": "Ton suivi personnel et les repas du foyer inclus.",
   "home.offer.card.inc_1": "Des menus selon ton objectif et tes préférences",
   "home.offer.card.inc_2": "Les quantités et les apports calculés",
   "home.offer.card.inc_3": "L’organisation des courses et des sessions de cuisine",
   "home.offer.card.inc_4": "Les besoins de la maison pris en compte",
-  "home.offer.card.cta": "Commencer mes 7 jours d’essai",
-  "home.offer.card.note": "Estimation mensuelle. Configuration et conditions à l’inscription.",
-
-  // ── LA FAQ ───────────────────────────────────────────────────────────────
-  "home.faq.kicker": "Avant de se lancer",
-  "home.faq.title_1": "On te garde",
+  "home.offer.card.cta": "Essayer Sophia 7 jours",
+  "home.offer.card.note": "Puis {amount}/mois pour le foyer. Les accès personnels supplémentaires sont en option.",
+  "home.faq.kicker": "Avant de commencer",
+  "home.faq.title_1": "Tes questions",
   "home.faq.title_2": "une réponse.",
-  "home.faq.q1": "Est-ce que je dois compter mes calories ?",
+  "home.faq.q1": "Est-ce que je dois compter mes calories ?",
   "home.faq.a1":
     "Les quantités et les apports des recettes prévues sont déjà calculés. Tu n’as pas à ressaisir chaque ingrédient dans un compteur. Si tu manges autre chose, tu peux décrire ton plat ou le prendre en photo pour le comptabiliser.",
-  "home.faq.q2": "Et si je ne mange pas le repas prévu ?",
+  "home.faq.q2": "Et si je mange autre chose ?",
   "home.faq.a2":
-    "Décris ce que tu as mangé ou envoie une photo pour l’ajouter à ton suivi. Cette déclaration complète ton suivi ; elle ne réorganise pas ton planning.",
-  "home.faq.q3": "Et si je cuisine pour d’autres personnes ?",
+    "Ce repas peut être ajouté à ton suivi. Cela ne modifie pas les repas déjà prévus.",
+  "home.faq.q3": "Et si je cuisine pour d’autres personnes ?",
   "home.faq.a3":
     "Sophia prend en compte les besoins, les préférences et les habitudes des membres de la maison. Les courses et les préparations sont regroupées quand c’est possible. Selon les contraintes, les plats peuvent aussi être différents.",
-  "home.faq.q4": "À quoi sert l’accès coaching individuel ?",
+  "home.faq.q4": "À quoi sert l’accès coaching individuel ?",
   "home.faq.a4":
-    "Il permet à un autre membre du foyer de suivre son propre objectif depuis son accès : faire compter ses repas hors plan en les décrivant ou en les photographiant, suivre ses calories et son poids, et parler avec la coach Sophia. Ses informations actualisées servent à générer ses plans. Il coûte {extra} par mois ; ton accès est inclus dans l’offre, et un membre sans accès reste pris en compte gratuitement.",
-  "home.faq.q5": "Le plan change-t-il quand je mets mon poids à jour ?",
+    "Il permet à un autre membre du foyer de suivre son propre objectif depuis son accès : faire compter ses repas hors plan en les décrivant ou en les photographiant, suivre ses calories et son poids, et parler avec la coach Sophia. Ses informations actualisées servent à générer ses plans. Il coûte {extra} par mois ; ton accès est inclus dans l’offre, et un membre sans accès reste pris en compte gratuitement.",
+  "home.faq.q5": "Le plan change-t-il quand je mets mon poids à jour ?",
   "home.faq.a5":
     "Ton poids actualisé fait partie des informations utilisées pour générer les plans suivants. Ce n’est pas une réorganisation automatique du planning déjà organisé, et ce n’est pas non plus ce qui se passe après un repas imprévu.",
-  "home.faq.q6": "Faut-il être à l’aise en cuisine ?",
+  "home.faq.q6": "Faut-il savoir cuisiner ?",
   "home.faq.a6":
-    "Tu renseignes ton temps disponible, ton équipement et ton niveau en cuisine. Sophia s’appuie dessus pour organiser les préparations. Il faut prévoir de cuisiner : les courses et les repas ne sont pas livrés.",
-  "home.faq.q7": "Comment fonctionne l’essai ?",
+    "Tu renseignes ton niveau, ton équipement et le temps dont tu disposes. Sophia en tient compte. Tu fais les courses et tu cuisines toi-même.",
+  "home.faq.q7": "Comment fonctionne l’essai ?",
   "home.faq.a7":
-    "Tu disposes de 7 jours d’essai. L’abonnement est ensuite de {household} par mois pour le foyer, sans engagement. Un accès coaching individuel coûte {extra} par mois. Les conditions sont présentées avant la souscription.",
-
-  // ── LA CLÔTURE — le seul bloc sombre de la page ──────────────────────────
-  "home.close.title": "Ton objectif, à table. Et le reste de ta vie autour.",
+    "Tu disposes de 7 jours pour essayer Sophia, puis tu peux t’abonner pour continuer. Si tu t’abonnes pendant l’essai, aucun prélèvement n’a lieu avant sa fin.",
+  "home.close.title": "Prêt à préparer ta première semaine ?",
   "home.close.body": "7 jours d’essai, puis {amount} par mois pour le foyer. Sans engagement.",
-  "home.close.cta": "Découvrir mon programme",
+  "home.close.cta": "Essayer Sophia 7 jours",
   "home.close.back_to_top": "Retour en haut",
 
   //
@@ -2313,6 +2042,11 @@ export const fr: TranslatedMessages = {
   // ══ ⟳ 2026-09-12 · ÉTAPE C5 — LES ÉCARTS D'UN PLAN LIVRÉ ════════════════
   "plan.validation.title": "Ce plan est utilisable, et voici ce qu’il ne tient pas",
   "plan.validation.intact": "Il a été enregistré. Rien d’autre n’a changé.",
+  // ⟳ 2026-09-16 — le même bandeau dans l'APERÇU : rien n'est enregistré tant
+  // qu'on n'adopte pas. Le pied « il a été enregistré » y faisait croire le
+  // contraire.
+  "plan.validation.preview_intact":
+    "Ce n’est qu’un aperçu : rien n’est enregistré tant que tu ne l’adoptes pas. Ton plan actuel n’a pas bougé.",
   "plan.validation.at": "{day}, {slot}",
   "plan.validation.for": "pour {name}",
   "plan.validation.term": "({term})",
@@ -2990,14 +2724,11 @@ export const fr: TranslatedMessages = {
   // « Plaques » et pas « cuisinière »: la question est le FEU, pas le meuble —
   // induction, gaz ou vitrocéramique répondent oui, et une plaque posée sur un
   // plan de travail aussi.
-  "setup.equipment.title": "Avec quoi vous cuisinez",
+  "setup.equipment.title": "Avec quoi tu cuisines",
   "setup.equipment.intro":
     "Demandé une fois, pour toute la cuisine — elle est partagée, ce n’est donc pas une question par personne.",
-  "setup.equipment.legend": "Votre cuisine",
-  "setup.equipment.hint":
-    "Cochez ce que vous avez vraiment. Un congélateur décide si on peut " +
-    "cuisiner une fois et garder le reste ; un micro-ondes décide de ce que " +
-    "« à réchauffer » veut dire le jour même. Sans réponse, rien ne change.",
+  "setup.equipment.legend": "Ta cuisine",
+  "setup.equipment.hint": "Coche ce que tu as vraiment. Un congélateur décide si on peut cuisiner une fois et garder le reste ; un micro-ondes décide de ce que « à réchauffer » veut dire le jour même. Sans réponse, rien ne change.",
   "setup.equipment.tool_oven": "Four",
   "setup.equipment.tool_stovetop": "Plaques",
   "setup.equipment.tool_microwave": "Micro-ondes",
@@ -4018,6 +3749,9 @@ export const fr: TranslatedMessages = {
   // geste quatre jours plus tard (« sors-la du congélateur la veille »), et
   // sans celle-ci on demandait de sortir une part que personne n'avait rangée.
   "meals.boxes.freeze": "· à congeler",
+  // ⟳ 2026-09-16 — un contenant qui ne tient que la part de marmite : le reste
+  // du repas (tortilla, laitue…) se monte le jour même, et c'est le jour qui le dit.
+  "meals.boxes.rest_on_the_day": "· le reste se prépare le jour même",
   // Le compte en tête, à côté du nombre de contenants: on veut savoir avant de
   // commencer combien iront au congélateur. Muet à zéro — un plan à deux
   // sessions n'a rien à congeler par construction.
@@ -5876,11 +5610,11 @@ export const fr: TranslatedMessages = {
   // ══════════════════════════════════════════════════════════════════════════
   // LOT 6 · `/app/plan` — LE CONSTRUCTEUR DE REPAS
   // ══════════════════════════════════════════════════════════════════════════
-  "meals.form.title": "Compose-moi quelque chose",
+  "meals.form.title": "Nouveau plan",
   "meals.form.mode_label": "On part d’où",
   "meals.form.mode_from_pantry": "De ce que j’ai déjà",
   "meals.form.mode_to_shop": "J’irai faire les courses",
-  "meals.form.window_label": "Quels jours",
+  "meals.form.window_label": "Jours",
   "meals.form.window_from": "Du",
   "meals.form.window_to": "Au",
   "meals.form.window_until_sunday": "Jusqu’à dimanche",
@@ -5909,7 +5643,12 @@ export const fr: TranslatedMessages = {
     "des invités samedi · le four est en panne · retour de vacances, frigo vide",
   "meals.form.context_carried":
     "Repris de ton dernier plan. Change-le si cette semaine est différente.",
-  "meals.form.submit": "Compose",
+  // ⟳ 2026-09-16 — LE BOUTON DIT CE QUI PART. « Compose » tout court vivait
+  // 1 400 px sous les dates; la personne cliquait sans relire combien de jours
+  // ni pour qui. `{days}` et `{people}` arrivent déjà accordés.
+  "meals.form.submit_for": "Composer {days} pour {people}",
+  "meals.form.people_one": "{n} personne",
+  "meals.form.people_other": "{n} personnes",
   "meals.form.building": "Composition…",
   "meals.form.cancel": "Annuler",
   "meals.form.pantry_required":
@@ -5964,10 +5703,7 @@ export const fr: TranslatedMessages = {
   // « Budget » et « Normal » s'écrivent à l'identique en français, comme les
   // deux clés jumelles de `setup.plan.*`. Les deux autres paliers, eux,
   // diffèrent bien — c'est la preuve que la table est traduite, pas recopiée.
-  "plan.cooking.budget_label": "Budget de ce plan",
-  "plan.cooking.budget_hint":
-    "Toutes les courses, dans ta monnaie. Demandé à chaque fois — le chiffre " +
-    "de la dernière fois n’est qu’un point de départ.",
+  "plan.cooking.budget_label": "Budget des courses",
   // ── ⛔ ICI VIVAIENT LES SIX CLÉS DE « COMMENT TU CUISINES CETTE SEMAINE »
   // Retirées le 2026-09-06 avec le champ et son composant
   // (`CookingShapeField.tsx`, supprimé). Elles disaient « Laisse le plan
@@ -5991,9 +5727,7 @@ export const fr: TranslatedMessages = {
   // ⚠️ ELLE DIT LES DEUX MOITIÉS DU MARCHÉ. Sans « le surplus part au
   // congélateur », la case ressemble à un raccourci gratuit — et la personne
   // découvre devant son frigo qu'elle a sept jours de plats à congeler.
-  "plan.cooking.one_session_hint":
-    "Une seule session de cuisine pour toute la période : ce qui ne se mange " +
-    "pas dans les jours qui suivent part au congélateur, et se sort la veille.",
+  "plan.cooking.one_session_hint": "Le surplus part au congélateur et se sort la veille.",
   // ⛔ ELLE DIT CE QUI MANQUE ET OÙ, jamais « indisponible ». Un refus qui ne
   // nomme pas sa condition se lit comme un bouton mort — cicatrice mesurée
   // trois fois sur l'écran de réglages.
@@ -6007,8 +5741,7 @@ export const fr: TranslatedMessages = {
   // ⛔ PAS DE PARENTHÈSES DANS LA CHAÎNE, ni de majuscule, ni de point final.
   // Elles sont dans la markup: une chaîne qui les porterait se retrouverait un
   // jour au milieu d'une phrase qui n'en veut pas.
-  "plan.cooking.one_session_needs_freezer":
-    "nécessite de cocher le congélateur dans « Avec quoi vous cuisinez »",
+  "plan.cooking.one_session_needs_freezer": "nécessite de cocher le congélateur dans « Avec quoi tu cuisines »",
   "plan.cooking.time_minutes": "{n} min",
   "plan.cooking.time_hours": "{n} h",
   "plan.cooking.time_required": "Dis combien de temps peut durer une session.",
@@ -6091,16 +5824,21 @@ export const fr: TranslatedMessages = {
   // `/app/plan` ACCUEILLE LA DEMANDE DE PLAN — POUR TOUT LE MONDE
   // ══════════════════════════════════════════════════════════════════════════
   "plan.request.title": "Demander un plan",
-  "plan.request.presence_title": "Qui est là, jour par jour",
-  "plan.request.presence_intro":
-    "Une ligne par bouche. Marque les repas que chacun ne prend pas à la maison sur cette fenêtre-ci.",
-  "plan.request.presence_open": "Marquer les absences",
+  "plan.request.presence_title": "Qui mange à la maison",
+  "plan.request.presence_open": "Modifier",
+  // ⟳ 2026-09-16 — L'ÉTAT SE LIT SANS OUVRIR LA GRILLE. Le compte est celui
+  // des MOMENTS écartés sur la fenêtre demandée, pas des jours.
+  "plan.request.presence_all_home": "Là à tous les repas",
+  "plan.request.presence_away_one": "{n} repas ailleurs",
+  "plan.request.presence_away_other": "{n} repas ailleurs",
 
   // ── L'ENVIE DE LA SEMAINE ───────────────────────────────────────────────
-  // ⚠️ LE TITRE EST LA PHRASE DE L'UTILISATEUR, MOT POUR MOT. Elle n'est pas du
-  // français canonique, et ce n'est PAS une coquille à corriger: c'est une
-  // instruction produit explicite. La corriger est une décision humaine.
-  "plan.envy.title": "C’est la maison a envie de quoi ?",
+  // ⟳ 2026-09-16 — UN MOT, PLUS UNE PHRASE. Le titre reprenait la phrase de
+  // l'utilisateur mot pour mot (« C'est la maison a envie de quoi ? »), gardée
+  // exprès hors du français canonique. Remplacé sur SA demande, avec le reste
+  // des libellés de l'écran: tous nominaux et courts, l'exemple vit dans le
+  // placeholder. La décision est humaine, et elle est datée ici.
+  "plan.envy.title": "Envies",
   // ⛔ `plan.envy.body` A ÉTÉ SUPPRIMÉE — 2026-09-08. Elle disait « une ligne,
   // pour tout le monde […] la laisser vide ne pose aucun problème »: deux
   // phrases pour dire que le champ est facultatif, au-dessus d'un champ qui
@@ -6225,15 +5963,6 @@ export const fr: TranslatedMessages = {
   "plan.mine.change_sent": "C’est parti au foyer.",
   "plan.mine.household_dishes": "Ce que la maison cuisine",
 
-  // ── UN PLAN PAR PERSONNE (2026-08-14) ────────────────────────────────────
-  "plan.person.title": "Qui mange quoi",
-  "plan.person.hint":
-    "Un plat pour la table, une ligne par personne. Ce qui change d’une ligne à l’autre, c’est la part — jamais le plat.",
-  "plan.person.mode_together": "Côte à côte",
-  "plan.person.mode_one": "Une personne",
-  "plan.person.dish_row": "Le plat",
-  "plan.person.standard": "Une part standard",
-  "plan.person.pick": "Lire la semaine de",
 
   "plan.section.basics.title": "Informations de base",
   "plan.section.basics.intro":
@@ -6610,18 +6339,12 @@ export const fr: TranslatedMessages = {
   // reprend MOT POUR MOT `plan.cooking.difficulty_keen`, qui existait déjà et
   // disait la bonne chose — en inventer une variante ferait deux phrases pour
   // une même idée, dans le même écran.
-  "plan.cooking.style_label": "Comment voulez-vous cuisiner ?",
-  "plan.cooking.style_hint":
-    "Ça décide de la durée d'une session, de l'ambition des recettes, et du " +
-    "nombre de fois où le plan vous demande de cuisiner.",
+  "plan.cooking.style_label": "Comment tu cuisines",
   "plan.cooking.style_unset": "Pas encore répondu",
   "plan.cooking.style_minimal": "Le moins possible — je réchauffe",
   "plan.cooking.style_balanced": "Un juste milieu",
   "plan.cooking.style_keen": "J'aime cuisiner, envoie",
-  "plan.cooking.runs_label": "Combien de courses ?",
-  "plan.cooking.runs_hint":
-    "Combien de fois vous acceptez d'aller au magasin sur ce plan. Une seule " +
-    "demande un congélateur ; sans lui le plan en pose deux, et il le dit.",
+  "plan.cooking.runs_label": "Courses",
   "plan.cooking.runs_unset": "Pas encore répondu",
   // ⚠️ « Peu importe » EST UNE RÉPONSE, et le libellé doit le faire sentir
   // face à « Pas encore répondu » juste au-dessus. Le second membre dit ce

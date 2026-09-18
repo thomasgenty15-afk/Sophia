@@ -143,6 +143,9 @@ describe("LOT 1 — la bouche sans cible, à l'écran", () => {
         "items",
         "lid",
         "meal",
+        // ⟳ 2026-09-16 — `partial` : un contenant de session qui ne tient que la
+        // part de marmite. Un booléen, jamais un chiffre d'énergie.
+        "partial",
         "shared",
         "total",
       ]);
