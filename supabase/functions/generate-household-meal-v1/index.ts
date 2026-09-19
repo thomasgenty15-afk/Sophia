@@ -798,6 +798,7 @@ import {
   dishDedupeIssue,
   foldDuplicateDishes,
 } from "../_shared/keel/plan_dish_dedupe.ts";
+import { runThroughWithoutPreparations } from "../_shared/keel/session_run_through.ts";
 // ⟳ 2026-09-12 · ÉTAPE C4 — LA PASSE COMMUNE. Elle ne mesure rien: elle
 // traduit les six contrôles dans le seul type que le budget comprend.
 import {
@@ -15478,11 +15479,19 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
         { margin: POT_IDENTITY_MARGIN },
       );
       const removed = new Set<string>();
+      // ⟳ 2026-09-19 — LES MOTS DE LA CASSEROLE RETIRÉE, gardés pour réécrire
+      // le déroulé de sa session (voir `session_run_through.ts`).
+      const removedWords: { id: string; title: string; ingredientTerms: string[] }[] = [];
       for (const prep of meal.preparations) {
         const v = verdicts.get(prep.id);
         if (!v) continue;
         if (v.reason === "removed") {
           removed.add(prep.id);
+          removedWords.push({
+            id: prep.id,
+            title: prep.title,
+            ingredientTerms: prep.ingredients.map((i) => i.term),
+          });
           shrinkCounts.removed++;
           continue;
         }
@@ -15501,9 +15510,43 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
       if (removed.size > 0) {
         meal.preparations = meal.preparations.filter((p) => !removed.has(p.id));
         for (const dish of meal.dishes) dish.uses = dish.uses.filter((u) => !removed.has(u.preparationId));
+        const titleOf = new Map(meal.preparations.map((p) => [p.id, p.title] as const));
         for (const session of meal.cooking_sessions) {
+          const avant = session.preparationIds.length;
           session.preparationIds = session.preparationIds.filter((id) => !removed.has(id));
           if (session.preparationIds.length === 0) shrinkCounts.sessions_emptied++;
+          // ══════════════════════════════════════════════════════════════
+          // ⟳ 2026-09-19 — LE DÉROULÉ SUIT LE RETRAIT. Lu sur le plan adopté
+          // du 2026-09-19 : la session du lundi disait « poêler le
+          // cabillaud, cuire l'orge et le brocoli » — trois aliments que
+          // personne n'avait achetés, la casserole cabillaud-orge ayant été
+          // retirée ICI, id seul, texte intact. Les phrases qui la nomment
+          // tombent ; s'il ne reste rien, la liste des casseroles restantes.
+          // ══════════════════════════════════════════════════════════════
+          if (session.preparationIds.length < avant && session.preparationIds.length > 0) {
+            const rewrite = runThroughWithoutPreparations({
+              runThrough: session.runThrough,
+              removed: removedWords,
+              remainingTitles: session.preparationIds.map((id) => titleOf.get(id) ?? id),
+            });
+            if (rewrite.text !== session.runThrough) {
+              console.log(JSON.stringify({
+                tag: "keel.household_meal.run_through_rewritten",
+                user_id: userId,
+                request_id: requestId,
+                day: session.day,
+                removed: removedWords.map((r) => r.id),
+                dropped_sentences: rewrite.droppedSentences,
+                kept_sentences: rewrite.keptSentences,
+                fell_back_to_titles: rewrite.fellBackToTitles,
+              }));
+              issues.push(
+                `cooking_sessions[${session.day}]: run-through rewritten after ${removedWords.map((r) => r.id).join(", ")} left -- ` +
+                  `${rewrite.droppedSentences} sentence(s) dropped${rewrite.fellBackToTitles ? ", titles listed instead" : ""}`,
+              );
+              session.runThrough = rewrite.text;
+            }
+          }
         }
         meal.cooking_sessions = meal.cooking_sessions.filter((s) => s.preparationIds.length > 0);
         issues.push(
