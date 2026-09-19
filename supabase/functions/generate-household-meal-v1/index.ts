@@ -19251,9 +19251,15 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
           baseVersion: c4BaseVersion,
           // ⛔ CE QUE LA TENTATIVE PRÉCÉDENTE A COÛTÉ, DIT AU MODÈLE.
           afterVerdict: c4LastVerdict,
+          // ⟳ 2026-09-19 — LES MÊMES IDS QU'AU PREMIER JET. Sans eux la
+          // réparation inventait des aliments (`hummus`, `smoked_salmon`) et
+          // des termes sans ref ; un plat qui en porte un est non mesurable,
+          // donc jamais mis en boîte. Voir `planRepairMessage.catalogLines`.
+          catalogLines: catalog?.lines ?? [],
         });
       console.log(JSON.stringify({
         tag: "keel.household_meal.plan_repair_context",
+        catalog_lines: catalog?.lines.length ?? 0,
         user_id: userId,
         request_id: requestId,
         round: c4Round,
@@ -19785,6 +19791,27 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
                 ...meal.dishes.flatMap((d) => d.ingredients),
                 ...meal.preparations.flatMap((pr) => pr.ingredients),
               ];
+              // ══════════════════════════════════════════════════════════
+              // ⟳ 2026-09-19 — L'INDEX ENRICHI EST ABSORBÉ, EN PLACE
+              // ══════════════════════════════════════════════════════════
+              //
+              // ⛔ LE DÉFAUT, MESURÉ EN RUN RÉEL (foyer `fagenty`, local et
+              // prod) : `fillPlanComposition` rend un NOUVEL index
+              // (`withFilledRefs` copie `bySlug`), et ce bloc n'en faisait que
+              // journaliser `measured: true`. Le pesage du tour suivant lisait
+              // toujours l'index du premier jet — qui ne connaît que les
+              // aliments du premier jet. Tout plat créé par la réparation
+              // était donc « non mesurable » (`mackerel`, `white_beans`…
+              // pourtant dans la table), sans rang pesé, sans boîte ; le juge
+              // y voyait des défauts de plus et jetait la candidate. Deux
+              // appels payés, trois tours aux compteurs strictement identiques
+              // — et `absorbIndexInto` n'avait AUCUN appelant en production.
+              //
+              // ⚠️ ON ABSORBE, ON NE RÉASSIGNE PAS : `composition` est fermée
+              // dans une dizaine de fermetures créées plus haut (le test de
+              // câblage refuse une seconde réassignation). `absorbIndexInto`
+              // ajoute dans les Maps existantes ; tout détenteur de l'objet
+              // voit les aliments neufs.
               const rempli = await fillPlanComposition({
                 baseIndex: composition,
                 attempt: (baseIndex) =>
@@ -19824,6 +19851,12 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
                 // n'a rien mesuré. Les deux ne se confondent pas.
                 measured: rempli.outcome.measured,
                 reason: rempli.outcome.measured ? null : rempli.outcome.reason,
+                // ⟳ 2026-09-19 — L'ABSORPTION, ICI MÊME : en place, dans les
+                // Maps de `composition` (voir le pavé au-dessus du sas). Un
+                // journal qui la porte est un journal qui ne peut pas l'oublier.
+                absorbed: rempli.index !== null && rempli.index !== composition
+                  ? absorbIndexInto(composition, rempli.index)
+                  : null,
               }));
             }
             continue;

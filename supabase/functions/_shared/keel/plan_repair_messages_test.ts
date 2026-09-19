@@ -154,6 +154,7 @@ function messages(n: number) {
     ],
   });
   const user = planRepairMessage({
+    catalogLines: [],
     defects: [
       defaut({
         kind: "sizing",
@@ -261,6 +262,7 @@ Deno.test("⚠️ LE CAS QUI PASSE — sans défaut réparable, aucun message n'
   assertEquals(scope.unitIds, []);
   assertEquals(scope.sessionIds, []);
   const rien = planRepairMessage({
+    catalogLines: [],
     defects: [defaut({ kind: "preference", repairable: false })],
     days: [],
     plan,
@@ -290,4 +292,43 @@ Deno.test("⛔ le périmètre GRANDIT avec la table, et le message avec lui", ()
   for (const id of ["m_a", "m_b", "m_c", "m_d"]) {
     assert(quatre.user.includes(id), `${id} n'est pas dans la projection`);
   }
+});
+
+Deno.test("⟳ 2026-09-19 — le catalogue d'aliments voyage avec la réparation, après le plan et avant le contrat", () => {
+  // Mesuré sur le plan adopté du 2026-09-19 : sans catalogue, la réparation a
+  // écrit `hummus` et `smoked_salmon` — inconnus de la table — et deux termes
+  // sans ref ; un seul ingrédient non résolu rend le plat non mesurable, donc
+  // sans boîte. Le premier jet reçoit ces lignes ; la réparation aussi, désormais.
+  const bouches = ["m_a", "m_b"];
+  const { plan, index, sessions } = foyer(bouches);
+  const defects = [
+    defaut({
+      kind: "sizing",
+      cause: "cell_bounds_off",
+      day: "sat",
+      slot: "dinner",
+      memberId: bouches[0],
+      detail: "the dinner plate weighs 780 g cooked, and it must be 250 to 700 g.",
+      measure: { of: "mass", grams: 780, minG: 250, maxG: 700 },
+      magnitude: 80,
+    }),
+  ];
+  const scope = repairScopeOf({ plan, index, sessions, defects });
+  const base = { defects, days: [], plan, index, sessions, scope, nutrition: null, baseVersion: "req#r0", afterVerdict: null };
+  const avec = planRepairMessage({
+    ...base,
+    catalogLines: ["== THE FOOD IDS THIS KITCHEN WEIGHS WITH ==", "  apple · 52 · 0.3 · unit=150"],
+  });
+  assert(avec !== null);
+  const planAt = avec.text.indexOf("== THE PLAN AS THE APP READS IT RIGHT NOW ==");
+  const cat = avec.text.indexOf("== THE FOOD IDS THIS KITCHEN WEIGHS WITH ==");
+  const contrat = avec.text.indexOf("base_version");
+  assert(planAt > 0 && cat > planAt, "le catalogue doit suivre le plan");
+  assert(contrat > cat, "le catalogue doit précéder le contrat de patch");
+  assert(avec.text.includes("apple · 52 · 0.3 · unit=150"));
+  // ── LE CAS QUI PASSE : sans catalogue, rien n'est ajouté, pas même un vide ──
+  const sans = planRepairMessage({ ...base, catalogLines: [] });
+  assert(sans !== null);
+  assert(!sans.text.includes("THE FOOD IDS"));
+  assertEquals(sans.text.replace(/\n{3,}/g, "\n\n"), sans.text, "aucune ligne vide de trop");
 });

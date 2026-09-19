@@ -1573,6 +1573,19 @@ export function planRepairMessage(args: {
    * donne au modèle ce qui manquait.
    */
   readonly afterVerdict: CandidateVerdict | null;
+  /**
+   * ⟳ 2026-09-19 — LE CATALOGUE D'ALIMENTS, LES MÊMES LIGNES QU'AU PREMIER JET.
+   *
+   * ⛔ REQUIS, JAMAIS `?` : `[]` est une réponse (« aucun catalogue en main »),
+   * un oubli n'en est pas une. Mesuré sur le plan adopté du 2026-09-19 (foyer
+   * `fagenty`) : le message de réparation ne portait AUCUNE liste d'ids, et
+   * les plats créés pour les cases vides citaient `hummus`, `smoked_salmon`
+   * (inconnus de la table), « lentilles » et « pain complet » sans ref. Un
+   * seul ingrédient non résolu rend le plat entier non mesurable
+   * (`measurePlate`), donc sans boîte, donc « repas sans portion » — 14 fois
+   * sur ce plan. Le premier jet, lui, reçoit le catalogue et écrit des refs.
+   */
+  readonly catalogLines: readonly string[];
   readonly softMaxChars?: number;
   readonly hardMaxChars?: number;
 }): PlanRepairMessage | null {
@@ -1627,6 +1640,10 @@ export function planRepairMessage(args: {
       "== THE PLAN AS THE APP READS IT RIGHT NOW ==",
       projection.text,
       "",
+      // ⟳ 2026-09-19 — LE CATALOGUE APRÈS LE PLAN ET AVANT LE CONTRAT : le
+      // modèle lit d'abord ce qu'il corrige, puis avec quoi il pèse, puis la
+      // forme de sa réponse. Absent (`[]`), rien n'est ajouté, pas même un vide.
+      ...(args.catalogLines.length === 0 ? [] : [...args.catalogLines, ""]),
       // ⟳ 2026-09-13 · LOT 2 — LE PÉRIMÈTRE SEUL. Le SCHÉMA est passé dans le
       // message SYSTÈME de réparation (`plan_repair_prompt.ts`), pour qu'il
       // n'existe qu'UN schéma de sortie dans l'appel — c'est le défaut P1 §3

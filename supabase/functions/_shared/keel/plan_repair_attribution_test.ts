@@ -258,6 +258,7 @@ function messages(args: {
     defects: [...args.defects],
   });
   const user = planRepairMessage({
+    catalogLines: [],
     defects: [...args.defects],
     days: args.days ?? [],
     plan,

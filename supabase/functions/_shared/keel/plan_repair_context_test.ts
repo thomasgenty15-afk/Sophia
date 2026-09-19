@@ -220,6 +220,7 @@ function message(defects: readonly RepairDefect[], index = INDEX, plan = TIR1) {
   return {
     scope,
     composed: planRepairMessage({
+      catalogLines: [],
       defects,
       days: [],
       plan,
@@ -539,6 +540,7 @@ Deno.test("⑥ une bouche non nourrie ouvre son unité RÉSERVÉE, sans créneau
   // ⛔ ET AUCUN CRÉNEAU NOUVEAU: l'unité réservée vit dans la grille attendue.
   assertEquals(index.units.length, 2);
   const composed = planRepairMessage({
+    catalogLines: [],
     defects: [defaut({
       kind: "missing_meal",
       cause: "mouth_unfed",
@@ -633,6 +635,7 @@ Deno.test("⑦ ter — ⟳ §2.1 : la consigne NOMME les jours où une casserole
     defects,
   });
   const composed = planRepairMessage({
+    catalogLines: [],
     defects,
     days: [],
     plan: planAvecSessions,

@@ -1183,6 +1183,23 @@ Deno.test("⛔ CÂBLAGE ㊶ — l'entrée ajoutée passe par le SAS DE REMPLISSA
   assert(bloc.includes("baseIndex: composition,"), "le sas ne part pas de l'index courant");
   assert(bloc.includes('tag: "keel.household_meal.final_repair_fill"'), "le sas ne se journalise pas");
   assert(bloc.includes("measured: rempli.outcome.measured,"), "on ne saurait pas si le sas a mesuré");
+  // ⟳ 2026-09-19 — ET L'INDEX QU'IL REND EST ABSORBÉ, EN PLACE. Mesuré : ce
+  // test tenait « le sas tourne », et le sas tournait pour rien — son index
+  // neuf était jeté, le tour suivant pesait avec l'ancien, et tout plat créé
+  // par la réparation restait sans boîte. `absorbIndexInto` n'avait aucun
+  // appelant en production.
+  // ⚠️ Cherchée par sa propre position, pas dans `bloc` : le pavé qui explique
+  // le défaut la place à plus de 900 caractères du sas, et c'est l'ORDRE qui
+  // compte — après le sas, avant le tour suivant.
+  const absorb = SRC.indexOf("? absorbIndexInto(composition, rempli.index)");
+  assert(
+    absorb > fill && absorb < suite,
+    "l'index enrichi par le sas n'est plus absorbé entre le sas et le tour suivant : les plats réparés repartent non mesurables",
+  );
+  assert(
+    SRC.slice(absorb - 200, absorb + 200).includes("absorbed: rempli.index !== null"),
+    "l'absorption ne se journalise pas",
+  );
 });
 
 Deno.test("⛔ CÂBLAGE ㊷ — la journée de CHAQUE bouche porte son pourcentage, sans nommer personne", () => {
@@ -1259,7 +1276,12 @@ Deno.test("⛔ CÂBLAGE ㉛ — le référentiel se complète sur les DEUX lanes
   // ⟳ 2026-09-12 · FERMETURE LOT 1 — `absorbIndexInto` servait aux TROIS sites
   // d'après-réparation (densité table, densité solo, entrée de dernier
   // recours). Il n'en reste aucun : le sas unique passe par
-  // `fillPlanComposition`, qui absorbe dans l'index qu'on lui donne.
+  // `fillPlanComposition`.
+  // ⟳ 2026-09-19 — CETTE PHRASE DISAIT « qui absorbe dans l'index qu'on lui
+  // donne ». C'ÉTAIT FAUX : `withFilledRefs` copie `bySlug` et rend un index
+  // neuf, que le site de fusion jetait. L'absorption est désormais explicite
+  // (`absorbIndexInto`, épinglé plus haut) — l'affirmation d'une garde se
+  // vérifie, elle ne se recopie pas.
   assert(
     SRC.includes("baseIndex: composition,"),
     "le sas d'après réparation ne part plus de l'index courant",
