@@ -5196,8 +5196,8 @@ export const en = {
   // l'incertitude inter-individuelle de Mifflin-St Jeor, pas un curseur de
   // confort: la question est « la formule tombe-t-elle juste sur moi ? ».
   // Demander l'appétit obtiendrait une réponse à une autre question.
-  "household.mouth.appetite": "How much {who} usually eats",
-  "household.mouth.appetite_you": "How much you usually eat",
+  "household.mouth.appetite": "How big is {who}’s appetite?",
+  "household.mouth.appetite_you": "How big is your appetite?",
   // Voir la note de `fr.ts`: la phrase sur les ±10 % est partie le 2026-09-01,
   // et la comparaison qui reste porte un pronom — donc elle est voisée.
   //
@@ -5226,16 +5226,21 @@ export const en = {
   // ne traverse aucune des quatre portes de l'énergie, et il ne doit jamais
   // s'accompagner d'un chiffre sur le corps. D'où « what the day aims for »,
   // qui dit la même chose sans poser le mot.
+  // ⟳ 2026-09-18 — the question now asks for the appetite in plain words and the
+  // three answers are one word each (see the French note: this reverses the
+  // « we do not ask about appetite » rule above, on the owner's call). The hint
+  // is what still protects the reading: it names what the answer moves — the
+  // VOLUME on the plate — and what it does not.
   "household.mouth.appetite_hint":
-    "At the same build, {who} eats… This does not change what the day aims for — only how full the plate is.",
+    "At the same build. This does not change what the day aims for — only how full {who}’s plate is.",
   "household.mouth.appetite_hint_you":
-    "At the same build, you eat… This does not change what the day aims for — only how full the plate is.",
+    "At the same build. This does not change what the day aims for — only how full your plate is.",
   // ⚠️ LES TROIS LIBELLÉS PARLENT DE VOLUME, PAS DE QUANTITÉ D'ÉNERGIE. « Less »
   // seul se lisait « moins à manger »; ici on nomme l'assiette, qui est très
   // exactement ce que le facteur déplace.
-  "household.mouth.appetite_small": "Smaller plates",
-  "household.mouth.appetite_average": "Like most people",
-  "household.mouth.appetite_large": "Bigger plates",
+  "household.mouth.appetite_small": "Small",
+  "household.mouth.appetite_average": "Average",
+  "household.mouth.appetite_large": "Large",
   // ── BLOC 4 ──────────────────────────────────────────────────────────────
   // ── LA QUESTION DES MOMENTS A CHANGÉ D'ÉCRAN LE 2026-08-19 ────────────
   // Elle vivait à l'étape 3, deux écrans après « ce qu'elle mange déjà » —

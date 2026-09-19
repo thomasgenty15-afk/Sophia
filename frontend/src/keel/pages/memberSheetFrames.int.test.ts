@@ -144,8 +144,15 @@ describe("les deux cadres de la fiche, et ce qui reste dehors", () => {
   const rowAt = whole.indexOf("function MemberRow(");
   const src = whole.slice(rowAt);
 
+  /**
+   * ⚠️ ON VISE `title={t(…)}`, PAS LA CLÉ NUE — 2026-09-19. Les deux MÊMES clés
+   * nomment maintenant les deux boutons de la LIGNE (l'entrée directe sur un
+   * cadre), et ils sont écrits AVANT la fenêtre: un `indexOf` sur la clé seule
+   * lisait donc le bouton, trouvait `onClick` à la place de `loaded`, et ces
+   * deux gardes tombaient sans qu'aucune garde n'ait été retirée.
+   */
   it("« Informations personnelles » est gardé par la lecture des CORPS", () => {
-    const i = src.indexOf('t("household.member.frame_identity")');
+    const i = src.indexOf('title={t("household.member.frame_identity")}');
     expect(i, "le cadre d'identité n'existe plus").toBeGreaterThan(0);
     expect(
       src.slice(i, i + 400),
@@ -154,9 +161,28 @@ describe("les deux cadres de la fiche, et ce qui reste dehors", () => {
   });
 
   it("« Préférences alimentaires » est gardé par la lecture des HABITUDES", () => {
-    const i = src.indexOf('t("household.member.frame_preferences")');
+    const i = src.indexOf('title={t("household.member.frame_preferences")}');
     expect(i).toBeGreaterThan(0);
     expect(src.slice(i, i + 400)).toContain("loaded={habitsLoaded}");
+  });
+
+  /**
+   * ⛔ ET LES DEUX CADRES S'ATTEIGNENT DEPUIS LA LIGNE, SANS PASSER PAR L'AUTRE
+   * — demandé le 2026-09-19. Un seul « Modifier » ouvrait la fenêtre sur ses
+   * deux cadres dépliés: la question qu'on venait poser était à un défilement.
+   *
+   * ⚠️ `openSheet` OUVRE L'UN **ET** REPLIE L'AUTRE. Sans la seconde moitié,
+   * les deux boutons ouvriraient le même écran et le second serait un doublon.
+   */
+  it("la ligne porte les deux portes, et chacune ouvre SON cadre", () => {
+    expect(src).toContain('onClick={() => openSheet("identity")}');
+    expect(src).toContain('onClick={() => openSheet("preferences")}');
+    const at = src.indexOf('const openSheet = (frame: "identity" | "preferences")');
+    expect(at, "l'ouverture ciblée n'existe pas").toBeGreaterThan(0);
+    const body = src.slice(at, at + 300);
+    expect(body).toContain('setIdentityOpen(frame === "identity")');
+    expect(body).toContain('setPrefsOpen(frame === "preferences")');
+    expect(body).toContain("setOpen(true)");
   });
 
   /**

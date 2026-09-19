@@ -74,8 +74,49 @@ FRONT_TEST_BASELINE="scripts/.vitest-red-baseline"
 FRONT_TYPES_BASELINE="scripts/.tsc-test-red-baseline"
 STAGED_ONLY="${AGENT_GATE_STAGED_ONLY:-0}"
 
+# ═══════════════════════════════════════════════════════════════════════════
+# LE RÉSUMÉ QU'ON DONNE À L'AGENT — 2026-09-19
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# Un refus imprimait jusqu'ici SON MOTIF, et rien d'autre, quelque part au
+# milieu de la sortie des outils. Or le geste qui suit un refus est toujours le
+# même: recopier CE QUI A CASSÉ dans une session d'agent. Chaque contrôle dépose
+# donc ses lignes ici, et `fail` les rend en bloc, en dernier, sous un en-tête
+# rouge — la dernière chose à l'écran est celle qu'on va coller.
+#
+# ⛔ LA COULEUR EST CONDITIONNELLE, et ce n'est pas une coquetterie: ce bloc est
+# fait pour être COLLÉ. Quand stderr n'est pas un terminal (hook redirigé dans
+# un fichier, sortie lue par un agent), les `\033[...` partiraient dans le
+# presse-papier au milieu du texte. Pas de terminal ⇒ pas de code de couleur.
+GATE_DIGEST="$(mktemp -t agent-gate-digest)"
+trap 'rm -f "$GATE_DIGEST"' EXIT
+
+if [ -t 2 ]; then
+  GATE_RED=$'\033[1;31m'
+  GATE_OFF=$'\033[0m'
+else
+  GATE_RED=""
+  GATE_OFF=""
+fi
+
+# ⚠️ ON ÉCRIT DANS UN FICHIER, PAS DANS UNE VARIABLE. La moitié des appels
+# viennent d'un `while read` en bout de pipeline, donc d'un SOUS-SHELL: une
+# variable y serait remplie puis perdue, et le résumé sortirait vide sans que
+# rien ne le dise.
+digest() {
+  printf '%s\n' "$1" >>"$GATE_DIGEST"
+}
+
 fail() {
   printf 'agent-gate: fail: %s\n' "$1" >&2
+  printf '\n%sÀ donner à l'"'"'agent :%s\n' "$GATE_RED" "$GATE_OFF" >&2
+  if [ -s "$GATE_DIGEST" ]; then
+    sed 's/^/  /' "$GATE_DIGEST" >&2
+  else
+    # Un contrôle qui n'a rien déposé: son motif vaut mieux qu'un bloc vide.
+    printf '%s\n' "$1" | sed 's/^[[:space:]]*/  /' >&2
+  fi
+  printf '\n' >&2
   exit 1
 }
 
@@ -141,6 +182,11 @@ check_forbidden_patterns() {
   if [ -f scripts/check-local-jwt-alg.sh ]; then
     if ! bash scripts/check-local-jwt-alg.sh --static >/dev/null 2>&1; then
       bash scripts/check-local-jwt-alg.sh --static >&2 || true
+      digest "L'alignement JWT local est rompu — GoTrue signerait en ES256 et"
+      digest "TOUTE fonction en verify_jwt = true rendrait 401."
+      digest "Lance ./scripts/check-local-jwt-alg.sh puis lis docs/keel/JWT-HS256.md."
+      digest "⛔ NE PAS passer une fonction en verify_jwt = false, NE PAS remplir"
+      digest "   supabase/signing_keys.local.json (il doit rester [])."
       fail "alignement JWT local rompu — ce commit le propagerait (docs/keel/JWT-HS256.md)"
     fi
     info "alignement JWT local ok"
@@ -155,6 +201,10 @@ check_forbidden_patterns() {
   if printf '%s' "$added" | rg -qi 'verify_jwt[[:space:]]*=[[:space:]]*false' \
      && printf '%s' "$added" | rg -qi 'es256|hs256|invalid jwt'; then
     printf '%s\n' "$added" | rg -i 'verify_jwt|es256|hs256|invalid jwt' >&2 || true
+    digest "supabase/config.toml: ce commit ajoute un verify_jwt = false en"
+    digest "invoquant l'algorithme JWT local. Retire-le."
+    printf '%s\n' "$added" | rg -i 'verify_jwt|es256|hs256|invalid jwt' \
+      | head -n 10 | while IFS= read -r l; do digest "  $l"; done || true
     fail "ce commit ajoute un verify_jwt = false en invoquant l'algorithme JWT local.
        Ce n'est pas la réparation: lancez ./scripts/check-local-jwt-alg.sh et
        lisez docs/keel/JWT-HS256.md. Si le verify_jwt = false est légitime
@@ -169,6 +219,8 @@ check_test_count() {
   baseline="$(tr -d '[:space:]' < "$BASELINE_FILE")"
   current="$(test_count)"
   if [ "$current" -lt "$baseline" ]; then
+    digest "Le compte de tests a BAISSÉ: ${current} < ${baseline} (${BASELINE_FILE})."
+    digest "Des tests ont été supprimés. Rends-les, ou dis lesquels et pourquoi."
     fail "test count decreased (${current} < ${baseline})"
   fi
   info "test count ok (${current} >= ${baseline})"
@@ -201,14 +253,49 @@ check_tests() {
   fi
   [ -d supabase/functions/_shared/keel ] || return 0
   info "running keel test suite"
+
+  # ── 2026-09-19 — `--parallel`, ET LA SORTIE NE S'IMPRIME QU'EN CAS DE ROUGE ─
+  #
+  # MESURÉ SUR CE POSTE (8 cœurs), 7 409 tests, trois runs verts chacun:
+  #     en série      57 s
+  #     --parallel    31 / 33 / 33 s
+  #
+  # ⚠️ ET LE TEMPS N'ÉTAIT PAS LE PIRE. Le reporter imprime UNE LIGNE PAR TEST:
+  # un `git commit` rendait 11 044 lignes, dont 7 412 venaient d'ici. Les huit
+  # lignes `agent-gate:` qui disent CE QUI a échoué étaient noyées dedans, et le
+  # motif du refus se lisait à l'écran pendant une demi-seconde. Un gate dont on
+  # ne lit plus le verdict est un gate qu'on finit par contourner.
+  #
+  # ⛔ `--quiet` NE RÉPARE PAS ÇA, et c'est mesuré: 7 412 lignes avec, 7 412
+  # sans. Il ne tait que les messages de téléchargement et de check, jamais le
+  # reporter. La seule façon est de CAPTURER: vert ⇒ on n'imprime que le bilan;
+  # rouge ⇒ on imprime TOUT, sur stderr, avant de refuser.
+  local keel_out
+  keel_out="$(mktemp -t agent-gate-deno)"
+
   # L'ENVIRONNEMENT EST PURGÉ. Une variable SUPABASE_* héritée du shell fait
   # basculer des dizaines de tests vers une vraie pile et rend 114 faux rouges —
   # après quoi on désarme le gate en croyant réparer un test.
-  (
+  if (
     for v in $(env | grep -o '^SUPABASE_[A-Z_]*' || true); do unset "$v"; done
-    deno test --allow-read --allow-env supabase/functions/_shared/keel/
-  ) || fail "des tests keel sont rouges. Le gate les LANCE depuis le 2026-08-12:
+    deno test --parallel --allow-read --allow-env supabase/functions/_shared/keel/
+  ) >"$keel_out" 2>&1; then
+    # Le bilan, et rien d'autre: « ok | 7409 passed | 0 failed | 2 ignored ».
+    info "keel: $(rg -N 'passed \|' "$keel_out" | tail -n 1 | sed $'s/\033\\[[0-9;]*m//g')"
+    rm -f "$keel_out"
+  else
+    cat "$keel_out" >&2
+    digest "SUITE DENO ROUGE — supabase/functions/_shared/keel/"
+    # Le bloc `FAILURES` de deno nomme chaque test cassé ET son fichier. On le
+    # blanchit de ses codes de couleur: ce résumé part dans un presse-papier.
+    sed $'s/\033\\[[0-9;]*m//g' "$keel_out" \
+      | awk '/^ *FAILURES *$/ {f=1; next} /^(FAILED|ok|error:)/ {f=0} f && NF {print}' \
+      | head -n 25 | while IFS= read -r l; do digest "  $l"; done || true
+    digest "Rejoue: deno test --parallel --allow-read --allow-env supabase/functions/_shared/keel/"
+    rm -f "$keel_out"
+    fail "des tests keel sont rouges. Le gate les LANCE depuis le 2026-08-12:
        les compter laissait passer un commit avec sept tests cassés."
+  fi
 }
 
 # ── LE GATE VOIT ENFIN LE FRONT ─────────────────────────────────────────────
@@ -273,10 +360,21 @@ check_front_tests() {
        (cd frontend && npm exec -- vitest --config vitest.config.ts run)"
   fi
 
-  if PATH="$node_dir:$PATH" node scripts/agent-gate-front-tests.mjs "$report" "$FRONT_TEST_BASELINE"; then
-    rm -f "$report"
+  # La sortie du juge est CAPTURÉE plutôt que laissée filer: c'est elle qui
+  # nomme un par un les rouges hors liste, et c'est exactement ce qu'il faut
+  # recopier. On la réimprime telle quelle, puis on en tire le résumé.
+  local verdict
+  verdict="$(mktemp -t agent-gate-front-verdict)"
+  if PATH="$node_dir:$PATH" node scripts/agent-gate-front-tests.mjs "$report" "$FRONT_TEST_BASELINE" >"$verdict" 2>&1; then
+    cat "$verdict"
+    rm -f "$report" "$verdict"
   else
-    rm -f "$report"
+    cat "$verdict" >&2
+    digest "SUITE VITEST ROUGE — frontend/ (hors ${FRONT_TEST_BASELINE})"
+    rg -N '^    \S' "$verdict" | head -n 20 \
+      | while IFS= read -r l; do digest " $l"; done || true
+    digest "Rejoue un fichier: (cd frontend && npm exec -- vitest --config vitest.config.ts run <chemin>)"
+    rm -f "$report" "$verdict"
     fail "des tests front sont rouges hors de la liste $FRONT_TEST_BASELINE"
   fi
 }
@@ -318,6 +416,8 @@ check_front_test_typecheck() {
   checked="$(awk '/\.(int\.)?(test|spec)\.tsx?$/ {n++} END {print n+0}' "$out")"
   if [ "$checked" -lt 1 ]; then
     rm -f "$out" "$expect"
+    digest "frontend/tsconfig.test.json ne typecheck AUCUN fichier de test:"
+    digest "son \`include\` ne mord plus. La garde existe mais ne garde rien."
     fail "tsconfig.test.json ne typecheck AUCUN fichier de test — son \`include\` ne mord plus"
   fi
 
@@ -333,6 +433,7 @@ check_front_test_typecheck() {
     if [ "$current" -gt "$count" ]; then
       printf 'agent-gate: %s — %s erreurs de type, la liste en tolère %s\n' \
         "$path" "$current" "$count" >&2
+      digest "  $path — $current erreurs de type, ${FRONT_TYPES_BASELINE} en tolère $count"
       verdict=1
     elif [ "$current" -lt "$count" ]; then
       info "⚠️ $path — ${current} erreurs (< ${count}) : ABAISSE sa ligne dans $FRONT_TYPES_BASELINE"
@@ -346,6 +447,9 @@ check_front_test_typecheck() {
   if [ -n "$unlisted" ]; then
     printf 'agent-gate: des fichiers de test portent des erreurs de type HORS liste:\n' >&2
     printf '%s\n' "$unlisted" | sed 's/^/    /' >&2
+    digest "  fichiers de test en erreur HORS ${FRONT_TYPES_BASELINE}:"
+    printf '%s\n' "$unlisted" | head -n 15 \
+      | while IFS= read -r l; do digest "    $l"; done || true
     verdict=1
   fi
 
@@ -354,13 +458,32 @@ check_front_test_typecheck() {
   info "test typecheck: ${checked} fichiers lus, ${current} erreurs (liste: ${tolerated})"
   rm -f "$out" "$expect"
 
-  [ "$verdict" -eq 0 ] || fail "le typecheck des tests front a régressé (voir ci-dessus)"
+  if [ "$verdict" -ne 0 ]; then
+    # L'en-tête vient APRÈS les lignes de détail dans le code, mais il doit les
+    # précéder à l'écran: on le pose en tête du fichier de résumé.
+    { printf 'TYPECHECK DES TESTS FRONT EN RÉGRESSION\n'; cat "$GATE_DIGEST"; } \
+      >"${GATE_DIGEST}.tmp"
+    mv "${GATE_DIGEST}.tmp" "$GATE_DIGEST"
+    digest "Rejoue: (cd frontend && npm exec -- tsc -p tsconfig.test.json --noEmit)"
+    fail "le typecheck des tests front a régressé (voir ci-dessus)"
+  fi
 }
 
 check_typecheck() {
   if [ -f frontend/tsconfig.json ]; then
     info "running frontend typecheck"
-    (cd frontend && npm exec -- tsc -b --noEmit)
+    local tscb_out
+    tscb_out="$(mktemp -t agent-gate-tscb)"
+    if ! (cd frontend && npm exec -- tsc -b --noEmit) >"$tscb_out" 2>&1; then
+      cat "$tscb_out" >&2
+      digest "TYPECHECK DE L'APPLICATION ROUGE (tsc -b)"
+      rg -N 'error TS' "$tscb_out" | head -n 20 \
+        | while IFS= read -r l; do digest "  $l"; done || true
+      digest "Rejoue: (cd frontend && npm exec -- tsc -b --noEmit)"
+      rm -f "$tscb_out"
+      fail "le typecheck de l'application est rouge"
+    fi
+    rm -f "$tscb_out"
   fi
 
   if command -v deno >/dev/null 2>&1; then
@@ -370,11 +493,21 @@ check_typecheck() {
     # par PERSONNE: leur `deno check` vert était un geste manuel que rien ne
     # rejouait. Mesurées `rc=0` toutes les deux avant d'entrer ici; +3,7 s.
     info "running deno check on core entrypoints"
-    deno check \
+    local dc_out
+    dc_out="$(mktemp -t agent-gate-denocheck)"
+    if ! deno check \
       supabase/functions/sophia-brain/index.ts \
       supabase/functions/sophia-brain/router/agent_exec.ts \
       supabase/functions/sophia-brain/agents/companion.ts \
-      supabase/functions/generate-household-meal-v1/index.ts
+      supabase/functions/generate-household-meal-v1/index.ts >"$dc_out" 2>&1; then
+      cat "$dc_out" >&2
+      digest "DENO CHECK ROUGE sur un entrypoint"
+      sed $'s/\033\\[[0-9;]*m//g' "$dc_out" | rg -N '^(error|TS[0-9]+|  )' \
+        | head -n 20 | while IFS= read -r l; do digest "  $l"; done || true
+      rm -f "$dc_out"
+      fail "deno check est rouge sur un entrypoint"
+    fi
+    rm -f "$dc_out"
   else
     info "deno not found, skipping deno check"
   fi
@@ -385,7 +518,18 @@ check_lint() {
   files="$(frontend_changed_files)"
   if [ -n "$files" ]; then
     info "running eslint on modified frontend files"
-    (cd frontend && npm exec -- eslint ${files//frontend\//})
+    local lint_out
+    lint_out="$(mktemp -t agent-gate-eslint)"
+    if ! (cd frontend && npm exec -- eslint ${files//frontend\//}) >"$lint_out" 2>&1; then
+      cat "$lint_out" >&2
+      digest "ESLINT ROUGE sur les fichiers modifiés"
+      rg -N '(error|warning)' "$lint_out" | head -n 20 \
+        | while IFS= read -r l; do digest "  $l"; done || true
+      rm -f "$lint_out"
+      fail "eslint est rouge sur les fichiers modifiés"
+    fi
+    cat "$lint_out"
+    rm -f "$lint_out"
   else
     info "no modified frontend files for eslint"
   fi

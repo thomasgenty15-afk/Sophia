@@ -3,10 +3,15 @@ import React from "react";
 
 import { useAuth } from "../../context/AuthContext";
 import { useHouseholdAccess } from "../../context/HouseholdAccessContext";
-// LA LISTE FERMÉE DES QUATRE RÉPONSES, LUE ET PAS RECOPIÉE — la même que
-// l'entonnoir. Une seconde liste ici offrirait une case que le moteur n'honore
-// pas, ce qui est la version cochable du mensonge que ce lot corrige.
-import { DIET_ANSWERS } from "../api/onboarding";
+// ⚠️ LA MÊME PORTE D'ALLERGIE QUE L'ENTONNOIR: elle écrit les libellés ET
+// l'accusé « on a demandé » sur la ligne du maître. Deux écrivains pour ce
+// couple-là voudrait dire un `canGenerate` qui redemande une question posée.
+//
+// ⟳ `DIET_ANSWERS` N'EST PLUS IMPORTÉ ICI (2026-09-19). La liste fermée des
+// quatre réponses est toujours lue et jamais recopiée — c'est
+// `MouthPreferencesFields` qui la lit maintenant, avec le reste de la fiche.
+// Cet écran n'a plus de second jeu de boutons de régime.
+import { saveMouthAllergies } from "../api/onboarding";
 import {
   addAllergy,
   addHouseholdMember,
@@ -103,7 +108,17 @@ import {
   knownMouthForOwner,
   type MouthFormDraft,
   mouthToPersist,
+  shakerCanBeSaved,
+  shakerPartialToWrite,
 } from "../lib/mouthForm";
+// LE DÉCOUPAGE « prose / bulle » D'UNE LIGNE D'HABITUDE, EN UN SEUL EXEMPLAIRE.
+// La fiche d'une bouche écrit la même liste que l'entonnoir et que
+// `persistMouth`: une seconde règle ici ferait diverger le sens d'une entrée
+// qui ne porte QUE « + repas léger » (pas de prose ⇒ `household_dish`).
+import { habitEntriesToWrite } from "../lib/mealExtras";
+// ⚠️ LE LIBELLÉ D'UN ALLERGÈNE, PAS SON SLUG. Le catalogue écrit `peanut`; la
+// liste de la fiche affichait le jeton nu sous une case cochée « Arachide ».
+import { allergenLabel } from "../copy/allergens";
 import { useEatingStructure } from "../lib/useEatingStructure";
 import GoalTiles from "../components/GoalTiles";
 // ⟳ 2026-09-09 — LE DÉFAUT (`MouthFormDialog`, le chrome) N'EST PLUS IMPORTÉ.
@@ -611,6 +626,25 @@ export default function HouseholdPage(): React.ReactElement {
     setWorkLunchError(read.error);
   }, []);
 
+  /**
+   * LA COLONNE DU COMPTE, RELUE — A5 point 7, sorti du JSX le 2026-09-19.
+   *
+   * ⚠️ `refresh` NE LIT PAS `student_goals`. Sans cette relecture, tout ce qui
+   * FUSIONNE sur `practical_constraints` (les deux cartes du compte, et
+   * maintenant l'accusé d'allergie d'une bouche) repartirait de la photo
+   * d'avant — et la fusion suivante écraserait l'écriture d'avant. C'est la
+   * cicatrice `stale-current-erases-the-previous-write`, et elle a maintenant
+   * deux appelants: d'où la sortie du JSX.
+   */
+  const refreshPracticalConstraints = React.useCallback(async () => {
+    if (!userId) return;
+    try {
+      setPracticalConstraints(await loadPracticalConstraints(userId));
+    } catch (e) {
+      console.error("[household] pc reread failed", e);
+    }
+  }, [userId]);
+
   // CET EFFET LIT, ET C'EST LE SEUL QUI TOUCHE AU DÉJEUNER. Il attend de
   // savoir QUI regarde, parce que seuls les gens d'un foyer ont des réponses à
   // lire. Keyé sur le `member_id` et pas sur `household`, pour ne pas relire à
@@ -651,6 +685,129 @@ export default function HouseholdPage(): React.ReactElement {
       }
     },
     [refresh],
+  );
+
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * CE QUE LA FICHE DE GOÛTS D'UNE BOUCHE ÉCRIT — 2026-09-19
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * L'ORDRE EST CELUI DE `persistMouth`, et ce n'est pas une coquetterie: les
+   * habitudes REMPLACENT la liste, les dégoûts et les allergies AJOUTENT, le
+   * régime et le rythme remplacent une valeur. Un ordre différent ici ferait
+   * diverger deux écrans sur le même jeu de portes au premier correctif.
+   *
+   * ⛔ ON NE PASSE PAS PAR `persistMouth`, ET C'EST DÉLIBÉRÉ. Lui écrit AUSSI
+   * le prénom, la date, la direction, le CORPS et la CIBLE — et ce brouillon-ci
+   * ne porte ni corps ni cible (le cadre « Informations personnelles » les
+   * tient, avec ses propres lectures). Le lui donner quand même poserait un
+   * corps à zéro et effacerait le poids visé au premier enregistrement de
+   * goûts: la cicatrice `mount-snapshot-forms-need-a-loading-gate`, prise par
+   * le bout qui coûte la donnée.
+   *
+   * ⚠️ CE QU'IL NE TENTE PAS SUR UNE BOUCHE QUI A UN COMPTE — le régime, le
+   * rythme et l'apport fixe. Les trois portes répondent `has_account` (leur
+   * source canonique est le « about you » de la personne), et les appeler
+   * ferait échouer TOUT l'enregistrement sur un motif qui ne parle d'aucun
+   * champ visible. La fiche partagée ne se monte de toute façon pas pour elle
+   * (`sharedSheet`); la garde est ici quand même, parce que c'est le second
+   * appelant qui l'oublie.
+   */
+  const saveMemberPreferences = React.useCallback(
+    (member: HouseholdMemberView, draft: MouthFormDraft): Promise<boolean> =>
+      run(async () => {
+        const id = member.memberId;
+        const claimed = member.userId !== null;
+
+        // ① SES HABITUDES — la porte pose la liste ENTIÈRE, vide comprise:
+        //    retirer la dernière habitude doit pouvoir vider la ligne.
+        const slots = habitEntriesToWrite({
+          habits: draft.habits,
+          light: draft.light,
+          occasions: EATING_OCCASIONS,
+        });
+        const written = await setMemberHabits(
+          id,
+          slots,
+          habits?.get(id)?.note ?? null,
+        );
+        if (!written.ok) return written;
+
+        // ② SES DÉGOÛTS — `food.exclude` sur la ligne de qui COMPOSE, avec le
+        //    sujet qui dit de quelle bouche on parle. La porte AJOUTE, donc on
+        //    n'appelle pas pour rien: une liste vide n'est pas « efface ».
+        if (userId && draft.dislikes.length > 0) {
+          const res = await writtenDislikeWriter(userId, weekStart)(
+            id,
+            [...draft.dislikes],
+          );
+          if (!res.ok) return res;
+        }
+
+        // ③ SES ALLERGIES, ET L'ACCUSÉ « ON A DEMANDÉ ». La MÊME porte que
+        //    l'entonnoir: elle ajoute les libellés ET marque la bouche dans la
+        //    colonne du maître. Sans ce second membre, « aucune » ne s'écrirait
+        //    nulle part — et `canGenerate` redemanderait éternellement une
+        //    question déjà posée.
+        //
+        // ⛔ LA COLONNE EST RELUE ICI, JAMAIS PRISE DANS L'ÉTAT D'ÉCRAN — ET
+        //    C'EST UN DÉFAUT MESURÉ, PAS UNE PRÉCAUTION. `mergePracticalConstraints`
+        //    REMPLACE la colonne par `{...current, ...patch}`. Or la marche ②
+        //    juste au-dessus vient d'écrire `practical_constraints.retained_items`
+        //    CÔTÉ SERVEUR: nourri de la photo du montage, cet accusé la
+        //    réécrivait sans le dégoût. Vu en base le 2026-09-19 — « champignons »
+        //    enregistré, puis absent de la colonne à la seconde d'après.
+        //    Cicatrice `stale-current-erases-the-previous-write`, et c'est le
+        //    même geste que `saveMouthPreferences` dans l'entonnoir, qui relit
+        //    lui aussi avant d'accuser.
+        if (userId && (draft.allergies.length > 0 || draft.allergiesNone)) {
+          await saveMouthAllergies({
+            userId,
+            memberId: id,
+            labels: [...draft.allergies],
+            current: await loadPracticalConstraints(userId),
+          });
+          await refreshPracticalConstraints();
+        }
+
+        // ④ SON RÉGIME — `null` n'est pas envoyé: effacer ce que personne n'a
+        //    posé n'apporte rien.
+        if (!claimed && draft.diet !== "") {
+          const res = await setMemberDiet(id, draft.diet);
+          if (!res.ok) return res;
+        }
+
+        // ⑤ SES MOMENTS. ⛔ JAMAIS UN TABLEAU VIDE: la base refuse
+        //    `empty_rhythm`, et « rien coché » veut dire « comme la maison ».
+        //    ⚠️ ET `null` EST UNE ÉCRITURE, PAS UN SAUT — c'est la seule façon
+        //    de REVENIR au repli après avoir coché un moment.
+        if (!claimed) {
+          const res = await setMemberRhythm(
+            id,
+            draft.rhythm && draft.rhythm.length > 0 ? draft.rhythm : null,
+          );
+          if (!res.ok) return res;
+        }
+
+        // ⑥ SON APPORT FIXE. ⚠️ LECTURE FRAÎCHE AVANT D'ÉCRIRE: la porte
+        //    REMPLACE le tableau entier, et cette fiche sert à REPRENDRE une
+        //    bouche — écrire sans relire y effacerait un second apport.
+        //    `shakerCanBeSaved` est la MÊME garde que le bouton du bloc.
+        if (!claimed && draft.shaker !== null && shakerCanBeSaved(draft.shaker)) {
+          const res = await addShakerToMemberIntakes({
+            memberId: id,
+            current: await loadMemberFixedIntakes(id),
+            shaker: shakerPartialToWrite(draft.shaker),
+          });
+          if (!res.ok) return res;
+        }
+
+        return { ok: true, reason: "" };
+      }),
+    // ⛔ `practicalConstraints` N'EST PAS UNE DÉPENDANCE, ET SON ABSENCE EST LE
+    // CORRECTIF: cette fonction RELIT la colonne au moment d'écrire. L'y
+    // remettre remettrait la photo d'écran dans le chemin.
+    [run, userId, weekStart, habits, refreshPracticalConstraints],
   );
 
   if (phase === "loading") {
@@ -953,16 +1110,7 @@ export default function HouseholdPage(): React.ReactElement {
                   // ÉCRITURE: `refresh` ne lit pas `student_goals`, donc sans
                   // ça les deux cartes se remonteraient sur la valeur d'avant —
                   // et la suivante fusionnerait par-dessus.
-                  onSavedOwnConstraints={async () => {
-                    if (!userId) return;
-                    try {
-                      setPracticalConstraints(
-                        await loadPracticalConstraints(userId),
-                      );
-                    } catch (e) {
-                      console.error("[household] pc reread failed", e);
-                    }
-                  }}
+                  onSavedOwnConstraints={refreshPracticalConstraints}
                   invitations={invitations}
                   // A5 §5.5 — RELIRE LES INVITATIONS, PAS SEULEMENT LA PAGE:
                   // `refresh` ne lit pas `household_invitations`, donc sans cette
@@ -1037,11 +1185,12 @@ export default function HouseholdPage(): React.ReactElement {
                         },
                       )
                     )}
-                  // LE RÉGIME D'UNE BOUCHE. Même `run` que les autres: le refus
-                  // (`bad_diet`, `has_account`) arrive en phrase, et la page se
-                  // remonte sur ce que la base a VRAIMENT gardé.
-                  onSaveDiet={(memberId, diet) =>
-                    run(() => setMemberDiet(memberId, diet))}
+                  // LA FICHE DE GOÛTS D'UNE BOUCHE, EN UN GESTE — elle a
+                  // remplacé `onSaveDiet` le 2026-09-19. Même `run` que les
+                  // autres: le refus (`bad_diet`, `has_account`, `bad_slots`)
+                  // arrive en phrase, et la page se remonte sur ce que la base
+                  // a VRAIMENT gardé.
+                  onSavePreferences={saveMemberPreferences}
                   onMute={(memberId, next) => run(() => muteMergeProposals(memberId, next))}
                   onSaveAway={(memberId, next) => run(() => setMemberAway(memberId, parseAwayMarks(next)))}
                   onSave={(member, patch) => saveMember(member, patch, { userId })}
@@ -1565,6 +1714,16 @@ export function MeFiche(
   // fiche qui gagne sa fenêtre à la deuxième lecture changerait sinon de
   // nombre de hooks entre deux rendus.
   const [open, setOpen] = React.useState(false);
+  /**
+   * SUR QUEL CADRE LA FENÊTRE S'OUVRE — 2026-09-19.
+   *
+   * ⚠️ IL VIT ICI ET PAS DANS `MeSheetForm`: `Modal` DÉMONTE ses enfants à la
+   * fermeture, donc un état posé plus bas repartirait à `false` — et le bouton
+   * « Préférences alimentaires » ouvrirait la fiche sur l'identité une fois sur
+   * deux. Il est LU à l'ouverture (`initialPrefsOpen`), et le corps garde
+   * ensuite son propre repli: c'est un point de départ, pas un pilotage.
+   */
+  const [prefsFirst, setPrefsFirst] = React.useState(false);
   const [awayOpen, setAwayOpen] = React.useState(false);
   // ⚠️ SEMÉ DÈS LE PREMIER RENDU, ET RE-SEMÉ À CHAQUE LECTURE DIFFÉRENTE (voir
   // l'effet juste en dessous). L'initialiseur seul laisserait la fiche montrer
@@ -1626,7 +1785,10 @@ export function MeFiche(
         {me.role === "owner" ? <Badge>{t("household.members.owner")}</Badge> : null}
         {me.goal ? <Badge>{goalLabel(me.goal as MemberGoal)}</Badge> : null}
         {allergies.map((a) => (
-          <Badge key={a.id} tone="critical">{a.label}</Badge>
+          // ⚠️ `allergenLabel` ET PAS LE JETON NU — même raison que la liste
+          // de la fiche: le catalogue écrit des SLUGS, et une pastille
+          // « peanut » sur un écran français est une donnée rendue brute.
+          <Badge key={a.id} tone="critical">{allergenLabel(a.label)}</Badge>
         ))}
         {/* MÊME AFFORDANCE QUE LES AUTRES FICHES tant qu'il n'y a rien à
             débloquer. Quand la ligne d'objectif manque, ce bouton est le seul
@@ -1645,12 +1807,37 @@ export function MeFiche(
             </Button>
           )
           : (
-            <button
-              className="ml-auto text-fig-700 underline"
-              onClick={() => setOpen(true)}
-            >
-              {t("household.member.edit")}
-            </button>
+            /* ── DEUX PORTES, COMME SUR CHAQUE AUTRE LIGNE (2026-09-19) ────
+               La fiche du titulaire porte les mêmes deux parties que les
+               autres — ce qui le dimensionne, et ce qui affine — et elle
+               doit s'ouvrir sur celle qu'on vient chercher. Ici le second
+               cadre est un ACCORDÉON dans la même fenêtre (`MeSheetForm`),
+               donc le bouton ne choisit pas un écran: il choisit l'état sur
+               lequel la fenêtre s'ouvre.
+
+               ⛔ SEULEMENT HORS `needsGoalRow`. Tant que la ligne d'objectif
+               manque, il n'y a qu'UN geste sur cette carte — celui qui ouvre
+               la composition —, et lui donner un voisin le noierait. */
+            <span className="ml-auto flex flex-wrap items-center gap-3">
+              <button
+                className="text-fig-700 underline"
+                onClick={() => {
+                  setPrefsFirst(false);
+                  setOpen(true);
+                }}
+              >
+                {t("household.member.frame_identity")}
+              </button>
+              <button
+                className="text-fig-700 underline"
+                onClick={() => {
+                  setPrefsFirst(true);
+                  setOpen(true);
+                }}
+              >
+                {t("household.member.frame_preferences")}
+              </button>
+            </span>
           )}
       </div>
 
@@ -1706,6 +1893,7 @@ export function MeFiche(
               <MeSheetForm
                 draft={sheetDraft}
                 onChange={setSheetDraft}
+                initialPrefsOpen={prefsFirst}
                 todayLocalIso={sheet.todayLocalIso}
                 busy={busy}
                 failure={sheet.failure}
@@ -1909,9 +2097,22 @@ export function MeFiche(
  * fenêtre.
  */
 export function MeSheetForm(
-  { draft, onChange, todayLocalIso, busy, failure, slots, onSubmit }: {
+  { draft, onChange, initialPrefsOpen, todayLocalIso, busy, failure, slots, onSubmit }: {
     draft: MouthFormDraft;
     onChange: React.Dispatch<React.SetStateAction<MouthFormDraft>>;
+    /**
+     * LE CADRE DES GOÛTS EST-IL DÉPLIÉ À L'OUVERTURE ? REQUIS — 2026-09-19.
+     *
+     * ⚠️ UN POINT DE DÉPART, PAS UN PILOTAGE: l'accordéon garde son propre
+     * état ensuite, et la fenêtre le remet à zéro toute seule en se démontant.
+     * C'est ce qui fait que le bouton « Préférences alimentaires » de la ligne
+     * ouvre la fiche SUR les goûts, sans qu'il existe deux fenêtres.
+     *
+     * ⛔ JAMAIS OPTIONNEL: un défaut à `false` ferait qu'un appelant distrait
+     * rende un bouton qui ouvre la mauvaise moitié — le geste aurait l'air de
+     * ne rien faire.
+     */
+    initialPrefsOpen: boolean;
     todayLocalIso: string;
     busy: boolean;
     failure: string | null;
@@ -1924,7 +2125,9 @@ export function MeSheetForm(
   // les trois blocs qui retiennent le bouton; les six blocs de goûts dépliés
   // par-dessus en feraient les trente champs que ce lot retire de la page.
   // Ce qui est déjà renseigné derrière est DIT sous le bouton (`filled`).
-  const [prefsOpen, setPrefsOpen] = React.useState(false);
+  // ⟳ 2026-09-19 — SAUF QUAND ON EST VENU POUR EUX. La ligne a maintenant deux
+  // portes, et celle des goûts doit ouvrir la fiche sur les goûts.
+  const [prefsOpen, setPrefsOpen] = React.useState(initialPrefsOpen);
   const filled = filledPreferenceBlocks(draft);
   // `/app/household` ne rend cette fiche QUE pour le compte courant: sa ligne
   // EXISTE (`existing`), elle a un compte (`hasAccount`) — c'est donc la seule
@@ -1938,6 +2141,8 @@ export function MeSheetForm(
     draft,
     active: prefsOpen,
     todayLocalIso,
+    // LA FICHE DU TITULAIRE, ET ELLE SEULE.
+    subject: "self",
   });
 
   return (
@@ -2156,6 +2361,8 @@ export function AddMouthForm(
     draft,
     active: prefsOpen,
     todayLocalIso,
+    // UNE SEULE BOUCHE PAR MONTAGE: la fiche d'ajout ne parle que d'elle.
+    subject: "new",
   });
 
   return (
@@ -2219,7 +2426,7 @@ export function AddMouthForm(
  * quelle nature est cette contrainte.
  */
 function MembersCard(
-  { household, ownFiche, footer, restrictions, dislikes, allergies, busy, mutedMembers, rhythm, awayWindow, bodies, habits, invitations, onInvited, practicalConstraints, hasGoal, onSavedOwnConstraints, workLunch, workLunchError, onSaveWorkLunch, onSaveHabits, onSaveDiet, onSaveBody, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction, todayLocalIso }: {
+  { household, ownFiche, footer, restrictions, dislikes, allergies, busy, mutedMembers, rhythm, awayWindow, bodies, habits, invitations, onInvited, practicalConstraints, hasGoal, onSavedOwnConstraints, workLunch, workLunchError, onSaveWorkLunch, onSaveHabits, onSavePreferences, onSaveBody, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction, todayLocalIso }: {
     household: HouseholdView;
     /**
      * LA FICHE DU TITULAIRE, ou `null` — 2026-09-09.
@@ -2286,8 +2493,15 @@ function MembersCard(
       slots: HabitSlotWrite[],
       note: string | null,
     ) => Promise<boolean>;
-    /** Le régime d'une bouche. `null` efface — « on n'a pas demandé ». */
-    onSaveDiet: (memberId: string, diet: string | null) => Promise<boolean>;
+    /**
+     * TOUT CE QUE LA FICHE DE GOÛTS D'UNE BOUCHE A COLLECTÉ — 2026-09-19.
+     * Il REMPLACE `onSaveDiet`: le régime est une section de la fiche, plus un
+     * bloc de boutons à part. Voir `MemberRow`.
+     */
+    onSavePreferences: (
+      member: HouseholdMemberView,
+      draft: MouthFormDraft,
+    ) => Promise<boolean>;
     /**
      * Les corps saisis, par `member_id`. VIDE pour un non-maître, et pas parce
      * que l'écran le décide: `keel_household_member_bodies` lui rend zéro
@@ -2415,7 +2629,7 @@ function MembersCard(
                   workLunchError={workLunchError}
                   onSaveWorkLunch={(answer) => onSaveWorkLunch(m.memberId, answer)}
                   onSaveHabits={(sl, n) => onSaveHabits(m.memberId, sl, n)}
-                  onSaveDiet={(diet) => onSaveDiet(m.memberId, diet)}
+                  onSavePreferences={(d) => onSavePreferences(m, d)}
                   onSaveBody={(h, w, g, extras) => onSaveBody(m.memberId, h, w, g, extras)}
                   onMute={(next) => onMute(m.memberId, next)}
                   onSaveAway={(next) => onSaveAway(m.memberId, next)}
@@ -2538,7 +2752,7 @@ function MembersCard(
             workLunchError={workLunchError}
             onSaveWorkLunch={(answer) => onSaveWorkLunch(m.memberId, answer)}
             onSaveHabits={(s, n) => onSaveHabits(m.memberId, s, n)}
-            onSaveDiet={(diet) => onSaveDiet(m.memberId, diet)}
+            onSavePreferences={(dr) => onSavePreferences(m, dr)}
             onSaveBody={(h, w, g, extras) => onSaveBody(m.memberId, h, w, g, extras)}
             onMute={(next) => onMute(m.memberId, next)}
             onSaveAway={(next) => onSaveAway(m.memberId, next)}
@@ -3215,7 +3429,7 @@ export function SheetFrame(
 }
 
 function MemberRow(
-  { member, isMe, viewerIsOwner, allergies, restrictions, dislikes, busy, muted, rhythm, awayWindow, body, bodiesLoaded, habits, habitsLoaded, invitations, onInvited, practicalConstraints, hasGoal, onSavedOwnConstraints, workLunch, workLunchError, onSaveWorkLunch, onSaveHabits, onSaveDiet, onSaveBody, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction, todayLocalIso }: {
+  { member, isMe, viewerIsOwner, allergies, restrictions, dislikes, busy, muted, rhythm, awayWindow, body, bodiesLoaded, habits, habitsLoaded, invitations, onInvited, practicalConstraints, hasGoal, onSavedOwnConstraints, workLunch, workLunchError, onSaveWorkLunch, onSaveHabits, onSavePreferences, onSaveBody, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction, todayLocalIso }: {
     member: HouseholdMemberView;
     isMe: boolean;
     /**
@@ -3283,8 +3497,27 @@ function MemberRow(
     /** Relit la colonne du compte après une écriture des deux cartes. REQUIS. */
     onSavedOwnConstraints: () => void | Promise<void>;
     onSaveHabits: (slots: HabitSlotWrite[], note: string | null) => Promise<boolean>;
-    /** Le régime de CETTE bouche. `null` efface. */
-    onSaveDiet: (diet: string | null) => Promise<boolean>;
+    /**
+     * TOUT CE QUE LA FICHE DE GOÛTS A COLLECTÉ, EN UN GESTE — 2026-09-19.
+     *
+     * ⚠️ REQUIS, JAMAIS OPTIONNEL. Le cadre monte `MouthPreferencesFields` et
+     * son bouton: sans porte branchée, il collecterait six blocs et les
+     * jetterait, ce qui est strictement pire que de ne pas les demander — « un
+     * champ qu'on remplit et qui ne va nulle part promet ».
+     *
+     * ⛔ L'ÉCRIVAIN VIT DANS LA PAGE (`saveMemberPreferences`), pas ici: il lui
+     * faut le `user_id` de la session (les dégoûts et l'accusé d'allergie
+     * vivent sur SA ligne), la lecture fraîche des habitudes, et `run` pour que
+     * le refus arrive en phrase. Une ligne n'a aucun de ces trois faits.
+     */
+    onSavePreferences: (draft: MouthFormDraft) => Promise<boolean>;
+    /**
+     * ⟳ `onSaveDiet` EST PARTI LE 2026-09-19, AVEC SES BOUTONS. Le régime est
+     * une SECTION de `MouthPreferencesFields`, et il part avec le reste par
+     * `onSavePreferences`. Le garder aurait laissé deux portes sur
+     * `keel_household_set_member_diet` — celle du bloc et celle de la fiche —
+     * dont une seule se voit.
+     */
     onSaveBody: (
       h: number,
       w: number,
@@ -3325,6 +3558,23 @@ function MemberRow(
    */
   const [identityOpen, setIdentityOpen] = React.useState(true);
   const [prefsOpen, setPrefsOpen] = React.useState(true);
+  /**
+   * OUVRIR LA FENÊTRE **SUR** UN CADRE — 2026-09-19.
+   *
+   * ⚠️ IL OUVRE L'UN ET REPLIE L'AUTRE, il n'en cache aucun. Le cadre replié
+   * garde son titre et son récapitulatif (voir `SheetFrame`): la personne qui
+   * est venue pour les goûts voit quand même, en une ligne, ce que l'autre
+   * cadre porte — et elle le déplie d'un clic. C'est la contrepartie du repli
+   * que ce dépôt s'est donnée le 2026-08-19, appliquée à une entrée ciblée.
+   *
+   * ⛔ ET LES DEUX CADRES RESTENT DANS LA MÊME FENÊTRE. Deux `Modal` auraient
+   * dédoublé le brouillon de la fiche, que `Modal` démonte à la fermeture.
+   */
+  const openSheet = (frame: "identity" | "preferences") => {
+    setIdentityOpen(frame === "identity");
+    setPrefsOpen(frame === "preferences");
+    setOpen(true);
+  };
   const [draft, setDraft] = React.useState<MouthDraft>({
     firstName: member.displayName === "—" ? "" : member.displayName,
     birthDate: "",
@@ -3366,6 +3616,133 @@ function MemberRow(
   const rowAge = ageStateOfTypedDate(draft.birthDate, member.ageState, todayLocalIso);
 
   /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * LA FICHE DE GOÛTS D'UNE BOUCHE EST CELLE DE L'ENTONNOIR — 2026-09-19
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * ── LE DÉFAUT, DIT PAR LE PROPRIÉTAIRE ─────────────────────────────────
+   * « les préférences alimentaires, c'est pas la même chose dans le foyer que
+   * dans l'onboarding […] les dispos, c'est des dispos de tout temps, genre
+   * matin midi et soir; là c'est confondu avec les dispos pour faire le plan ».
+   *
+   * Et c'était exact, littéralement. Cette fiche ne posait JAMAIS la question
+   * « à quels moments cette personne mange-t-elle ? »: elle montait
+   * `HouseholdHabitsCard` sur `habitSlots`, c'est-à-dire sur sa ligne SI elle
+   * en a une, sinon sur le rythme DE LA MAISON — celui avec lequel le plan se
+   * compose. Une bouche sans ligne (le cas nominal: on vient de l'ajouter)
+   * héritait donc des moments du foyer, sans que rien à l'écran ne permette de
+   * dire qu'elle, elle ne déjeune pas. La seule surface qui posait la question
+   * était l'entonnoir, et on ne repasse pas par l'entonnoir.
+   *
+   * ── CE QUI REMPLACE ────────────────────────────────────────────────────
+   * `MouthPreferencesFields` — LE MÊME COMPOSANT que la fenêtre de
+   * l'entonnoir, la fiche du maître et la fiche d'ajout. Même ordre de
+   * sections (régime → allergies → dégoûts → moments+habitudes), mêmes champs,
+   * et la case d'un moment porte la ligne d'habitude qu'elle ouvre.
+   *
+   * ⛔ IL N'Y A PLUS DE SECOND FORMULAIRE SUR CES COLONNES. Les boutons de
+   * régime écrits ici, la carte d'habitudes et le champ libre d'allergie sont
+   * partis avec ce lot: ils écrivaient les mêmes portes avec d'autres mots, et
+   * c'est exactement la plaie « deux formulaires sur les mêmes colonnes ».
+   *
+   * ── ⚠️ ET LA FICHE PARTAGÉE NE SE MONTE PAS POUR TOUT LE MONDE ─────────
+   * `sharedSheet` la réserve à une bouche SANS COMPTE regardée par le MAÎTRE,
+   * et les deux moitiés sont des refus de la base, pas un goût:
+   *
+   *   · SANS COMPTE — `set_member_rhythm` et `set_member_diet` répondent
+   *     `has_account`. Les montrer à une bouche réclamée afficherait deux
+   *     sections que l'enregistrement jette en silence, pendant que sa vraie
+   *     porte (son « about you », et `EatingRhythmCard` plus bas pour elle-
+   *     même) est ailleurs;
+   *   · LE MAÎTRE — `add_allergy` répond `not_owner`.
+   *
+   * Une bouche réclamée garde donc ce que cet écran lui rendait déjà: sa carte
+   * d'habitudes, et la phrase qui dit où se règle le reste.
+   */
+  const sharedSheet = viewerIsOwner && member.userId === null;
+  /**
+   * CE QUE LE CHAMP LIBRE DE CE CADRE ÉCRIRA VRAIMENT.
+   *
+   * ⚠️ IL PLIE DEUX FOIS, ET LES DEUX PLIS SONT DES REFUS DE LA BASE, PAS UN
+   * GOÛT: `add_restriction` répond `not_a_minor` sur une bouche majeure
+   * (§8.5 règle 1), et le catalogue d'allergènes de la fiche partagée reprend
+   * l'allergie dès qu'il est monté — il ne reste alors que la règle de maison.
+   *
+   * ⛔ ET ÇA SE DÉRIVE, ÇA NE SE CORRIGE PAS DANS UN EFFET: l'état `kind`
+   * survit au changement de bouche, donc il y aurait un instant — court, réel —
+   * où le formulaire montre une nature et le gestionnaire de clic en tient une
+   * autre.
+   */
+  const constraintKind: "allergy" | "house_rule" = sharedSheet
+    ? "house_rule"
+    : effectiveKind;
+
+  /**
+   * LE BROUILLON DE SES GOÛTS — SEMÉ SUR LA LECTURE, JAMAIS SUR LE MONTAGE.
+   *
+   * ⚠️ CE QUI EST SEMÉ EST CE QUE LA PORTE REMPLACE: les habitudes et les
+   * bulles (`set_member_habits` pose la liste ENTIÈRE), le rythme
+   * (`set_member_rhythm` REMPLACE la ligne) et le régime. Ouvrir la fiche sur
+   * du vide non lu puis enregistrer effacerait les trois — c'est la cicatrice
+   * `mount-snapshot-forms-need-a-loading-gate`, prise par le bout qui coûte la
+   * donnée, et c'est très exactement ce que l'entonnoir a payé le 2026-09-01
+   * sur ce même rythme.
+   *
+   * ⛔ CE QUI N'EST PAS SEMÉ N'EST PAS UN OUBLI: les allergies et les dégoûts
+   * s'AJOUTENT (`add_*`, il n'existe pas de « poser la liste »), donc les semer
+   * les rejouerait à chaque enregistrement. Ils se retirent là où ils sont
+   * LISIBLES — la liste au bas de ce cadre. Même règle que `draftFromKnown`.
+   */
+  const prefsSeed = React.useMemo<MouthFormDraft>(() => ({
+    ...emptyMouthDraft(),
+    firstName: member.displayName === "—" ? "" : member.displayName,
+    goal: (member.goal as MemberGoal | null) ?? "",
+    diet: member.diet ?? "",
+    rhythm: member.eatingSlots,
+    habits: Object.fromEntries(
+      (habits?.slots ?? []).map((h) => [h.slot, h.usual]),
+    ),
+    light: { ...(habits?.light ?? {}) },
+  }), [
+    member.displayName,
+    member.goal,
+    member.diet,
+    member.eatingSlots,
+    habits,
+  ]);
+  const [prefsDraft, setPrefsDraft] = React.useState<MouthFormDraft>(prefsSeed);
+  /**
+   * ⚠️ LA DÉPENDANCE EST LA VALEUR LUE, SÉRIALISÉE — comme `MeFiche`. Un
+   * re-rendu qui rend la même lecture ne touche à rien, donc une saisie en
+   * cours survit à tout ce qui n'est PAS une lecture différente; et une
+   * lecture qui arrive après le montage re-sème au lieu de laisser le vide.
+   */
+  const prefsSeedKey = JSON.stringify(prefsSeed);
+  React.useEffect(() => {
+    setPrefsDraft(prefsSeed);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prefsSeedKey]);
+  /**
+   * FF-060 — LE MÊME PLANCHER QU'À L'INSCRIPTION. Sans lui, cette fiche
+   * proposerait un nombre de moments différent de celui que l'entonnoir vient
+   * de proposer pour la même personne: deux écrans, deux réponses, et celui
+   * qui ment est le second.
+   *
+   * `active` SUIT LE CADRE OUVERT: rien n'est calculé pour huit bouches dont
+   * les fenêtres sont fermées.
+   */
+  const prefsStructure = useEatingStructure({
+    draft: prefsDraft,
+    active: open && prefsOpen && sharedSheet,
+    todayLocalIso,
+    // ⚠️ UNE LIGNE PAR BOUCHE, DONC UN CROCHET PAR BOUCHE — mais le nom est
+    // passé quand même: c'est la garde qui empêche une réponse de traverser,
+    // et une garde qu'on ne pose « que là où ça peut arriver » finit par
+    // manquer là où ça arrive.
+    subject: `member:${member.memberId}`,
+  });
+
+  /**
    * CE QUI EST DÉJÀ RENSEIGNÉ DERRIÈRE LE CADRE REPLIÉ — A5 (D5.1).
    *
    * ⚠️ C'EST LA CONTREPARTIE DU REPLI, PAS UNE DÉCORATION. Le repli avait été
@@ -3380,21 +3757,20 @@ function MemberRow(
    * « `allergiesNone` est une réponse »). Deux comptes divergeraient sur ces
    * deux-là, et c'est l'écran le moins relu qui aurait tort.
    *
-   * ⛔ IL PEUT SOUS-CLAMER, JAMAIS SUR-CLAMER, et les deux manques sont NOMMÉS:
-   * `shaker` et `allergiesNone` n'ont AUCUN contrôle dans cette fiche-ci (elle
-   * n'a jamais posé ni l'un ni l'autre), donc ils partent à `null`/`false`. Si
-   * l'un des deux gagne un contrôle ici, il doit entrer dans ce brouillon le
-   * même jour — sinon le résumé dira « rien » sur une réponse donnée.
+   * ⛔ IL PEUT SOUS-CLAMER, JAMAIS SUR-CLAMER, et le manque qui reste est
+   * NOMMÉ: `allergiesNone` est un geste de la fiche que rien ne RELIT sur une
+   * bouche (l'accusé vit sur la ligne `student_goals` du maître, pas sur elle),
+   * donc il part à `false`. Le shaker, lui, a maintenant son contrôle et il
+   * voyage dans le brouillon.
    */
   const filledBlocks = React.useMemo(
     () =>
       filledPreferenceBlocks({
-        ...emptyMouthDraft(),
-        habits: Object.fromEntries(
-          (habits?.slots ?? []).map((h) => [h.slot, h.usual]),
-        ),
-        light: habits?.light ?? {},
-        shaker: null,
+        ...prefsDraft,
+        // ⛔ LES ALLERGIES VIENNENT DE LA LECTURE, PAS DU BROUILLON, et c'est
+        // la même règle que `MeFiche`: leur porte AJOUTE (`add_allergy`), donc
+        // le brouillon ne les sème pas — le compter sur lui dirait « rien » à
+        // quelqu'un qui en a trois.
         allergies: allergies.map((a) => a.label),
         allergiesNone: false,
         // ⛔ `dislikes`, JAMAIS `restrictions.map(r => r.label)`. Le brouillon
@@ -3403,9 +3779,8 @@ function MemberRow(
         // migration de données faite par accident, sur un sens qu'aucun libellé
         // ne porte (le sort des lignes existantes est une décision humaine).
         dislikes,
-        diet: (member.diet ?? "") as MouthFormDraft["diet"],
       }),
-    [habits, allergies, dislikes, member.diet],
+    [prefsDraft, allergies, dislikes],
   );
 
   /**
@@ -3463,24 +3838,49 @@ function MemberRow(
                 verdict de santé est précisément le mensonge que §8.5 interdit.
                 Donc `neutral` — une étiquette, et c'est tout. */}
         {allergies.map((a) => (
-          <Badge key={a.id} tone="critical">{a.label}</Badge>
+          // ⚠️ `allergenLabel` ET PAS LE JETON NU — même raison que la liste
+          // de la fiche: le catalogue écrit des SLUGS, et une pastille
+          // « peanut » sur un écran français est une donnée rendue brute.
+          <Badge key={a.id} tone="critical">{allergenLabel(a.label)}</Badge>
         ))}
         {restrictions.map((r) => (
           <Badge key={r.id} tone="neutral">{r.label}</Badge>
         ))}
-        {/* OUVRIR LA FICHE EST L'ACTION DE LA LIGNE, donc elle porte la teinte
-            de marque (charte §2: la figue marque la navigation et l'action).
-            Elle reste un texte souligné et non un bouton plein: huit lignes,
-            huit boutons pleins, ce serait huit actions principales. */}
-        {/* ⟳ IL OUVRE, IL NE BASCULE PLUS: la sortie est celle de la fenêtre,
-            et un second libellé ici (« Fermer ») nommerait un geste qui n'est
-            plus le sien. `household.member.close` est partie des deux packs. */}
-        <button
-          className="ml-auto text-fig-700 underline"
-          onClick={() => setOpen(true)}
-        >
-          {t("household.member.edit")}
-        </button>
+        {/* ══════════════════════════════════════════════════════════════
+            DEUX PORTES SUR LA LIGNE, PAS UNE — 2026-09-19
+            ══════════════════════════════════════════════════════════════
+
+            Il y avait « Modifier », qui ouvrait la fenêtre sur SES DEUX CADRES
+            ouverts: on arrivait sur trente champs, et la question qu'on venait
+            poser — « qu'est-ce qu'elle mange, elle ? » — était à un défilement
+            de là. Demandé le 2026-09-19: « pour chaque personne il faut la
+            partie info personnelles et la section préférences alimentaires
+            directement accessibles depuis la ligne ».
+
+            ⚠️ UNE SEULE FENÊTRE, DEUX ENTRÉES. Le bouton ne choisit pas un
+            écran, il choisit le cadre qui s'OUVRE (`openOn`); l'autre reste
+            replié, avec son récapitulatif, et se déplie d'un clic. Deux
+            fenêtres distinctes auraient dédoublé l'état de la fiche, et
+            `Modal` démonte ses enfants — le brouillon d'un cadre ne survivrait
+            pas au passage à l'autre.
+
+            ⚠️ DEUX TEXTES SOULIGNÉS, PAS DEUX BOUTONS PLEINS: huit bouches
+            feraient seize actions principales. La teinte de marque reste celle
+            de la navigation (charte §2). */}
+        <span className="ml-auto flex flex-wrap items-center gap-3">
+          <button
+            className="text-fig-700 underline"
+            onClick={() => openSheet("identity")}
+          >
+            {t("household.member.frame_identity")}
+          </button>
+          <button
+            className="text-fig-700 underline"
+            onClick={() => openSheet("preferences")}
+          >
+            {t("household.member.frame_preferences")}
+          </button>
+        </span>
       </div>
 
       {/* ── CE QUE LA FICHE REPLIÉE DIT QUAND MÊME ────────────────────────
@@ -3692,93 +4092,94 @@ function MemberRow(
                 ),
               })}
           >
-          {/* ── COMMENT CETTE BOUCHE MANGE (2026-08-14) ────────────────────
-              LA QUESTION EXISTAIT POUR LE TITULAIRE ET POUR PERSONNE D'AUTRE,
-              et l'utilisateur l'a redemandée deux fois. Les trois jetons
-              vivaient sur `student_safety_constraints`, clée sur `user_id`:
-              une bouche sans compte n'avait nulle part où porter un régime, et
-              un enfant végétarien était INDÉCLARABLE.
+          {/* ══════════════════════════════════════════════════════════════
+              LA FICHE DE L'ENTONNOIR, TELLE QUELLE — 2026-09-19
+              ══════════════════════════════════════════════════════════════
 
-              ⚠️ AVANT LES HABITUDES, ET L'ORDRE PORTE DU SENS: ceci dit ce
-              qu'elle ne mange JAMAIS, la carte du dessous dit ce qu'elle mange
-              À LA PLACE du plat commun. Dans l'autre sens, l'habitude se lirait
-              comme une exception à une règle pas encore énoncée.
-
-              ⚠️ RIEN N'EST PRÉ-ALLUMÉ, et re-cliquer efface. `null` veut dire
-              « on n'a pas demandé »; `omnivore` veut dire « on a demandé, elle
-              mange de tout ». Allumer `omnivore` par défaut écrirait à l'écran
-              une réponse que personne n'a donnée.
-
-              ⚠️ UNE BOUCHE AVEC COMPTE N'EST PAS ÉDITABLE ICI — la base refuse
-              (`has_account`) et le roster ne lirait pas la colonne. L'écran le
-              DIT plutôt que de masquer la ligne, exactement comme l'objectif
-              depuis D1: « il n'y a rien ici » et « ça se règle ailleurs » ne
-              sont pas la même phrase. */}
-          {/* ⛔ LE RÉGIME AUSSI (A5 point 6): `set_member_diet` répond
-              `not_owner`. Et pour un membre RÉCLAMÉ il répondrait de toute
-              façon `has_account` — son régime vit dans son « about you ». Deux
-              refus pour un contrôle: il ne se rend pas. */}
-          {viewerIsOwner ? (
-          <div className="border-t border-line pt-3">
-            <Field
-              label={t("household.member.diet")}
-              hint={t("household.member.diet_hint")}
-            >
-              {member.userId === null
-                ? (
-                  <div className="flex flex-wrap gap-2">
-                    {DIET_ANSWERS.map((d) => (
-                      <Button
-                        key={d}
-                        size="sm"
-                        variant={member.diet === d ? "primary" : "secondary"}
-                        disabled={busy}
-                        onClick={() => {
-                          void onSaveDiet(member.diet === d ? null : d);
-                        }}
+              Le pavé qui dit CE QUE ÇA REMPLACE, et pourquoi elle ne se monte
+              pas pour tout le monde, est sur `sharedSheet`, plus haut. Ce qui
+              se lit ici est l'ordre des sections, et il vient du composant:
+              régime → allergies → dégoûts → moments ET habitudes. */}
+          {sharedSheet
+            ? (
+              <>
+                <MouthPreferencesFields
+                  draft={prefsDraft}
+                  onChange={setPrefsDraft}
+                  // ⛔ `hasAccount: false` N'EST PAS UNE VALEUR PAR DÉFAUT: ce
+                  // bloc ne se monte que pour une bouche sans compte (voir
+                  // `sharedSheet`). `isSelf` décide de la VOIX, et il est faux
+                  // ici dès que le maître regarde quelqu'un d'autre.
+                  subject={{ existing: true, hasAccount: false, isSelf: isMe }}
+                  busy={busy}
+                  structure={prefsStructure}
+                  // ⚠️ REQUISE, ET LE COMPOSANT NE LA LIT PLUS — c'est écrit
+                  // chez lui, au pavé de `declaredSlots`: depuis que la ligne
+                  // d'habitude s'ouvre AVEC SA CASE, ce qui décide des
+                  // questions posées est `draft.rhythm`, pas cette liste. On
+                  // passe la même cascade que les deux autres sites de montage
+                  // (sa ligne, sinon la maison) plutôt qu'une valeur inventée:
+                  // le jour où la prop retrouve un lecteur, elle sera juste.
+                  slots={habitSlots}
+                  // Le bouton de ce cadre emporte le shaker avec le reste —
+                  // `addShakerToMemberIntakes`, sur SA ligne. Voir
+                  // `saveMemberPreferences`.
+                  shakerPort={{ kind: "with_the_card" }}
+                  // FERMER LE CADRE, PAS LA FENÊTRE: l'autre cadre est
+                  // au-dessus, et refermer la fenêtre perdrait le geste.
+                  onClose={() => setPrefsOpen(false)}
+                />
+                {/* ⚠️ UN BOUTON, ET IL EST ICI. Le cadre d'identité a le sien
+                    (prénom/date/direction), `BodyFields` a le sien: ce cadre-ci
+                    écrit d'AUTRES portes, et sans son geste propre il serait la
+                    seule surface de la fenêtre à ne rien promettre. C'est la
+                    même règle que la fenêtre des préférences de l'entonnoir sur
+                    une bouche déjà inscrite. */}
+                <div className="flex flex-wrap items-center gap-2 border-t border-line pt-3">
+                  <Button
+                    disabled={busy}
+                    onClick={() => {
+                      void onSavePreferences(prefsDraft);
+                    }}
+                  >
+                    {t("household.member.save")}
+                  </Button>
+                </div>
+              </>
+            )
+            : (
+              /* ── UNE BOUCHE QUI A UN COMPTE — CE QUI RESTE ÉCRIVABLE ────
+                 Son régime et ses moments vivent dans SON « about you »
+                 (`has_account` des deux côtés), et l'écran le DIT plutôt que
+                 de masquer la question: « il n'y a rien ici » et « ça se règle
+                 ailleurs » ne sont pas la même phrase. Ses habitudes, elles,
+                 s'écrivent bien d'ici. */
+              <>
+                {viewerIsOwner
+                  ? (
+                    <div className="border-t border-line pt-3">
+                      <Field
+                        label={t("household.member.diet")}
+                        hint={t("household.member.diet_hint")}
                       >
-                        {/* ⚠️ LES LIBELLÉS SONT DANS LE NAMESPACE DE CETTE
-                            PAGE, pas dans `setup.*`. La LISTE est partagée
-                            (`DIET_ANSWERS`, importée) — c'est elle qui est
-                            load-bearing; les mots, eux, ne traversent pas la
-                            couture: `pageSeams.int.test.ts` refuse qu'une page
-                            atteigne le namespace d'une autre, et il a raison —
-                            la couverture de locale se mesure par namespace. */}
-                        {t(
-                          `household.member.diet_${d}` as
-                            "household.member.diet_omnivore",
-                        )}
-                      </Button>
-                    ))}
-                  </div>
-                )
-                : (
-                  <p className="text-xs text-ink-soft">
-                    {t("household.member.diet_from_profile")}
-                  </p>
-                )}
-            </Field>
-          </div>
-          ) : null}
-
-          {/* ── CE QUE CETTE BOUCHE MANGE D'HABITUDE (2026-08-14) ──────────
-              L'ENDROIT QUI MANQUAIT. Une bouche sans compte n'avait nulle part
-              où dire ce qu'elle mange: `food_preferences` est clé sur
-              `user_id`. On savait d'elle prénom, naissance, objectif, absences,
-              moments, allergies et corps — et rien sur ce qu'elle mange. Un
-              plan réel a donc servi des œufs brouillés sept matins d'affilée à
-              une femme qui mange une pomme.
-
-              ⚠️ RIEN N'EST PRÉ-COCHÉ, ET AUCUNE ABSENCE N'EST COMPTÉE. Les deux
-              règles vivent dans la carte et dans `habitDraft`; elles sont la
-              raison d'être du lot, pas une finition. */}
-          <HouseholdHabitsCard
-            slots={habitSlots}
-            habits={habits}
-            loaded={habitsLoaded}
-            busy={busy}
-            onSave={onSaveHabits}
-          />
+                        <p className="text-xs text-ink-soft">
+                          {t("household.member.diet_from_profile")}
+                        </p>
+                      </Field>
+                    </div>
+                  )
+                  : null}
+                {/* ⚠️ RIEN N'EST PRÉ-COCHÉ, ET AUCUNE ABSENCE N'EST COMPTÉE.
+                    Les deux règles vivent dans la carte et dans `habitDraft`. */}
+                <HouseholdHabitsCard
+                  slots={habitSlots}
+                  habits={habits}
+                  loaded={habitsLoaded}
+                  busy={busy}
+                  onSave={onSaveHabits}
+                />
+              </>
+            )}
 
           {/* ── A6 · LE DÉJEUNER EN SEMAINE (2026-09-03) ──────────────────
               LA QUESTION VIVAIT À L'ÉTAPE 3 DE L'ENTONNOIR, deux écrans avant
@@ -3815,13 +4216,44 @@ function MemberRow(
               secret — pas qu'il puisse tout écrire. */}
           {viewerIsOwner ? (
           <div className="border-t border-line pt-3">
-            {/* ── §8.5 RÈGLE 1 · LE CHOIX N'EXISTE QUE SUR UN ENFANT ─────
-                Sur une bouche majeure — ou dont personne n'a tapé la date de
-                naissance — il n'y a plus DEUX natures à distinguer: il n'y a
-                qu'une allergie. Le sélecteur disparaît donc au lieu de proposer
-                une option qui serait refusée par la base, et le champ dit
-                lui-même ce qu'il écrit. */}
-            {canSetHouseRule
+            {/* ══════════════════════════════════════════════════════════
+                ⛔ LE CHAMP LIBRE D'ALLERGIE S'EN VA AVEC LA FICHE PARTAGÉE
+                ══════════════════════════════════════════════════════════
+
+                Dès que `MouthPreferencesFields` est monté au-dessus, cette
+                bouche a DÉJÀ un champ d'allergie: le catalogue fermé, le même
+                qu'à l'inscription — et c'est lui qu'il faut, parce que choisir
+                dans la liste fait reconnaître l'allergène SOUS SES AUTRES NOMS
+                (`copy/allergens.ts`: `peanut` couvre « satay », « groundnut »,
+                « PB »), là où une saisie libre n'est reconnue que sous le mot
+                écrit. Garder les deux aurait été deux champs qui écrivent la
+                MÊME table avec deux promesses différentes.
+
+                CE QUI RESTE ICI est ce que le catalogue ne porte pas: la RÈGLE
+                DE MAISON (§8.5 règle 1 — sur un mineur, et sur lui seul), et le
+                RETRAIT des deux natures, qui n'existe nulle part ailleurs.
+
+                ⚠️ POUR UNE BOUCHE QUI A UN COMPTE, RIEN NE CHANGE: sa fiche
+                partagée ne se monte pas, donc son champ libre est toujours là —
+                sans lui, elle n'aurait plus aucune porte d'allergie. */}
+            {sharedSheet
+              ? (canSetHouseRule
+                ? (
+                  /* ⛔ PLUS DE SÉLECTEUR DE NATURE: la fiche partagée tient
+                     déjà l'allergie, il ne reste qu'UNE chose à écrire ici.
+                     Un choix à une seule option est une question sans réponse
+                     alternative. */
+                  <>
+                    <SectionLabel>
+                      {t("household.constraint.kind.house_rule")}
+                    </SectionLabel>
+                    <p className="mt-1 text-xs leading-5 text-ink-soft">
+                      {t("household.constraint.kind.house_rule_hint")}
+                    </p>
+                  </>
+                )
+                : null)
+              : canSetHouseRule
               ? (
                 <Field
                   label={t("household.constraint.kind")}
@@ -3853,12 +4285,17 @@ function MemberRow(
                   </p>
                 </Field>
               )}
+            {/* ⛔ PAS DE CHAMP QUAND IL N'A PLUS RIEN À ÉCRIRE: fiche partagée
+                montée + bouche majeure = le catalogue tient l'allergie et la
+                règle de maison n'existe pas. Un champ qui n'a pas de porte est
+                un champ qui promet. */}
+            {sharedSheet && !canSetHouseRule ? null : (
             <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
               <input
                 className={`${inputClass} min-w-0 flex-1`}
                 value={label}
                 maxLength={120}
-                placeholder={effectiveKind === "allergy"
+                placeholder={constraintKind === "allergy"
                   ? t("household.allergy.placeholder")
                   : t("household.restriction.placeholder")}
                 onChange={(e) => setLabel(e.target.value)}
@@ -3868,25 +4305,34 @@ function MemberRow(
                 onClick={() => {
                   const value = label.trim();
                   setLabel("");
-                  // ⛔ `effectiveKind`, JAMAIS `kind`. L'état survit au
+                  // ⛔ `constraintKind`, JAMAIS `kind`. L'état survit au
                   // changement de bouche dans la liste: quelqu'un qui choisit
                   // « règle de maison » sur son enfant puis ouvre la fiche d'un
                   // adulte enverrait cette valeur sur la mauvaise porte, et
                   // lirait un `not_a_minor` sur un formulaire qui ne montre
                   // plus le choix.
-                  if (effectiveKind === "allergy") onAddAllergy(value);
+                  if (constraintKind === "allergy") onAddAllergy(value);
                   else onAddRestriction(value);
                 }}
               >
-                {effectiveKind === "allergy"
+                {constraintKind === "allergy"
                   ? t("household.allergy.add")
                   : t("household.restriction.add")}
               </Button>
             </div>
+            )}
             <ul className="mt-2 flex flex-col gap-1 text-sm">
               {allergies.map((a) => (
                 <li key={a.id} className="flex flex-wrap items-center gap-2">
-                  <span className="font-medium text-red-700">{a.label}</span>
+                  {/* ⚠️ `allergenLabel` ET PAS LE JETON NU. Le catalogue écrit
+                      des SLUGS (`peanut`, `tree_nut`): rendus tels quels, la
+                      liste d'une fiche française affichait « peanut » sous une
+                      case cochée « Arachide ». Le slug reste la donnée, jamais
+                      l'affichage — et une saisie libre inconnue traverse, elle,
+                      rendue lisible. */}
+                  <span className="font-medium text-red-700">
+                    {allergenLabel(a.label)}
+                  </span>
                   <span className="text-ink-soft">
                     {t("household.constraint.kind.allergy")}
                   </span>

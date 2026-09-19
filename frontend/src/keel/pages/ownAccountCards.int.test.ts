@@ -97,9 +97,21 @@ describe("les deux cartes du compte sont montées, et gardées deux fois", () =>
    * Cicatrice `stale-current-erases-the-previous-write`.
    */
   it("la colonne est relue après chaque écriture des deux cartes", () => {
+    // ⟳ 2026-09-19 — LA RELECTURE A UN NOM. Elle était écrite EN LIGNE dans le
+    // JSX; la fiche de goûts d'une bouche en a maintenant besoin elle aussi
+    // (l'accusé d'allergie FUSIONNE sur cette même colonne), donc elle est
+    // sortie en `refreshPracticalConstraints`. On suit le nom jusqu'à la
+    // lecture: s'arrêter au câblage laisserait passer un rappel qui ne relit
+    // rien.
     const at = src.indexOf("onSavedOwnConstraints={");
     expect(at, "le geste de relecture n'est pas câblé").toBeGreaterThan(0);
-    expect(src.slice(at, at + 500)).toContain("loadPracticalConstraints(userId)");
+    expect(src.slice(at, at + 500)).toContain("refreshPracticalConstraints");
+    const decl = src.indexOf("const refreshPracticalConstraints = React.useCallback(");
+    expect(decl, "la relecture nommée n'existe pas").toBeGreaterThan(0);
+    expect(
+      src.slice(decl, decl + 400),
+      "le rappel de relecture ne relit pas la colonne",
+    ).toContain("loadPracticalConstraints(userId)");
   });
 
   /**

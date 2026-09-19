@@ -626,14 +626,20 @@ Deno.test("R6 — DÉSARMEMENT: sans apport, la consigne est identique AU CARACT
   // laisserait le test vert tout en réclamant au modèle un petit-déjeuner du
   // lundi que le parseur jetterait derrière.
   const cellsOf = (msg: string) =>
-    /^cells to fill: (\d+), and here is every single one:\n([^\n]*)$/m.exec(msg);
+    /^cells to fill: (\d+)\./m.exec(msg);
+  const breakfastRow = (msg: string) =>
+    /^ {2}breakfast *\((\d+)\): (.*)$/m.exec(msg);
   const cellsEmpty = cellsOf(empty.userMessage);
   const cellsWith = cellsOf(withIntake.userMessage);
   assert(cellsEmpty !== null && cellsWith !== null);
   assertEquals(Number(cellsEmpty[1]), 6); // mon + sat, trois moments chacun
   assertEquals(Number(cellsWith[1]), 5); // le shaker prend le lundi matin
-  assert(cellsEmpty[2].includes("mon/breakfast"));
-  assert(!cellsWith[2].includes("mon/breakfast"));
+  const rowEmpty = breakfastRow(empty.userMessage);
+  const rowWith = breakfastRow(withIntake.userMessage);
+  assert(rowEmpty !== null && rowWith !== null);
+  assertEquals(rowEmpty[2].trim(), "mon, sat");
+  assertEquals(rowWith[2].trim(), "sat");
+  assertEquals(Number(rowWith[1]), 1);
 
   // Le retrait de l'apport rend EXACTEMENT la chaîne d'avant, au caractère
   // près: c'est la seule comparaison qui attrape une ligne vide de trop.
@@ -642,15 +648,12 @@ Deno.test("R6 — DÉSARMEMENT: sans apport, la consigne est identique AU CARACT
   // suit. Retirer l'un sans l'autre laisserait la ligne vide qu'on traque.
   //
   // ⚠️ LA GRILLE EST NORMALISÉE DES DEUX CÔTÉS, ET UNIQUEMENT ELLE. Son écart
-  // vient d'être prouvé trois lignes plus haut; le reste du message doit rester
-  // identique au caractère près, y compris le rappel « those N cells » qui suit
-  // la liste.
+  // vient d'être prouvé juste au-dessus; le reste du message doit rester
+  // identique au caractère près.
   const flattenCells = (msg: string) =>
     msg
-      .replace(
-        /^cells to fill: \d+, and here is every single one:\n[^\n]*$/m,
-        "«GRILLE»",
-      )
+      .replace(/^cells to fill: \d+\./m, "cells to fill: «N».")
+      .replace(/^ {2}\w+ *\(\d+\): .*$/gm, "«LIGNE»")
       .replace(/those \d+ cells/, "those «N» cells")
       .replace(/\d+ is a FLOOR/, "«N» is a FLOOR");
   const removed = withIntake.userMessage.replace(

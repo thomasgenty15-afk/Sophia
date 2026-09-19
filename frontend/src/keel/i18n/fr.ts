@@ -2536,8 +2536,18 @@ export const fr: TranslatedMessages = {
   "household.mouth.answer_no": "Non",
   // ⑤ Voir la note d'`en.ts`: on ne demande pas l'appétit, on demande de quel
   // côté de l'incertitude de la formule la personne se situe.
-  "household.mouth.appetite": "Comment {who} mange, d'habitude",
-  "household.mouth.appetite_you": "Comment tu manges, d'habitude",
+  // ⟳ 2026-09-18 — LA QUESTION DIT SON NOM, ET LES TROIS RÉPONSES SONT UN MOT.
+  // Elle demandait « comment {who} mange, d'habitude » et faisait choisir entre
+  // trois tailles d'assiette: trois lignes à lire pour répondre « moyen ».
+  // ⛔ CE QUE ÇA RENVERSE, ET C'EST ASSUMÉ: la note d'`en.ts` disait qu'on ne
+  // demande PAS l'appétit mais « de quel côté de l'incertitude de la formule »
+  // la personne se situe, et que « à carrure égale » empêchait de lire « as-tu
+  // faim ». On demande maintenant l'appétit EN TOUTES LETTRES (demande du
+  // propriétaire). Ce qui protège encore la lecture est la légende: elle dit ce
+  // que la réponse déplace — le VOLUME de l'assiette — et ce qu'elle ne déplace
+  // pas. La retirer laisserait croire qu'on choisit ici ce que la journée vise.
+  "household.mouth.appetite": "{who} a quel appétit ?",
+  "household.mouth.appetite_you": "Tu as quel appétit ?",
   // ⛔ « Le calcul se trompe d'environ 10 %. » RETIRÉE LE 2026-09-01, demandée
   // à l'écran. Elle expliquait POURQUOI on pose la question (l'incertitude
   // inter-individuelle de Mifflin-St Jeor) à quelqu'un qui n'a qu'à y
@@ -2551,12 +2561,12 @@ export const fr: TranslatedMessages = {
   // touche PLUS l’énergie, il déplace les bornes de MASSE de l’assiette. À
   // calories égales, plus dense d’un côté, plus volumineux de l’autre.
   "household.mouth.appetite_hint":
-    "À carrure égale, {who} mange… Ça ne change pas ce que la journée vise — seulement le volume de l’assiette.",
+    "À carrure égale. Ça ne change pas ce que la journée vise — seulement le volume de l’assiette de {who}.",
   "household.mouth.appetite_hint_you":
-    "À carrure égale, tu manges… Ça ne change pas ce que la journée vise — seulement le volume de l’assiette.",
-  "household.mouth.appetite_small": "De plus petites assiettes",
-  "household.mouth.appetite_average": "Comme la plupart des gens",
-  "household.mouth.appetite_large": "De plus grandes assiettes",
+    "À carrure égale. Ça ne change pas ce que la journée vise — seulement le volume de ton assiette.",
+  "household.mouth.appetite_small": "Petit",
+  "household.mouth.appetite_average": "Moyen",
+  "household.mouth.appetite_large": "Gros",
   // Voir la note d'`en.ts`: la question dimensionne la section du dessous.
   // ══════════════════════════════════════════════════════════════════════
   // LA SECTION FUSIONNÉE — « quand » et « quoi » ne font qu'une question

@@ -1396,6 +1396,15 @@ export default function SetupPage() {
     draft: prefsDraft,
     active: prefsFor !== null,
     todayLocalIso: browserLocalDate(),
+    // ⛔ CE CROCHET SERT LES TROIS SUJETS DE L'ÉCRAN, ET C'EST LUI QUI A
+    // MORDU (2026-09-19): sans ce nom, la fiche d'une bouche s'ouvrait sur les
+    // moments recommandés à la PRÉCÉDENTE, et la pré-coche les verrouillait.
+    // Le détail est dans `lib/useEatingStructure.ts`.
+    subject: prefsFor === null
+      ? "none"
+      : prefsFor.kind === "member"
+      ? `member:${prefsFor.memberId}`
+      : prefsFor.kind,
   });
 
   // ── LA PORTE DE MONTAGE ──────────────────────────────────────────────────
@@ -3364,6 +3373,7 @@ export default function SetupPage() {
                 // rejouerait à chaque enregistrement.
                 onOpenMouthPreferences={(m) => {
                   const known = habits?.get(m.memberId ?? "");
+                  const aimed = memberTargets?.get(m.memberId ?? "") ?? null;
                   setMemberPrefs({
                     memberId: m.memberId ?? "",
                     draft: {
@@ -3371,6 +3381,44 @@ export default function SetupPage() {
                       firstName: m.firstName,
                       goal: m.goal ?? "",
                       diet: m.diet ?? "",
+                      // ══════════════════════════════════════════════════════
+                      // SON CORPS — EN LECTURE SEULE, ET C'EST CE QUI REND LA
+                      // RECOMMANDATION INDIVIDUELLE (2026-09-19)
+                      // ══════════════════════════════════════════════════════
+                      //
+                      // Sans ces six lignes, `useEatingStructure` n'avait AUCUN
+                      // poids pour cette bouche: il ne demandait rien, et la
+                      // fenêtre n'avait donc aucun moment à proposer POUR ELLE.
+                      // C'est la seconde moitié de « les recommandations
+                      // devraient être faites individuellement » — la première
+                      // (ne pas hériter de celles d'à côté) vit dans
+                      // `lib/useEatingStructure.ts`.
+                      //
+                      // ⛔ RIEN ICI N'EST RÉÉCRIT EN BASE, et il faut le savoir
+                      // avant d'y toucher: `saveMouthPreferences` écrit le
+                      // corps depuis `target` (la ligne du roster), jamais
+                      // depuis ce brouillon. Ces champs ne sont donc pas un
+                      // second formulaire sur les mêmes colonnes — ils sont ce
+                      // que la fiche a besoin de LIRE pour calculer.
+                      heightCm: m.heightCm === null ? "" : String(m.heightCm),
+                      weightKg: m.weightKg === null ? "" : String(m.weightKg),
+                      gender: m.gender ?? "",
+                      activityLevel: m.activityLevel ?? "",
+                      dayActivity: m.dayActivity ?? "",
+                      sportFrequency: m.sportFrequency ?? "",
+                      // ⚠️ LA DATE VIENT DE LA PORTE SCOPÉE AU MAÎTRE, PAS DU
+                      // ROSTER (qui ne la rend jamais). Sans elle, pas de bande
+                      // d'âge, donc pas d'entretien estimé, donc AUCUNE
+                      // structure — le même chaînon qui privait la ligne de son
+                      // curseur de rythme.
+                      birthDate: memberBirthDates?.get(m.memberId ?? "") ?? "",
+                      // ⚠️ SON RYTHME DE PERTE OU DE PRISE: il déplace la
+                      // cible, donc le nombre de moments que le corps réclame.
+                      // Le laisser vide ferait proposer la journée d'un rythme
+                      // par défaut à quelqu'un qui en a réglé un autre.
+                      paceKgPerWeek: aimed?.paceKgPerWeek == null
+                        ? ""
+                        : String(aimed.paceKgPerWeek),
                       // ⛔ LE RYTHME MANQUAIT ICI, ET C'EST TOUT LE DÉFAUT.
                       // Le régime et les habitudes étaient semés, lui non: on
                       // cochait « déjeuner, dîner », on fermait, on rouvrait —
@@ -5484,9 +5532,42 @@ function MouthRow(props: {
   // sur l'état d'âge que la ligne connaît, avec la même règle (`goalForAge`).
   const rowAge = funnelMouthAgeState(m, date, browserLocalDate());
   const rowShownGoal = goalForAge(m.goal ?? "", rowAge);
-  const rowTargetDraft: MouthFormDraft = rowShownGoal === targetDraft.goal
-    ? targetDraft
-    : { ...targetDraft, goal: rowShownGoal, targetWeightKg: "", paceKgPerWeek: "" };
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * LA DATE ENTRE DANS LE BROUILLON DE CIBLE — 2026-09-19
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * ── LE DÉFAUT, REPRODUIT À L'ÉCRAN ────────────────────────────────────
+   * Signalé: « le curseur n'apparaît pas dans le cas d'une perte de poids ».
+   * Vérifié sur une bouche ajoutée puis rouverte par « Modifier », en
+   * `fat_loss`, avec sa taille, son poids et son sexe: « Poids visé » se
+   * dépliait, **le curseur non**. Sur la fiche d'AJOUT, les deux apparaissent —
+   * et c'est ce qui désigne la cause.
+   *
+   * ── LA CAUSE ──────────────────────────────────────────────────────────
+   * `mouthDraftFromRow` ne porte PAS la date de naissance (« le roster ne la
+   * rend jamais », et c'était vrai quand il a été écrit). Or le curseur se
+   * borne sur l'entretien estimé, et `estimatedMaintenanceKcal` rend `null`
+   * sans BANDE D'ÂGE (`meal_envelope.ts` ~1067) — donc `paceCeilingFor` rend
+   * `null`, donc `paceControlFor` rend `needs_body`, donc pas de curseur. Le
+   * champ « Poids visé », lui, passe par un autre chemin et s'affichait: d'où
+   * une fiche qui promet un rythme et n'en donne pas.
+   *
+   * ── POURQUOI ICI, ET PAS DANS LA SEMENCE ──────────────────────────────
+   * La date EST connue de la ligne: `date`, semée par la porte scopée au
+   * maître (`keel_household_member_birth_date_for_owner`) et remplaçable au
+   * clavier. La mettre dans `targetDraft` obligerait à la remettre dans la CLÉ
+   * de semence — et chaque frappe dans le champ date re-sèmerait le brouillon,
+   * donc effacerait un poids visé en cours de saisie. On la DÉRIVE, comme la
+   * direction juste au-dessus: le brouillon garde ce qu'on y tape, la fiche
+   * voit l'âge que la ligne connaît.
+   */
+  const rowTargetDraft: MouthFormDraft = {
+    ...(rowShownGoal === targetDraft.goal
+      ? targetDraft
+      : { ...targetDraft, goal: rowShownGoal, targetWeightKg: "", paceKgPerWeek: "" }),
+    birthDate: date,
+  };
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-baseline justify-between gap-2">

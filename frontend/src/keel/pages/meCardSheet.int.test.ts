@@ -108,6 +108,10 @@ function sheetBody(known: KnownMouth): string {
     createElement(MeSheetForm, {
       draft: draftFromKnown(known),
       onChange: () => {},
+      // ⟳ 2026-09-19 — LA LIGNE OUVRE LA FENÊTRE SUR UN CADRE. `false` est ce
+      // que rend le bouton « Informations personnelles »: l'accordéon des
+      // goûts part REPLIÉ, et c'est l'état que les cas ci-dessous mesurent.
+      initialPrefsOpen: false,
       todayLocalIso: "2026-08-18",
       busy: false,
       failure: null,
@@ -135,8 +139,14 @@ describe("la fiche du titulaire — un résumé, et une seule porte", () => {
         html.split(en["household.member.first_name"]).length - 1,
         "un formulaire écrit le prénom sur la carte",
       ).toBe(0);
-      expect(html, "la porte de la fiche a disparu").toContain(
-        en["household.member.edit"],
+      // ⟳ 2026-09-19 — DEUX PORTES, PLUS UN « Modifier ». La ligne ouvre la
+      // fenêtre SUR le cadre qu'on vient chercher; garder l'ancien libellé
+      // aurait fait passer une carte à une seule entrée pour la bonne.
+      expect(html, "la porte des informations a disparu").toContain(
+        en["household.member.frame_identity"],
+      );
+      expect(html, "la porte des préférences a disparu").toContain(
+        en["household.member.frame_preferences"],
       );
     }
   });

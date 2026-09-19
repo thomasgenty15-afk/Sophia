@@ -5557,14 +5557,53 @@ export function buildMealPrompt(args: {
         // dont `baseCap` est le produit entier, et `cap` vaut `baseCap` plus le
         // supplément de fusion. Les deux nombres ne peuvent donc que se
         // rejoindre, jamais se croiser.
-        `cells to fill: ${cellsToFill.length}, and here is every single one:`,
-        emptySlotsLine(cellsToFill),
+        `cells to fill: ${cellsToFill.length}. One line per moment, with how ` +
+        "many days it covers -- count them:",
+        ...cellChecklistLines(
+          cellsToFill,
+          rhythm.map((o) => String(o.slot)),
+          daysToEat,
+        ),
         `Return one dish for EACH of those ${cellsToFill.length} cells. ` +
         `${cellsToFill.length} is a FLOOR, not a number to approach: a cell ` +
         "left without a dish is a hole, and this table did not ask for a " +
-        "partial stretch. Before you answer, walk that list from its first " +
-        "`day/slot` to its last and check that every one of them carries a " +
-        "dish; compose the ones that do not.",
+        "partial stretch. Before you answer, take the lines above ONE BY ONE " +
+        "and count your dishes for that moment against the number in " +
+        "brackets; compose whatever is short.",
+        // ── ⛔ LA CASE EST REMPLIE PAR LE PLAT DE LA TABLE, PAS PAR UN PLAT
+        //    À QUELQU'UN — 2026-09-18, foyer `fagenty` ───────────────────────
+        //
+        // Mesuré: mercredi `before_bed`, la SEULE chose posée était « Tisane
+        // aux herbes séchées » portant `for_member_id` = fabrice. La case
+        // comptait donc comme remplie (`cell_without_dish` regarde s'il existe
+        // UN plat à ce jour/moment), et les deux autres bouches n'avaient rien
+        // — `mouth_unfed: unfed:not_named` et `cell_without_portion`. Les six
+        // autres soirs portaient bien le plat de la table.
+        //
+        // ⚠️ LA PHRASE EST ICI, collée au plancher qu'elle corrige, et pas
+        // dans `dedicatedDishBlock`: c'est CE nombre-là qu'elle qualifie. Un
+        // « un plat par case » que le dédié satisfait est un plancher désarmé.
+        //
+        // ⚠️ ET ELLE EST ADDITIVE, PAS DISSUASIVE. La phrase vit 20 000
+        // caractères AVANT le bloc « A DISH OF THEIR OWN », qui est celui qui
+        // ORDONNE les plats dédiés (38 sur ce foyer). S'arrêter à « un plat
+        // `for_member_id` ne prend jamais la place de celui de la table » la
+        // laisse se lire comme une mise en garde CONTRE la clé, si loin de
+        // l'ordre qui la réclame. La dernière ligne renvoie donc à ce bloc au
+        // lieu de laisser le modèle arbitrer entre les deux.
+        //
+        // ⛔ ET CE CONTRÔLE-LÀ NE BLOQUE PAS. `own_meal_dish_missing` est de
+        // sévérité `count`: un plan qui perdrait ses 38 plats dédiés serait
+        // livré en 200 avec 38 écarts nommés. Un troc entre les deux moitiés
+        // de cette consigne ne se verrait donc PAS dans le verdict — il se
+        // compte, plat par plat, dans `member_id`.
+        "Each of those cells needs the TABLE's dish -- a dish with NO " +
+        "`for_member_id`. That dish is what fills the cell. A dish that " +
+        "carries `for_member_id` is one person's own: it comes ON TOP of the " +
+        "table's dish for that same cell and never takes its place -- a cell " +
+        "whose only dish carries `for_member_id` is a cell where everyone " +
+        "else eats nothing. Where a block below orders someone a dish of " +
+        "their own, write BOTH dishes on that cell: the table's, and theirs.",
         // `baseCap`, PAS `cap` — voir les deux nombres en tête de fonction.
         `cooking sessions: at most ${batchSessionBudget(baseCap)} for the whole ` +
         "stretch. Most lunches and dinners must therefore come from BATCHES — " +
@@ -6468,6 +6507,54 @@ export function emptySlotsIn(args: {
 /** Les cases vides, en une ligne lisible: `wed/breakfast, thu/breakfast`. */
 export function emptySlotsLine(cases: readonly MealSlotCase[]): string {
   return cases.map((c) => `${c.day}/${c.slot}`).join(", ");
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * LA MÊME GRILLE, MAIS EN LIGNES QU'ON PEUT COCHER — 2026-09-19
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * `emptySlotsLine` met 42 cases sur UNE ligne. Mesuré le 2026-09-18 sur le
+ * foyer `fagenty` (six moments déclarés × sept jours): le modèle a rempli
+ * `snack_pm` lundi, mardi, mercredi et jeudi, puis a laissé les trois derniers
+ * vides. Une liste plate ne donne rien à COMPTER: rien, dans ces 42 jetons, ne
+ * dit qu'il manque trois `snack_pm`.
+ *
+ * ⛔ UNE LIGNE PAR MOMENT, AVEC SON COMPTE. `snack_pm (7): mon, tue, …` se
+ * relit en une seconde et une omission s'y voit — c'est la différence entre
+ * une liste et une CHECKLIST. Le compte est sur chaque ligne, pas seulement en
+ * tête, parce que c'est lui qui rend l'oubli visible ligne par ligne.
+ *
+ * ⚠️ LES JETONS BRUTS, JAMAIS `OCCASION_PROSE`. Ce sont exactement les valeurs
+ * que le modèle doit réécrire dans `day` et `slot`; les traduire en anglais
+ * lisible ajouterait une étape de traduction à une consigne dont tout le point
+ * est qu'elle se recopie.
+ */
+export function cellChecklistLines(
+  cases: readonly MealSlotCase[],
+  slotOrder: readonly string[],
+  dayOrder: readonly string[],
+): string[] {
+  const bySlot = new Map<string, string[]>();
+  for (const c of cases) {
+    const days = bySlot.get(c.slot) ?? [];
+    days.push(c.day);
+    bySlot.set(c.slot, days);
+  }
+  const dayRank = new Map(dayOrder.map((d, i) => [d, i] as const));
+  // ⚠️ L'ORDRE DES MOMENTS EST CELUI DU RYTHME, et les moments qu'il ne nomme
+  // pas viennent après, dans l'ordre où la grille les a produits: une case
+  // rendue invisible parce que son moment manque à `slotOrder` serait
+  // exactement le trou que cette fonction existe pour empêcher.
+  const known = slotOrder.filter((s) => bySlot.has(s));
+  const extra = [...bySlot.keys()].filter((s) => !slotOrder.includes(s));
+  const width = Math.max(...[...known, ...extra].map((s) => s.length), 0);
+  return [...known, ...extra].map((slot) => {
+    const days = (bySlot.get(slot) ?? []).slice().sort(
+      (x, y) => (dayRank.get(x) ?? 0) - (dayRank.get(y) ?? 0),
+    );
+    return `  ${slot.padEnd(width)} (${days.length}): ${days.join(", ")}`;
+  });
 }
 
 /**

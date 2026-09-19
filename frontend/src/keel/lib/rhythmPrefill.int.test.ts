@@ -289,3 +289,118 @@ describe("une seule phrase, et elle ne promet que le geste qui existe", () => {
     expect(en["household.mouth.rhythm_derived_you"]).not.toMatch(/\{who\}/);
   });
 });
+
+// ===========================================================================
+// ⟳ 2026-09-19 — LA RECOMMANDATION APPARTIENT À UNE PERSONNE
+//
+// ── LE DÉFAUT, REPRODUIT À L'ÉCRAN AVANT D'ÊTRE CORRIGÉ ──────────────────
+// Signalé: « j'ai tout coché pour un user et ça a tout coché automatiquement
+// pour les autres ». Vérifié dans l'entonnoir, sur un foyer neuf: le titulaire
+// coche ses six moments, ferme, ouvre la fiche de la bouche d'à côté — et les
+// six cases y sont cochées, sur quelqu'un qui n'a rien dit.
+//
+// La pré-coche n'y était pour rien: elle faisait son travail, sur une réponse
+// qui ne parlait pas de la bonne personne. `useEatingStructure` gardait UN
+// état pour les trois sujets de l'écran (soi, la bouche qu'on ajoute, celle
+// qu'on reprend) et n'en sortait jamais — `if (!active) return` s'en allait
+// sans rien effacer. La première image de la fiche suivante recevait donc la
+// réponse de la précédente, et le verrou `prefilled` la figeait là.
+//
+// ⚠️ CE QUI EST GARDÉ ICI EST LA GARDE, PAS LE CALCUL: que la réponse porte le
+// nom de son sujet, et qu'elle ne se rende pas sous un autre. Les cas de la
+// dérivation elle-même sont plus haut.
+// ===========================================================================
+
+const HOOK = bare(read("./useEatingStructure.ts"));
+const SETUP = bare(read("../pages/SetupPage.tsx"));
+const HOUSEHOLD = bare(read("../pages/HouseholdPage.tsx"));
+
+describe("⛔ une structure parle de QUELQU'UN, et ne se rend pas sous un autre nom", () => {
+  it("le crochet retient le sujet AVEC la réponse", () => {
+    expect(HOOK, "le sujet n'est plus demandé").toContain("subject: string;");
+    expect(
+      HOOK,
+      "la réponse et son sujet sont dans deux états: le rendu du milieu ment",
+    ).toMatch(/useState<\s*\{ subject: string; value: EatingStructure \| null \} \| null\s*>/);
+  });
+
+  it("⛔ LA GARDE EST AU RENDU, pas dans un effet de nettoyage", () => {
+    // Un effet aurait couru APRÈS le rendu fautif, c'est-à-dire après la
+    // morsure: la fiche d'en face a déjà recopié les cases et verrouillé.
+    expect(HOOK).toContain(
+      "return computed !== null && computed.subject === subject ? computed.value : null;",
+    );
+  });
+
+  it("le sujet relance le calcul — deux corps identiques ne sont pas une personne", () => {
+    const at = HOOK.indexOf("}, [");
+    expect(at, "la liste de dépendances a disparu").toBeGreaterThan(0);
+    expect(HOOK.slice(at, at + 400)).toContain("subject,");
+  });
+
+  it("⛔ LES QUATRE SITES DE MONTAGE NOMMENT LEUR SUJET, ET DISTINCTEMENT", () => {
+    // L'entonnoir est celui qui a mordu: un seul crochet, trois sujets.
+    expect(SETUP).toContain("subject: prefsFor === null");
+    expect(SETUP).toContain("`member:${prefsFor.memberId}`");
+    // Le foyer en a trois, un par montage — la garde s'y pose quand même:
+    // « une garde qu'on ne pose que là où ça peut arriver finit par manquer ».
+    expect(HOUSEHOLD).toContain('subject: "self",');
+    expect(HOUSEHOLD).toContain('subject: "new",');
+    expect(HOUSEHOLD).toContain("subject: `member:${member.memberId}`,");
+  });
+
+  it("⛔ ET CHAQUE BOUCHE DE L'ENTONNOIR PORTE SON PROPRE CORPS DANS SA FICHE", () => {
+    // La seconde moitié du signalement: ne pas hériter de la recommandation
+    // d'à côté ne suffit pas, encore faut-il en avoir une à soi. Sans ces
+    // champs, le crochet n'a AUCUN poids pour cette bouche — il ne demande
+    // rien, et la fenêtre ne propose rien.
+    //
+    // ⚠️ EN LECTURE SEULE: `saveMouthPreferences` écrit le corps depuis la
+    // ligne du roster (`target`), jamais depuis ce brouillon.
+    const at = SETUP.indexOf("onOpenMouthPreferences={(m) => {");
+    expect(at, "la porte de la fenêtre a disparu").toBeGreaterThan(0);
+    const block = SETUP.slice(at, at + 2200);
+    for (const field of [
+      "heightCm: m.heightCm",
+      "weightKg: m.weightKg",
+      "gender: m.gender",
+      "birthDate: memberBirthDates?.get(",
+      "paceKgPerWeek: aimed?.paceKgPerWeek",
+    ]) {
+      expect(block, `${field} ne descend pas dans la fiche`).toContain(field);
+    }
+  });
+});
+
+// ===========================================================================
+// ⟳ 2026-09-19 — LE CURSEUR DE RYTHME D'UNE BOUCHE DÉJÀ INSCRITE
+//
+// Signalé: « le curseur n'apparaît pas dans le cas d'une perte de poids ».
+// Sur la ligne d'une bouche ajoutée puis rouverte par « Modifier », en
+// `fat_loss` et avec taille/poids/sexe: « Poids visé » se dépliait, le curseur
+// non. `mouthDraftFromRow` ne porte pas la date de naissance (le roster ne la
+// rend jamais), et `estimatedMaintenanceKcal` rend `null` sans BANDE D'ÂGE —
+// donc pas de plafond, donc `needs_body`, donc pas de curseur.
+//
+// La date, elle, EST connue de la ligne (`date`, semée par la porte scopée au
+// maître). On la DÉRIVE dans le brouillon affiché plutôt que de la semer: la
+// mettre dans la semence obligerait à la mettre dans la CLÉ de semence, et
+// chaque frappe dans le champ date effacerait un poids visé en cours de
+// saisie.
+// ===========================================================================
+
+describe("⛔ le curseur d'une bouche a besoin de son ÂGE, et la ligne le connaît", () => {
+  it("le brouillon affiché porte la date de la ligne", () => {
+    const at = SETUP.indexOf("const rowTargetDraft: MouthFormDraft = {");
+    expect(at, "le brouillon dérivé de la ligne a disparu").toBeGreaterThan(0);
+    expect(SETUP.slice(at, at + 400)).toContain("birthDate: date,");
+  });
+
+  it("⛔ ET ELLE N'ENTRE PAS DANS LA CLÉ DE SEMENCE", () => {
+    // Sinon chaque frappe dans le champ date re-sème `targetDraft` et efface
+    // le poids visé qu'on est en train de taper.
+    const at = SETUP.indexOf("const targetSeed = ");
+    expect(at, "la clé de semence a disparu").toBeGreaterThan(0);
+    expect(SETUP.slice(at, at + 300)).not.toContain("date");
+  });
+});

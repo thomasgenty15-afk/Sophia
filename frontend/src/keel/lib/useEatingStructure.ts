@@ -31,9 +31,58 @@ export function useEatingStructure(args: {
   /** Ouverte ? Fermée, on ne demande rien: la fiche n'est pas devant les yeux. */
   active: boolean;
   todayLocalIso: string;
+  /**
+   * ═══════════════════════════════════════════════════════════════════════
+   * DE QUI PARLE CETTE RÉPONSE — REQUIS, ET C'EST UN DÉFAUT MESURÉ
+   * ═══════════════════════════════════════════════════════════════════════
+   *
+   * ── CE QUI EST ARRIVÉ, REPRODUIT LE 2026-09-19 DANS L'ENTONNOIR ────────
+   * Signalé: « j'ai tout coché pour un user et ça a tout coché automatiquement
+   * pour les autres, alors que les recommandations devraient être faites
+   * individuellement ». Vérifié à l'écran, sur un foyer neuf:
+   *
+   *   1. la fiche du TITULAIRE s'ouvre, son corps donne quatre moments, il
+   *      coche les six;
+   *   2. il ferme, et il ouvre la fiche de LUCIE;
+   *   3. les six cases de Lucie sont cochées. Elle n'a ni corps ni réponse.
+   *
+   * ── LA CAUSE, ET ELLE N'ÉTAIT PAS DANS LA PRÉ-COCHE ────────────────────
+   * `SetupPage` monte UN SEUL crochet pour les trois sujets (soi, la bouche
+   * qu'on ajoute, la bouche qu'on reprend) — c'est légitime, c'est le même
+   * écran. Mais l'état, lui, SURVIVAIT au changement de sujet: `if (!active)
+   * return` sortait sans rien effacer, et la première image de la fiche
+   * suivante recevait donc la réponse de la PRÉCÉDENTE. La pré-coche de
+   * `MouthPreferencesFields` s'arme une fois et se verrouille (`prefilled`):
+   * elle mordait sur cette image-là, avant que l'appel de la nouvelle fiche —
+   * ou son abandon faute de corps — n'ait eu le temps de répondre.
+   *
+   * ── CE QUE CE PARAMÈTRE FAIT, ET POURQUOI PAS UN `useEffect` DE PLUS ───
+   * Il est comparé AU RENDU, pas dans un effet: une réponse qui ne porte pas
+   * le sujet courant n'est simplement pas rendue. Un effet de nettoyage aurait
+   * couru APRÈS le rendu fautif — c'est-à-dire après la morsure.
+   *
+   * ⛔ JAMAIS OPTIONNEL. Un défaut (`""` pour tout le monde) rendrait toutes
+   * les fiches identiques du point de vue de cette garde, ce qui est
+   * exactement l'état d'avant — et il reviendrait au premier appelant
+   * distrait. Un identifiant stable et DISTINCT par personne: `self`, `new`,
+   * `member:<id>`.
+   */
+  subject: string;
 }): EatingStructure | null {
-  const { draft, active, todayLocalIso } = args;
-  const [structure, setStructure] = React.useState<EatingStructure | null>(null);
+  const { draft, active, todayLocalIso, subject } = args;
+  /**
+   * LA RÉPONSE **ET** DE QUI ELLE PARLE. Les deux ensemble, jamais deux états
+   * séparés: deux `useState` se mettraient à jour en deux rendus, et le rendu
+   * du milieu porterait la réponse de l'un sous le nom de l'autre.
+   *
+   * `value: null` EST UNE RÉPONSE POUR CE SUJET — « on a regardé, il n'y a pas
+   * de corps ». Elle se distingue de `null` tout court, qui veut dire « on n'a
+   * rien calculé pour lui »; les deux se rendent pareil, et c'est la lecture
+   * qui compte.
+   */
+  const [computed, setComputed] = React.useState<
+    { subject: string; value: EatingStructure | null } | null
+  >(null);
 
   // Ce qui DOIT relancer le calcul, et rien d'autre. Le prénom, les dégoûts et
   // les allergies n'y sont pas: ils ne déplacent aucun besoin.
@@ -55,7 +104,9 @@ export function useEatingStructure(args: {
     // ⚠️ PAS D'APPEL SANS POIDS. Le serveur rendrait `no_body`, ce qui est juste
     // — mais c'est un aller-retour pour apprendre ce que l'écran sait déjà.
     if (!Number.isFinite(kg) || kg <= 0) {
-      setStructure(null);
+      // « Regardé, pas de corps » — POUR CE SUJET. Le nom voyage avec la
+      // réponse, sinon l'abstention de l'un effacerait le calcul de l'autre.
+      setComputed({ subject, value: null });
       return;
     }
     let alive = true;
@@ -77,7 +128,7 @@ export function useEatingStructure(args: {
       }).then((next) => {
         // Le nettoyage a couru: cette réponse est périmée, et l'écrire ferait
         // clignoter le verrou sur une valeur déjà corrigée.
-        if (alive) setStructure(next);
+        if (alive) setComputed({ subject, value: next });
       });
     }, 400);
     return () => {
@@ -86,6 +137,11 @@ export function useEatingStructure(args: {
     };
   }, [
     active,
+    // ⛔ LE SUJET EST UNE DÉPENDANCE, ET PAS SEULEMENT UN FILTRE DE RENDU: deux
+    // personnes peuvent porter le MÊME corps (des jumeaux, une fiche recopiée),
+    // et sans lui l'effet ne repartirait pas — la seconde resterait sur
+    // « rien calculé » pour toujours.
+    subject,
     weightKg,
     heightCm,
     gender,
@@ -100,7 +156,10 @@ export function useEatingStructure(args: {
     todayLocalIso,
   ]);
 
-  return structure;
+  // ⛔ LA GARDE EST ICI, AU RENDU. Une réponse qui parle de quelqu'un d'autre
+  // n'est pas « un peu périmée »: elle est fausse, et la fiche d'en face la
+  // recopierait en cases cochées sur une personne qui n'a rien dit.
+  return computed !== null && computed.subject === subject ? computed.value : null;
 }
 
 function numOrNull(v: string): number | null {
