@@ -440,9 +440,33 @@ export function applyRepairPatch<T extends RepairPlanShape>(args: {
     rejet("unreadable", args.envelope.errors.join(","));
     return intact();
   }
+  // ══════════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-19 — UNE CHARGE ÉCARTÉE NE JETTE PLUS LES AUTRES
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ LE DÉFAUT, MESURÉ EN RUN RÉEL (foyer `fagenty`, 2026-09-19) : le modèle
+  // a rendu sept charges bien formées, bonne `base_version`, dont quatre pour
+  // des cases VIDES. Deux d'entre elles visaient une case qui portait deux
+  // plats de table — adresse `jour|moment|table` ambiguë, « notre contrat, pas
+  // sa faute » (`patchDishPayloads`). Ce `return intact()` a alors jeté les
+  // SEPT. Deux appels de réparation payés, trois tours aux compteurs
+  // strictement identiques, et trois cases toujours vides à la livraison.
+  //
+  // ⚠️ CE QUE LE LOT 2 PROTÉGEAIT RESTE PROTÉGÉ. « Une opération INVALIDE
+  // rejette tout » vise `envelope.errors` — une unité qui n'est pas un objet,
+  // une opération illisible — et cette branche-là est intacte, juste au-dessus.
+  // Une charge ÉCARTÉE est autre chose : elle est bien formée, on a seulement
+  // refusé de la router. Elle reste écartée (son unité est dans `untouched`),
+  // elle reste DITE (`rejections[]` la porte, et le journal la relaie sous
+  // `dropped_payloads`) — mais les charges routées s'appliquent.
+  //
+  // ⛔ ET QUAND TOUT EST ÉCARTÉ, ON REJETTE ENCORE : sans plat ni casserole à
+  // appliquer, « appliqué » serait un mensonge, et c'est le motif d'avant qui
+  // le dit.
   if (args.dropped.length > 0) {
     rejet("payload_dropped", args.dropped[0].why);
-    return intact();
+    const routees = args.envelope.units.length - args.dropped.length;
+    if (routees <= 0 && args.envelope.preparations.length === 0) return intact();
   }
   // ⛔ L'ÉCHO DE VERSION EST EXIGÉ QUAND LE SERVEUR EN ANNONCE UNE. La revue le
   // nomme : « un `base_version` absent est accepté même si le serveur en attend
@@ -461,6 +485,10 @@ export function applyRepairPatch<T extends RepairPlanShape>(args: {
 
   const autorisees = new Set(args.scope.unitIds);
   const aCreer = new Set(args.scope.createUnitIds);
+  // ⟳ 2026-09-19 — les charges écartées par `patchDishPayloads` ne sont PAS
+  // dans `args.dishes` (jamais routées) : on les saute ici au lieu de les lire
+  // comme « unité non parsée » — ce qui rejetait le patch entier, voir le pavé.
+  const ecartees = new Set(args.dropped.map((d) => d.unitId));
   const potsAutorises = new Set(args.scope.preparationIds);
   const potsExistants = new Set(args.best.preparations.map((p) => p.id));
 
@@ -529,6 +557,7 @@ export function applyRepairPatch<T extends RepairPlanShape>(args: {
       return intact();
     }
     vues.add(u.unitId);
+    if (ecartees.has(u.unitId)) continue; // dite dans `rejections[]`, restée dans `untouched`
     const unite = args.index.byId.get(u.unitId) ?? null;
     if (unite === null) {
       rejet("unknown_unit", u.unitId);

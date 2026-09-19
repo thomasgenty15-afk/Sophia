@@ -517,7 +517,7 @@ Deno.test("⑤ LE CAS QUI PASSE — un plat de TABLE n'est pas une case oubliée
   assertEquals(rows[0].portionExpected, false);
 });
 
-Deno.test("⑤ la garde REFUSE la case sans portion, et seulement elle", () => {
+Deno.test("⑤ la garde MESURE la case sans portion, et seulement elle — et la livraison part avec l'écart nommé", () => {
   const rows = cellNutritionTable({
     index: INDEX,
     plan: PLAN_SANS_BOITE,
@@ -527,13 +527,20 @@ Deno.test("⑤ la garde REFUSE la case sans portion, et seulement elle", () => {
   const outcome = finalPlanGate(minimalPlan(), ctxAvec({ cells: rows, days: [] }));
   assertEquals(outcome.counters.refusals_by_cause.cell_without_portion, 1);
   assertEquals(outcome.counters.checked.portion_cells, 1);
-  // ⛔ SOUS LE LOT 4 ELLE MORD VRAIMENT, et la livraison bascule.
+  // ⟳ 2026-09-19 — SOUS LE LOT 4 ELLE EST COMPTÉE, PLUS REFUSÉE (voir le pavé
+  // de `FINAL_GATE_POLICY_LOT_4`) : la livraison bascule en
+  // `deliverable_with_gaps`, l'écart reste dans `refusals[]`, case nommée.
+  // Ce que ce test garde est « et seulement elle » : aucune autre cause ne
+  // s'invente sur une case sans portion.
   const strict = finalPlanGate(
     minimalPlan(),
     { ...ctxAvec({ cells: rows, days: [] }), policy: FINAL_GATE_POLICY_LOT_4 },
   );
-  assertEquals(strict.ok, false);
-  assertEquals(finalGateDelivery(strict, []).state, "not_deliverable");
+  assertEquals(strict.counters.refusals_by_cause.cell_without_portion, 1, "toujours mesurée");
+  const delivery = finalGateDelivery(strict, []);
+  assertEquals(delivery.blocking.length, 0, "elle n'empêche plus l'activation");
+  assertEquals(delivery.gaps.map((g) => g.cause), ["cell_without_portion"]);
+  assertEquals(delivery.state, "deliverable_with_gaps");
 });
 
 // ═══════════════════════════════════════════════════════════════════════════

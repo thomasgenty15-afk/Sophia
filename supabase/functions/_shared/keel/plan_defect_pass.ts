@@ -40,6 +40,7 @@ import {
 } from "./final_plan_audit.ts";
 import type { CellNutritionRow, DayNutritionRow } from "./final_plan_audit.ts";
 import {
+  CHASED_CAUSES,
   defectsFromOutputContract,
   defectsFromRefusals,
   measureUnit,
@@ -683,13 +684,25 @@ export interface PlanDefectPass {
    * Sous-ensemble de `defects` : les défauts issus d'une cause de la garde
    * finale dont la sévérité, DANS CE RUN, est `refuse`. Un écart compté
    * (`protein_floor_short`, `cell_bounds_off`…) n'en fait pas partie : le plan
-   * part avec lui, nommé. C'est ce nombre, et lui seul, qui autorise un appel
-   * modèle de réparation (`planRepairDecision.blocking`).
+   * part avec lui, nommé.
    *
    * ⛔ MESURÉ SUR HUIT TIRS LE 2026-09-15 : les deux tirs réparés l'ont été sur
    * des écarts comptés, quatre appels payés, zéro écart fermé.
+   *
+   * ⟳ 2026-09-19 — CE N'EST PLUS CE NOMBRE QUI AUTORISE L'APPEL : c'est
+   * `mustRepair`, juste en dessous. `blocking` reste ce qu'il dit — ce qui
+   * empêche la LIVRAISON — et c'est ce que les journaux continuent d'écrire.
    */
   readonly blocking: readonly RepairDefect[];
+  /**
+   * ⟳ 2026-09-19 — CE QUI VAUT UN APPEL DE RÉPARATION : `blocking` ∪ les causes
+   * chassées (`CHASED_CAUSES`, `plan_repair_loop.ts`). Depuis ce jour une case
+   * trouée ne refuse plus le plan, mais elle se répare tant qu'il reste du
+   * budget ; sans cette liste, la bascule en `count` aurait éteint sa
+   * réparation. C'est ce nombre, et lui seul, que lit
+   * `planRepairDecision.mustRepair`.
+   */
+  readonly mustRepair: readonly RepairDefect[];
   /** Le compte par nature — le dénominateur du rapport. */
   readonly byKind: Readonly<Record<string, number>>;
   /** ⛔ D'OÙ VIENT CHAQUE DÉFAUT. Sans lui, « 37 défauts » ne se relit pas. */
@@ -784,6 +797,14 @@ export function collectPlanDefects(
     blocking: defects.filter((d) =>
       d.cause !== null &&
       (causesBloquantes.has(d.cause as never) || d.cause === POT_MASS_UNRECONCILED_CAUSE)
+    ),
+    // ⟳ 2026-09-19 — bloquants ∪ chassés. La liste est lue ICI et nulle part
+    // ailleurs ; `blocking` ne change pas de sens.
+    mustRepair: defects.filter((d) =>
+      d.cause !== null &&
+      (causesBloquantes.has(d.cause as never) ||
+        d.cause === POT_MASS_UNRECONCILED_CAUSE ||
+        CHASED_CAUSES.has(d.cause))
     ),
     byKind,
     bySource: {

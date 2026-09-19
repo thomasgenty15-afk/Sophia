@@ -51,7 +51,7 @@ import {
 // ① LA POLITIQUE — CE QUI EST ARMÉ, ET CE QUI NE PEUT PAS L'ÊTRE
 // ═══════════════════════════════════════════════════════════════════════════
 
-Deno.test("① le lot 4 arme DOUZE causes, nommément — et pas une de plus", () => {
+Deno.test("① le lot 4 arme HUIT causes, nommément — et pas une de plus", () => {
   const armees = FINAL_GATE_CAUSES.filter((c) =>
     FINAL_GATE_POLICY_LOT_4[c] === "refuse"
   );
@@ -90,16 +90,19 @@ Deno.test("① le lot 4 arme DOUZE causes, nommément — et pas une de plus", (
   // lui interdit, la seconde le sert deux fois. ⚠️ La seconde ne refuse AUCUN
   // plan qui passait hier: le même plan tombait déjà par `mouth_unfed/double`,
   // sous un nom qui décrivait la conséquence au lieu de la cause.
+  // ⟳ 2026-09-19 — 12 → 8. `cell_without_dish`, `mouth_unfed`,
+  // `cell_without_portion` et `cell_two_table_dishes` passent en `count` : la
+  // complétude d'une case se RÉPARE (elle reste chassée, voir
+  // `plan_repair_blocking_test.ts`), puis se LIVRE nommée. Décision produit,
+  // mesurée avant : 3 plans sur 5 refusés pour cette seule famille sur un foyer
+  // à 42 cases. Ce qui reste armé est la sécurité, une bouche que la casserole
+  // ne peut pas nourrir, et les impossibilités de calendrier.
   assertEquals([...armees].sort(), [
     "boxes_none_delivered",
-    "cell_two_table_dishes",
-    "cell_without_dish",
-    "cell_without_portion",
     "dedicated_dish_missing",
     "eaten_before_cooked",
     "eaten_too_late",
     "house_rule_served",
-    "mouth_unfed",
     "perishable_bought_too_early",
     "regime_forbidden_component",
     "table_exclusion_served",
@@ -116,9 +119,11 @@ Deno.test("① le lot 4 arme DOUZE causes, nommément — et pas une de plus", (
   // c'est la moitié qui rend la précédente lisible: « mon petit-déjeuner à
   // moi » est une habitude, pas une impossibilité. Elle s'annonce, elle ne
   // refuse pas.
+  // ⟳ 2026-09-19 — et les quatre causes de COMPLÉTUDE d'une case.
   for (const c of ["cell_energy_off", "cell_bounds_off", "day_energy_off",
     "protein_floor_short", "ingredient_not_bought", "ingredient_short_bought",
-    "mouth_energy_short", "own_meal_dish_missing"] as const) {
+    "mouth_energy_short", "own_meal_dish_missing", "cell_without_dish",
+    "mouth_unfed", "cell_without_portion", "cell_two_table_dishes"] as const) {
     assertEquals(FINAL_GATE_POLICY_LOT_4[c], "count", `${c} ne doit pas bloquer`);
   }
 });
@@ -269,29 +274,35 @@ function nutritionSansPortion() {
   return { cells, days: base.days };
 }
 
-Deno.test("② une PORTION OBLIGATOIRE absente empêche l'activation", () => {
+Deno.test("② une PORTION absente est LIVRÉE NOMMÉE — elle n'empêche plus l'activation (2026-09-19)", () => {
   // ⛔ C'EST LE CAS DU TIR N° 2, ET SA FORME EXACTE: un plat est posé, il a un
   // titre, une méthode — et zéro contenant pour cette bouche.
+  //
+  // ⟳ 2026-09-19 — CE TEST DISAIT « empêche l'activation ». La décision produit
+  // a renversé la sévérité (voir `FINAL_GATE_POLICY_LOT_4`) : la case est
+  // toujours MESURÉE, toujours NOMMÉE (repas et personne), mais le plan part.
+  // Ce qui est épinglé ici est exactement ce que la revue C6 § 5 exige : on ne
+  // masque pas le manque.
   const morde = finalPlanGate(CLEAN_HOUSEHOLD_PLAN, {
     ...CLEAN_HOUSEHOLD_CONTEXT,
     nutrition: nutritionSansPortion(),
     policy: FINAL_GATE_POLICY_LOT_4,
   });
-  assertEquals(morde.counters.refusals_by_cause.cell_without_portion, 1);
-  assertEquals(morde.ok, false);
+  assertEquals(morde.counters.refusals_by_cause.cell_without_portion, 1, "toujours mesurée");
   const record = planValidationRecord({
     outcome: morde,
     delivery: finalGateDelivery(morde, []),
   });
-  assertEquals(record.state, "non_livrable");
-  assertEquals(record.counts.blocking, 1);
-  // ⛔ ET LE SITE EST NOMMÉ: le repas ET la personne. « Le plan n'est pas
-  // livrable » sans dire OÙ n'aide personne à corriger quoi que ce soit.
-  const bloquant = record.defects.find((d) => d.blocking);
-  assertEquals(bloquant?.cause, "cell_without_portion");
-  assertEquals(bloquant?.member_id, PAUL);
-  assertEquals(bloquant?.slot, "dinner");
-  assertEquals(bloquant?.day, "mon");
+  assertEquals(record.state, "livrable_avec_ecarts");
+  assertEquals(record.counts.blocking, 0, "elle n'empêche plus l'activation");
+  assert(record.counts.gaps >= 1, "⛔ elle reste COMPTÉE");
+  // ⛔ ET LE SITE EST NOMMÉ: le repas ET la personne. « Il manque une portion »
+  // sans dire OÙ n'aide personne à corriger quoi que ce soit.
+  const ecart = record.defects.find((d) => d.cause === "cell_without_portion");
+  assertEquals(ecart?.blocking, false);
+  assertEquals(ecart?.member_id, PAUL);
+  assertEquals(ecart?.slot, "dinner");
+  assertEquals(ecart?.day, "mon");
   // ── LE CAS QUI PASSE: la MÊME politique sur la nutrition d'origine ───────
   const propre = finalPlanGate(CLEAN_HOUSEHOLD_PLAN, {
     ...CLEAN_HOUSEHOLD_CONTEXT,
@@ -424,7 +435,9 @@ Deno.test("④ le résultat traverse JSON sans rien perdre", () => {
   const relu = JSON.parse(JSON.stringify(record));
   assertEquals(relu, record);
   assertEquals(relu.defects.length, record.defects.length);
-  assertEquals(relu.state, "non_livrable");
+  // ⟳ 2026-09-19 — la case sans portion est comptée : l'état qui traverse
+  // JSON est « livrable avec écarts », et c'est lui que l'écran doit relire.
+  assertEquals(relu.state, "livrable_avec_ecarts");
   // ⛔ ET AUCUNE CLÉ NE DEVIENT `undefined` EN CHEMIN: `JSON.stringify` les
   // supprime, donc un champ perdu ne se verrait pas dans une comparaison
   // d'objets faite dans l'autre sens.
@@ -554,7 +567,13 @@ Deno.test("⑤ plusieurs personnes: chaque écart garde SA bouche", () => {
     .map((d) => d.member_id)
     .sort();
   assertEquals(bouches, ["m-claire", PAUL].sort());
-  assertEquals(record.counts.blocking, 2);
+  // ⟳ 2026-09-19 — deux écarts COMPTÉS, chacun avec sa bouche ; aucun ne
+  // bloque. Le point de l'épreuve — deux bouches, deux lignes — est intact.
+  assertEquals(record.counts.blocking, 0);
+  assertEquals(
+    record.defects.filter((d) => d.cause === "cell_without_portion").length,
+    2,
+  );
 });
 
 // ═══════════════════════════════════════════════════════════════════════════

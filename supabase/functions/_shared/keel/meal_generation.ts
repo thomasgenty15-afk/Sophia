@@ -2757,7 +2757,7 @@ export const SOLO_BOX_BLOCK = [
 // ⚠️ LA LECTURE RESTE. `parseGeneratedMeal` lit toujours `root.shopping_list`
 // quand elle est là: les réponses d'archive et les plans déjà écrits la
 // portent, et la refuser les rendrait illisibles.
-export const MEAL_PROMPT_VERSION = "meal.en.v33_the_recipe_writes_the_shopping_list";
+export const MEAL_PROMPT_VERSION = "meal.en.v34_the_grid_is_a_checklist";
 
 /**
  * ③ — CE QUE `severity` VEUT DIRE, posé JUSTE SOUS la liste qui le porte.

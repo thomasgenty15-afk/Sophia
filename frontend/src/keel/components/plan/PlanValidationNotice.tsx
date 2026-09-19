@@ -151,6 +151,10 @@ const CAUSE_KEYS: Record<string, MessageKey> = {
   mouth_unfed: "plan.validation.cause.missing_meal",
   boxes_none_delivered: "plan.validation.cause.missing_meal",
   box_missing: "plan.validation.cause.missing_meal",
+  // ⟳ 2026-09-19 — DEUX PLATS DE TABLE SUR UNE CASE. Elle refusait le plan ;
+  // elle est désormais comptée et atteint donc cet écran. Sa propre phrase :
+  // « il manque » et « il y en a deux » ne se corrigent pas pareil.
+  cell_two_table_dishes: "plan.validation.cause.double_meal",
   // ── la cible d'énergie ──────────────────────────────────────────────────
   cell_energy_off: "plan.validation.cause.energy_off",
   day_energy_off: "plan.validation.cause.energy_off",

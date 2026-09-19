@@ -147,6 +147,16 @@ export const HOUSEHOLD_ARBITRATION_BY_VERSION: Readonly<Record<string, string>> 
   // la même raison.
   v34_one_card_per_person_the_engine_weighs:
     "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
+  // ⟳ v35 (2026-09-19) — MÊME EMPREINTE QUE v33/v34, ET C'EST L'AFFIRMATION.
+  //
+  // v35 change la CONSIGNE de couverture dans « WHAT TO COOK »: la grille des
+  // cases passe d'une ligne plate à une ligne par moment, et le plancher dit
+  // désormais que c'est le plat de la TABLE qui remplit une case. Le texte
+  // d'arbitrage n'est pas touché — aucun en-tête de verrou ne bouge, et le
+  // rang 1 les cite en toutes lettres. Recopier l'empreinte EST donc
+  // l'affirmation « la précédence est celle de v33 », et le test la vérifie.
+  v35_the_grid_is_a_checklist:
+    "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
 };
 
 /** SHA-256 hexadécimal — `crypto.subtle`, standard web, présent en edge. */

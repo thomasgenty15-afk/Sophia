@@ -457,6 +457,12 @@ export const REPAIR_DECISION_REFUSALS = [
    * petit-déjeuner — deux écarts COMPTÉS, non bloquants — sans en fermer aucun.
    * La réparation coûtait tout et ne rendait rien ; on la réserve à ce qui
    * empêcherait le plan de partir.
+   *
+   * ⟳ 2026-09-19 — « BLOQUANT » SE LIT DÉSORMAIS « À RÉPARER ». Le jeton est
+   * gardé (il est épinglé dans trois suites de tests et dans les `issues`
+   * écrites), mais il tombe quand `mustRepair` vaut zéro : ni défaut bloquant,
+   * ni défaut chassé (`CHASED_CAUSES`). Une case trouée, comptée depuis ce
+   * jour, ne le déclenche donc PAS — elle vaut un appel.
    */
   "no_blocking_defect",
 ] as const;
@@ -504,14 +510,21 @@ export type RepairDecision =
 export function planRepairDecision(args: {
   readonly defects: readonly RepairDefect[];
   /**
-   * ⟳ 2026-09-15 — COMBIEN DE CES DÉFAUTS EMPÊCHERAIENT LE PLAN DE PARTIR.
+   * ⟳ 2026-09-15 — COMBIEN DE CES DÉFAUTS FONT PARTIR UN APPEL.
+   * ⟳ 2026-09-19 — `mustRepair`, PLUS `blocking`.
+   *
+   * Ce sont les défauts qui EMPÊCHERAIENT le plan de partir (sévérité
+   * `refuse` dans ce run), PLUS ceux que la politique de réparation chasse
+   * même comptés (`CHASED_CAUSES`) : depuis le 2026-09-19 une case trouée ne
+   * refuse plus le plan, mais elle vaut toujours un appel tant qu'il reste du
+   * budget. Le nom a changé parce que le mot « bloquant » aurait menti sur la
+   * seconde moitié.
    *
    * ⛔ REQUIS, JAMAIS `?` (règle du dépôt : un paramètre de garde optionnel est
-   * une garde désarmée). C'est `collectPlanDefects` qui le compte, depuis la
-   * sévérité `refuse` de la garde finale ; à zéro, aucun appel modèle ne part,
-   * quel que soit le nombre de défauts comptés.
+   * une garde désarmée). C'est `collectPlanDefects` qui le compte ; à zéro,
+   * aucun appel modèle ne part, quel que soit le nombre de défauts comptés.
    */
-  readonly blocking: number;
+  readonly mustRepair: number;
   /** Les appels de réparation RÉELLEMENT partis, échecs et rejets compris. */
   readonly callsMade: number;
   readonly maxCalls: number;
@@ -526,7 +539,7 @@ export function planRepairDecision(args: {
   if (args.defects.length === 0) return { call: false, reason: "no_defects" };
   // ⛔ LA POLITIQUE AVANT LES RESSOURCES. « Il reste du budget » ne fait pas
   // partir un appel pour un écart que la garde ne fait que compter.
-  if (args.blocking <= 0) return { call: false, reason: "no_blocking_defect" };
+  if (args.mustRepair <= 0) return { call: false, reason: "no_blocking_defect" };
   if (args.callsMade >= args.maxCalls) {
     return { call: false, reason: "calls_exhausted" };
   }
@@ -580,8 +593,8 @@ export interface RepairRoundOutcome {
 export function repairRoundOutcome(args: {
   readonly verdict: CandidateVerdict;
   readonly remainingDefects: readonly RepairDefect[];
-  /** ⟳ 2026-09-15 — ceux des défauts restants qui BLOQUENT ; voir `planRepairDecision`. */
-  readonly remainingBlocking: number;
+  /** ⟳ 2026-09-19 — ceux des défauts restants qui valent un appel ; voir `planRepairDecision.mustRepair`. */
+  readonly remainingMustRepair: number;
   readonly callsMade: number;
   readonly maxCalls: number;
   readonly attemptsUsed: number;
@@ -591,7 +604,7 @@ export function repairRoundOutcome(args: {
   const keep = args.verdict === "adopt" ? "candidate" : "previous_best";
   const suite = planRepairDecision({
     defects: args.remainingDefects,
-    blocking: args.remainingBlocking,
+    mustRepair: args.remainingMustRepair,
     callsMade: args.callsMade,
     maxCalls: args.maxCalls,
     attemptsUsed: args.attemptsUsed,
@@ -1007,6 +1020,38 @@ const CAUSE_TO_DEFECT: Readonly<
    */
   cell_energy_unmeasurable: { kind: "preference", repairable: false },
 });
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ 2026-09-19 — LES CAUSES QUE LA RÉPARATION CHASSE MÊME COMPTÉES
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * Le 2026-09-19, la complétude d'une case a cessé de REFUSER un plan
+ * (`FINAL_GATE_POLICY_LOT_4`, voir le pavé) : elle se répare, puis se livre
+ * nommée. Mais la décision d'appel ne lisait que les défauts BLOQUANTS —
+ * « seul un défaut bloquant fait partir un appel ». Passer ces causes en
+ * `count` sans cette liste aurait donc ÉTEINT leur réparation : un trou du
+ * premier jet serait parti tel quel à l'écran, sans qu'aucun appel n'essaie
+ * de le boucher. C'était le contraire du but.
+ *
+ * ⛔ FERMÉE ET NOMMÉE, jamais dérivée de `kind`. `missing_meal` contient aussi
+ * `ingredient_not_bought` et `box_missing` — des causes dont la politique de
+ * réparation n'a pas été mesurée sous ce régime. On ne chasse que ce qu'on a
+ * vu échouer : une case vide, une bouche sans part, une case sans portion,
+ * deux plats de table sur la même case.
+ *
+ * ⚠️ UNE CAUSE ICI ET EN `refuse` EST INOFFENSIVE : elle est déjà dans
+ * `mustRepair` par sa sévérité. La liste n'a d'effet que sur ce qui est
+ * compté — c'est son seul rôle.
+ */
+export const CHASED_CAUSES: ReadonlySet<string> = Object.freeze(
+  new Set<string>([
+    "cell_without_dish",
+    "mouth_unfed",
+    "cell_without_portion",
+    "cell_two_table_dishes",
+  ]),
+);
 
 /**
  * LES DÉFAUTS RÉPARABLES, LUS SUR LA SORTIE DE LA GARDE FINALE.

@@ -1265,13 +1265,36 @@ Deno.test("⑩ bis — une PRÉPARATION explicitement rendue et non parsée reje
   assertEquals(result.rejections[0].at, "p1");
 });
 
-Deno.test("⑩ ter — une charge ÉCARTÉE avant le parseur rejette le patch", () => {
+Deno.test("⑩ ter — une charge ÉCARTÉE est DITE, et les autres s'appliquent (2026-09-19)", () => {
   // ⛔ `patchDishPayloads` jette une unité inconnue ou une adresse ambiguë, et
   // personne ne relayait ce fait: le patch s'appliquait amputé, en silence.
+  //
+  // ⟳ 2026-09-19 — CE TEST DISAIT « rejette le patch ». Mesuré en run réel :
+  // deux adresses ambiguës sur sept charges jetaient les sept, dont quatre
+  // plats rendus pour des cases vides — deux appels payés pour rien. Ce qui
+  // est épinglé désormais : la charge écartée reste DITE (`rejections[]`) et
+  // reste écartée, mais la charge routée s'applique.
   const { result } = applique({
     repair: {
       base_version: "req#r0",
-      units: [{ unit_id: U_ZOE.unitId, title: "A", uses: [{ preparation_id: "p1" }] }],
+      units: [
+        { unit_id: U_ZOE.unitId, title: "A", uses: [{ preparation_id: "p1" }] },
+        { unit_id: "U9", title: "B", uses: [{ preparation_id: "p1" }] },
+      ],
+    },
+  }, { dropped: [{ unitId: "U9", why: "ambiguous_address" }] });
+  assertEquals(result.applied, true, "la charge routée s'applique");
+  assertEquals(result.units, [U_ZOE.unitId]);
+  assertEquals(result.rejections[0].why, "payload_dropped");
+  assertEquals(result.rejections[0].at, "ambiguous_address");
+});
+
+Deno.test("⑩ ter bis — quand TOUTES les charges sont écartées, le patch est rejeté, même motif", () => {
+  // ⛔ « Appliqué » sans rien à appliquer serait un mensonge.
+  const { result } = applique({
+    repair: {
+      base_version: "req#r0",
+      units: [{ unit_id: "U9", title: "B", uses: [{ preparation_id: "p1" }] }],
     },
   }, { dropped: [{ unitId: "U9", why: "ambiguous_address" }] });
   assertEquals(result.applied, false);
@@ -1462,8 +1485,8 @@ function decide(callsMade: number, lastVerdict: "no_improvement" | null) {
   return planRepairDecision({
     defects: [DEFAUT_ZOE],
     // ⟳ 2026-09-15 — cette épreuve teste la MÉCANIQUE du patch, pas la
-    // politique : on déclare le défaut bloquant pour que l'appel parte.
-    blocking: 1,
+    // politique : on déclare le défaut à réparer pour que l'appel parte.
+    mustRepair: 1,
     callsMade,
     maxCalls: PLAN_REPAIR_MAX_CALLS,
     attemptsUsed: 0,

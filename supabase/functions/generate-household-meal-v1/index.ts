@@ -588,7 +588,7 @@ import {
   buyDatesByIndex,
   describeWrittenWaves,
   PERISHABLE_AISLES,
-  wavePreparationsFromRows,
+  waveNeedsFromPlan,
 } from "../_shared/keel/grocery_waves.ts";
 import {
   rawKeepingBreaches,
@@ -794,6 +794,10 @@ import {
   patchDishPayloads,
   preparationStubsFor,
 } from "../_shared/keel/plan_repair_patch.ts";
+import {
+  dishDedupeIssue,
+  foldDuplicateDishes,
+} from "../_shared/keel/plan_dish_dedupe.ts";
 // ⟳ 2026-09-12 · ÉTAPE C4 — LA PASSE COMMUNE. Elle ne mesure rien: elle
 // traduit les six contrôles dans le seul type que le budget comprend.
 import {
@@ -11433,6 +11437,8 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
     let c4BestDefects: readonly RepairDefect[] | null = null;
     /** ⟳ 2026-09-15 — ceux des défauts de la meilleure version qui BLOQUENT. */
     let c4BestBlocking: readonly RepairDefect[] | null = null;
+    /** ⟳ 2026-09-19 — ceux qui valent un appel : bloquants + chassés (`CHASED_CAUSES`). */
+    let c4BestMustRepair: readonly RepairDefect[] | null = null;
     let c4BestRefusals: readonly GateRefusal[] = [];
     /** Ce tour juge-t-il une candidate issue d'un appel de réparation ? */
     let c4FromRepair = false;
@@ -11957,6 +11963,31 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
     // des assiettes que la réparation vient de changer.
     c4DensityAsk = null;
     c4DedicatedAsk = null;
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-19 — DEUX PLATS DU MÊME PROPRIÉTAIRE SUR UNE CASE : UN SEUL
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // Hors modèle, en tête de CHAQUE tour — premier jet et candidates
+    // réparées —, AVANT l'instantané `c4Entry` et avant le dimensionnement.
+    // Voir `plan_dish_dedupe.ts` pour la mesure : un doublon rendait l'adresse
+    // de réparation ambiguë et faisait jeter le patch ENTIER, trous compris.
+    // Le pli est nommé dans `issues` (les deux titres) et compté au journal.
+    {
+      const pli = foldDuplicateDishes(meal.dishes);
+      if (pli.dropped.length > 0) {
+        meal = { ...meal, dishes: pli.dishes };
+        for (const d of pli.dropped) issues.push(dishDedupeIssue(d));
+        console.log(JSON.stringify({
+          tag: "keel.household_meal.duplicate_dish_folded",
+          user_id: userId,
+          request_id: requestId,
+          round: c4Round,
+          folded: pli.dropped.length,
+          cells: pli.dropped.map((d) => `${d.day}/${d.slot}`),
+          table: pli.dropped.filter((d) => d.memberId === null).length,
+        }));
+      }
+    }
     /** L'état exact de la candidate AVANT que la finalisation la mute. */
     const c4Entry: typeof meal = structuredClone(meal);
     // ⚠️ ET LE TEXTE SOURCE AVEC LUI. `reconcilePortions` le relit: repartir
@@ -14107,13 +14138,25 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
     // du soir. Un champ rendu à côté aurait été un lecteur de plus à câbler
     // dans chaque surface — et la première oubliée serait revenue à la liste
     // sans jour.
-    const wavePreps = wavePreparationsFromRows(
-      meal.preparations.map((prep) => ({
-        id: prep.id,
-        cook_on: prep.cookOn,
-        ingredients: prep.ingredients.map((ing) => ({ term: ing.term })),
-      })),
-    );
+    // ⟳ 2026-09-19 — LES BESOINS DU PLAN, PAS SEULEMENT DES CASSEROLES. Un
+    // plat sans casserole (un bol assemblé le soir même) est daté du jour du
+    // plat, exactement comme la garde finale le compte — voir
+    // `waveNeedsFromPlan`. Lu à travers une fonction parce que `meal` CHANGE
+    // après une réparation : la re-datation d'en bas relit le plan courant.
+    const waveNeedsNow = () =>
+      waveNeedsFromPlan({
+        preparations: meal.preparations.map((prep) => ({
+          id: prep.id,
+          cook_on: prep.cookOn,
+          ingredients: prep.ingredients.map((ing) => ({ term: ing.term })),
+        })),
+        dishes: meal.dishes.map((dish) => ({
+          day: dish.day,
+          uses: dish.uses,
+          ingredients: dish.ingredients.map((ing) => ({ term: ing.term })),
+        })),
+      });
+    const wavePreps = waveNeedsNow();
     const buyDates = buyDatesByIndex({
       startsOn,
       durationDays,
@@ -16448,7 +16491,7 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
         startsOn,
         durationDays,
         shoppingList: meal.shopping_list,
-        preparations: wavePreps,
+        preparations: waveNeedsNow(),
         runs: capacity.plan?.runs ?? null,
         freezer: hasFreezerDeclared(kitchenEquipment),
       });
@@ -16550,7 +16593,7 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
         const vaguesApres = describeWrittenWaves({
           window: daysToFill,
           shoppingList: meal.shopping_list,
-          preparations: wavePreps,
+          preparations: waveNeedsNow(),
         });
         composeRationale({
           days: shoppingDays,
@@ -19015,7 +19058,7 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
           // ⛔ LES DÉFAUTS DE LA MEILLEURE VERSION, pas ceux de la candidate
           // qu'on vient de jeter: c'est ce plan-là qui repart.
           remainingDefects: c4BestDefects ?? [],
-          remainingBlocking: (c4BestBlocking ?? []).length,
+          remainingMustRepair: (c4BestMustRepair ?? []).length,
           callsMade: c4CallsMade,
           maxCalls: PLAN_REPAIR_MAX_CALLS,
           attemptsUsed: planBudget.snapshot().repairs_used,
@@ -19033,6 +19076,7 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
     c4BestSourceText = c4EntrySourceText;
     c4BestDefects = c4Pass.defects;
     c4BestBlocking = c4Pass.blocking;
+    c4BestMustRepair = c4Pass.mustRepair;
     c4BestRefusals = gateOut?.refusals ?? [];
 
     // ── ⑦ FAUT-IL REDEMANDER ? ───────────────────────────────────────────────
@@ -19051,7 +19095,10 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
       defects: c4Pass.defects,
       // ⟳ 2026-09-15 · DÉCISION PRODUIT — seul un défaut BLOQUANT fait partir un
       // appel de réparation ; un écart compté part nommé, sans rappeler le modèle.
-      blocking: c4Pass.blocking.length,
+      // ⟳ 2026-09-19 — PLUS LES CAUSES CHASSÉES. Une case trouée ne bloque
+      // plus la livraison (elle part nommée), mais elle vaut un appel tant
+      // qu'il reste du budget : `mustRepair` = bloquants ∪ `CHASED_CAUSES`.
+      mustRepair: c4Pass.mustRepair.length,
       // ⛔ LES APPELS PARTIS DE CE SITE, pas les tentatives accordées.
       callsMade: c4CallsMade,
       maxCalls: PLAN_REPAIR_MAX_CALLS,
@@ -19078,6 +19125,7 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
       defects: c4Pass.defects.length,
       repairable: c4Pass.repairable.length,
       blocking: c4Pass.blocking.length,
+      must_repair: c4Pass.mustRepair.length,
       by_kind: c4Pass.byKind,
       by_source: c4Pass.bySource,
       call: c4Decision.call,
@@ -19790,7 +19838,7 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
           const suite = repairRoundOutcome({
             verdict: "no_improvement",
             remainingDefects: c4BestDefects ?? [],
-            remainingBlocking: (c4BestBlocking ?? []).length,
+            remainingMustRepair: (c4BestMustRepair ?? []).length,
             callsMade: c4CallsMade,
             maxCalls: PLAN_REPAIR_MAX_CALLS,
             attemptsUsed: planBudget.snapshot().repairs_used,

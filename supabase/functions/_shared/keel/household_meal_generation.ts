@@ -662,7 +662,13 @@ import {
 // bascule de structure comme v32/v33: le prompt d'un foyer sans régime déclaré
 // est celui de v33 à l'octet près, et renommer la version aurait fait mentir
 // toutes les lignes déjà écrites sous ce nom.
-export const HOUSEHOLD_PROMPT_VERSION = "v33_one_standard_recipe_the_engine_multiplies";
+// ⟳ 2026-09-19 — v35 : LA GRILLE EST UNE CHECKLIST, ET LA CASE EST REMPLIE
+// PAR LE PLAT DE LA TABLE. Le texte servi par `buildMealPrompt` a changé
+// (une ligne par moment avec son compte de jours; le plancher qualifié par
+// « the TABLE's dish »), donc le millésime bouge: sans ça,
+// `keel_plan_refusals.prompt_version` répond « v33 » pour deux textes
+// différents et plus personne ne peut dire lequel a été servi.
+export const HOUSEHOLD_PROMPT_VERSION = "v35_the_grid_is_a_checklist";
 
 export interface HouseholdRestriction {
   memberId: string;

@@ -4568,6 +4568,7 @@ export const en = {
   "plan.validation.incomplete_title": "What could not be checked",
   "plan.validation.control_line": "{control} — {count}",
   "plan.validation.cause.missing_meal": "A meal has nobody's portion on it",
+  "plan.validation.cause.double_meal": "A meal is served twice on the same slot",
   "plan.validation.cause.energy_off": "A meal is off its target",
   "plan.validation.cause.protein_short": "A day falls short of its protein",
   "plan.validation.cause.unmeasurable": "A portion could not be measured",

@@ -36,7 +36,7 @@ Deno.test("le refus de masse est BLOQUANT et non réparable — la décision dit
   assertEquals(pass.repairable.length, 0);
   const decision = planRepairDecision({
     defects: pass.defects,
-    blocking: pass.blocking.length,
+    mustRepair: pass.mustRepair.length,
     callsMade: 0,
     maxCalls: PLAN_REPAIR_MAX_CALLS,
     attemptsUsed: 0,

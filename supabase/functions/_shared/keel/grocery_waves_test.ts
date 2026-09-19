@@ -16,6 +16,7 @@ import {
   type WaveItem,
   type WavePreparation,
   wavePreparationsFromRows,
+  waveNeedsFromPlan,
   wavesAreMeaningful,
   describeWrittenWaves,
 } from "./grocery_waves.ts";
@@ -974,4 +975,71 @@ Deno.test("describeWrittenWaves — sans date écrite, rien n'est inventé", () 
     preparations: [{ id: "p", cookOn: "tue", ingredientTerms: ["x"] }],
   });
   assertEquals(out, { frozenAtPurchase: [], laterShopDays: [], frozenPreparationIds: [] });
+});
+
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-19 — LA DATATION LIT LES MÊMES BESOINS QUE LA GARDE
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("⟳ 2026-09-19 — un ingrédient d'un plat SANS casserole est daté par le jour du plat", () => {
+  // Mesuré : des mûres dans un bol du vendredi soir, achetées le lundi, tenues
+  // 3 jours → `perishable_bought_too_early`. La datation ne voyait que les
+  // casseroles ; la garde comptait le bol.
+  const needs = waveNeedsFromPlan({
+    preparations: [{ id: "p1", cook_on: "mon", ingredients: [{ term: "lentilles" }] }],
+    dishes: [
+      { day: "fri", uses: [], ingredients: [{ term: "mûres" }, { term: "yaourt" }] },
+      // Un plat QUI cite une casserole ne date rien de lui-même — même règle
+      // que `earliestRankByTerm` dans la garde.
+      { day: "sat", uses: [{ preparationId: "p1" }], ingredients: [{ term: "poulet" }] },
+      // Sans jour : rien à dater, c'est le parseur qui le situe.
+      { day: null, uses: [], ingredients: [{ term: "sel" }] },
+    ],
+  });
+  assertEquals(needs.map((n) => n.id), ["p1", "dish:0"]);
+  assertEquals(needs[1], { id: "dish:0", cookOn: "fri", ingredientTerms: ["mûres", "yaourt"] });
+
+  const waves = planGroceryWaves({
+    startsOn: MONDAY,
+    durationDays: 7,
+    runs: null,
+    freezer: false,
+    shoppingList: [item("lentilles", "pantry"), item("mûres", "produce"), item("poulet", "protein")],
+    preparations: needs,
+  });
+  // Vendredi 07 moins 3 jours de frigo = mardi 04 : les mûres ont leur vague.
+  assertEquals(waves.length, 2);
+  assertEquals(waves[1].buyOn, "2026-08-04");
+  assertEquals(waves[1].items.map((i) => i.term), ["mûres"]);
+});
+
+Deno.test("⟳ 2026-09-19 — un pseudo-besoin de plat ne se confond avec AUCUNE casserole", () => {
+  const needs = waveNeedsFromPlan({
+    preparations: [],
+    dishes: [{ day: "fri", uses: [], ingredients: [{ term: "mûres" }] }],
+  });
+  assert(needs.every((n) => n.id.startsWith("dish:")));
+  // `describeWrittenWaves` en dérive `frozenPreparationIds` : un id de plat
+  // ne croise aucune session, donc n'invente aucune session « nourrie du
+  // congélateur ».
+  const facts = describeWrittenWaves({
+    window: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
+    shoppingList: [{ term: "mûres", buy_on: MONDAY, freeze_on_purchase: true }],
+    preparations: needs,
+  });
+  assertEquals(facts.frozenPreparationIds, ["dish:0"]);
+  assertEquals(facts.frozenAtPurchase, [{ cookOn: "fri", buyOn: MONDAY, terms: ["mûres"] }]);
+});
+
+Deno.test("⛔ CÂBLAGE — le handler date les courses avec les besoins du PLAN, plus seulement des casseroles", async () => {
+  const src = await Deno.readTextFile(
+    new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
+  );
+  assert(src.includes("waveNeedsFromPlan({"), "la datation ne lit plus les plats sans casserole");
+  assert(!src.includes("wavePreparationsFromRows("), "l'ancienne datation (casseroles seules) est revenue");
+  // Et la RE-datation après réparation relit le plan COURANT, pas celui du
+  // premier jet : une réparation qui ajoute un bol du vendredi doit dater ses
+  // mûres comme le premier jet aurait daté les siennes.
+  assertEquals((src.match(/preparations: waveNeedsNow\(\),/g) ?? []).length, 2);
 });

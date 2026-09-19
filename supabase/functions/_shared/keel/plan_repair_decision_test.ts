@@ -338,7 +338,7 @@ Deno.test("LOT 2 ⑦ — une candidate REJETÉE ne ferme plus la boucle", () => 
   const suite = repairRoundOutcome({
     verdict: "no_improvement",
     remainingDefects: UN_DEFAUT,
-    remainingBlocking: UN_DEFAUT.length,
+    remainingMustRepair: UN_DEFAUT.length,
     callsMade: 1,
     maxCalls: PLAN_REPAIR_MAX_CALLS,
     attemptsUsed: 1,
@@ -357,7 +357,7 @@ Deno.test("LOT 2 ⑦ bis — première candidate rejetée, seconde adoptée: deu
   // ── TOUR 1 ────────────────────────────────────────────────────────────────
   const tour1 = planRepairDecision({
     defects: UN_DEFAUT,
-    blocking: UN_DEFAUT.length,
+    mustRepair: UN_DEFAUT.length,
     callsMade,
     maxCalls: PLAN_REPAIR_MAX_CALLS,
     attemptsUsed,
@@ -374,7 +374,7 @@ Deno.test("LOT 2 ⑦ bis — première candidate rejetée, seconde adoptée: deu
   const apres1 = repairRoundOutcome({
     verdict: "no_improvement",
     remainingDefects: UN_DEFAUT,
-    remainingBlocking: UN_DEFAUT.length,
+    remainingMustRepair: UN_DEFAUT.length,
     callsMade,
     maxCalls: PLAN_REPAIR_MAX_CALLS,
     attemptsUsed,
@@ -386,7 +386,7 @@ Deno.test("LOT 2 ⑦ bis — première candidate rejetée, seconde adoptée: deu
   // ── TOUR 2 ────────────────────────────────────────────────────────────────
   const tour2 = planRepairDecision({
     defects: UN_DEFAUT,
-    blocking: UN_DEFAUT.length,
+    mustRepair: UN_DEFAUT.length,
     callsMade,
     maxCalls: PLAN_REPAIR_MAX_CALLS,
     attemptsUsed,
@@ -404,7 +404,7 @@ Deno.test("LOT 2 ⑦ bis — première candidate rejetée, seconde adoptée: deu
   const apres2 = repairRoundOutcome({
     verdict: "adopt",
     remainingDefects: [],
-    remainingBlocking: 0,
+    remainingMustRepair: 0,
     callsMade,
     maxCalls: PLAN_REPAIR_MAX_CALLS,
     attemptsUsed,
@@ -422,7 +422,7 @@ Deno.test("LOT 2 ⑧ — DEUX ÉCHECS: on s'arrête sur `calls_exhausted`, pas p
   const apres2 = repairRoundOutcome({
     verdict: "safety_regression",
     remainingDefects: UN_DEFAUT,
-    remainingBlocking: UN_DEFAUT.length,
+    remainingMustRepair: UN_DEFAUT.length,
     callsMade: 2,
     maxCalls: PLAN_REPAIR_MAX_CALLS,
     attemptsUsed: 2,
@@ -441,7 +441,7 @@ Deno.test("LOT 2 ⑧ bis — un appel PARTI et JETÉ compte quand même", () => 
   // tentative » (revue § 4). Deux appels lancés, aucun adopté: on s'arrête.
   const d = planRepairDecision({
     defects: UN_DEFAUT,
-    blocking: UN_DEFAUT.length,
+    mustRepair: UN_DEFAUT.length,
     callsMade: 2,
     maxCalls: PLAN_REPAIR_MAX_CALLS,
     attemptsUsed: 0,
@@ -456,7 +456,7 @@ Deno.test("LOT 2 ⑧ bis — un appel PARTI et JETÉ compte quand même", () => 
 Deno.test("LOT 2 ⑧ ter — le temps restant décide aussi, et il se nomme", () => {
   const d = planRepairDecision({
     defects: UN_DEFAUT,
-    blocking: UN_DEFAUT.length,
+    mustRepair: UN_DEFAUT.length,
     callsMade: 1,
     maxCalls: PLAN_REPAIR_MAX_CALLS,
     attemptsUsed: 1,
@@ -518,7 +518,7 @@ Deno.test("LOT 2 ⑨ bis — un allergène INTRODUIT par la réparation rejette 
   const suite = repairRoundOutcome({
     verdict: verdict.verdict,
     remainingDefects: [defaut({ kind: "safety", day: "sun", slot: "dinner" })],
-    remainingBlocking: 1,
+    remainingMustRepair: 1,
     callsMade: 1,
     maxCalls: PLAN_REPAIR_MAX_CALLS,
     attemptsUsed: 1,
@@ -684,7 +684,7 @@ Deno.test("§ 2.3 ② — A s'améliore, B tombe: une portion AUPARAVANT CONFORM
   const suite = repairRoundOutcome({
     verdict: verdict.verdict,
     remainingDefects: avant,
-    remainingBlocking: avant.length,
+    remainingMustRepair: avant.length,
     callsMade: 1,
     maxCalls: PLAN_REPAIR_MAX_CALLS,
     attemptsUsed: 1,
@@ -784,7 +784,7 @@ Deno.test("§ 2.3 ③ — 39 défauts sur 4 bouches: UNE instruction, et le plaf
 
   const tour1 = planRepairDecision({
     defects: defauts,
-    blocking: defauts.length,
+    mustRepair: defauts.length,
     callsMade: 0,
     maxCalls: PLAN_REPAIR_MAX_CALLS,
     attemptsUsed: 0,
@@ -799,7 +799,7 @@ Deno.test("§ 2.3 ③ — 39 défauts sur 4 bouches: UNE instruction, et le plaf
 
   const tour2 = planRepairDecision({
     defects: defauts,
-    blocking: defauts.length,
+    mustRepair: defauts.length,
     callsMade: 1,
     maxCalls: PLAN_REPAIR_MAX_CALLS,
     attemptsUsed: 1,
@@ -815,7 +815,7 @@ Deno.test("§ 2.3 ③ — 39 défauts sur 4 bouches: UNE instruction, et le plaf
   for (const reste of [1, 9, 36, 39]) {
     const apres = planRepairDecision({
       defects: defauts.slice(0, reste),
-      blocking: reste,
+      mustRepair: reste,
       callsMade: 2,
       maxCalls: PLAN_REPAIR_MAX_CALLS,
       attemptsUsed: 0,
@@ -840,7 +840,7 @@ Deno.test("§ 2.3 ③ bis — un foyer de 4 et une personne seule ont le MÊME p
     [0, 1, 2, 3, 4, 5, 6, 7].map((callsMade) => {
       const d = planRepairDecision({
         defects,
-        blocking: defects.length,
+        mustRepair: defects.length,
         callsMade,
         maxCalls: PLAN_REPAIR_MAX_CALLS,
         attemptsUsed: 0,
@@ -872,7 +872,7 @@ Deno.test("§ 2.3 ③ ter — un appel JETÉ compte comme un appel réussi, quel
     const suite = repairRoundOutcome({
       verdict,
       remainingDefects: defautsDuFoyer(),
-      remainingBlocking: defautsDuFoyer().length,
+      remainingMustRepair: defautsDuFoyer().length,
       callsMade: 2,
       maxCalls: PLAN_REPAIR_MAX_CALLS,
       attemptsUsed: 0,

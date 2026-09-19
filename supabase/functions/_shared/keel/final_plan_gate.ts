@@ -1034,8 +1034,44 @@ export const FINAL_GATE_POLICY_LOT_4: Readonly<
   // et le plan de bêta l'interdit — « une préférence de variété ne devient pas
   // automatiquement bloquante ».
   dedicated_dish_missing: "refuse",
-  cell_two_table_dishes: "refuse",
-  cell_without_portion: "refuse",
+  // ══════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-19 — LA COMPLÉTUDE SE RÉPARE, PUIS SE LIVRE NOMMÉE.
+  //               ELLE NE JETTE PLUS LE PLAN.
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // DÉCISION PRODUIT, dite deux fois par l'utilisateur et mesurée avant de
+  // l'écrire : « le plan doit être généré ; ce qui compte, c'est qu'il soit
+  // généré ». Sur le foyer `fagenty` (3 bouches, 6 moments, 42 cases, 38 plats
+  // à soi), avec la consigne en checklist déjà servie : **3 plans livrés sur
+  // 5**. Les deux refus étaient de CETTE famille et d'elle seule — une case
+  // vide, une case où seul le plat d'une personne est posé, une case où deux
+  // plats de table servent tout le monde deux fois. Le modèle sous-produit ou
+  // sur-produit, et deux appels de réparation ne suffisent pas toujours.
+  //
+  // ⛔ CE QUE CHANGE `count` ICI, ET CE QUE ÇA NE CHANGE PAS.
+  //   · La garde MESURE toujours ces quatre causes : elles sortent dans
+  //     `refusals[]`, donc dans `gaps`, donc dans `planValidationRecord` et à
+  //     l'écran (« Ce plan est utilisable, et voici ce qu'il ne tient pas »),
+  //     case et personne nommées. La revue C6 § 5 interdit de « choisir entre
+  //     tout refuser et masquer le manque » : on ne masque rien.
+  //   · La RÉPARATION continue de les chasser tant qu'il reste du budget —
+  //     `CHASED_CAUSES` (`plan_repair_loop.ts`) et `mustRepair` dans la passe.
+  //     Sans ça, la bascule aurait SUPPRIMÉ les appels de réparation sur les
+  //     trous (« seul un défaut bloquant fait partir un appel ») et livré
+  //     plus de trous qu'avant, pas moins.
+  //   · Ce qui BLOQUE encore est la sécurité (allergène, exclusion, régime,
+  //     règle de maison), une bouche que la casserole ne peut pas nourrir et
+  //     qui n'a rien (`dedicated_dish_missing`), et les impossibilités de
+  //     calendrier. Une case trouée se corrige par `edit_cells` ; une
+  //     assiette interdite ne se corrige pas après coup.
+  //
+  // ⚠️ `cell_without_dish` et `mouth_unfed` sont ÉCRITES ici parce que le lot
+  // 2 les arme et que ce lot-ci hérite du lot 2 : un `count` implicite les
+  // aurait laissées à `refuse`.
+  cell_without_dish: "count",
+  mouth_unfed: "count",
+  cell_without_portion: "count",
+  cell_two_table_dishes: "count",
   cell_energy_unmeasurable: "count",
   cell_energy_off: "count",
   // ⟳ 2026-09-12 · LOT 2 — voir le pavé `cell_bounds_off` dans

@@ -2053,6 +2053,7 @@ export const fr: TranslatedMessages = {
   "plan.validation.incomplete_title": "Ce qui n’a pas pu être vérifié",
   "plan.validation.control_line": "{control} — {count}",
   "plan.validation.cause.missing_meal": "Un repas n’a la portion de personne",
+  "plan.validation.cause.double_meal": "Un repas est servi deux fois sur la même case",
   "plan.validation.cause.energy_off": "Un repas est loin de sa cible",
   "plan.validation.cause.protein_short": "Une journée n’atteint pas sa protéine",
   "plan.validation.cause.unmeasurable": "Une portion n’a pas pu être mesurée",

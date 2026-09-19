@@ -221,6 +221,59 @@ export function wavePreparationsFromRows(
 // Il garde sa vague, la cadence demandée cède devant la physique, et ça se
 // COMPTE (`freezeRefused`). Le supprimer en silence ferait acheter une salade
 // six jours avant de la manger.
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ 2026-09-19 — LES BESOINS D'UN PLAN, TELS QUE LA GARDE LES LIT
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ── LE DÉFAUT, MESURÉ EN RUN RÉEL (foyer `fagenty`, 42 cases) ──────────────
+ * `planGroceryWaves` datait les lignes de courses depuis les seules
+ * CASSEROLES (`earliestCook`, bâti sur `preparations[].cookOn`). Un plat SANS
+ * casserole — un bol de fruits assemblé le soir même — n'avait donc aucune
+ * date de besoin : ses ingrédients tombaient dans la première vague, le lundi.
+ * La garde finale, elle, compte ces plats-là (`earliestRankByTerm` :
+ * « `dish.uses` vide ⇒ les ingrédients du plat sont dus le jour du plat »).
+ * Résultat : « mûres » achetées le 21, tenues 3 jours, attendues le 25 —
+ * `perishable_bought_too_early`, 422, plan entier refusé — pour une date que
+ * NOUS avions posée. Le lot 2 l'avait déjà écrit : « la date a été calculée
+ * par nous » justifie de la CORRIGER, pas de servir le résultat.
+ *
+ * ── CE QUE FAIT CETTE FONCTION ─────────────────────────────────────────────
+ * Elle rend la liste des besoins que la datation doit connaître : les
+ * casseroles (comme avant), PLUS un pseudo-besoin par plat sans casserole,
+ * daté du jour du plat. La règle est copiée de la garde, mot pour mot : un
+ * plat qui cite une casserole ne date rien de lui-même (ses ingrédients sont
+ * ceux de la casserole, achetés pour sa cuisson).
+ *
+ * ⚠️ LES PSEUDO-IDS SONT PRÉFIXÉS `dish:`. `describeWrittenWaves` en dérive
+ * `frozenPreparationIds`, que `sessionsFedFromFreezer` croise avec les
+ * casseroles des sessions : un id de plat n'y correspond à rien, donc un bol
+ * congelé à l'achat n'invente aucune session « nourrie du congélateur ».
+ */
+export interface WaveDishRow {
+  day?: string | null;
+  uses?: readonly unknown[] | null;
+  ingredients?: readonly { term?: string | null }[] | null;
+}
+
+export function waveNeedsFromPlan(args: {
+  preparations: readonly WavePreparationRow[];
+  dishes: readonly WaveDishRow[];
+}): WavePreparation[] {
+  const out = wavePreparationsFromRows(args.preparations);
+  args.dishes.forEach((dish, i) => {
+    if ((dish.uses ?? []).length > 0) return;
+    const day = String(dish.day ?? "").trim();
+    if (day === "") return;
+    const terms = (dish.ingredients ?? [])
+      .map((ing) => String(ing?.term ?? ""))
+      .filter((term) => term.length > 0);
+    if (terms.length === 0) return;
+    out.push({ id: `dish:${i}`, cookOn: day, ingredientTerms: terms });
+  });
+  return out;
+}
+
 const NOT_FREEZABLE: ReadonlySet<string> = new Set<string>([
   // La salade rendue à la décongélation est une flaque: c'est le cas mesuré.
   "leafy_greens",
