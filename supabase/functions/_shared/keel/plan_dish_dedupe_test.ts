@@ -88,3 +88,22 @@ Deno.test("⛔ CÂBLAGE — le pli tourne en tête de CHAQUE tour, avant l'insta
   assert(tete > 0 && tete < pli && pli < instantane, "le pli doit vivre dans le tour, avant `c4Entry`");
   assert(src.includes("keel.household_meal.duplicate_dish_folded"), "un pli muet est un pli qu'on ne peut pas compter");
 });
+
+Deno.test("⛔ CÂBLAGE — après le pli, les cases vides sont relues sur le plan COURANT, par la règle du parseur", async () => {
+  // Lu sur le plan adopté du 2026-09-19 : « 11 repas n'ont pas été composés »
+  // pendant que la grille portait des plats sur ces onze cases, ajoutés par une
+  // réparation adoptée. `meal.empty_slots` venait du premier jet.
+  const src = await Deno.readTextFile(
+    new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
+  );
+  const pli = src.indexOf("foldDuplicateDishes(meal.dishes)");
+  const relu = src.indexOf("const trous = gapsOf(meal.dishes);");
+  const instantane = src.indexOf("const c4Entry: typeof meal = structuredClone(meal);");
+  assert(relu > 0, "les cases vides ne sont plus relues");
+  assert(pli < relu && relu < instantane, "la relecture doit suivre le pli et précéder l'instantané");
+  assert(src.includes("meal = { ...meal, empty_slots: trous };"), "la liste relue n'est pas posée sur le plan");
+  assert(src.includes("keel.household_meal.empty_slots_refreshed"), "une relecture muette ne se compte pas");
+  // ⚠️ LA MÊME RÈGLE : `gapsOf` est `emptySlotsIn`, pas une seconde lecture.
+  const def = src.indexOf("const gapsOf = ");
+  assert(def > 0 && src.slice(def, def + 900).includes("emptySlotsIn({"), "`gapsOf` n'est plus `emptySlotsIn`");
+});

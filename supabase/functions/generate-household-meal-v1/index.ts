@@ -11988,6 +11988,38 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
         }));
       }
     }
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-19 — LES CASES VIDES SUIVENT LE PLAN COURANT, PAR LA MÊME RÈGLE
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ LE DÉFAUT, LU SUR LE PLAN ADOPTÉ DU 2026-09-19 (foyer `fagenty`) : le
+    // texte disait « 11 repas n'ont pas été composés, sur mardi et jeudi »
+    // pendant que la grille portait des plats sur ces onze cases — ajoutés par
+    // une réparation adoptée. `meal.empty_slots` est rendu par le PARSEUR, sur
+    // le premier jet, et une fusion de patch reprend le plan sans le relire.
+    // La personne lisait deux choses fausses l'une par l'autre.
+    //
+    // ⚠️ « JAMAIS UN SECOND CALCUL » (la cicatrice du rationale) EST RESPECTÉ :
+    // `gapsOf` EST `emptySlotsIn`, la fonction du parseur, avec les mêmes
+    // entrées du handler (fenêtre, jour de cuisine, rythme, absences, apports
+    // fixes). Ce qui change est le PLAN qu'on lui donne — le courant — pas la
+    // règle. Relu en tête de chaque tour, après le pli des doublons, avant
+    // l'instantané : la candidate jugée et le plan écrit portent la même liste.
+    {
+      const trous = gapsOf(meal.dishes);
+      const avant = JSON.stringify(meal.empty_slots ?? []);
+      if (JSON.stringify(trous) !== avant) {
+        console.log(JSON.stringify({
+          tag: "keel.household_meal.empty_slots_refreshed",
+          user_id: userId,
+          request_id: requestId,
+          round: c4Round,
+          before: (meal.empty_slots ?? []).map((c) => `${c.day}/${c.slot}`),
+          after: trous.map((c) => `${c.day}/${c.slot}`),
+        }));
+        meal = { ...meal, empty_slots: trous };
+      }
+    }
     /** L'état exact de la candidate AVANT que la finalisation la mute. */
     const c4Entry: typeof meal = structuredClone(meal);
     // ⚠️ ET LE TEXTE SOURCE AVEC LUI. `reconcilePortions` le relit: repartir
@@ -14396,6 +14428,10 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
           //
           // Ce compte existait depuis le 2026-08-12 et n'était lu par
           // personne: il partait en base et s'arrêtait là.
+          // ⟳ 2026-09-19 — ET IL SUIT LE PLAN COURANT : relu en tête de tour
+          // par `gapsOf` (= `emptySlotsIn`, mêmes entrées), sinon une
+          // réparation adoptée laissait ce texte dire « non composé » sur des
+          // cases pleines. La règle n'a pas changé ; le plan lu, si.
           emptySlots: meal.empty_slots as never,
           // ── CE QU'AUCUN LOT N'ATTEINT ────────────────────────────────
           // ⛔ `daysOutOfBatchReach`, LA MÊME FONCTION QUE LA CONSIGNE — et les
