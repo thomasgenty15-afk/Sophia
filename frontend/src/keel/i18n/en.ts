@@ -7774,6 +7774,11 @@ export const en = {
   // recap REUSES the add sheet's keys (`household.mouth.preferences_filled` /
   // `_empty`) — the same fact said with the same words in both places.
   "household.member.frame_identity": "Personal details",
+  // ⟳ 2026-09-19 — LA FICHE EST DEUX FENÊTRES, DONC DEUX TITRES. Le
+  // titre d'un `Modal` est aussi son `aria-label`: le seul prénom ne
+  // disait plus laquelle des deux on vient d'ouvrir. Jumelle de
+  // `household.mouth.preferences_title_named`, et même gabarit.
+  "household.member.identity_title_named": "{name} — personal details",
   "household.member.frame_identity_hint":
     "What sizes their serving: who they are, their body, and which way their scale should go.",
   "household.member.frame_preferences": "Food preferences",

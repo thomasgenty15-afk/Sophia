@@ -63,8 +63,6 @@ import { Card, SectionLabel } from "../ui/Card";
 import { inputClass } from "../ui/Field";
 import Modal from "../ui/Modal";
 import PlanResult from "./PlanResult";
-// ⟳ 2026-09-12 · ÉTAPE C5 — le même bloc d'écarts que sur le plan adopté.
-import PlanValidationNotice from "./PlanValidationNotice";
 
 export interface PlanDraftDialogProps {
   open: boolean;
@@ -526,21 +524,10 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
           identifiant — il se chiffre comme un plan, sous exactement les mêmes
           quatre portes. C'est même le moment où le chiffre sert le plus:
           l'aperçu est ce qu'on relit AVANT d'adopter. */}
-      {/* ⟳ 2026-09-12 · ÉTAPE C5 — LES ÉCARTS DE L'APERÇU, AU-DESSUS DU PLAN.
-          ⛔ ICI AUSSI, ET C'EST LE MOMENT OÙ ÇA SERT LE PLUS: l'aperçu est ce
-          qu'on relit AVANT d'adopter. Le serveur rend `validation` à la racine
-          de la réponse `draft` comme sur un plan écrit; s'en taire ici ferait
-          adopter un plan dont les écarts n'apparaîtraient qu'après. */}
-      {draft && (
-        <div className="mt-4">
-          <PlanValidationNotice
-            validation={draft.validation}
-            portions={draft.memberPortions}
-            showEnergy={energy.showing}
-            context="preview"
-          />
-        </div>
-      )}
+      {/* ⟳ 2026-09-19 — LE BLOC D'ÉCARTS (`PlanValidationNotice`) N'EST PLUS
+          MONTÉ ICI NON PLUS. Décision produit : ni l'aperçu ni le plan écrit
+          n'affichent « ce qu'il ne tient pas ». `draft.validation` reste
+          rendu par le serveur et lu par l'enveloppe ; seule la surface part. */}
       <div className="mt-4">
         {draft
           ? (

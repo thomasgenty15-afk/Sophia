@@ -9,8 +9,26 @@ import type { AwayMark } from "./presenceMarks";
 // Spec: `scratchpad/2026-08-18-FORMULAIRE-PERSONNE-ET-PLANNING.md` §2.2 bis —
 // « la grille du plan gagne toujours sur la réponse hebdomadaire ».
 //
-// ── ⛔ LE DÉFAUT, ET IL CASSAIT LA RÈGLE PRODUIT ─────────────────────────
-// La question du déjeuner se pose AU TITULAIRE AUSSI (`MemberWorkLunchCard` sur
+// ══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-19 — LA QUESTION DU DÉJEUNER N'EST PLUS POSÉE NULLE PART
+// ══════════════════════════════════════════════════════════════════════════
+//
+// « Le déjeuner en semaine » a été SUPPRIMÉ du code sur décision du
+// propriétaire: « on ne pose plus jamais ces questions ».
+// `MemberWorkLunchCard`, `PersonWorkLunch`, `api/workLunch` et
+// `lib/workLunchCommit` n'existent plus. Ce qui suit décrit donc un défaut
+// FERMÉ PAR LE HAUT: plus personne ne pré-remplit cinq midis « dehors », donc
+// il n'y a plus rien à contredire.
+//
+// ⚠️ CE MODULE RESTE VIVANT, ET POUR SA SECONDE MOITIÉ: `presenceRoster`
+// assemble la liste des bouches de la grille de présence de l'entonnoir, TITULAIRE
+// COMPRIS. C'est ça qui est encore lu (`SetupPage`), pas l'arbitrage du
+// déjeuner. La porte SQL (`keel_household_set_member_work_lunch`) et la colonne
+// existent toujours: aucune donnée n'a été touchée, seule la question est
+// retirée de l'écran.
+//
+// ── ⛔ LE DÉFAUT D'ORIGINE, GARDÉ POUR L'HISTOIRE ────────────────────────
+// La question du déjeuner se posait AU TITULAIRE AUSSI (`MemberWorkLunchCard` sur
 // `/app/household` depuis A6, 2026-09-03 — à l'étape 3 avant, `workLunchRoster`:
 // « le titulaire, premier et pareil »), et sa réponse PRÉ-REMPLIT cinq midis
 // « dehors » sur SA ligne membre, dans la même transaction. L'étape 4, elle,

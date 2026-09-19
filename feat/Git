@@ -2,7 +2,7 @@ git add -A
 git commit -m "ton message de commit"
 git majmain
 git push origin main
- 
+  npm run functions:deploy:changed
 
 
 supabase migration up --local

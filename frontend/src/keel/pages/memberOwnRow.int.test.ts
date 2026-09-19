@@ -73,20 +73,45 @@ describe("le partage des droits est tenu par UNE garde, pas par une liste", () =
   it("les six blocs `not_owner` sont gardés, LES DEUX RETRAITS COMPRIS", () => {
     const gated: [string, string][] = [
       ["le corps", "<BodyFields"],
-      ["le régime", 't("household.member.diet")'],
+      // ⟳ 2026-09-19 — LE RÉGIME N'A PLUS DE BLOC À LUI: c'est une SECTION de
+      // la fiche partagée (`MouthPreferencesFields`), avec les allergies et
+      // les dégoûts. La garde n'a pas disparu, elle a changé de porteur — et
+      // c'est `sharedSheet` qui la porte, mesuré juste en dessous.
+      ["la fiche de goûts", "<MouthPreferencesFields"],
       ["les allergies et règles", 't("household.constraint.kind")'],
       ["retirer du foyer (`remove`)", 't("household.member.remove")'],
       // ⛔ CELUI QUI MANQUAIT. Il vit dans `MemberAccess`, en-tête de la ligne.
       ["retirer l'accès (`detach`)", 't("household.member.detach")'],
       ["le réglage de fusion", 't("household.merge.mute")'],
     ];
+    // ⚠️ ON LIT `MemberRow`, PAS LE FICHIER: `MePrefsForm` (la fenêtre du
+    // titulaire) monte la MÊME fiche de goûts et il est écrit AVANT dans le
+    // fichier. Un `indexOf` global viserait la sienne — qui n'est pas gardée
+    // par `viewerIsOwner`, et pour cause: cette fenêtre-là n'est rendue qu'au
+    // maître, par construction.
+    const row = src.slice(src.indexOf("function MemberRow("));
     for (const [name, needle] of gated) {
-      const at = src.indexOf(needle);
+      // ⚠️ DEUX PORTÉES, ET CHACUNE EST UN FAIT DU FICHIER: « Retirer l'accès »
+      // vit dans `MemberAccess`, écrit AVANT `MemberRow`; la fiche de goûts,
+      // elle, doit être lue DANS la ligne. Une seule portée perdrait l'un ou
+      // viserait l'autre.
+      const scope = name === "la fiche de goûts" ? row : src;
+      const at = scope.indexOf(needle);
       expect(at, `${name} a disparu de la fiche`).toBeGreaterThan(0);
-      const before = src.slice(Math.max(0, at - 700), at);
+      // ⚠️ LA FENÊTRE EST PLUS LARGE POUR LA FICHE DE GOÛTS: sa garde est le
+      // ternaire qui ouvre la branche, et le composant porte une dizaine de
+      // props nommées entre les deux. Un gabarit trop court dirait « pas
+      // gardé » sur une garde qui tient.
+      const span = name === "la fiche de goûts" ? 2500 : 700;
+      const before = scope.slice(Math.max(0, at - span), at);
       expect(before, `${name} n'est pas derrière \`viewerIsOwner\``)
-        .toContain("viewerIsOwner");
+        .toContain(name === "la fiche de goûts" ? "{sharedSheet" : "viewerIsOwner");
     }
+    // ⛔ ET `sharedSheet` EST BIEN `viewerIsOwner`, pas un alias qui a dérivé.
+    // Sans cette ligne, la garde de la fiche de goûts serait « quelque chose
+    // qui s'appelle sharedSheet » — c'est-à-dire n'importe quoi.
+    expect(src, "`sharedSheet` n'est plus la garde du maître")
+      .toContain("const sharedSheet = viewerIsOwner;");
   });
 
   /**
@@ -94,14 +119,17 @@ describe("le partage des droits est tenu par UNE garde, pas par une liste", () =
    * derrière `viewerIsOwner` passerait le cas ci-dessus — une garde qui bloque
    * tout ressemble à une garde qui marche.
    */
-  it("ses habitudes et son déjeuner de semaine ne sont PAS derrière la garde", () => {
-    for (const needle of ["<HouseholdHabitsCard", "<MemberWorkLunchCard"]) {
-      const at = src.indexOf(needle);
-      expect(at, `${needle} a disparu`).toBeGreaterThan(0);
-      const before = src.slice(Math.max(0, at - 500), at);
-      expect(before, `${needle} est devenu réservé au maître`)
-        .not.toContain("viewerIsOwner");
-    }
+  it("ses habitudes ne sont PAS derrière la garde", () => {
+    // ⟳ 2026-09-19 — `<MemberWorkLunchCard` A QUITTÉ CETTE PAGE avec les trois
+    // autres blocs que la fiche posait en plus de ses deux moitiés. La question
+    // se pose toujours, dans l'entonnoir (`SetupPage`), et sa porte d'écriture
+    // n'a pas bougé. Ce qui est gardé ici reste le PARTAGE DE DROITS, sur le
+    // bloc qui reste: un membre écrit ses habitudes sur sa propre ligne.
+    const at = src.indexOf("<HouseholdHabitsCard");
+    expect(at, "<HouseholdHabitsCard a disparu").toBeGreaterThan(0);
+    const before = src.slice(Math.max(0, at - 500), at);
+    expect(before, "<HouseholdHabitsCard est devenu réservé au maître")
+      .not.toContain("viewerIsOwner");
   });
 });
 
@@ -131,22 +159,16 @@ describe("la vue d'un membre: sa ligne, et les autres en pastilles", () => {
   });
 });
 
-describe("⟳ la dette d'A6 est payée ici, et pas ailleurs", () => {
-  /**
-   * L'effet qui lit les réponses du déjeuner était keyé sur
-   * `meRole === "owner"`. C'était JUSTE tant qu'un non-maître ne voyait aucune
-   * fiche. Le point 6 ouvre sa ligne: sans ce changement, sa propre carte
-   * resterait sur « Lecture… » pour toujours — la lecture n'aurait jamais lieu,
-   * et la porte de chargement, qui a raison, ne rendrait aucune question.
-   *
-   * ⚠️ LA PORTE D'ÉCRITURE N'A PAS BOUGÉ:
-   * `keel_household_set_member_work_lunch` répond `not_your_line` à qui vise la
-   * ligne d'un autre, et c'est elle qui décide — pas cet effet.
-   */
-  it("la lecture du déjeuner n'est plus réservée au maître", () => {
-    expect(src, "l'effet est encore keyé sur le rôle")
-      .not.toMatch(/if \(meRole !== "owner"\) return;/);
-    expect(src).toContain("const meMemberId = household?.me?.memberId ?? null;");
-    expect(src).toContain("if (meMemberId === null) return;");
-  });
-});
+/**
+ * ⟳ 2026-09-19 — LE CAS « LA DETTE D'A6 » A ÉTÉ RETIRÉ AVEC SON SUJET.
+ *
+ * Il gardait l'effet qui LIT les réponses du déjeuner en semaine: keyé sur
+ * `meRole === "owner"`, un membre réclamé restait sur « Lecture… » pour
+ * toujours. `/app/household` ne pose plus cette question — la fiche est deux
+ * fenêtres, et rien d'autre (décision du 2026-09-19) —, donc la page ne lit
+ * plus `household_member_work_lunch` du tout.
+ *
+ * ⛔ LA QUESTION N'EST PAS MORTE: elle vit dans l'entonnoir (`SetupPage`), et
+ * sa porte SQL (`keel_household_set_member_work_lunch`, `not_your_line`) n'a
+ * pas bougé. Ce qui est parti est le second endroit où on la posait.
+ */

@@ -1,4 +1,5 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { PAGE_NAMESPACES } from "../i18n/catalog";
@@ -37,91 +38,93 @@ function source(rel: string): string {
     .join("\n");
 }
 
-const src = source("./HouseholdPage.tsx");
 
-describe("les deux cartes du compte sont montées, et gardées deux fois", () => {
-  it("elles sont là", () => {
-    expect(src).toContain("<EatingRhythmCard");
-    expect(src).toContain("<FoodPreferencesCard");
-  });
-
+describe("⟳ 2026-09-19 — LES DEUX CARTES N'EXISTENT PLUS", () => {
   /**
-   * ⛔ LA DOUBLE GARDE — LA BONNE PERSONNE, ET LA LECTURE FAITE.
+   * ══════════════════════════════════════════════════════════════════════════
+   * CE QUI S'EST PASSÉ, EN DEUX TEMPS DANS LA MÊME JOURNÉE
+   * ══════════════════════════════════════════════════════════════════════════
    *
-   * ⟳ 2026-09-09 — ELLES SONT MONTÉES À DEUX ENDROITS, ET LA PREMIÈRE MOITIÉ
-   * DE LA GARDE N'A PLUS LA MÊME FORME AUX DEUX. La fiche du titulaire est
-   * sortie de la liste (`MeFiche`): elle N'EST rendue que pour `me` — la bonne
-   * personne y est structurelle, pas conditionnelle —, donc sa garde à elle est
-   * la lecture. La ligne d'une bouche, elle, se rend pour n'importe qui: la
-   * sienne garde les DEUX moitiés sur la même ligne de code.
+   * A5 point 7 les avait rapatriées de `/app/plan` sur la fiche du Foyer: elles
+   * parlent de la même personne, et c'est là qu'on les cherchait.
    *
-   * Ce qui est mesuré ici est donc: AUCUN des deux montages ne se fait sans la
-   * lecture, et celui de la LIGNE porte encore `isMe`.
+   * ① RETIRÉES DE LA FICHE (matin). « Comment se passe ta journée » cochait les
+   *    six moments, avec une TAILLE par moment; la section « Quand tu manges,
+   *    et quoi » de la fiche coche les six MÊMES moments et écrit la MÊME
+   *    colonne. Deux formulaires, une colonne, un écran.
+   *
+   * ② SUPPRIMÉES DU CODE (après-midi), sur une phrase du propriétaire: « ça
+   *    doit disparaître du code, on ne pose plus jamais ces questions ». Le
+   *    dernier montage de `EatingRhythmCard` — `/app/plan` — est donc parti
+   *    avec, et les deux composants n'existent plus.
+   *
+   * ── CE QUE ÇA LAISSE, ET IL FAUT LE SAVOIR AVANT D'Y TOUCHER ─────────────
+   *   · UN SEUL ÉCRIVAIN pour `practical_constraints.eating_rhythm`: la fiche
+   *     du foyer (`ownFiche.setRhythm` → `saveEatingRhythm`) et l'entonnoir,
+   *     qui est le même écrivain. Vérifié bout en bout le 2026-09-19.
+   *   · LA TAILLE PAR MOMENT n'a plus AUCUN contrôle. La colonne la porte
+   *     toujours et le moteur la relit; plus aucun écran ne la règle. C'est la
+   *     moitié assumée de la demande.
+   *   · « Ce que Sophia sait » (`FoodPreferencesCard`) était déjà démontée de
+   *     `/app/plan` au lot C. Ce qui est écrit en base reste lisible et
+   *     rangeable sur `/app/about-you`, en « Anciennes notes ».
    */
-  it("aucun montage sans la lecture, et la ligne garde `isMe`", () => {
-    const mounts = [...src.matchAll(/<EatingRhythmCard/g)].map((m) => m.index!);
-    expect(mounts.length, "les deux montages ne sont plus là").toBe(2);
-    for (const at of mounts) {
-      expect(
-        src.slice(Math.max(0, at - 900), at),
-        "une carte qui FUSIONNE est montée sur une lecture non faite",
-      ).toContain("practicalConstraints !== null");
+  it("les deux composants n'existent plus, et personne ne les monte", () => {
+    for (const page of [
+      "./HouseholdPage.tsx",
+      "./StudentWeekPlanPage.tsx",
+      "./SetupPage.tsx",
+    ]) {
+      expect(source(page), `${page} monte « comment se passe ta journée »`)
+        .not.toContain("<EatingRhythmCard");
+      expect(source(page), `${page} monte « ce que Sophia sait »`)
+        .not.toContain("<FoodPreferencesCard");
     }
-    // ⛔ LA LIGNE D'UNE BOUCHE — c'est le second montage, dans `MemberRow`.
-    const row = src.indexOf("function MemberRow(");
-    const onRow = mounts.find((at) => at > row);
-    expect(onRow, "la ligne d'une bouche ne les monte plus").toBeGreaterThan(0);
+    // ⚠️ SEULE `EatingRhythmCard` EST SUPPRIMÉE DU DISQUE. `FoodPreferencesCard`
+    // survit sans montage: le lot C a gardé son lecteur (`api/foodPreferences`)
+    // pour l'archive, et le fichier avec. Ce qui est mesuré ici est ce que le
+    // propriétaire a demandé — « on ne pose plus jamais ces questions ».
     expect(
-      src.slice(Math.max(0, onRow! - 900), onRow!),
-      "elles se montent sur la ligne de n'importe qui",
-    ).toContain("isMe && practicalConstraints !== null");
-    // ⚠️ ET LA FICHE DU TITULAIRE N'EST RENDUE QUE POUR `me`: c'est ce qui
-    // remplace `isMe` sur ce montage-là.
-    const fiche = src.indexOf("<MeFiche");
-    expect(fiche, "la fiche du titulaire n'est plus montée").toBeGreaterThan(0);
-    expect(src.slice(fiche, fiche + 300)).toContain("me={me}");
-  });
-
-  it("elles reçoivent la colonne LUE, pas un objet fabriqué", () => {
-    const at = src.indexOf("<EatingRhythmCard");
-    const block = src.slice(at, at + 600);
-    expect(block).toContain("practicalConstraints={practicalConstraints}");
-    expect(block, "un objet vide est passé à un écrivain qui FUSIONNE")
-      .not.toContain("practicalConstraints={{}}");
+      existsSync(resolve(__dirname, "../components/EatingRhythmCard.tsx")),
+      "« comment se passe ta journée » est revenue sur le disque",
+    ).toBe(false);
   });
 
   /**
-   * ⚠️ ET LA COLONNE SE RELIT APRÈS L'ÉCRITURE. `refresh` ne lit pas
-   * `student_goals`: sans relecture, les deux cartes se remonteraient sur la
-   * valeur d'avant, et la fusion suivante partirait de cette valeur périmée.
+   * ⛔ LE CAS QUI PASSE — sans lui, les assertions du dessus resteraient vertes
+   * sur un produit où PERSONNE ne peut plus dire quand il mange.
+   */
+  it("…et la question est toujours posée, une fois, dans la fiche du foyer", () => {
+    const household = source("./HouseholdPage.tsx");
+    expect(household, "la fiche ne pose plus les moments")
+      .toContain("<MouthPreferencesFields");
+    expect(household, "la fiche ne les écrit plus dans la colonne du compte")
+      .toContain("saveEatingRhythm({");
+  });
+
+  /**
+   * ⚠️ LA RELECTURE DE LA COLONNE RESTE, ET ELLE A GAGNÉ UN APPELANT. Elle
+   * servait les deux cartes; elle sert maintenant la carte d'équipement et
+   * l'accusé d'allergie d'une bouche, qui FUSIONNENT sur la même colonne.
    * Cicatrice `stale-current-erases-the-previous-write`.
    */
-  it("la colonne est relue après chaque écriture des deux cartes", () => {
-    // ⟳ 2026-09-19 — LA RELECTURE A UN NOM. Elle était écrite EN LIGNE dans le
-    // JSX; la fiche de goûts d'une bouche en a maintenant besoin elle aussi
-    // (l'accusé d'allergie FUSIONNE sur cette même colonne), donc elle est
-    // sortie en `refreshPracticalConstraints`. On suit le nom jusqu'à la
-    // lecture: s'arrêter au câblage laisserait passer un rappel qui ne relit
-    // rien.
-    const at = src.indexOf("onSavedOwnConstraints={");
-    expect(at, "le geste de relecture n'est pas câblé").toBeGreaterThan(0);
-    expect(src.slice(at, at + 500)).toContain("refreshPracticalConstraints");
-    const decl = src.indexOf("const refreshPracticalConstraints = React.useCallback(");
+  it("la colonne du compte se relit toujours après une écriture", () => {
+    const household = source("./HouseholdPage.tsx");
+    const decl = household.indexOf(
+      "const refreshPracticalConstraints = React.useCallback(",
+    );
     expect(decl, "la relecture nommée n'existe pas").toBeGreaterThan(0);
     expect(
-      src.slice(decl, decl + 400),
+      household.slice(decl, decl + 400),
       "le rappel de relecture ne relit pas la colonne",
     ).toContain("loadPracticalConstraints(userId)");
+    expect(household, "l'accusé d'allergie ne relit pas après avoir fusionné")
+      .toContain("await refreshPracticalConstraints();");
   });
 
-  /**
-   * ⛔ `CookingCapacityCard` NE VIENT PAS (mandat point 7): elle reste sur
-   * `/app/plan`, où la lane CUISINE la remplace. La rapatrier ici en ferait
-   * deux, et c'est celle qu'on regarde le moins qui garderait l'ancienne
-   * question.
-   */
   it("`CookingCapacityCard` n'a pas suivi", () => {
-    expect(src).not.toContain("<CookingCapacityCard");
+    expect(source("./StudentWeekPlanPage.tsx")).toContain("<CookingCapacityCard");
+    expect(source("./HouseholdPage.tsx")).not.toContain("<CookingCapacityCard");
   });
 });
 
@@ -151,7 +154,7 @@ describe("les namespaces suivent les montages, pas les intentions", () => {
    * pas ce commentaire.
    */
   it("`known` n'est pas déclaré tant que sa carte n'est pas montée", () => {
-    expect(src, "la carte est montée sans que le namespace soit déclaré")
+    expect(source("./HouseholdPage.tsx"), "la carte est montée sans que le namespace soit déclaré")
       .not.toContain("<KnownAboutYouCard");
     expect(PAGE_NAMESPACES["/app/household"]).not.toContain("known");
   });

@@ -73,8 +73,6 @@ import { formatBudgetAmount, formatDate } from "../i18n/format";
 import { plural } from "../i18n/plural";
 import TakeTheHandCard, { type HouseholdPlace } from "./TakeTheHandCard";
 import PlanResult from "./plan/PlanResult";
-// ⟳ 2026-09-12 · ÉTAPE C5 — les écarts persistés du plan affiché.
-import PlanValidationNotice from "./plan/PlanValidationNotice";
 import ShoppingListPanel from "./ShoppingListPanel";
 import CookingSessions from "./CookingSessions";
 import MealPickerGrid from "./MealPickerGrid";
@@ -2111,30 +2109,12 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
               setPlans({ current: loaded.current, next: loaded.next });
             }}
           />
-          {/* ══════════════════════════════════════════════════════════════
-              ⟳ 2026-09-12 · ÉTAPE C5 — CE QUE LE PLAN AFFICHÉ NE TIENT PAS
-
-              ⛔ AU-DESSUS DES PLATS, ET SUR LE PLAN QU'ON REGARDE. `result`
-              est l'onglet courant OU suivant: l'écart d'un plan ne doit pas se
-              poser au-dessus des plats de l'autre. Il vient de la MÊME ligne
-              que ses plats (`generated_from.validation`), donc il ne peut pas
-              se décaler — même arbitrage que `portions`.
-
-              ⛔ IL NE S'AFFICHE PAS PENDANT UNE GÉNÉRATION. `building` décrit
-              encore le plan PRÉCÉDENT: son statut au-dessus d'un écran qui
-              compose autre chose serait un fait faux et indémentable.
-
-              ⚠️ `energy.showing` EST LA PORTE, ET ELLE EST PASSÉE, PAS
-              REFAITE. Le composant ne décide jamais du droit de voir: il
-              retire les écarts de la famille calorique quand la porte est
-              fermée, et disparaît s'il ne lui reste rien à dire. */}
-          {!building && (
-            <PlanValidationNotice
-              validation={result?.validation ?? null}
-              portions={result?.memberPortions ?? []}
-              showEnergy={energy.showing}
-            />
-          )}
+          {/* ⟳ 2026-09-19 — LE BLOC D'ÉCARTS (`PlanValidationNotice`) N'EST
+              PLUS MONTÉ ICI. Décision produit : la sortie d'un plan n'affiche
+              plus « ce qu'il ne tient pas » ni « ce qui n'a pas pu être
+              vérifié ». Le serveur continue de produire et de persister
+              `generated_from.validation` ; seul l'affichage est retiré. Le
+              composant et son test restent en place. */}
           {building
             ? (
               <Card tone="dashed">

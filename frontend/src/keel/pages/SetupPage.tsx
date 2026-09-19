@@ -3541,11 +3541,14 @@ export default function SetupPage() {
             l'équipement est un fait de MAISON. Le poser par bouche le ferait
             demander quatre fois, et rien ne dirait laquelle des quatre réponses
             compte. Le déjeuner au boulot, lui, est per-personne — et depuis
-            le 2026-09-03 (A6, P6) il vit DANS la fiche de chaque personne, sur
-            `/app/household` (`MemberWorkLunchCard`), juste au-dessus de la
-            grille que sa réponse pré-remplit. L'étape 3 ne le pose plus: la
-            question décrit une SEMAINE ORDINAIRE, pas cette demande-ci, et
-            deux écrans la séparaient de la case où la démentir. */}
+            le 2026-09-03 (A6, P6) il a vécu DANS la fiche de chaque personne,
+            sur `/app/household`.
+
+            ⟳ 2026-09-19 — ET IL N'EXISTE PLUS DU TOUT. « on ne pose plus jamais
+            ces questions » (propriétaire): `MemberWorkLunchCard` et ses trois
+            modules sont supprimés. L'étape 3 ne le posait déjà plus; il n'y a
+            donc plus aucun écran qui le demande. La porte SQL et la colonne
+            restent — c'est la question qui part, pas la donnée. */}
         {/* ── ⟳ A5, 2026-09-03 — `TableStepPlanning` A DISPARU ──────────────
             Il ne portait plus que deux cartes (le déjeuner en semaine en est
             parti avec A6), et l'une des deux — « les jours que le foyer ne
@@ -6370,9 +6373,13 @@ function PersonTableCard({
           LA TAILLE N'APPARAÎT QUE SUR UN MOMENT COCHÉ: une taille à côté d'un
           moment qu'on ne prend pas est une question sans objet, et six d'entre
           elles font une carte illisible. Même règle et même vocabulaire que
-          `EatingRhythmCard`, qui pose la même question dans « À propos de toi »
-          — et le même `MEAL_SIZES`, parce que la base refuse un quatrième
-          jeton (`bad_rhythm`) et que le moteur ne saurait pas le lire. */}
+          `EatingRhythmCard`, qui posait la même question dans « À propos de
+          toi » — ⟳ SUPPRIMÉE LE 2026-09-19 (« on ne pose plus jamais ces
+          questions »): ce bloc-ci est donc le DERNIER endroit du produit où
+          une taille de part se règle, et il n'est lui-même pas monté
+          (`TableStep` n'a plus d'appelant). Même `MEAL_SIZES`, parce que la
+          base refuse un quatrième jeton (`bad_rhythm`) et que le moteur ne
+          saurait pas le lire. */}
       <div className="mt-3">
         <Field
           label={t("setup.table.moments_label")}
@@ -6383,8 +6390,9 @@ function PersonTableCard({
             {EATING_OCCASIONS.map((slot) => {
               const on = picked.has(slot);
               // ⛔ EMPILÉ, ET PAS UNE LIGNE — C'EST UNE MESURE, PAS UN GOÛT.
-              // `EatingRhythmCard` met le moment et sa taille côte à côte; elle
-              // vit dans une carte de premier niveau. Ici la rangée est au fond
+              // `EatingRhythmCard` (supprimée le 2026-09-19) mettait le moment
+              // et sa taille côte à côte; elle vivait dans une carte de premier
+              // niveau. Ici la rangée est au fond
               // de trois cadres (`Card`, la fiche de la personne `p-4`, la
               // rangée `px-3`): mesuré au navigateur à 320 px, « Gros » sortait
               // du cadre par la droite. Empilés, ils tiennent à toute largeur et

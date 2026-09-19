@@ -6275,6 +6275,11 @@ export const fr: TranslatedMessages = {
   // (`household.mouth.preferences_filled` / `_empty`): le même fait se dit du
   // même mot aux deux endroits.
   "household.member.frame_identity": "Informations personnelles",
+  // ⟳ 2026-09-19 — LA FICHE EST DEUX FENÊTRES, DONC DEUX TITRES. Le
+  // titre d'un `Modal` est aussi son `aria-label`: le seul prénom ne
+  // disait plus laquelle des deux on vient d'ouvrir. Jumelle de
+  // `household.mouth.preferences_title_named`, et même gabarit.
+  "household.member.identity_title_named": "{name} — informations personnelles",
   "household.member.frame_identity_hint":
     "Ce qui dimensionne son assiette : qui c’est, son corps, et où va sa balance.",
   "household.member.frame_preferences": "Préférences alimentaires",

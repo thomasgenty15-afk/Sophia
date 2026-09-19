@@ -13,6 +13,13 @@ import { type MemberPortionView } from "../../api/mealGeneration";
 //
 // Autorité : `docs/keel/PLAN-CLOTURE-APRES-SIX-TIRS-2026-09-11.md`, § C5 ④ ⑤.
 //
+// ── ⟳ 2026-09-19 · PLUS AUCUN APPELANT ─────────────────────────────────────
+// Décision produit : la sortie d'un plan (écrit comme aperçu) n'affiche plus
+// ce bloc. `MealBuilder` et `PlanDraftDialog` ne le montent plus. Le serveur
+// continue de produire `generated_from.validation` ; ce composant, ses tables
+// de clés et son test (`planValidation.int.test.ts`) restent en place, hors
+// surface. Le remonter = relire `validation` et `memberPortions` du même plan.
+//
 // ── ⛔ CE QU'IL NE FAIT JAMAIS, ET CHAQUE LIGNE EST UNE RÈGLE DU PLAN ──────
 //
 //   · IL NE DIT JAMAIS « CONFORME ». Un plan sans écart ne rend RIEN — pas de

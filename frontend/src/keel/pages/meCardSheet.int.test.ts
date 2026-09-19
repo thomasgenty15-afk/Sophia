@@ -86,18 +86,12 @@ function render(
       },
       allergies: [],
       busy: false,
-      rhythm: [],
-      awayWindow: { tokens: [], dates: [] },
       // L'âge du formulaire de repli se lit sur la date TAPÉE (P3): la fiche
       // reçoit le jour, elle ne le lit pas.
       todayLocalIso: "2026-08-18",
-      workLunch: null,
-      workLunchError: null,
-      practicalConstraints: null,
-      hasGoal: true,
-      onSavedOwnConstraints: () => {},
-      onSaveWorkLunch: () => Promise.resolve({ ok: true, reason: null }),
-      onSaveAway: () => Promise.resolve(true),
+      // ⟳ 2026-09-19 — HUIT PROPS ONT DISPARU AVEC LEURS BLOCS (le déjeuner en
+      // semaine, les deux cartes du compte, la grille d'absences). Le détail
+      // est sur `MeFiche`; les questions vivent toujours ailleurs.
       onRemoveAllergy: () => {},
     }),
   );
@@ -108,14 +102,12 @@ function sheetBody(known: KnownMouth): string {
     createElement(MeSheetForm, {
       draft: draftFromKnown(known),
       onChange: () => {},
-      // ⟳ 2026-09-19 — LA LIGNE OUVRE LA FENÊTRE SUR UN CADRE. `false` est ce
-      // que rend le bouton « Informations personnelles »: l'accordéon des
-      // goûts part REPLIÉ, et c'est l'état que les cas ci-dessous mesurent.
-      initialPrefsOpen: false,
       todayLocalIso: "2026-08-18",
       busy: false,
       failure: null,
-      slots: ["breakfast", "lunch", "dinner"] as const,
+      // ⟳ 2026-09-19 — `slots` EST PARTI AVEC L'ACCORDÉON: ce corps-ci ne rend
+      // plus que l'identité. Les moments sont l'affaire de `MePrefsForm`.
+      onOpenPreferences: () => {},
       onSubmit: () => {},
     }),
   );
@@ -185,22 +177,40 @@ describe("la fiche du titulaire — un résumé, et une seule porte", () => {
     );
   });
 
-  it("⛔ ET IL N'OUVRE PAS UNE SECONDE FENÊTRE", () => {
-    // Deux `createPortal` empilés n'ont jamais été essayés dans ce dépôt — ni le
-    // piège du focus, ni celui d'Échap (laquelle ferme ?). Les préférences sont
-    // un accordéon DEDANS, exactement comme dans la fenêtre d'ajout.
+  /**
+   * ⟳ 2026-09-19 — LES GOÛTS SONT UNE SECONDE FENÊTRE, PLUS UN ACCORDÉON.
+   *
+   * La fiche portait les deux moitiés dans UNE fenêtre, et sous elles quatre
+   * blocs de plus. Décision du propriétaire: deux fenêtres, deux contenus,
+   * rien d'autre dedans.
+   *
+   * ⛔ CE QUE CE CAS GARDE N'A PAS CHANGÉ: **jamais deux `createPortal`
+   * empilés** — ni le piège du focus, ni celui d'Échap (laquelle ferme ?). La
+   * garde tient maintenant par un ÉTAT À TROIS VALEURS dans `MeFiche`: aucun
+   * des deux corps ne monte de `Modal`, et `sheet` n'en ouvre qu'un.
+   */
+  it("⛔ AUCUN DES DEUX CORPS N'EMPILE UNE FENÊTRE", () => {
     const src = readFileSync(
       new URL("./HouseholdPage.tsx", import.meta.url),
       "utf8",
     );
-    const at = src.indexOf("export function MeSheetForm(");
-    expect(at, "le corps de la fiche a disparu").toBeGreaterThan(0);
-    const body = src.slice(at, src.indexOf("\n/**", at));
-    expect(body, "une fenêtre est imbriquée dans la fiche")
-      .not.toContain("<Modal");
-    expect(body, "l'ancienne fenêtre des goûts est encore montée")
-      .not.toContain("<MouthFormDialog");
-    expect(body).toContain("onOpenPreferences={() => setPrefsOpen((v) => !v)}");
+    for (const fn of ["export function MeSheetForm(", "export function MePrefsForm("]) {
+      const at = src.indexOf(fn);
+      expect(at, `${fn} a disparu`).toBeGreaterThan(0);
+      const body = src.slice(at, src.indexOf("\n/**", at));
+      expect(body, "une fenêtre est imbriquée dans la fiche")
+        .not.toContain("<Modal");
+      expect(body, "l'ancienne fenêtre des goûts est encore montée")
+        .not.toContain("<MouthFormDialog");
+    }
+    // ⛔ TROIS VALEURS, PAS DEUX BOOLÉENS: le quatrième état de deux booléens
+    // serait « les deux ouvertes », c'est-à-dire l'empilement qu'on interdit.
+    expect(src).toContain(
+      'const [sheet, setSheet] = React.useState<"identity" | "preferences" | null>',
+    );
+    // Le bouton de la fiche d'identité OUVRE l'autre fenêtre, sur le MÊME
+    // brouillon — c'est ce qui remplace l'accordéon.
+    expect(src).toContain('onOpenPreferences={() => setSheet("preferences")}');
   });
 
   /**

@@ -156,9 +156,25 @@ describe("« Garder » → ligne retenue (arbitrage 2)", () => {
     expect(card).toMatch(/props\.keepAs \? \(/);
   });
 
-  it("CÂBLAGE — la page foyer donne le sujet de la bouche du titulaire et le jour", () => {
-    const page = src("../pages/HouseholdPage.tsx");
-    expect(page).toMatch(/keepAs=\{\{\s*subject: memberSubject\(member\.memberId\) \?\? HOUSEHOLD_SUBJECT,\s*todayLocalIso,\s*\}\}/);
+  /**
+   * ⟳ 2026-09-19 — LA PAGE FOYER NE MONTE PLUS LA CARTE, DONC PLUS DE `keepAs`.
+   *
+   * `FoodPreferencesCard` était montée sur la ligne du titulaire (A5 point 7);
+   * la fiche du foyer est devenue DEUX FENÊTRES de questions et rien d'autre
+   * (décision du propriétaire, 2026-09-19). Elle n'a plus aucun montage —
+   * `/app/plan` l'avait déjà démontée au lot C.
+   *
+   * ⛔ CE QUI EST GARDÉ DEVIENT DONC L'ABSENCE, ET SON CONTRAT RESTE ARMÉ: le
+   * jour où la carte est remontée quelque part, elle devra recevoir `keepAs`
+   * (sujet + jour), sinon elle retomberait sur l'ancien geste
+   * (`props.keepAs ? (…)`, gardé par le cas juste au-dessus). Ce cas-ci dit
+   * simplement qu'aujourd'hui personne ne la monte.
+   */
+  it("CÂBLAGE — plus aucune page ne monte la carte, donc aucun `keepAs` à donner", () => {
+    for (const page of ["../pages/HouseholdPage.tsx", "../pages/StudentWeekPlanPage.tsx"]) {
+      expect(src(page), `${page} monte la carte sans que ce cas le dise`)
+        .not.toContain("<FoodPreferencesCard");
+    }
   });
 
   it("les deux boutons ont leur copie dans les deux langues, et les anciennes notes se disent anciennes", () => {

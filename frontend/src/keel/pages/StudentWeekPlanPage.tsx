@@ -57,7 +57,6 @@ import {
   submitEnvy,
 } from "../api/household";
 import { browserLocalDate } from "../lib/useMealTicks";
-import EatingRhythmCard from "../components/EatingRhythmCard";
 import CookingCapacityCard from "../components/CookingCapacityCard";
 import { parseEatingRhythm } from "../api/mealGeneration";
 // ⛔ `parseAwayMarks` ET SURTOUT PLUS `parseAwayDays` — DÉFAUT P1 (L6,
@@ -2467,22 +2466,34 @@ export default function StudentWeekPlanPage() {
           </SetupSection>
         )}
 
-        {/* LA FORME DE SA JOURNÉE — ce qui décide COMBIEN de plats il y aura et
-            QUAND. Le moteur imposait trois repas à tout le monde, en dur; une
-            faim de 17h n'avait aucun endroit où exister. */}
-        <SetupSection
-          title={t("plan.section.day.title")}
-          intro={t("plan.section.day.intro")}
-          summary={rhythmSummary}
-        >
-          <EatingRhythmCard
-            embedded
-            hasGoal={goal !== null}
-            practicalConstraints={goal?.practical_constraints ?? {}}
-            rhythm={parseEatingRhythm(goal?.practical_constraints?.eating_rhythm)}
-            onSaved={refresh}
-          />
-        </SetupSection>
+        {/* ══ 2026-09-19 · « COMMENT SE PASSE TA JOURNÉE » EST DÉMONTÉE ════
+            ══════════════════════════════════════════════════════════════════
+
+            Elle rendait `EatingRhythmCard`: les six moments à cocher, avec une
+            TAILLE par moment, écrits dans `practical_constraints.eating_rhythm`.
+
+            ⛔ ELLE POSAIT LA MÊME QUESTION QUE LA FICHE DU FOYER. « Quand tu
+            manges, et quoi » (`MouthPreferencesFields`, sur `/app/household`)
+            coche les six mêmes moments et écrit la MÊME colonne. Deux
+            formulaires sur une colonne, sur deux écrans — et c'est celui qu'on
+            ne relit pas qui finit par gagner. Décision du propriétaire,
+            2026-09-19: « on ne pose plus jamais ces questions ».
+
+            ⚠️ IL RESTE DONC UN SEUL ÉCRIVAIN, et c'est celui de la fiche:
+            `ownFiche.setRhythm` → `saveEatingRhythm`. L'entonnoir écrit la même
+            colonne par le même écrivain. Vérifié bout en bout le 2026-09-19:
+            cocher « Après-midi » dans la fiche du foyer change le résumé
+            « Ta journée » de cette page ET les moments que le plan compose.
+
+            ⚠️ CE QUE LE RETRAIT COÛTE, ÉCRIT POUR QUE PERSONNE NE LE
+            REDÉCOUVRE: la TAILLE par moment (`small` / `medium` / `large`)
+            n'avait de contrôle QUE là. La colonne la porte toujours et le
+            moteur la relit (`buildPortionBrief`); plus aucun écran ne la règle.
+            C'est assumé — c'est la moitié de ce que le propriétaire a demandé
+            de faire disparaître.
+
+            `rhythmSummary` VIT TOUJOURS: il est le résumé « Ta journée » du
+            cadre « À propos de toi », en haut de cette page. */}
 
         {/* CE QUE L'ÉLÈVE PEUT VRAIMENT FAIRE. Après le rythme: on dit d'abord
             quand on mange, puis ce qu'on peut cuisiner. `cooking_time_min` et

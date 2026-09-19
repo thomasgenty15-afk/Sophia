@@ -1,4 +1,3 @@
-import { parseAwayMarks, type WorkLunch } from "../lib/presenceMarks";
 import React from "react";
 
 import { useAuth } from "../../context/AuthContext";
@@ -11,7 +10,7 @@ import { useHouseholdAccess } from "../../context/HouseholdAccessContext";
 // quatre réponses est toujours lue et jamais recopiée — c'est
 // `MouthPreferencesFields` qui la lit maintenant, avec le reste de la fiche.
 // Cet écran n'a plus de second jeu de boutons de régime.
-import { saveMouthAllergies } from "../api/onboarding";
+import { saveEatingRhythm, saveMouthAllergies } from "../api/onboarding";
 import {
   addAllergy,
   addHouseholdMember,
@@ -45,7 +44,6 @@ import {
   removeRestriction,
   type RestrictionView,
   restrictionNotice,
-  setMemberAway,
   setMemberBirthDate,
   setMemberBody,
   setMemberDiet,
@@ -56,17 +54,12 @@ import {
   loadLiveInvitations,
   type LiveInvitation,
 } from "../api/household";
-import { addDays } from "../api/dates";
 // ── LOT C · LE MAGASIN DES PRÉFÉRENCES, EN LECTURE ────────────────────────
 // L'écriture passe par `writtenDislikeWriter` (`api/mouthProfile`), qui adapte
 // le contrat « ça lève » de ce module au contrat « ça rend un refus » de cet
 // écran. La lecture, elle, n'a pas de refus à traduire.
-import { loadWrittenDislikes,
-  HOUSEHOLD_SUBJECT,
-  memberSubject,
-} from "../api/retainedItems";
+import { loadWrittenDislikes } from "../api/retainedItems";
 import {
-  type AwayDay,
   EATING_OCCASIONS,
   type EatingOccasion,
   type EatingOccasionSlot,
@@ -77,11 +70,6 @@ import {
   type MemberHabitsView,
   setMemberHabits,
 } from "../api/householdHabits";
-import {
-  MAX_WINDOW_DAYS,
-  resolveRequestedWindow,
-  windowDayOrder,
-} from "../api/mealWindow";
 import { loadMutedMembers, muteMergeProposals } from "../api/householdMerge";
 // L5 — LE POP-UP « UNE BOUCHE ». Il s'ouvre à chaque ajout de personne, ET sur
 // la fiche du maître (D5, 2026-08-18): « sans quoi celui qui tient la maison
@@ -109,6 +97,7 @@ import {
   type MouthFormDraft,
   mouthToPersist,
   shakerCanBeSaved,
+  submitIsHeld,
   shakerPartialToWrite,
 } from "../lib/mouthForm";
 // LE DÉCOUPAGE « prose / bulle » D'UNE LIGNE D'HABITUDE, EN UN SEUL EXEMPLAIRE.
@@ -145,16 +134,13 @@ import HouseholdTraditionsCard from "../components/HouseholdTraditionsCard";
 // l'ANNONCE avant le clic. Elle était recopiée ici sous un second nom.
 import { HOUSEHOLD_MAX_MOUTHS } from "../api/onboarding";
 import { householdErrorKey } from "../copy/planRefusals";
-import MealPickerGrid from "../components/MealPickerGrid";
 import HouseholdHabitsCard from "../components/HouseholdHabitsCard";
-// A5 point 7 — LES DEUX CARTES DU COMPTE, rapatriées de la fenêtre de réglages
-// de `/app/plan`. Elles écrivent la colonne DE LA SESSION: elles ne se montent
-// que sur `isMe`. `CookingCapacityCard` reste là-bas (lane CUISINE).
-import EatingRhythmCard from "../components/EatingRhythmCard";
-import FoodPreferencesCard from "../components/FoodPreferencesCard";
-import MemberWorkLunchCard from "../components/MemberWorkLunchCard";
-import { loadWorkLunch, setMemberWorkLunch } from "../api/workLunch";
-import { commitWorkLunch, readWorkLunchAnswers } from "../lib/workLunchCommit";
+// ⟳ 2026-09-19 — SEPT IMPORTS SONT PARTIS AVEC LES BLOCS QU'ILS SERVAIENT:
+// `MealPickerGrid` (la grille d'absences), `EatingRhythmCard` et
+// `FoodPreferencesCard` (les deux cartes du compte), `MemberWorkLunchCard` et
+// ses deux portes, et `parseAwayMarks`. Les composants VIVENT — c'est
+// `StudentWeekPlanPage` et `SetupPage` qui les montent. Ce qui part d'ici est
+// le doublon de la fiche du foyer. Voir le pavé de `MePrefsForm`.
 import HouseholdMergeCard from "../components/HouseholdMergeCard";
 import HouseholdPlanCard from "../components/HouseholdPlanCard";
 import { t } from "../i18n/t";
@@ -408,10 +394,6 @@ export default function HouseholdPage(): React.ReactElement {
    * carte s'en garde en comparant à CE QUI EST ENREGISTRÉ — et « enregistré »
    * ne redevient vrai que si on relit (`commitWorkLunch`, ordre imposé).
    */
-  const [workLunch, setWorkLunch] = React.useState<
-    Map<string, WorkLunch | null> | null
-  >(null);
-  const [workLunchError, setWorkLunchError] = React.useState<string | null>(null);
   /**
    * LE GEL (chantier 3, D4). `null` = pas encore lu.
    *
@@ -457,28 +439,11 @@ export default function HouseholdPage(): React.ReactElement {
   // la fenêtre démarrait forcément aujourd'hui.
 
   /**
-   * LES COLONNES DE LA GRILLE DE PRÉSENCE — la fenêtre que le foyer va cuisiner.
-   *
-   * LA MÊME QUE `ComposeCard` (`until_sunday`), et ce n'est pas un détail: une
-   * grille qui montrerait sept jours quand la composition en couvre trois
-   * ferait marquer une absence sur des jours que le plan ne verra jamais. On
-   * passe donc par la MÊME résolution que le bouton, pas par un calcul voisin.
-   *
-   * ⚠️ LA GRILLE NE MONTRE QUE LA FENÊTRE, ET C'EST TOUT LE POINT DE SA FUSION:
-   * `MealPickerGrid.save` reprend tels quels les jours hors fenêtre, sinon
-   * marquer un week-end effacerait « jeudi midi ».
+   * ⟳ 2026-09-19 — `awayWindow` EST PARTI AVEC LA GRILLE DE PRÉSENCE. Il
+   * résolvait les COLONNES de la grille (`until_sunday`, la même fenêtre que
+   * le bouton de composition). La grille n'est plus montée ici: elle vit sur
+   * `/app/plan` et dans l'entonnoir, qui résolvent leur fenêtre eux-mêmes.
    */
-  const awayWindow = React.useMemo(() => {
-    const { startsOn, durationDays } = resolveRequestedWindow(
-      { kind: "until_sunday" },
-      weekStart,
-    );
-    const n = Math.min(MAX_WINDOW_DAYS, Math.max(1, durationDays));
-    return {
-      tokens: windowDayOrder(startsOn, n),
-      dates: Array.from({ length: n }, (_, i) => addDays(startsOn, i)),
-    };
-  }, [weekStart]);
 
   const refresh = React.useCallback(async () => {
     if (!userId) return;
@@ -594,15 +559,6 @@ export default function HouseholdPage(): React.ReactElement {
   }, [refresh]);
 
   /**
-   * LES RÉPONSES DU DÉJEUNER — une lecture À PART, pas dans `refresh`.
-   *
-   * `commitWorkLunch` relit les réponses PUIS la page: si cette lecture vivait
-   * dans `refresh`, elle partirait deux fois par geste, et surtout l'ordre
-   * « réarmer la garde avant de relire la page » ne serait plus lisible ici.
-   * On ne remet PAS `workLunch` à `null` sur un échec: ce qui a déjà été lu
-   * reste vrai, et l'erreur se dit à côté de la carte.
-   */
-  /**
    * A5 §5.5 — LES INVITATIONS, RELUES À PART DE `refresh`.
    *
    * `refresh` ne lit pas `household_invitations`, et une invitation créée est
@@ -620,21 +576,14 @@ export default function HouseholdPage(): React.ReactElement {
     }
   }, [household?.id]);
 
-  const refreshWorkLunch = React.useCallback(async () => {
-    const read = await readWorkLunchAnswers(loadWorkLunch);
-    if (read.answers !== null) setWorkLunch(read.answers);
-    setWorkLunchError(read.error);
-  }, []);
-
   /**
-   * LA COLONNE DU COMPTE, RELUE — A5 point 7, sorti du JSX le 2026-09-19.
+   * LA COLONNE DU COMPTE, RELUE — A5 point 7, sortie du JSX le 2026-09-19.
    *
    * ⚠️ `refresh` NE LIT PAS `student_goals`. Sans cette relecture, tout ce qui
-   * FUSIONNE sur `practical_constraints` (les deux cartes du compte, et
-   * maintenant l'accusé d'allergie d'une bouche) repartirait de la photo
-   * d'avant — et la fusion suivante écraserait l'écriture d'avant. C'est la
-   * cicatrice `stale-current-erases-the-previous-write`, et elle a maintenant
-   * deux appelants: d'où la sortie du JSX.
+   * FUSIONNE sur `practical_constraints` (la carte d'équipement, et l'accusé
+   * d'allergie d'une bouche) repartirait de la photo d'avant — et la fusion
+   * suivante écraserait l'écriture d'avant. Cicatrice
+   * `stale-current-erases-the-previous-write`.
    */
   const refreshPracticalConstraints = React.useCallback(async () => {
     if (!userId) return;
@@ -644,26 +593,6 @@ export default function HouseholdPage(): React.ReactElement {
       console.error("[household] pc reread failed", e);
     }
   }, [userId]);
-
-  // CET EFFET LIT, ET C'EST LE SEUL QUI TOUCHE AU DÉJEUNER. Il attend de
-  // savoir QUI regarde, parce que seuls les gens d'un foyer ont des réponses à
-  // lire. Keyé sur le `member_id` et pas sur `household`, pour ne pas relire à
-  // chaque `refresh`.
-  //
-  // ⟳ DETTE D'A6, PAYÉE ICI (A5, point 6). Cet effet était keyé sur
-  // `meRole === "owner"`, et c'était JUSTE tant qu'un non-maître ne voyait
-  // aucune fiche (`MembersCard` lui rendait une liste en lecture seule). Le
-  // point 6 ouvre SA ligne à un membre réclamé: sans ce changement, sa propre
-  // carte « Le déjeuner en semaine » resterait sur « Lecture… » pour toujours —
-  // la lecture n'aurait jamais lieu, et la porte de chargement, qui a raison,
-  // ne rendrait aucune question. La porte d'ÉCRITURE, elle, n'a pas bougé:
-  // `keel_household_set_member_work_lunch` répond `not_your_line` à qui vise
-  // la ligne d'un autre, et c'est elle qui décide.
-  const meMemberId = household?.me?.memberId ?? null;
-  React.useEffect(() => {
-    if (meMemberId === null) return;
-    void refreshWorkLunch();
-  }, [meMemberId, refreshWorkLunch]);
 
   const run = React.useCallback(
     async (action: () => Promise<{ ok: boolean; reason: string }>): Promise<boolean> => {
@@ -960,10 +889,53 @@ export default function HouseholdPage(): React.ReactElement {
               // Jamais appelé: la fenêtre ne montre pas le régime
               // à qui a un compte, donc `diet` part `null`.
               setDiet: setMemberDiet,
-              // ⚠️ `null` EST UNE ÉCRITURE, PAS UN SAUT: c'est
-              // la seule façon de revenir à « comme la maison »
-              // après avoir coché un moment.
-              setRhythm: setMemberRhythm,
+              // ══════════════════════════════════════════════
+              // ⛔ PAS `setMemberRhythm` — MESURÉ LE 2026-09-19
+              // ══════════════════════════════════════════════
+              //
+              // `keel_household_set_member_rhythm` REFUSE un
+              // titulaire: `has_account`, « son rythme vit dans
+              // SON about you » (migration 20260814120000, et la
+              // migration du 2026-09-12 le rappelle noir sur
+              // blanc). Vérifié contre la base locale avec son
+              // propre JWT: `{"ok": false, "reason":
+              // "has_account"}` — même avec `null`, la garde
+              // passe AVANT l'écriture.
+              //
+              // `persistMouth` appelle cette porte à chaque
+              // enregistrement, `null` compris: la fiche du
+              // titulaire échouait donc en entier, sur un motif
+              // qui ne nomme aucun champ visible. Ça ne se
+              // voyait pas tant que « comment se passe ta
+              // journée » portait la vraie porte juste en
+              // dessous; ce bloc est parti le 2026-09-19, et la
+              // case des moments de la fiche est désormais LE
+              // contrôle — il fallait qu'elle écrive.
+              //
+              // ⚠️ LA SOURCE CANONIQUE D'UN COMPTE EST SA
+              // COLONNE, et c'est celle que l'entonnoir écrit et
+              // que le moteur relit (`saveEatingRhythm`).
+              //
+              // ⛔ LECTURE FRAÎCHE AVANT DE FUSIONNER: la marche
+              // d'avant a pu écrire cette même colonne
+              // (`retained_items`), et `mergePracticalConstraints`
+              // REMPLACE `{...current, ...patch}`. Cicatrice
+              // `stale-current-erases-the-previous-write`.
+              //
+              // ⚠️ `[]` QUAND RIEN N'EST COCHÉ: pour un COMPTE,
+              // le vide est la valeur que cette colonne porte
+              // déjà (`EatingRhythmCard` l'écrit ainsi sur
+              // `/app/plan`) — il n'y a pas de `null` « comme la
+              // maison » dans `practical_constraints`.
+              setRhythm: async (_memberId, slots) => {
+                await saveEatingRhythm({
+                  userId,
+                  current: await loadPracticalConstraints(userId),
+                  rhythm: slots ?? [],
+                });
+                await refreshPracticalConstraints();
+                return { ok: true, reason: "" };
+              },
             },
           )
         ),
@@ -1101,38 +1073,14 @@ export default function HouseholdPage(): React.ReactElement {
                   busy={busy}
                   mutedMembers={mutedMembers}
                   rhythm={rhythm}
-                  awayWindow={awayWindow}
                   bodies={bodies}
                   habits={habits}
-                  practicalConstraints={practicalConstraints}
-                  hasGoal={ownerGoalRow === true}
-                  // A5 point 7 — LA COLONNE DU COMPTE SE RELIT APRÈS SON
-                  // ÉCRITURE: `refresh` ne lit pas `student_goals`, donc sans
-                  // ça les deux cartes se remonteraient sur la valeur d'avant —
-                  // et la suivante fusionnerait par-dessus.
-                  onSavedOwnConstraints={refreshPracticalConstraints}
                   invitations={invitations}
                   // A5 §5.5 — RELIRE LES INVITATIONS, PAS SEULEMENT LA PAGE:
                   // `refresh` ne lit pas `household_invitations`, donc sans cette
                   // relecture la ligne dirait encore « jamais invitée » juste
                   // après avoir créé un lien.
                   onInvited={refreshInvitations}
-                  workLunch={workLunch}
-                  workLunchError={workLunchError}
-                  // A6 — LE GESTE COMPLET, DANS L'ORDRE QUE `commitWorkLunch`
-                  // IMPOSE: écrire, RELIRE LES RÉPONSES (réarmer la garde), puis
-                  // relire la page — la porte SQL a aussi écrit `away_days`, et
-                  // la grille juste en dessous doit montrer les cinq midis.
-                  // Pas par `run`: un refus doit rester SOUS le geste, dans la
-                  // carte, pas dans la bannière de la page.
-                  onSaveWorkLunch={(memberId, answer) =>
-                    commitWorkLunch({
-                      memberId,
-                      answer,
-                      save: setMemberWorkLunch,
-                      reread: refreshWorkLunch,
-                      onSaved: refresh,
-                    })}
                   // `run` traduit le refus par la liste fermée de
                   // `copy/planRefusals.ts` et rafraîchit — donc le formulaire se
                   // remonte sur ce que le serveur a VRAIMENT gardé, et un
@@ -1192,7 +1140,6 @@ export default function HouseholdPage(): React.ReactElement {
                   // a VRAIMENT gardé.
                   onSavePreferences={saveMemberPreferences}
                   onMute={(memberId, next) => run(() => muteMergeProposals(memberId, next))}
-                  onSaveAway={(memberId, next) => run(() => setMemberAway(memberId, parseAwayMarks(next)))}
                   onSave={(member, patch) => saveMember(member, patch, { userId })}
                   onRemove={(memberId) => run(() => removeHouseholdMember(memberId))}
                   onDetach={(memberId) => run(() => detachHouseholdMember(memberId))}
@@ -1660,16 +1607,7 @@ export function MeFiche(
     fiche,
     allergies,
     busy,
-    rhythm,
-    awayWindow,
     todayLocalIso,
-    workLunch,
-    workLunchError,
-    practicalConstraints,
-    hasGoal,
-    onSavedOwnConstraints,
-    onSaveWorkLunch,
-    onSaveAway,
     onRemoveAllergy,
   }: {
     me: HouseholdMemberView;
@@ -1678,31 +1616,30 @@ export function MeFiche(
     /** SES allergies, déjà filtrées. La fenêtre les LISTE et les retire. */
     allergies: AllergyView[];
     busy: boolean;
-    /** Les LIGNES de la grille de présence — les moments d'une journée. */
-    rhythm: EatingOccasionSlot[];
-    /** Les COLONNES: la fenêtre que la composition va couvrir. */
-    awayWindow: { tokens: string[]; dates: string[] };
     /**
      * `YYYY-MM-DD` LOCAL, REQUIS — jamais une horloge lue ici. L'âge qui filtre
      * les directions se lit sur la date TAPÉE dans le formulaire de repli.
      */
     todayLocalIso: string;
-    /** A6 — les réponses du foyer, `null` = pas lu. La carte filtre elle-même. */
-    workLunch: Map<string, WorkLunch | null> | null;
-    workLunchError: string | null;
-    /** A5 point 7 — la colonne DE LA SESSION, `null` = pas lue. */
-    practicalConstraints: PracticalConstraints | null;
-    hasGoal: boolean;
-    onSavedOwnConstraints: () => void | Promise<void>;
-    onSaveWorkLunch: (
-      memberId: string,
-      answer: WorkLunch,
-    ) => Promise<{ ok: boolean; reason: string | null }>;
-    onSaveAway: (away: AwayDay[]) => Promise<boolean>;
     onRemoveAllergy: (id: string) => void;
+    /**
+     * ⟳ 2026-09-19 — SIX PROPS SONT PARTIES AVEC LEURS BLOCS, et il faut savoir
+     * lesquelles avant d'en rebrancher une:
+     *
+     *   `rhythm` · `awayWindow` · `onSaveAway`  — la grille d'absences;
+     *   `workLunch` · `workLunchError` · `onSaveWorkLunch` — le déjeuner en
+     *      semaine;
+     *   `practicalConstraints` · `hasGoal` · `onSavedOwnConstraints` — les deux
+     *      cartes du compte (« comment se passe ta journée », « ce que Sophia
+     *      sait »).
+     *
+     * Aucune des trois questions n'a disparu du produit: elles vivent sur
+     * `/app/plan` et dans l'entonnoir. Ce qui part est le DOUBLON de cette
+     * fiche-ci. Voir le pavé de `MePrefsForm`.
+     */
   },
 ) {
-  const { sheet, needsGoalRow, goalEditable, slots, onSave } = fiche;
+  const { sheet: sheet2, needsGoalRow, goalEditable, slots, onSave } = fiche;
   const [draft, setDraft] = React.useState<MouthDraft>({
     firstName: me.displayName === "—" ? "" : me.displayName,
     birthDate: "",
@@ -1713,18 +1650,17 @@ export function MeFiche(
   // ⚠️ LES HOOKS SONT INCONDITIONNELS, même quand `sheet` est `null`: une
   // fiche qui gagne sa fenêtre à la deuxième lecture changerait sinon de
   // nombre de hooks entre deux rendus.
-  const [open, setOpen] = React.useState(false);
   /**
-   * SUR QUEL CADRE LA FENÊTRE S'OUVRE — 2026-09-19.
+   * QUELLE FENÊTRE EST OUVERTE — 2026-09-19.
    *
-   * ⚠️ IL VIT ICI ET PAS DANS `MeSheetForm`: `Modal` DÉMONTE ses enfants à la
-   * fermeture, donc un état posé plus bas repartirait à `false` — et le bouton
-   * « Préférences alimentaires » ouvrirait la fiche sur l'identité une fois sur
-   * deux. Il est LU à l'ouverture (`initialPrefsOpen`), et le corps garde
-   * ensuite son propre repli: c'est un point de départ, pas un pilotage.
+   * ⛔ UN ÉTAT À TROIS VALEURS, PAS DEUX BOOLÉENS: deux booléens ont un
+   * quatrième état inexprimable à l'écran (les deux ouvertes) mais écrivable
+   * en TypeScript — c'est-à-dire deux `createPortal` empilés, que ce dépôt
+   * n'a jamais essayés.
    */
-  const [prefsFirst, setPrefsFirst] = React.useState(false);
-  const [awayOpen, setAwayOpen] = React.useState(false);
+  const [sheet, setSheet] = React.useState<"identity" | "preferences" | null>(
+    null,
+  );
   // ⚠️ SEMÉ DÈS LE PREMIER RENDU, ET RE-SEMÉ À CHAQUE LECTURE DIFFÉRENTE (voir
   // l'effet juste en dessous). L'initialiseur seul laisserait la fiche montrer
   // du vide pendant un battement — « un formulaire qui affiche du vide non lu
@@ -1734,7 +1670,7 @@ export function MeFiche(
   // fermant, donc un brouillon posé plus bas serait perdu au premier clic à
   // côté.
   const [sheetDraft, setSheetDraft] = React.useState<MouthFormDraft>(() =>
-    sheet === null ? emptyMouthDraft() : draftFromKnown(sheet.known)
+    sheet2 === null ? emptyMouthDraft() : draftFromKnown(sheet2.known)
   );
   /**
    * ⚠️ ON SÈME SUR LA LECTURE, PAS AU MONTAGE, ET C'EST LA MOITIÉ QUI COMPTE.
@@ -1747,10 +1683,10 @@ export function MeFiche(
    * `known` ne touche à rien, donc une saisie en cours survit à tout ce qui
    * n'est pas une lecture différente.
    */
-  const knownKey = JSON.stringify(sheet?.known ?? null);
+  const knownKey = JSON.stringify(sheet2?.known ?? null);
   React.useEffect(() => {
-    if (sheet === null) return;
-    setSheetDraft(draftFromKnown(sheet.known));
+    if (sheet2 === null) return;
+    setSheetDraft(draftFromKnown(sheet2.known));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [knownKey]);
   // L'ÂGE DU FORMULAIRE DE REPLI: la date tapée gagne sur le roster.
@@ -1785,9 +1721,7 @@ export function MeFiche(
         {me.role === "owner" ? <Badge>{t("household.members.owner")}</Badge> : null}
         {me.goal ? <Badge>{goalLabel(me.goal as MemberGoal)}</Badge> : null}
         {allergies.map((a) => (
-          // ⚠️ `allergenLabel` ET PAS LE JETON NU — même raison que la liste
-          // de la fiche: le catalogue écrit des SLUGS, et une pastille
-          // « peanut » sur un écran français est une donnée rendue brute.
+          // ⚠️ `allergenLabel` ET PAS LE JETON NU: le catalogue écrit des SLUGS.
           <Badge key={a.id} tone="critical">{allergenLabel(a.label)}</Badge>
         ))}
         {/* MÊME AFFORDANCE QUE LES AUTRES FICHES tant qu'il n'y a rien à
@@ -1801,39 +1735,26 @@ export function MeFiche(
               variant="primary"
               size="sm"
               disabled={busy}
-              onClick={() => setOpen(true)}
+              onClick={() => setSheet("identity")}
             >
               {t("household.me.open")}
             </Button>
           )
           : (
             /* ── DEUX PORTES, COMME SUR CHAQUE AUTRE LIGNE (2026-09-19) ────
-               La fiche du titulaire porte les mêmes deux parties que les
-               autres — ce qui le dimensionne, et ce qui affine — et elle
-               doit s'ouvrir sur celle qu'on vient chercher. Ici le second
-               cadre est un ACCORDÉON dans la même fenêtre (`MeSheetForm`),
-               donc le bouton ne choisit pas un écran: il choisit l'état sur
-               lequel la fenêtre s'ouvre.
-
                ⛔ SEULEMENT HORS `needsGoalRow`. Tant que la ligne d'objectif
                manque, il n'y a qu'UN geste sur cette carte — celui qui ouvre
                la composition —, et lui donner un voisin le noierait. */
             <span className="ml-auto flex flex-wrap items-center gap-3">
               <button
                 className="text-fig-700 underline"
-                onClick={() => {
-                  setPrefsFirst(false);
-                  setOpen(true);
-                }}
+                onClick={() => setSheet("identity")}
               >
                 {t("household.member.frame_identity")}
               </button>
               <button
                 className="text-fig-700 underline"
-                onClick={() => {
-                  setPrefsFirst(true);
-                  setOpen(true);
-                }}
+                onClick={() => setSheet("preferences")}
               >
                 {t("household.member.frame_preferences")}
               </button>
@@ -1865,52 +1786,54 @@ export function MeFiche(
         )}
 
       {/* ══════════════════════════════════════════════════════════════════
-          LA FICHE EST UNE FENÊTRE — 2026-09-09
+          DEUX FENÊTRES, DEUX CONTENUS — 2026-09-19
           ══════════════════════════════════════════════════════════════════
 
-          Les six blocs vivaient EN LIGNE depuis le 2026-08-18, et l'écran
-          s'ouvrait donc sur trente champs déjà remplis pour quelqu'un qui venait
-          lire qui mange chez lui. Ce que la carte perd, elle le rend: la
-          direction reste en pastille, à côté du prénom.
+          Le détail de ce qui part, et de ce qui le garde ailleurs, est sur
+          `MePrefsForm`. Ce qui se lit ici est la mécanique: UN état à trois
+          valeurs, donc jamais deux `createPortal` empilés — `Modal` rend `null`
+          quand il est fermé, et `sheet` n'en ouvre qu'un.
 
-          ⛔ ET C'EST UNE SEULE FENÊTRE. Les préférences sont un accordéon DEDANS
-          (`MeSheetForm`), jamais un second `Modal`: deux `createPortal` empilés
-          n'ont jamais été essayés dans ce dépôt. La grille de présence, qui EST
-          une fenêtre, est montée dehors et ferme celle-ci. */}
+          ⚠️ ELLES SE DÉMONTENT EN SE FERMANT, et c'est voulu: rouvrir une
+          fenêtre la rouvre sur ce que la BASE dit. Le brouillon, lui, vit dans
+          la ligne (`sheetDraft`) — il survit donc au passage d'une fenêtre à
+          l'autre, ce qui est exactement ce que le bouton « Renseigner tes
+          préférences » a besoin de faire. */}
       <Modal
-        open={open}
-        onClose={() => setOpen(false)}
+        open={sheet === "identity"}
+        onClose={() => setSheet(null)}
         title={me.displayName === "—"
           ? t("household.me.open")
-          : me.displayName}
+          : t("household.member.identity_title_named", { name: me.displayName })}
         size="lg"
         closeAsIcon
         closeLabel={t("common.close")}
       >
         <div className="flex flex-col gap-3">
-          {sheet !== null
+          {sheet2 !== null
             ? (
               <MeSheetForm
                 draft={sheetDraft}
                 onChange={setSheetDraft}
-                initialPrefsOpen={prefsFirst}
-                todayLocalIso={sheet.todayLocalIso}
+                todayLocalIso={sheet2.todayLocalIso}
                 busy={busy}
-                failure={sheet.failure}
-                slots={slots}
+                failure={sheet2.failure}
+                // LE PONT ENTRE LES DEUX FENÊTRES: on ferme celle-ci et on
+                // ouvre l'autre, sur le MÊME brouillon.
+                onOpenPreferences={() => setSheet("preferences")}
                 onSubmit={() => {
                   void (async () => {
-                    const ok = await sheet.onSave(sheetDraft);
+                    const ok = await sheet2.onSave(sheetDraft);
                     // ON NE FERME QUE SUR UN SUCCÈS: un refus doit rester SOUS
                     // le geste, dans la fenêtre qui porte le champ fautif.
-                    if (ok) setOpen(false);
+                    if (ok) setSheet(null);
                   })();
                 }}
               />
             )
             : (
               /* ── LE REPLI — LES TROIS CHAMPS ────────────────────────────
-                 `sheet === null` veut dire qu'une des deux lectures qui
+                 `sheet2 === null` veut dire qu'une des deux lectures qui
                  REMPLACENT n'a pas abouti. Ce formulaire-ci n'écrit que prénom,
                  date et direction: il n'écrase rien de ce qu'on n'a pas lu, et
                  il reste le seul chemin qui CRÉE la ligne d'objectif.
@@ -1964,19 +1887,83 @@ export function MeFiche(
                 </div>
               </>
             )}
+        </div>
+      </Modal>
+
+      <Modal
+        open={sheet === "preferences"}
+        onClose={() => setSheet(null)}
+        title={me.displayName === "—"
+          ? t("household.mouth.preferences_title")
+          : t("household.mouth.preferences_title_named", { name: me.displayName })}
+        size="lg"
+        closeAsIcon
+        closeLabel={t("common.close")}
+      >
+        <div className="flex flex-col gap-3">
+          {sheet2 !== null ? (
+            <MePrefsForm
+              draft={sheetDraft}
+              onChange={setSheetDraft}
+              todayLocalIso={sheet2.todayLocalIso}
+              busy={busy}
+              slots={slots}
+              // ══════════════════════════════════════════════════════════
+              // « TERMINÉ » ENREGISTRE, PUIS FERME — 2026-09-19
+              // ══════════════════════════════════════════════════════════
+              //
+              // ⛔ LE PIÈGE QUE LE DÉCOUPAGE VENAIT DE CRÉER. Tant que les
+              // goûts étaient un accordéon, le bouton « Enregistrer » de la
+              // fiche était SOUS eux, dans la même fenêtre: « Terminé » ne
+              // faisait que replier, et ça se voyait. En fenêtre séparée, le
+              // même bouton est le SEUL geste de fin — et il n'écrivait rien.
+              // « Un geste qui ne fait rien est indiscernable d'un geste qui a
+              // marché », le mode d'échec n°1 de ce dépôt.
+              //
+              // ⛔ ET C'EST LA MÊME PORTE, PAS UNE SECONDE. `sheet2.onSave` est
+              // exactement ce que « Enregistrer » appelle sur l'autre fenêtre:
+              // un brouillon, un écrivain. Deux écrivains sur le même
+              // brouillon finiraient par ne pas écrire la même chose.
+              //
+              // ⚠️ ET IL NE TENTE RIEN QUAND LA FICHE EST RETENUE. `persistMouth`
+              // écrit AUSSI le corps: sur un brouillon incomplet il poserait une
+              // taille et un poids à ZÉRO. La fenêtre d'identité, elle, nomme ce
+              // qui manque à côté de son bouton (`submitIsHeld` y grise déjà le
+              // geste) — on referme donc sans écrire, et le brouillon survit
+              // dans la ligne.
+              onClose={() => {
+                if (submitIsHeld(sheetDraft, sheet2.todayLocalIso)) {
+                  setSheet(null);
+                  return;
+                }
+                void (async () => {
+                  const ok = await sheet2.onSave(sheetDraft);
+                  if (ok) setSheet(null);
+                })();
+              }}
+            />
+          ) : null}
 
           {/* ── SES ALLERGIES DÉJÀ ENREGISTRÉES ──────────────────────────
               LA LISTE ET LE RETRAIT, JAMAIS UN SECOND CHAMP D'AJOUT: on ajoute
-              dans l'accordéon des préférences juste au-dessus (`add_allergy`
-              n'a pas de « poser la liste »), et deux champs qui ajoutent la
-              même chose finiraient par ne pas ajouter la même chose. */}
+              dans le catalogue juste au-dessus (`add_allergy` n'a pas de
+              « poser la liste »), et deux champs qui ajoutent la même chose
+              finiraient par ne pas ajouter la même chose.
+
+              ⚠️ ELLE NE SE REND QUE S'IL Y A QUELQUE CHOSE À RETIRER. C'est ce
+              qui la garde compatible avec « cette fenêtre, c'est la fiche de
+              goûts et rien d'autre »: sur un compte sans allergie — le cas de
+              la capture du 2026-09-19 — elle n'existe pas. Sans elle, une
+              allergie enregistrée n'aurait plus AUCUN endroit où se retirer. */}
           {allergies.length > 0 ? (
             <div className="border-t border-line pt-3">
               <SectionLabel>{t("household.constraint.kind.allergy")}</SectionLabel>
               <ul className="mt-2 flex flex-col gap-1 text-sm">
                 {allergies.map((a) => (
                   <li key={a.id} className="flex flex-wrap items-center gap-2">
-                    <span className="font-medium text-red-700">{a.label}</span>
+                    <span className="font-medium text-red-700">
+                      {allergenLabel(a.label)}
+                    </span>
                     <button
                       className="text-ink-soft underline"
                       disabled={busy}
@@ -1989,96 +1976,8 @@ export function MeFiche(
               </ul>
             </div>
           ) : null}
-
-          {/* ── A6 · LE DÉJEUNER EN SEMAINE ──────────────────────────────
-              LA MÊME CARTE QUE SUR LA LIGNE D'UNE AUTRE BOUCHE, montée à un
-              second endroit — elle filtre elle-même les mineurs et tient la
-              porte « pas lu » ≠ « lu, rien pour cette bouche ». Elle reste
-              JUSTE AU-DESSUS de la grille qu'elle pré-remplit. */}
-          <MemberWorkLunchCard
-            person={{
-              memberId: me.memberId,
-              firstName: me.displayName === "—" ? "" : me.displayName,
-              ageState: me.ageState,
-            }}
-            answers={workLunch}
-            readError={workLunchError}
-            busy={busy}
-            onSave={(_memberId, answer) => onSaveWorkLunch(me.memberId, answer)}
-          />
-
-          {/* ── CE QUE LE COMPTE A DÉJÀ DIT (A5 point 7) ─────────────────
-              Les deux écrivent `student_goals.practical_constraints` DE LA
-              SESSION, et cette fiche EST celle de la session.
-              `practicalConstraints === null` ⇒ elles ne se montent pas:
-              `mergePracticalConstraints` FUSIONNE sur ce qu'on lui donne, et un
-              objet vide non lu effacerait ce qui est déjà déclaré. */}
-          {practicalConstraints !== null ? (
-            <>
-              <div className="border-t border-line pt-3">
-                <SectionLabel>{t("plan.section.day.title")}</SectionLabel>
-                <EatingRhythmCard
-                  embedded
-                  hasGoal={hasGoal}
-                  practicalConstraints={practicalConstraints}
-                  rhythm={rhythm}
-                  onSaved={onSavedOwnConstraints}
-                />
-              </div>
-              <div className="border-t border-line pt-3">
-                <SectionLabel>{t("plan.section.told.title")}</SectionLabel>
-                <FoodPreferencesCard
-                  embedded
-                  hasGoal={hasGoal}
-                  practicalConstraints={practicalConstraints}
-                  onSaved={onSavedOwnConstraints}
-                  // « Garder » écrit une ligne retenue au sujet de CETTE
-                  // bouche — la sienne.
-                  keepAs={{
-                    subject: memberSubject(me.memberId) ?? HOUSEHOLD_SUBJECT,
-                    todayLocalIso,
-                  }}
-                />
-              </div>
-            </>
-          ) : null}
-
-          {/* ── D14 · QUAND CETTE BOUCHE N'EST PAS LÀ ────────────────────
-              ⛔ LE BOUTON FERME LA FICHE ET OUVRE LA GRILLE: elle est un
-              `Modal`, et deux fenêtres empilées n'ont jamais été essayées ici.
-              Elle rouvre la fiche en partant, parce que c'est de là qu'on
-              vient. */}
-          <MemberAwayOpener
-            member={me}
-            rhythm={rhythm}
-            awayWindow={awayWindow}
-            busy={busy}
-            onOpen={() => {
-              setOpen(false);
-              setAwayOpen(true);
-            }}
-          />
         </div>
       </Modal>
-
-      <MealPickerGrid
-        open={awayOpen}
-        onClose={() => {
-          setAwayOpen(false);
-          setOpen(true);
-        }}
-        days={awayWindow.tokens}
-        dates={awayWindow.dates}
-        rhythm={rhythm}
-        away={me.awayHousehold}
-        busy={busy}
-        onSave={async (next) => {
-          const ok = await onSaveAway(next);
-          if (!ok) return;
-          setAwayOpen(false);
-          setOpen(true);
-        }}
-      />
     </li>
   );
 }
@@ -2097,53 +1996,24 @@ export function MeFiche(
  * fenêtre.
  */
 export function MeSheetForm(
-  { draft, onChange, initialPrefsOpen, todayLocalIso, busy, failure, slots, onSubmit }: {
+  { draft, onChange, todayLocalIso, busy, failure, onOpenPreferences, onSubmit }: {
     draft: MouthFormDraft;
     onChange: React.Dispatch<React.SetStateAction<MouthFormDraft>>;
-    /**
-     * LE CADRE DES GOÛTS EST-IL DÉPLIÉ À L'OUVERTURE ? REQUIS — 2026-09-19.
-     *
-     * ⚠️ UN POINT DE DÉPART, PAS UN PILOTAGE: l'accordéon garde son propre
-     * état ensuite, et la fenêtre le remet à zéro toute seule en se démontant.
-     * C'est ce qui fait que le bouton « Préférences alimentaires » de la ligne
-     * ouvre la fiche SUR les goûts, sans qu'il existe deux fenêtres.
-     *
-     * ⛔ JAMAIS OPTIONNEL: un défaut à `false` ferait qu'un appelant distrait
-     * rende un bouton qui ouvre la mauvaise moitié — le geste aurait l'air de
-     * ne rien faire.
-     */
-    initialPrefsOpen: boolean;
     todayLocalIso: string;
     busy: boolean;
     failure: string | null;
-    /** Les moments sur lesquels sa fiche l'interroge. REQUIS — voir `OwnFiche`. */
-    slots: readonly EatingOccasion[];
+    /**
+     * LE PONT VERS L'AUTRE FENÊTRE. REQUIS — `MouthCoreFields` rend le bouton
+     * quoi qu'il arrive; sans geste branché, il ne ferait rien.
+     */
+    onOpenPreferences: () => void;
     onSubmit: () => void;
   },
 ) {
-  // FERMÉ AU DÉPART, ET LE RÉCAPITULATIF PAIE LE REPLI. La fenêtre porte déjà
-  // les trois blocs qui retiennent le bouton; les six blocs de goûts dépliés
-  // par-dessus en feraient les trente champs que ce lot retire de la page.
-  // Ce qui est déjà renseigné derrière est DIT sous le bouton (`filled`).
-  // ⟳ 2026-09-19 — SAUF QUAND ON EST VENU POUR EUX. La ligne a maintenant deux
-  // portes, et celle des goûts doit ouvrir la fiche sur les goûts.
-  const [prefsOpen, setPrefsOpen] = React.useState(initialPrefsOpen);
-  const filled = filledPreferenceBlocks(draft);
   // `/app/household` ne rend cette fiche QUE pour le compte courant: sa ligne
-  // EXISTE (`existing`), elle a un compte (`hasAccount`) — c'est donc la seule
-  // bouche de cet écran qui porte son shaker et pas son régime —, et la fiche
-  // lui parle à la deuxième personne (`isSelf`).
+  // EXISTE (`existing`), elle a un compte (`hasAccount`), et la fiche lui parle
+  // à la deuxième personne (`isSelf`).
   const subject = { existing: true, hasAccount: true, isSelf: true } as const;
-  // ⚠️ FF-060 — MÊME VERROU QU'À L'INSCRIPTION. Sans lui, cette fiche laisserait
-  // décocher un moment que le parcours d'inscription venait de verrouiller: deux
-  // écrans, deux réponses, et celui qui ment est le second.
-  const structure = useEatingStructure({
-    draft,
-    active: prefsOpen,
-    todayLocalIso,
-    // LA FICHE DU TITULAIRE, ET ELLE SEULE.
-    subject: "self",
-  });
 
   return (
     <div className="flex flex-col gap-4">
@@ -2154,45 +2024,84 @@ export function MeSheetForm(
         todayLocalIso={todayLocalIso}
         busy={busy}
         failure={failure}
-        // ⛔ IL BASCULE L'ACCORDÉON, IL N'OUVRE PAS UNE FENÊTRE.
-        onOpenPreferences={() => setPrefsOpen((v) => !v)}
+        // ⟳ 2026-09-19 — IL OUVRE L'AUTRE FENÊTRE, il ne déplie plus un
+        // accordéon: les deux moitiés de la fiche sont deux `Modal` distincts.
+        onOpenPreferences={onOpenPreferences}
         onSubmit={onSubmit}
       />
-      <SheetFrame
-        title={t("household.member.frame_preferences")}
-        open={prefsOpen}
-        onToggle={() => setPrefsOpen((v) => !v)}
-        // LA LECTURE A DÉJÀ EU LIEU: `MeFiche` ne monte cette fiche que quand
-        // `meKnown` n'est pas `null`, et ce `null`-là EST la garde des trois
-        // lectures qui remplacent. Il n'y a donc rien à retenir ici.
-        loaded
-        summary={filled.length === 0
-          ? t("household.mouth.preferences_empty")
-          : t("household.mouth.preferences_filled", {
-            blocks: blockList(
-              filled.map((b) =>
-                t(`household.mouth.block_${b}` as "household.mouth.block_identity")
-              ),
-            ),
-          })}
-      >
-        <MouthPreferencesFields
-          draft={draft}
-          onChange={onChange}
-          subject={subject}
-          busy={busy}
-          structure={structure}
-          // FERMER L'ACCORDÉON, PAS LA FENÊTRE: la fiche obligatoire est
-          // au-dessus, et refermer la fenêtre entière perdrait le geste.
-          onClose={() => setPrefsOpen(false)}
-          slots={slots}
-          // ⟳ `with_the_card` DEPUIS LE 2026-09-01: le stock d'un compte est
-          // `student_goals.practical_constraints`, et c'est le bouton de la
-          // fiche qui l'écrit (`ownShakerWriter`). Voir `ShakerPort`.
-          shakerPort={{ kind: "with_the_card" }}
-        />
-      </SheetFrame>
     </div>
+  );
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * LA SECONDE FENÊTRE DU TITULAIRE — SES GOÛTS, ET RIEN D'AUTRE (2026-09-19)
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ── CE QUE CE DÉCOUPAGE REMPLACE, ET POURQUOI ─────────────────────────────
+ * La fiche était UNE fenêtre: le formulaire d'identité, puis un accordéon de
+ * goûts, puis le déjeuner en semaine, puis « comment se passe ta journée »,
+ * puis « ce que Sophia sait », puis la grille d'absences. Six sujets sous un
+ * seul prénom, dont deux posaient DEUX FOIS la même question — les moments de
+ * la journée se cochaient dans l'accordéon ET dans la carte du dessous, avec
+ * une taille en plus d'un côté.
+ *
+ * Décision du propriétaire, 2026-09-19: deux fenêtres, deux contenus, et rien
+ * d'autre dedans. Ce qui posait la question en double est parti (la carte de
+ * rythme), la grille d'absences aussi.
+ *
+ * ⚠️ CE QUI N'EST PAS PERDU, ET C'EST CE QUI REND LE RETRAIT ACCEPTABLE:
+ *   · « comment se passe ta journée » et « ce que Sophia sait » vivent sur
+ *     `/app/plan` (`StudentWeekPlanPage`), qui les monte toujours;
+ *   · le déjeuner en semaine se pose dans l'entonnoir (`SetupPage`);
+ *   · la grille d'absences est celle de `/app/plan` et de l'entonnoir.
+ * Aucune de ces quatre surfaces n'a bougé — c'est le DOUBLON de la fiche du
+ * foyer qui part.
+ *
+ * ⚠️ UN COMPOSANT À PART, ET C'EST UNE CONTRAINTE DE PREUVE: `Modal` passe par
+ * `createPortal(…, document.body)`, dont `renderToStaticMarkup` ne rend RIEN.
+ * Monté à travers le chrome, ce formulaire serait une chaîne vide et chaque
+ * assertion qui le vise serait verte quoi qu'il arrive.
+ */
+export function MePrefsForm(
+  { draft, onChange, todayLocalIso, busy, slots, onClose }: {
+    draft: MouthFormDraft;
+    onChange: React.Dispatch<React.SetStateAction<MouthFormDraft>>;
+    todayLocalIso: string;
+    busy: boolean;
+    /** Les moments sur lesquels sa fiche l'interroge. REQUIS — voir `OwnFiche`. */
+    slots: readonly EatingOccasion[];
+    onClose: () => void;
+  },
+) {
+  const subject = { existing: true, hasAccount: true, isSelf: true } as const;
+  // ⚠️ FF-060 — MÊME VERROU QU'À L'INSCRIPTION. Sans lui, cette fiche laisserait
+  // décocher un moment que le parcours d'inscription venait de verrouiller: deux
+  // écrans, deux réponses, et celui qui ment est le second.
+  const structure = useEatingStructure({
+    draft,
+    // LA FENÊTRE EST OUVERTE QUAND CE CORPS EST MONTÉ: `Modal` démonte ses
+    // enfants en se fermant, donc le montage EST la porte.
+    active: true,
+    todayLocalIso,
+    // LA FICHE DU TITULAIRE, ET ELLE SEULE.
+    subject: "self",
+  });
+
+  return (
+    <MouthPreferencesFields
+      draft={draft}
+      onChange={onChange}
+      subject={subject}
+      busy={busy}
+      structure={structure}
+      onClose={onClose}
+      slots={slots}
+      // ⟳ `with_the_card` DEPUIS LE 2026-09-01: le stock d'un compte est
+      // `student_goals.practical_constraints`, et c'est le bouton de la fiche
+      // qui l'écrit (`ownShakerWriter`). Voir `ShakerPort`.
+      shakerPort={{ kind: "with_the_card" }}
+    />
   );
 }
 
@@ -2426,7 +2335,7 @@ export function AddMouthForm(
  * quelle nature est cette contrainte.
  */
 function MembersCard(
-  { household, ownFiche, footer, restrictions, dislikes, allergies, busy, mutedMembers, rhythm, awayWindow, bodies, habits, invitations, onInvited, practicalConstraints, hasGoal, onSavedOwnConstraints, workLunch, workLunchError, onSaveWorkLunch, onSaveHabits, onSavePreferences, onSaveBody, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction, todayLocalIso }: {
+  { household, ownFiche, footer, restrictions, dislikes, allergies, busy, mutedMembers, rhythm, bodies, habits, invitations, onInvited, onSaveHabits, onSavePreferences, onSaveBody, onMute, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction, todayLocalIso }: {
     household: HouseholdView;
     /**
      * LA FICHE DU TITULAIRE, ou `null` — 2026-09-09.
@@ -2464,25 +2373,10 @@ function MembersCard(
     busy: boolean;
     /** `YYYY-MM-DD` local, descendu à chaque fiche — voir `MeFiche`. */
     todayLocalIso: string;
-    /**
-     * LE DÉJEUNER EN SEMAINE (A6). `null` = PAS ENCORE LU — la carte ne pose
-     * alors aucune question. Voir l'état de la page.
-     */
     /** A5 §5.5 — les invitations vivantes, `null` = pas lu. */
     invitations: Map<string, LiveInvitation> | null;
     /** La page relit ses faits après une invitation créée. REQUIS. */
     onInvited: () => void | Promise<void>;
-    /** A5 point 7 — la colonne DE LA SESSION, `null` = pas lue. */
-    practicalConstraints: PracticalConstraints | null;
-    hasGoal: boolean;
-    onSavedOwnConstraints: () => void | Promise<void>;
-    workLunch: Map<string, WorkLunch | null> | null;
-    workLunchError: string | null;
-    /** Le geste complet d'une bouche: écrire, relire les réponses, relire la page. */
-    onSaveWorkLunch: (
-      memberId: string,
-      answer: WorkLunch,
-    ) => Promise<{ ok: boolean; reason: string | null }>;
     /**
      * CE QUE CHAQUE BOUCHE MANGE D'HABITUDE. `null` = PAS ENCORE LU — et la
      * carte n'affiche alors aucun champ. Voir l'état de la page.
@@ -2530,12 +2424,9 @@ function MembersCard(
     ) => Promise<boolean>;
     /** D17 — les bouches dont on ne veut plus voir les propositions. */
     mutedMembers: Set<string> | null;
-    /** Les LIGNES de la grille de présence — les moments d'une journée. */
+    /** Le repli des moments d'une bouche qui n'a rien déclaré. */
     rhythm: EatingOccasionSlot[];
-    /** Les COLONNES: la fenêtre que la composition va couvrir. */
-    awayWindow: { tokens: string[]; dates: string[] };
     onMute: (memberId: string, muted: boolean) => void;
-    onSaveAway: (memberId: string, away: AwayDay[]) => Promise<boolean>;
     onSave: (
       member: HouseholdMemberView,
       patch: { firstName: string; birthDate: string | null; goal: MemberGoal | null },
@@ -2601,7 +2492,6 @@ function MembersCard(
                   // n'est même pas le sien.
                   muted={null}
                   rhythm={rhythm}
-                  awayWindow={awayWindow}
                   // ⛔ ZÉRO LIGNE POUR LUI, ET LE CADRE NE SE REND PAS: `body`
                   // reste `null`, mais c'est `viewerIsOwner={false}` qui retire
                   // le bloc — pas cette valeur, qui voudrait dire « lu, rien ».
@@ -2616,23 +2506,16 @@ function MembersCard(
                   // `MemberRow`, et un cas la capture sur le HTML rendu.
                   invitations={invitations}
                   onInvited={onInvited}
-                  practicalConstraints={practicalConstraints}
-                  hasGoal={hasGoal}
-                  onSavedOwnConstraints={onSavedOwnConstraints}
                   // ⚠️ MÊME PARTAGE QUE CHEZ LE MAÎTRE: `habitsLoaded` dit si
                   // la LECTURE a eu lieu, `habits` ce qu'elle a trouvé. Le
                   // cadre des préférences ne se rend pas tant que le premier
                   // est faux.
                   habitsLoaded={habits !== null}
                   habits={habits?.get(m.memberId) ?? null}
-                  workLunch={workLunch}
-                  workLunchError={workLunchError}
-                  onSaveWorkLunch={(answer) => onSaveWorkLunch(m.memberId, answer)}
                   onSaveHabits={(sl, n) => onSaveHabits(m.memberId, sl, n)}
                   onSavePreferences={(d) => onSavePreferences(m, d)}
                   onSaveBody={(h, w, g, extras) => onSaveBody(m.memberId, h, w, g, extras)}
                   onMute={(next) => onMute(m.memberId, next)}
-                  onSaveAway={(next) => onSaveAway(m.memberId, next)}
                   onSave={(patch) => onSave(m, patch)}
                   // Câblés mais INATTEIGNABLES depuis cette vue: les deux
                   // boutons ne se rendent pas (`viewerIsOwner={false}`), et la
@@ -2693,16 +2576,7 @@ function MembersCard(
             fiche={ownFiche}
             allergies={allergies.filter((a) => a.memberId === me.memberId)}
             busy={busy}
-            rhythm={rhythm}
-            awayWindow={awayWindow}
             todayLocalIso={todayLocalIso}
-            workLunch={workLunch}
-            workLunchError={workLunchError}
-            practicalConstraints={practicalConstraints}
-            hasGoal={hasGoal}
-            onSavedOwnConstraints={onSavedOwnConstraints}
-            onSaveWorkLunch={onSaveWorkLunch}
-            onSaveAway={(next) => onSaveAway(me.memberId, next)}
             onRemoveAllergy={onRemoveAllergy}
           />
         ) : null}
@@ -2725,7 +2599,6 @@ function MembersCard(
             // on ignore la position.
             muted={mutedMembers === null ? null : mutedMembers.has(m.memberId)}
             rhythm={rhythm}
-            awayWindow={awayWindow}
             // `null` = rien de saisi POUR CETTE BOUCHE. La carte des corps est
             // vide pour un non-maître (la RPC lui rend zéro ligne), donc ce
             // bloc ne s'affiche que là où il est légitime.
@@ -2735,9 +2608,6 @@ function MembersCard(
             bodiesLoaded={bodies !== null}
             invitations={invitations}
             onInvited={onInvited}
-            practicalConstraints={practicalConstraints}
-            hasGoal={hasGoal}
-            onSavedOwnConstraints={onSavedOwnConstraints}
             // DEUX `null` QUI NE VEULENT PAS DIRE LA MÊME CHOSE, et c'est le
             // piège du lot. `habitsLoaded` faux = LA LECTURE N'A PAS EU LIEU.
             // `habits` nul avec `habitsLoaded` vrai = LA LECTURE A EU LIEU et
@@ -2748,14 +2618,10 @@ function MembersCard(
             habits={habits?.get(m.memberId) ?? null}
             // A6 — la Map ENTIÈRE descend, `null` compris: c'est la carte qui
             // distingue « pas lu » de « lu, rien pour cette bouche ».
-            workLunch={workLunch}
-            workLunchError={workLunchError}
-            onSaveWorkLunch={(answer) => onSaveWorkLunch(m.memberId, answer)}
             onSaveHabits={(s, n) => onSaveHabits(m.memberId, s, n)}
             onSavePreferences={(dr) => onSavePreferences(m, dr)}
             onSaveBody={(h, w, g, extras) => onSaveBody(m.memberId, h, w, g, extras)}
             onMute={(next) => onMute(m.memberId, next)}
-            onSaveAway={(next) => onSaveAway(m.memberId, next)}
             onSave={(patch) => onSave(m, patch)}
             onRemove={() => onRemove(m.memberId)}
             onDetach={() => onDetach(m.memberId)}
@@ -2992,66 +2858,18 @@ function MemberBadges({ member }: { member: HouseholdMemberView }) {
 }
 
 /**
- * « QUAND CETTE BOUCHE N'EST PAS LÀ » — LE BOUTON, SON COMPTE, ET CE QU'ELLE
- * A DIT ELLE-MÊME.
+ * ⟳ 2026-09-19 — `MemberAwayOpener` A ÉTÉ RETIRÉ AVEC LA GRILLE DE PRÉSENCE.
  *
- * ⚠️ UN COMPOSANT DEPUIS LE 2026-09-09, parce qu'il est monté DEUX FOIS: sur
- * la fiche du titulaire (`MeFiche`) et sur celle de toute autre bouche
- * (`MemberRow`). Il portait deux calculs — combien de moments sont marqués
- * dans la fenêtre, et ce que la personne a déclaré elle-même —, et deux copies
- * de ces deux-là finiraient par compter deux choses différentes.
+ * Il ouvrait « quand cette bouche n'est pas là » depuis la fiche. Décision du
+ * propriétaire: la fiche du foyer est deux fenêtres de QUESTIONS, et une
+ * absence est une DATE — elle change chaque semaine et se relit chaque semaine.
  *
- * ⛔ IL N'OUVRE PAS LA GRILLE, IL LE DEMANDE (`onOpen`). La grille est un
- * `Modal`, et elle est montée par l'appelant, HORS de la fenêtre de la fiche:
- * deux `createPortal` empilés n'ont jamais été essayés dans ce dépôt.
+ * ⛔ LA FONCTIONNALITÉ N'EST PAS MORTE, et c'est ce qui rend le retrait
+ * acceptable: `MealPickerGrid` reste montée par `/app/plan` et par l'entonnoir,
+ * et `keel_household_set_member_away` n'a pas bougé. Ce qui part est la
+ * troisième porte, celle qui vivait au fond d'une fiche de trente champs.
  */
-function MemberAwayOpener(
-  { member, rhythm, awayWindow, busy, onOpen }: {
-    member: HouseholdMemberView;
-    rhythm: readonly EatingOccasionSlot[];
-    awayWindow: { tokens: string[]; dates: string[] };
-    busy: boolean;
-    onOpen: () => void;
-  },
-) {
-  /** Combien de moments sont marqués DANS la fenêtre — pour le bouton. */
-  const awayInWindow = React.useMemo(() => {
-    const inWindow = new Set(awayWindow.tokens);
-    const slots = rhythm.length;
-    return member.awayHousehold
-      .filter((a) => inWindow.has(a.day))
-      .reduce((n, a) => n + (a.slots.length === 0 ? slots : a.slots.length), 0);
-  }, [member.awayHousehold, awayWindow.tokens, rhythm.length]);
 
-  /** Ce que la personne a dit d'elle-même, dans la fenêtre. LECTURE SEULE. */
-  const selfInWindow = React.useMemo(() => {
-    const inWindow = new Set(awayWindow.tokens);
-    return member.awaySelf.filter((a) => inWindow.has(a.day));
-  }, [member.awaySelf, awayWindow.tokens]);
-
-  return (
-    <div className="border-t border-line pt-3">
-      <SectionLabel>{t("household.away.title")}</SectionLabel>
-      <p className="mb-2 text-xs text-ink-soft">{t("household.away.hint")}</p>
-      <Button variant="secondary" disabled={busy} onClick={onOpen}>
-        {awayInWindow === 0
-          ? t("household.away.open")
-          : t("household.away.open_count", { n: String(awayInWindow) })}
-      </Button>
-      {/* CE QUE LA PERSONNE A DIT ELLE-MÊME, en lecture seule. Sans cette
-          ligne, le maître verrait sa propre marque et pas le FAIT: il
-          remarquerait une assiette manquante sans pouvoir dire d'où elle
-          vient — et re-marquerait par-dessus. */}
-      {selfInWindow.length > 0 ? (
-        <p className="mt-2 text-xs text-ink-soft">
-          {t("household.away.self_declared", {
-            days: selfInWindow.map((a) => a.day).join(", "),
-          })}
-        </p>
-      ) : null}
-    </div>
-  );
-}
 
 /**
  * UN CADRE NOMMÉ DE LA FICHE — A5 (D5.1), 2026-09-03.
@@ -3429,7 +3247,7 @@ export function SheetFrame(
 }
 
 function MemberRow(
-  { member, isMe, viewerIsOwner, allergies, restrictions, dislikes, busy, muted, rhythm, awayWindow, body, bodiesLoaded, habits, habitsLoaded, invitations, onInvited, practicalConstraints, hasGoal, onSavedOwnConstraints, workLunch, workLunchError, onSaveWorkLunch, onSaveHabits, onSavePreferences, onSaveBody, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction, todayLocalIso }: {
+  { member, isMe, viewerIsOwner, allergies, restrictions, dislikes, busy, muted, rhythm, body, bodiesLoaded, habits, habitsLoaded, invitations, onInvited, onSaveHabits, onSavePreferences, onSaveBody, onMute, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction, todayLocalIso }: {
     member: HouseholdMemberView;
     isMe: boolean;
     /**
@@ -3454,10 +3272,6 @@ function MemberRow(
     viewerIsOwner: boolean;
     /** `YYYY-MM-DD` local — l'âge des tuiles se lit sur la date tapée. */
     todayLocalIso: string;
-    /** A6 — les réponses du foyer, `null` = pas lu. La carte filtre les majeurs. */
-    workLunch: Map<string, WorkLunch | null> | null;
-    workLunchError: string | null;
-    onSaveWorkLunch: (answer: WorkLunch) => Promise<{ ok: boolean; reason: string | null }>;
     allergies: AllergyView[];
     restrictions: RestrictionView[];
     /** Ses `food.exclude` — voir `MembersCard`: ce n'est PAS `restrictions`. */
@@ -3485,17 +3299,6 @@ function MemberRow(
     invitations: Map<string, LiveInvitation> | null;
     /** La page relit ses faits après une invitation créée. REQUIS. */
     onInvited: () => void | Promise<void>;
-    /**
-     * A5 point 7 — `student_goals.practical_constraints` DE LA SESSION.
-     * `null` = pas lu, et les deux cartes du compte ne se montent pas:
-     * `mergePracticalConstraints` FUSIONNE sur ce qu'on lui donne, donc un
-     * objet vide non lu effacerait le rythme et les goûts déjà déclarés.
-     */
-    practicalConstraints: PracticalConstraints | null;
-    /** `false` tant qu'aucune ligne `student_goals` n'existe: rien à écrire. */
-    hasGoal: boolean;
-    /** Relit la colonne du compte après une écriture des deux cartes. REQUIS. */
-    onSavedOwnConstraints: () => void | Promise<void>;
     onSaveHabits: (slots: HabitSlotWrite[], note: string | null) => Promise<boolean>;
     /**
      * TOUT CE QUE LA FICHE DE GOÛTS A COLLECTÉ, EN UN GESTE — 2026-09-19.
@@ -3527,9 +3330,19 @@ function MemberRow(
     /** D17 — `null` = le réglage n'a pas pu être lu. Voir l'interrupteur. */
     muted: boolean | null;
     rhythm: EatingOccasionSlot[];
-    awayWindow: { tokens: string[]; dates: string[] };
     onMute: (muted: boolean) => void;
-    onSaveAway: (away: AwayDay[]) => Promise<boolean>;
+    /**
+     * ⟳ 2026-09-19 — HUIT PROPS SONT PARTIES AVEC LEURS BLOCS. Avant d'en
+     * rebrancher une, lire le pavé des deux fenêtres, plus bas:
+     *
+     *   `awayWindow` · `onSaveAway`                       — la grille d'absences;
+     *   `workLunch` · `workLunchError` · `onSaveWorkLunch` — le déjeuner en
+     *      semaine;
+     *   `practicalConstraints` · `hasGoal` · `onSavedOwnConstraints` — les deux
+     *      cartes du compte.
+     *
+     * Les trois questions vivent toujours: sur `/app/plan` et dans l'entonnoir.
+     */
     onSave: (
       patch: { firstName: string; birthDate: string | null; goal: MemberGoal | null },
     ) => Promise<boolean>;
@@ -3541,40 +3354,24 @@ function MemberRow(
     onRemoveRestriction: (id: string) => void;
   },
 ) {
-  const [open, setOpen] = React.useState(false);
   /**
-   * LES DEUX CADRES DE LA FICHE — A5 (D5.1), 2026-09-03.
+   * QUELLE FENÊTRE EST OUVERTE — 2026-09-19.
    *
-   * ⚠️ OUVERTS PAR DÉFAUT, ET C'EST LA MOITIÉ DU RENVERSEMENT. Le repli avait
-   * été retiré le 2026-08-19 parce qu'« une réponse repliée est une réponse
-   * invisible » — vrai, et c'est exactement pourquoi ils s'ouvrent sur la ligne
-   * qu'on vient d'ouvrir. Ce que le repli rend, c'est de pouvoir REFERMER ce
-   * qu'on vient de lire sur une fiche de trente champs; ce qu'il coûtait est
-   * payé par le récapitulatif, qui reste visible replié.
+   * ⟳ IL REMPLACE `open` + `identityOpen` + `prefsOpen`. Les deux moitiés de la
+   * fiche étaient deux CADRES repliables dans une seule fenêtre (A5, D5.1); ce
+   * sont deux FENÊTRES, et la ligne ouvre celle qu'on vient chercher.
    *
-   * ⚠️ ILS VIVENT DANS LA LIGNE, PAS DANS LA PAGE. Le panneau se démonte à la
-   * fermeture (`open ? … : null`): rouvrir une ligne la rouvre donc sur ses
-   * deux cadres, jamais sur l'état laissé par la ligne d'à côté.
+   * ⛔ TROIS VALEURS, PAS DEUX BOOLÉENS: deux booléens ont un quatrième état
+   * inexprimable à l'écran — les deux fenêtres ouvertes, c'est-à-dire deux
+   * `createPortal` empilés, que ce dépôt n'a jamais essayés.
+   *
+   * ⚠️ IL VIT DANS LA LIGNE: rouvrir une ligne la rouvre sur ce que la base
+   * dit, jamais sur l'état laissé par la ligne d'à côté.
    */
-  const [identityOpen, setIdentityOpen] = React.useState(true);
-  const [prefsOpen, setPrefsOpen] = React.useState(true);
-  /**
-   * OUVRIR LA FENÊTRE **SUR** UN CADRE — 2026-09-19.
-   *
-   * ⚠️ IL OUVRE L'UN ET REPLIE L'AUTRE, il n'en cache aucun. Le cadre replié
-   * garde son titre et son récapitulatif (voir `SheetFrame`): la personne qui
-   * est venue pour les goûts voit quand même, en une ligne, ce que l'autre
-   * cadre porte — et elle le déplie d'un clic. C'est la contrepartie du repli
-   * que ce dépôt s'est donnée le 2026-08-19, appliquée à une entrée ciblée.
-   *
-   * ⛔ ET LES DEUX CADRES RESTENT DANS LA MÊME FENÊTRE. Deux `Modal` auraient
-   * dédoublé le brouillon de la fiche, que `Modal` démonte à la fermeture.
-   */
-  const openSheet = (frame: "identity" | "preferences") => {
-    setIdentityOpen(frame === "identity");
-    setPrefsOpen(frame === "preferences");
-    setOpen(true);
-  };
+  const [sheet, setSheet] = React.useState<"identity" | "preferences" | null>(
+    null,
+  );
+  const openSheet = (frame: "identity" | "preferences") => setSheet(frame);
   const [draft, setDraft] = React.useState<MouthDraft>({
     firstName: member.displayName === "—" ? "" : member.displayName,
     birthDate: "",
@@ -3609,7 +3406,6 @@ function MemberRow(
    */
   const effectiveKind = canSetHouseRule ? kind : "allergy";
   const [label, setLabel] = React.useState("");
-  const [awayOpen, setAwayOpen] = React.useState(false);
   // L'ÂGE DES TROIS CHAMPS: la date tapée gagne sur ce que le roster a compris.
   // C'est ce qui fait qu'une date de mineur tapée sur une bouche à `fat_loss`
   // plie la direction À L'ÉCRAN, avant le Save — et que le Save passe.
@@ -3645,21 +3441,29 @@ function MemberRow(
    * partis avec ce lot: ils écrivaient les mêmes portes avec d'autres mots, et
    * c'est exactement la plaie « deux formulaires sur les mêmes colonnes ».
    *
-   * ── ⚠️ ET LA FICHE PARTAGÉE NE SE MONTE PAS POUR TOUT LE MONDE ─────────
-   * `sharedSheet` la réserve à une bouche SANS COMPTE regardée par le MAÎTRE,
-   * et les deux moitiés sont des refus de la base, pas un goût:
+   * ── ⚠️ ET ELLE SE MONTE POUR TOUTE BOUCHE QUE LE MAÎTRE OUVRE ──────────
    *
-   *   · SANS COMPTE — `set_member_rhythm` et `set_member_diet` répondent
-   *     `has_account`. Les montrer à une bouche réclamée afficherait deux
-   *     sections que l'enregistrement jette en silence, pendant que sa vraie
-   *     porte (son « about you », et `EatingRhythmCard` plus bas pour elle-
-   *     même) est ailleurs;
-   *   · LE MAÎTRE — `add_allergy` répond `not_owner`.
+   * ⟳ 2026-09-19, SECOND PASSAGE — `sharedSheet` a valu, quelques heures,
+   * `viewerIsOwner && member.userId === null`. Le motif tenait sur le papier:
+   * `set_member_diet` et `set_member_rhythm` répondent `has_account`, donc deux
+   * sections seraient inertes sur une bouche réclamée. Il a été renversé par le
+   * propriétaire, en une phrase: « quand tu cliques sur Informations
+   * personnelles et Préférences alimentaires, ça ouvre la même chose que dans
+   * l'étape 2 de l'onboarding ». Deux fiches différentes selon qu'une bouche a
+   * réclamé son accès, c'est deux produits pour une même question.
    *
-   * Une bouche réclamée garde donc ce que cet écran lui rendait déjà: sa carte
-   * d'habitudes, et la phrase qui dit où se règle le reste.
+   * ⚠️ ET C'EST DÉJÀ CE QUE FAIT L'ENTONNOIR, à la ligne près: `MouthRow` monte
+   * cette même fiche sur une bouche réclamée, et `writeMouthPreferences` SAUTE
+   * les portes que la base refuse (`claimed`). Le même arbitrage vaut ici, avec
+   * le même écrivain: voir `saveMemberPreferences`, marches ④ ⑤ ⑥.
+   *
+   * ⛔ CE QUI RESTE GARDÉ, ET QUI EST UN REFUS DE LA BASE: `add_allergy` répond
+   * `not_owner`. Un membre qui regarde SA propre ligne ne reçoit donc pas cette
+   * fiche — il garde sa carte d'habitudes, la seule porte que la base lui
+   * ouvre ici. Son régime et ses moments se règlent dans son « à propos de
+   * toi », comme avant.
    */
-  const sharedSheet = viewerIsOwner && member.userId === null;
+  const sharedSheet = viewerIsOwner;
   /**
    * CE QUE LE CHAMP LIBRE DE CE CADRE ÉCRIRA VRAIMENT.
    *
@@ -3733,7 +3537,8 @@ function MemberRow(
    */
   const prefsStructure = useEatingStructure({
     draft: prefsDraft,
-    active: open && prefsOpen && sharedSheet,
+    // LA FENÊTRE DES GOÛTS EST OUVERTE, ET ELLE MONTE LA FICHE PARTAGÉE.
+    active: sheet === "preferences" && sharedSheet,
     todayLocalIso,
     // ⚠️ UNE LIGNE PAR BOUCHE, DONC UN CROCHET PAR BOUCHE — mais le nom est
     // passé quand même: c'est la garde qui empêche une réponse de traverser,
@@ -3937,73 +3742,54 @@ function MemberRow(
       />
 
       {/* ══════════════════════════════════════════════════════════════════
-          LA FICHE EST UNE FENÊTRE — 2026-09-09
+          DEUX FENÊTRES, DEUX CONTENUS — 2026-09-19
           ══════════════════════════════════════════════════════════════════
 
-          Elle se dépliait DANS la liste. Trente contrôles poussés sous une
-          rangée, c'est la page qui s'allonge sous le doigt: on perd la personne
-          qu'on regardait, et les sept autres cartes sont hors de l'écran.
+          La fiche était UNE fenêtre à deux cadres repliables (A5, 2026-09-03),
+          et sous ces deux cadres vivaient encore quatre choses: le déjeuner en
+          semaine, « comment se passe ta journée », « ce que Sophia sait », et
+          la grille d'absences. Six sujets sous un seul prénom, dont DEUX
+          posaient la même question — les moments de la journée se cochaient
+          dans le cadre des goûts ET dans la carte de rythme, avec une taille en
+          plus d'un côté.
 
-          ⚠️ ELLE SE DÉMONTE À LA FERMETURE (`Modal` rend `null`), et c'est
-          voulu: rouvrir une fiche la rouvre sur ce que la BASE dit, jamais sur
-          l'état laissé par la fiche d'à côté. Les formulaires qu'elle porte
-          (`BodyFields`, la carte des habitudes) figent leurs champs au montage
-          — un état gardé entre deux ouvertures serait précisément la photo
-          périmée que « `current` périmé efface l'écriture d'avant » décrit.
+          Décision du propriétaire, 2026-09-19: deux fenêtres, deux contenus,
+          rien d'autre dedans. Le pavé de `MePrefsForm` dit ce qui part et où ça
+          continue de vivre (`/app/plan`, l'entonnoir) — aucune question n'a
+          disparu du produit, c'est le doublon de cette fiche-ci qui part.
 
-          ⛔ ET IL N'Y A PAS DEUX FENÊTRES EMPILÉES. La grille de présence est
-          un `Modal`, elle aussi: elle est donc montée HORS de celle-ci, et le
-          bouton qui l'ouvre ferme la fiche (voir « quand cette bouche n'est pas
-          là », plus bas). Deux `createPortal` empilés n'ont jamais été essayés
-          ici — ni le piège du focus, ni celui d'Échap, laquelle fermerait les
-          deux d'un coup. */}
+          ⛔ UN ÉTAT À TROIS VALEURS, PAS DEUX BOOLÉENS: deux `createPortal`
+          empilés n'ont jamais été essayés dans ce dépôt — ni le piège du focus,
+          ni celui d'Échap, laquelle fermerait les deux d'un coup.
+
+          ⚠️ ELLES SE DÉMONTENT À LA FERMETURE (`Modal` rend `null`), et c'est
+          voulu: rouvrir une fenêtre la rouvre sur ce que la BASE dit, jamais
+          sur l'état laissé par la fiche d'à côté. `BodyFields` et le brouillon
+          de goûts figent leurs champs au montage — un état gardé entre deux
+          ouvertures serait la photo périmée que « `current` périmé efface
+          l'écriture d'avant » décrit. */}
       <Modal
-        open={open}
-        onClose={() => setOpen(false)}
-        // LE TITRE EST LE PRÉNOM: c'est aussi l'`aria-label` du dialogue, et
+        open={sheet === "identity"}
+        onClose={() => setSheet(null)}
+        // LE TITRE NOMME LA PERSONNE **ET** LA MOITIÉ QU'ON VIENT D'OUVRIR:
+        // c'est aussi l'`aria-label` du dialogue, et il y en a deux maintenant.
         // « — » (le tiret du roster pour un prénom vide) ne nomme personne.
         title={member.displayName === "—"
           ? t("household.mouth.title")
-          : member.displayName}
+          : t("household.member.identity_title_named", {
+            name: member.displayName,
+          })}
         size="lg"
         closeAsIcon
         closeLabel={t("common.close")}
       >
+        {/* ⛔ LA GARDE DE CHARGEMENT EST LA MÊME QU'AVANT, elle a juste changé
+            de porteur: `BodyFields` fige ses trois champs AU MONTAGE, et monté
+            sur une lecture non faite il affiche du vide non lu — que
+            « Enregistrer » écrirait par-dessus un corps renseigné. Cicatrice
+            `mount-snapshot-forms-need-a-loading-gate`. */}
+        {bodiesLoaded ? (
         <div className="flex flex-col gap-3">
-          {/* ══════════════════════════════════════════════════════════════
-              DEUX CADRES NOMMÉS, ET LE REPLI EST RENVERSÉ — A5 (D5.1), 2026-09-03
-              ══════════════════════════════════════════════════════════════
-
-              La fiche d'une bouche était UN accordéon à un niveau: dix contrôles
-              à la suite, du prénom aux règles de maison, sans qu'aucun titre ne
-              dise où l'un finit. Elle porte maintenant deux cadres NOMMÉS —
-              « Informations personnelles » (ce qui dimensionne l'assiette) et
-              « Préférences alimentaires » (ce qui l'affine) —, le même partage
-              que la fiche d'ajout tient déjà entre ses blocs en ligne et sa
-              fenêtre.
-
-              ⛔ CE QUI RESTE DEHORS, ET CE N'EST PAS UN OUBLI. « Quand cette
-              bouche n'est pas là » est une DATE, pas un trait de la personne:
-              elle change chaque semaine et se relit chaque semaine. Retirer
-              l'accès, retirer du foyer et le réglage de fusion sont des gestes
-              SUR LA LIGNE, pas des réponses: les ranger dans un cadre de
-              questions ferait d'un geste irréversible une case de formulaire.
-
-              ⚠️ LE RENVERSEMENT EST ÉCRIT LÀ OÙ VIT LA PHRASE INVERSE —
-              `MouthFormDialog.tsx` (« il faut arrêter avec le dépliable »,
-              2026-08-19). Ici on ne fait que l'appliquer. */}
-          <SheetFrame
-            title={t("household.member.frame_identity")}
-            hint={t("household.member.frame_identity_hint")}
-            open={identityOpen}
-            onToggle={() => setIdentityOpen((v) => !v)}
-            // ⛔ LA GARDE DE CHARGEMENT DU CADRE. `BodyFields` fige ses trois
-            // champs AU MONTAGE; monté sur une lecture non faite, il affiche du
-            // vide non lu — et « Enregistrer » l'écrirait par-dessus un corps
-            // renseigné. `bodies === null` ⇒ ce cadre ne rend AUCUN champ.
-            // Cicatrice `mount-snapshot-forms-need-a-loading-gate`.
-            loaded={bodiesLoaded}
-          >
           <MouthFields
             draft={draft}
             onChange={setDraft}
@@ -4064,34 +3850,108 @@ function MemberRow(
               {t("household.member.save")}
             </Button>
             </div>
-          </SheetFrame>
+          {/* ⟳ LES GESTES RESTENT AU FOND DE LA FENÊTRE OUVERTE, et ce n'est
+              pas un oubli: « Retirer du foyer » DÉTRUIT la ligne, avec sa
+              portion et ses allergies. Le remonter sur la ligne, à côté des
+              deux portes, en ferait un bouton qu'on croise en parcourant la
+              liste — exactement ce que la note d'origine interdit. */}
+          <div className="flex flex-wrap items-center gap-2">
+            {/* DEUX GESTES, DEUX LIBELLÉS, JAMAIS UN SEUL BOUTON (chantier 2).
+                « Retirer l'accès » DÉTACHE: la personne perd la lecture du
+                foyer, et reste une bouche à table avec sa portion et ses
+                allergies. « Retirer du foyer » SUPPRIME la ligne. Un seul
+                bouton « retirer » voudrait dire deux choses irréversibles
+                différentes selon la ligne qu'on regarde.
 
-          <SheetFrame
-            title={t("household.member.frame_preferences")}
-            hint={t("household.member.frame_preferences_hint")}
-            open={prefsOpen}
-            onToggle={() => setPrefsOpen((v) => !v)}
-            // MÊME GARDE, SUR SA PROPRE LECTURE: les habitudes. `HouseholdHabitsCard`
-            // tient déjà la sienne en interne (`loaded`), mais un cadre REPLIÉ
-            // annonce un résumé — et un résumé calculé sur une lecture non faite
-            // dirait « rien de renseigné » à quelqu'un qui a tout rempli.
-            loaded={habitsLoaded}
-            // CE QUI EST DÉJÀ RENSEIGNÉ, VISIBLE MÊME REPLIÉ. Voir `filledBlocks`.
-            // ⚠️ LES DEUX PHRASES SONT CELLES DE LA FICHE D'AJOUT
-            // (`MouthPreferencesButton`), pas des jumelles écrites ici: le même
-            // fait — « voilà ce qui est déjà renseigné » — se dit du même mot
-            // aux deux endroits, et une seconde paire de clés divergerait au
-            // premier ajustement.
-            summary={filledBlocks.length === 0
-              ? t("household.mouth.preferences_empty")
-              : t("household.mouth.preferences_filled", {
-                blocks: blockList(
-                  filledBlocks.map((b) =>
-                    t(`household.mouth.block_${b}` as "household.mouth.block_identity")
-                  ),
-                ),
-              })}
-          >
+                LE MAÎTRE NE SE RETIRE PAS, ET NE SE DÉTACHE PAS. La base
+                refuse les deux (`cannot_remove_owner`, `cannot_detach_owner`)
+                parce qu'un foyer sans personne pour composer laisse ses
+                bouches sans compte sans recours; l'écran ne montre pas un
+                bouton qui sera refusé. */}
+            {/* ⟳ A5 §5.5 — « RETIRER L'ACCÈS » A REJOINT L'EN-TÊTE DE LA
+                LIGNE, avec l'état d'accès qu'il inverse (`MemberAccess`): les
+                deux se lisent ensemble, et sans ouvrir la fiche. Il n'est PAS
+                dupliqué ici — un geste irréversible offert à deux endroits est
+                un geste qu'on fait par accident au second.
+
+                « RETIRER DU FOYER » RESTE ICI, et l'écart est le sujet: il
+                DÉTRUIT la ligne, avec sa portion et ses allergies. Il vit donc
+                au fond de la fiche ouverte, derrière une confirmation en deux
+                temps, pas dans un en-tête qu'on parcourt. */}
+            {viewerIsOwner && member.role !== "owner" ? (
+              <Button variant="danger" disabled={busy} onClick={onRemove}>
+                {t("household.member.remove")}
+              </Button>
+            ) : null}
+          </div>
+          {/* Le geste ne se distingue pas par sa couleur: on ÉCRIT ce qu'il
+              fait, à côté de lui, au moment de choisir. */}
+          {viewerIsOwner && member.role !== "owner" ? (
+            <p className="text-xs text-ink-soft">
+              {t("household.member.remove_hint")}
+            </p>
+          ) : null}
+
+          {/* ── D17 · LE RÉGLAGE DISCRET (L8) ────────────────────────────────
+              « Un réglage discret permet au maître de ne plus se voir proposer
+              la fusion pour une personne donnée. Assumé comme un peu brutal,
+              donc caché. » Il est donc ICI, rangé dans la fiche de la
+              personne, et JAMAIS sur la carte de proposition: un bouton
+              « ne plus me parler de lui » à côté de « fusionner » ferait du
+              geste brutal le geste le plus facile.
+
+              ⚠️ IL NE BLOQUE PAS LA FUSION, et la phrase d'aide le dit: le
+              geste reste possible (`operation: "merge"` ne lit pas ce réglage,
+              un test de source le tient), et il ne coupe pas l'avertissement
+              de D8, qui parle du plan du MAÎTRE.
+
+              RÉSERVÉ AUX BOUCHES QUI ONT UN COMPTE: une bouche sans compte n'a
+              pas de plan à elle (D3), donc rien à proposer, donc rien à taire.
+              `muted === null` ⇒ on n'a pas pu lire le réglage: on ne montre
+              pas un interrupteur dont on ignore la position. */}
+          {viewerIsOwner && member.role !== "owner" && member.userId &&
+              muted !== null
+            ? (
+            <button
+              type="button"
+              className="self-start text-xs text-ink-soft underline disabled:opacity-50"
+              disabled={busy}
+              onClick={() => onMute(!muted)}
+            >
+              {muted ? t("household.merge.unmute") : t("household.merge.mute")}
+            </button>
+          ) : null}
+          {viewerIsOwner && member.role !== "owner" && member.userId &&
+              muted !== null
+            ? (
+            <p className="text-xs text-ink-soft">
+              {muted ? t("household.merge.muted") : t("household.merge.mute_hint")}
+            </p>
+          ) : null}
+        </div>
+        ) : (
+          <p className="text-sm text-ink-soft">{t("household.mouth.frame_loading")}</p>
+        )}
+      </Modal>
+
+      <Modal
+        open={sheet === "preferences"}
+        onClose={() => setSheet(null)}
+        title={member.displayName === "—"
+          ? t("household.mouth.preferences_title")
+          : t("household.mouth.preferences_title_named", {
+            name: member.displayName,
+          })}
+        size="lg"
+        closeAsIcon
+        closeLabel={t("common.close")}
+      >
+        {/* MÊME GARDE, SUR SA PROPRE LECTURE: les habitudes. Le brouillon de
+            goûts est semé dessus (`prefsSeed`), et ses portes REMPLACENT ce
+            qu'elles trouvent: ouvert sur du vide non lu, « Enregistrer »
+            effacerait ce qui est en base. */}
+        {habitsLoaded ? (
+        <div className="flex flex-col gap-3">
           {/* ══════════════════════════════════════════════════════════════
               LA FICHE DE L'ENTONNOIR, TELLE QUELLE — 2026-09-19
               ══════════════════════════════════════════════════════════════
@@ -4106,11 +3966,16 @@ function MemberRow(
                 <MouthPreferencesFields
                   draft={prefsDraft}
                   onChange={setPrefsDraft}
-                  // ⛔ `hasAccount: false` N'EST PAS UNE VALEUR PAR DÉFAUT: ce
-                  // bloc ne se monte que pour une bouche sans compte (voir
-                  // `sharedSheet`). `isSelf` décide de la VOIX, et il est faux
-                  // ici dès que le maître regarde quelqu'un d'autre.
-                  subject={{ existing: true, hasAccount: false, isSelf: isMe }}
+                  // ⚠️ `hasAccount` EST LU, PLUS SUPPOSÉ: la fiche se monte
+                  // aussi sur une bouche réclamée depuis le 2026-09-19, et
+                  // c'est ce jeton qui décide de ce que ses sections DISENT.
+                  // `isSelf` décide de la VOIX, et il est faux dès que le
+                  // maître regarde quelqu'un d'autre.
+                  subject={{
+                    existing: true,
+                    hasAccount: member.userId !== null,
+                    isSelf: isMe,
+                  }}
                   busy={busy}
                   structure={prefsStructure}
                   // ⚠️ REQUISE, ET LE COMPOSANT NE LA LIT PLUS — c'est écrit
@@ -4127,86 +3992,51 @@ function MemberRow(
                   shakerPort={{ kind: "with_the_card" }}
                   // FERMER LE CADRE, PAS LA FENÊTRE: l'autre cadre est
                   // au-dessus, et refermer la fenêtre perdrait le geste.
-                  onClose={() => setPrefsOpen(false)}
+                  // ══════════════════════════════════════════════════════
+                  // « TERMINÉ » ENREGISTRE, PUIS FERME — 2026-09-19
+                  // ══════════════════════════════════════════════════════
+                  //
+                  // ⛔ UN SEUL GESTE DE FIN, ET IL ÉCRIT. Il y a eu, quelques
+                  // heures, « Terminé » (qui ferme) ET « Enregistrer » (qui
+                  // écrit) l'un sous l'autre: deux boutons de fin sur une même
+                  // fenêtre, dont un qui jette en silence ce qu'on vient de
+                  // cocher. « Un geste qui ne fait rien est indiscernable d'un
+                  // geste qui a marché. »
+                  //
+                  // ⚠️ IL NE PEUT RIEN ZÉROER, CONTRAIREMENT À CELUI DU
+                  // TITULAIRE: `onSavePreferences` n'écrit que les portes des
+                  // GOÛTS (habitudes, dégoûts, allergies, régime, moments,
+                  // apport fixe). Ni corps, ni cible, ni prénom — ceux-là ont
+                  // leur fenêtre, avec leurs lectures.
+                  onClose={() => {
+                    void (async () => {
+                      const ok = await onSavePreferences(prefsDraft);
+                      if (ok) setSheet(null);
+                    })();
+                  }}
                 />
-                {/* ⚠️ UN BOUTON, ET IL EST ICI. Le cadre d'identité a le sien
-                    (prénom/date/direction), `BodyFields` a le sien: ce cadre-ci
-                    écrit d'AUTRES portes, et sans son geste propre il serait la
-                    seule surface de la fenêtre à ne rien promettre. C'est la
-                    même règle que la fenêtre des préférences de l'entonnoir sur
-                    une bouche déjà inscrite. */}
-                <div className="flex flex-wrap items-center gap-2 border-t border-line pt-3">
-                  <Button
-                    disabled={busy}
-                    onClick={() => {
-                      void onSavePreferences(prefsDraft);
-                    }}
-                  >
-                    {t("household.member.save")}
-                  </Button>
-                </div>
               </>
             )
             : (
-              /* ── UNE BOUCHE QUI A UN COMPTE — CE QUI RESTE ÉCRIVABLE ────
-                 Son régime et ses moments vivent dans SON « about you »
-                 (`has_account` des deux côtés), et l'écran le DIT plutôt que
-                 de masquer la question: « il n'y a rien ici » et « ça se règle
-                 ailleurs » ne sont pas la même phrase. Ses habitudes, elles,
-                 s'écrivent bien d'ici. */
-              <>
-                {viewerIsOwner
-                  ? (
-                    <div className="border-t border-line pt-3">
-                      <Field
-                        label={t("household.member.diet")}
-                        hint={t("household.member.diet_hint")}
-                      >
-                        <p className="text-xs text-ink-soft">
-                          {t("household.member.diet_from_profile")}
-                        </p>
-                      </Field>
-                    </div>
-                  )
-                  : null}
-                {/* ⚠️ RIEN N'EST PRÉ-COCHÉ, ET AUCUNE ABSENCE N'EST COMPTÉE.
-                    Les deux règles vivent dans la carte et dans `habitDraft`. */}
-                <HouseholdHabitsCard
-                  slots={habitSlots}
-                  habits={habits}
-                  loaded={habitsLoaded}
-                  busy={busy}
-                  onSave={onSaveHabits}
-                />
-              </>
+              /* ── UN MEMBRE SUR SA PROPRE LIGNE — CE QUE LA BASE LUI OUVRE ──
+                 ⛔ CETTE BRANCHE N'EST PLUS ATTEINTE QUE PAR UN NON-MAÎTRE
+                 (`sharedSheet === viewerIsOwner`), et c'est un refus de la
+                 base: `add_allergy` lui répond `not_owner`, donc la fiche
+                 partagée lui montrerait un catalogue mort. Ses habitudes,
+                 elles, s'écrivent bien d'ici (`not_your_line` seulement); son
+                 régime et ses moments vivent dans son « à propos de toi ».
+
+                 ⚠️ PAS DE `viewerIsOwner` ICI: il vaut `false` par
+                 construction. Le tester donnerait une branche morte qui a
+                 l'air d'une garde. */
+              <HouseholdHabitsCard
+                slots={habitSlots}
+                habits={habits}
+                loaded={habitsLoaded}
+                busy={busy}
+                onSave={onSaveHabits}
+              />
             )}
-
-          {/* ── A6 · LE DÉJEUNER EN SEMAINE (2026-09-03) ──────────────────
-              LA QUESTION VIVAIT À L'ÉTAPE 3 DE L'ENTONNOIR, deux écrans avant
-              la grille que sa réponse pré-remplit. Elle est ici, JUSTE
-              AU-DESSUS de « sa semaine »: la réponse et ce qu'elle coche sur
-              le même écran — « pré-remplir n'est pas décider, la grille
-              gagne » ne se lit que si la grille est à portée de main.
-
-              AUX MAJEURS DU ROSTER, compte ou pas: `member.ageState` est
-              `keel_household_member_age`, l'autorité qui rend `not_adult` à
-              l'écriture — jamais un `kind` à deux valeurs. La carte filtre
-              elle-même et ne rend rien pour un mineur ou un âge inconnu.
-
-              `workLunch` descend ENTIER, `null` compris: c'est la carte qui
-              tient la porte « pas lu » ≠ « lu, rien pour cette bouche ». */}
-          <MemberWorkLunchCard
-            person={{
-              memberId: member.memberId,
-              firstName: member.displayName === "—" ? "" : member.displayName,
-              ageState: member.ageState,
-            }}
-            answers={workLunch}
-            readError={workLunchError}
-            busy={busy}
-            onSave={(_memberId, answer) => onSaveWorkLunch(answer)}
-          />
-
           {/* ⛔ LES ALLERGIES ET LES RÈGLES DE MAISON SONT AU MAÎTRE (A5
               point 6). `add_allergy` / `add_restriction` répondent `not_owner`.
               ⚠️ CE QUE LE MEMBRE VOIT QUAND MÊME est ailleurs, et c'est la
@@ -4363,182 +4193,11 @@ function MemberRow(
             </ul>
           </div>
           ) : null}
-          </SheetFrame>
-
-          {/* ══════════════════════════════════════════════════════════════
-              CE QUE LE COMPTE A DÉJÀ DIT — A5 point 7, 2026-09-03
-              ══════════════════════════════════════════════════════════════
-
-              DEUX CARTES QUI VIVAIENT DANS LA FENÊTRE DE RÉGLAGES DE
-              `/app/plan`, et qui parlent de la MÊME personne que cette fiche:
-              son rythme (quand elle mange, et quelle taille de part) et ce que
-              la conversation a retenu de ses goûts.
-
-              ⛔ SUR SA PROPRE LIGNE, ET SEULEMENT LÀ. Les deux écrivent
-              `student_goals.practical_constraints` DE LA SESSION
-              (`auth.user.id`, lu dans la carte elle-même, pas passé en prop):
-              montées sur la ligne de quelqu'un d'autre, elles afficheraient les
-              réponses du lecteur sous le prénom d'un tiers, et le premier
-              enregistrement écrirait la colonne du lecteur en croyant écrire
-              celle de l'autre. `isMe` n'est donc pas un confort d'affichage,
-              c'est la seule chose qui fasse coïncider la ligne et la colonne.
-
-              ⚠️ ET ELLES ATTENDENT LA LECTURE, comme le reste du cadre:
-              `practicalConstraints === null` ⇒ elles ne se montent pas.
-              `mergePracticalConstraints` FUSIONNE sur ce qu'on lui donne —
-              nourri d'un objet vide non lu, il effacerait le rythme et les
-              goûts déjà déclarés, en silence, au premier Enregistrer.
-
-              ⚠️ `CookingCapacityCard` NE VIENT PAS, exprès: elle reste sur
-              `/app/plan` (la lane CUISINE la remplace, mandat point 7). */}
-          {isMe && practicalConstraints !== null ? (
-            <>
-              <div className="border-t border-line pt-3">
-                <SectionLabel>{t("plan.section.day.title")}</SectionLabel>
-                <EatingRhythmCard
-                  embedded
-                  hasGoal={hasGoal}
-                  practicalConstraints={practicalConstraints}
-                  rhythm={rhythm}
-                  onSaved={onSavedOwnConstraints}
-                />
-              </div>
-              <div className="border-t border-line pt-3">
-                <SectionLabel>{t("plan.section.told.title")}</SectionLabel>
-                <FoodPreferencesCard
-                  embedded
-                  hasGoal={hasGoal}
-                  practicalConstraints={practicalConstraints}
-                  onSaved={onSavedOwnConstraints}
-                  // ⟳ 2026-09-06 (arbitrage 2): « Garder » écrit une ligne retenue au
-                  // sujet de CETTE bouche — la sienne, puisque `isMe`.
-                  keepAs={{
-                    subject: memberSubject(member.memberId) ?? HOUSEHOLD_SUBJECT,
-                    todayLocalIso,
-                  }}
-                />
-              </div>
-            </>
-          ) : null}
-
-          {/* ── D14 · QUAND CETTE BOUCHE N'EST PAS LÀ ──────────────────────
-              ⛔ LE BOUTON FERME LA FICHE ET OUVRE LA GRILLE, il ne l'empile pas
-              dessus — et la grille rouvre la fiche en se fermant, parce que
-              c'est de là qu'on vient. */}
-          <MemberAwayOpener
-            member={member}
-            rhythm={rhythm}
-            awayWindow={awayWindow}
-            busy={busy}
-            onOpen={() => {
-              setOpen(false);
-              setAwayOpen(true);
-            }}
-          />
-
-          <div className="flex flex-wrap items-center gap-2">
-            {/* DEUX GESTES, DEUX LIBELLÉS, JAMAIS UN SEUL BOUTON (chantier 2).
-                « Retirer l'accès » DÉTACHE: la personne perd la lecture du
-                foyer, et reste une bouche à table avec sa portion et ses
-                allergies. « Retirer du foyer » SUPPRIME la ligne. Un seul
-                bouton « retirer » voudrait dire deux choses irréversibles
-                différentes selon la ligne qu'on regarde.
-
-                LE MAÎTRE NE SE RETIRE PAS, ET NE SE DÉTACHE PAS. La base
-                refuse les deux (`cannot_remove_owner`, `cannot_detach_owner`)
-                parce qu'un foyer sans personne pour composer laisse ses
-                bouches sans compte sans recours; l'écran ne montre pas un
-                bouton qui sera refusé. */}
-            {/* ⟳ A5 §5.5 — « RETIRER L'ACCÈS » A REJOINT L'EN-TÊTE DE LA
-                LIGNE, avec l'état d'accès qu'il inverse (`MemberAccess`): les
-                deux se lisent ensemble, et sans ouvrir la fiche. Il n'est PAS
-                dupliqué ici — un geste irréversible offert à deux endroits est
-                un geste qu'on fait par accident au second.
-
-                « RETIRER DU FOYER » RESTE ICI, et l'écart est le sujet: il
-                DÉTRUIT la ligne, avec sa portion et ses allergies. Il vit donc
-                au fond de la fiche ouverte, derrière une confirmation en deux
-                temps, pas dans un en-tête qu'on parcourt. */}
-            {viewerIsOwner && member.role !== "owner" ? (
-              <Button variant="danger" disabled={busy} onClick={onRemove}>
-                {t("household.member.remove")}
-              </Button>
-            ) : null}
-          </div>
-          {/* Le geste ne se distingue pas par sa couleur: on ÉCRIT ce qu'il
-              fait, à côté de lui, au moment de choisir. */}
-          {viewerIsOwner && member.role !== "owner" ? (
-            <p className="text-xs text-ink-soft">
-              {t("household.member.remove_hint")}
-            </p>
-          ) : null}
-
-          {/* ── D17 · LE RÉGLAGE DISCRET (L8) ────────────────────────────────
-              « Un réglage discret permet au maître de ne plus se voir proposer
-              la fusion pour une personne donnée. Assumé comme un peu brutal,
-              donc caché. » Il est donc ICI, rangé dans la fiche de la
-              personne, et JAMAIS sur la carte de proposition: un bouton
-              « ne plus me parler de lui » à côté de « fusionner » ferait du
-              geste brutal le geste le plus facile.
-
-              ⚠️ IL NE BLOQUE PAS LA FUSION, et la phrase d'aide le dit: le
-              geste reste possible (`operation: "merge"` ne lit pas ce réglage,
-              un test de source le tient), et il ne coupe pas l'avertissement
-              de D8, qui parle du plan du MAÎTRE.
-
-              RÉSERVÉ AUX BOUCHES QUI ONT UN COMPTE: une bouche sans compte n'a
-              pas de plan à elle (D3), donc rien à proposer, donc rien à taire.
-              `muted === null` ⇒ on n'a pas pu lire le réglage: on ne montre
-              pas un interrupteur dont on ignore la position. */}
-          {viewerIsOwner && member.role !== "owner" && member.userId &&
-              muted !== null
-            ? (
-            <button
-              type="button"
-              className="self-start text-xs text-ink-soft underline disabled:opacity-50"
-              disabled={busy}
-              onClick={() => onMute(!muted)}
-            >
-              {muted ? t("household.merge.unmute") : t("household.merge.mute")}
-            </button>
-          ) : null}
-          {viewerIsOwner && member.role !== "owner" && member.userId &&
-              muted !== null
-            ? (
-            <p className="text-xs text-ink-soft">
-              {muted ? t("household.merge.muted") : t("household.merge.mute_hint")}
-            </p>
-          ) : null}
         </div>
+        ) : (
+          <p className="text-sm text-ink-soft">{t("household.mouth.frame_loading")}</p>
+        )}
       </Modal>
-
-      {/* ── LA GRILLE DE PRÉSENCE, HORS DE LA FICHE ───────────────────────
-          ⛔ ELLE EST MONTÉE ICI, SŒUR DE LA FICHE ET PAS SA FILLE, et c'est ce
-          qui évite deux `createPortal` empilés. Elle reste montée quand la
-          fiche est fermée (`Modal` rend `null` sans rien demander à l'appelant),
-          donc une grille modifiée survit à une fermeture accidentelle.
-
-          ⚠️ ET ELLE REND LA FICHE EN PARTANT. Sans ça, refermer la grille
-          renverrait sur la liste, loin de la personne qu'on était en train de
-          régler. */}
-      <MealPickerGrid
-        open={awayOpen}
-        onClose={() => {
-          setAwayOpen(false);
-          setOpen(true);
-        }}
-        days={awayWindow.tokens}
-        dates={awayWindow.dates}
-        rhythm={rhythm}
-        away={member.awayHousehold}
-        busy={busy}
-        onSave={async (next) => {
-          const ok = await onSaveAway(next);
-          if (!ok) return;
-          setAwayOpen(false);
-          setOpen(true);
-        }}
-      />
     </li>
   );
 }

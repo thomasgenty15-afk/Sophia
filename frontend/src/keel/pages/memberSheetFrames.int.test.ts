@@ -145,44 +145,55 @@ describe("les deux cadres de la fiche, et ce qui reste dehors", () => {
   const src = whole.slice(rowAt);
 
   /**
-   * ⚠️ ON VISE `title={t(…)}`, PAS LA CLÉ NUE — 2026-09-19. Les deux MÊMES clés
-   * nomment maintenant les deux boutons de la LIGNE (l'entrée directe sur un
-   * cadre), et ils sont écrits AVANT la fenêtre: un `indexOf` sur la clé seule
-   * lisait donc le bouton, trouvait `onClick` à la place de `loaded`, et ces
-   * deux gardes tombaient sans qu'aucune garde n'ait été retirée.
+   * ⟳ 2026-09-19 — LES DEUX CADRES SONT DEVENUS DEUX FENÊTRES.
+   *
+   * Ils étaient deux `SheetFrame` repliables DANS une fenêtre (A5, D5.1), et
+   * sous eux vivaient encore quatre blocs: le déjeuner en semaine, les deux
+   * cartes du compte, la grille d'absences. Décision du propriétaire: deux
+   * fenêtres, deux contenus, rien d'autre dedans.
+   *
+   * ⚠️ CE QUI EST GARDÉ N'A PAS CHANGÉ D'UN MOT — c'est la GARDE DE LECTURE.
+   * `BodyFields` et le brouillon de goûts figent leurs champs au montage, et
+   * les portes de cette page REMPLACENT ce qu'elles trouvent: une fenêtre
+   * montée sur une lecture non faite affiche du vide non lu, puis l'écrit.
+   * Cicatrice `mount-snapshot-forms-need-a-loading-gate`. Ce qui a changé est
+   * l'endroit où la garde est posée: le `SheetFrame` la portait, c'est la
+   * fenêtre qui la porte.
    */
-  it("« Informations personnelles » est gardé par la lecture des CORPS", () => {
-    const i = src.indexOf('title={t("household.member.frame_identity")}');
-    expect(i, "le cadre d'identité n'existe plus").toBeGreaterThan(0);
-    expect(
-      src.slice(i, i + 400),
-      "le cadre d'identité n'est plus gardé par la lecture des corps",
-    ).toContain("loaded={bodiesLoaded}");
+  it("la fenêtre des informations est gardée par la lecture des CORPS", () => {
+    const i = src.indexOf('open={sheet === "identity"}');
+    expect(i, "la fenêtre d'identité n'existe plus").toBeGreaterThan(0);
+    const body = src.slice(i, src.indexOf('open={sheet === "preferences"}', i));
+    expect(body, "la fenêtre d'identité n'est plus gardée par la lecture des corps")
+      .toContain("{bodiesLoaded ? (");
+    expect(body, "la garde ne dit pas qu'elle lit").toContain(
+      't("household.mouth.frame_loading")',
+    );
   });
 
-  it("« Préférences alimentaires » est gardé par la lecture des HABITUDES", () => {
-    const i = src.indexOf('title={t("household.member.frame_preferences")}');
-    expect(i).toBeGreaterThan(0);
-    expect(src.slice(i, i + 400)).toContain("loaded={habitsLoaded}");
+  it("la fenêtre des préférences est gardée par la lecture des HABITUDES", () => {
+    const i = src.indexOf('open={sheet === "preferences"}');
+    expect(i, "la fenêtre des goûts n'existe plus").toBeGreaterThan(0);
+    expect(src.slice(i, i + 2000)).toContain("{habitsLoaded ? (");
   });
 
   /**
-   * ⛔ ET LES DEUX CADRES S'ATTEIGNENT DEPUIS LA LIGNE, SANS PASSER PAR L'AUTRE
-   * — demandé le 2026-09-19. Un seul « Modifier » ouvrait la fenêtre sur ses
+   * ⛔ ET LES DEUX S'ATTEIGNENT DEPUIS LA LIGNE, SANS PASSER PAR L'AUTRE —
+   * demandé le 2026-09-19. Un seul « Modifier » ouvrait une fenêtre sur ses
    * deux cadres dépliés: la question qu'on venait poser était à un défilement.
    *
-   * ⚠️ `openSheet` OUVRE L'UN **ET** REPLIE L'AUTRE. Sans la seconde moitié,
-   * les deux boutons ouvriraient le même écran et le second serait un doublon.
+   * ⛔ UN ÉTAT À TROIS VALEURS, ET LE CAS LE MESURE: deux booléens auraient un
+   * quatrième état — les deux fenêtres ouvertes —, c'est-à-dire deux
+   * `createPortal` empilés, que ce dépôt n'a jamais essayés.
    */
-  it("la ligne porte les deux portes, et chacune ouvre SON cadre", () => {
+  it("la ligne porte les deux portes, et chacune ouvre SA fenêtre", () => {
     expect(src).toContain('onClick={() => openSheet("identity")}');
     expect(src).toContain('onClick={() => openSheet("preferences")}');
-    const at = src.indexOf('const openSheet = (frame: "identity" | "preferences")');
-    expect(at, "l'ouverture ciblée n'existe pas").toBeGreaterThan(0);
-    const body = src.slice(at, at + 300);
-    expect(body).toContain('setIdentityOpen(frame === "identity")');
-    expect(body).toContain('setPrefsOpen(frame === "preferences")');
-    expect(body).toContain("setOpen(true)");
+    expect(src).toContain(
+      'const [sheet, setSheet] = React.useState<"identity" | "preferences" | null>',
+    );
+    expect(src, "les deux fenêtres peuvent être ouvertes ensemble")
+      .not.toContain("const [prefsOpen, setPrefsOpen]");
   });
 
   /**
@@ -199,11 +210,6 @@ describe("les deux cadres de la fiche, et ce qui reste dehors", () => {
     expect(whole, "`bodies` est reparti d'une Map vide")
       .toMatch(/const \[bodies, setBodies\] = React\.useState<\s*Map<string, MemberBodyView> \| null\s*>\(null\)/);
     expect(whole).toContain("bodiesLoaded={bodies !== null}");
-  });
-
-  it("les deux cadres s'ouvrent par défaut", () => {
-    expect(src).toContain("const [identityOpen, setIdentityOpen] = React.useState(true)");
-    expect(src).toContain("const [prefsOpen, setPrefsOpen] = React.useState(true)");
   });
 
   /**
@@ -225,35 +231,29 @@ describe("les deux cadres de la fiche, et ce qui reste dehors", () => {
    * second cadre sépare les deux moitiés du panneau: la présence et les deux
    * retraits doivent tomber APRÈS.
    */
-  it("la présence et les deux retraits ne sont dans aucun cadre", () => {
-    // ⚠️ « DANS UN CADRE » SE MESURE PAR ENCADREMENT, PAS PAR « APRÈS ». Depuis
-    // A5 §5.5, « Retirer l'accès » vit dans l'EN-TÊTE de la ligne, avec l'état
-    // qu'il inverse — donc AVANT le premier cadre. La propriété gardée est la
-    // même: aucun de ces trois n'est entre l'ouverture et la fermeture des
-    // cadres, parce qu'un geste n'est pas une réponse à un formulaire.
-    const firstFrame = src.indexOf("<SheetFrame");
-    const lastFrameEnd = src.lastIndexOf("</SheetFrame>");
-    expect(firstFrame, "il n'y a plus de cadre").toBeGreaterThan(0);
-    expect(lastFrameEnd).toBeGreaterThan(firstFrame);
-    // ⚠️ « Retirer l'accès » vit dans `MemberAccess`, écrit AVANT `MemberRow`
-    // dans le fichier: il est donc hors de `src` par construction, et le cas
-    // suivant le compte à part. Ici on garde les deux qui vivent DANS la ligne.
-    // ⟳ 2026-09-09 — LA PRÉSENCE EST DEVENUE UN COMPOSANT (`MemberAwayOpener`),
-    // parce qu'elle est montée DEUX FOIS: sur la fiche du titulaire et sur la
-    // ligne d'une bouche. On vise donc son MONTAGE et plus son titre, qui vit
-    // maintenant dans le composant. La propriété gardée n'a pas bougé d'un
-    // mot: un geste n'est pas une réponse à un formulaire.
-    for (
-      const key of [
-        "<MemberAwayOpener",
-        't("household.member.remove")',
-      ]
-    ) {
-      const at = src.indexOf(key);
-      expect(at, `${key} a disparu`).toBeGreaterThan(0);
-      const inside = at > firstFrame && at < lastFrameEnd;
-      expect(inside, `${key} est rangé dans un cadre de questions`).toBe(false);
-    }
+  it("⟳ la grille de présence n'est plus montée par cette page", () => {
+    // ⛔ ELLE N'EST PAS « SORTIE DU CADRE », ELLE EST PARTIE. « Quand cette
+    // bouche n'est pas là » était le troisième bloc que la fiche posait en plus
+    // de ses deux moitiés; il a été retiré le 2026-09-19.
+    //
+    // ⚠️ LA FONCTIONNALITÉ VIT: `MealPickerGrid` est montée par `/app/plan`,
+    // par l'entonnoir et par `MealBuilder`, et `keel_household_set_member_away`
+    // n'a pas bougé. C'est la troisième porte qui part.
+    expect(whole).not.toContain("<MemberAwayOpener");
+    expect(whole).not.toContain("<MealPickerGrid");
+  });
+
+  /**
+   * ⛔ CE QUI EST UN GESTE NE VA PAS DANS UNE FENÊTRE DE QUESTIONS — sauf
+   * quand le sortir le rend plus facile. « Retirer du foyer » DÉTRUIT la
+   * ligne: il reste AU FOND de la fenêtre qu'on a ouverte, jamais sur la ligne
+   * qu'on parcourt.
+   */
+  it("« Retirer du foyer » reste au fond de la fenêtre, pas sur la ligne", () => {
+    const at = src.indexOf('t("household.member.remove")');
+    expect(at, "le retrait a disparu").toBeGreaterThan(0);
+    const firstModal = src.indexOf('open={sheet === "identity"}');
+    expect(at, "le retrait est remonté sur la ligne").toBeGreaterThan(firstModal);
   });
 
   /**
@@ -268,20 +268,11 @@ describe("les deux cadres de la fiche, et ce qui reste dehors", () => {
   });
 
   /**
-   * LA CARTE DU DÉJEUNER (A6) EST DANS LE CADRE DES PRÉFÉRENCES, et toujours
-   * AU-DESSUS de la grille qu'elle pré-remplit — la propriété qu'A6 a posée ne
-   * doit pas tomber en changeant la boîte qui l'entoure.
+   * ⟳ 2026-09-19 — LE CAS « LE DÉJEUNER RESTE AU-DESSUS DE LA GRILLE » EST
+   * PARTI AVEC SES DEUX BLOCS. Les deux sont retirés de cette page; leur ordre
+   * relatif n'a plus de sujet. L'absence de la carte est gardée là où la
+   * question vit — `components/memberWorkLunchCard.int.test.ts`.
    */
-  it("le déjeuner de semaine reste au-dessus de la grille de présence", () => {
-    const card = src.indexOf("<MemberWorkLunchCard");
-    const away = src.indexOf("<MemberAwayOpener");
-    const lastFrameEnd = src.lastIndexOf("</SheetFrame>");
-    expect(card).toBeGreaterThan(0);
-    expect(card, "la carte du déjeuner est sortie du cadre des préférences")
-      .toBeLessThan(lastFrameEnd);
-    expect(card, "la grille est passée au-dessus de la question")
-      .toBeLessThan(away);
-  });
 });
 
 describe("le renversement est écrit là où vit la phrase inverse", () => {

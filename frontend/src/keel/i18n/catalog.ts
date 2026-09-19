@@ -565,8 +565,11 @@ export const PAGE_NAMESPACES: Readonly<
     "meals",
     "common",
     // ⟳ 2026-09-12 · ÉTAPE C5 — LE BLOC D'ÉCARTS DE L'APERÇU DE PLAN.
-    // `PlanDraftDialog` monte `PlanValidationNotice`, qui nomme le repas
-    // concerné: « Dimanche, Dîner ». Les deux vocabulaires sont des ATOMES
+    // `PlanDraftDialog` montait `PlanValidationNotice`, qui nomme le repas
+    // concerné: « Dimanche, Dîner ». ⟳ 2026-09-19 — le bloc n'est plus monté
+    // (ni ici ni sur le plan écrit) ; la déclaration reste, le scanner ne
+    // sanctionne pas un namespace déclaré et non atteint, et les deux
+    // vocabulaires sont des ATOMES
     // partagés, déjà entièrement écrits en français (le type l'impose), donc
     // les déclarer n'ajoute AUCUNE dette de traduction — ça rend seulement
     // atteignable ce que la page atteint vraiment.
