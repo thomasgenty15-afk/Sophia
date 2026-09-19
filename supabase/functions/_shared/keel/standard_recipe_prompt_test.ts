@@ -293,7 +293,7 @@ Deno.test("IDENTITÉ — `legacy_measure` est le DÉFAUT de forme, à toute tail
 });
 
 Deno.test("la version dit le lot, et l'arbitrage l'a suivie", () => {
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v35_the_grid_is_a_checklist");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v36_the_goal_outranks_the_habit");
 });
 
 // ═══════════════════════════════════════════════════════════════════════════

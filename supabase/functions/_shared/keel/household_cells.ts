@@ -123,6 +123,16 @@ export interface CellMouth {
   demands: ServingAxisDemands;
   /** Les moments où elle a déclaré son propre repas (`ownMealSlots`). */
   ownMealSlots: readonly string[];
+  /**
+   * ⟳ 2026-09-19 — LES JOURS OÙ CETTE HABITUDE EST SERVIE. `null` = tous les
+   * jours (le comportement d'avant). Une bouche en perte de poids reçoit son
+   * habitude `OWN_USUAL_DAYS_PER_WEEK_FAT_LOSS` jours par semaine
+   * (`ownUsualDaysFor`) et le plat de la table le reste du temps — l'objectif
+   * prime sur l'habitude, décision produit du 2026-09-19.
+   *
+   * ⛔ REQUIS ET NULLABLE, jamais `?`. Un appelant qui ne plafonne pas le DIT.
+   */
+  ownMealDays: readonly string[] | null;
 }
 
 /** Une bouche qui a un plat à elle dans cette case, et pourquoi. */
@@ -456,7 +466,17 @@ export function householdCells(
       const key = cellKeyOf(day, slot);
       const eaters = eatersByKey.get(key) ?? [];
       const regime = cellRegimeFor(input.baseRegime, eaters);
-      const dedicated = dedicatedInCell(slot, eaters, regime);
+      // ⟳ 2026-09-19 — L'HABITUDE NE VAUT QUE SES JOURS. Hors de
+      // `ownMealDays`, la bouche est un mangeur ORDINAIRE de la case : elle
+      // n'est pas dédiée, elle mange le plat de la table. `dedicatedInCell` ne
+      // connaît pas le jour, et n'a pas à le connaître — on lui présente la
+      // bouche telle qu'elle est CE jour-là.
+      const eatersToday = eaters.map((m) =>
+        m.ownMealDays === null || m.ownMealDays.includes(day)
+          ? m
+          : { ...m, ownMealSlots: [] }
+      );
+      const dedicated = dedicatedInCell(slot, eatersToday, regime);
       const character = cellCharacterFor(slot, eaters);
       const cell: HouseholdCell = {
         key,

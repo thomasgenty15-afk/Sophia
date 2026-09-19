@@ -84,6 +84,7 @@ function mouth(over: Partial<CellMouth> & { memberId: string }): CellMouth {
     diet: null,
     demands: RIEN_DEMANDE,
     ownMealSlots: [],
+    ownMealDays: null,
     ...over,
   };
 }
@@ -923,4 +924,40 @@ Deno.test("un plat à un nom marqué complément laisse sa bouche sur le plat de
   assertEquals(fed.complementByDish, [false, true]);
   assertEquals(fed.counters.complements, 1);
   assertEquals(fed.counters.excluded, 0);
+});
+
+Deno.test("⟳ 2026-09-19 — l'habitude d'une bouche ne vaut que SES jours : dédiée ces jours-là, mangeur ordinaire les autres", () => {
+  const out = householdCells({
+    mouths: [
+      mouth({ memberId: "julie" }),
+      mouth({ memberId: "fabrice", ownMealSlots: ["lunch"], ownMealDays: ["mon", "thu"] }),
+    ],
+    baseRegime: null,
+    houseRhythm: [{ slot: "lunch", size: null }, { slot: "dinner", size: null }],
+    windowDays: ["mon", "tue", "wed", "thu"],
+    gridSlots: ["lunch", "dinner"],
+    spentSlots: NO_SPENT,
+    cookOnlyDay: null,
+  });
+  const at = (day: string, slot: string) => out.cells.find((c) => c.day === day && c.slot === slot)!;
+  assertEquals(at("mon", "lunch").dedicated.map((d) => d.memberId), ["fabrice"]);
+  assertEquals(at("thu", "lunch").dedicated.map((d) => d.memberId), ["fabrice"]);
+  // Mardi et mercredi : le plat de la table, comme tout le monde.
+  assertEquals(at("tue", "lunch").dedicated, []);
+  assertEquals(at("wed", "lunch").dedicated, []);
+  // Et il MANGE toujours ces jours-là — il n'est pas absent, il est ordinaire.
+  assertEquals(at("tue", "lunch").eaters, ["fabrice", "julie"]);
+  // Le dîner n'a jamais été son habitude : rien ne change.
+  assertEquals(at("mon", "dinner").dedicated, []);
+  // ── LE CAS QUI PASSE : `null` = tous les jours, le comportement d'avant ──
+  const sans = householdCells({
+    mouths: [mouth({ memberId: "fabrice", ownMealSlots: ["lunch"], ownMealDays: null })],
+    baseRegime: null,
+    houseRhythm: [{ slot: "lunch", size: null }],
+    windowDays: ["mon", "tue"],
+    gridSlots: ["lunch"],
+    spentSlots: NO_SPENT,
+    cookOnlyDay: null,
+  });
+  assertEquals(sans.cells.map((c) => c.dedicated.length), [1, 1]);
 });

@@ -188,7 +188,7 @@ Deno.test("⚠️ LE MILLÉSIME DU PROMPT DIT CE LOT", () => {
   // Un bloc ajouté au prompt sans bump ferait une population « v25 » dont une
   // partie a vu une consigne que l'autre n'a jamais reçue — et la comparaison
   // que le millésime existe pour permettre deviendrait fausse sans rien casser.
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v35_the_grid_is_a_checklist");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v36_the_goal_outranks_the_habit");
 });
 
 import { assert } from "jsr:@std/assert@1";

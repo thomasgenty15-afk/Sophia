@@ -245,6 +245,32 @@ Deno.test("la journée dépensée donne SA cause, pas celle de la semaine", () =
   );
 });
 
+Deno.test("⟳ 2026-09-19 — « dès le matin » ne promet plus midi quand la journée est entamée", () => {
+  // Lu sur le plan adopté du 2026-09-19, généré à 17 h 25 : « Courses et
+  // cuisson dès le matin, pour être prêt à midi » sur un plan dont il ne
+  // restait que le dîner. La phrase n'avait jamais été rendue l'après-midi.
+  const aujourdHui = { day: null, refused: null, reason: "starts_today" } as const;
+  for (const [locale, avant, apres] of [
+    ["fr", "dès le matin", "dès que possible"],
+    ["en", "first thing in the morning", "as soon as you can"],
+  ] as const) {
+    const entamee = explainPlanChoices({
+      facts: { ...nominalFacts(), cookDayBefore: aujourdHui, slotsDroppedToday: ["breakfast", "lunch"] },
+      locale,
+    }).lines.join(" ");
+    assert(!entamee.includes(avant), `${locale}: promet encore le matin sur une journée entamée`);
+    assert(entamee.includes(apres), `${locale}: la phrase de remplacement manque\n${entamee}`);
+    const retenue = explainPlanChoices({
+      facts: { ...nominalFacts(), cookDayBefore: aujourdHui, slotsHeldForShopping: ["snack_am"] },
+      locale,
+    }).lines.join(" ");
+    assert(retenue.includes(apres), `${locale}: un moment retenu pour les courses entame aussi la journée`);
+    // ── LE CAS QUI PASSE : rien de passé, rien de retenu — le matin, vraiment ──
+    const matin = explainPlanChoices({ facts: { ...nominalFacts(), cookDayBefore: aujourdHui }, locale }).lines.join(" ");
+    assert(matin.includes(avant), `${locale}: la phrase du matin a disparu`);
+  }
+});
+
 Deno.test("« dès le matin » se tait quand le plan commence DEMAIN", () => {
   // ⚠️ `cookDayBefore.reason` DOIT ÊTRE POSÉ: c'est lui qui arme la phrase.
   // Le fixture nominal le laisse à `null` — sans ce réglage, le test serait vert

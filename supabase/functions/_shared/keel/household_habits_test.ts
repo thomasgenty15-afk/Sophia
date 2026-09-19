@@ -8,6 +8,7 @@
 
 import { assert, assertEquals } from "jsr:@std/assert@1";
 
+import { OWN_USUAL_DAYS_PER_WEEK_FAT_LOSS, ownUsualDaysFor } from "./household_habits.ts";
 import {
   gateMemberHabits,
   HABIT_CONSEQUENCE,
@@ -703,4 +704,31 @@ Deno.test("une forme illisible rend `{}`, jamais une exception", () => {
   assertEquals(parseMemberLight([null, "light", 3, { slot: "dinner", light: true }]), {
     dinner: true,
   });
+});
+
+Deno.test("⟳ 2026-09-19 — en perte de poids, l'habitude vaut deux jours répartis ; sinon tous les jours", () => {
+  const semaine = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+  assertEquals(OWN_USUAL_DAYS_PER_WEEK_FAT_LOSS, 2);
+  assertEquals(ownUsualDaysFor("fat_loss", semaine), ["mon", "thu"]);
+  assertEquals(ownUsualDaysFor("fat_loss", ["sun", "mon", "tue", "wed", "thu", "fri"]), ["sun", "wed"]);
+  // Fenêtre plus courte que le plafond : tous les jours, sans dépasser.
+  assertEquals(ownUsualDaysFor("fat_loss", ["mon", "tue"]), ["mon", "tue"]);
+  assertEquals(ownUsualDaysFor("fat_loss", ["mon"]), ["mon"]);
+  // Tout autre objectif — ou aucun — n'est pas plafonné : `null`, jamais `[]`.
+  assertEquals(ownUsualDaysFor("muscle_gain", semaine), null);
+  assertEquals(ownUsualDaysFor("maintenance", semaine), null);
+  assertEquals(ownUsualDaysFor(null, semaine), null);
+});
+
+Deno.test("⛔ CÂBLAGE — les jours plafonnés sont calculés UNE fois et lus par la grille ET par les porteurs", async () => {
+  const src = await Deno.readTextFile(
+    new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
+  );
+  assert(src.includes("ownUsualDaysFor(m.goal, eatingDayTokens)"), "le plafond n'est plus calculé depuis l'objectif de la bouche");
+  assertEquals(
+    (src.match(/ownMealDays: ownUsualDaysByMember\.get\(m\.memberId\) \?\? null,/g) ?? []).length,
+    2,
+    "la grille et les porteurs doivent lire la MÊME Map",
+  );
+  assert(src.includes("own_usual_capped:"), "le plafond ne se compte pas au journal");
 });

@@ -1914,7 +1914,7 @@ Deno.test("LOT 4 — la version de la lane foyer a bougé d'UN cran", () => {
   //   · v26 AVEC `decided` — les faits déjà tranchés partent aussi.
   // Le compteur `explanation.asked` sépare les deux dernières, et un test plus
   // bas tient l'identité du `userSuffix` sans les faits.
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v35_the_grid_is_a_checklist");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v36_the_goal_outranks_the_habit");
 });
 
 // ===========================================================================

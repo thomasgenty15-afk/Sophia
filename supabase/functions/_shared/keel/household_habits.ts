@@ -284,6 +284,46 @@ export function ownMealSlots(
     .map((h) => h.slot);
 }
 
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ 2026-09-19 — L'OBJECTIF PRIME SUR L'HABITUDE : COMBIEN DE JOURS PAR SEMAINE
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * Décision produit, dite par l'utilisateur en relisant son plan du 2026-09-19 :
+ * « pour les personnes en perte de poids, peu importe ce qu'il y a en input
+ * (« j'aime les hamburgers »), il faut que ce soit pas tout le temps — que ça
+ * respecte l'objectif en vrai ». Mesuré sur ce plan : fabrice, 93 kg, objectif
+ * perte de poids, recevait son « hamburger frites » déclaré à QUATRE déjeuners
+ * sur sept et « salades fromages » à SIX dîners — la lettre de ses habitudes,
+ * rien de son objectif.
+ *
+ * ⛔ LA RÈGLE NE LIT PAS LE CONTENU DE L'HABITUDE. « Un fruit » et « un
+ * hamburger frites » sont traités pareil : décider qu'un aliment est riche
+ * demanderait un matcher maison, et ce dépôt en a déjà payé le prix. Ce qui
+ * est plafonné est la FRÉQUENCE : `OWN_USUAL_DAYS_PER_WEEK_FAT_LOSS` jours sur
+ * la fenêtre, les autres jours la bouche mange le plat de la table — composé
+ * pour le foyer et dimensionné à son enveloppe. Les jours retenus sont
+ * répartis (premier jour, puis milieu), pas groupés : deux hamburgers de
+ * suite ne sont pas « pas tout le temps ».
+ *
+ * `null` = aucun plafond (tous les jours), pour tout autre objectif.
+ */
+export const OWN_USUAL_DAYS_PER_WEEK_FAT_LOSS = 2;
+
+export function ownUsualDaysFor(
+  goal: string | null,
+  eatingDays: readonly string[],
+): string[] | null {
+  if (goal !== "fat_loss") return null;
+  const days = eatingDays.filter((d) => d.trim() !== "");
+  if (days.length <= OWN_USUAL_DAYS_PER_WEEK_FAT_LOSS) return [...days];
+  const out: string[] = [];
+  for (let i = 0; i < OWN_USUAL_DAYS_PER_WEEK_FAT_LOSS; i++) {
+    out.push(days[Math.floor((i * days.length) / OWN_USUAL_DAYS_PER_WEEK_FAT_LOSS)]);
+  }
+  return out;
+}
+
 export function habitFragment(habits: readonly MemberHabit[]): string {
   const own = habits.filter((h) => h.kind === "own_usual" && h.usual.trim().length > 0);
   if (own.length === 0) return "";

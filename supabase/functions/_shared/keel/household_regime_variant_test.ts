@@ -96,6 +96,7 @@ function mouth(over: Partial<CellMouth> & { memberId: string }): CellMouth {
     diet: null,
     demands: RIEN_DEMANDE,
     ownMealSlots: [],
+    ownMealDays: null,
     ...over,
   };
 }
@@ -748,4 +749,14 @@ Deno.test("SERVI — AVEC variante, la casserole commune ne cuit plus que pour q
       );
     }
   });
+});
+
+Deno.test("⟳ 2026-09-19 — le bloc « A DISH OF THEIR OWN » nomme les jours d'un porteur plafonné, et se tait sinon", () => {
+  const bloc = dedicatedDishBlock([
+    { memberId: "m-fab", displayName: "Fabrice", ownMealDays: ["mon", "thu"] },
+    { memberId: "m-tom", displayName: "Tom" },
+  ], 4);
+  assert(bloc.includes("Fabrice = m-fab -- their own dish on Monday and Thursday ONLY"), bloc);
+  assert(bloc.includes("on every other day they eat the table's dish, and it is sized for them"), bloc);
+  assert(bloc.includes("  Tom = m-tom\n"), "un porteur sans plafond garde sa ligne d'avant, mot pour mot");
 });

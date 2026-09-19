@@ -3094,7 +3094,7 @@ Deno.test("C8 ③ — LA LANE INDIVIDUELLE GARDE SA VERSION DE PROMPT", () => {
   // n'existe que sur cette lane, et la demander au solo serait une consigne sur
   // du vide. Trois populations à distinguer, pas deux: v25, v26 sans les faits
   // (message byte-identique à v25), v26 avec.
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v35_the_grid_is_a_checklist");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v36_the_goal_outranks_the_habit");
 });
 
 Deno.test("C7 ③ — LA LIGNE DE COURSES D'UN PLAT JETÉ NE PART PLUS AU MAGASIN", () => {
@@ -3868,12 +3868,14 @@ Deno.test("LOT C — la liste des porteurs atteint le PROMPT, et c'est la même"
   // VIVENT LÀ. Le champ du prompt ne porte plus d'expression du tout: il lit la
   // constante, comme le bloc de régime et le compteur du journal.
   assert(
-    /const promptDishBearers: \{ memberId: string; displayName: string \}\[\] =\s*\n\s*ladder !== null && mergedMember !== null/
+    // ⟳ 2026-09-19 — le porteur porte aussi `ownMealDays` (l'objectif prime sur
+    // l'habitude) : le type le dit, la fusion le pose à `null`.
+    /const promptDishBearers: \{ memberId: string; displayName: string; ownMealDays: readonly string\[\] \| null \}\[\] =\s*\n\s*ladder !== null && mergedMember !== null/
       .test(src),
     "la liste du prompt ne traite plus la fusion en premier.",
   );
   assert(
-    /: dishBearingMembers\.map\(\(m\) => \(\{\s*memberId: m\.memberId,\s*displayName: m\.displayName,\s*\}\)\)/
+    /: dishBearingMembers\.map\(\(m\) => \(\{\s*memberId: m\.memberId,\s*displayName: m\.displayName,[\s\S]{0,400}?ownMealDays: ownUsualDaysByMember\.get\(m\.memberId\) \?\? null,\s*\}\)\)/
       .test(src),
     "la liste du prompt ne reçoit plus les bouches de la composition.",
   );

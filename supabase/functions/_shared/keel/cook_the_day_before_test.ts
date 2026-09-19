@@ -277,7 +277,7 @@ Deno.test("A1 — l'enveloppe du FOYER ne bouge pas d'un octet", () => {
   // n'existe que sur cette lane, et la demander au solo serait une consigne sur
   // du vide. Trois populations à distinguer, pas deux: v25, v26 sans les faits
   // (message byte-identique à v25), v26 avec.
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v35_the_grid_is_a_checklist");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v36_the_goal_outranks_the_habit");
 });
 
 // ---------------------------------------------------------------------------

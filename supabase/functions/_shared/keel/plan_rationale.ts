@@ -753,6 +753,12 @@ const COPY = {
     // s'y mettre tôt.
     cookSameMorning: () =>
       `Courses et cuisson dès le matin, pour être prêt à midi.`,
+    // ⟳ 2026-09-19 — LU SUR UN PLAN GÉNÉRÉ À 17 H 25 : « prêt à midi » sur un
+    // plan dont il ne restait que le dîner. La phrase parlait du matin parce
+    // qu'elle n'avait jamais été rendue l'après-midi. Quand des moments du
+    // premier jour sont déjà passés ou retenus pour les courses, c'est celle-ci.
+    cookSameDayLater: () =>
+      `Courses et cuisson dès que possible : la journée est déjà entamée.`,
     // ── LES COURSES ──────────────────────────────────────────────────────
     // ⚠️ LE SINGULIER ET LE PLURIEL NE DISENT PAS LA MÊME CHOSE. Une seule
     // course est une BONNE nouvelle qu'il faut annoncer comme telle (« tout
@@ -1013,6 +1019,8 @@ const COPY = {
     cookSameMorning: () =>
       `Shopping and cooking first thing in the morning, so it is ready by ` +
       `lunch.`,
+    cookSameDayLater: () =>
+      `Shop and cook as soon as you can: the day is already under way.`,
     shoppingOnce: (day: string) =>
       `One shop, on ${day}: everything this plan asks for keeps until it is ` +
       `cooked.`,
@@ -1461,7 +1469,15 @@ export function explainPlanChoices(input: {
       // fait faux, rendu en run réel le 2026-09-04. Les lignes de fenêtre
       // au-dessus disent déjà quand il commence, et la ligne de courses dit
       // déjà quel jour on achète: se taire ne perd aucune information.
-      lines.push(copy.cookSameMorning());
+      // ⟳ 2026-09-19 — « DÈS LE MATIN » N'EST VRAI QUE LE MATIN. Si un moment
+      // du premier jour est déjà passé (`slotsDroppedToday`) ou retenu pour
+      // les courses (`slotsHeldForShopping`), la journée est entamée : la
+      // phrase le dit, au lieu de promettre midi à 17 h.
+      lines.push(
+        facts.slotsDroppedToday.length === 0 && facts.slotsHeldForShopping.length === 0
+          ? copy.cookSameMorning()
+          : copy.cookSameDayLater(),
+      );
     }
   }
 

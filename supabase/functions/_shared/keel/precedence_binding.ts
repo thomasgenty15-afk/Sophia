@@ -157,6 +157,11 @@ export const HOUSEHOLD_ARBITRATION_BY_VERSION: Readonly<Record<string, string>> 
   // l'affirmation « la précédence est celle de v33 », et le test la vérifie.
   v35_the_grid_is_a_checklist:
     "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
+  // ⟳ v36 (2026-09-19) — MÊME EMPREINTE, ET C'EST L'AFFIRMATION. v36 change le
+  // bloc « A DISH OF THEIR OWN » (les jours d'un porteur plafonné) ; aucun
+  // en-tête de verrou ne bouge, et le rang 1 les cite en toutes lettres.
+  v36_the_goal_outranks_the_habit:
+    "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
 };
 
 /** SHA-256 hexadécimal — `crypto.subtle`, standard web, présent en edge. */

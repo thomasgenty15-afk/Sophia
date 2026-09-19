@@ -668,7 +668,10 @@ import {
 // « the TABLE's dish »), donc le millésime bouge: sans ça,
 // `keel_plan_refusals.prompt_version` répond « v33 » pour deux textes
 // différents et plus personne ne peut dire lequel a été servi.
-export const HOUSEHOLD_PROMPT_VERSION = "v35_the_grid_is_a_checklist";
+// ⟳ 2026-09-19 — v36 : L'OBJECTIF PRIME SUR L'HABITUDE. Le bloc « A DISH OF
+// THEIR OWN » nomme désormais les jours d'un porteur plafonné (perte de poids :
+// deux jours par semaine), donc le texte servi change ; le millésime aussi.
+export const HOUSEHOLD_PROMPT_VERSION = "v36_the_goal_outranks_the_habit";
 
 export interface HouseholdRestriction {
   memberId: string;
@@ -1798,7 +1801,20 @@ function preferenceSplitBlock(splits: readonly PreferenceSplit[] | undefined): s
 }
 
 export function dedicatedDishBlock(
-  dishBearers: readonly { memberId: string; displayName: string }[],
+  dishBearers: readonly {
+    memberId: string;
+    displayName: string;
+    /**
+     * ⟳ 2026-09-19 — LES JOURS OÙ LE PLAT À SOI EST DÛ. Absent ou `null` =
+     * tous les jours (la consigne d'avant, mot pour mot). Une liste = ces
+     * jours-là seulement ; les autres jours la bouche mange le plat de la
+     * table — voir `ownUsualDaysFor`. Facultatif sur la FORME parce que ce
+     * n'est pas une garde : le handler le pose toujours (épinglé), et les
+     * dizaines de fixtures qui construisent des porteurs disent « tous les
+     * jours » en se taisant, ce qui est exactement ce qu'elles disaient.
+     */
+    ownMealDays?: readonly string[] | null;
+  }[],
   dedicatedDishesAsked: number,
 ): string {
   if (dishBearers.length === 0) return "";
@@ -1814,7 +1830,13 @@ export function dedicatedDishBlock(
     "These people cannot be fed from the shared pot. At EVERY meal they eat",
     "here, write TWO dishes for that day and that slot: the table's dish, and a",
     "dish of their own — same cooking session, same shopping, different plate.",
-    ...dishBearers.map((b) => `  ${b.displayName} = ${b.memberId}`),
+    ...dishBearers.map((b) =>
+      b.ownMealDays == null
+        ? `  ${b.displayName} = ${b.memberId}`
+        : `  ${b.displayName} = ${b.memberId} -- their own dish on ${
+          b.ownMealDays.map(dayProse).join(" and ")
+        } ONLY; on every other day they eat the table's dish, and it is sized for them`
+    ),
     `That is ${asked} extra dish${asked > 1 ? "es" : ""} on top of the table's`,
     "meals, and the dish budget above already has room for them. Count them",
     "before you answer: a window where these people have no dish of their own is",

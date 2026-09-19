@@ -96,6 +96,7 @@ function gridFor(
       diet: m.diet ?? null,
       demands: m.demands ?? { protein: null, starch: null, vegetables: null },
       ownMealSlots: [],
+      ownMealDays: null,
     })),
     baseRegime,
     houseRhythm: RYTHME3,

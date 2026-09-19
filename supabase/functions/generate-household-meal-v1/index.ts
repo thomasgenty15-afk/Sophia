@@ -799,6 +799,7 @@ import {
   foldDuplicateDishes,
 } from "../_shared/keel/plan_dish_dedupe.ts";
 import { runThroughWithoutPreparations } from "../_shared/keel/session_run_through.ts";
+import { ownUsualDaysFor } from "../_shared/keel/household_habits.ts";
 // ⟳ 2026-09-12 · ÉTAPE C4 — LA PASSE COMMUNE. Elle ne mesure rien: elle
 // traduit les six contrôles dans le seul type que le budget comprend.
 import {
@@ -6005,6 +6006,15 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
         : [],
     );
     const firstDayToken = daysToFill[0] ?? null;
+    // ⟳ 2026-09-19 — L'OBJECTIF PRIME SUR L'HABITUDE. Une bouche en perte de
+    // poids reçoit son « plat à soi » déclaré deux jours par semaine, répartis ;
+    // le reste du temps elle mange le plat de la table. Voir `ownUsualDaysFor`.
+    // Calculé UNE fois, ici, et lu par la grille ET par les porteurs du prompt :
+    // deux calculs promettraient un plat que l'autre lecteur ne compte pas.
+    const eatingDayTokens = daysToFill.filter((d) => d !== cookOnlyDay);
+    const ownUsualDaysByMember = new Map(
+      platedMembers.map((m) => [m.memberId, ownUsualDaysFor(m.goal, eatingDayTokens)] as const),
+    );
     const householdGrid = householdCells({
       mouths: platedMembers.map((m) => ({
         memberId: m.memberId,
@@ -6020,6 +6030,7 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
         demands: servingDemandsFor(m),
         // ⚠️ LE MÊME PRÉDICAT QUE LE BRIEF, APPELÉ — voir `ownMealBearers`.
         ownMealSlots: ownMealSlots(m.habits ?? []),
+        ownMealDays: ownUsualDaysByMember.get(m.memberId) ?? null,
       })),
       // ⟳ 2026-09-14 (§ 2.2) — R4, LA LIGNE QUE LE PROMPT DÉCLARE, DONNÉE À LA
       // GRILLE. `strictestRegime` est déjà résolu plus haut et part tel quel
@@ -6083,6 +6094,10 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
       tag: "keel.household_meal.cells",
       user_id: userId,
       request_id: requestId,
+      // ⟳ 2026-09-19 — combien de bouches ont leur habitude plafonnée, et à
+      // combien de jours. Des COMPTES, jamais un `member_id` (règle du journal).
+      own_usual_capped: [...ownUsualDaysByMember.values()].filter((d) => d !== null).length,
+      own_usual_days: [...ownUsualDaysByMember.values()].find((d) => d !== null)?.length ?? null,
       // ⛔ HISTOGRAMMES ET COMPTES, JAMAIS UN `member_id`. C'est ce que
       // `residualGaps` a été retiré du journal pour avoir porté.
       ...householdGrid.counters,
@@ -6270,16 +6285,20 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
     //
     // ⚠️ SUR UNE FUSION, C'EST LA PERSONNE REPRISE, comme avant — et la grille
     // n'y participe pas: `dishBearingMembers` vaut `[]` sur ce chemin.
-    const promptDishBearers: { memberId: string; displayName: string }[] =
+    const promptDishBearers: { memberId: string; displayName: string; ownMealDays: readonly string[] | null }[] =
       ladder !== null && mergedMember !== null &&
         asksForASecondDish(cookingShape)
         ? [{
           memberId: mergedMember.memberId,
           displayName: mergedMember.displayName,
+          // Une bouche reprise par la fusion n'est pas plafonnée : `null`, dit.
+          ownMealDays: null,
         }]
         : dishBearingMembers.map((m) => ({
           memberId: m.memberId,
           displayName: m.displayName,
+          // ⟳ 2026-09-19 — LES MÊMES JOURS QUE LA GRILLE, par la même Map.
+          ownMealDays: ownUsualDaysByMember.get(m.memberId) ?? null,
         }));
     console.log(JSON.stringify({
       tag: "keel.household_meal.cooking_shape",
