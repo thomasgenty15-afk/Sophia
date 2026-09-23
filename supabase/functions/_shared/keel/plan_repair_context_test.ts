@@ -31,6 +31,19 @@ import { buildRepairSessions, buildRepairUnits } from "./plan_repair_unit.ts";
 import type { RepairExpectedCell, RepairUnitDish } from "./plan_repair_unit.ts";
 import { planRepairMessage } from "./plan_defect_pass.ts";
 import type { RepairDefect } from "./plan_repair_loop.ts";
+import type { RepairHouseholdContext } from "./side_courses_types.ts";
+
+// ⟳ 2026-09-23 — `planRepairMessage` exige le foyer (`household` : fiches,
+// notes, recette de référence, à-côtés), requis depuis le flux G du chantier
+// « assiettes normales ». Ces cas mesurent l'adresse des défauts, pas le
+// foyer : quatre blocs vides, que `repairHouseholdLines` n'imprime pas — le
+// message utilisateur reste celui d'avant, à l'octet.
+const AUCUN_FOYER: RepairHouseholdContext = {
+  cards: "",
+  notes: "",
+  standardRecipe: "",
+  sideCourses: "",
+};
 
 /**
  * ⟳ 2026-09-13 · LOT 2 — LA TABLE DES SESSIONS, VIDE PAR DÉFAUT.
@@ -233,6 +246,7 @@ function message(defects: readonly RepairDefect[], index = INDEX, plan = TIR1) {
       nutrition: null,
       baseVersion: "req#r0",
       afterVerdict: null,
+      household: AUCUN_FOYER,
     }),
   };
 }
@@ -412,7 +426,7 @@ Deno.test("④ un plancher protéique de JOURNÉE ouvre les repas de cette journ
       memberId: "zoe",
       detail: "the plates served on 2026-09-14 carry 74 g of protein, floor is 96 g",
       magnitude: 22,
-      measure: { of: "protein", servedG: 74, floorG: 96 },
+      measure: { of: "protein", servedG: 74, floorG: 96, ceilingG: null },
     }),
   ]);
   // ⛔ LES TROIS REPAS DU LUNDI, ET EUX SEULS.
@@ -556,6 +570,7 @@ Deno.test("⑥ une bouche non nourrie ouvre son unité RÉSERVÉE, sans créneau
     nutrition: null,
     baseVersion: "req#r0",
     afterVerdict: null,
+    household: AUCUN_FOYER,
   });
   assert(composed !== null);
   assert(composed.projection.text.includes("Do not declare a new preparation"));
@@ -645,6 +660,7 @@ Deno.test("⑦ ter — ⟳ §2.1 : la consigne NOMME les jours où une casserole
     nutrition: null,
     baseVersion: "req#r0",
     afterVerdict: null,
+    household: AUCUN_FOYER,
   });
   assert(composed !== null);
   assert(

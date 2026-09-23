@@ -98,6 +98,25 @@ export interface ModalProps {
    */
   headerAction?: React.ReactNode;
   /**
+   * ── ⟳ 2026-09-20 · LE PIED, HORS DU DÉFILEMENT ─────────────────────────
+   *
+   * Ce qui est passé ici se rend SOUS le corps, en frère du conteneur qui
+   * défile — donc visible quelle que soit la position dans la liste.
+   *
+   * ⛔ ET C'EST LA SEULE FAÇON D'Y ARRIVER. Une barre posée en `sticky
+   * bottom-0` DANS `children` a été essayée sur l'aperçu de brouillon le
+   * 2026-09-20, et elle ne collait à rien: un élément collant ne sort jamais
+   * de son parent, et ce parent-là commence après toute la semaine de plats.
+   * Il fallait donc défiler jusqu'en bas pour voir la barre — exactement ce
+   * que le lot voulait éviter. Signalé capture à l'appui: « je les vois pas
+   * les boutons en bas ».
+   *
+   * ⚠️ LE PIED NE DÉFILE PAS, DONC IL NE DOIT PAS GRANDIR. Deux boutons et un
+   * mot: ce qui a besoin de place va dans `children`, sinon la fenêtre n'a
+   * plus de corps sur un téléphone en paysage.
+   */
+  footer?: React.ReactNode;
+  /**
    * ⛔ LA FENÊTRE NE SE FERME QUE PAR SON BOUTON — ni le voile, ni Échap.
    *
    * ── LE DÉFAUT MESURÉ, ET IL EST DESTRUCTEUR (2026-09-07) ───────────────
@@ -139,6 +158,7 @@ export default function Modal(
     closeLabel,
     closeAsIcon,
     headerAction,
+    footer,
     closeOnlyByButton = false,
     size = "md",
     children,
@@ -292,6 +312,28 @@ export default function Modal(
             semaine de préparations ne tient pas dans une fenêtre, et laisser la
             page défiler derrière fait perdre le contenu dès le premier geste. */}
         <div className="min-h-0 flex-1 overflow-y-auto p-4">{children}</div>
+
+        {/* LE PIED. `shrink-0` ET PAS SEULEMENT UN TRAIT: dans une colonne
+            flex, un pied sans lui se ferait comprimer par le corps
+            (`flex-1`) au lieu de le borner — les boutons s'écraseraient au
+            lieu de garder leur hauteur.
+
+            ⚠️ `bg-paper-2` COMME LE FRONTON: le pied est l'autre bord de la
+            fenêtre, et il se détache du corps par la même paire (1,08:1 plus
+            le trait `line`). Un fond transparent laisserait lire les plats
+            sous les boutons pendant le défilement.
+
+            ⚠️ `pb-[max(...)]`: sur un téléphone à encoche, la barre système
+            mange le bas de la fenêtre. `env(safe-area-inset-bottom)` vaut 0
+            partout ailleurs, donc le `max` garde les 12 px sur un écran
+            ordinaire. */}
+        {footer
+          ? (
+            <div className="shrink-0 border-t border-line bg-paper-2 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+              {footer}
+            </div>
+          )
+          : null}
       </div>
     </div>,
     document.body,

@@ -29,6 +29,9 @@ import {
   defectsFromQuantities,
   nutritionMagnitudes,
   planRepairRequest,
+  REPAIR_HOUSEHOLD_BLOCKS,
+  REPAIR_HOUSEHOLD_MAX_CHARS,
+  repairHouseholdLines,
 } from "./plan_defect_pass.ts";
 import type { PlanControlFindings } from "./plan_defect_pass.ts";
 import { judgeCandidate, planRepairPass } from "./plan_repair_loop.ts";
@@ -57,6 +60,8 @@ const PLANCHER = (
   coveredFloorG,
   perMealFloorG: null,
   fixedProteinG: null,
+  dayCeilingG: null,
+  coveredCeilingG: null,
   reason: coveredFloorG === null ? "no_body" : "applied_full_day",
 });
 
@@ -619,6 +624,7 @@ Deno.test("C4 ⑧ — la demande de correction porte les trois nombres et ferme 
       dayToken: "sun",
       proteinNowG: 124,
       proteinFloorG: 176,
+      proteinCeilingG: null,
       kcalNow: 2463,
       kcalBudget: 2454,
       dishes: [{
@@ -627,6 +633,8 @@ Deno.test("C4 ⑧ — la demande de correction porte les trois nombres et ferme 
         proteinG: 52,
         servedKcal: 860,
         grams: 343,
+        shared: false,
+        sharedLowerable: false,
       }],
     }],
   });
@@ -800,4 +808,34 @@ Deno.test("⑫ bis — le budget n'est consulté QU'UNE fois, et il en reste un"
   assertEquals(deux.granted, true);
   const trois = budget.askRepair("final_repair", 40_000, 300_000, new Set<string>());
   assertEquals(trois.granted, false, "un TROISIÈME rappel est passé");
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-23 — LE FOYER DANS LA RÉPARATION (`repairHouseholdLines`)
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("épinglage — REPAIR_HOUSEHOLD_MAX_CHARS vaut 8000", () =>
+  assertEquals(REPAIR_HOUSEHOLD_MAX_CHARS, 8000));
+
+Deno.test("le vocabulaire des blocs du foyer est fermé, notes d'abord", () =>
+  assertEquals([...REPAIR_HOUSEHOLD_BLOCKS], ["notes", "cards", "standardRecipe", "sideCourses"]));
+
+Deno.test("⛔ le plafond garde les blocs par priorité et les rend dans l'ordre de lecture", () => {
+  const foyer = {
+    cards: "c".repeat(40),
+    notes: "n".repeat(40),
+    standardRecipe: "r".repeat(40),
+    sideCourses: "s".repeat(40),
+  };
+  // 100 caractères : notes (42) + fiches (42) tiennent, la recette non (126 > 100),
+  // les à-côtés non plus (126 > 100).
+  const serre = repairHouseholdLines(foyer, 100);
+  assertEquals([...serre.kept], ["cards", "notes"]);
+  assertEquals([...serre.dropped], ["standardRecipe", "sideCourses"]);
+  assert(serre.lines.indexOf("c".repeat(40)) < serre.lines.indexOf("n".repeat(40)));
+  // Le cas qui PASSE : tout tient, rien n'est laissé dehors.
+  const large = repairHouseholdLines(foyer, 1_000);
+  assertEquals([...large.kept], ["cards", "notes", "standardRecipe", "sideCourses"]);
+  assertEquals([...large.dropped], []);
+  assertEquals(large.lines.includes("r".repeat(40)), true);
 });

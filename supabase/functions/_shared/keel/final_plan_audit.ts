@@ -63,8 +63,16 @@ import {
   normalizeTerm,
   resolveIngredients,
 } from "./food_composition.ts";
-import { readEnergyBoxDishes, readIngredients, readPreparations } from "./plan_energy_read.ts";
+import {
+  readEnergyBoxDishes,
+  readEnergySideCourses,
+  readIngredients,
+  readPreparations,
+} from "./plan_energy_read.ts";
 import { boxNutrition } from "./mouth_energy.ts";
+// ⟳ 2026-09-23 — L'ÉNERGIE D'UN À-CÔTÉ ET SA LIGNE DE COMPOSITION: une seule
+// écriture, dans le module de l'énergie servie. Voir le pavé ② bis.
+import { measureSideCourses, sideCompositionLine } from "./served_final.ts";
 import {
   foodIdentityOf,
   isNonPurchasableIdentity,
@@ -169,6 +177,21 @@ export function weighLine(
   if (first === undefined) return { kind: "unreadable" };
   return { kind: "measured", grams: first.gramsRaw };
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ② bis ⟳ 2026-09-23 — L'ÉNERGIE D'UN À-CÔTÉ: IMPORTÉE, JAMAIS RÉÉCRITE
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Chantier « assiettes normales », flux F (plan
+// `~/.claude/plans/lexical-gliding-lamport.md`). Un à-côté (entrée, fromage,
+// dessert, pain) vit HORS des boîtes, dans `dishes[i].side_courses[]`: aucune
+// de ses calories n'est dans `boxNutrition`. Sans sa mesure, la journée d'une
+// personne perdrait jusqu'à 35 % de chaque déjeuner et de chaque dîner en
+// silence — et elle se lirait « sous-nourrie » sur un plan juste.
+//
+// ⛔ UNE SEULE ARITHMÉTIQUE, DANS `served_final.ts`, ET TROIS LECTEURS: l'audit
+// des cases (ci-dessous), l'énergie servie finale et `meal-energy-v1`. Ce
+// module l'IMPORTE; `served_final.ts` n'importe pas ce module — pas de cycle.
 
 // ═══════════════════════════════════════════════════════════════════════════
 // ③ LES COURSES — par identité alimentaire, présence ET quantité
@@ -285,6 +308,13 @@ export interface ShoppingAudit {
    * n'envoie de garde-manger. Non nul, il dit que la soustraction a servi.
    */
   readonly pantryNetted: number;
+  /**
+   * ⟳ 2026-09-23 — LES LIGNES DE BESOIN VENUES D'UN À-CÔTÉ (hors soupe tirée
+   * d'une casserole, déjà comptée par ses ingrédients). Écrit même à zéro: sans
+   * lui, « le plan n'a pas d'à-côté » et « l'audit ne les lit pas » rendraient
+   * le même audit.
+   */
+  readonly sideLines: number;
 }
 
 interface RawLine {
@@ -409,6 +439,29 @@ export function shoppingIdentityAudit(args: {
   }
   for (const prep of asArray(args.plan.preparations)) {
     needInputs.push(...readIngredients((prep as { ingredients?: unknown }).ingredients));
+  }
+  // ── ③.a bis ⟳ 2026-09-23 — LES À-CÔTÉS SONT DES BESOINS ─────────────────
+  //
+  // ⛔ SANS CES LIGNES, UNE POMME SERVIE À CÔTÉ N'EXISTE POUR AUCUN CONTRÔLE
+  // D'ACHAT. Elle n'est ni un ingrédient de plat ni un ingrédient de casserole:
+  // elle vit dans `dishes[i].side_courses[]`. La ligne de courses que le moteur
+  // écrit pour elle (flux A, `sideShoppingLines`) sortirait `bought_unused`, et
+  // un à-côté oublié de la liste ne sortirait jamais `not_bought`.
+  //
+  // ⚠️ UNE SOUPE TIRÉE D'UNE CASSEROLE N'AJOUTE RIEN: ses légumes sont déjà des
+  // ingrédients de la préparation, lus juste au-dessus. La compter deux fois
+  // ferait lire un manque sur un plan juste.
+  //
+  // ⚠️ LA MÊME LIGNE QUE SA MESURE D'ÉNERGIE (`sideCompositionLine`): état
+  // `raw` — on achète la pomme qu'on sert —, le slug d'abord, et une masse
+  // absente reste un besoin NON PESÉ, jamais un zéro.
+  let sideLines = 0;
+  for (const side of readEnergySideCourses(args.plan.dishes)) {
+    if (side.preparationId !== null) continue;
+    const line = sideCompositionLine(side);
+    if (line.term === "") continue;
+    sideLines += 1;
+    needInputs.push(line);
   }
   /**
    * ⛔ LA TABLE D'ALIAS EXPLICITE QUE LE PLAN PORTE LUI-MÊME.
@@ -685,6 +738,7 @@ export function shoppingIdentityAudit(args: {
     notPurchasable,
     unverified,
     pantryNetted,
+    sideLines,
   };
 }
 
@@ -803,6 +857,33 @@ export interface CellNutritionRow {
    */
   readonly portionExpected: boolean;
   readonly state: CellState;
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * ⟳ 2026-09-23 — LES À-CÔTÉS DE CETTE CASE, DANS UNE COLONNE À PART.
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ À PART, ET C'EST TOUTE LA RÈGLE. `servedKcal`, `grams`, `densityPer100G`
+   * et `state` restent LE PLAT SEUL: la cible de la case (`composeKcal`) est
+   * celle du plat, ses bornes de masse et son couloir de densité aussi. Fondre
+   * une pomme de 80 kcal dans la densité d'un plat en ferait mentir le couloir
+   * (un plat trop dilué « réparé » par un fromage à côté). C'est la JOURNÉE qui
+   * additionne plat + à-côtés (`dayNutritionTable`).
+   *
+   * `0` = aucun à-côté sur cette case. `null` = au moins un à-côté illisible
+   * (`measureSideCourses`) — jamais 0, et la journée qui le porte devient
+   * `unmeasurable`.
+   *
+   * ⚠️ FACULTATIVES, ET C'EST UN AVEU PLUTÔT QU'UN CHOIX — le patron de
+   * `CompositionRef.ciqualCode`. Les rendre requises ferait échouer le typecheck
+   * de plusieurs fichiers de test d'autres lots qui construisent des lignes
+   * littérales (dont `plan_repair_decision_test.ts`, `plan_defect_pass_test.ts`,
+   * `rounding_bound_test.ts`). Ce n'est PAS une garde désarmée: ce sont des
+   * SORTIES, et `cellNutritionTable` les écrit TOUJOURS, zéro compris. Absentes
+   * (ligne construite à la main) elles valent « aucun à-côté », ce qui est
+   * exactement ce que ces lignes décrivent.
+   */
+  readonly sideKcal?: number | null;
+  readonly sideProteinG?: number | null;
 }
 
 export interface DayNutritionRow {
@@ -812,13 +893,25 @@ export interface DayNutritionRow {
   readonly cellsMeasured: number;
   /** La somme des cibles des cases DEMANDÉES. Jamais la cible du jour. */
   readonly coveredBudgetKcal: number | null;
+  /**
+   * ⟳ 2026-09-23 — PLAT + À-CÔTÉS. Le budget couvert du contrat porte les deux
+   * (Σ plats + Σ à-côtés = budget couvert, plan « assiettes normales », choix
+   * n° 1): comparer le plat seul à ce budget lirait chaque journée à −20 %.
+   */
   readonly servedKcal: number | null;
   readonly deltaPct: number | null;
+  /** ⟳ 2026-09-23 — plat + à-côtés, comme `servedKcal`. */
   readonly proteinG: number | null;
   /** ⟳ 2026-09-15 · BÊTA — la somme des bornes d'arrondi des cases du jour. */
   readonly proteinRoundingG: number | null;
   readonly protein: ProteinFloorAllocation;
   readonly state: "conforme" | "energy_off" | "unmeasurable";
+  /**
+   * ⟳ 2026-09-23 — LA PART DE `servedKcal` QUI VIENT DES À-CÔTÉS. `null` quand
+   * un à-côté du jour est illisible. ⚠️ Facultative pour la raison écrite sur
+   * `CellNutritionRow.sideKcal`: `dayNutritionTable` l'écrit toujours.
+   */
+  readonly sideKcal?: number | null;
 }
 
 /** Une case attendue, telle que la grille du foyer la connaît. */
@@ -971,9 +1064,38 @@ export function cellNutritionTable(args: {
     }
   }
 
+  // ── ⟳ 2026-09-23 — LES À-CÔTÉS, PAR `memberId|day|slot`, EN COLONNE À PART ──
+  //
+  // ⛔ ILS NE TOUCHENT NI `served` NI L'ÉTAT DE LA CASE: la case juge le PLAT
+  // contre la cible du plat. Voir `CellNutritionRow.sideKcal`.
+  // ⚠️ Sans index, la colonne reste `null` sur les cases qui PORTENT un
+  // à-côté, et `0` ailleurs: un à-côté non mesuré n'est pas un à-côté absent.
+  const sidesByCell = new Map<string, { kcal: number | null; proteinG: number | null }>();
+  {
+    const sides = readEnergySideCourses(args.plan.dishes);
+    const measures: readonly { kcal: number | null; proteinG: number | null }[] = args.index === null
+      ? sides.map(() => ({ kcal: null, proteinG: null }))
+      : measureSideCourses({
+        index: args.index,
+        preparations: readPreparations(args.plan.preparations),
+        sides,
+      });
+    sides.forEach((side, k) => {
+      const key = `${side.memberId}|${side.day ?? ""}|${side.slot ?? ""}`;
+      const m = measures[k];
+      const prev = sidesByCell.get(key) ?? { kcal: 0, proteinG: 0 };
+      sidesByCell.set(key, {
+        kcal: prev.kcal === null || m.kcal === null ? null : prev.kcal + m.kcal,
+        proteinG: prev.proteinG === null || m.proteinG === null ? null : prev.proteinG + m.proteinG,
+      });
+    });
+  }
+
   return args.cells.map((cell) => {
     const cellKey = `${cell.day}/${cell.slot}`;
     const hit = served.get(`${cell.memberId}|${cell.day}|${cell.slot}`) ?? null;
+    const side = sidesByCell.get(`${cell.memberId}|${cell.day}|${cell.slot}`) ??
+      { kcal: 0, proteinG: 0 };
     const hasDish = dishKeys.has(cellKey);
     const hasPortion = hit !== null;
     const portionExpected = args.portionsArePersonal || boxedCells.has(cellKey);
@@ -1003,6 +1125,8 @@ export function cellNutritionTable(args: {
       deltaPct: delta === null ? null : delta * 100,
       sharedWith: hit?.sharedWith ?? 0,
       portionExpected,
+      sideKcal: side.kcal,
+      sideProteinG: side.proteinG === null ? null : round1(side.proteinG),
       state: cellStateOf(cell, {
         hasPortion,
         portionExpected,
@@ -1099,6 +1223,19 @@ export interface ProteinFloorAllocation {
   readonly perMealFloorG: number | null;
   /** Les apports fixes déjà déduits — comptés UNE seule fois. */
   readonly fixedProteinG: number | null;
+  /**
+   * ⟳ 2026-09-21 — LE PLAFOND DE LA JOURNÉE ENTIÈRE (`proteinCeilingGFor`,
+   * `PROTEIN_CEILING_G_PER_KG`). `null` = pas de plafond lisible (corps
+   * absent, mineur, enveloppe protégée). Il vit à côté du plancher parce que
+   * la garde le lit sur la MÊME ligne de journée, avec le même dénominateur.
+   */
+  readonly dayCeilingG: number | null;
+  /**
+   * La part du plafond qui revient à la fenêtre composée — LA MÊME règle de
+   * trois que `coveredFloorG`, apports fixes déduits une fois. `null` quand le
+   * plafond ou la couverture manque.
+   */
+  readonly coveredCeilingG: number | null;
   readonly reason: ProteinFloorReason;
 }
 
@@ -1163,23 +1300,40 @@ export function proteinFloorAllocation(args: {
   coveredBudgetGrossKcal: number | null;
   dayTargetKcal: number | null;
   fixedProteinG: number | null;
+  /**
+   * ⟳ 2026-09-21 — `proteinCeilingGFor(...)`, ou `null`. ⛔ REQUIS, jamais
+   * `?`: le compilateur recense les appelants, et un appelant qui ne passe pas
+   * le plafond ne doit pas compiler — sinon `protein_ceiling_over` serait une
+   * cause qui ne sort jamais, et ressemblerait à une cause tenue.
+   */
+  dayCeilingG: number | null;
 }): ProteinFloorAllocation {
-  const base: Omit<ProteinFloorAllocation, "reason" | "coveredFloorG"> = {
+  const base: Omit<
+    ProteinFloorAllocation,
+    "reason" | "coveredFloorG" | "coveredCeilingG"
+  > = {
     dayFloorG: args.dayFloorG,
     perMealFloorG: args.perMealFloorG,
     fixedProteinG: args.fixedProteinG,
+    dayCeilingG: args.dayCeilingG,
   };
   if (args.dayFloorG === null || !(args.dayFloorG > 0)) {
     return {
       ...base,
       coveredFloorG: null,
+      coveredCeilingG: null,
       reason: args.abstention === "protected" ? "protected" : "no_body",
     };
   }
   const day = args.dayTargetKcal;
   const covered = args.coveredBudgetGrossKcal;
   if (day === null || !(day > 0) || covered === null || !(covered >= 0)) {
-    return { ...base, coveredFloorG: null, reason: "coverage_unknown" };
+    return {
+      ...base,
+      coveredFloorG: null,
+      coveredCeilingG: null,
+      reason: "coverage_unknown",
+    };
   }
   // ⚠️ LE RAPPORT EST BORNÉ À 1. Une redistribution autorisée peut faire
   // dépasser le budget couvert de quelques kilocalories la cible du jour; en
@@ -1190,9 +1344,20 @@ export function proteinFloorAllocation(args: {
   const net = args.fixedProteinG === null
     ? gross
     : Math.max(0, gross - args.fixedProteinG);
+  // ⟳ 2026-09-21 — LE PLAFOND SUIT LA MÊME RÈGLE DE TROIS, apports fixes
+  // déduits une fois. Un plafond nul ou illisible ne fabrique rien.
+  const ceilingGross = args.dayCeilingG !== null && args.dayCeilingG > 0
+    ? args.dayCeilingG * fraction
+    : null;
+  const coveredCeilingG = ceilingGross === null
+    ? null
+    : args.fixedProteinG === null
+    ? ceilingGross
+    : Math.max(0, ceilingGross - args.fixedProteinG);
   return {
     ...base,
     coveredFloorG: net,
+    coveredCeilingG,
     reason: fraction >= 1 ? "applied_full_day" : "applied_covered_window",
   };
 }
@@ -1313,10 +1478,21 @@ export function dayNutritionTable(args: {
 }): readonly DayNutritionRow[] {
   return args.days.map((d) => {
     const mine = args.cells.filter((c) => c.memberId === d.memberId && c.date === d.date);
-    const measured = mine.filter((c) => c.servedKcal !== null);
-    const served = measured.reduce((n, c) => n + (c.servedKcal ?? 0), 0);
-    const protein = mine.every((c) => c.proteinG !== null)
-      ? mine.reduce((n, c) => n + (c.proteinG ?? 0), 0)
+    // ⟳ 2026-09-23 — LA JOURNÉE ADDITIONNE PLAT + À-CÔTÉS. Une colonne absente
+    // (ligne construite à la main, d'avant les à-côtés) vaut « aucun à-côté »;
+    // `null` vaut « un à-côté illisible », et la case n'est alors PAS mesurée
+    // pour la journée: sa somme manquerait une part entière, et publier l'écart
+    // ferait passer une mesure absente pour de la nourriture absente.
+    const sideOf = (c: CellNutritionRow): number | null => c.sideKcal === undefined ? 0 : c.sideKcal;
+    const sideProteinOf = (c: CellNutritionRow): number | null =>
+      c.sideProteinG === undefined ? 0 : c.sideProteinG;
+    const measured = mine.filter((c) => c.servedKcal !== null && sideOf(c) !== null);
+    const served = measured.reduce((n, c) => n + (c.servedKcal ?? 0) + (sideOf(c) ?? 0), 0);
+    const sides = mine.every((c) => sideOf(c) !== null)
+      ? mine.reduce((n, c) => n + (sideOf(c) ?? 0), 0)
+      : null;
+    const protein = mine.every((c) => c.proteinG !== null && sideProteinOf(c) !== null)
+      ? mine.reduce((n, c) => n + (c.proteinG ?? 0) + (sideProteinOf(c) ?? 0), 0)
       : null;
     const proteinRounding = protein === null
       ? null
@@ -1342,6 +1518,7 @@ export function dayNutritionTable(args: {
         : Math.abs(delta) <= COVERED_DAY_ENERGY_TOLERANCE
         ? "conforme"
         : "energy_off",
+      sideKcal: sides,
     };
   });
 }

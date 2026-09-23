@@ -57,7 +57,13 @@ import type { MouthBody } from "./meal_envelope.ts";
  * LE CORPS DE LA MESURE DU 2026-08-22 À 03:19:55 CEST. Femme, 31 ans, 165 cm,
  * 68 kg, sédentaire — entretien estimé 1 980 kcal/j. C'est sur lui que le
  * déficit ouvert a été mesuré: cible 1 480 kcal au cran 0,5 kg/semaine, soit
- * **500 kcal/j de moins**, et facteur de boîte **0,7475**.
+ * **550 kcal/j de moins**, et facteur de boîte **0,7222** (A1 = 880 depuis le 2026-09-22).
+ *
+ * ⟳ 2026-09-23 — L'ÂGE EXACT (31 ans) remplace le milieu de la tranche 30_44
+ * (37 ans) dans l'équation du corps. Les nombres de la mesure ci-dessus
+ * restent ceux de la mesure ; ceux que le moteur rend aujourd'hui :
+ *   BMR = 10×68 + 6,25×165 − 5×31 − 161 = 1 395,25 ; × 1,45 = 2 023,1 → 2 023
+ *   cible au cran 0,5 kg/sem = 2 023 − 550 = 1 473 ; facteur = 1 473/2 023 = 0,7281
  */
 const HER: MouthBody = {
   appetite: null,
@@ -106,9 +112,12 @@ Deno.test("⛔ LE CAS QUI MORD — enceinte + une PERTE: l'ancre absolue s'absti
   // même propriété; c'est la base qui a fait l'aller-retour, et il est écrit ici
   // pour que le prochain lecteur ne le refasse pas une troisième fois.
   //
-  // ⛔ CE QUI EST GARDÉ EST LE DÉFICIT, ET IL VAUT TOUJOURS 500 kcal/j: c'est
-  // A1, et c'est lui que la condition doit pouvoir annuler. Entretien 1 980.
-  assertEquals(ouvert.kcal, 1480, "prémisse: entretien 1 980 moins le déficit A1 de 500");
+  // ⛔ CE QUI EST GARDÉ EST LE DÉFICIT, ET IL VAUT 550 kcal/j (le cran de
+  // 0,5 kg/sem ; A1 vaut 880 depuis le 2026-09-22 et ne mord plus ici) : c'est
+  // lui que la condition doit pouvoir annuler. Entretien 1 980.
+  // ⟳ 2026-09-23 — entretien 2 023 à l'âge exact (31 ans, voir l'en-tête du
+  // corps) : 2 023 − 550 = 1 473 (1 430 au milieu de tranche).
+  assertEquals(ouvert.kcal, 1473, "prémisse: entretien 2 023 moins le déficit de 550");
 
   for (const ref of DEFICIT_CANCELLING_CONDITION_REFS) {
     const out = mouthTargetKcal(ANCHOR([ref], "down"), "no_position");

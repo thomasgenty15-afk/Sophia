@@ -247,6 +247,35 @@ export type PortionAdjustValue = {
 };
 
 /**
+ * ⛔ LA FORCE D'UN REFUS — `never` ou `less`. 2026-09-22.
+ *
+ * ── LE DÉFAUT QUE CE CHAMP FERME, MESURÉ SUR LE SEUL COMPTE RÉEL ─────────
+ * « Pas **autant** de petit suisse le matin » est devenue un `food.exclude`,
+ * c'est-à-dire une INTERDICTION TOTALE. La personne a demandé *moins*; la
+ * ceinture a retiré l'aliment de toutes les boîtes, pour toujours. Le produit
+ * n'avait que deux pôles — servir et ne jamais servir — et une phrase de
+ * quantité tombait sur le pôle fort.
+ *
+ * C'est le défaut qui FABRIQUE des faux souvenirs, et il est pire que ceux qui
+ * les conservent: la personne lit sur sa carte une règle qu'elle n'a pas
+ * donnée, et le seul moyen de s'en apercevoir est de remarquer l'absence.
+ *
+ *   `never`  — « plus jamais de curry ». La CEINTURE mord: l'aliment est
+ *              retiré du contenant de cette bouche.
+ *   `less`   — « pas autant de petit suisse ». Une DIRECTION, lue par le
+ *              modèle sur la carte, et **jamais** appliquée par la ceinture.
+ *
+ * ⛔ ET IL N'EXISTE PAS SUR `food.prefer` / `method.prefer`, ce qui n'est pas
+ * une asymétrie de confort: aucun lecteur ne saurait distinguer « j'aimerais
+ * plus de légumes » de « il me faut des légumes ». Une valeur dont personne ne
+ * lit la différence est une valeur décorative, et une valeur décorative finit
+ * par être pilotée (règle fondatrice de ce fichier). Les deux familles portent
+ * donc `force?: never`, et l'interdit est nommé sur elles.
+ */
+export const EXCLUSION_FORCES = ["never", "less"] as const;
+export type ExclusionForce = (typeof EXCLUSION_FORCES)[number];
+
+/**
  * LES SIX MOMENTS, RECOPIÉS de `EATING_OCCASIONS` (`meal_generation.ts`).
  *
  * La recopie n'est pas de la paresse, c'est le patron de `household_habits.ts`:
@@ -459,6 +488,87 @@ export type RetainedItem =
     readonly kind: "food.exclude" | "food.prefer" | "method.avoid" | "method.prefer";
     readonly scope: RetainedScope;
     readonly value: null;
+    /**
+     * ⛔ LA FORCE DU REFUS — REQUIS, et `null` sur les familles qui veulent.
+     *
+     * `food.exclude` / `method.avoid` portent `"never"` ou `"less"`.
+     * `food.prefer` / `method.prefer` portent **`null`**, toujours: voir
+     * `EXCLUSION_FORCES` — aucun lecteur ne distingue deux degrés d'envie.
+     *
+     * ⚠️ REQUIS ET NULLABLE, JAMAIS `?`, pour la raison écrite sur `occasion`
+     * six lignes plus haut: optionnel, chaque producteur l'aurait oublié et la
+     * garde serait restée décorative.
+     *
+     * ⛔ ET LE DÉFAUT PAR DÉFAUT EST `"never"`, PAS `"less"`. Une ligne écrite
+     * AVANT ce lot n'a pas la clé: la relire en `"less"` DÉSARMERAIT toutes
+     * les exclusions déjà en base — « plus jamais de curry » cesserait de
+     * mordre, en silence, le jour du déploiement. Le repli va donc vers la
+     * règle FORTE, celle qui protège; l'imprécision coûte un plat évité de
+     * trop, jamais un plat servi à qui l'a refusé.
+     */
+    readonly force: ExclusionForce | null;
+    /**
+     * ⛔ LE MOMENT DE LA JOURNÉE OÙ LA RÈGLE VAUT — requis, et `null` est la
+     * réponse normale.
+     *
+     * ── LE DÉFAUT QUE CE CHAMP FERME, MESURÉ LE 2026-09-21 ────────────────
+     * « Je veux pas de choses genre tofu, poissons au petit déjeuné » est
+     * devenue UN `food.exclude` dont le `text` était la phrase entière. Le
+     * moment était donc DANS le texte, et trois lecteurs l'ont payé:
+     *   · la ceinture n'a rien cherché — `isBarePhrase` rend `true` sur ce
+     *     texte (aucun pronom, aucune négation), donc la règle n'a mordu que
+     *     si TOUS ses mots étaient dans le plat. Un petit-déjeuner au tofu
+     *     n'en porte qu'un;
+     *   · la carte l'a servie en prose au modèle, sous une seule bouche;
+     *   · rien n'a pu dire si le plan l'avait tenue.
+     * Résultat: tofu au petit-déjeuner partagé, deux jours plus tard.
+     *
+     * ── ⚠️ REQUIS ET NULLABLE, JAMAIS `?` ────────────────────────────────
+     * Cicatrice nommée du dépôt: « paramètre de garde optionnel = garde
+     * désarmée ». Optionnel, chaque producteur l'aurait oublié en silence et
+     * la garde serait restée décorative. `null` veut dire « la phrase ne
+     * nomme aucun moment », et c'est une information — pas un vide.
+     *
+     * ⛔ LE VOCABULAIRE EST CELUI DES SIX MOMENTS, et un jeton hors liste fait
+     * tomber l'item ENTIER. Pas de repli sur `null`: un moment illisible
+     * transformerait une règle du matin en règle de toute la journée, ce qui
+     * est PLUS large que ce que la personne a dit.
+     */
+    readonly occasion: RhythmOccasion | null;
+    /**
+     * ⛔ L'IDENTIFIANT DU RÉFÉRENTIEL, À CÔTÉ DES MOTS — 2026-09-22, lot A.
+     *
+     * ── LE DÉFAUT QUE CE CHAMP FERME, MESURÉ SUR LE SEUL COMPTE RÉEL ─────
+     * **4 souvenirs sur 9 résolvent contre le référentiel. Cinq non.**
+     * `lesoeufs`, `flocons d'avoines`, `bol de muesli`, `petit suisse` — des
+     * souvenirs qui s'affichent et ne font RIEN: la ceinture n'y trouve aucun
+     * aliment, et le constat ne peut rien vérifier. Trois de ces quatre échecs
+     * sont de la MISE EN FORME, et résolvent dès qu'on les écrit autrement:
+     * `oeufs` → `whole_eggs`, `flocons d'avoine` (singulier) → `oats`,
+     * `muesli` → `granola`.
+     *
+     * ── ⛔ POURQUOI `text` NE PEUT PAS SUFFIRE ───────────────────────
+     * Il sert à DEUX choses incompatibles: la ligne que la personne LIT sur sa
+     * carte (ses mots, sa langue, sa faute) et la clé que la machine CHERCHE
+     * dans les plats. Un seul champ pour les deux en rend toujours un faux —
+     * fidèle à la lettre ⇒ inutilisable; utilisable ⇒ la personne lit une
+     * phrase qu'elle n'a pas écrite. `text` ne bouge donc pas: le slug vient
+     * À CÔTÉ, et il n'est jamais montré (il est anglais — le confondre avec le
+     * libellé traduirait l'identifiant, même règle que `DishIngredient.ref`).
+     *
+     * ── ⛔ ET IL N'EST PAS ÉCRIT PAR LE MODÈLE ──────────────────────
+     * Il n'a ni les 945 slugs ni les 2 739 alias en tête, et une consigne de
+     * prompt vient de le prouver: « écris l'aliment correctement » a produit
+     * `les œufs`, qui ne résout RIEN — seul `oeufs` résout. La seule
+     * orthographe correcte est celle que le référentiel connaît, et elle se
+     * LIT. La résolution est déterministe (`resolveIngredient`): égalité de
+     * clé, alias, faux amis nommés un par un, **aucune distance d'édition**.
+     *
+     * ⚠️ `null` VEUT DIRE « RIEN NE RÉSOUT », et ça se COMPTE: un souvenir sans
+     * clé est décoratif, et le taux de résolution est la seule mesure qui dise
+     * si la mémoire agit.
+     */
+    readonly ref: string | null;
   })
   | (RetainedItemBase & {
     /** ⚠️ TOUJOURS `next_plan`. Une envie qui devient durable cesse d'être une
@@ -466,6 +576,14 @@ export type RetainedItem =
     readonly kind: "craving";
     readonly scope: "next_plan";
     readonly value: null;
+    /** ⛔ Interdits nommés: une envie de la semaine n'a ni créneau ni degré —
+     * elle est ponctuelle par construction. */
+    readonly occasion?: never;
+    readonly force?: never;
+    /** ⛔ Interdit nommé: cette famille ne désigne aucun aliment du
+     * référentiel — une envie est un plat qu'on compose, une part est un fait
+     * de corps, un moment est une heure, un réglage porte une valeur. */
+    readonly ref?: never;
   })
   | (RetainedItemBase & {
     /** ⚠️ TOUJOURS `durable`. Un corps ne change pas d'une semaine sur l'autre;
@@ -474,17 +592,126 @@ export type RetainedItem =
     readonly kind: "portion.adjust";
     readonly scope: "durable";
     readonly value: PortionAdjustValue;
+    /** ⛔ Interdit nommé: une part est un fait de CORPS, pas de créneau. Un
+     * repas léger au matin est un autre objet — la case « repas léger » de la
+     * fiche (`household_member_habits.light`), et pas une ligne de mémoire.
+     * ⛔ Et sa force EST son `magnitude`: une seconde échelle divergerait. */
+    readonly occasion?: never;
+    readonly force?: never;
+    /** ⛔ Interdit nommé: cette famille ne désigne aucun aliment du
+     * référentiel — une envie est un plat qu'on compose, une part est un fait
+     * de corps, un moment est une heure, un réglage porte une valeur. */
+    readonly ref?: never;
   })
   | (RetainedItemBase & {
     readonly kind: "rhythm.set";
     readonly scope: RetainedScope;
     readonly value: RhythmSetValue;
+    /** ⛔ Interdit nommé: le moment est DANS `value.occasion`. Deux endroits
+     * pour le même fait divergeraient, et c'est celui qu'on relit le moins qui
+     * gouvernerait l'assiette. ⛔ Et un moment existe ou n'existe pas: il
+     * n'existe pas « moins ». */
+    readonly occasion?: never;
+    readonly force?: never;
+    /** ⛔ Interdit nommé: cette famille ne désigne aucun aliment du
+     * référentiel — une envie est un plat qu'on compose, une part est un fait
+     * de corps, un moment est une heure, un réglage porte une valeur. */
+    readonly ref?: never;
   })
   | (RetainedItemBase & {
     readonly kind: "logistics.set";
     readonly scope: RetainedScope;
     readonly value: LogisticsSetValue;
+    /** ⛔ Interdits nommés: les jours de cuisine n'ont ni heure de repas ni
+     * intensité — un réglage porte une valeur. */
+    readonly occasion?: never;
+    readonly force?: never;
+    /** ⛔ Interdit nommé: cette famille ne désigne aucun aliment du
+     * référentiel — une envie est un plat qu'on compose, une part est un fait
+     * de corps, un moment est une heure, un réglage porte une valeur. */
+    readonly ref?: never;
   });
+
+// ===========================================================================
+// ⟳ 2026-09-22 · LA SUPERSESSION — ce qui remplace, au lieu de s'empiler
+// ===========================================================================
+
+/**
+ * ⛔ LE DÉFAUT QUE CETTE RÈGLE FERME, MESURÉ SUR LE SEUL COMPTE RÉEL.
+ *
+ * Le magasin ne faisait que GROSSIR. Neuf souvenirs durables en trois jours,
+ * et rien, nulle part, ne pouvait en retirer un: `next_plan` expire,
+ * `durable` jamais. Une personne qui dit « plus de poisson » puis, deux jours
+ * plus tard, « finalement du poisson le matin ça me va » se retrouvait avec
+ * LES DEUX lignes en base, servies ensemble au modèle, triées par date —
+ * c'est-à-dire une contradiction qu'aucun lecteur ne peut trancher et que la
+ * personne ne peut défaire qu'à la main.
+ *
+ * Une mémoire qui ne se dément jamais n'apprend pas: elle accumule.
+ *
+ * ── CE QUI COMPTE COMME UN DÉMENTI, ET RIEN D'AUTRE ──────────────────
+ * Les deux lignes doivent viser **la même chose pour la même personne au même
+ * moment** — même `subject`, même `occasion`, même `text`. Et alors:
+ *
+ *   · POLARITÉ OPPOSÉE — `food.exclude` ↔ `food.prefer`,
+ *     `method.avoid` ↔ `method.prefer`. « Je n'en veux plus » puis « j'en
+ *     veux »: la seconde phrase dit que la première n'est plus vraie.
+ *   · MÊME FAMILLE, FORCE DIFFÉRENTE — « plus jamais de fromage » devenu
+ *     « un peu moins de fromage ». Garder les deux ferait mordre la ceinture
+ *     sur la règle forte alors que la personne vient de l'adoucir.
+ *
+ * ── ⛔ L'ÉGALITÉ DE TEXTE EST UNE JOINTURE, PAS UNE RESSEMBLANCE ────────
+ * `trim` et minuscules, **et rien d'autre**. Pas de pluriel déposé, pas
+ * d'accents retirés, pas de distance d'édition. Ce dépôt a mesuré 12 faux
+ * positifs sur 12 le jour où quelqu'un a cru savoir que « laitue » et « lait »
+ * parlaient de la même chose — et ici un faux positif EFFACE un souvenir que
+ * la personne avait donné. Conservateur par construction: dans le doute, les
+ * deux lignes restent, et c'est le comportement d'avant ce lot.
+ *
+ * ── ⚠️ ET JAMAIS À REBOURS ─────────────────────────────────────
+ * Une ligne plus RÉCENTE que la nouvelle ne se retire pas. Sans ce garde-fou,
+ * rejouer une vieille note (une relance, un import) ferait tomber ce que la
+ * personne a dit depuis — la mémoire apprendrait à l'envers.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+const OPPOSITE_OF: Readonly<Partial<Record<RetainedKind, RetainedKind>>> = {
+  "food.exclude": "food.prefer",
+  "food.prefer": "food.exclude",
+  "method.avoid": "method.prefer",
+  "method.prefer": "method.avoid",
+};
+
+/** Le texte, réduit à ce qui fait l'identité. ⛔ Jointure, pas ressemblance. */
+const sameText = (a: string, b: string): boolean =>
+  a.trim().toLowerCase() === b.trim().toLowerCase();
+
+export function supersedes(next: RetainedItem, prior: RetainedItem): boolean {
+  if (String(next.subject) !== String(prior.subject)) return false;
+  if (!sameText(next.text, prior.text)) return false;
+
+  // ⛔ LE MOMENT FAIT PARTIE DE L'IDENTITÉ. « Pas de poisson le matin » et
+  // « du poisson le soir ça me va » ne se contredisent PAS: ce sont deux règles
+  // qui coexistent. Les fondre effacerait la moitié de ce que la personne a dit.
+  const nextOccasion = (next as { occasion?: unknown }).occasion ?? null;
+  const priorOccasion = (prior as { occasion?: unknown }).occasion ?? null;
+  if (nextOccasion !== priorOccasion) return false;
+
+  // ⚠️ JAMAIS À REBOURS: une ligne postérieure survit à une phrase antérieure.
+  if (prior.at > next.at) return false;
+
+  const opposite = OPPOSITE_OF[next.kind];
+  if (opposite !== undefined && prior.kind === opposite) return true;
+
+  if (next.kind === prior.kind) {
+    const nextForce = (next as { force?: unknown }).force ?? null;
+    const priorForce = (prior as { force?: unknown }).force ?? null;
+    // Même famille, même force ⇒ c'est un DOUBLON, pas un démenti: il est déjà
+    // refusé en amont (`alreadyStored`), et le traiter ici en ferait deux règles.
+    return nextForce !== null && priorForce !== null && nextForce !== priorForce;
+  }
+  return false;
+}
 
 /** Le seul `kind` dont le sujet se calcule. Alias pour que la signature de
  * `subjectsForPortionAdjust` refuse les sept autres À LA COMPILATION. */
@@ -917,6 +1144,76 @@ function parsePortionAdjustValue(value: unknown): PortionAdjustValue | null {
   };
 }
 
+/**
+ * LE MOMENT D'UN SOUVENIR — `null`, un jeton, ou un REFUS.
+ *
+ * ⚠️ TROIS SORTIES ET PAS DEUX, et c'est tout l'intérêt. Un parseur à deux
+ * sorties devrait choisir entre « absent » et « illisible », et il replierait
+ * donc un jeton inconnu sur `null` — c'est-à-dire sur « vaut toute la
+ * journée », la lecture la PLUS large. Le refus remonte, l'item tombe, et le
+ * producteur cassé se voit.
+ */
+function parseRetainedOccasion(
+  value: unknown,
+): RhythmOccasion | null | typeof REFUSED {
+  if (value === undefined || value === null) return null;
+  const slot = String(value).trim().toLowerCase();
+  if (slot === "") return null;
+  return (RHYTHM_OCCASIONS as readonly string[]).includes(slot)
+    ? slot as RhythmOccasion
+    : REFUSED;
+}
+
+/**
+ * LA FORCE D'UN REFUS — trois sorties, comme `parseRetainedOccasion`.
+ *
+ * ⛔ MAIS LE REPLI VA DANS L'AUTRE SENS, ET C'EST LE POINT. Une `occasion`
+ * absente vaut `null` = « toute la journée », la lecture la plus LARGE. Une
+ * `force` absente vaut `"never"`, la lecture la plus FORTE — parce que toutes
+ * les lignes écrites avant ce lot sont des interdictions, et les relire en
+ * `"less"` désarmerait la ceinture sur toute la base, en silence.
+ *
+ * Un jeton hors liste reste un REFUS: « je n'ai pas su lire » ne devient ni
+ * « jamais » ni « moins ».
+ */
+function parseExclusionForce(
+  value: unknown,
+  kind: RetainedKind,
+): ExclusionForce | null | typeof REFUSED {
+  // ⛔ LES FAMILLES QUI VEULENT N'EN ONT PAS, et une clé posée sur elles est un
+  // producteur qui invente une distinction que personne ne lit.
+  if (kind === "food.prefer" || kind === "method.prefer") {
+    return value === undefined || value === null ? null : REFUSED;
+  }
+  if (value === undefined || value === null) return "never";
+  const force = String(value).trim().toLowerCase();
+  if (force === "") return "never";
+  return (EXCLUSION_FORCES as readonly string[]).includes(force)
+    ? force as ExclusionForce
+    : REFUSED;
+}
+
+/**
+ * LA FORME D'UN SLUG — `a-z`, `0-9`, `_`, et rien d'autre.
+ *
+ * ⛔ CE N'EST PAS UNE VÉRIFICATION D'EXISTENCE, et le dire vaut mieux que de
+ * laisser croire le contraire: ce module est PUR, il n'a pas le référentiel, et
+ * il ne peut pas savoir si `oats` existe. Il vérifie la FORME; c'est
+ * `resolveIngredient` qui a produit la valeur, et lui seul sait.
+ *
+ * ⚠️ LA FORME SUFFIT POUR CE QU'ELLE GARDE: un `ref` qui porterait des
+ * espaces ou des accents serait du TEXTE déguisé en identifiant, c'est-à-dire
+ * exactement le rapprochement approximatif que le lot A existe pour retirer.
+ */
+const SLUG_RE = /^[a-z0-9_]+$/;
+
+function parseRetainedRef(value: unknown): string | null | typeof REFUSED {
+  if (value === undefined || value === null) return null;
+  const slug = String(value).trim();
+  if (slug === "") return null;
+  return SLUG_RE.test(slug) ? slug : REFUSED;
+}
+
 function parseRhythmSetValue(value: unknown): RhythmSetValue | null {
   const row = asRecord(value);
   if (!row) return null;
@@ -1059,11 +1356,27 @@ export function parseRetainedItem(value: unknown): RetainedItem | null {
     case "food.exclude":
     case "food.prefer":
     case "method.avoid":
-    case "method.prefer":
+    case "method.prefer": {
       // `value` doit être absent ou `null`. Un objet ici veut dire qu'un
       // producteur a inventé une structure pour une famille qui n'en a pas.
       if (row.value !== undefined && row.value !== null) return null;
-      return { ...base, kind, scope, value: null };
+      // ⛔ LE MOMENT: absent ou `null` ⇒ `null`; un jeton de la liste ⇒ lui;
+      // TOUT LE RESTE ⇒ l'item tombe. Un repli sur `null` élargirait une règle
+      // du matin à la journée entière, c'est-à-dire écrirait une règle que la
+      // personne n'a pas dite. Une ligne d'AVANT ce lot n'a pas la clé: elle
+      // se lit `null`, et c'est exact — on ne devine pas rétroactivement.
+      const occasion = parseRetainedOccasion(row.occasion);
+      if (occasion === REFUSED) return null;
+      const force = parseExclusionForce(row.force, kind);
+      if (force === REFUSED) return null;
+      // ⛔ UNE FORME QUI N'EST PAS UN SLUG FAIT TOMBER L'ITEM, elle ne se
+      // replie pas sur `null`. Replier ferait passer un texte libre pour
+      // « rien ne résout », et le compteur de résolution mentirait dans le sens
+      // qui rassure.
+      const ref = parseRetainedRef(row.ref);
+      if (ref === REFUSED) return null;
+      return { ...base, kind, scope, value: null, occasion, force, ref };
+    }
 
     case "craving":
       if (scope !== "next_plan") return null;
@@ -1209,6 +1522,20 @@ export function retainedItemToJson(item: RetainedItem): Record<string, unknown> 
     // vient d'une version qui ne connaissait pas le champ » en est une autre,
     // et seule la seconde se lit sur une clé absente.
     quote: item.quote,
+    // ⚠️ ÉCRIT MÊME À `null`, pour la même raison que `quote`: une clé absente
+    // dit « cette ligne vient d'une version qui ne connaissait pas le moment »,
+    // une clé nulle dit « la phrase n'en nommait aucun ». Les deux se relisent
+    // pareil, elles ne se déboguent pas pareil.
+    //
+    // ⛔ ET SEULES LES QUATRE FAMILLES D'ALIMENTS LA PORTENT. Les autres ont
+    // `occasion?: never`: écrire la clé chez elles la rendrait lisible par un
+    // producteur d'une autre version, et un créneau sur une part est
+    // exactement la seconde vérité que le tiroir de la taille existe pour
+    // éviter.
+    ...(item.kind === "food.exclude" || item.kind === "food.prefer" ||
+        item.kind === "method.avoid" || item.kind === "method.prefer"
+      ? { occasion: item.occasion, force: item.force, ref: item.ref }
+      : {}),
   };
 }
 

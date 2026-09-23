@@ -133,14 +133,18 @@ Deno.test("⛔ le cas de 60 kg du design ne produit JAMAIS une cible à 600 kcal
   const c = paceCeilingFor("down", adult({ weightKg: 60 }));
   assert(c !== null);
   assert(
-    c.maxKgPerWeek < MAX_KG_PER_WEEK,
+    c.maxKgPerWeek < MAX_KG_PER_WEEK.down,
     `le plafond absolu ne doit pas s'appliquer tel quel: ${c.maxKgPerWeek}`,
   );
   // L'écart quotidien du cran maximal, comparé au plancher: la journée reste
   // au-dessus. C'est la propriété, pas le nombre.
-  const maintenance = 60 * 30; // ordre de grandeur, ~1 800
+  // ⟳ 2026-09-22 — l'entretien est celui que le plafond a lui-même lu, pas
+  // un ordre de grandeur : à A1 = 880, « 60 × 30 » passait ou cassait au gré
+  // de l'écart entre l'approximation et la fonction, et ne prouvait rien.
+  const maintenance = estimatedMaintenanceFor(adult({ weightKg: 60 }));
+  assert(maintenance !== null);
   assert(
-    maintenance - c.dailyDeltaKcal > energyFloorFor("female"),
+    maintenance - c.dailyDeltaKcal >= energyFloorFor("female"),
     `${maintenance - c.dailyDeltaKcal} kcal/j est sous le plancher`,
   );
 });
@@ -158,7 +162,7 @@ Deno.test("le plafond s'ADAPTE: deux gabarits ne reçoivent pas le même cran", 
     small.maxKgPerWeek < large.maxKgPerWeek,
     `${small.maxKgPerWeek} devrait être sous ${large.maxKgPerWeek}`,
   );
-  assert(large.maxKgPerWeek <= MAX_KG_PER_WEEK, "le plafond absolu tient encore");
+  assert(large.maxKgPerWeek <= MAX_KG_PER_WEEK.down, "le plafond absolu tient encore");
 });
 
 Deno.test("aucun cran ne dépasse le plafond absolu, sur toute la plage de corps", () => {
@@ -168,7 +172,7 @@ Deno.test("aucun cran ne dépasse le plafond absolu, sur toute la plage de corps
     for (const g of ["male", "female", "other", null] as const) {
       const c = paceCeilingFor("down", adult({ weightKg: w, gender: g, heightCm: 180 }));
       if (c === null) continue;
-      assert(c.maxKgPerWeek <= MAX_KG_PER_WEEK, `${w}kg/${g}: ${c.maxKgPerWeek}`);
+      assert(c.maxKgPerWeek <= MAX_KG_PER_WEEK.down, `${w}kg/${g}: ${c.maxKgPerWeek}`);
       assert(
         c.maxKgPerWeek <= w * MAX_WEEKLY_BODY_FRACTION + 1e-9,
         `${w}kg/${g}: le gabarit est dépassé`,
@@ -177,35 +181,62 @@ Deno.test("aucun cran ne dépasse le plafond absolu, sur toute la plage de corps
   }
 });
 
-Deno.test("⚠️ une PRISE monte jusqu'à la borne DURE — le seuil de 0,5 kg n'en est pas une", () => {
-  // ── LE TEST QUE CE FICHIER PORTAIT, ET QUI DISAIT L'INVERSE DE SA CITATION ─
-  // Il citait le §Bloc 2 — « au-delà d'environ 0,5 kg/semaine le surplus part
-  // surtout en gras » — puis affirmait `maxKgPerWeek <= 0.5`. La phrase citée
-  // se termine par « le slider le DIT, il ne l'interdit pas ». Le test avait
-  // donc gelé la moitié de la décision et jeté l'autre, et il gardait vert un
-  // slider qui plafonnait un adulte de 70 kg à 0,30 kg/semaine.
-  //
-  // Les TROIS bornes du MIN sont dures. Le seuil de 0,5 kg est un
-  // AVERTISSEMENT (`paceWarning`). Ce test tient la différence.
-  const up = paceCeilingFor("up", adult({ weightKg: 70, gender: "male" }));
-  assert(up !== null);
-  assertEquals(up.maxKgPerWeek, 0.7);
-  assertEquals(up.bound, "body_fraction");
-  // Et il PARLE au lieu de refuser.
-  assertEquals(paceWarning("up", up.maxKgPerWeek), "surplus_becomes_fat");
+Deno.test("⟳ 2026-09-23 — les plafonds absolus: 0,8 kg en perte, 0,5 kg en prise", () => {
+  // Décision du propriétaire du 2026-09-23. Nombres EN DUR: un test qui les
+  // relirait dans la constante resterait vert quand on la change.
+  assertEquals(MAX_KG_PER_WEEK.down, 0.8);
+  assertEquals(MAX_KG_PER_WEEK.up, 0.5);
+  assertEquals(MAX_WEEKLY_BODY_FRACTION, 0.01);
 });
 
-Deno.test("le plafond ABSOLU est le seul mur d'une prise, et il tient", () => {
-  // Au-delà de 100 kg, le 1 % du poids dépasse le kilo: c'est LE cas — et le
-  // seul du module — où `absolute_cap` gagne sur un corps réel. Avant
-  // l'ouverture du 2026-08-18 il ne gagnait JAMAIS, sur aucun des 72 320 corps
-  // balayés, et une phrase d'interface lui était pourtant destinée.
-  for (const weightKg of [110, 150, 250]) {
+Deno.test("MORD — Thomas (72 kg) peut prendre 0,5 kg/sem, Fabrice (93 kg) perdre 0,8", () => {
+  // Les deux corps du foyer de test du 2026-09-23. Du 2026-09-21 au
+  // 2026-09-23, le gabarit d'une prise valait 0,5 % du poids: 72 × 0,005 =
+  // 0,36, arrondi à 0,35 — son cran de 0,45 était exécuté à 0,35 sans que le
+  // curseur le montre. 72 × 1 % = 0,72, au-dessus de 0,5: le plafond absolu
+  // gagne.
+  const thomas = paceCeilingFor(
+    "up",
+    adult({ weightKg: 72, heightCm: 187, gender: "male", ageYears: 28 }),
+  );
+  assert(thomas !== null);
+  assertEquals(thomas.maxKgPerWeek, 0.5);
+  assertEquals(thomas.bound, "absolute_cap");
+  // 0,5 × 7 700 / 7 = 550 kcal/jour, exécutés tels quels.
+  assertEquals(thomas.dailyDeltaKcal, 550);
+  // 93 × 1 % = 0,93; A1 = 880 kcal/j = 0,8 kg; le plafond absolu 0,8. Égalité
+  // entre A1 et le plafond: la règle des égalités nomme la borne du corps.
+  const fabrice = paceCeilingFor(
+    "down",
+    adult({ weightKg: 93, heightCm: 173, gender: "male", ageYears: 59 }),
+  );
+  assert(fabrice !== null);
+  assertEquals(fabrice.maxKgPerWeek, 0.8);
+  assertEquals(fabrice.dailyDeltaKcal, 880);
+});
+
+Deno.test("le gabarit (1 % du poids) reste la borne des petits corps, dans les deux sens", () => {
+  // 45 kg × 1 % = 0,45 < 0,5: en prise, c'est le corps qui décide.
+  const small = paceCeilingFor("up", adult({ weightKg: 45, gender: "female" }));
+  assert(small !== null);
+  assertEquals(small.maxKgPerWeek, 0.45);
+  assertEquals(small.bound, "body_fraction");
+  // Dès 50 kg, le plafond absolu d'une prise gagne, jusqu'aux plus grands.
+  for (const weightKg of [55, 72, 110, 250]) {
     const up = paceCeilingFor("up", adult({ weightKg, gender: "male" }));
     assert(up !== null);
+    assertEquals(up.maxKgPerWeek, 0.5, `à ${weightKg} kg`);
     assertEquals(up.bound, "absolute_cap", `à ${weightKg} kg`);
-    assertEquals(up.maxKgPerWeek, MAX_KG_PER_WEEK);
   }
+});
+
+Deno.test("PASSE À CÔTÉ — la phrase « part surtout en gras » ne parle plus: le plafond vaut son seuil", () => {
+  // Le seuil se FRANCHIT (> 0,5), il ne s'atteint pas; le curseur s'arrête à 0,5.
+  const up = paceCeilingFor("up", adult({ weightKg: 120, gender: "male" }));
+  assert(up !== null);
+  assertEquals(paceWarning("up", up.maxKgPerWeek), null);
+  // La fonction, elle, garde un cas qui passe.
+  assertEquals(paceWarning("up", 0.55), "surplus_becomes_fat");
 });
 
 Deno.test("⚠️ l'ouverture de la prise ne touche PAS un mineur", () => {
@@ -342,7 +373,9 @@ Deno.test("③ sur une PRISE, chaque cran du curseur est exécuté TEL QUEL", ()
   });
   const ceiling = paceCeilingFor("up", her);
   assert(ceiling !== null);
-  assertEquals(ceiling.maxKgPerWeek, 0.6);
+  // ⟳ 2026-09-23 — 60 kg × 1 % = 0,60, au-dessus du plafond absolu d'une
+  // prise: 0,5 kg/sem.
+  assertEquals(ceiling.maxKgPerWeek, 0.5);
 
   let previous = 0;
   for (let kg = 0.05; kg <= ceiling.maxKgPerWeek + 1e-9; kg += 0.05) {
@@ -362,7 +395,7 @@ Deno.test("③ sur une PRISE, chaque cran du curseur est exécuté TEL QUEL", ()
   // 0,60 sur ce corps vaut ~660 kcal/jour — bien au-delà des +10 % (~196) qui
   // la rabotaient avant. C'est le nombre qu'elle a réglé, et c'est celui
   // qu'elle reçoit.
-  assertEquals(previous, Math.round((0.6 * KCAL_PER_KG_BODY_MASS) / 7));
+  assertEquals(previous, Math.round((0.5 * KCAL_PER_KG_BODY_MASS) / 7));
 });
 
 Deno.test("③ le plafond du curseur est la SEULE borne d'une prise d'adulte, et elle a son cas", () => {
@@ -376,11 +409,14 @@ Deno.test("③ le plafond du curseur est la SEULE borne d'une prise d'adulte, et
   assertEquals(above.clampedBy, "slider_ceiling");
   assertEquals(above.dailyDeltaKcal, Math.round((ceiling.maxKgPerWeek * KCAL_PER_KG_BODY_MASS) / 7));
   assert(above.kgPerWeek <= ceiling.maxKgPerWeek + 1e-9);
-  // Et sur un grand gabarit, le plafond absolu (1 kg) est celui du curseur
-  // ET celui du moteur: 1,0 y passe en `chosen`.
-  const big = adult({ weightKg: 150, heightCm: 190, gender: "male", ageYears: 40 });
-  assertEquals(paceCeilingFor("up", big)!.maxKgPerWeek, MAX_KG_PER_WEEK);
-  assertEquals(executedPaceFor("up", big, 1.0)!.clampedBy, "chosen");
+  // Et sur un grand gabarit, le plafond absolu (⟳ 2026-09-23: 0,5 kg en prise)
+  // est celui du curseur ET celui du moteur: 0,5 y passe en `chosen`, 1,0 est
+  // raboté au même endroit.
+  const big = adult({ weightKg: 250, heightCm: 190, gender: "male", ageYears: 40 });
+  assertEquals(paceCeilingFor("up", big)!.maxKgPerWeek, 0.5);
+  assertEquals(executedPaceFor("up", big, 0.5)!.clampedBy, "chosen");
+  assertEquals(executedPaceFor("up", big, 1.0)!.clampedBy, "slider_ceiling");
+  assertEquals(executedPaceFor("up", big, 1.0)!.dailyDeltaKcal, 550);
 });
 
 Deno.test("③ une PERTE et un MINEUR: la même borne, lue deux fois, dans les deux sens", () => {
@@ -406,12 +442,15 @@ Deno.test("③ une PERTE et un MINEUR: la même borne, lue deux fois, dans les d
   }
 });
 
-Deno.test("③ l'avertissement de physiologie PARLE toujours au-delà de 0,5 kg, et n'interdit rien", () => {
-  // Ce qui reste du §Bloc 2 quand le plafond caché est parti: la ligne de
-  // 0,5 kg/sem. Un grand corps à 0,7 kg/semaine reçoit la phrase ET son cran.
-  const big = adult({ weightKg: 90, heightCm: 185, gender: "male", ageYears: 40 });
+Deno.test("⟳ 2026-09-23 — un cran de prise au-delà de 0,5 kg n'est plus exécuté, même sur un grand corps", () => {
+  // Avant le 2026-09-23, un corps de 150 kg recevait 0,7 kg/sem tel quel et la
+  // phrase « part surtout en gras ». Le plafond absolu d'une prise est
+  // désormais 0,5: un 0,7 venu de la base est raboté au plafond du curseur.
+  const big = adult({ weightKg: 150, heightCm: 185, gender: "male", ageYears: 40 });
   assertEquals(paceWarning("up", 0.7), "surplus_becomes_fat");
-  assertEquals(executedPaceFor("up", big, 0.7)!.clampedBy, "chosen");
+  const out = executedPaceFor("up", big, 0.7)!;
+  assertEquals(out.clampedBy, "slider_ceiling");
+  assertEquals(out.dailyDeltaKcal, 550);
 });
 
 Deno.test("un corps sans poids n'a PAS de plafond de secours", () => {
@@ -594,8 +633,8 @@ Deno.test("le cran maximal est EXÉCUTABLE: il ne promet jamais plus que A1", ()
     const c = paceCeilingFor("down", adult({ weightKg: w, heightCm: 180, gender: "male" }));
     if (c === null) continue;
     assert(
-      c.dailyDeltaKcal <= 500,
-      `${w} kg promet ${c.dailyDeltaKcal} kcal/j, au-dessus du plafond A1`,
+      c.dailyDeltaKcal <= 880,
+      `${w} kg promet ${c.dailyDeltaKcal} kcal/j, au-dessus du plafond A1 (880 depuis le 2026-09-22)`,
     );
   }
 });
@@ -635,4 +674,46 @@ Deno.test("⚠️ le plancher ADULTE est INATTEIGNABLE pour un mineur — deux c
     );
   }
   assertEquals(ageBandOf(18), "18_29");
+});
+
+// ---------------------------------------------------------------------------
+// ⟳ 2026-09-23 · L'ÂGE EXACT ATTEINT LE DÉNOMINATEUR ET LA GARDE DU POIDS VISÉ
+// ---------------------------------------------------------------------------
+//
+// `MouthBody.ageYears` était déjà là, et ce module le réduisait à sa bande
+// (`ageBandOf`) avant l'équation: la formule lisait le MILIEU de la bande.
+// Depuis ce lot il passe aussi tel quel (`ageYears`), et c'est lui qui
+// gouverne l'équation. Nombres faits à la main.
+
+Deno.test("⟳ âge exact — `estimatedMaintenanceFor` lit 59 ans, plus 52", () => {
+  // Fabrice: 93 kg, 173 cm, homme, activité inconnue (×1,5).
+  //   base commune = 10 × 93 + 6,25 × 173 + 5 = 2 016,25
+  //   59 ans : (2 016,25 − 295) × 1,5 = 2 581,875 ⇒ 2 582
+  //   52 ans : (2 016,25 − 260) × 1,5 = 2 634,375 ⇒ 2 634 (le milieu de 45_59,
+  //            donc le nombre d'avant ce lot pour TOUTE la bande)
+  //   60 ans : (2 016,25 − 300) × 1,5 = 2 574,375 ⇒ 2 574
+  const fabrice = (ageYears: number) =>
+    estimatedMaintenanceFor(
+      adult({ heightCm: 173, weightKg: 93, gender: "male", ageYears }),
+    );
+  assertEquals(fabrice(59), 2582);
+  assertEquals(fabrice(52), 2634);
+  // Le lendemain des 60 ans: 8 kcal de moins, pas 112 (52 → 67 d'un coup).
+  assertEquals(fabrice(60), 2574);
+});
+
+Deno.test("⟳ âge exact — la garde du poids visé juge le MÊME âge que l'assiette", () => {
+  // Une petite femme: 150 cm, activité inconnue (×1,5), plancher 1 200.
+  // Poids visé 27 kg (au-dessus du seuil `implausible` de 25):
+  //   45 ans : (270 + 937,5 − 225 − 161) × 1,5 = 1 232,25 ⇒ 1 232 ≥ 1 200
+  //   52 ans : (270 + 937,5 − 260 − 161) × 1,5 = 1 179,75 ⇒ 1 180 < 1 200
+  // Au milieu de bande, les DEUX étaient refusées: 45 ans était compté 52.
+  const at = (ageYears: number): PaceSubject => ({
+    body: body({ heightCm: 150, weightKg: 45, gender: "female", ageYears }),
+    isMinor: false,
+  });
+  // LE CAS QUI PASSE: 45 ans, lu comme 45.
+  assertEquals(targetWeightRefusal("down", 45, 27, at(45)), null);
+  // LE CAS QUI MORD: 52 ans, sous le plancher.
+  assertEquals(targetWeightRefusal("down", 45, 27, at(52)), "below_energy_floor");
 });

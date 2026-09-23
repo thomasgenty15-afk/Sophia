@@ -30,7 +30,9 @@ export type QuickAddIntent =
   | { kind: "photo"; file: File }
   /** Un des six moments de la journée, déjà nommé par la personne. */
   | { kind: "describe"; slot: string }
-  | { kind: "weight" };
+  | { kind: "weight" }
+  /** ⟳ 2026-09-23 — la fenêtre « Suivi des repas ». */
+  | { kind: "meals" };
 
 /**
  * COMBIEN DE TEMPS UNE INTENTION RESTE VALABLE, en millisecondes.

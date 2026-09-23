@@ -60,7 +60,7 @@ vi.mock("../../lib/useMealTicks", async (importOriginal) => {
       ) => {
         asked.push({ title: String(dish?.title ?? ""), dishIndex, onDate });
         return {
-          checked: false,
+          missed: false,
           busy: false,
           onToggle: () => {},
           untickPrompt: null,
@@ -167,8 +167,6 @@ function render(): string {
     userId: "user-bo",
     householdMealId: "11111111-2222-3333-4444-555555555555",
     planStartsOn: pastMonday(),
-    onApprove: async () => {},
-    busy: false,
   }));
 }
 
@@ -233,8 +231,6 @@ describe("D1 — la coche d'un membre tombe sur la POSITION STOCKÉE", () => {
       userId: null,
       householdMealId: null,
       planStartsOn: null,
-      onApprove: async () => {},
-        busy: false,
     }));
     expect(asked).toEqual([]);
   });

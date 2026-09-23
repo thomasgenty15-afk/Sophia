@@ -50,6 +50,7 @@ import {
 import {
   buildMemoryRecap,
   type RecapKept,
+  type RecapSafety,
 } from "./memory_recap.ts";
 import type { DraftNoteClarifyEntry, DraftNoteMember } from "./draft_note_classify.ts";
 
@@ -135,6 +136,13 @@ export async function notifyMemoryWrite(
   args: {
     userId: string;
     kept: readonly RecapKept[];
+    /**
+     * ⟳ 2026-09-23 — CE QUI VIENT D'ÊTRE ÉCRIT DANS LA FICHE SANTÉ par une
+     * note (⑩). REQUIS: `[]` est une réponse, et un appelant qui écrit de la
+     * sécurité sans la passer ici la tairait — la bulle dirait « j'ai noté »
+     * sans nommer l'allergie.
+     */
+    safety: readonly RecapSafety[];
     language: ClarificationLanguage;
     requestId?: string;
     now?: Date;
@@ -143,14 +151,15 @@ export async function notifyMemoryWrite(
   const kept = (args.kept ?? []).filter((k) =>
     String(k?.text ?? "").trim() !== ""
   );
-  if (kept.length === 0) {
+  const safety = (args.safety ?? []).filter((s) => String(s?.ref ?? "").trim() !== "");
+  if (kept.length === 0 && safety.length === 0) {
     return { delivered: false, reason: "nothing_written" };
   }
 
   // ⚠️ LE MÊME RENDU QUE LE RÉCAP DU SOIR. Il sait déjà nommer la destination
   // et la bouche, dans les deux langues. Un second rendu dirait la même chose
   // avec d'autres mots, et les deux divergeraient au premier ajout.
-  const body = buildMemoryRecap({ safety: [], kept, language: args.language });
+  const body = buildMemoryRecap({ safety, kept, language: args.language });
   if (!body) return { delivered: false, reason: "nothing_to_say" };
 
   const block = kept.length > 0 ? BLOCK_OF[kept[0].kind] ?? "preferences" : "preferences";
@@ -177,6 +186,7 @@ export async function notifyMemoryWrite(
       // faute d'un identifiant de ligne en base.
       metadata: {
         keel_memory_written: kept.length,
+        keel_memory_safety_written: safety.length,
         keel_memory_lines: kept.map((k) => k.text),
       },
       requestId: args.requestId,

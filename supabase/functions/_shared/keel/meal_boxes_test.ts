@@ -258,6 +258,10 @@ Deno.test("LE CAS QUI PASSE — un repas, un contenant, un groupe sur le couverc
       grams: 320,
       ref: null,
       refRefused: false,
+      // ⟳ 2026-09-22 — `ml` suit la même règle, et pour la même raison: sans
+      // identifiant, aucune fiche, donc aucun volume. Écrit quand même, pour
+      // qu'une absence de clé ne se confonde pas avec un lot débranché.
+      ml: null,
     }],
     legacyTotalGrams: null,
   }]);
@@ -564,7 +568,14 @@ Deno.test("⛔ v4 — UN `preparation_id` QUI NE DÉSIGNE AUCUNE CASSEROLE DU PL
     shopping_list: [],
   });
   assertEquals(meal.dishes[0].boxes[0]?.items, [
-    { preparationId: null, term: "wholemeal bread", grams: 60, ref: null, refRefused: false },
+    {
+      preparationId: null,
+      term: "wholemeal bread",
+      grams: 60,
+      ref: null,
+      refRefused: false,
+      ml: null,
+    },
   ]);
   assertEquals(meal.box_counts.items_refused, 1);
   assert(
@@ -1194,7 +1205,9 @@ Deno.test("les deux axes de version ont bougé, chacun pour SA population", () =
   // n'existe que sur cette lane, et la demander au solo serait une consigne sur
   // du vide. Trois populations à distinguer, pas deux: v25, v26 sans les faits
   // (message byte-identique à v25), v26 avec.
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v36_the_goal_outranks_the_habit");
+  // ⟳ 2026-09-23 — v39: les à-côtés en familles (`side_courses_prompt.ts`).
+  // ⟳ 2026-09-23 — v40: la table partage ses à-côtés (`side_courses_prompt.ts`).
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v41_what_came_back_is_named");
 });
 
 // ---------------------------------------------------------------------------
@@ -1260,6 +1273,11 @@ Deno.test("le payload rend les contenants en clés ASCII snake_case", () => {
         grams: 320,
         ref: null,
         ref_refused: false,
+        // ⟳ 2026-09-22 — `ml` SORT AUSSI, écrit même à `null`, et pour la
+        // raison de ses deux voisins: sans lui, le volume d'un liquide
+        // mourrait à la sérialisation et l'écran repartirait du libellé pour
+        // deviner une cuillère.
+        ml: null,
       },
       // ⚠️ `null` SORT TEL QUEL, et c'est une AFFIRMATION: ce composant est
       // ajouté frais le jour même, donc aucune fournée ne le tient.
@@ -1269,6 +1287,7 @@ Deno.test("le payload rend les contenants en clés ASCII snake_case", () => {
         grams: 60,
         ref: null,
         ref_refused: false,
+        ml: null,
       },
     ],
     // ⚠️ `null` SUR TOUT CONTENANT v4: le total se dérive des `items`. Deux

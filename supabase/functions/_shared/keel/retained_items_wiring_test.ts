@@ -580,9 +580,32 @@ const HOUSEHOLD: Lane = {
         "nommée redevient invisible au modèle, et sa ligne n'est plus " +
         "appliquée que par la ceinture, APRÈS coup.",
     );
+    // ⟳ 2026-09-21 — LA TABLE N'EST PLUS PORTÉE PAR QUELQU'UN, ELLE A SON
+    // CANAL. `ownerMemberId` épinglait « qui porte les lignes de la table »:
+    // c'était la question qui était fausse. Sous le nom du titulaire, le modèle
+    // lisait une règle de maison comme SA préférence et servait le plat aux
+    // autres (mesuré sur un foyer réel: tofu au petit-déjeuner partagé).
+    //
+    // ⛔ ON ÉPINGLE LA DESTINATION, PAS L'EXISTENCE DU CHAMP. `household` lu et
+    // jeté passerait une assertion de mention; ce qu'on exige est qu'il entre
+    // dans le mémo du TRONC, le bloc qui parle à la table.
     assert(
-      lines.includes("ownerMemberId"),
-      "LANE FOYER — personne ne porte plus les lignes de la TABLE.",
+      !lines.includes("ownerMemberId"),
+      "LANE FOYER — le titulaire porte de nouveau les lignes de la TABLE: " +
+        "elles repartent au modèle sous SON nom, donc comme son goût à lui.",
+    );
+    const memo = between(src, "const memoLines = [", "];");
+    assert(
+      memo.includes("retainedComposition.household"),
+      "LANE FOYER — LES RÈGLES DE LA TABLE N'ATTEIGNENT PLUS LE PROMPT. Elles " +
+        "sont lues, rangées, et données à personne — c'est-à-dire qu'elles " +
+        "n'existent pas.",
+    );
+    assert(
+      !src.includes("retained_lines_unattached"),
+      "LANE FOYER — le compteur de PERTE est revenu. Il observait des consignes " +
+        "de table qui tombaient faute de bouche pour les porter; la perte n'a " +
+        "plus lieu d'être, et un compteur à zéro permanent est un compteur mort.",
     );
     assert(
       !src.includes("compositionLinesFor("),

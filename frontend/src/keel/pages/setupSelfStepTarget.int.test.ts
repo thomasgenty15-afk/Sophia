@@ -263,12 +263,22 @@ describe("les allergies ont quitté la ligne, et la porte est visible", () => {
       .not.toContain(en["setup.people.allergies_none"]);
   });
 
-  /** ET IL DIT CE QUI EST DÉJÀ RENSEIGNÉ — sinon fermer se lit comme perdre. */
-  it("le récapitulatif nomme ce qui est déjà là", () => {
+  /**
+   * ⟳ 2026-09-20 — IL NE DIT PLUS CE QUI EST DÉJÀ RENSEIGNÉ.
+   *
+   * Ce cas gardait l'inverse: « sinon fermer se lit comme perdre ». C'était
+   * juste, et la ligne a été retirée sur demande — ce qu'elle payait est
+   * maintenant à découvert, et c'est écrit dans `MouthPreferencesButton`. Ce
+   * qui se mesure ici est l'absence, dans les deux états, sur CETTE porte:
+   * `filledPreferenceBlocks` sert encore trois cadres de `/app/household`.
+   */
+  it("ne récapitule plus ce qui est déjà là", () => {
     const empty = html(KNOWN_BODY);
-    expect(empty).toContain(en["household.mouth.preferences_empty"]);
+    expect(empty).not.toContain(en["household.mouth.preferences_empty"]);
     const filled = html(draftOf({ ...KNOWN_BODY, allergies: ["peanut"] }));
-    expect(filled).toContain(en["household.mouth.block_allergies"]);
+    expect(filled).not.toContain(en["household.mouth.block_allergies"]);
+    // ⚠️ LA PORTE RESTE — sinon supprimer le bouton entier passerait ici.
+    expect(filled).toContain(en["household.mouth.preferences_open_you"]);
   });
 });
 

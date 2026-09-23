@@ -22,6 +22,10 @@ import {
 // loader passent tous les deux par lui: deux rendus de la même règle, c'est
 // deux vérités selon celui qui survit au budget.
 import { formatRecentHistoryLine } from "../../_shared/chat/recent_history.ts";
+// FF-066 — le titre du bloc d'aide est UNE constante, lue ici par la règle du
+// prompt et là-bas par le constructeur du bloc: si l'un change sans l'autre, la
+// règle désigne un bloc qui n'arrive jamais.
+import { APP_HELP_BLOCK_TITLE } from "../../_shared/keel/app_help/block_title.ts";
 declare const Deno: any;
 
 /**
@@ -833,7 +837,8 @@ function buildCompanionStablePromptEn(opts: {
     - When a relevant prescribed line is listed, speak to it directly and clarify the next step; with several candidates, ask a short clarification or answer cautiously.
     - Only claim "it is in your plan" when the context lists the line. You never add one.
     - Light check-in or recap: answer compactly from the listed lines and the context, without an exhaustive view.
-    - Platform boundary: outside the injected elements, answer only when the information is explicit in the context; otherwise point to the app for the full view. Never invent a list, never say "I'll go check elsewhere", never invent a screen or a path.
+    - Questions about the app (where is it, how do I, does it count, what does it cost): answer ONLY from the "${APP_HELP_BLOCK_TITLE.en}" block when it is present. Quote buttons and screens between quotation marks, word for word as the block writes them, and add no step it does not give. If the block says something does not exist, say so plainly and offer what exists instead.
+    - Without that block, name NO screen, button, menu or path — not even a likely one — and state nothing about what the app does or does not do (what gets saved, ticked, counted or shown). Say you do not have the exact answer at hand. Never invent a list, never say "I'll go check elsewhere".
     - Questions about features ("what is this / what is it for"): explain what it enables, without starting, creating or configuring anything.
     `,
 
@@ -931,18 +936,9 @@ function buildCompanionStablePrompt(opts: {
     - Action active pertinente listée: parle-en directement, clarifie le prochain pas; plusieurs candidates: clarification courte ou réponse prudente.
     - N'affirme "dans ton plan/c'est prévu" que si le contexte liste l'action; une habitude active listée compte.
     - Point/récap léger: réponds compactement depuis les actions actives et le contexte, sans vue exhaustive.
-    - Frontière plateforme: hors éléments injectés (préférences, objets Sophia), réponds seulement si l'info est explicite dans le contexte; sinon: vue complète dans la plateforme. Aucune liste inventée, jamais "je vais vérifier ailleurs".
+    - Questions sur l'app (où est, comment je fais, est-ce que ça compte, combien ça coûte): réponds UNIQUEMENT depuis le bloc "${APP_HELP_BLOCK_TITLE.fr}" quand il est présent. Cite boutons et écrans entre guillemets, mot pour mot comme le bloc les écrit, sans ajouter d'étape qu'il ne donne pas. Si le bloc dit qu'une chose n'existe pas, dis-le clairement et propose ce qui existe à la place.
+    - Sans ce bloc, ne nomme AUCUN écran, bouton, menu ou chemin — même probable — et n'affirme rien sur ce que l'app fait ou ne fait pas (ce qui est enregistré, coché, compté ou affiché). Dis que tu n'as pas la réponse exacte sous la main. Aucune liste inventée, jamais "je vais vérifier ailleurs".
     - Questions sur fonctionnalités ("c'est quoi/à quoi sert"): explique ce que ça permet, sans lancer/créer/configurer.
-    `,
-
-    `
-    PLATFORM_SKETCH_FOR_NORMAL_REPLY:
-    - Esquisse pour une question produit en normal_reply ou après une sortie de flow; court, sans inventer d'autres surfaces.
-    - Plan: actions, missions, habitudes et ajustements.
-    - Inspirations: contenus ou idées utiles pour nourrir la transformation.
-    - Préférences coach: ton, niveau de challenge, tendance à poser des questions.
-    - Sections à nommer: Plan, Inspirations. Ne présente pas Soutien, Missions ou Habitudes comme des sections de destination. (Retrait résidus 2026-08-08: cartes d'attaque/défense, potions et messages récurrents « Initiatives » n'existent plus — ne les décris jamais, ne les propose jamais.)
-    - Destination incertaine: donne la fonction générale et renvoie vers la plateforme, sans inventer de chemin.
     `,
 
     `

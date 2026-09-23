@@ -138,6 +138,12 @@ export interface GroceryRunsFieldProps {
    * L'inverse — offrir large et raboter après — est le défaut d'origine.
    */
   daysToEat: number;
+  /**
+   * ⟳ 2026-09-21 — LE CONGÉLATEUR DU FOYER (`hasFreezerDeclared`), ou `null`
+   * quand la question n'a pas été posée. « Le moins possible » sur sept jours
+   * cuisine deux fois avec, trois fois sans: l'offre de courses suit.
+   */
+  freezer: boolean | null;
 }
 
 export default function GroceryRunsField(props: GroceryRunsFieldProps) {
@@ -147,6 +153,7 @@ export default function GroceryRunsField(props: GroceryRunsFieldProps) {
     oneCookingSession: props.oneCookingSession,
     daysToEat: props.daysToEat,
     maxFridgeDays: MAX_FRIDGE_DAYS,
+    freezer: props.freezer,
   });
   const { forced, limit } = offer;
   // Les deux nombres que la phrase de conservation interpole. Ils voyagent

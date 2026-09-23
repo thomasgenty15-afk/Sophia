@@ -188,7 +188,9 @@ Deno.test("⚠️ LE MILLÉSIME DU PROMPT DIT CE LOT", () => {
   // Un bloc ajouté au prompt sans bump ferait une population « v25 » dont une
   // partie a vu une consigne que l'autre n'a jamais reçue — et la comparaison
   // que le millésime existe pour permettre deviendrait fausse sans rien casser.
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v36_the_goal_outranks_the_habit");
+  // ⟳ 2026-09-23 — v39: les à-côtés en familles (`side_courses_prompt.ts`).
+  // ⟳ 2026-09-23 — v40: la table partage ses à-côtés (`side_courses_prompt.ts`).
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v41_what_came_back_is_named");
 });
 
 import { assert } from "jsr:@std/assert@1";

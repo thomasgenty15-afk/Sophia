@@ -133,6 +133,8 @@ export const CALORIE_PROTECTED_CAUSES: readonly FinalGateCause[] = Object
     "cell_bounds_off",
     "day_energy_off",
     "protein_floor_short",
+    // ⟳ 2026-09-21 — même famille, même porte: des grammes de protéine.
+    "protein_ceiling_over",
     "cell_energy_unmeasurable",
     "mouth_energy_short",
   ]);

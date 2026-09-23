@@ -69,6 +69,9 @@ export async function draftNoteMembersOf(
         label: String(row.first_name ?? ""),
         ageState: age === "adult" ? "adult" : age === "minor" ? "minor" : null,
         sex: sex === "male" || sex === "female" || sex === "other" ? sex : null,
+        // Le rôle vient de `keel_household_roster_for` (colonne `role`) : une
+        // seule ligne 'owner' par foyer, c'est le compte qui écrit la note.
+        writes: String(row.role ?? "").trim() === "owner",
       };
     }).filter((m) => m.memberId);
   } catch (error) {

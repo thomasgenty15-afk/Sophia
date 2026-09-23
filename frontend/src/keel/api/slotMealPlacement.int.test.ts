@@ -47,36 +47,19 @@ describe("l'interrupteur de la question par repas — où il est, et où il n'es
     }
   });
 
-  it("il vit dans le panneau de réglages de la bulle", () => {
+  // ⟳ 2026-09-23 — L'INTERRUPTEUR DÉDIÉ EST PARTI. Il n'y a plus qu'un
+  // interrupteur de notifications, qui écrit aussi `slot_meal_ask_enabled`.
+  it("le panneau de la bulle n'a plus qu'un interrupteur", () => {
     const src = strip(read(CHAT));
-    // ⚠️ `testId`, PAS `data-testid`: `SettingSwitch` prend la prop en
-    // camelCase et la rend en attribut. Chercher l'attribut ferait un test
-    // rouge sur un code juste — et c'est exactement ce qu'il a fait au premier
-    // run.
-    expect(src).toContain('testId="setting-slotmeal"');
-    // ⛔ ET IL EST RENDU SUR LA VALEUR RÉDUITE, jamais sur la colonne. Afficher
-    // `slotMealStored` montrerait « éteint » à tous ceux qui n'ont jamais
-    // choisi — c'est-à-dire tout le monde — et la personne rallumerait une
-    // chose qui n'avait jamais été coupée. C'est la cicatrice
-    // `energySwitchFrom`, transposée.
-    const at = src.indexOf('testId="setting-slotmeal"');
-    const block = src.slice(at, at + 500);
-    expect(block).toContain("slotMealAskSwitchFrom(");
-    expect(block, "l'interrupteur affiche la COLONNE").not.toMatch(
-      /checked=\{slotMealStored\}/,
-    );
-  });
-
-  it("il n'est offert QUE sur un objectif de poids — et reste offert à qui a éteint", () => {
-    const src = strip(read(CHAT));
-    const at = src.indexOf('testId="setting-slotmeal"');
-    const before = src.slice(Math.max(0, at - 400), at);
-    // Un réglage posé au-dessus d'une chose qui ne s'applique pas annonce à la
-    // personne une fonctionnalité qu'on lui refuse.
-    expect(before).toContain("slotMealSwitchOfferable(goal)");
-    // ⛔ SUR L'OBJECTIF, PAS SUR L'ÉTAT: gaté sur la valeur réduite, il
-    // disparaîtrait au moment exact où il sert à rallumer.
-    expect(before).not.toMatch(/slotMealAskSwitchFrom\([^)]*\)\.on\s*&&/);
+    expect(src).not.toContain('testId="setting-slotmeal"');
+    expect(src).not.toContain('testId="setting-checkins"');
+    expect(src.split("<SettingSwitch").length - 1).toBe(1);
+    const at = src.indexOf('testId="setting-notifications"');
+    expect(at, "l'interrupteur unique est introuvable").toBeGreaterThan(-1);
+    // ⛔ ALLUMÉ = RIEN N'EST COUPÉ. Afficher « activées » sur le seul mute
+    // mentirait à qui a coupé la question depuis le bouton sous une question.
+    expect(src).toContain("const notificationsOn = muted === false && asksOn;");
+    expect(src).toContain("slotMealAskSwitchFrom({ stored: slotMealStored, goal }).on");
   });
 });
 

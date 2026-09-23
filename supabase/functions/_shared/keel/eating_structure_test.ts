@@ -262,24 +262,43 @@ async function householdSource(): Promise<string> {
   );
 }
 
-Deno.test("CÂBLAGE — la lane foyer DÉRIVE les moments, et n'en AJOUTE AUCUN", async () => {
-  // ⟳ 2026-09-07 — CE CAS DISAIT L'INVERSE (« et écrit le résultat »). Décision
-  // produit: « il n'y a aucun repas qui est ajouté par le générateur de plan,
-  // c'est pas son travail ». La dérivation reste appelée — elle informe et se
-  // compte —, mais elle ne réécrit plus les moments d'une bouche.
+Deno.test("CÂBLAGE — la lane foyer DÉRIVE les moments, et ne remplit QUE LE SILENCE", async () => {
+  // ⟳ 2026-09-20 — CE CAS A DIT LES DEUX CHOSES, ET LA TROISIÈME EST LA BONNE.
+  //   2026-09-04  « dérive ET écrit le résultat » — pour tout le monde.
+  //   2026-09-07  « n'ajoute AUCUN repas » — pour personne. Motif: Thomas
+  //               déclarait 4 moments et recevait `snack_am` par-dessus.
+  //   2026-09-20  « remplit le silence » — pour les bouches qui n'ont RIEN
+  //               déclaré, et elles seules. Décision produit: « de manière
+  //               dynamique tant que le user n'est pas venu modifier ses
+  //               créneaux lui-même ».
+  //
+  // ⛔ CE QUI EST MESURÉ ICI EST LA **CONDITION**, pas l'écriture. Une
+  // réécriture inconditionnelle recréerait le défaut du 09-07 en passant tous
+  // les tests d'un lot qui ne vérifierait que « ça écrit ».
   const src = await householdSource();
   assert(
     src.includes("eatingStructureFor({"),
     "la dérivation n'est plus appelée: la fiche et la trace perdraient leur " +
       "« il faudrait N moments »",
   );
+  const write = src.indexOf("m.eatingSlots = parseEatingRhythm(structure.slots)");
   assert(
-    !src.includes("m.eatingSlots = structure.slots"),
-    "le générateur réécrit les moments d'une bouche avec ceux qu'il a ouverts: " +
-      "un « milieu de matinée » que personne n'a déclaré réapparaît dans le plan",
+    write > 0,
+    "la dérivation n'est plus injectée: une bouche qui n'a jamais répondu " +
+      "retombe sur trois assiettes, quel que soit son besoin",
   );
-  // ET LE SHAKER SUIT: posé sur une collation DÉCLARÉE, jamais sur un moment
-  // ouvert — sinon il rouvrirait un moment par la bande.
+  // LA GARDE, JUSTE AU-DESSUS DE L'ÉCRITURE — et « juste » se mesure: un
+  // `if` posé 200 lignes plus haut, sur une autre variable, laisserait ce
+  // test vert pendant que le générateur écrase une déclaration.
+  const guard = src.lastIndexOf("if (m.eatingSlots === null) {", write);
+  assert(
+    guard > 0 && write - guard < 120,
+    "l'injection n'est plus gardée par `m.eatingSlots === null`: le " +
+      "générateur écrit par-dessus ce que la personne a déclaré",
+  );
+  // ET LE SHAKER SUIT: posé sur une collation que `m.eatingSlots` porte —
+  // déclarée par elle, ou remplie par la ligne ci-dessus. Jamais sur `opened`,
+  // qui rouvrirait un moment par la bande chez une bouche qui a déclaré.
   assert(
     !src.includes("(structure?.opened ?? []).find("),
     "le shaker se pose encore sur un moment ouvert par la dérivation",

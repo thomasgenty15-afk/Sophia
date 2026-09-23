@@ -45,6 +45,16 @@ import {
 } from "./plan_draft_note.ts";
 import { type ForbiddenTerm } from "./forbidden_matcher.ts";
 import { slotBearsLight } from "./meal_extras.ts";
+// ⟳ 2026-09-23 — LE VOCABULAIRE DES À-CÔTÉS VIENT DU SOCLE, jamais recopié.
+// ✅ `side_courses_types.ts` n'importe qu'un TYPE (`tokens.ts`): le lire ne
+// peut pas fermer le cycle que l'en-tête ci-dessous décrit.
+import {
+  SIDE_COURSE_KINDS,
+  SIDE_COURSE_SLOTS,
+  type SideCourseKind,
+  type SideCoursePrefs,
+  type SideCourseSlot,
+} from "./side_courses_types.ts";
 
 // ⚠️ CE MODULE N'IMPORTE PAS `meal_generation.ts`, ET C'EST UNE CONTRAINTE
 // STRUCTURELLE, PAS UNE PRÉFÉRENCE.
@@ -219,6 +229,76 @@ export function parseMemberLight(raw: unknown): Record<string, boolean> {
     // ce que la base refuse d'écrire.
     if (typeof e.light !== "boolean") continue;
     out[slot] = e.light;
+  }
+  return out;
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ 2026-09-23 — LES À-CÔTÉS QUE LA BOUCHE VEUT OU REFUSE, MOMENT PAR MOMENT
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * Le moteur sert un petit à-côté au déjeuner et au dîner (entrée, fromage,
+ * dessert, pain), choisi selon l'objectif. Ce réglage dit ce que la personne
+ * veut À LA PLACE du défaut, type par type:
+ *
+ *   `{ dinner: { dessert: false, cheese: true } }`
+ *
+ * ⛔ TROIS ÉTATS PAR TYPE, ET ILS NE SE CONFONDENT PAS — le même contrat que
+ * `parseMemberLight`:
+ *   · type ABSENT ⇒ le défaut de l'objectif (le moteur décide);
+ *   · `false`     ⇒ jamais ce type à ce moment;
+ *   · `true`      ⇒ toujours ce type à ce moment.
+ * Un moment absent du résultat = rien de réglé à ce moment (une entrée
+ * `side_courses: {}` se lit pareil).
+ *
+ * ⛔ PAS `household_members.takes_*`. Ces colonnes avaient le sens INVERSE
+ * (ce qui était déjà pris à côté, retranché du plat) et leurs valeurs sont
+ * périmées — décision du propriétaire du 2026-09-23.
+ *
+ * ⛔ SEULS LES DEUX MOMENTS DE `SIDE_COURSE_SLOTS` SONT LUS, comme la
+ * contrainte SQL `household_member_habits_side_courses_check` les refuse
+ * ailleurs: la lecture et la base doivent refuser la même chose, sinon la plus
+ * permissive des deux décide.
+ *
+ * ⚠️ TOLÉRANTE DANS UNE SEULE DIRECTION, comme les voisins: un type inconnu ou
+ * une valeur qui n'est pas un VRAI booléen est ÉCARTÉ, et les autres types du
+ * même moment survivent. Deviner `"false"` ferait servir (ou retirer) un
+ * dessert sur une coercition.
+ *
+ * ⚠️ LE PREMIER QUI PORTE LA CLÉ GAGNE, exactement comme `parseMemberLight`:
+ * deux entrées d'un même moment sont une erreur d'écrivain, et fusionner leurs
+ * réponses inventerait une déclaration que personne n'a faite.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export type MemberSideCourses = Readonly<Partial<Record<SideCourseSlot, SideCoursePrefs>>>;
+
+export function parseMemberSideCourses(raw: unknown): MemberSideCourses {
+  if (!Array.isArray(raw)) return {};
+  const out: Partial<Record<SideCourseSlot, SideCoursePrefs>> = {};
+  const seen = new Set<string>();
+  for (const entry of raw) {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) continue;
+    const e = entry as Record<string, unknown>;
+    const slot = String(e.slot ?? "").trim().toLowerCase();
+    if (!(SIDE_COURSE_SLOTS as readonly string[]).includes(slot)) continue;
+    if (seen.has(slot)) continue;
+    if (!Object.prototype.hasOwnProperty.call(e, "side_courses")) continue;
+    seen.add(slot);
+    const side = e.side_courses;
+    // ⛔ UN OBJET, ET RIEN D'AUTRE. Un tableau `["dessert"]` ne dit ni oui ni
+    // non: il est écarté entier, et le moment retombe sur le défaut.
+    if (!side || typeof side !== "object" || Array.isArray(side)) continue;
+    const prefs: Partial<Record<SideCourseKind, boolean>> = {};
+    for (const kind of SIDE_COURSE_KINDS) {
+      if (!Object.prototype.hasOwnProperty.call(side, kind)) continue;
+      const value = (side as Record<string, unknown>)[kind];
+      if (typeof value !== "boolean") continue;
+      prefs[kind] = value;
+    }
+    if (Object.keys(prefs).length === 0) continue;
+    out[slot as SideCourseSlot] = prefs;
   }
   return out;
 }

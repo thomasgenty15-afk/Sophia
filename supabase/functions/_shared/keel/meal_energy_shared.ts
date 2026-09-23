@@ -1,4 +1,6 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3";
+import { energyBreakdownFor } from "./energy_breakdown.ts";
+import { journalTargetBreakdown } from "./tracking_v2.ts";
 import { logEdgeFunctionError } from "../error-log.ts";
 import { canShowTarget } from "./energy_gate.ts";
 import type { EnergyGateLoad } from "./energy_gate_io.ts";
@@ -19,8 +21,11 @@ import {
 } from "./tokens.ts";
 import { latest, loadStudentBody } from "./student_body_io.ts";
 import { EATING_OCCASIONS, parseAwayDays } from "./meal_generation.ts";
-import { dayEnergyFor, estimatedMaintenanceKcal } from "./meal_envelope.ts";
-import type { MemberAddon } from "./plan_energy.ts";
+import {
+  dayEnergyFor,
+  estimatedMaintenanceKcal,
+  sessionsEdgeFor,
+} from "./meal_envelope.ts";
 import type { MemberAway } from "./household_presence.ts";
 import type { MouthBody } from "./meal_envelope.ts";
 import {
@@ -46,29 +51,12 @@ export interface PlanRow {
   generated_from: unknown;
 }
 
-export function readViewerAddons(
-  row: PlanRow,
-  viewerMemberId: string | null,
-): MemberAddon[] | null {
-  if (row.plan_kind !== "household") return [];
-  if (!viewerMemberId) return null;
-  const gf = (row.generated_from ?? {}) as Record<string, unknown>;
-  const household = (gf.household ?? {}) as Record<string, unknown>;
-  if (!("member_deltas" in household)) return null;
-  const raw = household.member_deltas;
-  if (!Array.isArray(raw)) return null;
-  const out: MemberAddon[] = [];
-  for (const entry of raw) {
-    if (!entry || typeof entry !== "object") continue;
-    const d = entry as Record<string, unknown>;
-    if (String(d.member_id ?? "").trim() !== viewerMemberId) continue;
-    const foodRef = String(d.food_ref ?? "").trim();
-    const grams = Number(d.grams);
-    if (!foodRef || !Number.isFinite(grams) || grams <= 0) continue;
-    out.push({ foodRef, grams });
-  }
-  return out;
-}
+// ⛔ LOT A1 (2026-09-22) — `readViewerAddons` EST PARTI D'ICI. Il lisait
+// `generated_from.household.member_deltas` pour AJOUTER ces grammes au total du
+// jour du lecteur. Cet aliment n'a jamais eu de boîte, de ligne de courses ni de
+// carte: le chiffre était faux sur une surface utilisateur. Le générateur
+// continue d'écrire `member_deltas` (valeur historique); plus personne ne les
+// lit. Voir `docs/fonctionnalites/le-foyer/FF-043-la-resolution-foyer.md`.
 
 export function readViewerMealsOut(
   row: PlanRow,
@@ -302,6 +290,14 @@ export async function loadDailyEnergyTarget(
     weightKg: mouthBody.weightKg,
     heightCm: mouthBody.heightCm,
     ageBand: ageBandOf(mouthBody.ageYears),
+    // ⟳ 2026-09-23 — L'ÂGE EXACT, COMME LE MOTEUR. `envelopeCore` et
+    // `estimatedMaintenanceFor` le lisent depuis ce lot; le laisser au milieu
+    // de bande ici rouvrirait un écart entre le chiffre affiché et le chiffre
+    // composé (jusqu'à sept ans d'écart au milieu d'une bande de quinze ans,
+    // soit 35 kcal de métabolisme de base avant le facteur d'activité — et
+    // davantage au-delà de 67 ans, la dernière bande n'ayant pas de borne
+    // haute). Il ne sort pas d'ici: il n'entre que dans l'équation.
+    ageYears: mouthBody.ageYears,
     gender: body.gender,
     activityLevel,
     activityAxes: body.activityAxes,
@@ -311,6 +307,9 @@ export async function loadDailyEnergyTarget(
     // dépense. On le passe encore parce que le paramètre est requis et sert de
     // recensement des appelants.
     appetite: ownMouth.appetite,
+    // ⟳ 2026-09-21 — LE MÊME BORD QUE L'ENVELOPPE, par la même fonction: un
+    // maintien lit le bas de sa bande à l'écran comme dans l'assiette.
+    sessionsEdge: sessionsEdgeFor(goalToken),
   });
   const bodyDay = goalToken === null ? null : dayEnergyFor({
     maintenanceKcal: bodyMaintenanceKcal,
@@ -385,6 +384,30 @@ export async function loadDailyEnergyTarget(
     direction: useBody ? direction : directed.direction,
     direction_gap: useBody ? null : directed.directionGap,
     weight_week_start: directed.weightWeekStart,
+    // ⟳ 2026-09-21 — LE DÉTAIL DU CALCUL, POUR LE BOUTON « Détail ».
+    //
+    // ⛔ IL EST ASSEMBLÉ ICI ET NULLE PART AILLEURS, parce que c'est ICI qu'on
+    // sait laquelle des deux chaînes a servi (`useBody`). Un écran qui
+    // l'expliquerait sans ce jeton inventerait une explication — et le front
+    // n'a, par règle, aucune formule d'énergie.
+    //
+    // ⚠️ IL DÉCRIT LE NOMBRE RENDU JUSTE AU-DESSUS, il ne le recalcule pas: on
+    // lui passe `low`/`high` tels qu'ils partent, et il s'abstient quand ils
+    // sont nuls. Voir `energy_breakdown.ts` pour ce qu'il n'a pas le droit de
+    // devenir (aucun reste, aucun verdict).
+    breakdown: journalTargetBreakdown(energyBreakdownFor({
+      low: useBody ? bodyBand!.low : directed.range?.low ?? null,
+      high: useBody ? bodyBand!.high : directed.range?.high ?? null,
+      fromBodyEquation: useBody,
+      weightKg: directed.weightKg,
+      activityLevel,
+      bodyMaintenanceKcal,
+      dailyDeltaKcal: executedForReading?.dailyDeltaKcal ?? 0,
+      // LA MÊME DIRECTION QUE LA LIGNE `direction` CI-DESSUS, et pour la même
+      // raison: sur la chaîne du corps, la bande a suivi l'objectif par
+      // construction, même quand `directedRange` avait renoncé.
+      direction: useBody ? direction : directed.direction,
+    })),
     // ⟳ 2026-09-10 · LOT 3 — `null` dans le cas courant. Non nul, il dit que
     // l'objectif de cette personne ne s'exécute pas, et POURQUOI. Un écran qui
     // le lit doit cesser d'annoncer un rythme; le taire est le défaut.

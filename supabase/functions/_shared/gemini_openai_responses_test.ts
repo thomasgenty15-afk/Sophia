@@ -4,6 +4,7 @@ import {
   openAiServiceTierFromEnv,
   resolveOpenAiServiceTier,
 } from "./gemini.ts";
+import { keelGenerationModel } from "./keel/generation_model.ts";
 
 function restoreEnv(snapshot: Record<string, string | undefined>) {
   for (const [key, value] of Object.entries(snapshot)) {
@@ -420,6 +421,97 @@ Deno.test({
         "fast",
         "branche `chat/completions` sans palier — c'est le défaut qui manquait",
       );
+    } finally {
+      globalThis.fetch = originalFetch;
+      restoreEnv(envSnapshot);
+    }
+  },
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-23 — `gpt-6-luna` REMPLACE `gpt-5.6-luna` POUR LA COMPOSITION.
+// La garde `isOpenAiGpt5Family` ne reconnaissait que `gpt-5*` : sans elle,
+// `gpt-6-luna` perdait son effort de raisonnement et recevait une
+// `temperature`. On vérifie la charge envoyée, sur les deux branches d'API, et
+// un cas témoin hors famille pour prouver que le test sait échouer.
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test({
+  name: "gpt-6-luna — modèle par défaut de composition, envoyé avec son effort et sans temperature",
+  fn: async () => {
+    const envPermission = await Deno.permissions.query({ name: "env" });
+    if (envPermission.state !== "granted") return;
+    const envKeys = [
+      "OPENAI_API_KEY",
+      "OPENAI_USE_RESPONSES_API",
+      "OPENAI_STORE_RESPONSES",
+      "KEEL_GENERATION_MODEL",
+      "KEEL_OPENAI_SERVICE_TIER",
+      "SOPHIA_LLM_RAW_TRACE_ENABLED",
+    ];
+    const envSnapshot = Object.fromEntries(
+      envKeys.map((key) => [key, Deno.env.get(key)]),
+    );
+    const originalFetch = globalThis.fetch;
+    const calls: { url: string; body: Record<string, any> }[] = [];
+    globalThis.fetch = ((input: string | URL | Request, init?: RequestInit) => {
+      calls.push({
+        url: String(input),
+        body: JSON.parse(String(init?.body ?? "{}")),
+      });
+      return Promise.resolve(
+        new Response(
+          JSON.stringify({
+            id: "resp_gpt6",
+            output: [{ type: "message", content: [{ type: "output_text", text: "ok" }] }],
+            choices: [{ message: { content: "ok" } }],
+            usage: { input_tokens: 4, output_tokens: 1, total_tokens: 5 },
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        ),
+      );
+    }) as typeof fetch;
+    const run = (model: string) =>
+      generateWithGemini("system prompt", "user prompt", 0.2, false, [], "auto", {
+        requestId: "req_gpt6",
+        userId: "user_gpt6",
+        source: "keel:test",
+        model,
+        forceRealAi: true,
+        forceInitialModel: true,
+        disableFallbackChain: true,
+        maxRetries: 1,
+        reasoningEffort: "low",
+      });
+    try {
+      Deno.env.set("OPENAI_API_KEY", "test-key");
+      Deno.env.set("OPENAI_STORE_RESPONSES", "1");
+      Deno.env.set("SOPHIA_LLM_RAW_TRACE_ENABLED", "0");
+      Deno.env.delete("KEEL_GENERATION_MODEL");
+      Deno.env.delete("KEEL_OPENAI_SERVICE_TIER");
+
+      assertEquals(keelGenerationModel(), "gpt-6-luna");
+
+      Deno.env.set("OPENAI_USE_RESPONSES_API", "1");
+      await run(keelGenerationModel());
+      assertEquals(calls[0].url.endsWith("/v1/responses"), true);
+      assertEquals(calls[0].body.model, "gpt-6-luna");
+      assertEquals(calls[0].body.reasoning, { effort: "low" });
+      assertEquals("temperature" in calls[0].body, false);
+
+      Deno.env.set("OPENAI_USE_RESPONSES_API", "0");
+      await run(keelGenerationModel());
+      assertEquals(calls[1].url.endsWith("/v1/chat/completions"), true);
+      assertEquals(calls[1].body.model, "gpt-6-luna");
+      assertEquals(calls[1].body.reasoning_effort, "low");
+      assertEquals("temperature" in calls[1].body, false);
+
+      // Témoin : hors famille gpt-5/gpt-6, la temperature part et l'effort non.
+      Deno.env.set("OPENAI_USE_RESPONSES_API", "1");
+      await run("gpt-4.1");
+      assertEquals(calls[2].body.model, "gpt-4.1");
+      assertEquals(calls[2].body.temperature, 0.2);
+      assertEquals("reasoning" in calls[2].body, false);
     } finally {
       globalThis.fetch = originalFetch;
       restoreEnv(envSnapshot);

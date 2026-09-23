@@ -6,6 +6,10 @@ import {
 import {
   clampToBounds,
   dayTargetFor,
+  densityCorridorFor,
+  hardCeilingBoundsFor,
+  PLATE_HARD_CEILING_G,
+  TEMPLATE_DISH_KCAL_PER_100G,
   RESTRICTION_FLOOR_SIZES_MAINTENANCE,
   drawsByPreparation,
   PLATE_MASS_BOUNDS_G,
@@ -641,13 +645,17 @@ Deno.test("une COLLATION n'a pas les bornes d'un repas", () => {
 // bouger la cible ET le plafond de grammes, sur les DEUX lanes.
 
 Deno.test("la bande de grammes DESCEND de la part kcal du moment", () => {
+  // ⟳ 2026-09-23 — le « gros » passe de 600 à 500 kcal: sous le plafond de
+  // table de 550 g, 600 kcal feraient mordre la TABLE, et ce test parle de la
+  // part.
   const petit = plateBoundsFor({ ageYears: 35, slot: "dinner", slotTargetKcal: 300, light: false, appetite: null });
-  const gros = plateBoundsFor({ ageYears: 35, slot: "dinner", slotTargetKcal: 600, light: false, appetite: null });
+  const gros = plateBoundsFor({ ageYears: 35, slot: "dinner", slotTargetKcal: 500, light: false, appetite: null });
   // ⛔ LE PLAFOND SUIT LA PART, ET IL LA SUIT PROPORTIONNELLEMENT: c'est la
   // règle de `mealMassCapFor` — « le plus gros repas plausible pèse ce que
   // porte son énergie à la densité la plus basse qu'on accepte ».
   assertEquals(petit.max, Math.round(300 / MEAL_KCAL_PER_G_FLOOR));
-  assertEquals(gros.max, Math.round(600 / MEAL_KCAL_PER_G_FLOOR));
+  assertEquals(gros.max, Math.round(500 / MEAL_KCAL_PER_G_FLOOR));
+  assertEquals([petit.max, gros.max], [300, 500]);
   assertEquals(petit.boundSource, "target");
   assertEquals(gros.boundSource, "target");
 });
@@ -697,6 +705,81 @@ Deno.test("le PLANCHER ne monte jamais au-dessus de la table", () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-23 — LE PLAT À 550 g, LE REPLI À 700 g (chantier « assiettes
+// normales », décision n° 3). Les nombres sont écrits en dur.
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("⟳ 2026-09-23 — épinglage: repas adulte et adolescent à 550 g, repli à 700, visée du gabarit à 125", () => {
+  // ⛔ L'OBJET ENTIER. Enfant, tout-petit et toutes les collations ne bougent
+  // pas: le chantier change le PLAT, pas l'estomac.
+  assertEquals(PLATE_MASS_BOUNDS_G, {
+    adult: { meal: { min: 250, max: 550 }, snack: { min: 80, max: 300 } },
+    teen: { meal: { min: 250, max: 550 }, snack: { min: 75, max: 280 } },
+    child: { meal: { min: 150, max: 450 }, snack: { min: 50, max: 195 } },
+    toddler: { meal: { min: 100, max: 300 }, snack: { min: 35, max: 130 } },
+  });
+  assertEquals(PLATE_HARD_CEILING_G, { adult: { meal: 700 } });
+  assertEquals(TEMPLATE_DISH_KCAL_PER_100G, 125);
+});
+
+Deno.test("⟳ 2026-09-23 — un gros repas adulte: 550 g à la table, 700 g au repli, le même plancher", () => {
+  // Déjeuner de 900 kcal, adulte, appétit non renseigné.
+  //   bmax brut = 900 / 1,0 = 900 ; bmin = min(900/1,35 ; 250) = 250
+  //   table  Gmax = min(900 ; 550) = 550 ; visée (250 + 550)/2 = 400
+  //   repli  Gmax = min(900 ; 700) = 700 ; visée (250 + 700)/2 = 475
+  const args = { ageYears: 35, slot: "lunch", slotTargetKcal: 900, light: false, appetite: null };
+  const table = plateBoundsFor(args);
+  const repli = hardCeilingBoundsFor(args);
+  assertEquals([table.min, table.max, table.preferred, table.physicalMax], [250, 550, 400, 550]);
+  assertEquals([repli.min, repli.max, repli.preferred, repli.physicalMax], [250, 700, 475, 700]);
+  // ⛔ C'EST LA TABLE QUI DÉCIDE DANS LES DEUX CAS: la part demanderait 900 g.
+  assertEquals([table.boundSource, repli.boundSource], ["table", "table"]);
+  // ── LE CAS QUI PASSE: une part qui tient sous 550 kcal rend les mêmes bornes.
+  //   Gmax = 500 ; Gmin = min(370,4 ; 250) = 250 ; visée 375
+  const petit = { ...args, slotTargetKcal: 500 };
+  const a = plateBoundsFor(petit);
+  const b = hardCeilingBoundsFor(petit);
+  assertEquals([a.min, a.max, a.preferred, a.boundSource], [250, 500, 375, "target"]);
+  assertEquals([b.min, b.max, b.preferred, b.boundSource], [250, 500, 375, "target"]);
+});
+
+Deno.test("⟳ 2026-09-23 — ⛔ le repli ne vaut que pour le REPAS ADULTE: les autres rendent leur table", () => {
+  // Un repli au-dessus de la capacité d'estomac d'un enfant serait une
+  // assiette d'adulte servie à un corps qui n'en est pas un.
+  const cas: [number | null, string, number][] = [
+    [9, "dinner", 450], // enfant
+    [15, "lunch", 550], // adolescent
+    [3, "dinner", 300], // tout-petit
+    [35, "snack_pm", 300], // collation adulte
+  ];
+  for (const [ageYears, slot, max] of cas) {
+    const args = { ageYears, slot, slotTargetKcal: 1200, light: false, appetite: null };
+    assertEquals(hardCeilingBoundsFor(args), plateBoundsFor(args), `${ageYears}/${slot}`);
+    assertEquals(hardCeilingBoundsFor(args).max, max, `${ageYears}/${slot}`);
+  }
+  // ⚠️ ET L'ÂGE INCONNU RETOMBE SUR L'ADULTE, donc sur le repli.
+  assertEquals(
+    hardCeilingBoundsFor({ ageYears: null, slot: "dinner", slotTargetKcal: 1200, light: false, appetite: null }).max,
+    700,
+  );
+});
+
+Deno.test("⟳ 2026-09-23 — le repli garde la règle de la table: appétit et plancher léger passent", () => {
+  // ⛔ UN SEUL CALCUL, DEUX TABLES. Déjeuner léger de 1 200 kcal, petit appétit:
+  //   bmax = min(1 200 / 0,6 ; 700) = 700 ; Gmax = min(0,9 × 700 ; 700) = 630
+  //   bmin = min(1 200/1,35 ; 250) = 250 ; Gmin = min(0,9 × 250 ; 630) = 225
+  // Une deuxième arithmétique qui oublierait l'appétit rendrait 700.
+  const b = hardCeilingBoundsFor({
+    ageYears: 35,
+    slot: "lunch",
+    slotTargetKcal: 1200,
+    light: true,
+    appetite: "small",
+  });
+  assertEquals([b.min, b.max, b.appetiteFactor, b.densityFloorPerG], [225, 630, 0.9, 0.6]);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
 // ⑤ LE DIMENSIONNEMENT
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -707,13 +790,15 @@ const STD = { kcal: 500, cookedG: 400, densityPer100G: 125, proteinG: null, pots
 const BOUNDS = plateBoundsFor({ ageYears: 35, slot: "dinner", slotTargetKcal: null, light: false, appetite: null });
 
 Deno.test("facteur = cible ÷ kcal, et les grammes suivent", () => {
-  const s = sizeDishForMouth({ standard: STD, targetKcal: 750, bounds: BOUNDS });
-  assertEquals(s.factor, 1.5);
-  assertEquals(s.personCookedG, 600);
+  // ⟳ 2026-09-23 — 625 kcal au lieu de 750: 750 font 600 g, au-dessus du
+  // plafond de table de 550 g, et le test parle du facteur, pas de la borne.
+  const s = sizeDishForMouth({ standard: STD, targetKcal: 625, bounds: BOUNDS });
+  assertEquals(s.factor, 1.25);
+  assertEquals(s.personCookedG, 500);
   assertEquals(s.verdict, "in_bounds");
   // La densité ne bouge PAS: multiplier une recette ne la rend ni plus ni moins
   // dense. `grammes = cible ÷ densité` doit se retrouver.
-  assertEquals(Math.round(750 / (STD.densityPer100G / 100)), 600);
+  assertEquals(Math.round(625 / (STD.densityPer100G / 100)), 500);
 });
 
 Deno.test("un plat non mesurable est servi TEL QUEL, et c'est compté", () => {
@@ -745,8 +830,10 @@ Deno.test("hors bornes: le verdict est rendu, et la borne n'est PAS appliquée",
   const borne = clampToBounds({ sized: gros, standard: STD, bounds: BOUNDS });
   assertEquals(borne.personCookedG, BOUNDS.max);
   assert(borne.unmetKcal > 0, "le prix de la borne est dit à voix haute");
-  // 700 g au lieu de 960 ⇒ facteur 1,75 au lieu de 2,4 ⇒ 325 kcal non servies.
-  assertEquals(borne.unmetKcal, 325);
+  // ⟳ 2026-09-23 — 550 g au lieu de 960 ⇒ facteur 1,375 au lieu de 2,4 ⇒
+  // 1 200 − 1,375 × 500 = 512,5 ⇒ 513 kcal non servies (325 sous 700 g).
+  assertEquals(borne.personCookedG, 550);
+  assertEquals(borne.unmetKcal, 513);
 });
 
 Deno.test("sous le plancher, la borne MONTE le facteur et le prix est NÉGATIF", () => {
@@ -760,7 +847,9 @@ Deno.test("sous le plancher, la borne MONTE le facteur et le prix est NÉGATIF",
 });
 
 Deno.test("un plat in_bounds ou non mesurable traverse la borne sans bouger", () => {
-  const ok = sizeDishForMouth({ standard: STD, targetKcal: 750, bounds: BOUNDS });
+  // ⟳ 2026-09-23 — 625 kcal (500 g): 750 dépasseraient les 550 g de la table.
+  const ok = sizeDishForMouth({ standard: STD, targetKcal: 625, bounds: BOUNDS });
+  assertEquals(ok.verdict, "in_bounds");
   assertEquals(clampToBounds({ sized: ok, standard: STD, bounds: BOUNDS }), ok);
   const nm = sizeDishForMouth({ standard: { ...STD, kcal: null }, targetKcal: 750, bounds: BOUNDS });
   assertEquals(clampToBounds({ sized: nm, standard: { ...STD, kcal: null }, bounds: BOUNDS }), nm);
@@ -846,8 +935,8 @@ Deno.test("appliquer: le frais est multiplié, la casserole aussi, les portions 
     memberId: "m-solo",
     meal: p,
     rows: [
-      { dishIndex: 0, factor: 2, sized: true, recipeShare: null },
-      { dishIndex: 1, factor: 1, sized: true, recipeShare: null },
+      { dishIndex: 0, factor: 2, sized: true, recipeShare: null, starchSide: null },
+      { dishIndex: 1, factor: 1, sized: true, recipeShare: null, starchSide: null },
     ],
   });
   // Frais: 10 g d'huile × 2 au déjeuner, × 1 au dîner.
@@ -863,14 +952,79 @@ Deno.test("appliquer: le frais est multiplié, la casserole aussi, les portions 
   assertEquals(out.counts.boxes_authored, 2);
 });
 
+// ⟳ 2026-09-23 — LE FÉCULENT À PART, À UNE BOUCHE (arbitrage 5). Un plat en
+// deux casseroles: la principale (poulet) et le féculent (riz).
+function planSoloFeculentAPart() {
+  return {
+    dishes: [{
+      day: "mon",
+      slot: "lunch",
+      title: "Poulet, riz à part",
+      method: "servir",
+      ingredients: [ing("huile", 10)],
+      uses: [{ preparationId: "main" }, { preparationId: "starch" }],
+      boxes: [],
+    }],
+    preparations: [
+      { id: "main", title: "Poulet rôti", servingsMade: 1, ingredients: [ing("poulet", 200)] },
+      { id: "starch", title: "Riz cuit", servingsMade: 1, ingredients: [ing("riz", 200)] },
+    ],
+  };
+}
+
+Deno.test("⟳ 2026-09-23 — une bouche: le féculent à part suit `sideFactor`, le reste `mainFactor`", () => {
+  const out = applySizing({
+    index: INDEX,
+    memberId: "m-solo",
+    meal: planSoloFeculentAPart(),
+    rows: [{
+      dishIndex: 0,
+      factor: 1,
+      sized: true,
+      recipeShare: null,
+      starchSide: { preparationId: "starch", mainFactor: 1.5, sideFactor: 0.5 },
+    }],
+  });
+  // Casseroles: un tirage chacune ⇒ leur facteur est celui de leur partie.
+  assertEquals(out.preparations[0].ingredients[0].amount, 300, "poulet 200 × 1,5");
+  assertEquals(out.preparations[1].ingredients[0].amount, 100, "riz 200 × 0,5");
+  // Le frais du plat suit la part principale.
+  assertEquals(out.dishes[0].ingredients[0].amount, 15, "huile 10 × 1,5");
+  const item = (id: string | null) =>
+    out.dishes[0].boxes[0].items.find((i: { preparationId: string | null }) =>
+      i.preparationId === id
+    )!.grams;
+  assertEquals(item("starch"), 260, "520 g de riz cuit × 0,5");
+  assertEquals(item("main"), 210, "poulet 200 g cru ⇒ 140 g cuit, × 1,5");
+  assertEquals(item(null), 15);
+});
+
+Deno.test("⟳ 2026-09-23 — une bouche: `starchSide: null` ⇒ un seul facteur, comme avant", () => {
+  const out = applySizing({
+    index: INDEX,
+    memberId: "m-solo",
+    meal: planSoloFeculentAPart(),
+    rows: [{ dishIndex: 0, factor: 1, sized: true, recipeShare: null, starchSide: null }],
+  });
+  assertEquals(out.preparations[0].ingredients[0].amount, 200);
+  assertEquals(out.preparations[1].ingredients[0].amount, 200);
+  assertEquals(out.dishes[0].ingredients[0].amount, 10);
+  const item = (id: string | null) =>
+    out.dishes[0].boxes[0].items.find((i: { preparationId: string | null }) =>
+      i.preparationId === id
+    )!.grams;
+  assertEquals(item("starch"), 520);
+  assertEquals(item("main"), 140, "poulet 200 g cru ⇒ 140 g cuit");
+});
+
 Deno.test("appliquer: la boîte est une PRESCRIPTION — un seul nom, des items", () => {
   const out = applySizing({
     index: INDEX,
     memberId: "m-solo",
     meal: plan(),
     rows: [
-      { dishIndex: 0, factor: 1, sized: true, recipeShare: null },
-      { dishIndex: 1, factor: 1, sized: true, recipeShare: null },
+      { dishIndex: 0, factor: 1, sized: true, recipeShare: null, starchSide: null },
+      { dishIndex: 1, factor: 1, sized: true, recipeShare: null, starchSide: null },
     ],
   });
   const box = out.dishes[0].boxes[0];
@@ -896,8 +1050,8 @@ Deno.test("appliquer: la boîte suit le facteur, et la somme des parts fait la c
     memberId: "m-solo",
     meal: plan(),
     rows: [
-      { dishIndex: 0, factor: 2, sized: true, recipeShare: null },
-      { dishIndex: 1, factor: 1, sized: true, recipeShare: null },
+      { dishIndex: 0, factor: 2, sized: true, recipeShare: null, starchSide: null },
+      { dishIndex: 1, factor: 1, sized: true, recipeShare: null, starchSide: null },
     ],
   });
   const part = (n: number) =>
@@ -923,8 +1077,8 @@ Deno.test("⛔ AUCUN TERME NEUF NE SORT — l'invariant du chantier", () => {
     memberId: "m-solo",
     meal: p,
     rows: [
-      { dishIndex: 0, factor: 1.4, sized: true, recipeShare: null },
-      { dishIndex: 1, factor: 0.6, sized: true, recipeShare: null },
+      { dishIndex: 0, factor: 1.4, sized: true, recipeShare: null, starchSide: null },
+      { dishIndex: 1, factor: 0.6, sized: true, recipeShare: null, starchSide: null },
     ],
   });
   for (const d of out.dishes) {
@@ -950,8 +1104,8 @@ Deno.test("un plat NON MESURÉ garde sa recette, ne reçoit pas de boîte, et co
     memberId: "m-solo",
     meal: plan(),
     rows: [
-      { dishIndex: 0, factor: 2, sized: true, recipeShare: null },
-      { dishIndex: 1, factor: 1, sized: false, recipeShare: null },
+      { dishIndex: 0, factor: 2, sized: true, recipeShare: null, starchSide: null },
+      { dishIndex: 1, factor: 1, sized: false, recipeShare: null, starchSide: null },
     ],
   });
   assertEquals(out.dishes[1].ingredients[0].amount, 10, "la recette part telle quelle");
@@ -982,7 +1136,7 @@ Deno.test("un ingrédient dont la quantité n'est qu'en PROSE n'est ni multipli�
     index: INDEX,
     memberId: "m-solo",
     meal: p,
-    rows: [{ dishIndex: 0, factor: 2, sized: true, recipeShare: null }, { dishIndex: 1, factor: 1, sized: true, recipeShare: null }],
+    rows: [{ dishIndex: 0, factor: 2, sized: true, recipeShare: null, starchSide: null }, { dishIndex: 1, factor: 1, sized: true, recipeShare: null, starchSide: null }],
   });
   // ⛔ « 1 pincée » NE SE MULTIPLIE PAS. Deux pincées ne sont pas une quantité.
   assertEquals(out.dishes[0].ingredients[1].amount, null);
@@ -1001,7 +1155,7 @@ Deno.test("appliquer ne MUTE pas son entrée — le module reste pur", () => {
     index: INDEX,
     memberId: "m-solo",
     meal: p,
-    rows: [{ dishIndex: 0, factor: 3, sized: true, recipeShare: null }, { dishIndex: 1, factor: 3, sized: true, recipeShare: null }],
+    rows: [{ dishIndex: 0, factor: 3, sized: true, recipeShare: null, starchSide: null }, { dishIndex: 1, factor: 3, sized: true, recipeShare: null, starchSide: null }],
   });
   assertEquals(JSON.stringify(p), avant, "le plan d'entrée est intact");
 });
@@ -1011,18 +1165,39 @@ Deno.test("appliquer ne MUTE pas son entrée — le module reste pur", () => {
 // ═══════════════════════════════════════════════════════════════════════════
 
 Deno.test("réparer: un plat TROP DILUÉ se densifie, et la cible est une DENSITÉ", () => {
-  // 500 kcal pour 400 g = 125 kcal/100 g. Cible 1200 ⇒ 960 g, borne 700.
+  // 500 kcal pour 400 g = 125 kcal/100 g. Cible 1200 ⇒ 960 g, borne 550
+  // (⟳ 2026-09-23 — 700 avant).
   const sized = sizeDishForMouth({ standard: STD, targetKcal: 1200, bounds: BOUNDS });
   assertEquals(sized.verdict, "over_max");
   const ask = repairDecision({ sized, standard: STD, bounds: BOUNDS, targetKcal: 1200 })!;
   assertEquals(ask.direction, "densify");
   assertEquals(ask.currentPer100G, 125);
-  // Pour que 1200 kcal tiennent dans 700 g il faut 171,4 kcal/100 g; × 1,10 ⇒ 189.
-  assertEquals(ask.aimPer100G, Math.ceil((1200 / BOUNDS.max) * 100 * REPAIR_DENSITY_HEADROOM));
-  assertEquals(ask.aimPer100G, 189);
+  // Pour que 1200 kcal tiennent dans 550 g il faut 218,2 kcal/100 g; × 1,10 ⇒ 240.
+  // ⟳ 2026-09-23 — ⛔ LA VISÉE DE LA CONSIGNE, ELLE, EST 219 (le plancher):
+  // un repas qui a besoin de plus de 125 est visé au plancher. La réparation
+  // garde la marge (`repairAimFor`), sinon elle renverrait le plat viser le
+  // strict minimum.
+  assertEquals(ask.floorPer100G, 219);
+  assertEquals(ask.aimPer100G, Math.round((1200 / BOUNDS.max) * 100 * REPAIR_DENSITY_HEADROOM));
+  assertEquals(ask.aimPer100G, 240);
   // ⛔ ET LA MARGE ÉLOIGNE DE LA BORNE: viser le strict minimum reviendrait à
   // demander d'échouer, le moindre arrondi remettant le plat dehors.
   assert(ask.aimPer100G > (1200 / BOUNDS.max) * 100);
+});
+
+Deno.test("⟳ 2026-09-23 — réparer un PETIT repas trop dilué: la réparation ne vise jamais sous la consigne", () => {
+  // Un plat à 50 kcal/100 g (300 kcal pour 600 g), une part de 500 kcal:
+  // 1 000 g d'assiette, au-dessus des 550 g de la table.
+  //   Dmin = ⌈50 000/550⌉ = ⌈90,9⌉ = 91 ; Dmax = ⌊50 000/250⌋ = 200
+  //   visée de la consigne = max(125 ; 90,9) = 125
+  //   marge d'avant       = arrondi(90,9 × 1,10) = 100
+  const std = { kcal: 300, cookedG: 600, densityPer100G: 50, proteinG: null, pots: [], gaps: [] };
+  const sized = sizeDishForMouth({ standard: std, targetKcal: 500, bounds: BOUNDS });
+  assertEquals(sized.verdict, "over_max");
+  const ask = repairDecision({ sized, standard: std, bounds: BOUNDS, targetKcal: 500 })!;
+  assertEquals([ask.floorPer100G, ask.ceilingPer100G, ask.aimPer100G], [91, 200, 125]);
+  // ⛔ LE CAS QUI MORD: la même consigne annoncée avant la composition.
+  assertEquals(densityCorridorFor({ targetKcal: 500, bounds: BOUNDS })!.preferredPer100G, 125);
 });
 
 Deno.test("réparer: un plat TROP CONCENTRÉ s'allège, et la marge va dans l'AUTRE SENS", () => {
@@ -1039,8 +1214,10 @@ Deno.test("réparer: un plat TROP CONCENTRÉ s'allège, et la marge va dans l'AU
 });
 
 Deno.test("réparer: un plat DANS LES BORNES ou non mesurable ne demande RIEN", () => {
-  const ok = sizeDishForMouth({ standard: STD, targetKcal: 750, bounds: BOUNDS });
-  assertEquals(repairDecision({ sized: ok, standard: STD, bounds: BOUNDS, targetKcal: 750 }), null);
+  // ⟳ 2026-09-23 — 625 kcal (500 g): 750 dépasseraient les 550 g de la table.
+  const ok = sizeDishForMouth({ standard: STD, targetKcal: 625, bounds: BOUNDS });
+  assertEquals(ok.verdict, "in_bounds");
+  assertEquals(repairDecision({ sized: ok, standard: STD, bounds: BOUNDS, targetKcal: 625 }), null);
   const nm = sizeDishForMouth({
     standard: { ...STD, kcal: null },
     targetKcal: 750,
@@ -1087,8 +1264,10 @@ Deno.test("⛔ L'INSTRUCTION NE PORTE NI KCAL DE JOURNÉE, NI KG, NI PRÉNOM", (
   // de l'autre côté, mesuré dans les deux sens (23 densités sur 40 AU-DESSUS
   // de la consigne ; un bouillon à 57,8 sur la consigne inverse).
   assert(texte.includes("125 kcal per 100 g"));
-  assert(texte.includes("between 172 and 250 kcal per 100 g"), texte.slice(0, 300));
-  assert(texte.includes("aiming for 189"), "la visée a disparu de la consigne");
+  // ⟳ 2026-09-23 — sous 550 g: plancher ⌈218,2⌉ = 219, visée 240 (172 et 189
+  // sous 700 g).
+  assert(texte.includes("between 219 and 250 kcal per 100 g"), texte.slice(0, 300));
+  assert(texte.includes("aiming for 240"), "la visée a disparu de la consigne");
   assert(texte.includes('"Soupe de légumes"'));
   // ⛔ ET L'IDENTITÉ EST DEMANDÉE. Sans ça, « rends ce plat plus dense » se
   // satisfait en remplaçant la soupe par un gratin.
@@ -1423,12 +1602,13 @@ Deno.test("LOT 10 — le verdict est celui de CHAQUE mangeur, sur ses bornes à 
   const rows = sizeDishForEaters({
     standard: STD,
     eaters: [
-      eater("adulte", 750, BOUNDS_ADULTE),
-      { ...eater("enfant", 750, BOUNDS_ENFANT), bucket: "minor_6_11" },
+      eater("adulte", 625, BOUNDS_ADULTE),
+      { ...eater("enfant", 625, BOUNDS_ENFANT), bucket: "minor_6_11" },
     ],
   });
-  // 750/500 = 1,5 ⇒ 600 g servis. L'adulte tient sous son plafond (700), pas
-  // l'enfant (450) — MÊME plat, MÊME facteur, deux verdicts. C'est très
+  // 625/500 = 1,25 ⇒ 500 g servis. L'adulte tient sous son plafond (550), pas
+  // l'enfant (450) — MÊME plat, MÊME facteur, deux verdicts. (⟳ 2026-09-23 —
+  // 750 kcal et 600 g sous l'ancien plafond adulte de 700.) C'est très
   // exactement le cas que la réparation du lot 13 devra trancher: densifier
   // pour l'adulte tirerait l'enfant vers le bas, et c'est interdit.
   assertEquals(rows[0].verdict, "in_bounds");
@@ -1631,6 +1811,11 @@ Deno.test("DENSITÉ — chaque moment exige ce que son plafond d'assiette impose
   // Le curseur reste le contrat: 0,35 kg/sem vaut 0,35 × 7700 / 7 = 385
   // kcal/jour, exécutés tels quels. Cible: 3 193 + 385 = **3 578**.
   //
+  // ⟳ 2026-09-23 — L'ÂGE EXACT REMPLACE LE MILIEU DE TRANCHE (flux D du
+  // chantier « assiettes normales »): 28 ans et non 24.
+  //   BMR = 10×72 + 6,25×187 − 5×28 + 5 = 1 753,75
+  //   M   = 1 753,75 × 1,80 = 3 156,75 → **3 157** ; cible 3 157 + 385 = **3 542**.
+  //
   // Les quatre moments pèsent 0,25 + 0,40 + 0,10 + 0,35 = 1,10, et la densité
   // se demande contre le plafond PHYSIQUE (`physicalMax`, la capacité
   // d'estomac), jamais contre le plafond dérivé de la part — sans quoi la
@@ -1641,10 +1826,15 @@ Deno.test("DENSITÉ — chaque moment exige ce que son plafond d'assiette impose
   // l'intérieur. Pousser le plancher de 10 % le rendait faux dans son propre
   // nom: il annonçait comme nécessaire un nombre qui ne l'était pas.
   //
-  //   déjeuner  3578 × 0,40/1,10 = 1301,1 kcal ; 1301,1/700 × 100 = 185,9 → 186
-  //   dîner     3578 × 0,35/1,10 = 1138,5 kcal ; 1138,5/700 × 100 = 162,6 → 163
-  //   p-déj     3578 × 0,25/1,10 =  813,2 kcal ;  813,2/700 × 100 = 116,2 → 117
-  //   goûter    3578 × 0,10/1,10 =  325,3 kcal ;  325,3/300 × 100 = 108,4 → 109
+  // ⟳ 2026-09-23 — le plafond d'un repas adulte est 550 g (700 avant):
+  //   déjeuner  3542 × 0,40/1,10 = 1288,0 kcal ; 1288,0/550 × 100 = 234,2 → 235
+  //   dîner     3542 × 0,35/1,10 = 1127,0 kcal ; 1127,0/550 × 100 = 204,9 → 205
+  //   p-déj     3542 × 0,25/1,10 =  805,0 kcal ;  805,0/550 × 100 = 146,4 → 147
+  //   goûter    3542 × 0,10/1,10 =  322,0 kcal ;  322,0/300 × 100 = 107,3 → 108
+  //
+  // ⟳ 2026-09-23 — LA VISÉE D'UN REPAS EST max(125 ; plancher), celle d'une
+  // collation reste plancher × 1,10. Les trois repas ont besoin de plus de
+  // 125: leur visée EST leur plancher. Le goûter: 107,3 × 1,10 = 118,1 → 118.
   //
   // ⚠️ ET LES QUATRE PASSENT DÉSORMAIS LE PLANCHER DE 100, là où deux le
   // rataient sous le raccourci au poids. Ce n'est pas un effet cherché: c'est ce
@@ -1656,15 +1846,20 @@ Deno.test("DENSITÉ — chaque moment exige ce que son plafond d'assiette impose
     direction: "up",
     paceKgPerWeek: 0.35,
     declaredSlots: QUATRE_MOMENTS,
-  }), "no_position").kcal, 3578);
+  }), "no_position").kcal, 3542);
   assertEquals(
     r.named.map((d) => [d.slot, d.kcalPer100G]),
-    [["breakfast", 117], ["lunch", 186], ["snack_pm", 109], ["dinner", 163]],
+    [["breakfast", 147], ["lunch", 235], ["snack_pm", 108], ["dinner", 205]],
   );
-  // ⛔ ET LA MARGE EST BIEN LÀ, INTÉRIEURE: la visée dépasse le plancher sans
-  // sortir du couloir. Sans cette ligne, retirer la visée passerait inaperçu.
+  // ⛔ LA VISÉE, MOMENT PAR MOMENT. ⟳ 2026-09-23 — la marge de 10 % ne vit plus
+  // que chez la collation; un repas vise le gabarit, ou son plancher s'il est
+  // plus haut. Sans cette ligne, remettre la marge sur les repas (ou la retirer
+  // de la collation) passerait inaperçu.
+  assertEquals(
+    r.named.map((d) => [d.slot, d.preferredPer100G]),
+    [["breakfast", 147], ["lunch", 235], ["snack_pm", 118], ["dinner", 205]],
+  );
   for (const d of r.named) {
-    assert(d.preferredPer100G > d.minPer100G, `${d.slot}: la visée ne dépasse pas le plancher`);
     assert(d.preferredPer100G <= d.maxPer100G, `${d.slot}: la visée sort du couloir`);
     assertEquals(d.kcalPer100G, d.minPer100G);
   }
@@ -1688,14 +1883,60 @@ Deno.test("DENSITÉ — chaque moment exige ce que son plafond d'assiette impose
 
   // ── LA MOITIÉ QUE LE PLANCHER CACHERAIT, ET C'EST TOUT LE POINT DU TEST ──
   // Le goûter emploie le plafond de COLLATION (300 g), pas celui d'un repas —
-  // c'est ce qui le rend presque aussi exigeant que le petit-déjeuner malgré
-  // une cible DEUX FOIS ET DEMIE plus petite (109 contre 117). Un test qui les
-  // traiterait pareil le manquerait.
+  // c'est ce qui le garde au-dessus de 100 malgré une cible DEUX FOIS ET DEMIE
+  // plus petite que celle du petit-déjeuner (108 contre 147; 109 contre 117
+  // sous l'ancien plafond de repas de 700 g). Un test qui les traiterait pareil
+  // le manquerait.
   const bas = densite({ floors: { normal: 50, light: 30 } });
   assertEquals(
     bas.named.map((d) => [d.slot, d.kcalPer100G]),
-    [["breakfast", 117], ["lunch", 186], ["snack_pm", 109], ["dinner", 163]],
+    [["breakfast", 147], ["lunch", 235], ["snack_pm", 108], ["dinner", 205]],
   );
+});
+
+Deno.test("⟳ 2026-09-23 — la visée d'un REPAS est la densité du gabarit: 600 kcal ⇒ 125", () => {
+  // Déjeuner adulte de 600 kcal:
+  //   Gmax = min(600 ; 550) = 550 ; Gmin = min(600/1,35 ; 250) = 250
+  //   Dmin = ⌈60 000/550⌉ = ⌈109,09⌉ = 110 ; Dmax = ⌊60 000/250⌋ = 240
+  //   visée = max(125 ; 109,09) = 125
+  const b = plateBoundsFor({ ageYears: 35, slot: "lunch", slotTargetKcal: 600, light: false, appetite: null });
+  assertEquals([b.min, b.max], [250, 550]);
+  const c = densityCorridorFor({ targetKcal: 600, bounds: b })!;
+  assertEquals([c.minPer100G, c.maxPer100G, c.preferredPer100G], [110, 240, 125]);
+  // ⛔ LE CAS QUI MORD: l'ancienne visée, plancher × 1,10 = 109,09 × 1,10 = 120.
+  assert(c.preferredPer100G !== 120, "la visée d'avant est revenue");
+  // ⚠️ UN REPAS QUI A BESOIN DE PLUS vise son besoin, ramené dans le couloir:
+  //   800 kcal ⇒ Dmin = ⌈145,45⌉ = 146 ; visée arrondi(145,45) = 145 ⇒ 146
+  const gros = densityCorridorFor({
+    targetKcal: 800,
+    bounds: plateBoundsFor({ ageYears: 35, slot: "dinner", slotTargetKcal: 800, light: false, appetite: null }),
+  })!;
+  assertEquals([gros.minPer100G, gros.maxPer100G, gros.preferredPer100G], [146, 250, 146]);
+  // ⚠️ ET UN PETIT REPAS garde 125 à l'intérieur de son couloir:
+  //   300 kcal ⇒ Gmax 300, Gmin ⌊222,2⌉ = 222 ⇒ [100, ⌊135,1⌋ = 135], visée 125
+  const petit = densityCorridorFor({
+    targetKcal: 300,
+    bounds: plateBoundsFor({ ageYears: 35, slot: "dinner", slotTargetKcal: 300, light: false, appetite: null }),
+  })!;
+  assertEquals([petit.minPer100G, petit.maxPer100G, petit.preferredPer100G], [100, 135, 125]);
+});
+
+Deno.test("⟳ 2026-09-23 — la visée d'une COLLATION ne change pas: plancher × 1,10", () => {
+  // Goûter adulte de 400 kcal:
+  //   Gmax = min(400 ; 300) = 300 ; Gmin = min(296,3 ; 80) = 80
+  //   Dmin = ⌈133,33⌉ = 134 ; Dmax = ⌊500⌋ ⇒ 250 ; visée arrondi(146,67) = 147
+  const c = densityCorridorFor({
+    targetKcal: 400,
+    bounds: plateBoundsFor({ ageYears: 35, slot: "snack_pm", slotTargetKcal: 400, light: false, appetite: null }),
+  })!;
+  assertEquals([c.minPer100G, c.maxPer100G, c.preferredPer100G], [134, 250, 147]);
+  // ⛔ LE CAS QUI MORD: la règle des repas rendrait max(125 ; 133,33) ⇒ 134.
+  // Et un petit goûter de 250 kcal: Dmin 100, visée 110 — pas 125.
+  const petit = densityCorridorFor({
+    targetKcal: 250,
+    bounds: plateBoundsFor({ ageYears: 35, slot: "snack_pm", slotTargetKcal: 250, light: false, appetite: null }),
+  })!;
+  assertEquals([petit.minPer100G, petit.maxPer100G, petit.preferredPer100G], [100, 250, 110]);
 });
 
 Deno.test("DENSITÉ — l'ordre est celui de la JOURNÉE, pas celui de la grille", () => {
@@ -2266,9 +2507,9 @@ Deno.test("LOT 12 — une boîte par objectif, un bac pour les autres", () => {
   const out = applySizingForEaters({
     meal: planForEaters(),
     rows: [
-      { dishIndex: 0, memberId: "paul", factor: 1.5, sized: true, recipeShare: null },
-      { dishIndex: 0, memberId: "claire", factor: 1, sized: true, recipeShare: null },
-      { dishIndex: 0, memberId: "leo", factor: 0.5, sized: true, recipeShare: null },
+      { dishIndex: 0, memberId: "paul", factor: 1.5, sized: true, recipeShare: null, starchSide: null },
+      { dishIndex: 0, memberId: "claire", factor: 1, sized: true, recipeShare: null, starchSide: null },
+      { dishIndex: 0, memberId: "leo", factor: 0.5, sized: true, recipeShare: null, starchSide: null },
     ],
     weighed: new Set(["paul"]),
     index: INDEX,
@@ -2293,16 +2534,16 @@ Deno.test("LOT 12 — une boîte par objectif, un bac pour les autres", () => {
 Deno.test("LOT 12 — le FRAIS du plat est multiplié par la SOMME de ses mangeurs", () => {
   const un = applySizingForEaters({
     meal: planForEaters(),
-    rows: [{ dishIndex: 0, memberId: "a", factor: 1, sized: true, recipeShare: null }],
+    rows: [{ dishIndex: 0, memberId: "a", factor: 1, sized: true, recipeShare: null, starchSide: null }],
     weighed: new Set(),
     index: INDEX,
   });
   const trois = applySizingForEaters({
     meal: planForEaters(),
     rows: [
-      { dishIndex: 0, memberId: "a", factor: 1, sized: true, recipeShare: null },
-      { dishIndex: 0, memberId: "b", factor: 1, sized: true, recipeShare: null },
-      { dishIndex: 0, memberId: "c", factor: 1, sized: true, recipeShare: null },
+      { dishIndex: 0, memberId: "a", factor: 1, sized: true, recipeShare: null, starchSide: null },
+      { dishIndex: 0, memberId: "b", factor: 1, sized: true, recipeShare: null, starchSide: null },
+      { dishIndex: 0, memberId: "c", factor: 1, sized: true, recipeShare: null, starchSide: null },
     ],
     weighed: new Set(),
     index: INDEX,
@@ -2316,7 +2557,7 @@ Deno.test("LOT 12 — le FRAIS du plat est multiplié par la SOMME de ses mangeu
 Deno.test("LOT 12 — la CASSEROLE somme les mangeurs, pas seulement les tirages", () => {
   const un = applySizingForEaters({
     meal: planForEaters(),
-    rows: [{ dishIndex: 0, memberId: "a", factor: 1, sized: true, recipeShare: null }],
+    rows: [{ dishIndex: 0, memberId: "a", factor: 1, sized: true, recipeShare: null, starchSide: null }],
     weighed: new Set(),
     index: INDEX,
   });
@@ -2328,6 +2569,7 @@ Deno.test("LOT 12 — la CASSEROLE somme les mangeurs, pas seulement les tirages
       factor: 1,
       sized: true,
       recipeShare: null,
+      starchSide: null,
     })),
     weighed: new Set(),
     index: INDEX,
@@ -2344,8 +2586,8 @@ Deno.test("LOT 12 — un mangeur seul au bac reçoit une BOÎTE, jamais un bac d
   const out = applySizingForEaters({
     meal: planForEaters(),
     rows: [
-      { dishIndex: 0, memberId: "paul", factor: 1.5, sized: true, recipeShare: null },
-      { dishIndex: 0, memberId: "claire", factor: 1, sized: true, recipeShare: null },
+      { dishIndex: 0, memberId: "paul", factor: 1.5, sized: true, recipeShare: null, starchSide: null },
+      { dishIndex: 0, memberId: "claire", factor: 1, sized: true, recipeShare: null, starchSide: null },
     ],
     weighed: new Set(["paul"]),
     index: INDEX,
@@ -2359,8 +2601,8 @@ Deno.test("LOT 12 — aucun terme neuf, et les ids de couvercle sont uniques", (
   const out = applySizingForEaters({
     meal: planForEaters(),
     rows: [
-      { dishIndex: 0, memberId: "a", factor: 1, sized: true, recipeShare: null },
-      { dishIndex: 0, memberId: "b", factor: 1, sized: true, recipeShare: null },
+      { dishIndex: 0, memberId: "a", factor: 1, sized: true, recipeShare: null, starchSide: null },
+      { dishIndex: 0, memberId: "b", factor: 1, sized: true, recipeShare: null, starchSide: null },
     ],
     weighed: new Set(["a", "b"]),
     index: INDEX,
@@ -2381,7 +2623,7 @@ Deno.test("LOT 12 — aucun terme neuf, et les ids de couvercle sont uniques", (
 Deno.test("LOT 12 — un plat qu'aucun mangeur ne dimensionne n'est pas touché", () => {
   const out = applySizingForEaters({
     meal: planForEaters(),
-    rows: [{ dishIndex: 0, memberId: "a", factor: 1, sized: false, recipeShare: null }],
+    rows: [{ dishIndex: 0, memberId: "a", factor: 1, sized: false, recipeShare: null, starchSide: null }],
     weighed: new Set(),
     index: INDEX,
   });
@@ -2461,10 +2703,15 @@ Deno.test("LOT 13 — on densifie vers le PLUS EXIGEANT, jamais vers la moyenne"
   });
   const deux = repairDecisionForDish({
     standard: STD_DILUE,
-    eaters: [eaterAt("over_max", 900), eaterAt("over_max", 400)],
+    eaters: [eaterAt("over_max", 900), eaterAt("over_max", 500)],
   });
   // ⛔ AJOUTER UN MANGEUR MOINS EXIGEANT NE DOIT PAS BAISSER LA CIBLE: le plus
   // contraint resterait au-dessus de sa borne, c'est-à-dire non nourri.
+  // ⟳ 2026-09-23 — le second mangeur passe de 400 à 500 kcal. Sous 550 g, le
+  // plafond de densité de 400 kcal (⌊400/250 × 100⌋ = 160) tombait SOUS la
+  // visée du premier (⌈164 × 1,10⌉ = 181): c'était l'intersection des
+  // plafonds qui mordait, pas une moyenne. 500 kcal ⇒ plafond 200.
+  assertEquals(seul.ask?.aimPer100G, 181);
   assertEquals(deux.ask?.aimPer100G, seul.ask?.aimPer100G);
 });
 
@@ -2807,8 +3054,8 @@ Deno.test("LOT 1 ① — la bouche sans cible est NOMMÉE sur un contenant", () 
   const out = applySizingForEaters({
     meal: planPourPartDeRecette(),
     rows: [
-      { dishIndex: 0, memberId: "paul", factor: 0.5, sized: true, recipeShare: null },
-      { dishIndex: 0, memberId: "nils", factor: 1.5, sized: true, recipeShare: null },
+      { dishIndex: 0, memberId: "paul", factor: 0.5, sized: true, recipeShare: null, starchSide: null },
+      { dishIndex: 0, memberId: "nils", factor: 1.5, sized: true, recipeShare: null, starchSide: null },
       // ⛔ LA BOUCHE DU DÉFAUT: pas de cible, donc pas de facteur — mais un plat
       // mesurable et une place à table.
       {
@@ -2817,6 +3064,7 @@ Deno.test("LOT 1 ① — la bouche sans cible est NOMMÉE sur un contenant", () 
         factor: UNMEASURABLE_PORTION_FACTOR,
         sized: false,
         recipeShare: "age_unknown",
+        starchSide: null,
       },
     ],
     weighed: new Set(["paul", "nils", "iris"]),
@@ -2838,13 +3086,14 @@ Deno.test("LOT 1 ① bis — sa part EST la recette, et rien n'est cuisiné en p
   // pas d'un gramme entre « elle est retirée du couvercle » et « elle reçoit sa
   // part ». Avant ce lot, la différence partait à la poubelle.
   const rows = [
-    { dishIndex: 0, memberId: "paul", factor: 0.5, sized: true, recipeShare: null },
+    { dishIndex: 0, memberId: "paul", factor: 0.5, sized: true, recipeShare: null, starchSide: null },
     {
       dishIndex: 0,
       memberId: "iris",
       factor: UNMEASURABLE_PORTION_FACTOR,
       sized: false,
       recipeShare: "age_unknown" as const,
+      starchSide: null,
     },
   ];
   const servie = applySizingForEaters({
@@ -2855,7 +3104,7 @@ Deno.test("LOT 1 ① bis — sa part EST la recette, et rien n'est cuisiné en p
   });
   const retiree = applySizingForEaters({
     meal: planPourPartDeRecette(),
-    rows: rows.map((r) => ({ ...r, recipeShare: null })),
+    rows: rows.map((r) => ({ ...r, recipeShare: null, starchSide: null })),
     weighed: new Set(["paul", "iris"]),
     index: INDEX,
   });
@@ -2896,8 +3145,8 @@ Deno.test("LOT 1 ② — un plat ILLISIBLE ne fabrique aucune part", () => {
   const out = applySizingForEaters({
     meal: planPourPartDeRecette(),
     rows: [
-      { dishIndex: 0, memberId: "paul", factor: 1, sized: false, recipeShare: null },
-      { dishIndex: 0, memberId: "iris", factor: 1, sized: false, recipeShare: null },
+      { dishIndex: 0, memberId: "paul", factor: 1, sized: false, recipeShare: null, starchSide: null },
+      { dishIndex: 0, memberId: "iris", factor: 1, sized: false, recipeShare: null, starchSide: null },
     ],
     weighed: new Set(["paul"]),
     index: INDEX,
@@ -2916,8 +3165,8 @@ Deno.test("LOT 1 ③ — le mangeur perdu se compte même quand le plat tient de
   const out = applySizingForEaters({
     meal: planPourPartDeRecette(),
     rows: [
-      { dishIndex: 0, memberId: "paul", factor: 0.5, sized: true, recipeShare: null },
-      { dishIndex: 0, memberId: "iris", factor: 1, sized: false, recipeShare: null },
+      { dishIndex: 0, memberId: "paul", factor: 0.5, sized: true, recipeShare: null, starchSide: null },
+      { dishIndex: 0, memberId: "iris", factor: 1, sized: false, recipeShare: null, starchSide: null },
     ],
     weighed: new Set(["paul", "iris"]),
     index: INDEX,
@@ -2936,9 +3185,9 @@ Deno.test("LOT 1 ④ — la part de recette entre AUSSI dans un bac partagé", (
   const out = applySizingForEaters({
     meal: planPourPartDeRecette(),
     rows: [
-      { dishIndex: 0, memberId: "paul", factor: 0.5, sized: true, recipeShare: null },
-      { dishIndex: 0, memberId: "lea", factor: 0.5, sized: true, recipeShare: null },
-      { dishIndex: 0, memberId: "iris", factor: 1, sized: false, recipeShare: "no_body" },
+      { dishIndex: 0, memberId: "paul", factor: 0.5, sized: true, recipeShare: null, starchSide: null },
+      { dishIndex: 0, memberId: "lea", factor: 0.5, sized: true, recipeShare: null, starchSide: null },
+      { dishIndex: 0, memberId: "iris", factor: 1, sized: false, recipeShare: "no_body", starchSide: null },
     ],
     weighed: new Set(["paul"]),
     index: INDEX,
@@ -3074,6 +3323,7 @@ const ligneSolo = (
   factor: UNMEASURABLE_PORTION_FACTOR,
   sized: false,
   recipeShare: "age_unknown",
+  starchSide: null,
   ...over,
 });
 
@@ -3105,7 +3355,7 @@ Deno.test("LOT 2 ② — N=1, ÂGE CONNU: rien ne bouge, et aucune part n'est ou
   const connu = applySizing({
     meal: planPourPartDeRecette(),
     memberId: "titulaire",
-    rows: [ligneSolo({ sized: true, factor: 1, recipeShare: null })],
+    rows: [ligneSolo({ sized: true, factor: 1, recipeShare: null, starchSide: null })],
     index: INDEX,
   });
   const inconnu = applySizing({
@@ -3141,7 +3391,7 @@ Deno.test("LOT 2 ③ — N=1, RECETTE NON MESURABLE: le refus reste un refus", (
   const out = applySizing({
     meal: planPourPartDeRecette(),
     memberId: "titulaire",
-    rows: [ligneSolo({ recipeShare: null })],
+    rows: [ligneSolo({ recipeShare: null, starchSide: null })],
     index: INDEX,
   });
   assertEquals((out.dishes[0].boxes as unknown[]).length, 0, "un plat illisible a reçu un contenant");
@@ -3179,13 +3429,14 @@ Deno.test("LOT 2 ⑤ — N=2: la bouche sans cible est nommée, l'autre garde la
   const out = applySizingForEaters({
     meal: planPourPartDeRecette(),
     rows: [
-      { dishIndex: 0, memberId: "paul", factor: 0.5, sized: true, recipeShare: null },
+      { dishIndex: 0, memberId: "paul", factor: 0.5, sized: true, recipeShare: null, starchSide: null },
       {
         dishIndex: 0,
         memberId: "iris",
         factor: UNMEASURABLE_PORTION_FACTOR,
         sized: false,
         recipeShare: "age_unknown",
+        starchSide: null,
       },
     ],
     weighed: new Set(["paul", "iris"]),
@@ -3205,15 +3456,16 @@ Deno.test("LOT 2 ⑥ — N=4: trois cibles, une absence, QUATRE couvercles", () 
   const out = applySizingForEaters({
     meal: planPourPartDeRecette(),
     rows: [
-      { dishIndex: 0, memberId: "paul", factor: 0.8, sized: true, recipeShare: null },
-      { dishIndex: 0, memberId: "nils", factor: 1.4, sized: true, recipeShare: null },
-      { dishIndex: 0, memberId: "lea", factor: 0.6, sized: true, recipeShare: null },
+      { dishIndex: 0, memberId: "paul", factor: 0.8, sized: true, recipeShare: null, starchSide: null },
+      { dishIndex: 0, memberId: "nils", factor: 1.4, sized: true, recipeShare: null, starchSide: null },
+      { dishIndex: 0, memberId: "lea", factor: 0.6, sized: true, recipeShare: null, starchSide: null },
       {
         dishIndex: 0,
         memberId: "iris",
         factor: UNMEASURABLE_PORTION_FACTOR,
         sized: false,
         recipeShare: "no_body",
+        starchSide: null,
       },
     ],
     weighed: new Set(["paul", "nils", "lea", "iris"]),
@@ -3271,4 +3523,140 @@ Deno.test("LOT 2 ⑦ — L'AFFICHAGE PROTÉGÉ: un contenant sans âge n'ouvre A
     Object.entries(decision.gate.refused).filter(([, n]) => n > 0),
     [["age_unknown", 1]],
   );
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-22 — L'ITEM D'UN LIQUIDE PART EN BOÎTE AVEC SON VOLUME.
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// ⛔ CE QUE CE CAS TIENT, ET C'EST LE CHEMIN DE PRODUCTION. Les doses d'un repas
+// sans cuisson sont écrites ICI (`applySizing`), pas par le modèle: c'est donc
+// ici que le volume doit naître, à l'endroit exact où l'identifiant de la ligne
+// est sous la main. Une conversion ajoutée plus tard devrait retrouver
+// l'aliment par son libellé — « laitue » contre « lait », le matcher maison que
+// ce dépôt refuse.
+//
+// ⚠️ ET LA MOITIÉ QUI ARME LA GARDE EST LE POULET. Sans un item qui reste à
+// `null`, on ne distinguerait pas « le volume suit la fiche » de « tout le
+// monde reçoit un volume », et l'écran finirait par annoncer « ≈ 2 c. à soupe
+// de poulet ».
+Deno.test("⟳ 2026-09-22 — le volume d'un item suit SA fiche, et personne d'autre", () => {
+  const index = buildCompositionIndex(
+    [
+      // 0,92 — la densité d'une huile alimentaire, semée par la migration
+      // `20260922201500`.
+      ref({ slug: "oil", foodGroupRef: "olive_oil", energyKcal: 900, gramsPerMl: 0.92 }),
+      // ⛔ AUCUNE DENSITÉ: un blanc de poulet ne se verse pas.
+      ref({ slug: "chicken", foodGroupRef: "poultry", energyKcal: 165 }),
+    ],
+    [],
+  );
+  const out = applySizing({
+    index,
+    memberId: "m-solo",
+    meal: {
+      dishes: [{
+        day: "mon",
+        slot: "lunch",
+        title: "Salade",
+        method: "servir",
+        // ⚠️ `ref` SUR LA LIGNE: c'est ce que le parseur écrit sur un plan
+        // réel (`DishIngredient.ref`), et c'est par là que le volume passe.
+        ingredients: [{ ...g("oil", 6), ref: "oil" }, { ...g("chicken", 140), ref: "chicken" }],
+        // Aucune casserole: le cas exact du repas sans cuisson, celui qui
+        // affiche des DOSES par personne.
+        uses: [],
+        boxes: [],
+      }],
+      preparations: [],
+    },
+    rows: [{ dishIndex: 0, factor: 1, sized: true, recipeShare: null, starchSide: null }],
+  });
+  const items = out.dishes[0].boxes[0].items as Array<
+    { ref: string | null; grams: number; ml: number | null }
+  >;
+  const oil = items.find((i) => i.ref === "oil");
+  const chicken = items.find((i) => i.ref === "chicken");
+  assertEquals(oil?.grams, 6, "le gramme reste la grandeur du plan");
+  assertEquals(oil?.ml, 7, "6 g d'huile font 7 ml — la cuillère à café de l'écran");
+  assertEquals(chicken?.ml, null, "un aliment qui ne se verse pas n'a pas de volume");
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-22 · LOT C — LE FÉCULENT À CÔTÉ, SERVI À SA PROPORTION
+// ═══════════════════════════════════════════════════════════════════════════
+
+function planDeuxCasseroles() {
+  return {
+    dishes: [
+      {
+        day: "wed",
+        slot: "lunch",
+        ingredients: [ing("huile", 10)],
+        uses: [{ preparationId: "p_poulet" }, { preparationId: "p_riz" }],
+        boxes: [],
+      },
+    ],
+    preparations: [
+      { id: "p_poulet", title: "Poulet en sauce", servingsMade: 1, ingredients: [ing("poulet", 200)] },
+      { id: "p_riz", title: "Riz nature", servingsMade: 1, ingredients: [ing("riz", 100)] },
+    ],
+  };
+}
+
+Deno.test("LOT C — la casserole-féculent suit SON facteur, le reste suit le principal", () => {
+  // Paul (objectif, boîte à lui): principal 0,5, féculent 1,5. Claire: un seul
+  // facteur, 1. Casseroles tirées une fois chacune.
+  //   riz    = 100 × (1,5 + 1) = 250 g
+  //   poulet = 200 × (0,5 + 1) = 300 g
+  //   huile  =  10 × (0,5 + 1) =  15 g (le frais suit le principal)
+  const split = applySizingForEaters({
+    meal: planDeuxCasseroles(),
+    rows: [
+      {
+        dishIndex: 0,
+        memberId: "paul",
+        factor: 1,
+        sized: true,
+        recipeShare: null,
+        starchSide: { preparationId: "p_riz", mainFactor: 0.5, sideFactor: 1.5 },
+      },
+      { dishIndex: 0, memberId: "claire", factor: 1, sized: true, recipeShare: null, starchSide: null },
+    ],
+    weighed: new Set(["paul", "claire"]),
+    index: INDEX,
+  });
+  const amount = (preps: { id: string; ingredients: { amount: number }[] }[], id: string) =>
+    preps.find((p) => p.id === id)!.ingredients[0].amount;
+  assertEquals(amount(split.preparations, "p_riz"), 250);
+  assertEquals(amount(split.preparations, "p_poulet"), 300);
+  assertEquals(split.dishes[0].ingredients[0].amount, 15);
+
+  // ── LA BOÎTE DE PAUL, CONTRE LA MÊME BOÎTE SANS PARTAGE ─────────────────
+  const uniforme = applySizingForEaters({
+    meal: planDeuxCasseroles(),
+    rows: [
+      { dishIndex: 0, memberId: "paul", factor: 1, sized: true, recipeShare: null, starchSide: null },
+      { dishIndex: 0, memberId: "claire", factor: 1, sized: true, recipeShare: null, starchSide: null },
+    ],
+    weighed: new Set(["paul", "claire"]),
+    index: INDEX,
+  });
+  // Sans partage: rien ne bouge par rapport à avant ce lot.
+  assertEquals(amount(uniforme.preparations, "p_riz"), 200);
+  assertEquals(amount(uniforme.preparations, "p_poulet"), 400);
+  type Item = { preparationId: string | null; term: string; grams: number };
+  const boxOf = (o: { dishes: { boxes: { memberIds: string[]; items: Item[] }[] }[] }, m: string) =>
+    o.dishes[0].boxes.find((b) => b.memberIds.length === 1 && b.memberIds[0] === m)!;
+  const grams = (b: { items: Item[] }, pid: string | null, term?: string) =>
+    b.items.find((it) => it.preparationId === pid && (term === undefined || it.term === term))!.grams;
+  const pS = boxOf(split, "paul");
+  const pU = boxOf(uniforme, "paul");
+  // ⛔ DEUX LIGNES DE CASSEROLE DANS LA MÊME BOÎTE: le principal et le féculent.
+  assertEquals(pS.items.filter((it) => it.preparationId !== null).length, 2);
+  // Le riz de Paul pèse 1,5 fois sa part uniforme, le poulet 0,5 fois.
+  assertEquals(grams(pS, "p_riz"), Math.round(grams(pU, "p_riz") * 1.5));
+  assertEquals(grams(pS, "p_poulet"), Math.round(grams(pU, "p_poulet") * 0.5));
+  // Et la boîte de Claire ne bouge pas d'un gramme.
+  assertEquals(boxOf(split, "claire").items, boxOf(uniforme, "claire").items);
 });

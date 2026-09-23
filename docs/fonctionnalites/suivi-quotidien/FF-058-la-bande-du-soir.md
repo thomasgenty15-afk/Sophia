@@ -12,6 +12,34 @@
 
 ---
 
+> ## ⟳ 2026-09-23 — PRÉSUMÉ MANGÉ, ET UNE QUESTION DU SOIR (décision du propriétaire)
+>
+> La bande du soir de cette fiche est **retirée depuis le 2026-09-08** (`d0e5fb0e`, le
+> message du soir est parti). Ce qui la remplace, décidé le 2026-09-23 :
+>
+> | | Avant | Maintenant |
+> |---|---|---|
+> | Un repas prévu, sans réponse | « non confirmé », **0 kcal** au total mangé | **présumé mangé** : il compte au total mangé dès que son heure est passée (`tracking_v2.ts`) |
+> | La case | « J'ai mangé ça », vide par défaut | **« Pas mangé »**, vide par défaut, sur `/app/today`, `/app/plan` et la fenêtre « Suivi des repas » ; la cocher écrit « pas mangé » (`declareNotEaten`) et retire le repas du total |
+> | Ce qui est écrit en base | chaque coche | **seulement les exceptions** (« pas mangé », et les « Oui » du soir) ; la présomption se calcule à la lecture |
+> | Les questions | une par repas prévu (`keel_slot_meal`, « Tu as mangé le « X » prévu ? ») | **une par jour**, après le dîner (heure déclarée + 1 h, sinon 21 h) : « Est-ce que tu as mangé tous tes repas de la journée ? » — `day_meals_ask.ts`, purpose `keel_day_meals` |
+> | « Oui » | — | coche les plats du jour encore sans réponse, et **une phrase de félicitation** |
+> | « Non » | — | ouvre la fenêtre **« Suivi des repas »** sur ce jour-là : « Coche les repas que tu n'as pas mangés, le reste est automatiquement pris en compte » |
+>
+> La fenêtre « Suivi des repas » (`MealsTrackingDialog`) vit sur `/app/chat` : le « + » du champ
+> de message l'ouvre, le « + » de la barre du bas y mène (intention `meals`), le « Non » du soir
+> l'ouvre sur son jour. Un jour à venir y montre ses cases grisées.
+>
+> Portée inchangée : perte de poids et prise de muscle seulement (`SLOT_MEAL_GOALS`), même
+> interrupteur (`slot_meal_ask_enabled`). La question sur un créneau que le plan **ne compose
+> pas** (« Rien n'était prévu pour… ») reste en place.
+>
+> **Deux règles de cette fiche sont renversées, en connaissance de cause** : « Aucune coche
+> automatique » (§3) et « Aucun verdict, même positif » (§3 et R4). Elles sont barrées plus bas.
+> Un repas loupé ne change **pas** le plan (les repas suivants ne sont pas réajustés).
+
+---
+
 ## 0. Où en est cette fiche — vérifié le 2026-09-01
 
 ⚠️ **Cette fiche est restée 🟡 Spécifiée pendant que le code vivait.** Le README
@@ -158,12 +186,17 @@ Ici on constate, on ne répare pas.
   collecte).
 - ❌ **Aucune relance.** Ignorer n'a aucune conséquence, ni le soir même, ni le
   lendemain. Jamais « tu n'as pas coché hier ».
-- ❌ **Aucun verdict, même positif.** Le `✓` n'obtient ni « bravo », ni « 3/3 »,
-  ni série. Les ceintures du soir couvrent ce chemin comme les autres.
+- ~~❌ **Aucun verdict, même positif.** Le `✓` n'obtient ni « bravo », ni « 3/3 »,
+  ni série. Les ceintures du soir couvrent ce chemin comme les autres.~~
+  ⟳ **Renversé le 2026-09-23** : le « Oui » de la question du soir reçoit une phrase de
+  félicitation, demandée par le propriétaire. Toujours ni score, ni série.
 - ❌ **Aucun score, aucune série, aucun compte fondu.** Le volume de coches va
   monter ; il ne doit produire aucun pourcentage à l'écran
   (`adherence_score` est une surface supprimée).
-- ❌ **Aucune coche automatique.** Le silence n'écrit rien, jamais.
+- ~~❌ **Aucune coche automatique.** Le silence n'écrit rien, jamais.~~
+  ⟳ **Renversé le 2026-09-23** : un repas prévu est présumé mangé. Le silence
+  n'écrit toujours **rien en base** — la présomption se calcule à la lecture
+  (`tracking_v2.ts`), et seule l'exception (« pas mangé ») est écrite.
 - ❌ **Aucune conséquence sur le plan.** Ce que devient un `✗` appartient à
   FF-057. Cette fiche capte, elle ne répare pas.
 - ❌ **Muet sous plancher de restriction.** Sous `restriction_flag`, pas de
@@ -236,7 +269,7 @@ sans que rien ne le signale.
 | **R1** | Le cas nominal coûte **un tap** | trois oui/non par soir, c'est le formulaire quotidien : il se fait ignorer, puis couper, et la mesure se détruit elle-même |
 | **R2** | Une **affordance**, pas une question | c'est ce qui la distingue de la collecte que le produit s'interdit (T3) ; la formulation reste non interrogative, et ça se teste sur le texte |
 | **R3** | Le silence est une réponse | zéro relance, zéro remarque, aucune conséquence |
-| **R4** | Aucun verdict, même positif | féliciter une journée que la personne sait mauvaise détruit tout le canal, sans retour possible |
+| **R4** | ~~Aucun verdict, même positif~~ — ⟳ renversée le 2026-09-23 (félicitation sur le « Oui » du soir) | féliciter une journée que la personne sait mauvaise détruit tout le canal, sans retour possible |
 | **R5** | **Exactement** le chemin d'écriture de l'écran | deux implémentations d'une même coche divergent sur les bords, et la divergence se lit « l'écran dit mardi, la conversation dit mercredi » sans qu'on sache laquelle ment |
 | **R6** | La bande **ne consomme pas** le budget T4 ; toute **question** oui | affordance ≠ demande. Mais le même soir ne porte une pratique-question (FF-029) **que si le budget est libre** — sinon on recharge le soir petit à petit, et dans six mois c'est un sapin de Noël. *(La recommandation quotidienne était le second cas ; elle est abandonnée depuis le 2026-09-01.)* |
 | **R7** | Zéro plat prévu ⇒ **aucune bande** | le message du soir reste exactement ce qu'il est |

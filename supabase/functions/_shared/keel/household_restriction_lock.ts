@@ -37,6 +37,18 @@
  *
  * Les fondre ferait perdre l'un des deux — soit on jette des dîners corrects,
  * soit on laisse passer la phrase qui trahit le parent.
+ *
+ * ⟳ 2026-09-23 — UNE TROISIÈME LECTURE : LES À-CÔTÉS (`side_courses[].term`).
+ * Un à-côté (entrée, fromage, dessert, pain) est rangé HORS des ingrédients du
+ * plat, dans `dishes[i].side_courses` (`DishSideCoursePayload`). Sans cette
+ * lecture, un dessert au nutella passait sous le verrou.
+ *
+ *   L'À-CÔTÉ — l'aliment nommé une fois (« pomme », « yaourt nature »).
+ *   Négation tolérée, comme la substance. ⛔ CE N'EST PAS UNE VIOLATION DU
+ *   PLAT : l'à-côté TOMBE, le plat reste et le plan s'écrit. Refuser toute la
+ *   composition (422) pour un dessert choisi à côté du plat ferait payer une
+ *   semaine entière pour un garnissage. Chaque retrait est tracé
+ *   (`sideCoursesDropped`), jamais silencieux.
  */
 
 import {
@@ -63,6 +75,11 @@ export interface RestrictionLockResult {
   violations: string[];
   /** Les commentaires effacés. Tracés, jamais silencieux. */
   scrubbed: string[];
+  /**
+   * ⟳ 2026-09-23 — les à-côtés retirés parce qu'ils servent un aliment exclu
+   * par la maison, `titre:type:jeton`. Le plat reste (voir l'en-tête).
+   */
+  sideCoursesDropped: string[];
 }
 
 function termsFrom(labels: readonly string[]): ForbiddenTerm[] {
@@ -101,11 +118,12 @@ export function applyHouseRuleLock(
 ): RestrictionLockResult {
   const terms = termsFrom(labels);
   if (terms.length === 0) {
-    return { dishes: [...dishes], violations: [], scrubbed: [] };
+    return { dishes: [...dishes], violations: [], scrubbed: [], sideCoursesDropped: [] };
   }
 
   const violations: string[] = [];
   const scrubbed: string[] = [];
+  const sideCoursesDropped: string[] = [];
 
   const out = dishes.map((dish, index) => {
     const title = textOf(dish.title) || `dish[${index}]`;
@@ -119,6 +137,29 @@ export function applyHouseRuleLock(
     });
     for (const m of served) violations.push(`${title}:${m.token}`);
 
+    // 1 bis. ⟳ 2026-09-23 — LES À-CÔTÉS. Négation tolérée, comme la substance. Un
+    //    à-côté qui sert l'exclu TOMBE; le plat, lui, reste (voir l'en-tête).
+    //    ⚠️ Le plat n'est recopié que si un à-côté tombe: sans morsure, c'est
+    //    le même objet qui ressort, comme sans règle.
+    let next: LockableDish = dish;
+    const sides = Array.isArray(dish.side_courses) ? dish.side_courses : null;
+    if (sides !== null && sides.length > 0) {
+      const kept: unknown[] = [];
+      for (const entry of sides) {
+        const side = entry && typeof entry === "object" ? entry as Record<string, unknown> : null;
+        const term = side === null ? "" : textOf(side.term);
+        const hits = term === "" ? [] : findForbiddenMatches(term, terms, {
+          allowNegatedMentions: true,
+        });
+        if (hits.length === 0) {
+          kept.push(entry);
+          continue;
+        }
+        sideCoursesDropped.push(`${title}:${textOf(side?.kind) || "side"}:${hits[0].token}`);
+      }
+      if (kept.length !== sides.length) next = { ...dish, side_courses: kept };
+    }
+
     // 2. LE COMMENTAIRE. Négation REFUSÉE: c'est la tournure niée qu'on
     //    cherche, puisque c'est celle que le modèle produit spontanément.
     const commentary = [textOf(dish.title), textOf(dish.why)]
@@ -127,7 +168,7 @@ export function applyHouseRuleLock(
     const mentioned = findForbiddenMatches(commentary, terms, {
       allowNegatedMentions: false,
     });
-    if (mentioned.length === 0) return dish;
+    if (mentioned.length === 0) return next;
 
     scrubbed.push(`${title}:${[...new Set(mentioned.map((m) => m.token))].join(",")}`);
     // ON EFFACE LE « POURQUOI », ON NE LE RÉÉCRIT PAS. Bricoler la phrase du
@@ -135,8 +176,8 @@ export function applyHouseRuleLock(
     // laisserait « Honore la demande de pâtes de Lea avec une sauce
     // protéinée, sans . » — pire que rien. Un plat sans justification reste
     // un plat; l'écran n'affiche simplement pas de ligne.
-    return { ...dish, why: null };
+    return { ...next, why: null };
   });
 
-  return { dishes: out, violations, scrubbed };
+  return { dishes: out, violations, scrubbed, sideCoursesDropped };
 }

@@ -40,7 +40,10 @@ const SRC = stripComments(await Deno.readTextFile(new URL(REL, FUNCTIONS_DIR)));
 const GUARD = "const sizing = sizingPathFor({";
 const PROMPT = "buildHouseholdPromptBlocks(";
 const TAG = '"keel.household_meal.portion_sizing"';
-const LOCK = "applyHouseRuleLock(\n      mealDishesPayload(meal),";
+// ⟳ 2026-09-23 — L'INSTANTANÉ DES PLATS PORTE LES À-CÔTÉS: il est pris par
+// `attachSideCourses(mealDishesPayload(meal), …)`, juste avant le verrou de
+// maison qui en lit le résultat. C'est toujours LE seul instantané du fichier.
+const LOCK = "attachSideCourses(mealDishesPayload(meal), sideLedger)";
 
 Deno.test("CÂBLAGE ① la garde est calculée UNE FOIS", () => {
   const n = SRC.split(GUARD).length - 1;
@@ -1334,10 +1337,17 @@ Deno.test("⛔ CÂBLAGE ㉔ — les DEUX sites de dimensionnement relisent le co
   );
   // ⛔ ET LA CIBLE VIENT DE LUI. Un `contractAt` appelé sans être lu serait le
   // patron `optional-gate-params-are-disarmed-gates` sur un lot entier.
+  // ⟳ 2026-09-23 — PAR `dishTargetOf`: le plat seul (`composeKcal`) plus
+  // l'écart d'arrondi de ses à-côtés, la même expression aux deux sites.
   assertEquals(
-    SRC.split("? contract.composeKcal").length - 1,
+    SRC.split("? dishTargetOf(contract)").length - 1,
     2,
     "un site lit encore sa propre arithmétique de part",
+  );
+  assert(
+    /contract\.composeKcal \+\s*snapDeltaKcal\(sideLedger, contract\.memberId, contract\.dayToken, contract\.slot\)/
+      .test(SRC),
+    "la cible du plat ne part plus du contrat",
   );
   // ⛔ ET LES BORNES AUSSI: les recalculer ferait deux écritures d'une même
   // décision, et c'est celle qu'on relit le moins qui garderait l'ancienne règle.

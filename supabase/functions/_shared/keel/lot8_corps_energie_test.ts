@@ -68,13 +68,16 @@ const AXES_MUETS: ActivityAxes = { day: null, sport: null, asked: false };
  *
  * ⚠️ DÉRIVATION, ET C'EST ELLE QUI FAIT FOI DANS TOUT CE FICHIER:
  *
- *     base      = 10 × 68 + 6,25 × 165 − 5 × 37   = 1 526,25
- *     bmr       = base − 161 (offset femme)       = 1 365,25
+ *     base      = 10 × 68 + 6,25 × 165 − 5 × 31   = 1 556,25
+ *     bmr       = base − 161 (offset femme)       = 1 395,25
  *     PAL       = ACTIVITY_FACTORS.sedentary      = 1,45
- *     entretien = round(1 365,25 × 1,45)          = 1 980 kcal/j
+ *     entretien = round(1 395,25 × 1,45)          = 2 023 kcal/j
  *
- * `37` est le MILIEU de la bande `30_44` (`midAge`), pas son âge: le moteur ne
- * lit jamais une année exacte sur le chemin adulte.
+ * ⟳ 2026-09-23 — `31` est SON ÂGE. Jusqu'à ce jour le moteur prenait le milieu
+ * de la bande `30_44` (37 ans) et rendait 1 980; il lit désormais l'âge exact
+ * quand il est connu (`estimatedMaintenanceKcal`, paramètre `ageYears`):
+ * 6 ans × 5 kcal × 1,45 = 43,5 kcal/j de plus. La BANDE reste ce que la
+ * consigne lit (`age band 30 to 44`, plus bas).
  */
 const CLAIRE: MouthBody = {
   heightCm: 165,
@@ -85,7 +88,7 @@ const CLAIRE: MouthBody = {
   activityAxes: AXES_MUETS,
   appetite: null,
 };
-const CLAIRE_ENTRETIEN = 1980;
+const CLAIRE_ENTRETIEN = 2023;
 
 /** Le corps de Claire, dans la forme que la consigne de composition lit. */
 function claireContexte(over: Partial<MealBodyContext> = {}): MealBodyContext {
@@ -130,6 +133,11 @@ function enveloppeDeClaire(args: {
       subject: { body: CLAIRE, isMinor: false },
       paceKgPerWeek: args.paceKgPerWeek,
     }),
+    // ⟳ 2026-09-23 — L'ÂGE EXACT, comme l'intégrateur le passe depuis la
+    // fiche. L'écart ci-dessus est calculé sur le MÊME âge
+    // (`estimatedMaintenanceFor` lit `CLAIRE.ageYears`): la bande et son écart
+    // parlent du même entretien.
+    CLAIRE.ageYears,
   );
 }
 
@@ -157,11 +165,12 @@ function facteurDeClaire(args: {
  * LE FACTEUR D'UNE PERTE DE 0,5 kg/SEMAINE SUR CLAIRE, DÉRIVÉ À LA MAIN:
  *
  *     voulu             = 0,5 × 7 700 / 7              = 550 kcal/j
- *     marge au plancher = 1 980 − 1 200 (femme)        = 780 kcal/j
- *     780 > 500 ⇒ A1 gagne                             ⇒ exécuté 500 kcal/j
- *     facteur           = (1 980 − 500) / 1 980        = 0,747474…
+ *     marge au plancher = 2 023 − 1 200 (femme)        = 823 kcal/j
+ *     550 < 823 (plancher) et < 880 (A1, depuis le 2026-09-22 ; 500 avant)
+ *                                                        ⇒ le cran voulu s'exécute, 550 kcal/j
+ *     facteur           = (2 023 − 550) / 2 023        = 0,728126…
  */
-const CLAIRE_FACTEUR_PERTE = (CLAIRE_ENTRETIEN - 500) / CLAIRE_ENTRETIEN;
+const CLAIRE_FACTEUR_PERTE = (CLAIRE_ENTRETIEN - 550) / CLAIRE_ENTRETIEN;
 
 function personnel(over: Partial<PersonalMouthFacts> = {}): PersonalMouthFacts {
   return {
@@ -211,7 +220,7 @@ Deno.test("① LECTURE ÉCHOUÉE: le refus TRAVERSE — aucun chiffre périmé n
   // refusé ici: parce qu'il n'y a pas de poids.
   assertEquals(estimatedMaintenanceFor({ body: tombee.body, isMinor: false }), null);
   // L'enveloppe de maintenance de la FICHE ne se construit pas davantage.
-  assertEquals(maintenanceEnvelopeFromBody(tombee.body), null);
+  assertEquals(maintenanceEnvelopeFromBody(tombee.body, null), null);
   // Et le grammage ne bouge pas d'un gramme.
   assertEquals(
     facteurDeClaire({
@@ -237,7 +246,7 @@ Deno.test("① bis — LE CAS QUI PASSE: la même panne LEVÉE, et la fiche repr
     sheet: fiche(),
   });
   assertEquals(repli.body.weightKg, 80);
-  const enveloppe = maintenanceEnvelopeFromBody(repli.body);
+  const enveloppe = maintenanceEnvelopeFromBody(repli.body, null);
   assert(enveloppe !== null, "une fiche complète doit acheter une maintenance");
   assertEquals(enveloppe.mode, "per_kg");
 });
@@ -437,10 +446,12 @@ Deno.test("④ PLANCHER TCA: la bande, la densité, le facteur et le prompt tomb
   assertEquals(ouvert.mode, "per_kg");
   assert(ouvert.mode === "per_kg");
   // Bande dérivée à la main:
-  //   cible        = 1 980 − 500                      = 1 480
-  //   demi-largeur = 1 980 × (0,85 − 0,75) / 2        =    99
-  //   brut 1 381 – 1 579, plancher max(1 480 ; 1 200) = 1 480
-  assertEquals(ouvert.energy, { low: 1480, high: 1579 });
+  //   cible        = 2 023 − 550                      = 1 473  (A1 = 880 depuis le 2026-09-22)
+  //   demi-largeur = 2 023 × (0,85 − 0,75) / 2        =   101,15
+  //   brut 1 371,85 – 1 574,15 ⇒ 1 372 – 1 574,
+  //   plancher max(2 023 − 880 ; 1 200) = 1 200, sous le brut
+  //   (⟳ 2026-09-23 — au milieu de bande, 37 ans: 1 331 – 1 529)
+  assertEquals(ouvert.energy, { low: 1372, high: 1574 });
   assertEquals(ouvert.densityCeiling, DENSITY_CEILING_FAT_LOSS);
   assertEquals(
     householdBodyFacts(claireContexte({ restrictionFlag: false }), "adult"),
@@ -538,21 +549,22 @@ Deno.test("⑤ GROSSESSE: l'écart tombe à ZÉRO — la bande est celle de l'EN
   });
   assert(gardee.mode === "per_kg");
   // Bande dérivée à la main:
-  //   cible        = 1 980 (aucune direction, donc aucun écart)
-  //   demi-largeur = 1 980 × (1,05 − 0,95) / 2 = 99
-  assertEquals(gardee.energy, { low: 1881, high: 2079 });
+  //   cible        = 2 023 (aucune direction, donc aucun écart)
+  //   demi-largeur = 2 023 × (1,05 − 0,95) / 2 = 101,15
+  //   ⇒ 1 921,85 – 2 124,15 ⇒ 1 922 – 2 124
+  assertEquals(gardee.energy, { low: 1922, high: 2124 });
   // ⚠️ ET LE PLAFOND DE DENSITÉ REMONTE AVEC ELLE. On ne demande pas à une femme
   // enceinte de manger plus dense pour la même énergie.
   assertEquals(gardee.densityCeiling, DENSITY_CEILING_DEFAULT);
 
-  // La même bouche sans la garde: le déficit plein, 400 kcal plus bas.
+  // La même bouche sans la garde: le déficit plein, 550 kcal plus bas.
   const nue = enveloppeDeClaire({
     goal: "fat_loss",
     restrictionFlag: false,
     paceKgPerWeek: 0.5,
   });
   assert(nue.mode === "per_kg");
-  assertEquals(nue.energy, { low: 1480, high: 1579 });
+  assertEquals(nue.energy, { low: 1372, high: 1574 });
   assertNotEquals(envelopeFingerprint(gardee), envelopeFingerprint(nue));
 });
 
@@ -598,7 +610,7 @@ Deno.test("⛔ DÉFAUT ÉPINGLÉ — `envelopeDirectionFor` ne lit AUCUNE condit
   });
   assertEquals(creuse, {
     direction: "down",
-    dailyDeltaKcal: 500,
+    dailyDeltaKcal: 550,
     energyFloorKcal: 1200,
   });
 
@@ -637,8 +649,9 @@ Deno.test("⛔ DÉFAUT ÉPINGLÉ — l'assiette refuse le déficit, le RYTHME le
   // aucun `condition_ref` et rend le déficit plein.
   const execute = executedPaceFor("down", { body: CLAIRE, isMinor: false }, 0.5);
   assert(execute !== null);
-  assertEquals(execute.dailyDeltaKcal, 500);
-  assertEquals(execute.clampedBy, "deficit_cap");
+  // ⟳ 2026-09-22 — A1 vaut 880 : le cran de 0,5 (550 kcal/j) s'exécute tel quel.
+  assertEquals(execute.dailyDeltaKcal, 550);
+  assertEquals(execute.clampedBy, "chosen");
 
   // Et l'horizon qui en descend annonce une date. 68 → 60 kg à 0,5 kg/semaine:
   //   ceil(8 / 0,5) = 16 semaines.
@@ -734,15 +747,18 @@ Deno.test("⑥ bis — LA PORTE ADULTE NE PEUT PAS SERVIR UN ENFANT, même par e
   // porte des bouches SANS COMPTE; si elle acceptait un enfant, elle lui
   // servirait Mifflin-St Jeor — c'est-à-dire une restriction sous le nom d'un
   // besoin. Elle renonce, parce que `ageBandOf(12)` est `null`.
-  assertEquals(maintenanceEnvelopeFromBody(LISE), null);
+  // ⟳ 2026-09-23 — même avec un objectif de protéines passé: la porte adulte
+  // renonce avant de lire quoi que ce soit.
+  assertEquals(maintenanceEnvelopeFromBody(LISE, "muscle_gain"), null);
   // Et sur un adulte, la même porte rend bien une enveloppe: la garde n'est pas
   // un mur qui bloque tout.
-  const adulte = maintenanceEnvelopeFromBody(CLAIRE);
+  const adulte = maintenanceEnvelopeFromBody(CLAIRE, null);
   assert(adulte !== null);
   assert(adulte.mode === "per_kg");
   assertEquals(adulte.energy, {
-    // round(1 980 × 0,95) – round(1 980 × 1,05)
-    low: 1881,
-    high: 2079,
+    // round(2 023 × 0,95) – round(2 023 × 1,05) — ⟳ 2026-09-23: 2 023 à
+    // l'âge exact (31 ans), 1 980 au milieu de bande.
+    low: 1922,
+    high: 2124,
   });
 });

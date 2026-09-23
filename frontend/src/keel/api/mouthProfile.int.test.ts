@@ -970,8 +970,8 @@ describe("le pli à l'âge: ce qui part en base est ce que la fiche montre", () 
 //     household_members.fixed_intakes          = [{breakfast, 200 g, greek_yogurt}]
 //     student_goals.practical_constraints
 //       -> 'fixed_intakes'                      = []
-//     cible du petit-déjeuner servie            = 613,50 kcal
-//     cible d'un tir SANS apport fixe           = 613,50 kcal   ← les mêmes
+//     cible du petit-déjeuner servie            = 601,00 kcal
+//     cible d'un tir SANS apport fixe           = 601,00 kcal   ← les mêmes
 // Le journal `keel.household_meal.fixed_intakes` n'est pas sorti et le prompt
 // n'a jamais nommé le yaourt.
 //
@@ -1075,8 +1075,13 @@ describe("⛔ C1 · l'apport fixe traverse jusqu'à la CIBLE, et une seule fois"
           appetite: "average",
         },
         // ⚠️ LA FIXTURE PERTE DE LA CAMPAGNE, pas un corps inventé: c'est elle
-        // qui rend une journée à 2 454 kcal, donc un petit-déjeuner à 613,50 —
+        // qui rend une journée à 2 404 kcal, donc un petit-déjeuner à 601,00 —
         // le nombre exact publié par le tir n° 5.
+        // ⟳ 2026-09-23 — à l'ÂGE EXACT (36 ans, et non plus le milieu de
+        // 30_44, 37), la journée vaut 2 413 et le petit-déjeuner 603,25 :
+        //   BMR = 10×88 + 6,25×178 − 5×36 + 5 = 1 817,5
+        //   × 1,63 (assis × 3-4 séances, milieu de bande) = 2 962,5 → 2 963
+        //   − 550 (0,5 kg/sem) = 2 413 ; petit-déjeuner 2 413 × 0,25 = 603,25
         direction: "down",
         paceKgPerWeek: 0.5,
         declaredSlots: [],
@@ -1092,6 +1097,11 @@ describe("⛔ C1 · l'apport fixe traverse jusqu'à la CIBLE, et une seule fois"
         coveredSlots: ["breakfast", "lunch", "dinner"],
         lockedSlots: [],
         fixedKcalBySlot: fixed.bySlot,
+        // ⟳ 2026-09-23 — `sides` est requis sur `ContractDay` (chantier des
+        // à-côtés). `null` = aucun à-côté ce jour-là : le contrat d'avant, à
+        // l'octet. Écrit ici plutôt que laissé au repli `?? null` du module,
+        // que tsc ne voit pas depuis ce fichier.
+        sides: null,
       }],
       lightSlots: [],
       ageYears: 36,
@@ -1119,10 +1129,11 @@ describe("⛔ C1 · l'apport fixe traverse jusqu'à la CIBLE, et une seule fois"
     const prose = fixedIntakePromptLines(loaded.intakes).join("\n");
     expect(prose).toContain("Paul: yaourt grec (200 g) at breakfast");
 
-    // ③ ET LA CIBLE BAISSE. C'est le nombre du rapport: 613,50 sans apport.
+    // ③ ET LA CIBLE BAISSE. C'est le nombre du rapport: 601,00 sans apport
+    // au milieu de tranche, 603,25 à l'âge exact (⟳ 2026-09-23).
     const sans = cibleDuPetitDejeuner([]);
     const avec = cibleDuPetitDejeuner(loaded.intakes);
-    expect(Math.round(sans * 100) / 100).toBe(613.5);
+    expect(Math.round(sans * 100) / 100).toBe(603.25);
     expect(avec).toBeLessThan(sans);
     // 200 g de yaourt à 100 kcal/100 g = 200 kcal, retranchées UNE fois.
     expect(Math.round(sans - avec)).toBe(200);

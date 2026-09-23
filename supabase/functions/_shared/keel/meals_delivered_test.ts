@@ -904,7 +904,13 @@ Deno.test("CÂBLAGE — le recours de la lane foyer passe une ceinture (régime 
   const before = src.slice(Math.max(0, at - 2600), at + 400);
   assert(/canJoin,\s*\);/.test(before), "le recours est appelé SANS ceinture: la bouche revient sur ce qu'elle évite");
   assert(/regimeBites/.test(before) && /dishBitesExclusion\(/.test(before), "la ceinture du recours ne lit pas le régime ET l'exclusion");
-  assert(/exclusionBites: d\.exclusionBites/.test(src), "l'invariant ne reçoit plus les morsures d'exclusion: un plat ouvert nourrit la bouche dont la ligne le mord");
+  // ⟳ 2026-09-23 — la vue de livraison AJOUTE les retenues de la ceinture du
+  // moteur à celles du parseur: la morsure d'exclusion du parseur doit y être
+  // recopiée, en tête de la liste.
+  assert(
+    /exclusionBites: \[\s*\.\.\.\(d\.exclusionBites \?\? \[\]\),/.test(src),
+    "l'invariant ne reçoit plus les morsures d'exclusion: un plat ouvert nourrit la bouche dont la ligne le mord",
+  );
 });
 
 // ═══════════════════════════════════════════════════════════════════════════

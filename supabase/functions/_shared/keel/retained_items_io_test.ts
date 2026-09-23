@@ -1243,6 +1243,16 @@ Deno.test("⛔ DEUX RÉPONSES DE PORTION IDENTIQUES COMPTENT DEUX FOIS", async (
     value: { direction: "down" as const, magnitude: "slight" as const },
     text: "Les portions étaient un peu trop grosses",
     source: "questionnaire" as RetainedSource,
+    // ⛔ LE MOMENT NE SE RECOPIE PAS D'UNE FAMILLE À L'AUTRE. `food()` en porte
+    // un (`null`); une part n'en a pas le droit (`occasion?: never`). Sans
+    // cette ligne, ce littéral ne compile plus — et c'est la garde qui parle:
+    // construire une part en copiant une préférence est exactement la seconde
+    // vérité que le champ interdit. ⟳ 2026-09-22 — `force` ne se recopie pas
+    // non plus: la force d'une part EST son `magnitude`.
+    occasion: undefined,
+    force: undefined,
+    // ⟳ 2026-09-22 — ni `ref`: une part n'est pas un aliment du référentiel.
+    ref: undefined,
   };
   const { admin } = fakeAdmin({ constraints: { retained_items: [line] } });
   const out = await persistRetainedItemsFor({
@@ -1398,4 +1408,104 @@ Deno.test("LOT C — un `portion.adjust` en base ne bloque toujours RIEN", async
   });
   assertEquals(out.durableWritten, 1);
   assertEquals(out.refused.alreadyStored, 0);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-22 — LA PHRASE NEUVE RETIRE CE QU'ELLE DÉMENT
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// ── LE DÉFAUT FERMÉ, MESURÉ SUR LE SEUL COMPTE RÉEL ──────────────────────
+// Le magasin ne faisait que GROSSIR: `next_plan` expire, `durable` jamais.
+// « Plus de poisson » puis « finalement du poisson ça me va » laissait LES
+// DEUX lignes en base, servies ensemble au modèle.
+//
+// ⛔ ET C'EST LA SEULE RÈGLE DE CE PORT QUI RETIRE. Les cas « ça ne retire
+// PAS » comptent donc autant, et il y en a plus.
+
+Deno.test("⟳ LA LIGNE DÉMENTIE SORT DE LA CHARGE, et elle est COMPTÉE", async () => {
+  const stored = food({
+    kind: "food.exclude",
+    text: "poisson",
+    at: "2026-09-20",
+    quote: "plus de poisson",
+  });
+  const { admin, trace } = fakeAdmin({
+    constraints: { retained_items: [stored] },
+  });
+  const out = await persistRetainedItemsFor({
+    admin,
+    userId: USER,
+    producer: "draft_note",
+    source: "test",
+    durable: [food({
+      kind: "food.prefer",
+      text: "poisson",
+      at: "2026-09-22",
+      source: "draft_note",
+      quote: "finalement du poisson ça me va",
+    })],
+  });
+  assertEquals(out.ok, true);
+  assertEquals(out.durableWritten, 1);
+  assertEquals(out.superseded, 1, "la ligne contraire est restée en base");
+
+  const items = trace.rpcs[0].params.p_items as Array<Record<string, unknown>>;
+  assertEquals(items.length, 1, "le magasin n'a pas rétréci: les deux lignes cohabitent");
+  assertEquals(items[0].kind, "food.prefer");
+});
+
+Deno.test("⟳ L'ILLISIBLE RESTE, LE DÉMENTI PART — dans le même magasin", async () => {
+  const broken = { kind: "food.exclude", text: "", source: "draft_note" };
+  const stored = food({
+    kind: "food.exclude",
+    text: "poisson",
+    at: "2026-09-20",
+    quote: "plus de poisson",
+  });
+  const { admin, trace } = fakeAdmin({
+    constraints: { retained_items: [broken, stored] },
+  });
+  const out = await persistRetainedItemsFor({
+    admin,
+    userId: USER,
+    producer: "draft_note",
+    source: "test",
+    durable: [food({
+      kind: "food.prefer",
+      text: "poisson",
+      at: "2026-09-22",
+      source: "draft_note",
+      quote: "finalement du poisson ça me va",
+    })],
+  });
+  assertEquals(out.superseded, 1);
+  const items = trace.rpcs[0].params.p_items as Array<Record<string, unknown>>;
+  assertEquals(items.length, 2);
+  assertEquals(items[0], broken, "la ligne illisible a été jetée au passage");
+  assertEquals(items[1].kind, "food.prefer");
+});
+
+Deno.test("⛔ RIEN N'EST RETIRÉ QUAND RIEN N'EST DÉMENTI", async () => {
+  // Sans ce cas, une supersession qui retirerait TOUT passerait le test du
+  // dessus et ressemblerait à une règle qui marche.
+  const stored = food({ kind: "food.exclude", text: "poisson", at: "2026-09-20" });
+  const { admin, trace } = fakeAdmin({
+    constraints: { retained_items: [stored] },
+  });
+  const out = await persistRetainedItemsFor({
+    admin,
+    userId: USER,
+    producer: "draft_note",
+    source: "test",
+    durable: [food({
+      kind: "food.exclude",
+      text: "curry",
+      at: "2026-09-22",
+      source: "draft_note",
+      quote: "plus jamais de curry",
+    })],
+  });
+  assertEquals(out.superseded, 0);
+  const items = trace.rpcs[0].params.p_items as Array<Record<string, unknown>>;
+  assertEquals(items.length, 2, "un souvenir sans rapport a disparu");
 });

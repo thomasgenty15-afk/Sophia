@@ -122,7 +122,10 @@ describe("aucune panne ordinaire ne sort en clair sur l'écran", () => {
     // ⟳ 2026-09-15 · LOT E — la lane du foyer passe par LE MÊME transport :
     // un aperçu accepté tôt, relu dans la ligne, puis adopté sans appel modèle.
     const foyer = code("frontend/src/keel/api/household.ts");
-    expect(foyer).toContain("await composeDraft(input, { onProgress: args.onProgress })");
+    // ⟳ 2026-09-21 — l'appel porte aussi `replaces` (voir
+    // `draftReplacesWiring.int.test.ts`); ce qui compte ici est le transport.
+    expect(foyer).toContain("await composeDraft(input, {");
+    expect(foyer).toContain("onProgress: args.onProgress,");
     expect(foyer).toContain("await writeFromDraft(input, draftId, intent, args.replaces ?? null)");
   });
 

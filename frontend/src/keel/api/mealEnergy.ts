@@ -92,20 +92,13 @@ export interface DayEnergyView {
   dishesCounted: number;
   dishesTotal: number;
   /**
-   * CE QUI S'AJOUTE À L'ASSIETTE DU LECTEUR ce jour-là, dans un foyer.
+   * ⛔ LOT A1 (2026-09-22) — `addonKcal` EST PARTI D'ICI ET DU FIL.
    *
-   * `0` sur un plan personnel, et sur la bouche dont le besoin EST le tronc.
-   * Non nul quand les portions divergent — c'est la bifurcation par objectif,
-   * en nombre. Il est DÉJÀ compris dans `kcal`, et il est rendu à part pour que
-   * l'écran puisse dire « le plat, plus ce qui va dans ton assiette » : deux
-   * personnes autour de la même casserole doivent lire le même chiffre pour le
-   * même plat.
-   *
-   * ⚠️ C'est l'add-on DU LECTEUR. Ceux des autres bouches ne franchissent
-   * jamais le fil, pas même agrégés — ils sont dimensionnés sur un corps et un
-   * objectif, et « ce qui touche le corps est à soi ».
+   * Il portait les `member_deltas` de FF-043, et ces kcal étaient AUSSI dans
+   * `kcal`. Mesuré le 2026-09-22 : 1 373 kcal/jour d'un riz qui n'avait ni
+   * boîte, ni ligne de courses, ni carte. Le total du jour ne compte plus que
+   * ce que le plan a composé.
    */
-  addonKcal: number;
   /**
    * ══════════════════════════════════════════════════════════════════════════
    * ② — DE QUOI CE NOMBRE PARLE.
@@ -217,14 +210,16 @@ export interface PlanEnergyView {
   planId: string;
   /**
    * `false` = ce plan n'est pas calculable EN TANT QUE PLAN, indépendamment de
-   * la personne. Aujourd'hui un seul cas: `household_portions_not_numeric` —
-   * dans un foyer à plusieurs bouches, la part de chacun est une PHRASE
-   * (« generous vegetables, full protein share »), pas un nombre. Diviser par
-   * le nombre de convives rendrait l'assiette moyenne, fausse pour tout le
-   * monde, et effacerait la bifurcation par objectif au lieu de la montrer.
+   * la personne.
+   *
+   * ⛔ LOT A1 (2026-09-22) — `abstention` EST PARTIE AVEC SON UNIQUE MOTIF.
+   * `household_portions_not_numeric` ne se déclenchait que sur l'absence des
+   * `member_deltas` du lecteur; ces deltas ne sont plus lus par personne, donc
+   * ce motif n'a plus de cause. Le serveur n'envoie plus de plan
+   * `computable: false` aujourd'hui — ce lecteur garde la porte fermée par
+   * défaut, comme avant, mais sans mot à rendre.
    */
   computable: boolean;
-  abstention: string | null;
   dishes: DishEnergyView[];
   days: DayEnergyView[];
   /** ⟳ LOT F — les contenants à un nom dont la bouche a droit à son chiffre. */
@@ -474,7 +469,6 @@ export function readDay(raw: unknown): DayEnergyView {
     complete: d.complete === true,
     dishesCounted: Number(d.dishes_counted) || 0,
     dishesTotal,
-    addonKcal: Number(d.addon_kcal) || 0,
     // ① — REMPLI PAR `attachEatingOutAdvice`, jamais par ce lecteur-ci: le
     // serveur rend les conseils À CÔTÉ des jours (un jour peut n'en avoir
     // aucun, et un conseil peut porter sur un jour que le plan n'a pas
@@ -738,11 +732,9 @@ export async function loadMealEnergy(
       return {
         planId: String(p.plan_id ?? ""),
         computable,
-        abstention: computable ? null : String(p.abstention ?? "") || null,
         dishes: computable && Array.isArray(p.dishes) ? p.dishes.map(readDish) : [],
-        // ⟳ LOT F — INDÉPENDANT DE `computable`: l'abstention du foyer porte sur
-        // l'assiette du LECTEUR (add-ons manquants). Une boîte à un nom, elle, a
-        // son kcal par ses propres grammes, sans add-on.
+        // ⟳ LOT F — INDÉPENDANT DE `computable`: une boîte à un nom a son kcal
+        // par ses propres grammes.
         boxes: readBoxes(p.boxes),
         // ① LES CONSEILS SE RANGENT SUR LEURS JOURS ICI, et jamais sur un plan
         // qu'on vient de déclarer incalculable: un ordre de grandeur posé sur

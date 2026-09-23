@@ -53,10 +53,12 @@ import {
  * seconde dérivation de la même équation, qui divergerait au premier
  * ajustement.
  *
- *   BMR = 10×72 + 6,25×187 − 5×24 + 5 = 1 773,75   (bande 18_29, milieu 24)
- *   M   = 1 773,75 × 1,80 (`trains_some`) = 3 192,75 → 3 193
+ *   ⟳ 2026-09-23 — L'ÂGE EXACT (28 ans), plus le milieu de la tranche 18_29 (24) :
+ *   BMR = 10×72 + 6,25×187 − 5×28 + 5 = 1 753,75
+ *   M   = 1 753,75 × 1,80 (`trains_some`) = 3 156,75 → 3 157
  *   écart exécuté = 0,35 kg/sem × 7 700 / 7 = 385 kcal/jour
- *   cible du jour = 3 193 + 385 = **3 578**
+ *   cible du jour = 3 157 + 385 = **3 542**
+ *   (au milieu de tranche : BMR 1 773,75, M 3 193, cible 3 578)
  */
 const GRAND = {
   heightCm: 187,
@@ -77,7 +79,7 @@ const SIX = [
   "dinner",
   "before_bed",
 ];
-const CIBLE_GRAND = 3578;
+const CIBLE_GRAND = 3542;
 
 function bouche(over: Partial<AnchorMouth> = {}): AnchorMouth {
   return {
@@ -445,10 +447,10 @@ Deno.test("⛔ ALLOCATION — un apport fixe EXCÉDENTAIRE se compte, et ne devi
   // shaker mange le goûter de tout le monde » et « ce cas n'arrive jamais »
   // rendraient exactement le même objet.
   //
-  //   cible du jour ............................. 3 578 (dérivée en tête)
-  //   part du goûter  3578 × 0,10/1,10 = 325,27
+  //   cible du jour ............................. 3 542 (dérivée en tête)
+  //   part du goûter  3542 × 0,10/1,10 = 322
   //   shaker déclaré ............................ 900
-  //   il n'y a rien à composer, et l'excédent vaut 900 − 325,27 = 574,7
+  //   il n'y a rien à composer, et l'excédent vaut 900 − 322 = 578
   assertEquals(dayTargetFor(bouche(), "no_position").kcal, CIBLE_GRAND);
 
   const part = slotPlanTargets({
@@ -458,7 +460,7 @@ Deno.test("⛔ ALLOCATION — un apport fixe EXCÉDENTAIRE se compte, et ne devi
     lightSlots: [],
     slotFixedKcal: null,
   }).bySlot.get("snack_pm")!;
-  assertEquals(Math.round(part * 100) / 100, 325.27);
+  assertEquals(Math.round(part * 100) / 100, 322);
 
   const r = densite({
     slotFixedKcalByDay: new Map([["mon", new Map([["snack_pm", 900]])]]),
@@ -484,7 +486,7 @@ Deno.test("⛔ ALLOCATION — un apport fixe EXCÉDENTAIRE se compte, et ne devi
   }
 
   // ⚠️ ET L'EXCÉDENT EST CHIFFRÉ, pas seulement signalé : c'est ce qui permet
-  // à l'appelant de dire « elle avale déjà 575 kcal de plus que la part de sa
+  // à l'appelant de dire « elle avale déjà 578 kcal de plus que la part de sa
   // journée qui tombe là ».
   const trop = slotPlanTargets({
     targetKcal: CIBLE_GRAND,
@@ -494,7 +496,7 @@ Deno.test("⛔ ALLOCATION — un apport fixe EXCÉDENTAIRE se compte, et ne devi
     slotFixedKcal: new Map([["snack_pm", 900]]),
   });
   assertEquals(trop.bySlot.get("snack_pm"), 0);
-  assertEquals(Math.round(trop.fixedCovered.get("snack_pm")! * 100) / 100, 574.73);
+  assertEquals(Math.round(trop.fixedCovered.get("snack_pm")! * 100) / 100, 578);
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -508,8 +510,8 @@ Deno.test("ALLOCATION — un shaker du LUNDI ne change pas le mardi", () => {
   // cette séparation jusqu'au couloir — il appelle `slotPlanTargets` une fois
   // PAR JOUR, avec la table de CE jour-là.
   //
-  //   lundi   goûter : 325,27 kcal − 900 de shaker ⇒ rien à composer
-  //   mardi   goûter : 325,27 kcal, intact
+  //   lundi   goûter : 322 kcal − 900 de shaker ⇒ rien à composer
+  //   mardi   goûter : 322 kcal, intact
   //
   // ⚠️ LE GOÛTER FINIT DONC AVEC UNE SEULE OCCURRENCE là où les trois autres
   // en ont deux : c'est exactement la différence entre « ce moment n'existe
@@ -535,11 +537,11 @@ Deno.test("ALLOCATION — un shaker du LUNDI ne change pas le mardi", () => {
   // fenêtre d'un jour sans shaker : l'absence du lundi n'a ni élargi ni
   // rétréci la bande.
   //
-  //   goûter 325,27 kcal, table de collation adulte (80 – 300 g) :
-  //     Gmax = min(325,27 ; 300) = 300 ⇒ Dmin = 100 × 325,27/300 = 108,42 → 109
-  //     Gmin = min(325,27/1,35 = 240,9 ; 80) = 80 ⇒ Dmax = 406,6, rabattu à 250
+  //   goûter 322 kcal, table de collation adulte (80 – 300 g) :
+  //     Gmax = min(322 ; 300) = 300 ⇒ Dmin = 100 × 322/300 = 107,33 → 108
+  //     Gmin = min(322/1,35 = 238,5 ; 80) = 80 ⇒ Dmax = 402,5, rabattu à 250
   const seul = densite().named.find((d) => d.slot === "snack_pm")!;
-  assertEquals(gouter.minPer100G, 109);
+  assertEquals(gouter.minPer100G, 108);
   assertEquals([gouter.minPer100G, gouter.maxPer100G], [
     seul.minPer100G,
     seul.maxPer100G,

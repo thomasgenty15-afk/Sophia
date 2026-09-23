@@ -21,7 +21,7 @@
 // sont ceux de `meal-energy-v1` au commit `31ee930f`, avec leurs commentaires,
 // et `meal-energy-v1` les importe désormais d'ici.
 //
-// ⚠️ CE QUI N'A PAS SUIVI, ET POURQUOI. `readViewerAddons`, `readViewerMealsOut`
+// ⚠️ CE QUI N'A PAS SUIVI, ET POURQUOI. `readViewerMealsOut`
 // et `readViewerAway` restent chez `meal-energy-v1`: ils dépendent d'un
 // `viewerMemberId` que seule cette fonction résout, et ils portent l'arbitrage
 // de présence du foyer. `keel-tracking-v1` ne les réimplémente pas — il
@@ -37,6 +37,12 @@ import {
   type CompositionUnit,
 } from "./food_composition.ts";
 import type { EnergyDish, EnergyPreparation } from "./plan_energy.ts";
+import {
+  SIDE_COURSE_KINDS,
+  SIDE_COURSE_SOURCES,
+  type SideCourseKind,
+  type SideCourseSource,
+} from "./side_courses_types.ts";
 
 /** Une quantité structurée telle que la ligne de plan la porte (FF-038). */
 export function readIngredient(raw: unknown): CompositionInput | null {
@@ -165,7 +171,38 @@ export function readDishes(raw: unknown): EnergyDish[] {
 // ⟳ LOT 0 (2026-09-06) — la forme est celle que `boxEnergies` attend, définie
 // UNE fois côté moteur (`BoxedMouthEnergyDish`) ; les items portent la clé de
 // casserole quand l'archive l'a écrite.
-export type EnergyBoxDish = BoxedMouthEnergyDish;
+//
+// ⟳ 2026-09-23 — ET L'IDENTIFIANT DE RÉFÉRENCE DE L'ITEM, QUAND IL EST ÉCRIT.
+// Chantier « assiettes normales », flux F. Le type ÉTEND celui du moteur au
+// lieu d'en être l'alias: un item qui porte `ref` reste un item que
+// `boxEnergies` accepte (un champ de plus ne retire rien), et le type du moteur
+// (`mouth_energy.ts`) n'a pas à bouger pour un champ qu'il ne lit pas.
+//
+// ⛔ L'ÉNERGIE NE LIT TOUJOURS PAS `ref`. Un item de boîte se chiffre par sa
+// casserole (`preparationId`) ou par sa part du frais du plat — jamais par son
+// nom, jamais par son identifiant: c'est la règle du lot 0, et elle tient.
+// `ref` voyage pour les lecteurs qui ont besoin de SAVOIR quel aliment est
+// dans une boîte construite par le moteur (le contrôle des exclusions et du
+// régime sur les boîtes, l'écran) sans repartir du libellé.
+export interface EnergyBoxItem {
+  grams: number;
+  preparationId?: string | null;
+  /**
+   * Le slug du référentiel écrit sur l'item. ABSENT (pas `null`) quand
+   * l'archive ne le porte pas: un plan d'avant le lot A se relit à l'octet près
+   * comme avant ce champ.
+   */
+  ref?: string;
+}
+
+export interface EnergyBoxDish extends BoxedMouthEnergyDish {
+  boxes: readonly {
+    id: string;
+    memberIds: readonly string[];
+    items: readonly EnergyBoxItem[];
+    legacyTotalGrams: number | null;
+  }[];
+}
 
 export function readEnergyBoxDishes(raw: unknown): EnergyBoxDish[] {
   if (!Array.isArray(raw)) return [];
@@ -185,9 +222,10 @@ export function readEnergyBoxDishes(raw: unknown): EnergyBoxDish[] {
           memberIds: Array.isArray(b.member_ids)
             ? b.member_ids.map((m) => String(m ?? "").trim()).filter(Boolean)
             : [],
-          items: items.map((rawItem) => {
+          items: items.map((rawItem): EnergyBoxItem => {
             const it = (rawItem as Record<string, unknown> | null) ?? {};
             const prep = it.preparation_id;
+            const itemRef = typeof it.ref === "string" ? it.ref.trim() : "";
             return {
               grams: Number(it.grams) || 0,
               // ⟳ LOT 0 — la clé est portée telle qu'écrite : une chaîne cite une
@@ -196,6 +234,9 @@ export function readEnergyBoxDishes(raw: unknown): EnergyBoxDish[] {
               // l'absence en `null` : ce serait promettre du frais à ce qui n'a
               // jamais été décrit.
               ...(prep === undefined ? {} : { preparationId: typeof prep === "string" && prep !== "" ? prep : null }),
+              // ⟳ 2026-09-23 — l'identifiant GARDÉ quand il est écrit, absent
+              // sinon. Voir `EnergyBoxItem.ref`. Le terme, lui, reste dehors.
+              ...(itemRef === "" ? {} : { ref: itemRef }),
             };
           }),
           legacyTotalGrams: Number.isFinite(legacy) && legacy > 0 ? legacy : null,
@@ -217,4 +258,101 @@ export function readPreparations(raw: unknown): EnergyPreparation[] {
       method: String(p.method ?? ""),
     };
   }).filter((p) => p.id !== "");
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-23 — LES À-CÔTÉS D'UN PLAN, RELUS DU PAYLOAD
+// ══════════════════════════════════════════════════════════════════════════
+//
+// Chantier « assiettes normales », flux F. Plan:
+// `~/.claude/plans/lexical-gliding-lamport.md`. Un à-côté (entrée, fromage,
+// dessert, pain) n'est JAMAIS un item de boîte: il vit à part, dans
+// `dishes[i].side_courses[]` (`DishSideCoursePayload`, `side_courses_types.ts`),
+// pour que « l'assiette = le plat » reste vrai chez tous les lecteurs de masse.
+// Ce lecteur est le seul chemin du JSON vers l'énergie des à-côtés: `meal-
+// energy-v1`, l'audit du plan livrable et l'énergie servie finale le partagent.
+//
+// ⛔ UN PLAN SANS À-CÔTÉS N'A PAS LA CLÉ, ET SE LIT COMME AVANT. Aucun plat ne
+// reçoit d'à-côté inventé: pas de clé, `[]`.
+
+/**
+ * UN À-CÔTÉ TEL QUE L'ÉNERGIE LE LIT.
+ *
+ * `dishIndex`: l'indice du plat qui le porte dans `dishes`, pour rattacher
+ * l'à-côté à la boîte de sa personne SUR CE PLAT. `null` quand l'à-côté vient
+ * du registre en mémoire (`sidesFromLedger`, `served_final.ts`), qui ne connaît
+ * que la personne, le jour et le moment.
+ *
+ * `grams`: `null` quand le payload ne porte pas une masse lisible — jamais 0.
+ * Une masse inconnue rend l'à-côté illisible, elle ne le rend pas vide.
+ *
+ * `kind`: `null` quand le type écrit n'est pas dans `SIDE_COURSE_KINDS`. ⚠️ Il
+ * reste COMPTÉ en énergie: c'est de la nourriture servie, quel que soit le mot
+ * qui la range.
+ */
+export interface EnergySideCourse {
+  dishIndex: number | null;
+  memberId: string;
+  day: string | null;
+  slot: string | null;
+  kind: SideCourseKind | null;
+  term: string;
+  /** Le slug du référentiel. `null` = une préparation sans slug propre, ou rien d'écrit. */
+  ref: string | null;
+  /** La préparation d'une session (entrée préparée, soupe), sinon `null`. */
+  preparationId: string | null;
+  grams: number | null;
+  unitCount: number | null;
+  source: SideCourseSource | null;
+}
+
+/**
+ * LES À-CÔTÉS DE TOUS LES PLATS, À PLAT, DANS L'ORDRE DU PAYLOAD.
+ *
+ * ⛔ `ref` EST GARDÉ TEL QU'ÉCRIT (après `trim`), jamais reconstruit depuis le
+ * terme: c'est le slug qui pèse. Le terme est le mot d'écran (« pomme »), et
+ * un libellé de référentiel anglais n'en est pas un.
+ *
+ * ⚠️ UNE ENTRÉE SANS `member_id` EST JETÉE: un à-côté n'est servi qu'à une
+ * personne, et sans elle il n'a ni boîte où se poser ni journée où compter.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function readEnergySideCourses(raw: unknown): EnergySideCourse[] {
+  if (!Array.isArray(raw)) return [];
+  const out: EnergySideCourse[] = [];
+  raw.forEach((entry, dishIndex) => {
+    const d = (entry ?? {}) as Record<string, unknown>;
+    if (!Array.isArray(d.side_courses)) return;
+    const day = d.day === null || d.day === undefined ? null : String(d.day);
+    const slot = d.slot === null || d.slot === undefined ? null : String(d.slot);
+    for (const rawSide of d.side_courses) {
+      if (rawSide === null || typeof rawSide !== "object") continue;
+      const s = rawSide as Record<string, unknown>;
+      const memberId = String(s.member_id ?? "").trim();
+      if (memberId === "") continue;
+      const kind = String(s.kind ?? "");
+      const source = String(s.source ?? "");
+      const ref = typeof s.ref === "string" ? s.ref.trim() : "";
+      const prep = typeof s.preparation_id === "string" ? s.preparation_id.trim() : "";
+      const grams = Number(s.grams);
+      const units = Number(s.unit_count);
+      out.push({
+        dishIndex,
+        memberId,
+        day,
+        slot,
+        kind: (SIDE_COURSE_KINDS as readonly string[]).includes(kind) ? kind as SideCourseKind : null,
+        term: String(s.term ?? "").trim(),
+        ref: ref === "" ? null : ref,
+        preparationId: prep === "" ? null : prep,
+        grams: Number.isFinite(grams) && grams > 0 ? grams : null,
+        unitCount: Number.isFinite(units) && units > 0 ? units : null,
+        source: (SIDE_COURSE_SOURCES as readonly string[]).includes(source)
+          ? source as SideCourseSource
+          : null,
+      });
+    }
+  });
+  return out;
 }

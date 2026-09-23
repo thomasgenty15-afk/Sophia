@@ -49,6 +49,9 @@ let calls: Recorded[] = [];
 /** Réponse du faux PostgREST, par table. */
 let rows: Record<string, unknown> = {};
 let rpcReply: { data: unknown; error: unknown } = { data: null, error: null };
+let rpcCalls: Array<{ name: string; args: unknown }> = [];
+/** Quand elle est posée, la RPC attend cette promesse avant de répondre. */
+let rpcGate: Promise<void> | null = null;
 let invokeReply: { data: unknown; error: unknown } = { data: null, error: null };
 
 vi.mock("../../lib/supabase", () => {
@@ -87,13 +90,17 @@ vi.mock("../../lib/supabase", () => {
           return build(record);
         },
       }),
-      rpc: () => Promise.resolve(rpcReply),
+      rpc: async (name: string, args: unknown) => {
+        rpcCalls.push({ name, args });
+        if (rpcGate) await rpcGate;
+        return rpcReply;
+      },
       functions: { invoke: () => Promise.resolve(invokeReply) },
     },
   };
 });
 
-const { recoverLatestDraft, waitForDraft, writeFromDraft } = await import(
+const { discardDraft, recoverLatestDraft, waitForDraft, writeFromDraft } = await import(
   "./planDraft"
 );
 
@@ -105,6 +112,8 @@ beforeEach(() => {
   calls = [];
   rows = {};
   rpcReply = { data: null, error: null };
+  rpcCalls = [];
+  rpcGate = null;
   invokeReply = { data: null, error: null };
 });
 
@@ -178,6 +187,9 @@ describe("R1 — un travail mort ne se lit plus « en cours »", () => {
     expect(await recoverLatestDraft()).toEqual({
       state: "in_flight",
       draftId: DRAFT,
+      origin: null,
+      replaces: null,
+      input: null,
     });
   });
 
@@ -209,7 +221,95 @@ describe("R1 — un travail mort ne se lit plus « en cours »", () => {
     expect(await recoverLatestDraft()).toEqual({
       state: "in_flight",
       draftId: DRAFT,
+      origin: null,
+      replaces: null,
+      input: null,
     });
+  });
+});
+
+describe("⟳ 2026-09-23 — un plan validé ne se redemande pas", () => {
+  /**
+   * Signalé : « j'ai validé un plan, et dès que je retourne sur le plan de ma
+   * semaine ça me demande de le revalider ». La lecture excluait `adopted` et
+   * retombait sur un brouillon `done` plus ancien, jamais validé. Retirer
+   * `adopted` du filtre rend ces deux assertions rouges.
+   */
+  it("la lecture voit les brouillons adoptés, et ignore les échecs", async () => {
+    await recoverLatestDraft();
+    const read = calls.find((c) => c.table === "student_meal_drafts");
+    const statuses = read?.filters.find((f) => f.op === "in" && f.column === "status")
+      ?.value as string[] | undefined;
+    expect(statuses).toContain("adopted");
+    expect(statuses).not.toContain("failed");
+  });
+
+  it("le plus récent est adopté : rien à rouvrir", async () => {
+    rows["student_meal_drafts"] = {
+      id: DRAFT,
+      status: "adopted",
+      response: { ok: true },
+      error_code: null,
+      expires_at: ago(-3_600_000),
+      created_at: ago(60_000),
+    };
+    expect(await recoverLatestDraft()).toBeNull();
+  });
+});
+
+describe("⟳ 2026-09-23 — « Laisser tomber » ne se redemande pas", () => {
+  /**
+   * Signalé : « je change d'onglet, et ça me redemande de valider un plan
+   * alors que je viens de cliquer sur Laisser tomber ». Le geste ne vivait que
+   * dans l'écran ; la ligne restait `done` et la lecture la rouvrait.
+   */
+  it("la lecture voit les brouillons écartés", async () => {
+    await recoverLatestDraft();
+    const read = calls.find((c) => c.table === "student_meal_drafts");
+    const statuses = read?.filters.find((f) => f.op === "in" && f.column === "status")
+      ?.value as string[] | undefined;
+    expect(statuses).toContain("discarded");
+  });
+
+  it("le plus récent est écarté : rien à rouvrir", async () => {
+    rows["student_meal_drafts"] = {
+      id: DRAFT,
+      status: "discarded",
+      response: { ok: true },
+      error_code: null,
+      expires_at: ago(-3_600_000),
+      created_at: ago(60_000),
+    };
+    expect(await recoverLatestDraft()).toBeNull();
+  });
+
+  it("« Laisser tomber » range la réponse sur CE brouillon", async () => {
+    rpcReply = { data: { ok: true, discarded: true }, error: null };
+    expect(await discardDraft(DRAFT)).toBe(true);
+    expect(rpcCalls).toEqual([{ name: "keel_discard_meal_draft", args: { p_draft: DRAFT } }]);
+  });
+
+  it("sans identifiant, rien n'est appelé ; un échec ne lève pas", async () => {
+    expect(await discardDraft(null)).toBe(false);
+    expect(rpcCalls).toEqual([]);
+    rpcReply = { data: null, error: { message: "boom" } };
+    expect(await discardDraft(DRAFT)).toBe(false);
+  });
+
+  it("changer d'onglet juste après le clic : la relecture attend la réponse", async () => {
+    let release!: () => void;
+    rpcGate = new Promise<void>((r) => {
+      release = r;
+    });
+    rpcReply = { data: { ok: true, discarded: true }, error: null };
+    const discarding = discardDraft(DRAFT);
+    const reading = recoverLatestDraft();
+    await new Promise((r) => setTimeout(r, 0));
+    expect(calls.filter((c) => c.table === "student_meal_drafts")).toEqual([]);
+    release();
+    await discarding;
+    await reading;
+    expect(calls.filter((c) => c.table === "student_meal_drafts")).toHaveLength(1);
   });
 });
 

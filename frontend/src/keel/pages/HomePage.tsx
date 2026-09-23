@@ -1,6 +1,6 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
-import { ArrowDown, ArrowUpRight, Camera, Check, ChevronDown, LineChart, MessageSquareText, ShoppingBasket, Sparkles, Utensils } from "lucide-react";
+import { ArrowDown, ArrowUpRight, Camera, Check, ChevronDown, MessageSquareText, ShoppingBasket, Sparkles, Utensils } from "lucide-react";
 import SEO from "../../components/SEO";
 import { useAuth } from "../../context/AuthContext";
 import { LEGAL_ENTITY } from "../../lib/legalEntity";
@@ -13,7 +13,10 @@ import { ButtonLink } from "../components/ui/Button";
 import { Kicker } from "../components/ui/Marketing";
 import PlanDemo, { MealPreview } from "../components/home/PlanDemo";
 import ConversationExample from "../components/home/ConversationExample";
-import { DEMO_MEMBERS, memberName } from "../components/home/planDemoData";
+import MealBoxHero from "../components/home/MealBoxHero";
+import UnplannedStage from "../components/home/UnplannedStage";
+import HouseholdStage from "../components/home/HouseholdStage";
+import { DEMO_MEMBERS, memberName, type DemoGoal } from "../components/home/planDemoData";
 import { formatPrice } from "../i18n/format";
 import { PRICES } from "../i18n/prices";
 import { t, type MessageKey } from "../i18n/t";
@@ -23,6 +26,7 @@ const FAQ: ReadonlyArray<{ q: MessageKey; a: MessageKey }> = [
   { q: "home.faq.cancel_q", a: "home.faq.cancel_a" },
   { q: "home.faq.q6", a: "home.faq.a6" },
   { q: "home.faq.q2", a: "home.faq.a2" },
+  { q: "home.faq.q4", a: "home.faq.a4" },
 ];
 
 function Section({ id, children, alternate = false }: {
@@ -82,7 +86,11 @@ export function HomePage() {
 }
 
 /**
- * LE VISUEL DU HÉROS — LA PHOTO DU PLAT, REVENUE LE 2026-09-18.
+ * LA PHOTO DU PLAT — LE HÉROS DU 2026-09-18, GARDÉ EN SECOURS.
+ *
+ * ⟳ DEPUIS LE 2026-09-23, LE HÉROS EST LA BOÎTE EN 3D (`MealBoxHero`). Cette
+ * photo n'est plus rendue que si WebGL manque ou si le module 3D ne se charge
+ * pas: la page retombe alors exactement sur ce qu'elle montrait avant.
  *
  * ⚠️ L'IMAGE PORTE LE FOND JAUNE DU PROTOTYPE EN DUR (1000×1000, aucun alpha).
  * Mesuré dans le navigateur: le bol est un disque de rayon 411 px centré en
@@ -127,13 +135,20 @@ function HeroVisual() {
 
 /** Six sections, one purpose each: promise, example, unplanned meal, follow-up, household, offer. */
 function Landing() {
+  // L'objectif choisi dans le héros gouverne aussi l'exemple de la section
+  // suivante: les grammes de la boîte et ceux de « Exemple de repas » sont les
+  // mêmes, ils ne doivent jamais se contredire à l'écran.
+  const [goal, setGoal] = React.useState<DemoGoal>("fat_loss");
   const startHref = localeHref("/start");
   const household = formatPrice(PRICES.household);
   const extra = formatPrice(PRICES.claimedProfile);
 
   return <main>
     <Section id="top">
-      <div className="grid items-center gap-9 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16">
+      {/* ⚠️ 1.08/0.92 ET PAS PLUS À DROITE: la colonne du titre doit garder
+          ~560 px à 1440, sinon « prendre du muscle. » (554 px en Young Serif
+          58 px, mesuré) passe à la ligne et le titre tient sur quatre lignes. */}
+      <div className="grid items-center gap-9 lg:grid-cols-[1.08fr_0.92fr] lg:gap-10">
         <div>
           <Kicker>{t("home.hero.eyebrow")}</Kicker>
           <h1 className="mt-4 max-w-[19ch] text-balance font-display text-[clamp(2.25rem,4.2vw,3.65rem)] leading-[1.14] text-ink">
@@ -150,7 +165,7 @@ function Landing() {
           </div>
           <p className="mt-3 text-[13px] leading-5 text-ink-soft">{t("home.hero.trial", { amount: household })}</p>
         </div>
-        <HeroVisual />
+        <MealBoxHero goal={goal} onGoalChange={setGoal} fallback={<HeroVisual />} />
       </div>
     </Section>
 
@@ -163,9 +178,9 @@ function Landing() {
         {/* ⚠️ L'APERÇU CHIFFRÉ A QUITTÉ LE HÉROS le 2026-09-18 — la photo y est
             revenue. Il reste sur la page, ici, où il est à sa place: c'est la
             section qui promet des quantités, et il les montre avant le flux. */}
-        <MealPreview goal="fat_loss" />
+        <MealPreview goal={goal} />
       </div>
-      <div className="mt-8"><PlanDemo goal="fat_loss" /></div>
+      <div className="mt-8"><PlanDemo goal={goal} /></div>
     </Section>
 
     {/* ⚠️ LE REPAS HORS PLAN A SA SECTION — 2026-09-18, DEUXIÈME DÉPLACEMENT.
@@ -186,7 +201,7 @@ function Landing() {
         le pack porte encore un `home.life.demo.send` (« Envoyer ») de la version
         d'avant — le rendre ici poserait un bouton qui n'envoie rien. */}
     <Section id="imprevu">
-      <div className="grid items-start gap-8 lg:grid-cols-2 lg:gap-14">
+      <div className="grid items-center gap-8 lg:grid-cols-2 lg:gap-14">
         <div>
           <Kicker>{t("home.life.kicker")}</Kicker>
           <div className="mt-3"><Title>{t("home.life.title_1")} <span className="text-fig-700">{t("home.life.title_2")}</span></Title></div>
@@ -203,15 +218,23 @@ function Landing() {
             </li>)}
           </ul>
         </div>
-        {/* Les deux nombres sont une MESURE (85 analyses réelles, vérité terrain
-            USDA — `docs/keel/PHOTO_QUANTIFICATION.md`), jamais une promesse: la
-            source est dite dans le même encart, sous la phrase. */}
-        <aside className="rounded-fiche border border-line-strong bg-paper p-5 sm:p-6">
-          <p className="text-label font-semibold uppercase tracking-wide text-fig-700">{t("home.plan.precision_label")}</p>
-          <p className="mt-2 text-[16px] leading-7 text-ink">{t("home.plan.precision")}</p>
-          <p className="mt-3 border-t border-line pt-3 text-xs leading-5 text-ink-soft">{t("home.plan.precision_source")}</p>
-        </aside>
+        {/* ⟳ 2026-09-23 — LA PHOTO, EN 3D. La scène montre le geste (une photo
+            prise à table, ce qui est reconnu, compté); l'encart dessous dit ce
+            que ce geste vaut. */}
+        <UnplannedStage />
       </div>
+      {/* Les deux nombres sont une MESURE (85 analyses réelles, vérité terrain
+          USDA — `docs/keel/PHOTO_QUANTIFICATION.md`), jamais une promesse.
+
+          ⟳ 2026-09-23 — SUR TOUTE LA LARGEUR, et SANS LA LIGNE DE SOURCE
+          (deux demandes du propriétaire, le même soir). La phrase « Mesuré sur
+          85 repas réels… » a quitté l'encart; la clé `home.plan.precision_source`
+          reste dans les deux packs, sans lecteur. La mesure, elle, est toujours
+          documentée dans le fichier ci-dessus. */}
+      <aside className="mt-8 rounded-fiche border border-line-strong bg-paper p-5 sm:p-6 lg:mt-10 lg:px-8">
+        <p className="text-label font-semibold uppercase tracking-wide text-fig-700">{t("home.plan.precision_label")}</p>
+        <p className="mt-2 text-[15px] leading-6 text-ink">{t("home.plan.precision")}</p>
+      </aside>
     </Section>
 
     <Section alternate>
@@ -230,6 +253,10 @@ function Landing() {
         <div>
           <Title>{t("home.house.title_1")}</Title>
           <p className="mt-4 max-w-[46ch] text-[16px] leading-7 text-ink-soft">{t("home.house.body_1")}</p>
+          {/* ⟳ 2026-09-23 — TROIS BOÎTES, UNE PAR PERSONNE, EN 3D. Elles
+              arrivent, se remplissent chacune à sa part et se ferment sur leur
+              étiquette: le prénom et le besoin de la carte d'à côté. */}
+          <div className="mt-6"><HouseholdStage /></div>
         </div>
         <div className="rounded-fiche border border-line bg-paper p-5">
           <ul className="space-y-3">
@@ -242,43 +269,13 @@ function Landing() {
         </div>
       </div>
 
-      {/* ══════════════════════════════════════════════════════════════════
-          L'ACCÈS SUPPLÉMENTAIRE — UN SEUL BLOC, ET IL NE CALCULE RIEN.
-          ══════════════════════════════════════════════════════════════════
-          ⚠️ SOUS LE FOYER, PAS DANS L'OFFRE (2026-09-18, demande du propriétaire).
-          C'est ici qu'on vient de nommer les autres bouches, donc c'est ici que
-          la question « et si l'un d'eux veut son propre suivi ? » se pose. La
-          section de l'offre portait la même chose en une ligne, retirée avec ce
-          bloc: deux fois le même prix, c'est deux fois l'occasion de croire
-          qu'il s'ajoute.
-
-          ⛔ IL N'Y A NI SÉLECTEUR NI TOTAL. Un compteur qui ajoute 1,99 € au
-          prix affiché a existé et a été retiré le 2026-09-08 — il promettait une
-          configuration que l'inscription ne reprend pas.
-
-          ⚠️ ET LA DERNIÈRE LIGNE EST LA PLUS IMPORTANTE (`…coaching.free`):
-          personne n'a besoin de cet accès pour manger avec toi. Sans elle, la
-          carte laisse croire que chaque bouche se paie. */}
-      <div className="mt-10 rounded-fiche border border-line bg-paper p-5 sm:p-6">
-        <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-          <h3 className="font-display text-[1.15rem] text-ink">{t("home.offer.coaching.title")}</h3>
-          <span className="text-[15px] font-medium text-fig-700">{t("home.offer.coaching.price", { amount: extra })}</span>
-        </div>
-        <p className="mt-3 max-w-[62ch] text-[15px] leading-6 text-ink-soft">{t("home.offer.coaching.body")}</p>
-        <ul className="mt-5 grid gap-3 sm:grid-cols-3">
-          {([
-            { Icon: Camera, key: "home.offer.coaching.item_1" },
-            { Icon: LineChart, key: "home.offer.coaching.item_2" },
-            { Icon: MessageSquareText, key: "home.offer.coaching.item_3" },
-          ] as const).map(({ Icon, key }) => <li key={key} className="flex items-start gap-3 rounded-card border border-line bg-paper-2 px-4 py-3">
-            <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-fig-100 text-fig-700">
-              <Icon size={16} aria-hidden="true" />
-            </span>
-            <span className="text-[14px] leading-6 text-ink">{t(key)}</span>
-          </li>)}
-        </ul>
-        <p className="mt-4 border-t border-line pt-4 text-[13px] leading-5 text-ink-soft">{t("home.offer.coaching.free")}</p>
-      </div>
+      {/* ⟳ 2026-09-23 — L'ACCÈS SUPPLÉMENTAIRE (1,99 €) A QUITTÉ CETTE SECTION
+          pour la FAQ (`home.faq.q4`), demande du propriétaire. La carte montrait
+          un supplément AVANT le prix du foyer, à une page qui s'adresse à une
+          personne seule; sa dernière ligne ne servait qu'à défaire le doute
+          qu'elle créait. La réponse de la FAQ garde cette ligne: sans elle, on
+          croit que chaque bouche se paie. Les clés `home.offer.coaching.*`
+          restent dans les deux packs, sans lecteur. */}
     </Section>
 
     <Section id="offre" alternate>

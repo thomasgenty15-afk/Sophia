@@ -52,6 +52,11 @@
 // les mêmes contenants.
 import { itemFloorGrams } from "./box_densify.ts";
 import type { FoodGroupRef } from "./tokens.ts";
+// ⟳ 2026-09-23 · AUDIT DES DOSAGES, LOT 5 — LE FÉCULENT EST CELUI DE
+// `starch_side.ts` (les groupes que le référentiel confirme), et l'objectif est
+// le même vocabulaire que le partage du féculent. `import type`: aucun cycle.
+import { CEILING_STARCH_GROUPS } from "./protein_ceiling_adjust.ts";
+import type { StarchGoal } from "./starch_side.ts";
 
 /** Un item de contenant, réduit à ce dont ce module a besoin. */
 export interface BoundedBoxItem {
@@ -77,6 +82,61 @@ export interface BoundedBoxItem {
    * une garde construite et désarmée en silence.
    */
   group: FoodGroupRef | null;
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * ⟳ 2026-09-23 · AUDIT DES DOSAGES, LOT 5 — L'ORDRE DU RABOTAGE SUIT
+   * L'OBJECTIF, ET L'ÉNERGIE RETIRÉE SE COMPTE
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * L'énergie d'un gramme SERVI de cet item (`densityFromComposition`,
+   * `kcalPerGram`). `null` = densité inconnue: l'item se rabote encore, mais
+   * ses grammes retirés se comptent à part (`grams_shaved_unpriced`) — jamais
+   * comme zéro kcal.
+   *
+   * ⛔ REQUIS ET NULLABLE, jamais `?`: un oubli rendrait `kcal_shaved` à zéro
+   * sur un plan qui rabote — le « 100 % » de `day_kcal` que l'audit a mesuré
+   * pendant que le rabotage retirait jusqu'à 460 kcal par jour.
+   */
+  kcalPerG: number | null;
+  /**
+   * L'item est un FÉCULENT (`isStarchItemGroup` de son groupe). En perte et en
+   * maintien, c'est lui qu'on rabote d'abord.
+   *
+   * ⛔ REQUIS: un `false` par défaut rendrait l'ordre d'avant sur tout le plan,
+   * et le compteur `shave_order.starch_first` ne dirait pas pourquoi.
+   */
+  starch: boolean;
+}
+
+/**
+ * UN GROUPE ALIMENTAIRE EST-IL UN FÉCULENT ? La MÊME liste que
+ * `starchSideOf` (`CEILING_STARCH_GROUPS`): céréales complètes et raffinées,
+ * légumes féculents. `null` (non résolu) n'en est pas un.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function isStarchItemGroup(group: FoodGroupRef | null): boolean {
+  return group !== null && CEILING_STARCH_GROUPS.has(group);
+}
+
+/**
+ * L'ORDRE DANS LEQUEL UN REPAS RABOTÉ PREND SES GRAMMES. Fermé, compté.
+ *
+ *   · `starch_first` — perte et maintien: le féculent d'abord, jusqu'à son
+ *     plancher, puis le plus gros item;
+ *   · `least_dense_first` — prise de muscle: l'item le MOINS dense d'abord,
+ *     celui qui perd le moins d'énergie par gramme retiré;
+ *   · `largest_first` — objectif `null` (mineur, âge inconnu): la règle
+ *     d'avant ce lot, le plus gros item d'abord.
+ */
+export const SHAVE_ORDERS = ["starch_first", "least_dense_first", "largest_first"] as const;
+export type ShaveOrder = (typeof SHAVE_ORDERS)[number];
+
+/** L'ordre de rabotage d'un objectif. */
+export function shaveOrderFor(goal: StarchGoal | null): ShaveOrder {
+  if (goal === "fat_loss" || goal === "maintenance") return "starch_first";
+  if (goal === "muscle_gain") return "least_dense_first";
+  return "largest_first";
 }
 
 /** Un contenant, réduit à ce dont ce module a besoin. */
@@ -183,6 +243,42 @@ export interface PortionBoundaryCounts {
    * échoué, pas qu'elle n'était pas nécessaire.
    */
   pot_headroom_blocked: number;
+  /**
+   * ⟳ 2026-09-23 · LOT 5 — L'ÉNERGIE RÉELLEMENT RETIRÉE, en kcal (grammes
+   * retirés × `kcalPerG`). ⛔ Sans elle, `day_kcal` affichait 100 % pendant que
+   * le rabotage retirait jusqu'à 460 kcal par jour (audit du 2026-09-23).
+   * ⚠️ UNE BORNE BASSE quand `grams_shaved_unpriced` n'est pas nul.
+   */
+  kcal_shaved: number;
+  /** Les grammes retirés d'items dont la densité est inconnue: hors de `kcal_shaved`. */
+  grams_shaved_unpriced: number;
+  /**
+   * ⟳ LOT 5 — LES REPAS RABOTÉS, PAR ORDRE DE RABOTAGE. Les trois clés sont
+   * toujours là, zéros compris: un `largest_first` seul sur un foyer d'adultes
+   * dit que `goalOf` ne rend rien — une règle désarmée, pas une règle qui ne
+   * mord pas.
+   */
+  shave_order: Record<ShaveOrder, number>;
+  /**
+   * ⟳ LOT 5 — PAR BOUCHE: repas rabotés, grammes et kcal retirés. Une entrée
+   * pour CHAQUE bouche dont un repas a été jugé, zéros compris.
+   *
+   * ⛔ LA CLÉ EST LE `memberId`. Ce module ne connaît rien d'autre; c'est à
+   * l'appelant de la remplacer par le seau de la bouche avant tout journal —
+   * la règle du générateur: jamais un `member_id` à côté d'un kcal.
+   */
+  by_member: Record<string, { meals: number; grams: number; kcal: number }>;
+  /**
+   * ⟳ LOT 5 — LES ITEMS REÇUS SANS `kcalPerG` OU SANS `starch` LISIBLE
+   * (`undefined`, ou un `starch` qui n'est pas un booléen).
+   *
+   * ⛔ LE TYPE REQUIS NE SUFFIT PAS ICI: le générateur passe ses items par
+   * `box.items as unknown as BoundedBoxItem[]`, et ce `as` désarme le contrôle
+   * de types. Un appelant qui oublie de poser les deux champs rendrait l'ordre
+   * d'avant et `kcal_shaved` à zéro — un plan identique à un plan où la règle
+   * marche. DOIT RESTER 0.
+   */
+  items_missing_shave_facts: number;
 }
 
 export function emptyPortionBoundaryCounts(): PortionBoundaryCounts {
@@ -200,6 +296,11 @@ export function emptyPortionBoundaryCounts(): PortionBoundaryCounts {
     still_over_max: 0,
     still_under_min: 0,
     pot_headroom_blocked: 0,
+    kcal_shaved: 0,
+    grams_shaved_unpriced: 0,
+    shave_order: { starch_first: 0, least_dense_first: 0, largest_first: 0 },
+    by_member: {},
+    items_missing_shave_facts: 0,
   };
 }
 
@@ -250,6 +351,15 @@ export function fitPortionsToBounds(args: {
   potReadyGrams: ReadonlyMap<string, number | null>;
   /** La marge d'identité du lot, en %. La MÊME que `POT_IDENTITY_MARGIN`. */
   potMarginPercent: number;
+  /**
+   * ⟳ 2026-09-23 · LOT 5 — L'OBJECTIF DE LA BOUCHE D'UN REPAS (`starchGoalOf`),
+   * qui décide de l'ordre du rabotage (`shaveOrderFor`). `null` = mineur ou âge
+   * inconnu: le plus gros item d'abord, comme avant.
+   *
+   * ⛔ REQUIS, PAS OPTIONNEL: « un paramètre de garde optionnel est une garde
+   * désarmée ». Le compteur `shave_order` dit s'il rend quelque chose.
+   */
+  goalOf: (memberId: string) => StarchGoal | null;
 }): PortionBoundaryCounts {
   const counts = emptyPortionBoundaryCounts();
 
@@ -260,6 +370,12 @@ export function fitPortionsToBounds(args: {
   const drawn = new Map<string, number>();
   for (const box of args.boxes) {
     for (const item of box.items) {
+      // ⟳ LOT 5 — les deux faits du rabotage, relus à l'exécution (voir
+      // `items_missing_shave_facts`).
+      const raw = item as { kcalPerG?: unknown; starch?: unknown };
+      if (raw.kcalPerG === undefined || typeof raw.starch !== "boolean") {
+        counts.items_missing_shave_facts += 1;
+      }
       if (item.preparationId === null) continue;
       const g = Number(item.grams);
       if (!Number.isFinite(g) || g <= 0) continue;
@@ -304,6 +420,8 @@ export function fitPortionsToBounds(args: {
     const bounds = args.boundsFor(meal);
     if (bounds === null) continue;
     counts.judged += 1;
+    const member = counts.by_member[meal.memberId] ??
+      (counts.by_member[meal.memberId] = { meals: 0, grams: 0, kcal: 0 });
     // ⛔ LES ITEMS DES DEUX COMPOSANTS, DANS UNE SEULE LISTE — et ce sont les
     // MÊMES objets, pas des copies: `applyDeltas` écrit les grammes en place,
     // donc dans les contenants du plan.
@@ -324,14 +442,28 @@ export function fitPortionsToBounds(args: {
       // retirer 0,5 g d'un dépassement de 0,5 g laisserait la portion PILE sur
       // la borne en flottant, donc parfois au-dessus au centième près.
       const excess = Math.ceil(total - bounds.max);
-      const plan = planShave(items, excess);
+      const order = shaveOrderFor(args.goalOf(meal.memberId));
+      const plan = planShave(items, excess, order);
       if (plan === null) {
         counts.still_over_max += 1;
         continue;
       }
+      // ⟳ LOT 5 — L'ÉNERGIE RETIRÉE, lue AVANT d'écrire: `kcalPerG` × grammes
+      // réellement retirés, item par item.
+      let kcal = 0;
+      for (const [index, delta] of plan) {
+        const d = items[index].kcalPerG;
+        if (d !== null && Number.isFinite(d) && d >= 0) kcal += -delta * d;
+        else counts.grams_shaved_unpriced += -delta;
+      }
       applyDeltas(items, plan, drawn);
       counts.shaved += 1;
       counts.grams_shaved += excess;
+      counts.kcal_shaved += kcal;
+      counts.shave_order[order] += 1;
+      member.meals += 1;
+      member.grams += excess;
+      member.kcal += kcal;
       continue;
     }
 
@@ -359,21 +491,38 @@ export function fitPortionsToBounds(args: {
 /**
  * QUELS GRAMMES RETIRER, ET À QUI — `null` quand le compte n'y est pas.
  *
- * ⛔ LE PLUS GROS ITEM D'ABORD, ET C'EST LA SEULE RÈGLE. Un gramme retiré du
- * plus gros composant est celui qui déplace le moins la recette en
- * proportion ; répartir un gramme sur cinq items demanderait des fractions,
+ * ⛔ UN ITEM À LA FOIS, JUSQU'À SON PLANCHER D'IDENTITÉ, DANS UN ORDRE FIXE.
+ * Un gramme ne se répartit pas sur cinq items: ce serait des fractions,
  * c'est-à-dire très exactement ce que l'arrondi vient de supprimer.
  *
- * ⚠️ DÉTERMINISTE À ÉGALITÉ: à masse égale, l'item le plus À GAUCHE gagne.
+ * ⟳ 2026-09-23 · AUDIT DES DOSAGES, LOT 5 — L'ORDRE SUIT L'OBJECTIF
+ * (`shaveOrderFor`). Mesuré: le féculent à part met le surplus d'énergie de la
+ * grosse assiette dans le féculent, qui devient l'item le plus lourd; le
+ * rabotage « le plus gros d'abord » le coupait donc en premier, et la prise de
+ * Thomas disparaissait (−232 kcal/j sur e0325544) pendant que `day_kcal`
+ * affichait 100 %.
+ *   · `starch_first` (perte, maintien): le féculent d'abord, jusqu'à son
+ *     plancher; puis le reste, le plus gros d'abord;
+ *   · `least_dense_first` (prise): l'item le MOINS dense d'abord — le moins
+ *     d'énergie perdue par gramme; une densité inconnue passe après les
+ *     connues (on ne sait pas ce qu'elle coûte);
+ *   · `largest_first` (`null`): la règle d'avant, le plus gros d'abord.
+ *
+ * ⛔ LE PLANCHER DE CHAQUE ITEM NE BOUGE PAS: `itemFloorGrams`, 70 % pour un
+ * légume, 50 % pour le reste. L'ordre choisit QUI donne en premier, jamais
+ * combien un item peut donner.
+ *
+ * ⚠️ DÉTERMINISTE À ÉGALITÉ: à clé égale, le plus gros item, puis le plus À
+ * GAUCHE, gagne.
  */
 function planShave(
   items: readonly BoundedBoxItem[],
   grams: number,
+  order: ShaveOrder,
 ): Map<number, number> | null {
-  const order = rankedByGramsDesc(items);
   const deltas = new Map<number, number>();
   let left = grams;
-  for (const i of order) {
+  for (const i of shaveRanking(items, order)) {
     if (left <= 0) break;
     const g = Number(items[i].grams);
     if (!Number.isFinite(g) || g <= MIN_ITEM_GRAMS) continue;
@@ -397,6 +546,37 @@ function planShave(
   // les contraintes sans perdre son identité, elle doit être recomposée, pas
   // déclarée correcte parce que les calories passent ».
   return left <= 0 ? deltas : null;
+}
+
+/**
+ * LES INDEX DES ITEMS DANS L'ORDRE OÙ ILS DONNENT LEURS GRAMMES.
+ *
+ * Toujours sur la base de `rankedByGramsDesc` (le plus gros, puis le plus à
+ * gauche); l'ordre de l'objectif ne fait que passer certains items devant.
+ */
+function shaveRanking(items: readonly BoundedBoxItem[], order: ShaveOrder): number[] {
+  const byGrams = rankedByGramsDesc(items);
+  if (order === "starch_first") {
+    return [
+      ...byGrams.filter((i) => items[i].starch === true),
+      ...byGrams.filter((i) => items[i].starch !== true),
+    ];
+  }
+  if (order === "least_dense_first") {
+    const rank = new Map(byGrams.map((i, k) => [i, k]));
+    const densityOf = (i: number): number | null => {
+      const d = items[i].kcalPerG;
+      return d !== null && Number.isFinite(d) && d >= 0 ? d : null;
+    };
+    const known = byGrams.filter((i) => densityOf(i) !== null);
+    const unknown = byGrams.filter((i) => densityOf(i) === null);
+    known.sort((a, b) =>
+      ((densityOf(a) as number) - (densityOf(b) as number)) ||
+      ((rank.get(a) as number) - (rank.get(b) as number))
+    );
+    return [...known, ...unknown];
+  }
+  return byGrams;
 }
 
 /**

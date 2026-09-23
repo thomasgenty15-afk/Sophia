@@ -241,6 +241,98 @@ describe("l'aperçu du plan reste le rendu unique, et il n'écrit rien", () => {
     expect(plan).toContain("waitForDraft(recoverable.draftId,");
   });
 
+  /**
+   * ⛔ MESURÉ LE 2026-09-21 : la reprise était câblée sur les deux pages et
+   * ne rouvrait JAMAIS la fenêtre en développement. `StrictMode` monte
+   * l'effet deux fois ; la garde `recoveredDraftFor.current = userId` posée
+   * AVANT l'`await` laissait le premier passage annulé par son nettoyage et
+   * le second refusé par la garde. Une requête partait (200, la ligne `done`
+   * dedans) et son résultat était jeté. La garde se pose à l'atterrissage.
+   */
+  for (const rel of ["frontend/src/keel/pages/StudentWeekPlanPage.tsx", "frontend/src/keel/pages/SetupPage.tsx"]) {
+    it(`la garde de reprise se pose APRÈS la lecture, jamais avant — ${rel.split("/").pop()}`, () => {
+      const src = code(rel);
+      const start = src.indexOf("const recoveredDraftFor = React.useRef");
+      expect(start, "l'effet de reprise a disparu").toBeGreaterThan(0);
+      const effet = src.slice(start, src.indexOf("cancelled = true;", start));
+      const read = effet.indexOf("await recoverLatestDraft()");
+      const guard = effet.indexOf("recoveredDraftFor.current = userId");
+      expect(read).toBeGreaterThan(0);
+      expect(guard, "la garde n'est plus posée").toBeGreaterThan(0);
+      expect(guard, "la garde est posée avant la lecture : morte sous StrictMode").toBeGreaterThan(read);
+      expect(effet.slice(read, guard), "la garde doit se poser dans le `finally` du passage").toContain("finally {");
+      expect((effet.match(/recoveredDraftFor\.current = userId/g) ?? []).length).toBe(1);
+    });
+  }
+
+  /**
+   * ⟳ 2026-09-23 — SIGNALÉ : génération lancée sur `/app/plan`, un tour sur
+   * « Foyer », retour — l'écran d'attente avait disparu. La reprise suivait la
+   * ligne en silence : `PlanComposingCard` n'était rendue que sur l'état du
+   * geste lancé dans le montage précédent. Même défaut dans l'entonnoir, où
+   * l'attente ne se lisait que dans le bouton, en bas de la dernière étape.
+   */
+  it("une composition en vol retrouvée au retour remet l'écran d'attente", () => {
+    const plan = code("frontend/src/keel/pages/StudentWeekPlanPage.tsx");
+    const setup = code("frontend/src/keel/pages/SetupPage.tsx");
+    const builder = code("frontend/src/keel/components/MealBuilder.tsx");
+    for (const src of [plan, setup]) {
+      expect(src).toContain('if (recoverable.state === "in_flight") setResumingDraft(true);');
+      expect(src).toContain("setResumingDraft(false);");
+    }
+    expect(plan).toContain("resumedComposition={resumingDraft ? { progress: draftProgress } : null}");
+    expect(builder).toContain("const building = launching || resumed !== null;");
+    expect(builder).toContain("<PlanComposingCard progress={composingProgress}");
+    expect(setup).toContain("{resumingDraft ? <PlanComposingCard progress={progress}");
+  });
+
+  /**
+   * ⟳ 2026-09-21 — L'APERÇU ROUVRE SUR SA SURFACE D'ORIGINE. Chaque page
+   * signe la demande (`origin`), la ligne la garde (`request_body`), et au
+   * rechargement la page qui n'est pas l'origine renvoie vers celle qui
+   * l'est : « Laisser tomber » ramène ainsi là où on était.
+   */
+  it("l'aperçu porte son origine et se rouvre sur sa surface", () => {
+    const plan = code("frontend/src/keel/pages/StudentWeekPlanPage.tsx");
+    const setup = code("frontend/src/keel/pages/SetupPage.tsx");
+    const api = code("frontend/src/keel/api/planDraft.ts");
+    const builder = code("frontend/src/keel/components/MealBuilder.tsx");
+    expect(plan).toContain('origin: "plan",');
+    expect(builder, "MealBuilder n'est monté que sur /app/plan").toContain('origin: "plan",');
+    expect(setup).toContain('origin: "setup",');
+    expect(api).toContain("origin: input.origin,");
+    expect(api).toContain("origin:request_body->>origin");
+    expect(plan).toContain('if (recoverable.origin === "setup") {');
+    expect(plan).toContain("navigate(DRAFT_ORIGIN_PATH.setup, { replace: true });");
+    expect(setup).toContain('if (recoverable.origin === "plan") {');
+    expect(setup).toContain("navigate(DRAFT_ORIGIN_PATH.plan, { replace: true });");
+  });
+
+  /**
+   * ⟳ 2026-09-21 — L'APERÇU REPRIS GARDE SA SOURCE. Un brouillon qui
+   * remplaçait le plan courant, rouvert après rechargement, s'adoptait en
+   * `prepare_next` : le serveur refusait le chevauchement, bouton mort.
+   */
+  it("l'aperçu repris sur `/app/plan` retrouve ce qu'il remplace", () => {
+    const plan = code("frontend/src/keel/pages/StudentWeekPlanPage.tsx");
+    const api = code("frontend/src/keel/api/planDraft.ts");
+    expect(api).toContain("replaces:request_body->>replaces");
+    const effet = plan.slice(plan.indexOf("const recoveredDraftFor = React.useRef"), plan.indexOf("askForDraft = React.useCallback"));
+    expect(effet).toContain('intent: recoverable.replaces === null ? "prepare_next" : "replace_current",');
+    expect(effet).toContain("replaces: recoverable.replaces,");
+    expect(effet.indexOf("setDraftSource({"), "la source se pose AVANT l'aperçu").toBeLessThan(effet.indexOf("setDraft(recovered)"));
+    // ⟳ 2026-09-22 — SA demande, pas la devinette de la page : mesuré à
+    // minuit, un brouillon « remplace le courant » recomposé sur la fenêtre
+    // SUIVANTE, et un « aujourd'hui » d'hier refusé `bad_window`.
+    expect(effet).toContain("input: recoverable.input ?? draftInput(),");
+    expect(api).toContain("request_body\"");
+    expect(api).toContain("input: readComposeInput(row.request_body),");
+    const compose = plan.slice(plan.indexOf("onCompose={async () => {"), plan.indexOf("onEditCells={async (id, cells) => {"));
+    expect(compose).toContain("windowFromToday(draftSource?.input ?? draftInput(), todayIso())");
+    const edit = plan.slice(plan.indexOf("onEditCells={async (id, cells) => {"), plan.indexOf("onEditCells={async (id, cells) => {") + 400);
+    expect(edit).toContain("windowFromToday(draftSource?.input ?? draftInput(), todayIso())");
+  });
+
   it("un plan écrit malgré une réponse perdue sort du tunnel au rechargement", () => {
     const setup = code("frontend/src/keel/pages/SetupPage.tsx");
     expect(setup).toContain("if (read.hasPlan)");

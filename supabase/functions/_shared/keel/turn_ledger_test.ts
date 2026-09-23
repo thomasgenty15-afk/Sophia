@@ -33,6 +33,7 @@ function belt(args: {
   userMessage?: string;
   locale?: string;
   isKeelStudent?: boolean;
+  photoExplainedByAppHelp?: boolean;
 }) {
   return enforceTurnLedger({
     text: args.text,
@@ -41,6 +42,7 @@ function belt(args: {
     isMinor: args.isMinor ?? false,
     userMessage: args.userMessage ?? "",
     locale: args.locale ?? "en-GB",
+    photoExplainedByAppHelp: args.photoExplainedByAppHelp,
   });
 }
 
@@ -350,6 +352,38 @@ Deno.test("T-6 — DÉSARMEMENT: l'élève a parlé de photo lui-même", () => {
     userMessage: "how do I send a photo of my meal?",
   });
   assertEquals(result.text, text);
+});
+
+Deno.test("FF-066 — DÉSARMEMENT: une fiche d'aide du tour explique le geste photo", () => {
+  // « Comment je note un repas pris dehors ? » ne dit pas « photo », mais la
+  // fiche qui y répond nomme le bouton photo. Une explication demandée n'est
+  // pas une sollicitation — même distinction que l'élève qui en parle lui-même.
+  const text =
+    "Coche « Pas mangé » sur le plat. Tu peux aussi toucher « + » puis « Photo d’un repas non prévu ».";
+  const result = belt({
+    text,
+    ledger: [INVITATION_REFUSED],
+    userMessage: "je mange dehors ce soir, je le note comment ?",
+    locale: "fr-FR",
+    photoExplainedByAppHelp: true,
+  });
+  assertEquals(result.text, text);
+});
+
+Deno.test("FF-066 — sans fiche d'aide photo, la règle reste ARMÉE (absent ⇒ false)", () => {
+  const result = belt({
+    text: "Bien joué. Envoie-moi une photo la prochaine fois !",
+    ledger: [INVITATION_REFUSED],
+    locale: "fr-FR",
+  });
+  assertEquals(result.reasons, ["unbudgeted_photo_request"]);
+  const explicitFalse = belt({
+    text: "Bien joué. Envoie-moi une photo la prochaine fois !",
+    ledger: [INVITATION_REFUSED],
+    locale: "fr-FR",
+    photoExplainedByAppHelp: false,
+  });
+  assertEquals(explicitFalse.reasons, ["unbudgeted_photo_request"]);
 });
 
 Deno.test("T-6 — le budget refuse aussi quand la lane n'a pas tourné du tout", () => {

@@ -578,6 +578,10 @@ Deno.test("SERVI — le jambon n'entre QUE dans la boîte de Max, jamais dans ce
       slot: d.slot ?? null,
       memberId: d.memberId ?? null,
       complementsShared: false,
+      // ⟳ 2026-09-23 — `heldOff` est requis (`judgeDishEaters`, la ceinture
+      // des boîtes du moteur). `[]` : personne n'est retenu ; ce fichier juge
+      // la variante de régime dans la GRILLE, pas la ceinture.
+      heldOff: [],
     })),
     cells: outcome.cells,
   });
@@ -602,6 +606,7 @@ Deno.test("SERVI — le jambon n'entre QUE dans la boîte de Max, jamais dans ce
         factor: 1,
         sized: true,
         recipeShare: null,
+        starchSide: null,
       }))
     ),
     weighed: new Set([MAX, LEA]),
@@ -672,6 +677,10 @@ Deno.test("SERVI — ⛔ SANS VARIANTE, les DEUX mangent la même casserole et r
       slot: d.slot ?? null,
       memberId: d.memberId ?? null,
       complementsShared: false,
+      // ⟳ 2026-09-23 — `heldOff` est requis (`judgeDishEaters`, la ceinture
+      // des boîtes du moteur). `[]` : personne n'est retenu ; ce fichier juge
+      // la variante de régime dans la GRILLE, pas la ceinture.
+      heldOff: [],
     })),
     cells: outcome.cells,
   });
@@ -687,6 +696,7 @@ Deno.test("SERVI — ⛔ SANS VARIANTE, les DEUX mangent la même casserole et r
         factor: 1,
         sized: true,
         recipeShare: null,
+        starchSide: null,
       }))
     ),
     weighed: new Set<string>(),
@@ -718,6 +728,10 @@ Deno.test("SERVI — AVEC variante, la casserole commune ne cuit plus que pour q
       slot: d.slot ?? null,
       memberId: d.memberId ?? null,
       complementsShared: false,
+      // ⟳ 2026-09-23 — `heldOff` est requis (`judgeDishEaters`, la ceinture
+      // des boîtes du moteur). `[]` : personne n'est retenu ; ce fichier juge
+      // la variante de régime dans la GRILLE, pas la ceinture.
+      heldOff: [],
     })),
     cells: outcome.cells,
   });
@@ -730,6 +744,7 @@ Deno.test("SERVI — AVEC variante, la casserole commune ne cuit plus que pour q
         factor: 1,
         sized: true,
         recipeShare: null,
+        starchSide: null,
       }))
     ),
     weighed: new Set([MAX, LEA]),

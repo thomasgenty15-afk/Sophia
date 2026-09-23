@@ -816,7 +816,54 @@ Deno.test("⛔ LOT F — câblage: `meal-energy-v1` ne rend une boîte que par l
   assertStringIncludes(pure, "ageVerdict: assessBirthDate(mouth.birthDate, args.today),");
   assertStringIncludes(pure, "args.floors.get(userId) ?? true");
   // Le compteur sort sur CHAQUE plan, même à zéro — les deux branches.
-  assertEquals(src.split("boxes_gate: boxesByPlan.get(row.id)?.gate ?? boxGateZero(),").length - 1, 3);
+  //
+  // ⟳ LOT A1 (2026-09-22) — DE TROIS BRANCHES À DEUX. La troisième était
+  // l'abstention `household_portions_not_numeric`, qui ne se déclenchait que
+  // sur l'absence des `member_deltas` du lecteur. Ces deltas ne sont plus lus
+  // par personne, donc l'abstention n'a plus de cause et sa branche est partie.
+  // Le nombre est EN DUR, pas compté sur la source: un `2` dérivé du fichier
+  // resterait vert si une branche disparaissait en silence.
+  assertEquals(src.split("boxes_gate: boxesByPlan.get(row.id)?.gate ?? boxGateZero(),").length - 1, 2);
   // Et la fermeture PAR DÉFAUT du lecteur est la seule qui laisse passer.
   assertStringIncludes(src, 'readerSwitchSource === "no_direction"');
+});
+
+// ⟳ LOT A1-bis (2026-09-22) — CÂBLAGE: LE TOTAL DU JOUR VIENT DES BOÎTES DU
+// LECTEUR.
+//
+// ⛔ CE QUE CE TEST EMPÊCHE DE REVENIR. `days[].kcal` venait de `planEnergy`
+// (le TRONC: les plats du jour ÷ `servings`), pendant que `boxes[].kcal`
+// donnait les grammes nommés du lecteur — deux calculs étrangers, rendus sur le
+// même écran. Mesuré sur le brouillon `6e4e5548`: 2 419 kcal en titre au-dessus
+// de cinq boîtes qui font 3 266. La substitution est le raccord; débrancher le
+// filtre par lecteur, ou le repli sur le tronc, ne rougirait nulle part
+// ailleurs.
+Deno.test("⟳ LOT A1-bis — câblage: `days[].kcal` est la somme des boîtes DU LECTEUR, avec repli nommé", async () => {
+  const src = await Deno.readTextFile(
+    new URL("../../meal-energy-v1/index.ts", import.meta.url),
+  );
+  // ① Le seau est construit pour le SEUL lecteur, et un plat sans jour est écarté.
+  // ⟳ 2026-09-23 — LE SEAU A DÉMÉNAGÉ dans `viewerDayEnergy`
+  // (`served_final.ts`, flux F du chantier « assiettes normales »), qui y
+  // ajoute les à-côtés des boîtes du lecteur. Les deux gardes sont lues LÀ, et
+  // l'appel est lu dans la fonction edge : un seau recopié à la main dans
+  // index.ts sans le filtre ne passerait pas la première ligne.
+  assertStringIncludes(src, "viewerDayEnergy({ boxes: decided.boxes, viewerMemberId })");
+  const seau = await Deno.readTextFile(new URL("./served_final.ts", import.meta.url));
+  assertStringIncludes(seau, "if (args.viewerMemberId === null || box.member_id !== args.viewerMemberId) continue;");
+  assertStringIncludes(seau, "if (box.day === null) continue;");
+  // ② La substitution a lieu là où la réponse s'écrit, et elle se replie sur le
+  //    tronc quand le lecteur n'a pas de boîte ce jour-là (bouche sans
+  //    direction: `refused.no_direction`).
+  assertStringIncludes(src, "kcal: own === undefined ? d.kcal : own.kcal,");
+  assertStringIncludes(src, "dishes_counted: own === undefined ? d.dishesCounted : own.boxes,");
+  // ③ Le compteur du branchement existe ET il est journalisé — sans le log, la
+  //    substitution pourrait ne jamais se produire sans que rien ne le dise.
+  assertStringIncludes(src, 'tag: "keel.meal_energy.day_origin"');
+  // ⟳ 2026-09-23 — le compteur gagne `sides_summed` (les à-côtés sommés).
+  assertStringIncludes(src, "const dayEnergyOrigin = { from_boxes: 0, from_trunk: 0, boxes_summed: 0, sides_summed: 0 };");
+  // ④ Et le jour voyage bien avec la boîte émise, sinon ① tomberait toujours
+  //    dans le repli.
+  const pure = await Deno.readTextFile(new URL("./box_energy_decision.ts", import.meta.url));
+  assertStringIncludes(pure, "day: box.day,");
 });

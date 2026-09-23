@@ -60,11 +60,9 @@ export interface MealEnergy {
   switchOfferable: boolean;
   /** Le motif nommé du silence, pour un log ou une copie. Jamais un booléen. */
   reason: EnergyReading["reason"];
-  /**
-   * POURQUOI CE PLAN N'A PAS DE CHIFFRE alors que les portes sont ouvertes.
-   * `household_portions_not_numeric` aujourd'hui, et c'est le seul.
-   */
-  abstention: string | null;
+  // ⛔ LOT A1 (2026-09-22) — `abstention` EST PARTIE. Son unique motif
+  // (`household_portions_not_numeric`) ne se déclenchait que sur l'absence des
+  // `member_deltas` du lecteur, que plus personne ne lit.
   /** Le chiffre de ce plat, ou `null`. */
   forDish: (dish: GeneratedDish) => DishEnergyView | null;
   /** Le total de ce jour, ou `null`. */
@@ -269,7 +267,6 @@ export function useMealEnergy(args: {
     showing: plan?.computable === true,
     switchOfferable: reading?.show === true ? true : reading?.switchOfferable === true,
     reason: reading?.reason ?? "no_plan",
-    abstention: plan?.abstention ?? null,
     forDish: (dish) => byDish.get(dish) ?? null,
     forDay: (day) => byDay.get(day) ?? null,
     forBox: (boxId) => byBox.get(boxId) ?? null,

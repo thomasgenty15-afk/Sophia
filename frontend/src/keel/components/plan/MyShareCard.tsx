@@ -109,7 +109,6 @@ import { dishIsFor } from "../../lib/planByPersonModel";
 import { browserLocalDate, useMealTicks } from "../../lib/useMealTicks";
 import { dishDate, stretchDates } from "../../api/mealStretch";
 import { t } from "../../i18n/t";
-import { Button } from "../ui/Button";
 import { Card, SectionLabel } from "../ui/Card";
 import DishListByDay from "./DishListByDay";
 
@@ -157,13 +156,11 @@ export interface MyShareCardProps {
    * le tape (`isReportable`, et la garde du futur qui en dépend).
    */
   planStartsOn: string | null;
-  onApprove: () => Promise<void>;
   /**
-   * ⛔ `onRequestChange` A ÉTÉ RETIRÉ LE 2026-09-10 (lot 7). Voir le bloc
-   * « DEMANDER UNE MODIF » plus bas: cette carte n'est rendue qu'à un membre
-   * SECONDAIRE, et un secondaire ne compose plus rien.
+   * ⛔ `onRequestChange` A ÉTÉ RETIRÉ LE 2026-09-10 (lot 7), `onApprove` et
+   * `busy` le 2026-09-23 (FF-066 lot 4) avec le bouton « Je valide » qu'ils
+   * pilotaient. Voir le bloc en bas de la carte.
    */
-  busy: boolean;
 }
 
 export default function MyShareCard(props: MyShareCardProps): React.ReactElement | null {
@@ -175,13 +172,8 @@ export default function MyShareCard(props: MyShareCardProps): React.ReactElement
     userId,
     householdMealId,
     planStartsOn,
-    onApprove,
-    busy,
   } = props;
 
-  const [approved, setApproved] = React.useState(false);
-  const [working, setWorking] = React.useState(false);
-  const [failure, setFailure] = React.useState<string | null>(null);
   // ⛔ `changeOpen` / `changeText` SONT PARTIS AVEC LE BOUTON (lot 7). Un état
   // qui ne pilote plus rien est un morceau de geste qui attend qu'on le
   // rebranche.
@@ -388,77 +380,25 @@ export default function MyShareCard(props: MyShareCardProps): React.ReactElement
         )
         : null}
 
-      {/* ── LE GESTE, EN DERNIER ────────────────────────────────────────
-          Après sa part ET après les plats: « il n'y a plus qu'à valider » se
-          dit une fois qu'on a tout lu. Même ordre que `TakeTheHandCard`, qui
-          dit ce que le geste coûte avant de l'offrir.
+      {/* ══════════════════════════════════════════════════════════════
+          ⟳ 2026-09-23 · FF-066 LOT 4 — « JE VALIDE » EST RETIRÉ.
+          ══════════════════════════════════════════════════════════════
 
-          ⚠️ `secondary` ET NON `primary`, ET LA RAISON A CHANGÉ LE 2026-09-10.
-          Elle disait: « la figue est déjà prise par composer la semaine
-          (`MealBuilder`), rendu en même temps que cette carte pour un
-          secondaire ». C'EST FAUX DEPUIS LE LOT 7 — un secondaire ne voit plus
-          le formulaire de composition du tout. Ce qui tient encore la teinte
-          est la règle elle-même (`KIT-CONTRAT` §2, une seule action figue par
-          vue) et le fait que valider sa part n'est pas l'action principale de
-          `/app/plan`: c'est un accusé de lecture, pas une décision. */}
-      <div className="mt-4">
-        {approved
-          ? <p className="text-sm text-ink-soft">{t("plan.mine.approved")}</p>
-          : (
-            <Button
-              // TAILLE `md` (le défaut), comme `TakeTheHandCard`: c'est le
-              // geste PRINCIPAL de sa carte, pas un geste de ligne. `sm` est
-              // réservé aux actions rendues dans une liste.
-              variant="secondary"
-              disabled={busy || working}
-              onClick={async () => {
-                setWorking(true);
-                setFailure(null);
-                try {
-                  await onApprove();
-                  // L'ACCUSÉ EST POSÉ APRÈS L'APPEL, jamais avant: si
-                  // l'appelant échoue un jour, « Validé. » serait un fait
-                  // faux, et un fait faux affiché est indémentable.
-                  setApproved(true);
-                } catch (e) {
-                  setFailure(e instanceof Error ? e.message : String(e));
-                } finally {
-                  setWorking(false);
-                }
-              }}
-            >
-              {t("plan.mine.approve")}
-            </Button>
-          )}
+          ⛔ C'ÉTAIT UN BOUTON QUI N'ENREGISTRAIT RIEN. Son unique appelant
+          passait `onApprove={async () => {}}`: « Validé. » s'affichait, rien
+          n'était écrit, et le bouton revenait au rechargement. Ce fichier le
+          disait lui-même: « un fait faux affiché est indémentable ». Valider sa
+          part était « un accusé de lecture, pas une décision » — et aucune
+          table ne le porte. L'aide sur l'app (FF-066) ne pouvait pas l'expliquer
+          sans mentir.
 
-        {/* ══════════════════════════════════════════════════════════════
-            ⟳ 2026-09-10 · LOT 7 — « DEMANDER UNE MODIF » EST RETIRÉ.
-            ══════════════════════════════════════════════════════════════
+          ⛔ « DEMANDER UNE MODIF » était déjà parti (lot 7, 2026-09-10): un
+          membre secondaire ne compose rien, et il n'existe aucun canal 1:1 vers
+          la personne qui tient le foyer. Une copie qui le laisserait croire
+          ferait attendre une réponse qui ne viendra jamais.
 
-            ⛔ POURQUOI, ET CE N'EST PAS UN ALLÈGEMENT D'ÉCRAN. Le bouton
-            composait un APERÇU DE SA PROPRE SEMAINE sur la lane individuelle.
-            Cette lane n'existe plus: il n'y a qu'un moteur, et il rend 403
-            `not_owner` à un membre secondaire — c'est-à-dire à la seule
-            personne à qui cette carte s'affiche (`selectMyShare` refuse le
-            maître). Le laisser en place aurait fait exactement un BOUTON MORT:
-            un geste offert dont la seule issue est un refus, cicatrice mesurée
-            trois fois sur `SetupPage`.
-
-            ⚠️ CE QUI RESTE EST « je valide », ci-dessus, et c'est cohérent avec
-            le modèle: une bouche n'a pas besoin d'un compte, et réclamer son
-            profil donne la lecture, son objectif et sa part — jamais le droit
-            de composer, d'ajouter ou de retirer.
-
-            ⛔ ET ON N'OUVRE PAS UN CANAL VERS LE MAÎTRE À LA PLACE. Il n'existe
-            aucun canal 1:1 dans ce produit, et une copie qui le laisserait
-            croire ferait attendre une réponse qui ne viendra jamais. */}
-
-        {/* ⛔ LE ROUGE RESTE: famille « échec » du produit, et un motif nommé
-            est un FAIT. `red-700` sur `paper` = 6,13:1, la valeur du kit. */}
-        {failure
-          ? <p className="mt-2 text-sm leading-6 text-red-700 break-words">{failure}</p>
-          : null}
-      </div>
+          Ce qui reste à un membre sur cette carte: lire sa part, les plats du
+          foyer, et cocher ce qu'il n'a pas mangé. */}
     </Card>
   );
 }

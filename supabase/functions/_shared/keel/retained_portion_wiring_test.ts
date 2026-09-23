@@ -43,6 +43,10 @@ import {
   winningPortionAdjust,
   MAINTENANCE_ENVELOPE_DIRECTION,
 } from "./meal_envelope.ts";
+// ⟳ 2026-09-23 — `envelopeFor` prend un onzième paramètre, l'âge exact
+// (`exactAgeYears`). Ce fichier passe `null` à chaque appel : l'équation du
+// corps garde le milieu de la tranche d'âge, et aucun nombre ci-dessous ne
+// bouge.
 import type { MealBodyContext } from "./meal_body.ts";
 import { parseRetainedItem, type PortionAdjustItem } from "./retained_item.ts";
 import { ageStateFromVerdict, type MemberAgeState } from "./household.ts";
@@ -131,6 +135,9 @@ const APPETITE_ARG = 7;
 /** La position de la direction de balance — le 10ᵉ paramètre (2026-09-09). */
 const DIRECTED_ARG = 9;
 
+/** La position de l'âge exact — le 11ᵉ paramètre (2026-09-23). */
+const EXACT_AGE_ARG = 10;
+
 Deno.test("LE CÂBLAGE — les DEUX générateurs passent une bouche à `envelopeFor`", async () => {
   // ⚠️ LA MOITIÉ QUI REND CE TEST UTILE: il doit rougir si quelqu'un remet
   // `null`. Vérifié par mutation (voir le rapport du lot): remettre `null` au
@@ -147,10 +154,20 @@ Deno.test("LE CÂBLAGE — les DEUX générateurs passent une bouche à `envelop
     // plus d'une fraction du jeton `goal` mais du CRAN de la personne, exécuté
     // par `executedPaceFor` — c'est-à-dire par le même chemin que la fourchette
     // affichée sous ses plats. Un appelant qui l'oublierait ne compile pas.
+    // ⟳ 2026-09-23 — ONZE: le onzième est l'âge exact (`exactAgeYears`).
     assertEquals(
       args.length,
-      10,
-      `lane ${lane}: \`envelopeFor\` n'est plus appelée avec ses 10 paramètres`,
+      11,
+      `lane ${lane}: \`envelopeFor\` n'est plus appelée avec ses 11 paramètres`,
+    );
+    // ⛔ L'ÂGE EXACT EST UNE LECTURE DE LA FICHE, jamais un `null` en dur: un
+    // `null` garderait le milieu de la tranche pour tout le monde, et rien
+    // d'autre ne rougirait — le nombre d'avant est exactement le repli.
+    assert(
+      /^\s*bodyOfMouth\(m\.memberId\)\?\.ageYears/.test(args[EXACT_AGE_ARG]),
+      `LANE ${lane.toUpperCase()} DÉBRANCHÉE: \`envelopeFor\` ne reçoit pas ` +
+        `l'âge LU de la fiche en 11ᵉ argument. L'équation d'entretien garde le ` +
+        `milieu de la tranche, en silence. Reçu: ${args[EXACT_AGE_ARG]}`,
     );
     // ⛔ ET IL N'EST PAS `null`-ABLE: la garde du 7ᵉ argument existe parce
     // qu'un lecteur branché sur `null` est un lecteur mort. Le dixième porte la
@@ -398,7 +415,8 @@ Deno.test("DE BOUT EN BOUT — un `down`/`clear` de foyer baisse l'ADULTE, et LU
     { day: null, sport: null, asked: false },
     null,
     null,
-  MAINTENANCE_ENVELOPE_DIRECTION
+  MAINTENANCE_ENVELOPE_DIRECTION,
+  null,
 );
   assert(baseline.mode === "per_kg");
   // ⟳ 2026-09-10 — L'ÉQUATION DU CORPS, LA MÊME QUE L'ÉCRAN DEPUIS LE
@@ -421,7 +439,8 @@ Deno.test("DE BOUT EN BOUT — un `down`/`clear` de foyer baisse l'ADULTE, et LU
     { day: null, sport: null, asked: false },
     null,
     forMouth("adult", ADULT_ID, items),
-  MAINTENANCE_ENVELOPE_DIRECTION
+  MAINTENANCE_ENVELOPE_DIRECTION,
+  null,
 );
   assert(adult.mode === "per_kg");
   // −10 %, écrit en dur: 2442 × 0,90 = 2198, 2700 × 0,90 = 2430.
@@ -441,7 +460,8 @@ Deno.test("DE BOUT EN BOUT — un `down`/`clear` de foyer baisse l'ADULTE, et LU
     { day: null, sport: null, asked: false },
     null,
     forMouth("minor", KID_ID, items),
-  MAINTENANCE_ENVELOPE_DIRECTION
+  MAINTENANCE_ENVELOPE_DIRECTION,
+  null,
 );
   assert(kid.mode === "per_kg");
   assertEquals(kid.energy, baseline.energy);
@@ -459,7 +479,8 @@ Deno.test("DE BOUT EN BOUT — un `down`/`clear` de foyer baisse l'ADULTE, et LU
     { day: null, sport: null, asked: false },
     null,
     forMouth("unknown", KID_ID, items),
-  MAINTENANCE_ENVELOPE_DIRECTION
+  MAINTENANCE_ENVELOPE_DIRECTION,
+  null,
 );
   assert(unknown.mode === "per_kg");
   assertEquals(unknown.energy, baseline.energy);
@@ -482,7 +503,8 @@ Deno.test("DE BOUT EN BOUT — la lane individuelle: le verdict décide, pas un 
       { day: null, sport: null, asked: false },
       null,
       forMouth(birthVerdictAge, "u-solo", items),
-    MAINTENANCE_ENVELOPE_DIRECTION
+    MAINTENANCE_ENVELOPE_DIRECTION,
+    null,
   );
     assert(env.mode === "per_kg");
     return env.energy;

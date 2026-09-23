@@ -50,7 +50,7 @@ Deno.test("C3 CÂBLAGE ① — les points de filtrage restants reçoivent le ré
   // réparation rend maintenant un PATCH. Il reste la CHIRURGIE LOCALE
   // (`mergeCellEdit`), qui n'est pas une réparation et n'a pas bougé.
   assert(
-    HANDLER.includes("mergeCellEdit({ base, retry: meal, cells: editCells, index: composition })"),
+    HANDLER.includes("mergeCellEdit({\n        base,\n        retry: meal,\n        cells: editCells,\n        index: composition,\n        calendar: householdGrid.cells.filter((c) => c.eaters.length > 0),\n      })"),
     "la chirurgie locale n'est plus câblée sur le référentiel",
   );
   for (
@@ -126,7 +126,12 @@ Deno.test("C3 CÂBLAGE ③ — il n'y a plus qu'UNE décision d'achat dans le ha
   // USAGES DATÉS du plan final pour savoir si un seul achat couvre toutes les
   // cuissons d'un aliment (`splitShoppingByUses`). Même fonction, mêmes
   // entrées : il ne peut pas diverger des trois autres.
-  assertEquals((HANDLER.match(/shoppingNeedsOf\(\{/g) || []).length, 4);
+  //
+  // ⟳ 2026-09-23 — ILS SONT CINQ. Le cinquième relit les plats SANS les
+  // à-côtés, pour dire ce que SEULS les à-côtés apportent (le modèle n'a
+  // jamais été prié de les acheter: ce n'est pas un oubli du modèle). Même
+  // fonction, mêmes entrées moins les pseudo-plats des à-côtés.
+  assertEquals((HANDLER.match(/shoppingNeedsOf\(\{/g) || []).length, 5);
   assert(
     HANDLER.includes('tag: "keel.household_meal.shopping_seeded"'),
     "le semis ne se journalise pas : une liste vide et une liste semée se liraient pareil",

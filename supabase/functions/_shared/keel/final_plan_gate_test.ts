@@ -484,6 +484,63 @@ Deno.test("house_rule_served : la maison a exclu, le plat le sert", () => {
   assertCauses(outcome, { house_rule_served: 1 });
 });
 
+// ⟳ 2026-09-23 — LES À-CÔTÉS PASSENT AU VERROU DE LA MAISON (chemin d'adoption).
+// Même geste que le générateur: l'à-côté tombe (réparation), le plat reste, et
+// AUCUNE cause n'est levée — donc aucun refus, même sous LOT_4.
+
+Deno.test("house rule, à-côté : un dessert au nutella est retiré et compté, le plan passe", () => {
+  const outcome = gateWith((plan, ctx) => {
+    ctx.policy = FINAL_GATE_POLICY_LOT_4 as MutableContext["policy"];
+    (plan.dishes[1] as Record<string, unknown>).side_courses = [
+      { member_id: PAUL, kind: "dessert", term: "pomme" },
+      { member_id: CLAIRE, kind: "dessert", term: "crêpe au nutella" },
+      { member_id: NORA, kind: "cheese", term: "comté" },
+    ];
+  });
+  assertCauses(outcome, {});
+  assertEquals(outcome.ok, true);
+  assertEquals(outcome.counters.repairs_by_kind.drop_house_rule_side_course, 1);
+  assertEquals(outcome.repairs, [{
+    kind: "drop_house_rule_side_course",
+    at: { dish: 1, item: 1 },
+    from: "crêpe au nutella",
+    to: null,
+  }]);
+});
+
+Deno.test("house rule, à-côté : rien ne mord ⇒ zéro réparation, compteur à zéro (le cas qui passe)", () => {
+  const outcome = gateWith((plan) => {
+    (plan.dishes[1] as Record<string, unknown>).side_courses = [
+      { member_id: PAUL, kind: "dessert", term: "pomme" },
+      // Négation tolérée, comme la substance: « sans nutella » ne sert rien.
+      { member_id: CLAIRE, kind: "dessert", term: "yaourt nature sans nutella" },
+    ];
+  });
+  assertCauses(outcome, {});
+  assertEquals(outcome.counters.repairs_by_kind.drop_house_rule_side_course, 0);
+  assertEquals(outcome.repairs, []);
+});
+
+Deno.test("applyFinalGateRepairs : l'à-côté mordu disparaît, les autres et le plat restent", () => {
+  const plan = planCopy();
+  (plan.dishes[1] as Record<string, unknown>).side_courses = [
+    { member_id: PAUL, kind: "dessert", term: "nutella" },
+    { member_id: CLAIRE, kind: "dessert", term: "pomme" },
+    { member_id: NORA, kind: "bread", term: "pain au nutella" },
+  ];
+  const first = finalPlanGate(plan as GatePlan, CLEAN_HOUSEHOLD_CONTEXT);
+  assertEquals(first.counters.repairs_by_kind.drop_house_rule_side_course, 2);
+  const repaired = applyFinalGateRepairs(plan as GatePlan, first.repairs);
+  assertEquals(repaired.dishes[1].side_courses, [
+    { member_id: CLAIRE, kind: "dessert", term: "pomme" },
+  ]);
+  assertEquals(repaired.dishes[1].title, plan.dishes[1].title);
+  // Un plat sans à-côtés ressort sans la clé.
+  assertEquals("side_courses" in repaired.dishes[0], false);
+  const second = finalPlanGate(repaired, CLEAN_HOUSEHOLD_CONTEXT);
+  assertEquals(second.repairs, []);
+});
+
 // ⛔ LES DEUX ÉPREUVES CI-DESSOUS TIENNENT LA COMPENSATION DU `heldOff: []`.
 // La forme persistée ne porte NI `heldOff`, NI `regimeBites`, NI
 // `exclusionBites` : le module les RECALCULE et les repasse à `mealsDelivered`.
@@ -1138,7 +1195,7 @@ Deno.test("BÊTA 1B ⑦ — mais un plancher protéique qui n'a JAMAIS conclu bl
       days: base.nutrition.days.map((d) => ({
         ...d,
         proteinG: null,
-        protein: { coveredFloorG: null, reason: "coverage_unknown" },
+        protein: { coveredFloorG: null, coveredCeilingG: null, reason: "coverage_unknown" },
       })),
     },
   } as GateContext);
@@ -1189,7 +1246,7 @@ Deno.test("BÊTA 1B ⑧ — chaque contrôle essentiel sait dire quand il manque
         days: n.days.map((d) => ({
           ...d,
           proteinG: null,
-          protein: { coveredFloorG: null, reason: "coverage_unknown" },
+          protein: { coveredFloorG: null, coveredCeilingG: null, reason: "coverage_unknown" },
         })),
       })),
   };

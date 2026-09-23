@@ -83,6 +83,14 @@ import {
   SLOT_MEAL_ACK_PURPOSE,
   writeSlotMealFact,
 } from "../keel/slot_meal_io.ts";
+// ⟳ 2026-09-23 — la question du soir sur les repas prévus.
+import {
+  DAY_MEALS_BUTTON_PREFIX,
+  parseDayMealsButton,
+  renderDayMealsAck,
+} from "../keel/day_meals_ask.ts";
+import { DAY_MEALS_ACK_PURPOSE } from "../keel/day_meals_io.ts";
+import { answeredDishIndexes } from "../keel/slot_meal_planned_io.ts";
 import {
   DIVERGENCE_BUTTON_PREFIX,
   readDivergenceReply,
@@ -180,6 +188,10 @@ export const DETERMINISTIC_BUTTON_PREFIXES: readonly string[] = Object.freeze([
   FEEDBACK_BUTTON_PREFIX,
   // FF-062 C1. Ajouté AVEC son lecteur.
   SLOT_MEAL_BUTTON_PREFIX,
+  // ⟳ 2026-09-23 — la question du soir. Ajouté AVEC son lecteur. Son « Non »
+  // est AUSSI lu par l'écran (qui ouvre la journée), mais il part au serveur:
+  // ce n'est pas une famille `FRONT:`.
+  DAY_MEALS_BUTTON_PREFIX,
   // DÉSARMÉ le 2026-09-07 — le sort d'une part non mangée (A8.3). Son unique
   // émetteur était le tap de la bande. `meal_share_outcomes` garde ses lignes
   // et ses lecteurs d'écran: c'est l'ÉCRITURE qui s'arrête, pas la table.
@@ -1081,6 +1093,63 @@ export async function handleDeterministicButton(
       }),
     });
     return handled(`keel_slot_meal_${slotMeal.action}`);
+  }
+
+  // ── ⟳ 2026-09-23 · LA QUESTION DU SOIR SUR LES REPAS PRÉVUS ─────────────
+  //
+  // « Oui » coche les plats que la question couvrait ET QUI N'ONT TOUJOURS
+  // AUCUNE RÉPONSE. Le filtre n'est pas décoratif: `applyStripTicks` RÉARME une
+  // ligne existante (`disqualified_reason = null`), donc un « pas mangé » posé
+  // dans l'app entre la question et le tap serait effacé par un « Oui ».
+  //
+  // « Non » n'écrit rien: l'écran a déjà ouvert la fenêtre « Suivi des repas »
+  // sur ce jour-là, où l'on coche ce qui a été loupé. L'accusé le dit en une
+  // phrase.
+  const dayMeals = parseDayMealsButton(message.button_payload);
+  if (dayMeals) {
+    const voice = await studentVoiceContext(admin, message.user_id);
+    let written = true;
+    if (dayMeals.action === "yes" && dayMeals.plan) {
+      const now = new Date(message.received_at);
+      try {
+        const answered = await answeredDishIndexes(admin, {
+          userId: message.user_id,
+          mealId: dayMeals.plan.mealId,
+          indexes: dayMeals.plan.dishIndexes,
+        });
+        const fresh = dayMeals.plan.dishIndexes.filter((i) => !answered.has(i));
+        if (fresh.length > 0) {
+          const res = await applyStripTicks(admin, {
+            userId: message.user_id,
+            mealId: dayMeals.plan.mealId,
+            dishIndexes: fresh,
+            disqualified: null,
+            today: localDateFor(now, await timezoneFor(admin, message.user_id)),
+            now,
+          });
+          written = res.failed === 0 && res.stale < fresh.length;
+        }
+      } catch (error) {
+        written = false;
+        console.warn(JSON.stringify({
+          tag: "keel.day_meals.tick_write_failed",
+          user_id: message.user_id,
+          error: error instanceof Error ? error.message : String(error),
+          effect: "l'accuse felicite sans pretendre que tout est coche",
+        }));
+      }
+    }
+    await ack(admin, {
+      userId: message.user_id,
+      requestId: args.requestId,
+      purpose: DAY_MEALS_ACK_PURPOSE,
+      body: renderDayMealsAck({
+        locale: voice.contentLocale,
+        action: dayMeals.action,
+        written,
+      }),
+    });
+    return handled(`keel_day_meals_${dayMeals.action}`);
   }
 
   // ── B.7 · CE QUE LA PERSONNE PENSE DE LA FOURCHETTE ──────────────────────

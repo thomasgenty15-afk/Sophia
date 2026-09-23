@@ -219,6 +219,10 @@ Deno.test("① le schéma v4 (`grams`) rend exactement ce qu'il rendait", () => 
     // et « sel de finition » sont deux lignes du même plat).
     ref: null,
     refRefused: false,
+    // ⟳ 2026-09-22 — ET AUCUN VOLUME, PAR LA MÊME ABSTENTION: sans identifiant,
+    // il n'y a aucune fiche à interroger, et on ne cherche pas la densité d'un
+    // libellé.
+    ml: null,
   }]);
   assertEquals(meal.box_counts.items, 1);
   assertEquals(meal.box_counts.items_in_grams, 1);
@@ -247,6 +251,9 @@ Deno.test("② « 6 unités de jambon » deviennent 126 g PRÊTS, par `unit_gram
     // par son libellé — le chemin qui a servi du raisin sec pour du frais.
     ref: "ham",
     refRefused: false,
+    // ⟳ 2026-09-22 — `null`: le jambon ne se verse pas. Le volume ne sort que
+    // des lignes que le référentiel déclare versables (`grams_per_ml`).
+    ml: null,
   }]);
   // 150 g, rendement 1,0: la boîte porte 150.
   assertEquals(meal.dishes[0].boxes[1].items, [{
@@ -255,6 +262,7 @@ Deno.test("② « 6 unités de jambon » deviennent 126 g PRÊTS, par `unit_gram
     grams: 150,
     ref: "tofu",
     refRefused: false,
+    ml: null,
   }]);
   assertEquals(meal.box_counts.items, 2);
   assertEquals(meal.box_counts.items_in_grams, 0);

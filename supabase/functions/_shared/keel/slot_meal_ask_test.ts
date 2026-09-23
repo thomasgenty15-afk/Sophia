@@ -467,23 +467,26 @@ const PLANNED_LUNCH = {
   title: "Poulet, riz complet, brocolis",
 };
 
-Deno.test("CRÉNEAU COMPOSÉ — la question nomme le plat, et porte oui/non", () => {
+Deno.test("⟳ 2026-09-23 — CRÉNEAU COMPOSÉ: plus de question par repas, la question du soir le couvre", () => {
   const v = base({
     eatingOut: [],
     plannedToday: [PLANNED_LUNCH],
     rhythmRaw: [{ slot: "lunch", at: "13:00" }],
   });
-  assert(v.ask);
-  if (!v.ask || v.origin !== "planned") return;
-  assertEquals(v.origin, "planned");
-  assertEquals(v.planned.title, PLANNED_LUNCH.title);
+  // ⛔ ET PAS « Rien n'était prévu »: le créneau reste marqué par le plan, il
+  // n'est simplement plus demandé ici.
+  assertEquals(v, { ask: false, reason: "planned_in_evening" });
+});
 
+Deno.test("une question par repas DÉJÀ ENVOYÉE garde ses boutons oui/non lisibles", () => {
+  // Plus aucune n'est émise depuis le 2026-09-23, mais des bulles en portent
+  // encore dans l'historique: leur tap doit toujours se lire.
   const m = renderSlotMealAsk({
     locale: "fr-FR",
     localDate: TUESDAY,
     slot: "lunch",
     origin: "planned",
-    planned: v.planned,
+    planned: PLANNED_LUNCH,
   });
   // ⛔ LE PLAT EST NOMMÉ. Un « Oui » qui coche trois lignes anonymes est une
   // signature en blanc.

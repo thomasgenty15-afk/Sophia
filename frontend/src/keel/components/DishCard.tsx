@@ -5,7 +5,7 @@ import { type BoxEnergyView, type DishEnergyView } from "../api/mealEnergy";
 import { dishDayLabel, dishSlotLabel, mealCopy } from "../api/mealLabels";
 import { MEAL_UNTICK_FORM_REASONS } from "../api/mealTicks";
 import { type DishSessionView } from "../lib/dishSession";
-import { type BoxLine } from "../lib/mealBoxes";
+import { type BoxLine, looseSideLinesForDish } from "../lib/mealBoxes";
 // ⟳ LOT C (2026-09-11) — la quantité vient de la donnée structurée finale.
 // Ici le périmètre est le PLAT: ce sont les lignes fraîches de l'assiette,
 // pas le lot d'une casserole. Voir `lib/ingredientQuantity.ts`.
@@ -82,6 +82,11 @@ export interface DishSource {
   cookOn: string | null;
 }
 
+/** Le kcal d'un contenant à UN nom, lu comme celui du plat quand cette personne est seule à table. */
+function energyOfBox(box: BoxEnergyView | null): DishEnergyView | null {
+  return box === null ? null : { kcal: box.kcal, basis: box.basis, complete: true, gaps: [] };
+}
+
 export default function DishCard(
   {
     dish,
@@ -95,6 +100,7 @@ export default function DishCard(
     boxes = [],
     eaters = [],
     shares = [],
+    collapsible = false,
   }: {
     dish: GeneratedDish;
     tick?: DishTick | null;
@@ -199,6 +205,32 @@ export default function DishCard(
     energy?: DishEnergyView | null;
     /** ⟳ 2026-09-04 — le kcal d'un contenant à UN nom, rendu par `BoxTable`. */
     boxEnergy?: (boxId: string) => BoxEnergyView | null;
+    /**
+     * ══════════════════════════════════════════════════════════════════════
+     * LA CARTE SE REPLIE — sur `/app/plan` et sur l'aperçu, jamais ailleurs.
+     * ══════════════════════════════════════════════════════════════════════
+     *
+     * ── LE DÉFAUT (2026-09-22) ───────────────────────────────────────────
+     * Un plan de sept jours empile jusqu'à vingt-six de ces cartes, et chacune
+     * rend désormais ses contenants, ses doses par personne, ses ingrédients et
+     * sa provenance. La page se lit au défilement: pour savoir ce qu'on mange
+     * jeudi il faut traverser les grammages de lundi.
+     *
+     * Ce qui reste à découvert est ce qu'on lit pour SAVOIR CE QU'ON MANGE: le
+     * titre, le geste du jour et sa durée, la part à sortir du congélateur.
+     * Ce qui se replie est ce qu'on lit pour CUISINER — on l'ouvre devant le
+     * plan de travail, pas en balayant la semaine.
+     *
+     * ⚠️ FAUX PAR DÉFAUT, et c'est `/app/today` qui le veut: cette page-là rend
+     * LA journée, le détail y est le sujet, et un pli y ferait cliquer trois
+     * fois pour lire trois plats.
+     *
+     * ⚠️ LE PLI CACHE, IL NE DÉMONTE PAS. Le détail reste dans le DOM sous
+     * `hidden` — l'idiome natif du dépliant, qui le retire aussi de l'arbre
+     * d'accessibilité. Un rendu conditionnel aurait fait disparaître du DOM des
+     * grammages que ce dépôt vérifie justement par le DOM.
+     */
+    collapsible?: boolean;
   },
 ) {
   // CE PLAT PUISE-T-IL DANS UNE PRÉPARATION ?
@@ -217,6 +249,82 @@ export default function DishCard(
   // sur `/app/plan` et `/app/today`, et un `id` en dur ferait pointer deux
   // libellés vers la même case.
   const tickId = React.useId();
+  /**
+   * ⟳ 2026-09-21 — LE CHIFFRE SOUS LE TITRE N'EST QUE CELUI D'UNE SEULE
+   * PERSONNE. `energy` (le serveur) divise la recette par le nombre de
+   * membres du foyer, quel que soit le nombre de mangeurs : 109 kcal sous une
+   * collation que seul Thomas mange (sa dose : 328), 893 sous un déjeuner à
+   * trois où personne ne mange 893. Règle demandée sur l'écran réel : une
+   * seule personne à table ⇒ son chiffre sous le titre ; plusieurs ⇒ aucun
+   * chiffre global, chacun sa ligne (les doses ou les boîtes, gardées par
+   * l'objectif côté serveur). Sans contenant, on garde `energy` — c'est le
+   * cas du plan solo, où la division vaut 1 — sauf si les mangeurs nommés
+   * sont plusieurs.
+   */
+  /**
+   * ⟳ 2026-09-22 — L'ÉTAT DU PLI VIT ICI, et pas dans un sous-composant comme
+   * `SessionLink`. La raison qui a sorti l'état de la session ne vaut pas ici:
+   * elle n'existait que sur les plats QUI ONT une session, donc sur une
+   * minorité de cartes, alors que le pli existe sur toutes celles de `/app/plan`.
+   * Un booléen par carte, c'est exactement ce que la page a besoin de retenir —
+   * et chaque carte garde le sien, sinon ouvrir jeudi ouvrirait lundi.
+   */
+  const [detailOpen, setDetailOpen] = React.useState(false);
+  const detailId = React.useId();
+  const soloLine = boxes.length === 1 && !boxes[0].shared ? boxes[0] : null;
+  const titleEnergy: DishEnergyView | null = boxes.length === 0
+    ? (eaters.length > 1 ? null : energy)
+    : soloLine !== null && boxEnergy
+    ? energyOfBox(boxEnergy(soloLine.id))
+    : null;
+  /**
+   * Y A-T-IL SEULEMENT QUELQUE CHOSE À OUVRIR ?
+   *
+   * Un plat sans provenance, sans contenant, sans ingrédient ajouté et sans
+   * session n'a RIEN sous le pli: un bouton « voir le détail » y ouvrirait du
+   * vide, ce qui est la même faute qu'un libellé au-dessus du vide ailleurs
+   * sur cette carte.
+   */
+  /**
+   * ══════════════════════════════════════════════════════════════════════
+   * ⟳ 2026-09-22 — LA LISTE DU BAS EST LE TOTAL DE LA TABLE, PAS UNE PART.
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * ── LE DÉFAUT, LU À L'ÉCRAN ──────────────────────────────────────────
+   * Sur un repas sans cuisson mangé par UNE personne, « Les doses par
+   * personne » et la liste d'ingrédients du bas portaient les MÊMES nombres,
+   * l'un sous l'autre: « yaourt grec 99 g » deux fois à trois centimètres
+   * d'écart. Deux fois le même fait, c'est le lecteur qui cherche la
+   * différence — et il n'y en a pas.
+   *
+   * ── CE QUI DÉCIDE ────────────────────────────────────────────────────
+   * Le NOMBRE DE CONTENANTS, c'est-à-dire de doses affichées au-dessus:
+   *   · UN → la dose EST le plat, et la liste du bas la répète. On la retire.
+   *   · PLUSIEURS → les doses se partagent le plat (192 + 169 + 191 g de
+   *     thon), et le total du bas est un AUTRE fait: ce qu'il faut préparer
+   *     en tout. Il reste, et il se NOMME — sans titre, il se lirait comme
+   *     une quatrième part.
+   *
+   * ⛔ RIEN NE CHANGE SUR UN PLAT EN BOÎTES (`uses` non vide). Là, la liste
+   * du bas porte déjà son titre « en plus du lot » et dit autre chose que les
+   * couvercles: ce qu'on AJOUTE le jour même. Elle n'a jamais été un doublon.
+   */
+  const doses = dish.uses.length === 0 && boxes.length > 0;
+  /**
+   * ⟳ 2026-09-23 — LES À-CÔTÉS QU'AUCUN COUVERCLE DE CETTE CARTE NE PORTE.
+   *
+   * Ceux qu'une boîte porte se lisent sous elle (`BoxTable`). Restent ceux
+   * que le moteur a rattachés au plat sans boîte qui nomme la personne — un
+   * plat de la table sans contenant, un plat qui lui est attribué. Le prénom
+   * vient des mangeurs que la carte reçoit déjà (`eaters`), jamais d'une
+   * seconde lecture du plan.
+   */
+  const looseSides = looseSideLinesForDish(dish, eaters);
+  const hasDetail = sources.length > 0 || boxes.length > 0 ||
+    eaters.length > 0 || shares.length > 0 || servedFrom !== null ||
+    dish.ingredients.length > 0 || session !== null || looseSides.length > 0;
+  const folded = collapsible && hasDetail && !detailOpen;
+
   return (
     <Card>
       <div className="flex flex-wrap items-center gap-2">
@@ -227,7 +335,7 @@ export default function DishCard(
         {/* FF-059 — LE CHIFFRE, à côté du plat et pas au-dessus. C'est un fait
             SUR CE PLAT, du même rang que son créneau: le mettre en tête de
             carte en ferait le sujet, et le sujet reste le dîner. */}
-        <DishEnergyLine energy={energy} />
+        <DishEnergyLine energy={titleEnergy} />
         {tick && (
           <span className="ml-auto flex items-center gap-2">
             {/* Une case est un CONTRÔLE: sa bordure doit tenir le seuil 3:1 de
@@ -239,13 +347,13 @@ export default function DishCard(
               id={tickId}
               type="checkbox"
               className="h-4 w-4 rounded-part border-line-strong text-ink focus:ring-fig-600 disabled:opacity-50"
-              checked={tick.checked}
+              checked={tick.missed}
               disabled={tick.busy}
               onChange={tick.onToggle}
             />
             <label
               htmlFor={tickId}
-              className={`text-sm ${tick.checked ? "text-ink" : "text-ink-soft"}`}
+              className={`text-sm ${tick.missed ? "text-ink" : "text-ink-soft"}`}
             >
               {mealCopy("meals.tick.label")}
             </label>
@@ -318,6 +426,90 @@ export default function DishCard(
           {mealCopy("meals.result.thaw_the_night_before")}
         </p>
       )}
+      {/* ── LE GESTE À FAIRE DEVANT CE PLAT-LÀ (2026-08-14) ─────────────────
+          `method` était masqué sur EXACTEMENT les plats qui en ont le plus
+          besoin. Un plat cuisiné de zéro montrait sa recette; celui qui a
+          besoin qu'on dise « réchauffe 10 min, tranche le poulet, ajoute la
+          salade » ne montrait rien — ni ici, ni dans les sessions de cuisine
+          (qui portent les GROSSES cuissons, pas le geste du repas). Le geste du
+          soir n'apparaissait donc nulle part dans le produit.
+
+          Le masquage avait sa raison, et elle tient toujours: ce qu'on ne veut
+          pas revoir, c'est la RECETTE DU LOT recopiée sous chaque jour, avec
+          ses quantités entières (« 1 200 g de cuisses » sur quatre jours). Le
+          prompt de composition demande déjà autre chose au modèle — « a dish
+          that draws on a preparation does NOT repeat its recipe. Its method is
+          what you do at that meal » — et c'est ce qu'il écrit vraiment: 476
+          plats en lot mesurés en base le 2026-08-14, 0 méthode vide, 111
+          caractères de moyenne, 247 au pire. Un geste, pas un pavé.
+
+          ⚠️ DEUX MOTS, PAS UN. Le libellé change avec le cas
+          (`meals.result.assemble` vs `meals.result.method`): sous « Comment »,
+          un assemblage se lirait comme la recette qu'on vient justement de ne
+          pas répéter.
+          ⚠️ AUCUNE DURÉE N'EST AJOUTÉE. Si le modèle ne dit pas combien de
+          temps, l'écran ne l'estime pas: `active_minutes` vit sur les
+          PRÉPARATIONS, et le reprendre ici donnerait à un assemblage le temps
+          d'une cuisson.
+          ⚠️ RIEN NE S'AFFICHE SANS TEXTE. Pas de libellé au-dessus du vide.
+
+          ── LOT 2 (2026-08-17) · CE BLOC EST LE CHEMIN DE REPLI, PLUS LE CHEMIN
+          NORMAL ────────────────────────────────────────────────────────────
+          Quand le plat porte son `same_day`, sa méthode est REMONTÉE dans le
+          bandeau du jour J, en tête de carte — c'est là qu'on la cherche, et
+          P2 demande le TEXTE (« reprends le poulet de vendredi »), pas
+          seulement l'étiquette. Elle ne s'affiche donc PAS ici en plus: relire
+          la même phrase deux fois sur une même carte est exactement le bruit
+          que le paragraphe du 14/08 ci-dessus refuse.
+
+          ⚠️ MAIS CE BLOC RESTE, ET IL N'EST PAS MORT. `same_day` est `null` sur
+          TOUT plan écrit avant le 2026-08-17 — mesuré: 157 plans en base, dont
+          5 encore vivants. Les faire basculer sur un bandeau qui n'existe pas
+          leur retirerait la seule phrase qui leur dit quoi faire. Le silence du
+          bandeau ne doit pas se payer en lisibilité sur les plans anciens.
+
+          ⟳ 2026-09-22 — IL EST REMONTÉ ICI, à la place exacte qu'occupe le
+          bandeau du jour J dans l'autre cas. Les deux disent LA MÊME CHOSE —
+          ce qu'on fait devant ce plat-là —, et le pli doit les traiter pareil:
+          laissé tout en bas, il serait passé SOUS le pli, et un plan d'avant le
+          LOT 2 se serait replié sur un titre nu. */}
+      {!dish.same_day && dish.method && (
+        <p className="mt-3 text-sm text-ink break-words">
+          <span className="font-medium text-ink">
+            {mealCopy(leftover ? "meals.result.assemble" : "meals.result.method")}:
+          </span>{" "}
+          {dish.method}
+        </p>
+      )}
+      {/* ══════════════════════════════════════════════════════════════════
+          LE PLI — le bouton d'abord, ce qu'il ouvre juste après.
+          ══════════════════════════════════════════════════════════════════
+          Même idiome que le dépliant de session, une ligne soulignée et
+          discrète: le plan se lit d'un coup d'œil, et un bouton plein par
+          carte ferait vingt-six boutons pleins sur une semaine. `min-h-6` est
+          le plancher de 24 px de WCAG 2.5.8, que `text-xs` seul n'atteint pas.
+
+          ⚠️ RIEN À OUVRIR ⇒ PAS DE BOUTON (`hasDetail`). */}
+      {collapsible && hasDetail && (
+        <div className="mt-3">
+          <button
+            type="button"
+            aria-expanded={detailOpen}
+            aria-controls={detailId}
+            onClick={() => setDetailOpen((v) => !v)}
+            className="min-h-6 text-xs font-medium text-ink-soft underline underline-offset-2 hover:text-ink"
+          >
+            {mealCopy(detailOpen ? "meals.dish.fold" : "meals.dish.unfold")}
+          </button>
+        </div>
+      )}
+      {/* ⚠️ L'ENVELOPPE EST TOUJOURS LÀ, MÊME SANS PLI (`collapsible: false`):
+          c'est un `div` nu, sans classe de disposition, donc il ne change ni
+          l'espacement ni l'ordre de ce qu'il contient. Une enveloppe
+          conditionnelle aurait dédoublé tout le corps de la carte en deux
+          branches JSX — exactement le double rendu que ce fichier existe pour
+          empêcher. */}
+      <div id={detailId} hidden={folded}>
       {/* ══════════════════════════════════════════════════════════════════
           ⛔ `dish.why` N'EST PLUS AFFICHÉ — ET IL EST TOUJOURS DEMANDÉ.
           ══════════════════════════════════════════════════════════════════
@@ -387,7 +579,19 @@ export default function DishCard(
           prénoms — la carte n'a structurellement aucun champ où un objectif
           pourrait entrer. `member_portions` est lisible par tout le foyer, et
           une raison y divulguerait l'objectif d'un membre à ses colocataires. */}
-      <BoxTable lines={boxes} context="dish" boxEnergy={boxEnergy} />
+      {/* ⟳ 2026-09-21 — PAS DE BOÎTE À SORTIR POUR UN PLAT SANS CUISSON. Un
+          plat qui ne tire sur aucune préparation (`uses` vide) n'est dans
+          aucune session de cuisine : ses contenants sont des DOSES par
+          personne, et c'est ce que la carte montre — grammes par ingrédient,
+          kcal pour qui a un objectif. Un plat qui tire sur une casserole
+          garde ses boîtes. */}
+      <BoxTable
+        lines={boxes}
+        context={dish.uses.length === 0 ? "doses" : "dish"}
+        // Une seule personne : son chiffre est déjà sous le titre, la ligne
+        // ne le répète pas.
+        boxEnergy={soloLine === null ? boxEnergy : undefined}
+      />
       {/* ══════════════════════════════════════════════════════════════════
           QUI MANGE ÇA — quand aucun couvercle ne l'a déjà dit.
           ══════════════════════════════════════════════════════════════════
@@ -472,8 +676,27 @@ export default function DishCard(
         </p>
       )}
 
-      {dish.ingredients.length > 0 && (
-        <div className="mt-3">
+      {/* ══════════════════════════════════════════════════════════════════
+          ⟳ 2026-09-22 · LA LISTE EST UN BLOC, COMME SES VOISINES.
+          ══════════════════════════════════════════════════════════════════
+          Elle sortait NUE, à plat sur la carte, avec sa quantité collée au
+          terme (« flocons d'avoine 44 g »). Juste au-dessus, les doses sont un
+          encart à filet dont les nombres s'alignent à droite: les deux listes
+          disent la même matière et ne se ressemblaient pas, et c'est la nue qui
+          se lisait comme une note en marge.
+
+          ⚠️ MÊME BLOC QUE `sources`, `qui mange ça` ET LE DÉPLIANT DE SESSION:
+          `paper-2` + `line`, l'idiome de la charte pour « information rattachée
+          à ce plat ». Une quatrième forme sur la même carte serait une quatrième
+          grammaire à apprendre.
+
+          ⚠️ LE NOMBRE EN BOUT DE LIGNE, `tabular-nums`, poussé par
+          `justify-between` — la règle de `BoxTable`, mot pour mot: des nombres
+          qui s'alignent se comparent d'un coup d'œil. `min-w-0` sur le terme est
+          OBLIGATOIRE (enfant de flex, largeur minimale `auto` par défaut): sans
+          lui, un nom composé long pousse la quantité hors de la carte à 320 px. */}
+      {dish.ingredients.length > 0 && !(doses && boxes.length === 1) && (
+        <div className="mt-3 rounded-card border border-line bg-paper-2 px-3 py-2">
           {/* ══════════════════════════════════════════════════════════════
               CES INGRÉDIENTS S'AJOUTENT AU LOT — ILS NE LE REDISENT PAS.
               ══════════════════════════════════════════════════════════════
@@ -495,75 +718,70 @@ export default function DishCard(
               {mealCopy("meals.result.extra_ingredients")}
             </p>
           )}
-          <ul className="mt-1 space-y-1">
+          {/* ⟳ 2026-09-22 — ET LE TITRE DE L'AUTRE CAS: plusieurs doses
+              au-dessus, donc ces nombres-ci sont leur SOMME. Sans ce titre, la
+              liste se lit comme une part de plus, et « thon 552 g » sous trois
+              parts de 192, 169 et 191 g devient incompréhensible. */}
+          {doses && boxes.length > 1 && (
+            <p className="text-label font-semibold uppercase tracking-wide text-ink-soft">
+              {mealCopy("meals.result.total_quantities")}
+            </p>
+          )}
+          <ul className="mt-1 flex flex-col gap-0.5">
             {dish.ingredients.map((ing, i) => {
               const quantity = ingredientQuantityText(ing);
               return (
                 <li
                   key={`${ing.term}-${i}`}
-                  className="flex flex-wrap items-baseline gap-2 text-sm text-ink"
+                  className="flex items-baseline justify-between gap-3 text-sm"
                 >
-                  <span>{ing.term}</span>
-                  {quantity && <span className="text-ink-soft">{quantity}</span>}
-                  {ing.in_pantry && (
-                    <Badge tone="positive">{mealCopy("meals.result.in_pantry")}</Badge>
-                  )}
+                  <span className="min-w-0 break-words text-ink-soft">{ing.term}</span>
+                  {/* La marque « déjà au placard » voyage AVEC le nombre, à
+                      droite: elle qualifie la quantité (« celle-là, tu l'as »),
+                      pas le nom de l'aliment. */}
+                  <span className="flex shrink-0 items-baseline gap-2">
+                    {ing.in_pantry && (
+                      <Badge tone="positive">{mealCopy("meals.result.in_pantry")}</Badge>
+                    )}
+                    {quantity && (
+                      <span className="tabular-nums text-ink-soft">{quantity}</span>
+                    )}
+                  </span>
                 </li>
               );
             })}
           </ul>
         </div>
       )}
-      {/* ── LE GESTE À FAIRE DEVANT CE PLAT-LÀ (2026-08-14) ─────────────────
-          `method` était masqué sur EXACTEMENT les plats qui en ont le plus
-          besoin. Un plat cuisiné de zéro montrait sa recette; celui qui a
-          besoin qu'on dise « réchauffe 10 min, tranche le poulet, ajoute la
-          salade » ne montrait rien — ni ici, ni dans les sessions de cuisine
-          (qui portent les GROSSES cuissons, pas le geste du repas). Le geste du
-          soir n'apparaissait donc nulle part dans le produit.
-
-          Le masquage avait sa raison, et elle tient toujours: ce qu'on ne veut
-          pas revoir, c'est la RECETTE DU LOT recopiée sous chaque jour, avec
-          ses quantités entières (« 1 200 g de cuisses » sur quatre jours). Le
-          prompt de composition demande déjà autre chose au modèle — « a dish
-          that draws on a preparation does NOT repeat its recipe. Its method is
-          what you do at that meal » — et c'est ce qu'il écrit vraiment: 476
-          plats en lot mesurés en base le 2026-08-14, 0 méthode vide, 111
-          caractères de moyenne, 247 au pire. Un geste, pas un pavé.
-
-          ⚠️ DEUX MOTS, PAS UN. Le libellé change avec le cas
-          (`meals.result.assemble` vs `meals.result.method`): sous « Comment »,
-          un assemblage se lirait comme la recette qu'on vient justement de ne
-          pas répéter.
-          ⚠️ AUCUNE DURÉE N'EST AJOUTÉE. Si le modèle ne dit pas combien de
-          temps, l'écran ne l'estime pas: `active_minutes` vit sur les
-          PRÉPARATIONS, et le reprendre ici donnerait à un assemblage le temps
-          d'une cuisson.
-          ⚠️ RIEN NE S'AFFICHE SANS TEXTE. Pas de libellé au-dessus du vide.
-
-          ── LOT 2 (2026-08-17) · CE BLOC EST LE CHEMIN DE REPLI, PLUS LE CHEMIN
-          NORMAL ────────────────────────────────────────────────────────────
-          Quand le plat porte son `same_day`, sa méthode est REMONTÉE dans le
-          bandeau du jour J, en tête de carte — c'est là qu'on la cherche, et
-          P2 demande le TEXTE (« reprends le poulet de vendredi »), pas
-          seulement l'étiquette. Elle ne s'affiche donc PAS ici en plus: relire
-          la même phrase deux fois sur une même carte est exactement le bruit
-          que le paragraphe du 14/08 ci-dessus refuse.
-
-          ⚠️ MAIS CE BLOC RESTE, ET IL N'EST PAS MORT. `same_day` est `null` sur
-          TOUT plan écrit avant le 2026-08-17 — mesuré: 157 plans en base, dont
-          5 encore vivants. Les faire basculer sur un bandeau qui n'existe pas
-          leur retirerait la seule phrase qui leur dit quoi faire. Le silence du
-          bandeau ne doit pas se payer en lisibilité sur les plans anciens. */}
-      {!dish.same_day && dish.method && (
-        <p className="mt-3 text-sm text-ink break-words">
-          <span className="font-medium text-ink">
-            {mealCopy(leftover ? "meals.result.assemble" : "meals.result.method")}:
-          </span>{" "}
-          {dish.method}
-        </p>
+      {/* ══════════════════════════════════════════════════════════════════
+          ⟳ 2026-09-23 · « À CÔTÉ », QUAND AUCUNE BOÎTE NE LE PORTE.
+          ══════════════════════════════════════════════════════════════════
+          Après les items du plat, dans le même bloc encastré que ses voisins
+          (charte §2). Le prénom devant les aliments quand la carte le connaît;
+          sinon les aliments seuls — jamais un identifiant.
+          ⛔ AUCUNE PROVENANCE: rien ne dit si l'aliment vient du modèle ou de
+          la liste de secours. */}
+      {looseSides.length > 0 && (
+        <div
+          data-dish-sides
+          className="mt-3 rounded-card border border-line bg-paper-2 px-3 py-2"
+        >
+          <p className="text-label font-semibold uppercase tracking-wide text-ink-soft">
+            {mealCopy("meals.boxes.side_courses")}
+          </p>
+          <ul className="mt-1 flex flex-col gap-0.5">
+            {looseSides.map((side) => (
+              <li
+                key={side.memberId}
+                data-side-member-id={side.memberId}
+                className="break-words text-sm text-ink-soft"
+              >
+                {side.text}
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
-
       {/* ── LE PLAT ET LA SESSION QUI A FAIT SON LOT (2026-08-14) ───────────
           Le chemin `dish.uses[].preparation_id → cooking_sessions[]
           .preparation_ids` existait ENTIÈREMENT dans la donnée, et n'était
@@ -588,6 +806,7 @@ export default function DishCard(
           préparations et sur la session; les recopier ici donnerait à un
           assemblage le temps d'une cuisson. Elles ont déjà leur surface. */}
       {session && <SessionLink session={session} />}
+      </div>
     </Card>
   );
 }

@@ -194,7 +194,7 @@ export interface SlotMealStepOutcome {
  * répéter la règle: « ne nommer que des colonnes qui existent » était déjà
  * écrit deux fois au-dessus, et écrit ne suffit pas.
  */
-async function memberIdOf(
+export async function memberIdOf(
   admin: SupabaseClient,
   userId: string,
 ): Promise<string | null> {

@@ -151,6 +151,11 @@ function toRef(row: Record<string, unknown>): CompositionRef | null {
     // c'est-à-dire « pas un condiment »: le repli est l'ABSTENTION, jamais une
     // masse par défaut. Une colonne mal lue ne doit pas se mettre à peser.
     condimentGrams: readNumber(row.condiment_grams),
+    // ⟳ 2026-09-22 — CE QUE PÈSE UN MILLILITRE. Illisible ou absente ⇒ `null`,
+    // c'est-à-dire « cet aliment ne se verse pas »: le repli est l'ABSTENTION,
+    // jamais une densité de secours. Une colonne mal lue ne doit pas se mettre
+    // à convertir des cuillères.
+    gramsPerMl: readNumber(row.grams_per_ml),
     // ⟳ LOT A — LE CODE ET LE NOM ANSES, LUS. Ils ne servent à AUCUN calcul:
     // ils servent à voir qu'une ligne porte le nom d'un autre aliment. `pear`
     // portait « Poireau, cru » et le code 20039 du poireau, et le chargeur ne
@@ -162,6 +167,10 @@ function toRef(row: Record<string, unknown>): CompositionRef | null {
     // règle par provenance de `validationOf`. Le repli est la RÈGLE, jamais un
     // `verifie` de complaisance.
     validation: readValidation(row.validation_state),
+    // ⟳ 2026-09-23 — LA FAMILLE (« le même aliment »). Absente ⇒ `null`, et
+    // `foodFamilyOf` retombe sur le slug: le repli est le NOM DE LA LIGNE,
+    // jamais une famille devinée.
+    family: readText(row.family),
   };
 }
 
@@ -329,8 +338,8 @@ export async function loadCompositionIndex(
         "protein_g, carbs_g, fat_g, " +
         "fiber_g, omega3_marine, iron_source, calcium_source, iodine_source, " +
         "zinc_source, b12_source, folate_source, yield_class, yield_factor, " +
-        "atwater_discount, energy_dense, unit_grams, condiment_grams, " +
-        "validation_state, validation_reason, validation_decided_on",
+        "atwater_discount, energy_dense, unit_grams, condiment_grams, grams_per_ml, " +
+        "validation_state, validation_reason, validation_decided_on, family",
     ),
     fetchAll(db, "food_composition_aliases", "alias, slug"),
     // ⚠️ TROISIÈME TABLE, ET PAS UNE COLONNE DE PLUS SUR LES ALIAS. Un faux ami

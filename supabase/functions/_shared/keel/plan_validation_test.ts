@@ -351,7 +351,7 @@ Deno.test("③ défauts, incomplets, non applicables et non tournés sont SÉPAR
       // Une journée dont le plancher s'abstient POUR UNE RAISON PROTÉGÉE.
       days: base.days.map((d) =>
         d.memberId === PAUL && d.date === "2026-09-07"
-          ? { ...d, protein: { coveredFloorG: null, reason: "protected" as const } }
+          ? { ...d, protein: { coveredFloorG: null, coveredCeilingG: null, reason: "protected" as const } }
           : d
       ),
     },

@@ -1041,11 +1041,15 @@ export function maintenanceKcalOf(
     : adultMaintenanceKcal({
       weightKg: mouth.body.weightKg,
       heightCm: mouth.body.heightCm,
-      ageBand: ageBandOf(mouth.body.ageYears),
+      ageBand: ageBandOf(mouth.body.ageYears), ageYears: mouth.body.ageYears,
       gender: mouth.body.gender,
       activityLevel: mouth.body.activityLevel,
       activityAxes: mouth.body.activityAxes,
       appetite: mouth.body.appetite,
+      // ⟳ 2026-09-21 — LE MÊME BORD QUE `envelopeCore`: sans direction, c'est
+      // un maintien, et un maintien lit le bas de sa bande de séances. Le test
+      // de parité des deux chemins tient cette égalité.
+      sessionsEdge: mouth.direction === null ? "low" : "mid",
     }).kcal;
   if (maintenance === null || !Number.isFinite(maintenance) || maintenance <= 0) {
     return { kcal: null, reason: "no_body" };

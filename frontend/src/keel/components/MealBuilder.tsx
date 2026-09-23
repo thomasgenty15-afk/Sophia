@@ -8,6 +8,7 @@ import {
 } from "../api/cookingPlan";
 import React from "react";
 import { ChevronDown } from "lucide-react";
+import { PlanComposingCard } from "./plan/PlanComposingCard";
 
 import { useAuth } from "../../context/AuthContext";
 // ⛔ `AwayMark` ET PLUS `AwayDay` SUR LES ABSENCES — DÉFAUT P1 (L6,
@@ -44,7 +45,6 @@ import {
 import { mealCopy } from "../api/mealLabels";
 import {
   ENVY_MAX_CHARS,
-  generateHouseholdMeal,
   type HouseholdView,
   loadEnvyLine,
   loadHousehold,
@@ -67,8 +67,8 @@ import {
 import type { PracticalConstraints } from "../api/practicalConstraints";
 import { planFailureKey } from "../copy/planRefusals";
 import { t } from "../i18n/t";
-import type { DraftProgress } from "../api/planDraft";
-import { draftProgressLabel } from "../lib/draftProgressLabel";
+import type { ComposeDraftInput, DraftProgress } from "../api/planDraft";
+import Modal from "./ui/Modal";
 import { formatBudgetAmount, formatDate } from "../i18n/format";
 import { plural } from "../i18n/plural";
 import TakeTheHandCard, { type HouseholdPlace } from "./TakeTheHandCard";
@@ -80,7 +80,9 @@ import { } from "../api/mealStretch";
 import { addDays, daysBetween, isIsoDate, weekStartFor } from "../api/dates";
 import { browserLocalDate, useMealTicks, catchUpWindowStart } from "../lib/useMealTicks";
 import { useMealEnergy } from "../lib/useMealEnergy";
-import { EnergySwitches, EnergyTargetNote } from "./plan/EnergyReadout";
+// ⟳ 2026-09-20 — `EnergySwitches` N'EST PLUS IMPORTÉ: la rangée des deux
+// interrupteurs a quitté cet écran (voir le pavé à son ancienne place, sous
+// les plats). Elle vit dans la section « Les chiffres » de la page du plan.
 import { groupByDay } from "../lib/mealBuilderModel";
 import { Button } from "./ui/Button";
 import { Card, SectionLabel } from "./ui/Card";
@@ -205,6 +207,38 @@ export interface MealBuilderProps {
    * Chaque incrément relance la lecture ; la valeur n'a pas d'autre sens.
    */
   plansVersion?: number;
+  /**
+   * ⟳ 2026-09-21 — L'APERÇU D'ABORD. « Composer un autre plan » ne remplace
+   * plus le plan affiché en un seul geste: la page compose un brouillon
+   * (`replaces` désigne le plan à remplacer), l'ouvre dans sa fenêtre
+   * d'aperçu — la même que « Prévisualiser », avec « Ajuster le plan » — et
+   * c'est l'adoption qui écrit. ⛔ REQUIS, jamais `?`: un repli d'écriture
+   * directe serait le bouton d'hier, et un `?` le laisserait revenir en
+   * silence (`rebuildPreviewWiring.int.test.ts` lit le montage).
+   */
+  onPreviewPlan: (args: PreviewPlanArgs) => Promise<void>;
+  /**
+   * ⟳ 2026-09-23 — LA COMPOSITION EN VOL, REPRISE PAR LA PAGE AU RETOUR.
+   *
+   * Signalé : une génération lancée ici, un tour sur « Foyer », un retour sur
+   * « Le plan de ma semaine » — et l'écran d'attente avait disparu. La page
+   * relisait bien la ligne en vol (`recoverLatestDraft` puis `waitForDraft`),
+   * mais `PlanComposingCard` n'était rendue que sur `launching`, l'état du
+   * geste lancé DANS CE montage-ci. Non nul = une composition tourne pour ce
+   * compte : la carte s'affiche, et les boutons qui en lanceraient une autre
+   * (qui l'évincerait, `takeover`) restent coupés.
+   */
+  resumedComposition?: { progress: DraftProgress | null } | null;
+  /** Le refus de cette reprise, rendu là où la carte d'attente se tenait. */
+  resumeFailure?: string | null;
+}
+
+/** Ce que « Composer un autre plan » remet à la page pour l'aperçu. */
+export interface PreviewPlanArgs {
+  input: ComposeDraftInput;
+  intent: "replace_current" | "prepare_next";
+  replaces: string | null;
+  onProgress: (progress: DraftProgress) => void;
 }
 
 /**
@@ -223,7 +257,24 @@ function awayMomentsInWindow(
     .reduce((n, a) => n + (a.slots.length === 0 ? slotsPerDay : a.slots.length), 0);
 }
 
-export default function MealBuilder(props: MealBuilderProps = {}) {
+/**
+ * ⟳ 2026-09-23 — LE LIBELLÉ COURT SOUS 363 PX DE LARGE. Sur un téléphone
+ * étroit, « Préparer le plan suivant », « Composer un autre plan », « Tes
+ * sessions de cuisine » et « Liste de courses » prenaient chacun sa ligne.
+ * Demandé: « Plan suivant », « Nouveau plan », « Sessions », « Courses ».
+ * Un seul des deux `span` est affiché: le nom lu par un lecteur d'écran est
+ * celui qu'on voit.
+ */
+function NarrowLabel(props: { short: string; long: string }) {
+  return (
+    <>
+      <span className="min-[363px]:hidden">{props.short}</span>
+      <span className="hidden min-[363px]:inline">{props.long}</span>
+    </>
+  );
+}
+
+export default function MealBuilder(props: MealBuilderProps) {
   const { user } = useAuth();
   const userId = user?.id ?? "";
 
@@ -655,9 +706,16 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
    * de la semaine, elle, est ancrée sur la SEMAINE VISÉE — elle ne se « reprend »
    * pas, elle se relit, et une semaine neuve part vide parce qu'elle est vide.
    */
-  const [building, setBuilding] = React.useState(false);
+  const [launching, setLaunching] = React.useState(false);
   /** ⟳ 2026-09-15 · LOT B — le stade réel de la composition, lu dans la ligne. */
   const [buildProgress, setBuildProgress] = React.useState<DraftProgress | null>(null);
+  /**
+   * ⟳ 2026-09-23 — UNE COMPOSITION TOURNE, LANCÉE ICI OU REPRISE PAR LA PAGE.
+   * Tout le rendu lit `building` ; seul le geste écrit `launching`.
+   */
+  const resumed = props.resumedComposition ?? null;
+  const building = launching || resumed !== null;
+  const composingProgress = buildProgress ?? resumed?.progress ?? null;
   /** La liste de courses est dépliée ou non. Son bouton vit dans l'en-tête. */
   const [shoppingOpen, setShoppingOpen] = React.useState(false);
   /** Les sessions de cuisine, même traitement et même rang de bouton. */
@@ -690,6 +748,13 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
   const [formIntent, setFormIntent] = React.useState<
     "replace_current" | "prepare_next"
   >("replace_current");
+  /**
+   * ⟳ 2026-09-21 — LA CONFIRMATION AVANT DE REMPLACER. Le bandeau ambre du
+   * formulaire prévenait; il ne demandait rien. Remplacer un plan en cours
+   * est le geste le plus coûteux de l'écran (des courses déjà faites), et il
+   * se confirme dans une fenêtre qui nomme le plan qui part.
+   */
+  const [confirmOpen, setConfirmOpen] = React.useState(false);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -1026,11 +1091,23 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
     // bouton mort, cicatrice mesurée trois fois sur l'écran de réglages. La
     // durée est DÉRIVÉE du style de cuisine côté moteur, et le style, lui, a
     // sa question juste au-dessus du budget.
+    // ⟳ 2026-09-21 — REMPLACER SE CONFIRME D'ABORD (voir `confirmOpen`).
+    const replacing = formIntent === "replace_current" &&
+      (tab === "next" ? plans.next : plans.current) !== null;
+    if (replacing) {
+      setConfirmOpen(true);
+      return;
+    }
+    await launch(budgetAmount);
+  }
+  /** La composition elle-même, une fois les champs valides et le geste confirmé. */
+  async function launch(budgetAmount: number) {
+    setConfirmOpen(false);
     // LA FENÊTRE SE REFERME DÈS QUE LA GÉNÉRATION PART. Ce qu'on veut regarder
     // pendant l'attente, c'est la place de la semaine, pas les champs qu'on
     // vient de remplir.
     setFormOpen(false);
-    setBuilding(true);
+    setLaunching(true);
     try {
       // LE GESTE PORTE SUR LE PLAN QU'ON REGARDE, et sur aucun autre. C'est le
       // point le plus dangereux de cet écran: un élève posé sur « Next » qui
@@ -1086,7 +1163,13 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
         const wrote = await submitEnvy(envyWeek, line);
         if (!wrote.ok) throw new Error(wrote.reason || "plan_not_written");
       }
-      const result = await generateHouseholdMeal({
+      // ⟳ 2026-09-21 — L'APERÇU D'ABORD. La page compose le brouillon et
+      // l'ouvre dans sa fenêtre d'aperçu; l'adoption y écrit avec le même
+      // `intent` et le même `replaces`. Rien n'est écrit ici.
+      const input: ComposeDraftInput = {
+        // ⟳ 2026-09-21 — `MealBuilder` n'est monté que sur `/app/plan`
+        // (vérifié : un seul site de montage, `StudentWeekPlanPage`).
+        origin: "plan",
         window: windowRequest.kind === "exact"
           ? {
             kind: "exact",
@@ -1094,45 +1177,17 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
             durationDays: windowRequest.durationDays,
           }
           : { kind: "until_sunday" },
+        context,
+        cookingShape: null,
+        oneCookingSession,
+        preferences: null,
+      };
+      await props.onPreviewPlan({
+        input,
         intent,
         replaces: intent === "replace_current" ? target?.mealId ?? null : null,
-        context,
-        // ⛔ TOUJOURS `null` DEPUIS LE 2026-09-06 — la question est partie de
-        // l'écran, le champ reste dans le transport. `null` est ce que rendait
-        // sa réponse par défaut: le serveur le lit comme « rien n'a été
-        // demandé » et son calcul gouverne seul. Le seul plafond de forme
-        // encore posé vient du STYLE, côté serveur (`styleCappedShape`).
-        cookingShape: null,
-        // ⚠️ LA VALEUR DE L'ÉCRAN, TELLE QUELLE. La porte du congélateur est
-        // tenue par le champ lui-même (il décoche quand elle se ferme) et,
-        // pour de bon, par le serveur. La recopier ici en ferait une troisième
-        // expression de la même règle.
-        oneCookingSession,
-        // ⛔ `null`, ET C'EST LE RETRAIT D'UNE QUESTION EN DOUBLE, PAS UNE
-        // RÉGRESSION. L'envie de cet écran part par `submitEnvy` juste
-        // au-dessus, sur la ligne de la semaine. Envoyer les deux mettrait la
-        // même phrase deux fois dans la consigne — une fois comme ligne de la
-        // semaine, une fois comme envie du moment.
-        //
-        // ⚠️ LE CANAL RESTE OUVERT ET TYPÉ (`preferences: string | null` dans
-        // `api/household.ts`, trois lectures côté edge): ce qui change est ce
-        // que CET écran y met, pas ce que le serveur sait lire.
-        preferences: null,
         onProgress: setBuildProgress,
       });
-      // Un 200 qui dit `ok: false` n'est pas une panne de transport, et il ne
-      // doit pas non plus atterrir comme un succès: il rejoint la même table
-      // de refus que tout le reste.
-      if (!result.ok) throw new Error("plan_not_written");
-      await props.onHouseholdComposed?.();
-      // On RELIT plutôt que de poser la réponse à la place du plan affiché: une
-      // génération peut avoir TRONQUÉ l'autre plan, et seule une relecture rend
-      // les deux fenêtres telles qu'elles sont maintenant en base.
-      const loaded = await loadMealPlans(userId, browserLocalDate());
-      setPlans({ current: loaded.current, next: loaded.next });
-      setTab(
-        result.mealId && loaded.next?.mealId === result.mealId ? "next" : "current",
-      );
     } catch (e) {
       // LE MOTIF NOMMÉ, TRADUIT (L8). `generateMeal` remonte « jeton: détail »,
       // et l'élève lisait le jeton brut — `household_frozen` pour un secondaire
@@ -1152,7 +1207,7 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
       // huit champs pour réessayer.
       setFormOpen(true);
     } finally {
-      setBuilding(false);
+      setLaunching(false);
       setBuildProgress(null);
     }
   }
@@ -1192,7 +1247,10 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
    * défaut: un secondaire sans plan de foyer lisible se voyait ouvrir le
    * formulaire d'office, sans même avoir cliqué.
    */
-  const showForm = canCompose && (formOpen || !hasWeek);
+  // ⟳ 2026-09-23 — une composition reprise n'ouvre pas le formulaire au-dessus
+  // de son attente : il n'y a rien à y saisir, et il repousserait la carte
+  // hors de l'écran.
+  const showForm = canCompose && resumed === null && (formOpen || !hasWeek);
   // AUJOURD'HUI, dans l'horloge du navigateur — la seule que cet écran ait, et
   // la même que celle qui calcule `week_start`.
   const today = browserLocalDate();
@@ -1278,14 +1336,20 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
               : t("meals.rebuild.title")}
           </SectionLabel>
           <Card>
-            {/* CE QUE ÇA COÛTE, DIT AVANT LE CLIC. Une génération remplace la
-                semaine affichée: cet écran ne lit que la dernière ligne. Le
-                découvrir après coup serait perdre un plan qu'on avait accepté. */}
-            {hasWeek && formIntent === "replace_current" && !truncationWarning && (
-              <p className="mb-4 rounded-card border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900">
-                {t("meals.rebuild.warning")}
-              </p>
-            )}
+            {/* ── ⛔ ICI SE TENAIT LE BANDEAU AMBRE « Ça remplace la semaine
+                ci-dessous » — RETIRÉ LE 2026-09-21, sur demande ────────────
+                Il disait avant le clic ce qu'une génération coûte. Ce que son
+                retrait laisse: l'avertissement CHIFFRÉ juste en dessous
+                (`truncationWarning`), qui porte l'information coûteuse — les
+                jours qui partent, et les courses déjà faites —, et la
+                CONFIRMATION en deux temps (`meals.rebuild.confirm_*`), qui
+                reste le dernier mot avant de remplacer. Le générique partait
+                donc en double d'un dispositif qui, lui, chiffre.
+
+                ⚠️ LA CLÉ SURVIT, ET ELLE A ENCORE UN LECTEUR: la fenêtre de
+                confirmation la rend quand elle ne sait pas nommer le plan qui
+                s'en va (`leaving === null`). La retirer y laisserait un corps
+                de fenêtre vide. */}
             {/* CE QUE ÇA RETIRE AU PLAN COURANT, dit avant le clic et chiffré.
                 Il REMPLACE l'avertissement générique: deux bandeaux ambre
                 empilés se lisent comme du bruit, et c'est celui-ci qui porte
@@ -1735,6 +1799,7 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                 style={cookingStyle}
                 oneCookingSession={oneCookingSession}
                 daysToEat={askedDays.tokens.length}
+                freezer={hasFreezer}
               />
 
               {/* ⛔ « TEMPS PAR SESSION DE CUISINE » A ÉTÉ RETIRÉ — 2026-09-03.
@@ -1871,12 +1936,24 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
 
               {error && <p className="text-sm text-red-700">{error}</p>}
 
-              <div className="flex flex-wrap items-center gap-2">
-                <Button type="submit" variant="primary" disabled={building}>
-                  {building
-                    ? draftProgressLabel(buildProgress) ?? t("meals.form.building")
-                    : submitLabel}
-                </Button>
+              {/* ── ⟳ 2026-09-21 · LE GESTE QUI VALIDE EST À DROITE ─────────
+                  Il était à gauche, « Annuler » à sa droite. C'est l'inverse
+                  de la règle de l'entonnoir (`SetupPage`: `setup.next` dans
+                  une barre `justify-end`, « Retour » à gauche depuis le
+                  2026-08-19) et de l'aperçu de brouillon, remis dans ce sens
+                  le même jour. Demandé: « normalement les commandes de
+                  validation c'est en bas à droite ».
+
+                  ⛔ `justify-end` ET PAS `justify-between`, ET LE MOTIF EST
+                  DÉJÀ ÉCRIT DANS `SetupPage`: « Annuler » ne se rend pas
+                  quand il n'y a pas de semaine derrière. Avec un seul groupe
+                  restant, `justify-between` aurait collé « Composer » à
+                  GAUCHE — c'est-à-dire l'inverse du lot, exactement dans le
+                  cas du premier plan.
+
+                  `flex-wrap`: à 320 px ils repassent l'un sous l'autre, dans
+                  le même ordre. */}
+              <div className="flex flex-wrap items-center justify-end gap-2">
                 {/* On ne peut renoncer que s'il y a quelque chose à retrouver
                     derrière. Sans semaine, « Cancel » ne mènerait qu'à un écran
                     vide sans issue. */}
@@ -1893,7 +1970,19 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                     {t("meals.form.cancel")}
                   </Button>
                 )}
+                <Button type="submit" variant="primary" disabled={building}>
+                  {building ? t("meals.form.building") : submitLabel}
+                </Button>
               </div>
+              {/* ⟳ 2026-09-21 — PLUS PETITE, SUR DEMANDE. `text-label` est le
+                  cran d'en dessous (11 px); `tracking-normal` annule son
+                  interlettrage, qui est dessiné pour des CAPITALES et qui
+                  étalerait une phrase de quarante-cinq signes. Même geste que
+                  `plan.draft.turns_*`, qui emploie déjà ce cran pour de la
+                  prose. */}
+              <p className="text-right text-label leading-5 tracking-normal text-ink-soft">
+                {t("meals.eta")}
+              </p>
             </form>
           </Card>
         </section>
@@ -1924,6 +2013,22 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
               c'est le titre qui disparaît au moment où l'écran devient plus
               difficile à lire.
               ═══════════════════════════════════════════════════════════════ */}
+          {/* ══════════════════════════════════════════════════════════════
+              ⟳ 2026-09-21 — UNE SEULE RANGÉE: LE TITRE, PUIS LES GESTES AU BOUT
+              ══════════════════════════════════════════════════════════════
+
+              Les deux gestes ont passé une heure sur une seconde rangée, sous
+              le titre — c'était la réponse à « d'un point de vue UI c'est
+              horrible ». Remis au bout de la ligne le jour même, sur demande:
+              « mets-les au bout de la ligne de "Tes repas" ».
+
+              ⛔ CE QUI A VRAIMENT RÉPARÉ L'ÉCRAN N'ÉTAIT DONC PAS LA
+              DISPOSITION, C'ÉTAIT LA PHRASE. « En moyenne 2 à 3 minutes pour
+              composer un plan » s'intercalait entre les gestes et le rail des
+              jours, et faisait d'un bloc de deux rangées un bloc de trois.
+              Elle est partie d'ici. Ne la remets pas « pour rassurer »: le
+              formulaire de composition la dit déjà, sous le bouton qui
+              déclenche vraiment l'attente. */}
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-3">
               <SectionLabel className="mb-0">
@@ -1962,11 +2067,22 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                 </div>
               )}
             </div>
+            {/* ⛔ LA GARDE EST PORTÉE UNE FOIS, PAR LE GROUPE. Elle était
+                répétée sur chacun de ses enfants; trois copies d'une même
+                condition divergent, et c'est celle qu'on relit le moins qui
+                garde l'ancienne. Ce qui reste sur un enfant est ce qui lui
+                est PROPRE — ici, « pas déjà un plan suivant ».
+
+                ⚠️ LE GROUPE ENTIER DISPARAÎT quand aucun des deux gestes
+                n'est offert. Rendu vide, il garderait sa gouttière au bout de
+                la ligne, et `justify-between` pousserait le titre vers la
+                gauche d'un écran qui n'a rien à sa droite. */}
+            {hasWeek && canCompose && !showForm && (
             <div className="flex flex-wrap items-center gap-2">
               {/* PRÉPARER LA SUITE. N'apparaît que s'il n'y a pas déjà un plan
                   suivant: au plus deux plans vivants, et la contrainte
                   d'exclusion le refuserait de toute façon. */}
-              {hasWeek && canCompose && !showForm && !plans.next && (
+              {!plans.next && (
                 <Button
                   variant="secondary"
                   size="sm"
@@ -1982,7 +2098,10 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                     setFormOpen(true);
                   }}
                 >
-                  {t("meals.rebuild.prepare_next")}
+                  <NarrowLabel
+                    short={t("meals.rebuild.prepare_next_short")}
+                    long={t("meals.rebuild.prepare_next")}
+                  />
                 </Button>
               )}
               {/* Il ne s'affiche pas quand le formulaire est déjà ouvert (il
@@ -1993,22 +2112,26 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                   écrit une ligne `household`); le secondaire le perd le
                   2026-09-10 — le moteur unique lui rend 403 `not_owner`, et
                   « refaire la semaine » ne peut alors que refuser. */}
-              {hasWeek && canCompose && !showForm && (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  disabled={building}
-                  onClick={() => {
-                    setFormIntent("replace_current");
-                    setFormOpen(true);
-                  }}
-                >
-                  {building
-                    ? draftProgressLabel(buildProgress) ?? t("meals.form.building")
-                    : t("meals.rebuild.button")}
-                </Button>
-              )}
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={building}
+                onClick={() => {
+                  setFormIntent("replace_current");
+                  setFormOpen(true);
+                }}
+              >
+                {building
+                  ? t("meals.form.building")
+                  : (
+                    <NarrowLabel
+                      short={t("meals.rebuild.button_short")}
+                      long={t("meals.rebuild.button")}
+                    />
+                  )}
+              </Button>
             </div>
+            )}
           </div>
 
           {/* LE PANNEAU S'OUVRE SOUS SON BOUTON. Il reste MONTÉ quand il est
@@ -2037,6 +2160,49 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                   donc les recettes dépliées survivent à un aller-retour vers un
                   plat. Elle disparaît en revanche pendant une génération: elle
                   décrit des préparations qu'on est en train de remplacer. */}
+              {/* ⟳ 2026-09-21 — LA CONFIRMATION AVANT DE REMPLACER. Montée en
+                  permanence comme ses voisines: `Modal` rend `null` fermée. */}
+              {(() => {
+                const leaving = tab === "next" ? plans.next : plans.current;
+                return (
+                  <Modal
+                    open={confirmOpen}
+                    onClose={() => setConfirmOpen(false)}
+                    title={t("meals.rebuild.confirm_title")}
+                    closeLabel={t("meals.rebuild.confirm_close")}
+                    footer={
+                      <div className="flex flex-wrap justify-end gap-2">
+                        <Button
+                          variant="secondary"
+                          onClick={() => setConfirmOpen(false)}
+                        >
+                          {t("meals.rebuild.confirm_cancel")}
+                        </Button>
+                        <Button
+                          variant="primary"
+                          onClick={() => void launch(Number(budget.trim()))}
+                        >
+                          {t("meals.rebuild.confirm_go")}
+                        </Button>
+                      </div>
+                    }
+                  >
+                    <p className="text-sm leading-6 text-ink-soft">
+                      {leaving
+                        ? t("meals.rebuild.confirm_body")
+                          .replace("{from}", formatDate(leaving.startsOn, { year: false }))
+                          .replace(
+                            "{to}",
+                            formatDate(
+                              planEndsOn(leaving.startsOn, leaving.durationDays),
+                              { year: false },
+                            ),
+                          )
+                        : t("meals.rebuild.warning")}
+                    </p>
+                  </Modal>
+                );
+              })()}
               <CookingSessions
                 sessions={result?.cookingSessions ?? []}
                 preparations={result?.preparations ?? []}
@@ -2115,13 +2281,15 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
               vérifié ». Le serveur continue de produire et de persister
               `generated_from.validation` ; seul l'affichage est retiré. Le
               composant et son test restent en place. */}
+          {!building && props.resumeFailure && (
+            <p className="mb-3 text-sm text-red-700">{props.resumeFailure}</p>
+          )}
           {building
             ? (
-              <Card tone="dashed">
-                <p className="text-sm text-ink-soft">
-                  {draftProgressLabel(buildProgress) ?? t("meals.rebuild.building")}
-                </p>
-              </Card>
+              // ⟳ 2026-09-21 — L'ATTENTE A SON ÉCRAN, à la place du plan: le
+              // stade réel, le temps écoulé, l'ordre de grandeur. La carte en
+              // pointillés répétait la phrase du bouton, sans repère.
+              <PlanComposingCard progress={composingProgress} replacing={hasWeek} />
             )
             : groups.length === 0
             // ⚠️ CETTE PHRASE REDEVIENT VRAIE POUR LE MAÎTRE, ET ELLE DOIT
@@ -2161,7 +2329,10 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                           size="sm"
                           onClick={() => setSessionsOpen(true)}
                         >
-                          {mealCopy("meals.sessions.title")}
+                          <NarrowLabel
+                            short={t("meals.sessions.button_short")}
+                            long={mealCopy("meals.sessions.title")}
+                          />
                         </Button>
                       )}
                       {showShoppingButton && (
@@ -2170,7 +2341,10 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                           size="sm"
                           onClick={() => setShoppingOpen(true)}
                         >
-                          {t("meals.result.shopping_title")}
+                          <NarrowLabel
+                            short={t("meals.result.shopping_short")}
+                            long={t("meals.result.shopping_title")}
+                          />
                         </Button>
                       )}
                     </div>
@@ -2207,15 +2381,6 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                 durationDays={durationDays}
                 today={today}
                 emptyLabel={t("meals.result.empty")}
-                // ── FF-053 · CE QUI EXPLIQUE UNE CASE VIDE ─────────────────
-                // Le rythme donne les LIGNES; les trois autres donnent les
-                // quatre silences. `awayDays` vient de l'écran (il pilote déjà
-                // la grille de créneaux); les deux suivants viennent de la
-                // RÉPONSE de la fonction, qui seule sait ce qu'elle a lu.
-                rhythm={props.rhythm ?? []}
-                awayDays={props.awayDays ?? []}
-                fixedIntakes={result?.fixedIntakes ?? []}
-                dayProperties={result?.dayProperties ?? []}
                 // LA COCHE RESTE ICI. `PlanResult` ne sait pas qui est
                 // cochable — la règle (aujourd'hui et le passé, jamais
                 // l'avenir) vit dans `useMealTicks`, et le brouillon n'en
@@ -2235,33 +2400,42 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                 // droit; `forBox` ne fait que lire ce qui a voyagé.
               />
             )}
-          {/* FF-059 LOT 3 · LA FOURCHETTE. Sous les plats, avec la note de
-              base — jamais collée au total du jour: deux nombres alignés se
-              soustraient tout seuls dans la tête de qui les lit, et cette
-              soustraction est exactement ce qu'on ne construit pas. */}
-          {energy.showing && (
-            <div className="mt-3">
-              <EnergyTargetNote target={energy.target} />
-            </div>
-          )}
-          {/* ⟳ LOT 5 — LES DEUX INTERRUPTEURS, EXTRAITS. Ils vivaient en ligne
-              ici, et c'était leur SEULE adresse du produit: quelqu'un qui avait
-              éteint devait revenir sur un écran de plan et dérouler jusqu'en
-              bas pour rallumer. `EnergySwitches` est maintenant rendu ici ET
-              dans la fenêtre « À propos de toi » — une écriture, deux
-              adresses. La règle d'affichage n'a PAS bougé d'un octet: elle vit
-              dans le composant, et elle vient du serveur. */}
-          <div className="mt-4">
-            <EnergySwitches energy={energy} />
-          </div>
-          {/* Un plan de foyer à plusieurs bouches n'a pas de chiffre, et on dit
-              pourquoi: la part de chacun est une PHRASE, pas un nombre. Le
-              silence se lirait comme une panne. */}
-          {energy.ready && energy.abstention === "household_portions_not_numeric" && (
-            <p className="mt-3 text-xs text-ink-soft">
-              {mealCopy("meals.energy.household_abstention")}
-            </p>
-          )}
+          {/* ⛔ 2026-09-23 — LA FOURCHETTE « Autour de {low}–{high} par jour…
+              — d'après ta pesée du … » EST PARTIE D'ICI, avec son composant
+              `EnergyTargetNote`, sur demande (« ça sert à rien, ça pollue
+              l'UI »). C'était son seul endroit d'affichage. */}
+          {/* ══════════════════════════════════════════════════════════════
+              ⛔ LA RANGÉE DES DEUX INTERRUPTEURS EST PARTIE D'ICI — 2026-09-20
+              ══════════════════════════════════════════════════════════════
+
+              « Masquer les calories », « Masquer la fourchette quotidienne » et
+              « Tu peux couper ça quand tu veux, et ça se tait partout »
+              s'affichaient sous les plats, juste au-dessus du bouton qui
+              compose l'aperçu. Retirées sur demande: on ne règle pas pendant
+              qu'on compose.
+
+              ⚠️ AUCUNE CAPACITÉ N'EST PERDUE, ET C'EST CE QUI REND LE RETRAIT
+              POSSIBLE. `EnergySwitches` a une SECONDE adresse, vivante et
+              testée: ⟳ depuis le 2026-09-23 (FF-066), `PlanNumbersSection`
+              sur `/app/about-you` — la section « Les chiffres » de
+              `StudentWeekPlanPage` n'avait plus d'ouvreur. Un endroit où l'on
+              vient pour régler, pas pour lire un plan. Le
+              lot 5 (2026-09-01) l'avait ajoutée précisément parce qu'une
+              extinction à un clic ne doit pas demander une fouille pour être
+              défaite; c'est cette adresse-là qui reste.
+
+              ⛔ NE LA REMETS PAS ICI « pour l'avoir sous la main ». Deux copies
+              d'une rangée de boutons divergent, et c'est celle qu'on regarde le
+              moins qui garde l'ancienne condition d'affichage — or cette
+              condition EST la garde (`switchOfferable`, décidée par le
+              serveur). */}
+          {/* ⛔ LOT A1 (2026-09-22) — LA PHRASE D'ABSTENTION DU FOYER EST PARTIE.
+              Son unique motif (`household_portions_not_numeric`) ne se
+              déclenchait que sur l'absence des `member_deltas` du lecteur; ces
+              deltas ne sont plus lus par personne, donc le foyer garde son
+              chiffre comme tout le monde. La clé `meals.energy.household_abstention`
+              reste dans `fr.ts`/`en.ts` sans lecteur — à retirer par la lane qui
+              tient ces fichiers. */}
         </section>
 
     </div>

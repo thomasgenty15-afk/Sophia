@@ -1043,3 +1043,135 @@ Deno.test("⛔ CÂBLAGE — le handler date les courses avec les besoins du PLAN
   // mûres comme le premier jet aurait daté les siennes.
   assertEquals((src.match(/preparations: waveNeedsNow\(\),/g) ?? []).length, 2);
 });
+
+
+// ── ⟳ 2026-09-21 — LE REPLI CHOISIT LES DATES QUI CONGÈLENT LE MOINS ─────────
+// Le décor est le plan réel `64abd449` (5 jours à partir du lundi 2026-09-21,
+// deux courses, congélateur): la grosse course lundi, les sardines du goûter
+// de mercredi (poisson gras, fenêtre d'un jour → au plus tôt mardi), le jambon
+// du goûter de vendredi (protéine maigre, fenêtre de deux jours → au plus tôt
+// mercredi). L'ancien repli gardait lundi et mardi et congelait le jambon.
+const MONDAY_21 = "2026-09-21";
+const HAM_PLAN_LINES: TestItem[] = [
+  { term: "flocons d'avoine", quantity: null, aisle: "grains", food_group: "whole_grain", ref: null },
+  { term: "sardines", quantity: null, aisle: "protein", food_group: "fatty_fish", ref: null },
+  { term: "jambon", quantity: null, aisle: "protein", food_group: "lean_protein", ref: null },
+];
+const HAM_PLAN_PREPS: WavePreparation[] = [
+  { id: "p-mon", cookOn: "mon", ingredientTerms: ["flocons d'avoine"] },
+  { id: "d-wed", cookOn: "wed", ingredientTerms: ["sardines"] },
+  { id: "d-fri", cookOn: "fri", ingredientTerms: ["jambon"] },
+];
+
+Deno.test("⛔ repli — deux courses tiennent tout au frais: lundi et MERCREDI, rien à congeler", () => {
+  const waves = planGroceryWaves({
+    startsOn: MONDAY_21,
+    durationDays: 5,
+    runs: 2,
+    freezer: true,
+    shoppingList: HAM_PLAN_LINES,
+    preparations: HAM_PLAN_PREPS,
+  });
+  assertEquals(waves.map((w) => w.buyOn), ["2026-09-21", "2026-09-23"]);
+  assertEquals(waveItemCount(waves), 3, "aucune ligne perdue");
+  for (const w of waves) assertEquals(w.freezeOnPurchase, [], `congelé à tort le ${w.buyOn}`);
+  assertEquals(waves[1].items.map((i) => i.term).sort(), ["jambon", "sardines"]);
+  // La vague de mercredi nomme la cuisson la plus proche qu'elle sert, et toutes.
+  assertEquals(waves[1].servesCookOn, "2026-09-23");
+  assertEquals(waves[1].servesCookDates, ["2026-09-23", "2026-09-25"]);
+});
+
+Deno.test("repli — LE CAS QUI PASSE ENCORE: sans repli, la conservation garde ses trois vagues", () => {
+  const waves = planGroceryWaves({
+    startsOn: MONDAY_21,
+    durationDays: 5,
+    runs: null,
+    freezer: true,
+    shoppingList: HAM_PLAN_LINES,
+    preparations: HAM_PLAN_PREPS,
+  });
+  assertEquals(waves.map((w) => w.buyOn), ["2026-09-21", "2026-09-22", "2026-09-23"]);
+});
+
+Deno.test("repli — ce qu'aucune date gardée ne couvre est congelé à la dernière date gardée AVANT sa fenêtre", () => {
+  // Trois besoins que deux dates ne peuvent pas tous couvrir: poisson mardi
+  // (au plus tôt lundi... non: cuisson mardi, fenêtre 1 → lundi, première
+  // vague), poulet jeudi (fenêtre 2 → mardi..jeudi), poisson dimanche
+  // (fenêtre 1 → samedi..dimanche). Une seule date en plus: mardi à jeudi
+  // couvre le poulet, samedi ou dimanche couvre le poisson — égalité, la plus
+  // tôt gagne (mardi), et le poisson de dimanche est congelé à... mardi, la
+  // dernière date gardée avant samedi.
+  const waves = planGroceryWaves({
+    startsOn: MONDAY_21,
+    durationDays: 7,
+    runs: 2,
+    freezer: true,
+    shoppingList: [
+      { term: "riz", quantity: null, aisle: "grains", food_group: "refined_grain", ref: null },
+      { term: "poulet", quantity: null, aisle: "protein", food_group: "poultry", ref: null },
+      { term: "cabillaud", quantity: null, aisle: "protein", food_group: "white_fish", ref: null },
+    ],
+    preparations: [
+      { id: "p1", cookOn: "mon", ingredientTerms: ["riz"] },
+      { id: "p2", cookOn: "thu", ingredientTerms: ["poulet"] },
+      { id: "p3", cookOn: "sun", ingredientTerms: ["cabillaud"] },
+    ],
+  });
+  assertEquals(waves.map((w) => w.buyOn), ["2026-09-21", "2026-09-22"]);
+  assertEquals(waves[1].items.map((i) => i.term).sort(), ["cabillaud", "poulet"]);
+  assertEquals(waves[1].freezeOnPurchase.map((i) => i.term), ["cabillaud"]);
+  assertEquals(waveItemCount(waves), 3);
+});
+
+Deno.test("repli — à égalité de couverture, la date qui n'abandonne aucun incongelable gagne", () => {
+  const waves = planGroceryWaves({
+    startsOn: MONDAY_21,
+    durationDays: 7,
+    runs: 2,
+    freezer: true,
+    shoppingList: [
+      { term: "riz", quantity: null, aisle: "grains", food_group: "refined_grain", ref: null },
+      { term: "poulet", quantity: null, aisle: "protein", food_group: "poultry", ref: null },
+      { term: "laitue", quantity: null, aisle: "produce", food_group: "leafy_greens", ref: null },
+    ],
+    preparations: [
+      { id: "p1", cookOn: "mon", ingredientTerms: ["riz"] },
+      { id: "p2", cookOn: "wed", ingredientTerms: ["poulet"] },
+      { id: "p3", cookOn: "sun", ingredientTerms: ["laitue"] },
+    ],
+  });
+  // Poulet (fenêtre 2, cuisson mercredi): lundi..mercredi — il tient au frais
+  // depuis la première course. Laitue (fenêtre 3, cuisson dimanche):
+  // jeudi..dimanche, incongelable. La seule date en plus va donc à la laitue:
+  // deux courses, rien au congélateur, aucune vague à part.
+  assertEquals(waves.map((w) => w.buyOn), ["2026-09-21", "2026-09-24"]);
+  assertEquals(waves[0].items.map((i) => i.term).sort(), ["poulet", "riz"]);
+  assertEquals(waves.flatMap((w) => w.freezeOnPurchase), []);
+  assertEquals(waves[1].items.map((i) => i.term), ["laitue"]);
+  assertEquals(waves.flatMap((w) => w.keptForFreshness), []);
+});
+
+Deno.test("repli — à UNE course, l'incongelable hors de portée garde sa vague, et le reste se congèle", () => {
+  const waves = planGroceryWaves({
+    startsOn: MONDAY_21,
+    durationDays: 7,
+    runs: 1,
+    freezer: true,
+    shoppingList: [
+      { term: "riz", quantity: null, aisle: "grains", food_group: "refined_grain", ref: null },
+      { term: "poulet", quantity: null, aisle: "protein", food_group: "poultry", ref: null },
+      { term: "laitue", quantity: null, aisle: "produce", food_group: "leafy_greens", ref: null },
+    ],
+    preparations: [
+      { id: "p1", cookOn: "mon", ingredientTerms: ["riz"] },
+      { id: "p2", cookOn: "fri", ingredientTerms: ["poulet"] },
+      { id: "p3", cookOn: "sun", ingredientTerms: ["laitue"] },
+    ],
+  });
+  // Poulet (fenêtre 2, cuisson vendredi): mercredi..vendredi — hors de portée
+  // de la seule course, congelé lundi. Laitue: jeudi..dimanche, incongelable,
+  // garde sa vague de jeudi. Une course demandée, deux vagues écrites.
+  assertEquals(waves.map((w) => w.buyOn), ["2026-09-21", "2026-09-24"]);
+  assertEquals(waves[0].freezeOnPurchase.map((i) => i.term), ["poulet"]);
+  assertEquals(waves[1].keptForFreshness.map((i) => i.term), ["laitue"]);
+});

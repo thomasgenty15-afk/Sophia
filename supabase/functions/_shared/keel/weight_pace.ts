@@ -14,7 +14,8 @@
  *
  * ── LA BORNE EST LE PLUS PETIT DE TROIS NOMBRES ───────────────────────────
  *
- *   max = MIN( 1 kg/semaine          ← le plafond absolu
+ *   max = MIN( 0,8 kg/sem en perte, 0,5 kg/sem en prise  ← le plafond absolu
+ *                                        (⟳ 2026-09-23, 1 kg avant)
  *            , 1 % du poids/semaine  ← ce que CE corps supporte
  *            , ce qui garde la cible au-dessus du plancher d'énergie )
  *
@@ -46,8 +47,8 @@
  *   PRISE, mineur    `energy_floor` 18 080 (la même fraction, dans les deux sens)
  *
  * Sur une PERTE, `absolute_cap` ne peut pas mordre par construction: l'écart y
- * est plafonné par A1 (`MAX_DAILY_DEFICIT_KCAL`, 500 kcal/j, non débrayable),
- * soit 500 × 7 / 7 700 = **0,4545 kg/sem**, la moitié du plafond. Aucun gabarit
+ * est plafonné par A1 (`MAX_DAILY_DEFICIT_KCAL`, 880 kcal/j depuis le
+ * 2026-09-22, 500 avant), soit 880 × 7 / 7 700 = **0,8 kg/sem**. Aucun gabarit
  * ne l'atteint. Un rapport de vérification avait nommé les deux premières
  * bornes « dormantes »: `body_fraction` ne l'était pas, et `absolute_cap` était
  * pire que dormante. C'est l'ouverture de la PRISE qui lui a donné son premier
@@ -147,16 +148,40 @@ export function scaleDirectionOf(goal: GoalToken): ScaleDirection | null {
  */
 export const KCAL_PER_KG_BODY_MASS = 7700;
 
-/** Le plafond absolu, décision humaine du 2026-08-18. */
-export const MAX_KG_PER_WEEK = 1.0;
+/**
+ * ⟳ 2026-09-23 — LE PLAFOND ABSOLU, PAR DIRECTION. Décision du propriétaire:
+ * une perte s'arrête à 0,8 kg/semaine, une prise à 0,5 kg/semaine.
+ *
+ * Il valait 1,0 kg dans les deux sens depuis le 2026-08-18. Sur une perte, le
+ * 0,8 est le nombre qu'A1 tenait déjà (`MAX_DAILY_DEFICIT_KCAL`, 880 kcal/j ×
+ * 7 / 7 700 = 0,8 kg): l'écrire ici fait tenir la règle même le jour où A1
+ * bouge. Sur une prise, c'est le seuil que `paceWarning` disait « environ »:
+ * il devient la butée du curseur.
+ *
+ * ⛔ CE QUE LE CURSEUR MONTRE EST CE QUE LA CASSEROLE EXÉCUTE. Un maximum
+ * affiché au-dessus de ce que le moteur livre serait un mensonge (demande du
+ * propriétaire, 2026-09-23: « si une personne dit +500 g par semaine, on lui
+ * met +500 en calories »). Les deux lisent `paceCeilingFor`.
+ */
+export const MAX_KG_PER_WEEK: Readonly<Record<ScaleDirection, number>> = Object
+  .freeze({
+    down: 0.8,
+    up: 0.5,
+  });
 
 /**
- * CE QUE CE CORPS SUPPORTE — 1 % du poids par semaine.
+ * CE QUE CE CORPS SUPPORTE — 1 % du poids par semaine, dans les deux sens.
  *
  * C'est la borne « adaptée au gabarit »: elle dit qu'un rythme n'a de sens que
- * rapporté à la masse qui le porte. Elle est plus serrée que le kilo en
- * dessous de 100 kg, et plus lâche au-dessus — d'où le plafond absolu, qui
- * reprend la main là.
+ * rapporté à la masse qui le porte. Elle mord sous 80 kg en perte et sous
+ * 50 kg en prise; au-dessus, c'est le plafond absolu qui reprend la main.
+ *
+ * ⟳ 2026-09-23 — UNE PRISE REVIENT À 1 %. Du 2026-09-21 au 2026-09-23, une
+ * prise d'adulte avait son propre gabarit de 0,5 % (`MAX_WEEKLY_BODY_FRACTION_
+ * UP`, retiré): un homme de 72 kg plafonnait à 0,35 kg/sem, et son cran de
+ * 0,45 enregistré avant le resserrement était exécuté à 0,35. Le propriétaire
+ * a tranché: une personne de 72 kg doit pouvoir prendre 0,5 kg/semaine si elle
+ * le choisit.
  */
 export const MAX_WEEKLY_BODY_FRACTION = 0.01;
 
@@ -233,6 +258,11 @@ export const MINOR_MAX_DAILY_DELTA_FRACTION = 0.10;
  * module, c'est le nombre de la conception. Le dériver de
  * `MAX_SURPLUS_FRACTION` le ferait bouger avec l'enveloppe, alors qu'il décrit
  * une physiologie, pas une exécution.
+ *
+ * ⟳ 2026-09-23 — LA PHRASE NE PARLE PLUS: le plafond absolu d'une prise vaut
+ * ce seuil (`MAX_KG_PER_WEEK.up`, 0,5), et le seuil se FRANCHIT, il ne
+ * s'atteint pas. Gardée parce que `paceWarning` reste la seule source de la
+ * phrase si le plafond remonte un jour.
  */
 export const PACE_WARN_UP_KG_PER_WEEK = 0.5;
 
@@ -319,6 +349,11 @@ export interface PaceCeiling {
   maxKgPerWeek: number;
   /**
    * Celle des trois qui a décidé.
+   *
+   * ⟳ 2026-09-23 — `absolute_cap` EST DEVENU LE CAS COURANT D'UNE PRISE: il
+   * gagne dès 50 kg (1 % du poids dépasse alors 0,5 kg). Sur une perte, le
+   * plafond de 0,8 kg est à égalité avec A1 (880 kcal/j), et l'égalité nomme
+   * `energy_floor`. Le paragraphe suivant date d'avant ce changement.
    *
    * ⚠️ `absolute_cap` N'EST PAS UN CAS D'ÉCRAN COURANT — il ne sort QUE sur
    * une PRISE au-delà de 100 kg (là, le 1 % du poids dépasse le kilo). Sur
@@ -513,12 +548,19 @@ export function estimatedMaintenanceFor(subject: PaceSubject): number | null {
       weightKg,
       heightCm: body.heightCm,
       ageBand: ageBandOf(body.ageYears),
+      // ⟳ 2026-09-23 — l'âge exact que le corps porte déjà; il remplace le
+      // milieu de la bande dans l'équation. La bande en descend, donc les deux
+      // ne se contredisent pas ici.
+      ageYears: body.ageYears,
       gender: body.gender,
       activityLevel: body.activityLevel,
       // ⚠️ LE MÊME CORPS, LES MÊMES AXES. C'est le dénominateur de tout
       // l'ancrage; y perdre les axes ferait diverger la cible servie et la
       // cible affichée sans qu'aucun test de module ne le voie.
       activityAxes: body.activityAxes,
+      // ⟳ 2026-09-21 — `mid`: un rythme est une perte ou une prise, et ces
+      // deux directions gardent le milieu de la bande (`sessionsEdgeFor`).
+      sessionsEdge: "mid",
       // ⑤ MÊME CHEMIN. ⚠️ Plus lu par l'entretien adulte depuis le
       // 2026-09-10 (il décrit un volume d'assiette, pas une dépense); passé
       // ici parce que le paramètre est requis et recense ses appelants.
@@ -610,7 +652,7 @@ export function paceCeilingFor(
   // Pour une prise, la troisième borne est donc `Infinity` — il n'y a rien à
   // franchir vers le haut. Ce sont le plafond absolu et le gabarit qui
   // reprennent la main, et c'est le SEUL endroit du module où `absolute_cap`
-  // gagne (au-delà de 100 kg, le 1 % du poids dépasse le kilo).
+  // gagne (⟳ 2026-09-23: dès 50 kg, le 1 % du poids dépasse 0,5 kg).
   //
   // ⟳ 2026-09-09 — ET CE PLAFOND EST CELUI QUE LE MOTEUR EXÉCUTE. Jusqu'à cette
   // date, `executedPaceFor` rabotait une prise à +10 % de l'entretien pendant
@@ -646,7 +688,11 @@ export function paceCeilingFor(
     : Math.max(0, (maxDailyDeltaKcal * 7) / KCAL_PER_KG_BODY_MASS);
 
   const picked = ceilingFromBounds(
-    MAX_KG_PER_WEEK,
+    // ⟳ 2026-09-23 — 0,8 kg en perte, 0,5 kg en prise.
+    MAX_KG_PER_WEEK[direction],
+    // ⟳ 2026-09-23 — 1 % dans les deux sens (le gabarit de prise à 0,5 % est
+    // retiré). Le mineur n'est pas touché: sa protection est le plancher
+    // d'énergie (`MINOR_MAX_DAILY_DELTA_FRACTION`), bien plus serré.
     weightKg * MAX_WEEKLY_BODY_FRACTION,
     energyFloorKg,
   );
@@ -751,10 +797,15 @@ export function targetWeightRefusal(
       weightKg: targetKg,
       heightCm: subject.body.heightCm,
       ageBand: ageBandOf(subject.body.ageYears),
+      // ⟳ 2026-09-23 — le même âge exact que `estimatedMaintenanceFor`: la
+      // garde du plancher juge le même corps que celui qu'on nourrit.
+      ageYears: subject.body.ageYears,
       gender: subject.body.gender,
       activityLevel: subject.body.activityLevel,
       activityAxes: subject.body.activityAxes,
       appetite: subject.body.appetite,
+      // Une PERTE: le milieu de la bande, comme l'enveloppe (`sessionsEdgeFor`).
+      sessionsEdge: "mid",
     });
     // Corps inconnu: on n'a rien à opposer, et refuser sur une ignorance
     // serait bloquer quelqu'un dont on ne sait rien. Les autres gardes

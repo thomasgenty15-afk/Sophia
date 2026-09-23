@@ -402,3 +402,33 @@ export function appendContentLanguageBlock(
   const stripped = String(prompt ?? "").split(block).join("").trimEnd()
   return stripped ? `${stripped}\n\n${block}` : block
 }
+
+
+/**
+ * ⟳ 2026-09-20 — LE PAYS DE CUISINE, QUAND LE PROFIL NE LE DIT PAS.
+ *
+ * `profiles.country` reste la seule source pour ce qui engage (les numéros de
+ * crise, le marché des prix). Pour ÉCRIRE UNE RECETTE — l'unité du four, le
+ * nom des morceaux, les formats des magasins — une langue vaut mieux que rien :
+ * la région de la locale si elle en a une (`fr-CA` → CA), sinon le pays où la
+ * langue est le plus parlée par nos comptes (`fr` → FR). L'appelant DIT au
+ * modèle que c'est une déduction.
+ */
+const LANGUAGE_DEFAULT_COUNTRY: Readonly<Record<string, string>> = {
+  fr: "FR",
+  en: "GB",
+  es: "ES",
+  de: "DE",
+  it: "IT",
+  pt: "PT",
+  nl: "NL",
+}
+
+export function countryFromLocale(locale: string | null | undefined): string | null {
+  const raw = String(locale ?? "").trim().replace(/_/g, "-")
+  if (raw === "") return null
+  const parts = raw.split("-")
+  const region = parts.slice(1).find((p) => /^[A-Za-z]{2}$/.test(p))
+  if (region) return region.toUpperCase()
+  return LANGUAGE_DEFAULT_COUNTRY[parts[0].toLowerCase()] ?? null
+}

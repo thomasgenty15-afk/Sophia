@@ -1,5 +1,33 @@
 # Nomenclature — ce que Sophia retient, et sous quelle forme
 
+> ### ⟳ 2026-09-23 — LE CANAL SÉCURITÉ EST ROUVERT, SOUS CONDITION (renverse le 2026-09-09)
+>
+> Décision du propriétaire : **une note peut changer le régime d'une personne, et poser une
+> allergie ou une intolérance — seulement quand la phrase le DIT** (« allergique »,
+> « intolérant », « ne tolère pas », « est végétarienne »). Sans le mot, c'est un goût
+> (`food.exclude`), que le plan tient à l'écart quand même.
+>
+> - **Le tiroir ⑩ `safety`** du prompt de `draft_note_classify.ts` : `kind` ∈ allergy |
+>   intolerance | diet, `member_id` **jamais null** (une par personne ; « je » = la ligne
+>   `writes: true`), `text` = l'allergène, `diet` ∈ omnivore | vegetarian | vegan |
+>   pescatarian | gluten_free (`omnivore` retire), **`because` = les mots de la note, copiés**.
+> - **La garde est une citation** (`draft_note_safety.ts`) : `because` doit se trouver dans la
+>   note (casse et espaces repliés, rien d'autre) — sinon l'entrée tombe (`noEvidence`).
+>   Aucun mot-clé cherché par le code : le modèle juge, la citation rend son jugement vérifiable.
+> - **La porte** (`draft_note_safety_io.ts`) écrit aux mêmes endroits que le formulaire : la
+>   personne qui écrit → `student_safety_constraints` (un régime **remplace** : les actifs sont
+>   rétractés, `replaced_by_note`) ; une autre bouche → `keel_household_add_allergy_for` /
+>   `keel_household_set_member_diet_for`. Un refus revient dans `safetyNotWritten` et est **dit
+>   sous le champ** (`plan.draft.safety_not_written`).
+> - **Jamais par une note :** retirer une allergie (→ `skipped: setting`, c'est la fiche qui
+>   retire) ; un régime tenu un jour / un repas (→ ③ avec son `when`) ; une allergie d'une bouche
+>   ambiguë (« ma fille » avec deux filles → question « pour qui ? » sur une `food.exclude`).
+> - Mesuré : 8 cas de corpus 3/3 à 6/6 sur le vrai classifieur ; bout en bout sur la pile
+>   locale (allergie d'une bouche, régime d'une bouche, intolérance et régime de la personne qui
+>   écrit, remplacement puis levée du régime, et « ne supporte pas » resté un goût).
+>
+> Le bloc du 2026-09-09 ci-dessous reste pour l'histoire ; sa règle ne tient plus.
+
 > ### ⛔ 2026-09-09 — LE CANAL SÉCURITÉ DU RETOUR DE PLAN EST SUPPRIMÉ
 >
 > Décision du propriétaire : **une allergie ou un régime dits dans une note sur un plan
@@ -22,6 +50,85 @@
 > règle tient, son câblage non), le bloc `scope` de §2.5, les lignes 8/9 de §8 et SC1/SC3
 > de la campagne SC, et l'encadré « arbitrage du 2026-09-01 » en A.1 — chacun porte sa
 > marque ci-dessous.
+
+> ### ⟳ 2026-09-22 — « MOINS » N'EST PAS « JAMAIS », ET UNE PHRASE NEUVE PEUT EN DÉMENTIR UNE ANCIENNE
+>
+> **Deux défauts mesurés en base, sur le seul compte réel (9 souvenirs durables, 3 jours).**
+>
+> **① Le produit n'avait que deux pôles.** « Pas **autant** de petit suisse le matin » est
+> devenue un `food.exclude` sans nuance : la ceinture a retiré l'aliment de toutes les
+> boîtes, pour toujours. La personne avait demandé *moins*, et ne pouvait s'en apercevoir
+> qu'en remarquant une absence. C'est le défaut qui **fabrique** de faux souvenirs, et il
+> est pire que ceux qui les conservent.
+> → `food.exclude` et `method.avoid` portent désormais **`force`** : `"never"` (la ceinture
+> retire) ou `"less"` (une direction, lue par le modèle, **jamais** appliquée par la
+> ceinture). §4.
+> ⛔ **Le repli va vers la règle FORTE** : une clé absente vaut `"never"`. Toutes les lignes
+> écrites avant ce lot n'en ont pas, et les relire en `"less"` aurait désarmé chaque
+> exclusion déjà en base, en silence, le jour du déploiement. L'imprécision coûte un plat
+> évité de trop ; l'inverse servirait à quelqu'un ce qu'il vient de refuser.
+> ⛔ **Et `food.prefer` / `method.prefer` n'en ont pas** : aucun lecteur ne distingue
+> « j'aimerais plus de légumes » de « il me faut des légumes ». Une valeur dont personne ne
+> lit la différence est décorative, et une valeur décorative finit par être pilotée.
+>
+> **② Le magasin ne faisait que grossir.** `next_plan` expire ; `durable` **jamais**. « Plus
+> de poisson » puis, deux jours plus tard, « finalement du poisson le matin ça me va »
+> laissait **les deux** lignes en base, servies ensemble au modèle. Une mémoire qui ne se
+> dément jamais n'apprend pas : elle accumule.
+> → **La supersession** (`supersedes`, socle) : une phrase neuve retire l'ancienne quand les
+> deux visent **la même chose, pour la même personne, au même moment** — et que l'une
+> renverse l'autre (polarité opposée, ou même famille de force différente).
+> ⛔ **L'égalité de texte est une jointure, pas une ressemblance** : `trim` + minuscules, et
+> rien d'autre. Pas de pluriel déposé, pas d'accents retirés, pas de distance d'édition.
+> Ici un faux positif **efface** un souvenir que la personne a donné — elle ne saura même pas
+> ce qui a disparu. Conservateur par construction.
+> ⛔ **Et jamais à rebours** : une ligne plus récente survit à une phrase antérieure, sans
+> quoi rejouer une vieille note ferait apprendre la mémoire à l'envers.
+> ⚠️ Le retrait est **compté** (`superseded`) à côté de `durable_written` : « 1 écrit, 1
+> démenti » est un remplacement ; « 1 écrit, 0 démenti » est un ajout. Le magasin qui ne fait
+> que grossir se lit à la seconde forme, répétée.
+>
+> **③ Et le constat se lit enfin.** `generated_from.retained_honoured` était sur **0 des 635
+> plans** — non parce qu'il ne tournait pas, mais parce que `generated_from` n'est persisté
+> que sur une ligne **adoptée**, et que tout le travail se fait en `intent: "draft"`. Le même
+> objet sort désormais **aussi** dans le corps du brouillon.
+
+> ### ⟳ 2026-09-21 — UN SOUVENIR D'ALIMENT PEUT PORTER UN MOMENT, ET LA TAILLE D'UN REPAS A UN CHAMP
+>
+> **Deux défauts mesurés le 2026-09-21 sur un foyer réel, et ce qu'ils changent ici.**
+>
+> **① Le moment était enfermé dans le texte.** « Je veux pas de choses genre tofu, poissons
+> au petit déjeuné » est devenue **UN** `food.exclude` dont le `text` était la phrase
+> entière. Trois lecteurs l'ont payé : la ceinture n'a rien cherché (ce texte n'est pas un
+> aliment, et `isBarePhrase` le rend `phrase: true`, donc il fallait **tous** ses mots dans
+> le plat), la carte l'a servie en prose au modèle, et rien n'a pu dire si le plan l'avait
+> tenue. Tofu au petit-déjeuner partagé, deux jours plus tard.
+> → Les quatre familles `food.*` / `method.*` portent désormais **`occasion`**, champ
+> **requis et nullable** (§4). Un jeton hors des six moments fait tomber l'item entier ;
+> aucun repli sur `null`, qui élargirait une règle du matin à la journée.
+>
+> **② La taille d'un moment n'avait aucune destination.** « le matin c'est plutôt quelque
+> chose de très léger » : le levier existait (`household_member_habits.slots[].light`, pesé
+> par `LIGHT_SLOT_WEIGHT`) et **aucun producteur ne l'écrivait**. Son petit-déjeuner est
+> resté à 500 kcal.
+> → **Ce n'est PAS une neuvième famille**, et c'est la règle du lot M5 appliquée une fois de
+> plus : un souvenir serait une **copie** du réglage, relue au moment de composer, pendant
+> que la case de la fiche dirait autre chose. La phrase déplace **le champ**, par un
+> sixième tiroir du classifieur (`slots`) et la RPC
+> `keel_household_set_slot_light_for`. **Trois moments seulement** (`breakfast`, `lunch`,
+> `dinner` — `LIGHT_BEARING_SLOTS`) : une collation pèse déjà 0,10 de la journée.
+>
+> **③ Une règle de maison ne sort plus sous le nom d'une personne.** `compositionLinesByMouth`
+> rangeait les lignes `subject: household` dans la voix du **titulaire** — le modèle lisait
+> une préférence personnelle et servait le plat aux autres — et, sans titulaire à table, les
+> laissait tomber dans un champ que l'appelant **comptait** (`retained_lines_unattached`) et
+> ne donnait à personne. Elles ont maintenant leur canal (`household`), qui rejoint le mémo
+> du tronc.
+>
+> **④ Le plan dit enfin s'il a tenu.** `retained_honoured.ts` relit la **ligne écrite** et
+> rend, par souvenir, `honoured` / `violated` / `unverifiable`, avec son dénominateur, dans
+> `generated_from.retained_honoured`. Il partage le matcher de la ceinture
+> (`dishBitesExclusion`) : deux jugements écrits séparément se contrediraient.
 
 > ### ⛔ MODÈLE À TROIS DESTINATIONS — 2026-09-03 — remplace « 8 familles → 6 sections »
 >
@@ -439,6 +546,51 @@ Seules trois familles en ont un ; les autres se contentent de leur `text`.
 | `rhythm.set` | `{ "occasion": "breakfast"…"before_bed", "present": true \| false }` |
 | `logistics.set` | `{ "field": "cook_days" \| "cooking_time_min" \| "recipe_difficulty" \| "variety" \| "budget_amount", "value": … }` |
 
+### ⟳ 2026-09-21 · `occasion` — le moment où la règle vaut
+
+Les quatre familles **`food.exclude`, `food.prefer`, `method.avoid`, `method.prefer`**
+portent un champ de plus, **à côté** de `value` (qui reste `null` pour elles) :
+
+| champ | valeurs | défaut |
+|---|---|---|
+| `occasion` | un des six moments (`breakfast`…`before_bed`) | `null` = toute la journée |
+
+⚠️ **Requis, jamais optionnel, et `null` est une réponse.** Optionnel, chaque producteur
+l'aurait oublié en silence — la cicatrice « paramètre de garde optionnel = garde désarmée ».
+`null` dit « la phrase ne nomme aucun moment », et c'est une information.
+
+⛔ **Un jeton hors liste fait tomber l'item entier**, il ne se replie pas sur `null` :
+replier transformerait une règle du matin en règle de toute la journée, c'est-à-dire en une
+règle **plus large** que ce que la personne a dite.
+
+⛔ **Les quatre autres familles ne l'ont pas**, et l'interdit est nommé dans le type
+(`occasion?: never`) : une envie n'a pas de créneau, une part est un fait de corps, un
+rythme porte déjà son moment dans `value.occasion`, une logistique n'a pas d'heure de repas.
+
+**Ce que le moment change en aval :** la ceinture ne juge un plat qu'avec les règles de
+toute la journée **et** celles de son créneau (`dishBitesExclusion({ slot })`, requis) ; la
+carte le rend sur la ligne (`-- ONLY AT breakfast`) ; le constat (`retained_honoured`) ne
+regarde que les plats de ce moment, et répond `unverifiable / slot_absent` quand le plan
+n'en a aucun.
+
+### ⟳ 2026-09-22 · `force` — ce que le refus retire, ou seulement réduit
+
+**`food.exclude` et `method.avoid` seules**, à côté de `value` (qui reste `null`) :
+
+| champ | valeurs | défaut | lecteur |
+|---|---|---|---|
+| `force` | `never` \| `less` | **`never`** quand la clé est absente | la ceinture (`exclusionTermsFor`) |
+
+- `never` — la ceinture **retire la bouche du contenant**. « plus jamais de curry ».
+- `less` — la ceinture **ne retire rien**. La ligne part au modèle avec sa marque
+  (`-- LESS OFTEN, not banned`), et la marque de portée suit : « sers-lui une plus petite
+  part », jamais « garde-le hors du plat ». Deux consignes opposées sur la même ligne, c'est
+  la cicatrice « la phrase de table contredit le couvercle ».
+
+⚠️ Un `less` **ne se juge pas sur un plan** : « moins » est une comparaison avec ce qui était
+servi *avant*, et un plan seul n'a pas cet avant. `retained_honoured` rend donc
+`unverifiable / no_baseline` — un trou **nommé**, pas un verdict tiré au sort.
+
 ⛔ **Aucun gramme, aucune calorie dans `portion.adjust`.** Une personne dit « trop
 gros », pas « −80 g ». Traduire son adverbe en nombre à la classification serait
 fabriquer une précision qu'elle n'a pas donnée — et le produit refuse d'afficher
@@ -557,6 +709,28 @@ C'est la partie que les prompts recopient.
 > `member:<uuid>` `source=written` dans le magasin structuré (le dialogue l'écrit au lot C) ;
 > `household_food_restrictions` reste **l'interdit parental seul**, en mode famille, sur un
 > mineur. `food_preferences` n'est plus une destination : « Anciennes notes », hors prompt.
+
+> ### ⟳ 2026-09-21 — LA TAILLE D'UN MOMENT N'EST PAS `rhythm.set`, ET C'EST LA CONFUSION À TENIR
+>
+> `rhythm.set` reste **interdit** aux deux prompts : **quels repas on prend** est un réglage
+> que la personne change sur son écran. La **taille** d'un repas qu'elle prend déjà est une
+> autre question, et elle a désormais un tiroir (`slots`, le sixième du classifieur de
+> notes) — qui n'écrit **aucun item retenu** : il coche la case « repas léger » de la fiche.
+>
+> Les deux phrases se ressemblent et ne vont pas au même endroit :
+>
+> | la note dit | destination | pourquoi |
+> |---|---|---|
+> | « Zoé ne dîne pas » | `skipped / setting` | un repas **existe ou n'existe pas** : écran |
+> | « il faudrait un goûter pour Léa » | `skipped / setting` | idem, dans l'autre sens |
+> | « très léger le matin » | tiroir `slots` → `household_member_habits.slots[].light` | un repas **déjà pris** pèse moins |
+> | « Christèle ne mange pas autant » | tiroir `portions` → `household_member_bodies.appetite` | la **journée entière** de quelqu'un |
+>
+> ⛔ **Trois moments seulement** portent la marque (`breakfast`, `lunch`, `dinner`). Les
+> collations en sont exclues pour une raison arithmétique : une collation pèse déjà 0,10 de
+> la journée, la marquer légère demanderait au plan ≈ 40 kcal — c'est-à-dire rien, servi
+> comme une décision. Proposer les six au modèle fabriquerait un **tiroir muet** : il
+> rangerait, le lecteur garderait, et `parseMemberLight` jetterait sans un mot.
 
 ### Pourquoi ces trois interdits
 

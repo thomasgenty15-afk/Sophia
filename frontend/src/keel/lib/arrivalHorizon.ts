@@ -29,7 +29,7 @@
 // l'eau doublement marquée gardent un RMSE d'environ 20 % et ne placent que
 // 43 à 54 % des individus à ±10 % (Prado-Nóvoa, Sci Rep 2024). Sur notre
 // corpus, ça vaut ~±580 kcal/j — PLUS GRAND que notre plafond de déficit
-// (`MAX_DAILY_DEFICIT_KCAL` = 500).
+// (`MAX_DAILY_DEFICIT_KCAL` = 880 depuis le 2026-09-22, 500 avant).
 //
 // Mesuré le 2026-08-22 à 17:16 CEST sur les cas de design du dépôt:
 //

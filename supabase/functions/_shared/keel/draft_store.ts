@@ -85,6 +85,9 @@ export const DRAFT_STATUSES = [
   "done",
   "failed",
   "adopted",
+  // ⟳ 2026-09-23 — « Laisser tomber », ou remplacé par un brouillon plus
+  // récent avant toute réponse (20260923130000). Posé par la base, jamais ici.
+  "discarded",
 ] as const;
 export type DraftStatus = (typeof DRAFT_STATUSES)[number];
 

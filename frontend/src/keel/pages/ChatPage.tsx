@@ -21,7 +21,6 @@ import {
 } from "../api/chat";
 import {
   holdConversationVisible,
-  isDesktopNotificationOptIn,
   markConversationRead,
   notificationPermission,
   requestNotificationPermission,
@@ -64,6 +63,8 @@ import {
 } from "../api/memoryView";
 import { useNavigate } from "react-router-dom";
 import { subscribeQuickAdd, takeQuickAdd } from "../lib/quickAdd";
+import { dayMealsMissedDate } from "../api/dayMeals";
+import MealsTrackingDialog from "../components/MealsTrackingDialog";
 import { browserLocalDate } from "../lib/useMealTicks";
 import { t } from "../i18n/t";
 
@@ -219,6 +220,11 @@ export default function ChatPage() {
   // FF-062 C2 — le jeton de la pesée dont le formulaire est ouvert, ou null. Il
   // ne porte QUE le jour où la question est partie.
   const [weighInToken, setWeighInToken] = React.useState<string | null>(null);
+  // ⟳ 2026-09-23 — la fenêtre « Suivi des repas », ouverte sur un jour (le
+  // « Non » du soir) ou sur le choix par défaut (`day: null`). `null` = fermée.
+  const [mealsTracking, setMealsTracking] = React.useState<
+    { day: string | null } | null
+  >(null);
   /**
    * LE PANNEAU DU « + », ET SON SECOND TEMPS.
    *
@@ -276,7 +282,6 @@ export default function ChatPage() {
   // « les relances sont actives » avant de le savoir, c'est promettre à
   // quelqu'un qui les a coupées qu'elles sont revenues.
   const [muted, setMuted] = React.useState<boolean | null>(null);
-  const [notifyOptIn, setNotifyOptIn] = React.useState(false);
   const [notifyPermission, setNotifyPermission] = React.useState(
     notificationPermission(),
   );
@@ -456,63 +461,76 @@ export default function ChatPage() {
       const kg = await loadLastWeightKg();
       if (!cancelled) setLastWeightKg(kg);
     })();
-    setNotifyOptIn(isDesktopNotificationOptIn());
     return () => { cancelled = true; };
   }, [user?.id]);
 
-  const toggleSlotMealAsk = React.useCallback(async () => {
-    if (!user?.id || !settingsLoaded || settingsBusy) return;
-    const next = !slotMealAskSwitchFrom({ stored: slotMealStored, goal }).on;
-    setSettingsBusy(true);
-    // Optimiste, puis remis en place si l'écriture échoue — même patron que le
-    // mute. ⛔ ON ÉCRIT UN BOOLÉEN EXPLICITE: revenir à `null` effacerait le
-    // choix au lieu de l'inverser.
-    const before = slotMealStored;
-    setSlotMealStored(next);
-    try {
-      await setSlotMealAsk(user.id, next);
-    } catch (err) {
-      setSlotMealStored(before);
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setSettingsBusy(false);
-    }
-  }, [user?.id, slotMealStored, goal, settingsLoaded, settingsBusy]);
+  // ── ⟳ 2026-09-23 · UN SEUL INTERRUPTEUR : ACTIVÉES OU DÉSACTIVÉES ──────
+  //
+  // Il y en avait trois — « Les nouvelles de Sophia » (`proactive_muted_at`),
+  // « Me demander à chaque repas » (`slot_meal_ask_enabled`) et « Me prévenir
+  // sur cet appareil » (l'opt-in du navigateur). Demandé: « soit elles sont
+  // activées, soit désactivées, c'est tout ». Les deux colonnes et l'opt-in
+  // restent; c'est cet interrupteur qui les écrit ensemble.
+  //
+  // ⚠️ ALLUMÉ = RIEN N'EST COUPÉ. La question par repas se coupe aussi depuis
+  // le bouton sous chaque question (écrit `slot_meal_ask_enabled = false`):
+  // sans la seconde moitié de `on`, l'interrupteur dirait « activées » à
+  // quelqu'un qui ne reçoit plus le message du soir, et le rallumer ne
+  // ferait rien.
+  const asksOn = !slotMealSwitchOfferable(goal) ||
+    slotMealAskSwitchFrom({ stored: slotMealStored, goal }).on;
+  const notificationsOn = muted === false && asksOn;
 
-  const toggleMuted = React.useCallback(async () => {
-    if (!user?.id || muted === null || settingsBusy) return;
-    const next = !muted;
-    setSettingsBusy(true);
-    // Optimiste, puis remis en place si l'écriture échoue: un interrupteur qui
-    // ne bouge qu'après l'aller-retour donne l'impression de ne pas répondre.
-    setMuted(next);
-    try {
-      await setProactiveMuted(user.id, next);
-    } catch (err) {
-      setMuted(!next);
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setSettingsBusy(false);
-    }
-  }, [user?.id, muted, settingsBusy]);
-
-  // LA PERMISSION N'EST DEMANDÉE QUE SUR UN GESTE. Un `requestPermission()` au
-  // montage est le motif que les navigateurs pénalisent et que les gens
-  // refusent par réflexe — un refus est DÉFINITIF pour l'origine, donc demander
-  // trop tôt ferme la porte pour de bon.
-  const toggleNotifications = React.useCallback(async () => {
-    if (notifyOptIn) {
+  const toggleAllNotifications = React.useCallback(async () => {
+    if (!user?.id || muted === null || !settingsLoaded || settingsBusy) return;
+    if (notificationsOn) {
+      setSettingsBusy(true);
+      // Optimiste, puis remis en place si l'écriture échoue: un interrupteur
+      // qui ne bouge qu'après l'aller-retour donne l'impression de ne pas
+      // répondre.
+      setMuted(true);
       setDesktopNotificationOptIn(false);
-      setNotifyOptIn(false);
+      try {
+        await setProactiveMuted(user.id, true);
+      } catch (err) {
+        setMuted(false);
+        setError(err instanceof Error ? err.message : String(err));
+      } finally {
+        setSettingsBusy(false);
+      }
       return;
     }
-    let permission = notificationPermission();
-    if (permission === "default") permission = await requestNotificationPermission();
-    setNotifyPermission(permission);
-    if (permission !== "granted") return;
-    setDesktopNotificationOptIn(true);
-    setNotifyOptIn(true);
-  }, [notifyOptIn]);
+    // LA PERMISSION DU NAVIGATEUR EST DEMANDÉE EN PREMIER, DANS LE GESTE.
+    // Safari ne l'accepte que dans le clic lui-même, avant tout aller-retour
+    // réseau; demandée au montage, elle est refusée par réflexe, et un refus
+    // est définitif pour le site. Un refus ici n'empêche pas le reste: les
+    // messages arrivent quand même dans la conversation.
+    if (supportsDesktopNotifications()) {
+      let permission = notificationPermission();
+      if (permission === "default") permission = await requestNotificationPermission();
+      setNotifyPermission(permission);
+      if (permission === "granted") setDesktopNotificationOptIn(true);
+    }
+    setSettingsBusy(true);
+    const mutedBefore = muted;
+    const storedBefore = slotMealStored;
+    setMuted(false);
+    try {
+      if (mutedBefore) await setProactiveMuted(user.id, false);
+      if (!asksOn) {
+        // ⛔ UN BOOLÉEN EXPLICITE: revenir à `null` rendrait la décision à
+        // l'objectif au lieu de rallumer.
+        setSlotMealStored(true);
+        await setSlotMealAsk(user.id, true);
+      }
+    } catch (err) {
+      setMuted(mutedBefore);
+      setSlotMealStored(storedBefore);
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setSettingsBusy(false);
+    }
+  }, [user?.id, muted, slotMealStored, settingsLoaded, settingsBusy, notificationsOn, asksOn]);
 
   // ── LES URLS DES PHOTOS ────────────────────────────────────────────────────
   // Déclenché par l'arrivée de messages porteurs d'un chemin non encore signé:
@@ -697,6 +715,11 @@ export default function ChatPage() {
       // L'id de LA BULLE qui portait ce bouton. C'est ce qui permet au serveur
       // de refuser un tap sur un message qu'un plus récent a périmé.
       void send({ kind: "button", payload, label }, label, messageId);
+      // ⟳ 2026-09-23 — LE « NON » DE LA QUESTION DU SOIR OUVRE LA FENÊTRE
+      // « Suivi des repas » SUR CE JOUR-LÀ, après être parti au serveur (qui
+      // répond par une phrase). C'est là qu'on coche ce qui a été loupé.
+      const missedDay = dayMealsMissedDate(payload);
+      if (missedDay) setMealsTracking({ day: missedDay });
     },
     [send, navigate, todayLocalIso],
   );
@@ -814,6 +837,9 @@ export default function ChatPage() {
         // `writeWeighInReply` n'utilise `askedOn` que pour le journal: un jeton
         // produit sans qu'aucune bulle ne soit partie s'écrit comme un autre.
         setWeighInToken(weighInTokenFor(browserLocalDate()));
+        return;
+      case "meals":
+        setMealsTracking({ day: null });
         return;
       default: {
         const never: never = intent;
@@ -1066,47 +1092,18 @@ export default function ChatPage() {
             className="flex flex-col gap-3 rounded-card border border-line-strong bg-paper-2 p-3"
           >
             <SettingSwitch
-              testId="setting-checkins"
-              label={t("chat.settings.checkins.label")}
-              help={t("chat.settings.checkins.help")}
-              // `muted === null` = pas encore su. On le rend inactif plutôt que
-              // de deviner: un interrupteur qui affiche le mauvais état pendant
-              // une seconde est un interrupteur qu'on actionne à contresens.
-              checked={muted === null ? false : !muted}
-              disabled={muted === null || settingsBusy}
-              onToggle={() => void toggleMuted()}
-            />
-            {/* ⛔ OFFERT SUR L'OBJECTIF, PAS SUR L'ÉTAT. Un réglage posé
-                au-dessus d'une chose qui ne s'applique pas annonce une
-                fonctionnalité qu'on refuse (la raison écrite de
-                `energySwitchesPlacement.int.test.ts`). Et il RESTE offert à
-                qui a éteint: sinon il disparaîtrait au moment exact où il sert
-                à rallumer. */}
-            {slotMealSwitchOfferable(goal) && (
-              <SettingSwitch
-                testId="setting-slotmeal"
-                label={t("chat.settings.slotmeal.label")}
-                help={t("chat.settings.slotmeal.help")}
-                checked={slotMealAskSwitchFrom({
-                  stored: slotMealStored,
-                  goal,
-                }).on}
-                disabled={!settingsLoaded || settingsBusy}
-                onToggle={() => void toggleSlotMealAsk()}
-              />
-            )}
-            <SettingSwitch
               testId="setting-notifications"
-              label={t("chat.settings.notify.label")}
-              help={supportsDesktopNotifications()
-                ? (notifyPermission === "denied"
-                  ? t("chat.settings.notify.blocked")
-                  : t("chat.settings.notify.help"))
-                : t("chat.settings.notify.unsupported")}
-              checked={notifyOptIn}
-              disabled={!supportsDesktopNotifications() ||
-                (notifyPermission === "denied" && !notifyOptIn)}
-              onToggle={() => void toggleNotifications()}
+              label={t("chat.settings.all.label")}
+              help={notificationsOn && supportsDesktopNotifications() &&
+                  notifyPermission === "denied"
+                ? `${t("chat.settings.all.help")} ${t("chat.settings.notify.blocked")}`
+                : t("chat.settings.all.help")}
+              // `muted === null` = pas encore su. Inactif plutôt que deviné:
+              // un interrupteur qui affiche le mauvais état une seconde est un
+              // interrupteur qu'on actionne à contresens.
+              checked={notificationsOn}
+              disabled={muted === null || !settingsLoaded || settingsBusy}
+              onToggle={() => void toggleAllNotifications()}
             />
           </div>
         )}
@@ -1302,6 +1299,13 @@ export default function ChatPage() {
           />
         )}
 
+        <MealsTrackingDialog
+          open={mealsTracking !== null}
+          day={mealsTracking?.day ?? null}
+          userId={user?.id ?? null}
+          onClose={() => setMealsTracking(null)}
+        />
+
         {weighInToken && (
           <WeighInDialog
             busy={sending}
@@ -1397,6 +1401,20 @@ export default function ChatPage() {
               {!addSlotPicker
                 ? (
                   <>
+                    {/* ⟳ 2026-09-23 — la semaine des repas prévus, cochés
+                        d'office. Le même geste que dans le « + » de la barre. */}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      data-testid="chat-add-week"
+                      onClick={() => {
+                        setAddOpen(false);
+                        setMealsTracking({ day: null });
+                      }}
+                    >
+                      {t("chat.compose.add.week")}
+                    </Button>
                     <Button
                       type="button"
                       variant="ghost"

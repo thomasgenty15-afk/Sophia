@@ -37,7 +37,7 @@ src/keel/api/myShare.int.test.ts 3
 #    un jour », et le gate échoue pareil à la première erreur qui revient.
 src/keel/api/onboarding.int.test.ts 0
 src/keel/api/ownActivityLevel.int.test.ts 4
-src/keel/api/retainedItems.int.test.ts 2
+src/keel/api/retainedItems.int.test.ts 0
 src/keel/api/weeklyCheckIn.int.test.ts 1
 src/keel/components/dishCardSameDay.int.test.ts 1
 # ⟳ 2026-09-03, orchestrateur des huit chantiers — TROIS LIGNES REMESUREES.
@@ -61,7 +61,7 @@ src/keel/components/dishCardSameDay.int.test.ts 1
 #    hausses ci-dessus, meme dette. Ajoutes pour que le gate REDEVIENNE un
 #    signal — un gate qui refuse tout ne dit plus rien, et huit lots commitaient
 #    `--no-verify` en le citant.
-src/keel/components/mealBoxes.int.test.ts 1
+src/keel/components/mealBoxes.int.test.ts 0
 src/keel/components/mouthFormDialog.int.test.ts 2
 src/keel/components/planDaySeparation.int.test.ts 1
 src/keel/components/planGridEatingOut.int.test.ts 0
@@ -70,7 +70,7 @@ src/keel/components/planWeekCarriedDays.int.test.ts 1
 #    onze lots les a réparées: je resserre sur la mesure, sans lui inventer un
 #    auteur. Les 2 qui restent sont de la dette à réduire, pas un plafond acquis.
 src/keel/lib/planByPersonModel.int.test.ts 2
-src/keel/lib/planDaySlots.int.test.ts 5
+src/keel/lib/planDaySlots.int.test.ts 0
 src/keel/lib/planGridModel.int.test.ts 5
 src/keel/lib/presenceRoster.int.test.ts 1
 src/keel/pages/meCardSheet.int.test.ts 9
@@ -87,3 +87,12 @@ src/keel/pages/setupSituateStep.int.test.ts 3
 # ⛔ CE QUI RESTE DANS `mealBoxes` EST UN VRAI RESTE: un `as DishIngredient[]`
 # sur un littéral qui porte un `aisle` inexistant sur ce type. Il n'est pas de
 # ce lot et il n'a pas été maquillé.
+#
+# ⟳ 2026-09-23 — REMIS À 0 après réparation des tests (pas d'une tolérance):
+#    · retainedItems 2 → 0 : `KNOWN_WRITE_REFUSALS` importé deux fois ; le
+#      sujet de `adjust()` typé `RetainedSubject` (il était inféré étroit).
+#    · mealBoxes 1 → 0 : `ml: null` sur les `BoxItem` (champ du 2026-09-22),
+#      `moments` retiré de `PlanDayBlock`, `aisle` retiré du littéral
+#      `DishIngredient` (le reste nommé juste au-dessus).
+#    · planDaySlots 5 → 0 : `preparations` n'est plus un argument de
+#      `groupDayBySlot` depuis le 2026-08-19 ; `ml: null` sur un `BoxItem`.

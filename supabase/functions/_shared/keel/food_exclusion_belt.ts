@@ -144,6 +144,20 @@ const NO_BITE: ExclusionBite = {
 export interface ExclusionTerm extends ForbiddenTerm {
   readonly word: string;
   /**
+   * ⛔ LE MOMENT OÙ LA RÈGLE VAUT — 2026-09-21. `null` = toute la journée.
+   *
+   * ── CE QU'IL FERME, MESURÉ ─────────────────────────────────────
+   * « pas de tofu AU PETIT DÉJEUNER » n'avait aucun moyen d'être autre chose
+   * qu'une règle de toute la journée — ou, quand le moment restait dans le
+   * texte, une règle qui ne mordait NULLE PART: `isBarePhrase` rend `true` sur
+   * « tofu, poissons au petit déjeuné », donc la règle exigeait TOUS ses mots
+   * dans le plat, et un petit-déjeuner au tofu n'en porte qu'un.
+   *
+   * ⚠️ REQUIS, JAMAIS `?`. Un terme sans moment lisible serait un terme qui
+   * mord partout, c'est-à-dire une règle PLUS LARGE que la phrase.
+   */
+  readonly occasion: string | null;
+  /**
    * `true` quand le texte retenu est une PHRASE NUE d'aliment (« rougaille
    * saucisse », « yaourt de soja ») : tous ses mots doivent être là pour
    * mordre. `false` quand c'est une phrase de personne (« Mon fils n'aime pas
@@ -151,6 +165,12 @@ export interface ExclusionTerm extends ForbiddenTerm {
    * les mots rendrait la règle inerte — chaque mot mord seul, comme avant.
    */
   readonly phrase: boolean;
+  /**
+   * LE TEXTE DE LA PERSONNE, SANS LE MOMENT. `ruleId` porte les deux (c'est sa
+   * clé d'unicité); celui-ci est ce qu'on lui MONTRE — « tu as demandé à
+   * éviter le tofu », pas « tofu@breakfast ».
+   */
+  readonly because: string;
 }
 
 /**
@@ -191,8 +211,26 @@ export function exclusionTermsFor(args: {
   for (const item of args.items ?? []) {
     if (!item || item.kind !== "food.exclude") continue;
     if (String(item.subject ?? "") !== subject) continue;
+    // ⛔ ⟳ 2026-09-22 — LA CEINTURE NE MORD QUE SUR `never`.
+    //
+    // ── LE DÉFAUT MESURÉ SUR LE SEUL COMPTE RÉEL ────────────────────────
+    // « Pas AUTANT de petit suisse le matin » était rangée en `food.exclude`,
+    // et cette fonction en tirait des mots à interdire: la ceinture retirait
+    // l'aliment de toutes les boîtes, pour toujours. La personne avait demandé
+    // MOINS. Le produit n'avait que deux pôles, et une phrase de quantité
+    // tombait sur le pôle fort.
+    //
+    // ⚠️ `less` N'EST PAS IGNORÉ POUR AUTANT: il part au modèle sur la carte,
+    // avec sa marque (`retained_items_routing.ts`). Ce qu'il ne fait plus,
+    // c'est RETIRER — et c'est la seule chose qu'il n'aurait jamais dû faire.
+    //
+    // ⛔ ET L'ABSENCE DE CLÉ VAUT `never`: le socle le garantit. Une ligne
+    // d'avant ce lot continue de mordre exactement comme hier.
+    const force = (item as { force?: string | null }).force ?? "never";
+    if (force !== "never") continue;
     const text = String(item.text ?? "").trim();
     if (!text) continue;
+    const occasion = (item as { occasion?: string | null }).occasion ?? null;
     const phrase = isBarePhrase(text);
     for (const token of termsOfInstruction(text)) {
       // ⛔ UN MOT DE CATÉGORIE SE DÉPLIE, UN ALIMENT PRÉCIS NON — sens unique.
@@ -206,12 +244,30 @@ export function exclusionTermsFor(args: {
       // sur des aliments qu'elle n'a jamais nommés.
       const forms = categoryFormsOf(token);
       for (const t of forms.length > 0 ? forms : [token]) {
-        const key = `${t} | ${text}`;
+        // ⟳ 2026-09-21 — LE MOMENT ENTRE DANS LA CLÉ DE DÉDOUBLONNAGE.
+        //
+        // ⛔ SANS LUI, « pas de pain complet le matin » et « pas de pain complet
+        // le soir » se réduisaient à UNE règle: la seconde tombait entièrement,
+        // et le pain du soir n'était plus jamais jugé. Le défaut était MUET —
+        // la règle restante mordait, donc tout avait l'air de marcher.
+        const key = `${t} | ${text} | ${occasion ?? ""}`;
         if (seen.has(key)) continue;
         seen.add(key);
         // ⚠️ `ruleId` PORTE LE TEXTE DE LA PERSONNE. Il ne décide de rien; il
         // sert à ce que l'`issue` puisse DIRE ce qui a mordu, dans ses mots.
-        out.push({ ruleId: text, token: t, word: token, phrase });
+        //
+        // ⛔ ET IL NE PORTE PAS LE MOMENT. Deux phrases identiques à deux
+        // moments différents doivent rester DEUX règles: fondre le moment dans
+        // `ruleId` les ferait partager leur ensemble de mots attendus, et la
+        // règle du matin mordrait sur les mots trouvés au dîner.
+        out.push({
+          ruleId: `${text}@${occasion ?? ""}`,
+          token: t,
+          word: token,
+          phrase,
+          occasion,
+          because: text,
+        });
       }
     }
   }
@@ -252,8 +308,36 @@ export function dishBitesExclusion(args: {
    *     morsure coûte plus cher que d'en inventer une.
    */
   surface: "ingredients" | "all";
+  /**
+   * ⛔ LE MOMENT DE CE PLAT — REQUIS, JAMAIS `?`, et `null` est une réponse.
+   *
+   * `null` veut dire « ce plat n'a pas de moment lisible » (une relance, une
+   * garde finale qui juge un plan entier): toutes les règles s'y appliquent,
+   * c'est-à-dire le comportement d'avant ce lot. Un jeton veut dire « ce plat
+   * est servi à ce moment-là »: seules les règles de toute la journée et
+   * celles de CE moment le jugent.
+   *
+   * ⚠️ OPTIONNEL, IL AURAIT ÉTÉ UNE GARDE DÉSARMÉE: chaque appelant aurait
+   * hérité en silence de « juge tout », et une exclusion écrite pour le matin
+   * aurait continué à retirer le dîner de quelqu'un. Cicatrice nommée de ce
+   * dépôt, payée en boucle.
+   */
+  slot: string | null;
 }): ExclusionBite {
   if (!args.terms || args.terms.length === 0) return NO_BITE;
+
+  // ── LES RÈGLES QUI ONT LE DROIT DE JUGER CE PLAT ──────────────────
+  // Une règle sans moment vaut toute la journée. Une règle avec un moment ne
+  // vaut qu'à ce moment. ⛔ Et un terme d'un APPELANT ANCIEN (sans `occasion`)
+  // vaut toute la journée: le repli est celui d'avant le lot, jamais un refus.
+  const slot = String(args.slot ?? "").trim().toLowerCase();
+  const terms = slot === ""
+    ? args.terms
+    : args.terms.filter((t) => {
+      const occasion = (t as Partial<ExclusionTerm>).occasion ?? null;
+      return occasion === null || String(occasion).toLowerCase() === slot;
+    });
+  if (terms.length === 0) return NO_BITE;
 
   const all = args.surface === "all";
   const sources: { prepId: string | null; prose: string[] }[] = [
@@ -289,12 +373,12 @@ export function dishBitesExclusion(args: {
   // Une règle n'exige TOUS ses mots que si elle est une phrase nue; sinon
   // (phrase de personne, appelant ancien sans `phrase`) un seul mot suffit.
   const expected = new Map<string, Set<string>>();
-  for (const t of args.terms) {
+  for (const t of terms) {
     const set = expected.get(t.ruleId) ?? new Set<string>();
     if ((t as Partial<ExclusionTerm>).phrase === true) set.add(wordOf(t));
     expected.set(t.ruleId, set);
   }
-  const wordOfToken = new Map(args.terms.map((t) => [`${t.ruleId} | ${t.token.toLowerCase()}`, wordOf(t)]));
+  const wordOfToken = new Map(terms.map((t) => [`${t.ruleId} | ${t.token.toLowerCase()}`, wordOf(t)]));
 
   const foundWords = new Map<string, Set<string>>();
   const firstHit = new Map<string, { matched: string; prepIds: Set<string> }>();
@@ -305,7 +389,7 @@ export function dishBitesExclusion(args: {
     // ⚠️ MODE CEINTURE (défaut): dans un PLAT, « sans poisson » veut dire ce
     // qu'il dit. C'est l'inverse de `rule_question.ts`, qui lit des RÈGLES
     // écrites au négatif et doit donc désarmer la négation.
-    const hits = findForbiddenMatches(prose, args.terms);
+    const hits = findForbiddenMatches(prose, terms);
     for (const hit of hits) {
       const word = wordOfToken.get(`${hit.ruleId} | ${hit.token.toLowerCase()}`) ?? hit.token;
       const set = foundWords.get(hit.ruleId) ?? new Set<string>();
@@ -319,7 +403,7 @@ export function dishBitesExclusion(args: {
 
   // La première règle ENTIÈREMENT trouvée mord — dans l'ordre des termes,
   // pour que le verdict reste déterministe.
-  for (const t of args.terms) {
+  for (const t of terms) {
     const need = expected.get(t.ruleId);
     const got = foundWords.get(t.ruleId);
     if (!need || !got) continue;
@@ -327,7 +411,11 @@ export function dishBitesExclusion(args: {
       const first = firstHit.get(t.ruleId)!;
       return {
         matched: first.matched,
-        because: String(t.ruleId ?? "") || null,
+        // ⛔ `because` ET PAS `ruleId`. Depuis 2026-09-21 la clé d'unicité
+        // porte le moment (`tofu@breakfast`), et c'est un identifiant, pas une
+        // phrase: le montrer à la personne lui ferait lire une chose qu'elle
+        // n'a pas écrite. Le repli sur `ruleId` couvre les appelants anciens.
+        because: String((t as Partial<ExclusionTerm>).because ?? t.ruleId ?? "") || null,
         preparationIds: [...first.prepIds],
       };
     }

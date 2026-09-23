@@ -1,0 +1,208 @@
+import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+
+import DishCard from "./DishCard";
+import type { GeneratedDish } from "../api/mealGeneration";
+import { boxLinesForDish } from "../lib/mealBoxes";
+import { en } from "../i18n/en";
+
+// ===========================================================================
+// ⟳ 2026-09-22 — LA CARTE D'UN PLAT SE REPLIE, SUR LE PLAN ET SUR L'APERÇU.
+// ===========================================================================
+//
+// ── LE DÉFAUT ──────────────────────────────────────────────────────────────
+// Un plan de sept jours empile jusqu'à vingt-six cartes, et chacune rend
+// désormais ses contenants, ses doses par personne, ses ingrédients et sa
+// provenance. Pour savoir ce qu'on mange jeudi, il fallait traverser les
+// grammages de lundi.
+//
+// ── CE QUE CE FICHIER TIENT ────────────────────────────────────────────────
+//   ① CE QUI RESTE À DÉCOUVERT: le titre et le geste du jour. C'est ce qu'on
+//      lit pour savoir ce qu'on mange; le reste se lit pour cuisiner.
+//   ② LE PLI CACHE, IL NE DÉMONTE PAS. Le détail reste dans le DOM sous
+//      `hidden` — l'idiome natif du dépliant. Un rendu conditionnel aurait
+//      fait disparaître du DOM les grammages que ce dépôt vérifie par le DOM.
+//   ③ `/app/today` N'EST PAS PLIÉE. La journée rend LA journée: le détail y
+//      est le sujet, et un pli y ferait cliquer trois fois pour lire trois
+//      plats. C'est la moitié qui arme la garde — sans elle, « la carte se
+//      replie » et « la carte se replie PARTOUT » seraient indiscernables.
+//
+// ⚠️ `.ts` ET `createElement`, JAMAIS DE JSX: `vitest.config.ts` n'inclut que
+// `src/**/*.int.test.ts` — un `.tsx` ne serait jamais collecté, et le fichier
+// entier serait un silence vert.
+
+const DISH = {
+  id: "d1",
+  title: "Petit-suisse, boisson de soja, avoine et fruits rouges",
+  slot: "breakfast",
+  day: "tue",
+  ingredients: [
+    {
+      term: "flocons d'avoine",
+      quantity: "60 g",
+      in_pantry: false,
+      amount: 60,
+      unit: "g",
+      state: "raw",
+      grams_raw: 60,
+      ref: "oats",
+      ref_refused: false,
+    },
+  ],
+  method: "Mélanger la boisson de soja, les flocons d'avoine et le petit-suisse.",
+  why: "",
+  uses: [],
+  boxes: [],
+  same_day: { kind: "assemble", minutes: 5 },
+} as unknown as GeneratedDish;
+
+function markup(collapsible: boolean): string {
+  return renderToStaticMarkup(
+    createElement(DishCard, { dish: DISH, slotBadge: false, collapsible }),
+  );
+}
+
+describe("le pli d'une carte de plat", () => {
+  it("① replié, on lit le titre et le geste du jour", () => {
+    // ⚠️ L'APOSTROPHE EST ÉCHAPPÉE PAR REACT (`&#x27;`): on la rend avant de
+    // comparer, sinon on comparerait une chaîne à son encodage.
+    const text = markup(true)
+      .replace(/<[^>]*>/g, " ")
+      .replace(/&#x27;/g, "'");
+    expect(text).toContain(DISH.title);
+    expect(text).toContain(en["meals.same_day.assemble"]);
+    expect(text).toContain(en["meals.same_day.minutes"].replace("{n}", "5"));
+    expect(text).toContain(DISH.method);
+  });
+
+  it("① le bouton porte le libellé du pack, et il dit qu'il est fermé", () => {
+    const html = markup(true);
+    expect(html).toContain(en["meals.dish.unfold"]);
+    expect(html).toContain('aria-expanded="false"');
+  });
+
+  it("② le détail est CACHÉ, pas démonté", () => {
+    const html = markup(true);
+    // ⛔ LES DEUX MOITIÉS. `hidden` doit être là (le pli est fermé) ET le
+    // contenu doit être dans le DOM (rien n'a été démonté): un test qui ne
+    // vérifierait que la première passerait aussi sur un rendu conditionnel.
+    expect(html).toContain("hidden=");
+    expect(html).toContain("flocons d");
+  });
+
+  it("③ sans le pli, aucun bouton et rien de caché — c'est `/app/today`", () => {
+    const html = markup(false);
+    expect(html).not.toContain(en["meals.dish.unfold"]);
+    expect(html).not.toContain(en["meals.dish.fold"]);
+    expect(html).not.toContain("hidden=");
+    expect(html).toContain("flocons d");
+  });
+
+  it("③ et rien à ouvrir ⇒ aucun bouton, même sur le plan", () => {
+    // Un plat sans provenance, sans contenant, sans ingrédient et sans session
+    // n'a RIEN sous le pli: un bouton y ouvrirait du vide.
+    const nu = { ...DISH, ingredients: [] } as unknown as GeneratedDish;
+    const html = renderToStaticMarkup(
+      createElement(DishCard, { dish: nu, slotBadge: false, collapsible: true }),
+    );
+    expect(html).not.toContain(en["meals.dish.unfold"]);
+  });
+
+  it("③ le bloc jour du plan monte bien la carte AVEC le pli", () => {
+    // La garde suit le code: si `PlanDayBlock` cessait de passer la prop, la
+    // semaine redeviendrait un mur de grammages sans qu'un seul rouge le dise.
+    const block = readFileSync(
+      resolve(__dirname, "./plan/PlanDayBlock.tsx"),
+      "utf8",
+    );
+    expect(block).toContain("collapsible");
+  });
+});
+
+// ===========================================================================
+// ⟳ 2026-09-22 — UNE SEULE DOSE ⇒ PAS DE LISTE EN DOUBLE SOUS ELLE.
+// ===========================================================================
+//
+// ── LE DÉFAUT, LU À L'ÉCRAN ────────────────────────────────────────────────
+// Sur un repas sans cuisson mangé par UNE personne, « Les doses par personne »
+// et la liste d'ingrédients du bas portaient les mêmes nombres, l'un sous
+// l'autre: « yaourt grec 99 g » deux fois à trois centimètres d'écart.
+//
+// ⚠️ ET LA MOITIÉ QUI ARME LA GARDE EST LE CAS À PLUSIEURS. Le total y est un
+// AUTRE fait que les parts (192 + 169 + 191 g de thon font 552), il RESTE, et
+// il se nomme. Sans ce cas, « on retire le doublon » et « on retire la liste »
+// seraient indiscernables.
+
+function dishWithDoses(boxCount: number): GeneratedDish {
+  const boxes = Array.from({ length: boxCount }, (_, i) => ({
+    id: `box_${i}`,
+    member_ids: [`m${i}`],
+    items: [{ preparation_id: null, term: "yaourt grec nature", grams: 99, ml: null }],
+    legacy_total_grams: null,
+  }));
+  return { ...DISH, uses: [], boxes } as unknown as GeneratedDish;
+}
+
+const ROSTER = [
+  { memberId: "m0", displayName: "Thomas", portionNote: "", eatingSlots: null },
+  { memberId: "m1", displayName: "Christèle", portionNote: "", eatingSlots: null },
+] as unknown as Parameters<typeof boxLinesForDish>[1];
+
+function dosesMarkup(boxCount: number): string {
+  const dish = dishWithDoses(boxCount);
+  return renderToStaticMarkup(
+    createElement(DishCard, {
+      dish,
+      slotBadge: false,
+      collapsible: false,
+      boxes: boxLinesForDish(dish, ROSTER),
+    }),
+  ).replace(/&#x27;/g, "'");
+}
+
+describe("la liste du bas, sous des doses", () => {
+  it("une seule dose: la liste du bas disparaît", () => {
+    const html = dosesMarkup(1);
+    // La dose reste: c'est elle qu'on lit.
+    expect(html).toContain(en["meals.doses.title"]);
+    // ⛔ ET LE NOMBRE N'APPARAÎT QU'UNE FOIS. C'est la seule assertion qui
+    // distingue « la liste est partie » de « elle est rendue ailleurs ».
+    expect(html.split("60 g").length - 1).toBe(0);
+    expect(html).not.toContain(en["meals.result.total_quantities"]);
+  });
+
+  it("plusieurs doses: la liste reste, et elle se NOMME", () => {
+    const html = dosesMarkup(2);
+    expect(html).toContain(en["meals.doses.title"]);
+    expect(html).toContain(en["meals.result.total_quantities"]);
+    // L'ingrédient du plat — le total de la table — est bien là.
+    expect(html).toContain("60 g");
+  });
+
+  it("⛔ un plat en BOÎTES ne bouge pas: sa liste est « en plus du lot »", () => {
+    const enBoites = {
+      ...DISH,
+      uses: [{ preparation_id: "prep_1", servings: 1, kept: "fridge" }],
+      boxes: [{
+        id: "box_0",
+        member_ids: ["m0"],
+        items: [{ preparation_id: "prep_1", term: "poulet", grams: 140, ml: null }],
+        legacy_total_grams: null,
+      }],
+    } as unknown as GeneratedDish;
+    const html = renderToStaticMarkup(
+      createElement(DishCard, {
+        dish: enBoites,
+        slotBadge: false,
+        collapsible: false,
+        boxes: boxLinesForDish(enBoites, ROSTER),
+      }),
+    ).replace(/&#x27;/g, "'");
+    expect(html).toContain(en["meals.result.extra_ingredients"]);
+    expect(html).not.toContain(en["meals.result.total_quantities"]);
+    expect(html).toContain("60 g");
+  });
+});

@@ -1,4 +1,5 @@
 import type {
+  DispatcherAppHelpSignal,
   DispatcherMemoryPlan,
   DispatcherPlanFeedbackSignal,
   DispatcherProfileStatementSignal,
@@ -7,6 +8,7 @@ import type {
 } from "../contracts/turn_frame.v1.ts";
 
 export type {
+  DispatcherAppHelpSignal,
   DispatcherMemoryPlan,
   DispatcherPlanFeedbackSignal,
   DispatcherProfileStatementSignal,
@@ -43,6 +45,7 @@ export type DispatcherSignals = {
   profile_statement: DispatcherProfileStatementSignal;
   // LOT M6 — la question qui révoque. Passif comme les deux au-dessus.
   rule_question: DispatcherRuleQuestionSignal;
+  app_help: DispatcherAppHelpSignal;
   track_progress_plan_item: {
     detected: boolean;
     target_item_id?: string | null;
@@ -69,6 +72,7 @@ export const DEFAULT_SIGNALS: DispatcherSignals = {
   plan_feedback: { detected: false },
   profile_statement: { detected: false },
   rule_question: { detected: false },
+  app_help: { detected: false },
   track_progress_plan_item: { detected: false },
   dashboard_preferences_intent: { detected: false },
 };

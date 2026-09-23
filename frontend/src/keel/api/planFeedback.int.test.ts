@@ -356,9 +356,15 @@ describe("⛔ LOT 4C — l'échelle des portions porte CINQ crans, et l'écran l
     expect(view, "l'écran n'énumère plus les options du module").toContain(
       "QUESTION_OPTIONS[q].map((opt)",
     );
+    // ⟳ 2026-09-23 (FF-066): dans la langue de la page, plus en anglais figé —
+    // le questionnaire sortait en anglais à un utilisateur français.
     expect(view, "l'écran ne lit plus le libellé du module").toContain(
+      "OPTION_LABELS[opt]?.[lang]",
+    );
+    expect(view, "l'écran lit encore le libellé anglais en dur").not.toContain(
       "OPTION_LABELS[opt]?.en",
     );
+    expect(view, "la langue ne vient plus de la page").toContain("const lang = uiLocale();");
     // ⛔ AUCUN JETON DE PORTION ÉCRIT EN DUR DANS L'ÉCRAN: le premier qui y
     // entre fait une seconde liste, et c'est celle-là — la seule que la
     // personne voit — qui garderait trois crans.

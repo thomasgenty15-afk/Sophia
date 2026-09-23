@@ -47,7 +47,9 @@ const SIZING = "const applied = applySizing({";
 // le plan final arrondi, par identité alimentaire.
 const SHOPPING = "const rebuilt = rebuildShoppingQuantities({";
 const RELINK = "const sizedByBox = new Map<string, number[]>();";
-const PREPS_WRITTEN = "const preparationsWritten = mealPreparationsPayload(meal);";
+// ⟳ 2026-09-22 — la composition des casseroles s'ajoute à la sérialisation
+// (`withShareParts`, `pot_share_parts.ts`); la ligne reste l'ancre du recollage.
+const PREPS_WRITTEN = "const preparationsWritten = withShareParts(mealPreparationsPayload(meal));";
 
 Deno.test("CÂBLAGE ① la finalisation existe, et une seule fois", () => {
   assertEquals(

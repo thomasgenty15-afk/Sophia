@@ -8,6 +8,7 @@ import {
   MOUTH_FORM_BLOCKS,
   type MouthFormDraft,
   numberOrNull,
+  executedPaceNoticeFor,
   PACE_STEP_KG,
   paceControlFor,
   REQUIRED_MOUTH_FORM_BLOCKS,
@@ -16,10 +17,10 @@ import {
   submitIsHeld,
   targetPayloadOf,
   targetWeightStateFor,
+  targetWriteIsBlind,
 } from "./mouthForm";
 import {
   MAX_KG_PER_WEEK,
-  PACE_WARN_UP_KG_PER_WEEK,
   roundPace,
 } from "../../../../supabase/functions/_shared/keel/weight_pace.ts";
 import { GOAL_TOKENS } from "../../../../supabase/functions/_shared/keel/tokens.ts";
@@ -298,20 +299,20 @@ describe("le curseur, et les trois écrans qui n'en sont pas un", () => {
     expect(unknown.kind).toBe("needs_body");
   });
 
-  it("le cas du DESIGN: 60 kg → 0,45 kg/sem, borne `energy_floor`", () => {
+  it("le cas du DESIGN: 60 kg → 0,6 kg/sem, borne `body_fraction` (0,45 et `energy_floor` avant le 2026-09-22 : A1 à 880 laisse le corps borner en premier)", () => {
     const control = paceControlFor(
       draftOf({ ...SIXTY_KG_WOMAN, goal: "fat_loss" }),
       TODAY,
     );
     expect(control.kind).toBe("slider");
     if (control.kind !== "slider") return;
-    expect(control.max).toBe(0.45);
-    expect(control.bound).toBe("energy_floor");
+    expect(control.max).toBe(0.6);
+    expect(control.bound).toBe("body_fraction");
     expect(control.min).toBe(PACE_STEP_KG);
     expect(control.step).toBe(PACE_STEP_KG);
     // Le défaut est le MAXIMUM, pas le minimum: partir du plus lent ferait
     // d'un formulaire jamais touché une déclaration de prudence.
-    expect(control.value).toBe(0.45);
+    expect(control.value).toBe(0.6);
   });
 
   it("un cran demandé AU-DELÀ du maximum est rabattu, jamais rendu tel quel", () => {
@@ -323,13 +324,26 @@ describe("le curseur, et les trois écrans qui n'en sont pas un", () => {
     );
     expect(control.kind).toBe("slider");
     if (control.kind !== "slider") return;
-    expect(control.value).toBe(0.45);
+    expect(control.value).toBe(0.6);
     expect(control.value).toBeLessThanOrEqual(control.max);
   });
 
-  it("le maximum ne dépasse JAMAIS 1 kg/semaine", () => {
+  it("⟳ 2026-09-22 — un homme de 93 kg en perte a un curseur qui va jusqu'à 0,8 kg/sem", () => {
+    // Mesuré sur Fabrice : à A1 = 500 le curseur s'arrêtait à 0,45. À 880,
+    // l'écart est borné par A1 lui-même (0,8), pas par le corps (1 % = 0,93).
+    const control = paceControlFor(
+      draftOf({ ...SIXTY_KG_WOMAN, firstName: "Fabrice", heightCm: "173", weightKg: "93", gender: "male", goal: "fat_loss" }),
+      TODAY,
+    );
+    expect(control.kind).toBe("slider");
+    if (control.kind !== "slider") return;
+    expect(control.max).toBe(0.8);
+    expect(control.bound).toBe("energy_floor");
+  });
+  // ⟳ 2026-09-23 — un plafond par direction: 0,8 kg en perte, 0,5 en prise.
+  it("le maximum ne dépasse JAMAIS 0,8 kg/sem en perte ni 0,5 en prise", () => {
     for (const weight of ["40", "60", "90", "120", "180", "250"]) {
-      for (const goal of ["fat_loss", "muscle_gain"] as const) {
+      for (const [goal, cap] of [["fat_loss", 0.8], ["muscle_gain", 0.5]] as const) {
         const control = paceControlFor(
           draftOf({
             ...SIXTY_KG_WOMAN,
@@ -340,7 +354,10 @@ describe("le curseur, et les trois écrans qui n'en sont pas un", () => {
           TODAY,
         );
         if (control.kind !== "slider") continue;
-        expect(control.max).toBeLessThanOrEqual(MAX_KG_PER_WEEK);
+        expect(control.max).toBeLessThanOrEqual(cap);
+        expect(control.max).toBeLessThanOrEqual(
+          goal === "fat_loss" ? MAX_KG_PER_WEEK.down : MAX_KG_PER_WEEK.up,
+        );
       }
     }
   });
@@ -350,45 +367,34 @@ describe("le curseur, et les trois écrans qui n'en sont pas un", () => {
 // ⚠️ LE SEUIL DE 0,5 EST UN AVERTISSEMENT, PAS UNE BORNE
 // ---------------------------------------------------------------------------
 
-describe("en prise, le curseur DIT sans interdire", () => {
+describe("⟳ 2026-09-23 — en prise, le curseur s'arrête à 0,5 kg/sem, même sur un grand corps", () => {
+  // Décision du propriétaire du 2026-09-23: la prise est plafonnée à 0,5
+  // kg/semaine. Jusque-là, au-dessus de 100 kg, le curseur montait plus haut et
+  // portait la phrase « le surplus part surtout en gras » (`paceWarning`). Le
+  // seuil de la phrase vaut désormais la butée: elle ne parle plus.
   const HEAVY_LIFTER: Partial<MouthFormDraft> = {
     firstName: "Theo",
     birthDate: ADULT_BIRTH,
     heightCm: "185",
-    weightKg: "110",
+    weightKg: "160",
     gender: "male",
     activityLevel: "trains_hard",
   };
 
-  it("le curseur MONTE au-delà de 0,5 kg/sem — l'avertissement n'est pas une butée", () => {
+  it("MORD — 160 kg: le maximum est 0,5, et c'est le plafond absolu qui décide", () => {
     const control = paceControlFor(
       draftOf({ ...HEAVY_LIFTER, goal: "muscle_gain" }),
       TODAY,
     );
-    expect(control.kind).toBe("slider");
-    if (control.kind !== "slider") return;
-    expect(control.max).toBeGreaterThan(PACE_WARN_UP_KG_PER_WEEK);
-  });
-
-  it("au-delà du seuil, il PORTE la phrase — et elle vient du module", () => {
-    const control = paceControlFor(
-      draftOf({
-        ...HEAVY_LIFTER,
-        goal: "muscle_gain",
-        paceKgPerWeek: "0.75",
-      }),
-      TODAY,
-    );
     if (control.kind !== "slider") throw new Error("attendu: un curseur");
-    expect(control.value).toBe(0.75);
-    // Le jeton, pas une phrase réécrite ici: le seuil et son mot sont une
-    // seule décision (`PACE_WARNING_LABELS`).
-    expect(control.warning).toBe("surplus_becomes_fat");
+    expect(control.max).toBe(0.5);
+    expect(control.bound).toBe("absolute_cap");
+    expect(control.warning).toBeNull();
   });
 
-  it("le seuil est FRANCHI, pas atteint: à 0,50 pile on ne dit rien", () => {
+  it("un cran de 0,75 venu de la base est affiché à 0,5 — jamais au-delà de la butée", () => {
     const control = paceControlFor(
-      draftOf({ ...HEAVY_LIFTER, goal: "muscle_gain", paceKgPerWeek: "0.5" }),
+      draftOf({ ...HEAVY_LIFTER, goal: "muscle_gain", paceKgPerWeek: "0.75" }),
       TODAY,
     );
     if (control.kind !== "slider") throw new Error("attendu: un curseur");
@@ -403,6 +409,210 @@ describe("en prise, le curseur DIT sans interdire", () => {
     );
     if (control.kind !== "slider") throw new Error("attendu: un curseur");
     expect(control.warning).toBeNull();
+  });
+});
+
+describe("⛔ écrire la paire n'est pas écrire sur une ignorance", () => {
+  const BODY: Partial<MouthFormDraft> = {
+    firstName: "Zoe",
+    birthDate: ADULT_BIRTH,
+    heightCm: "165",
+    weightKg: "60",
+    gender: "female",
+    activityLevel: "sedentary",
+  };
+
+  it("corps inconnu: on ne sait pas, donc on N'ÉCRIT PAS", () => {
+    // Aucun contrôle n'est à l'écran (`needs_body`): personne n'a rien
+    // demandé, et un Enregistrer effacerait une cible posée ailleurs.
+    expect(
+      targetWriteIsBlind(
+        draftOf({ firstName: "Zoe", birthDate: ADULT_BIRTH, goal: "fat_loss" }),
+        TODAY,
+      ),
+    ).toBe(true);
+  });
+
+  it("`maintenance`: on SAIT, et effacer est le geste légitime", () => {
+    // ⚠️ LE CAS QUI PASSE, ET IL EST LE CŒUR DE LA DISTINCTION. Les deux
+    // rendent `(null, null)` chez `targetPayloadOf`; seul celui-ci doit
+    // partir en base.
+    const draft = draftOf({ ...BODY, goal: "maintenance" });
+    expect(targetWriteIsBlind(draft, TODAY)).toBe(false);
+    expect(targetPayloadOf(draft, TODAY)).toEqual({
+      targetWeightKg: null,
+      paceKgPerWeek: null,
+    });
+  });
+
+  it("corps connu et direction qui bouge: on écrit", () => {
+    expect(
+      targetWriteIsBlind(
+        draftOf({ ...BODY, goal: "fat_loss", targetWeightKg: "55" }),
+        TODAY,
+      ),
+    ).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// LOT A2 (2026-09-22) — LE CRAN ENREGISTRÉ CONTRE LE CRAN CUISINÉ
+// ---------------------------------------------------------------------------
+//
+// ⚠️ CE QUE CETTE SECTION GARDE N'EST PAS UNE MISE EN PAGE. Le curseur RABAT
+// déjà le cran sur le plafond de ce corps (`paceControlFor`), donc l'écran
+// montrait 0,35 pendant que la base portait 0,45 et que le moteur cuisinait
+// 0,35 — trois nombres, et rien pour les relier. Mesuré le 2026-09-22 sur le
+// foyer de test après le resserrement du 2026-09-21
+// (`MAX_WEEKLY_BODY_FRACTION_UP`, retiré le 2026-09-23: ce corps a désormais
+// un plafond de 0,5, et c'est un cran de 0,7 venu de la base qui fait mordre
+// la ligne).
+//
+// ⛔ LES NOMBRES SONT ÉCRITS EN DUR, jamais dérivés des constantes qu'ils
+// mesurent: `0,35` recalculé depuis `MAX_WEEKLY_BODY_FRACTION_UP` resterait
+// vert le jour où quelqu'un change la constante — c'est la cicatrice « test
+// paramétré par sa propre constante ».
+
+describe("le cran enregistré contre le cran cuisiné", () => {
+  /**
+   * 72 kg pour 187 cm, adulte, sédentaire. Son plafond de PRISE vaut 0,5
+   * (⟳ 2026-09-23; 0,35 du 2026-09-21 au 2026-09-23).
+   */
+  const TALL_LEAN_MAN: Partial<MouthFormDraft> = {
+    firstName: "Tom",
+    birthDate: ADULT_BIRTH,
+    heightCm: "187",
+    weightKg: "72",
+    gender: "male",
+    activityLevel: "sedentary",
+  };
+  /** 93 kg pour 173 cm, adulte, sédentaire. Son plafond de PERTE vaut 0,80. */
+  const HEAVY_MAN: Partial<MouthFormDraft> = {
+    firstName: "Fab",
+    birthDate: ADULT_BIRTH,
+    heightCm: "173",
+    weightKg: "93",
+    gender: "male",
+    activityLevel: "sedentary",
+  };
+
+  it("⟳ 2026-09-23 — MORD: le 0,45 de Thomas est affiché ET cuisiné à 0,45", () => {
+    // Le cas du foyer de test: 0,45 en base, curseur à 0,35, moteur à 0,35
+    // jusqu'au 2026-09-23. Désormais les trois nombres sont le même.
+    const draft = draftOf({ ...TALL_LEAN_MAN, goal: "muscle_gain", paceKgPerWeek: "0.45" });
+    const control = paceControlFor(draft, TODAY);
+    if (control.kind !== "slider") throw new Error("attendu: un curseur");
+    expect(control.max).toBe(0.5);
+    expect(control.value).toBe(0.45);
+    expect(executedPaceNoticeFor(draft, TODAY)).toBeNull();
+  });
+
+  it("un cran de PRISE au-dessus du plafond: la ligne NOMME les deux nombres", () => {
+    // La base accepte jusqu'à 1 kg (`household_members_target_pace_range_check`):
+    // un 0,7 enregistré avant le 2026-09-23 est cuisiné à 0,5.
+    const notice = executedPaceNoticeFor(
+      draftOf({ ...TALL_LEAN_MAN, goal: "muscle_gain", paceKgPerWeek: "0.7" }),
+      TODAY,
+    );
+    if (notice === null) throw new Error("attendu: une ligne");
+    // ⚠️ LE CRAN RENDU EST CELUI DE LA BASE, PAS CELUI DU CURSEUR. Le curseur
+    // affiche 0,5 (il rabat); c'est très exactement pour ça que la ligne
+    // existe.
+    expect(notice.chosenKgPerWeek).toBe(0.7);
+    expect(notice.executedKgPerWeek).toBeCloseTo(0.5, 10);
+    expect(notice.clampedBy).toBe("slider_ceiling");
+  });
+
+  it("⚠️ elle lit le brouillon BRUT: le cran rabattu du curseur dirait `chosen`", () => {
+    const draft = draftOf({
+      ...TALL_LEAN_MAN,
+      goal: "muscle_gain",
+      paceKgPerWeek: "0.7",
+    });
+    const control = paceControlFor(draft, TODAY);
+    if (control.kind !== "slider") throw new Error("attendu: un curseur");
+    // Le curseur montre 0,5 — le cran de la base est 0,7. Si la ligne lisait
+    // `control.value`, elle ne pourrait JAMAIS mordre: une garde désarmée qui
+    // ressemble à une garde qui marche.
+    expect(control.value).toBe(0.5);
+    expect(executedPaceNoticeFor(draft, TODAY)).not.toBeNull();
+  });
+
+  // ── LE CAS QUI PASSE — « une garde a besoin d'un cas qui passe » ─────────
+  it("un cran de PERTE sous le plafond: RIEN à dire", () => {
+    expect(
+      executedPaceNoticeFor(
+        draftOf({ ...HEAVY_MAN, goal: "fat_loss", paceKgPerWeek: "0.45" }),
+        TODAY,
+      ),
+      "0,45 kg/sem sur ce corps est exécuté tel quel — la ligne ment",
+    ).toBeNull();
+  });
+
+  it("un cran de PRISE sous le plafond: RIEN à dire non plus", () => {
+    expect(
+      executedPaceNoticeFor(
+        draftOf({ ...TALL_LEAN_MAN, goal: "muscle_gain", paceKgPerWeek: "0.3" }),
+        TODAY,
+      ),
+    ).toBeNull();
+  });
+
+  it("aucun cran écrit: rien à confronter", () => {
+    // Le curseur part alors à SON MAXIMUM; il n'y a pas de cran « d'avant ».
+    expect(
+      executedPaceNoticeFor(
+        draftOf({ ...TALL_LEAN_MAN, goal: "muscle_gain", paceKgPerWeek: "" }),
+        TODAY,
+      ),
+    ).toBeNull();
+  });
+
+  it("`maintenance` replie tout — pas de direction, pas de ligne", () => {
+    expect(
+      executedPaceNoticeFor(
+        draftOf({ ...TALL_LEAN_MAN, goal: "maintenance", paceKgPerWeek: "0.45" }),
+        TODAY,
+      ),
+    ).toBeNull();
+  });
+
+  it("corps inconnu: c'est `pace_needs_body` qui parle, pas cette ligne", () => {
+    expect(
+      executedPaceNoticeFor(
+        draftOf({
+          firstName: "Zoe",
+          birthDate: ADULT_BIRTH,
+          goal: "fat_loss",
+          paceKgPerWeek: "0.45",
+        }),
+        TODAY,
+      ),
+    ).toBeNull();
+  });
+
+  it("un MINEUR est borné sur son propre besoin, et la borne est NOMMÉE", () => {
+    // ⚠️ CE BROUILLON N'EST PAS CELUI QUE L'ÉCRAN REND: la fiche PLIE la
+    // direction d'un mineur à `maintenance` avant d'appeler quoi que ce soit
+    // (`foldMinorGoal`). Ce cas tient la ceinture du module pour une ligne
+    // héritée que la base porterait encore.
+    const notice = executedPaceNoticeFor(
+      draftOf({
+        firstName: "Lou",
+        birthDate: MINOR_BIRTH,
+        heightCm: "130",
+        weightKg: "30",
+        gender: "female",
+        activityLevel: "sedentary",
+        goal: "muscle_gain",
+        paceKgPerWeek: "0.45",
+      }),
+      TODAY,
+    );
+    if (notice === null) throw new Error("attendu: une ligne");
+    expect(notice.clampedBy).toBe("minor_fraction");
+    expect(notice.chosenKgPerWeek).toBe(0.45);
+    expect(notice.executedKgPerWeek).toBeCloseTo(0.16, 2);
   });
 });
 
@@ -497,8 +707,9 @@ describe("le poids visé — le refus est NOMMÉ", () => {
     // jours après `TODAY` (2026-08-18).
     expect(state.horizon).toEqual({
       kind: "weeks_at_this_pace",
-      weeks: 12,
-      arrivalOn: "2026-11-10",
+      // ⟳ 2026-09-22 — 5 kg à 0,6 kg/sem = 9 semaines (12 à 0,45 avant).
+      weeks: 9,
+      arrivalOn: "2026-10-20",
       targetKg: 55,
     });
     // ⚠️ LA SURFACE N'A PAS CHANGÉ DE FORME: la date vit DANS `horizon`, et

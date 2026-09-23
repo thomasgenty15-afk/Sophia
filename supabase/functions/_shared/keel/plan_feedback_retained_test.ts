@@ -24,6 +24,10 @@ import {
 import { envelopeFor,
   MAINTENANCE_ENVELOPE_DIRECTION,
 } from "./meal_envelope.ts";
+// ⟳ 2026-09-23 — `envelopeFor` prend un onzième paramètre, l'âge exact
+// (`exactAgeYears`). Ce fichier passe `null` à chaque appel : l'équation du
+// corps garde le milieu de la tranche d'âge, et aucun nombre ci-dessous ne
+// bouge.
 import {
   patchOf,
   undoFieldChange,
@@ -328,19 +332,20 @@ function bandFor(
       // ce cran n'est jamais lu.
       paceKgPerWeek: 0.5,
     }),
+    null,
   );
   assert(env.mode === "per_kg");
   return env.energy;
 }
 
-Deno.test("⛔ LOT 4C — LE CRAN FORT RESTE ÉCRÊTÉ PAR LE PLANCHER A1", () => {
+Deno.test("⛔ LOT 4C — LES CRANS NE DESCENDENT JAMAIS SOUS LE PLANCHER A1 (à 880 kcal/j, ce corps a de la marge et les crans agissent)", () => {
   // ⟳ 2026-09-10 — MÊME CAS, MÊME PROPRIÉTÉ, NOUVEAUX NOMBRES.
   //   BMR = 10×80 + 6,25×175 − 5×37 + 5 = 1 713,75 ; M = ×1,5 = **2 571**
-  //   0,5 kg/sem = 550 kcal/j, ÉCRÊTÉ par A1 à 500 ⇒ cible 2 071 = A1 exactement
-  //   largeur `fat_loss` = 0,10 de M ⇒ ±128,55 ⇒ [1 942 ; 2 200], puis A1
-  //   remonte le bas à 2 071: **son bas EST le plancher A1**.
+  //   ⟳ 2026-09-22 — A1 vaut 880 : 0,5 kg/sem = 550 kcal/j n'est plus écrêté
+  //   ⇒ cible 2 021 ; largeur `fat_loss` = 0,10 de M ⇒ ±128,55 ⇒ [1 892 ; 2 150].
+  //   Le plancher A1 est à 2 571 − 880 = 1 691 : il ne mord que sur les crans.
   // C'est la population sur laquelle un −10 % non écrêté irait le plus loin.
-  assertEquals(bandFor("fat_loss", null, null), { low: 2071, high: 2200 });
+  assertEquals(bandFor("fat_loss", null, null), { low: 1892, high: 2150 });
 
   // ── LES DEUX CRANS SONT INERTES AU PLANCHER, ET SUR LES DEUX BORDS ────
   // Sans la garde, −10 % rendrait { low: 1864, high: 1980 } — un déficit de
@@ -349,12 +354,14 @@ Deno.test("⛔ LOT 4C — LE CRAN FORT RESTE ÉCRÊTÉ PAR LE PLANCHER A1", () =
   // rend plus rien: « un plafond qui ne mord que d'un côté n'est pas un
   // plafond ».
   assertEquals(bandFor("fat_loss", "adult", "way_too_much"), {
-    low: 2071,
-    high: 2200,
+    // « beaucoup trop » = la bande × 0,90 ⇒ [1 703 ; 1 935], au-dessus du plancher A1 (1 691).
+    low: 1703,
+    high: 1935,
   });
   assertEquals(bandFor("fat_loss", "adult", "too_much"), {
-    low: 2071,
-    high: 2200,
+    // « trop » = la bande × 0,95 ⇒ [1 797 ; 2 043].
+    low: 1797,
+    high: 2043,
   });
 
   // ── ET LOIN DU PLANCHER, LES DEUX CRANS SONT BIEN ORDONNÉS ────────────

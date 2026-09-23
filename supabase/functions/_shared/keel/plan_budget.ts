@@ -476,7 +476,7 @@ export function planCallMeta(args: {
     maxRetries: PLAN_MODEL_MAX_RETRIES,
     // Les deux emplacements que `pickFallbackChainForAttempt` remplirait sinon
     // avec `gpt-5.4-mini` puis `gpt-5.4-nano`. `push` déduplique: la chaîne
-    // devient ["gpt-5.6-luna", "gpt-5.6-sol"].
+    // devient ["gpt-6-luna", "gpt-5.6-sol"].
     secondFallbackModel: keelGenerationFallbackModel(),
     thirdFallbackModel: keelGenerationFallbackModel(),
   };

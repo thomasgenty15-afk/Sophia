@@ -97,8 +97,9 @@ describe("③ la jointure coquille → conversation", () => {
     ),
   ];
 
-  it("le passe-plat porte bien les trois gestes du tiroir", () => {
-    expect(kinds.sort()).toEqual(["describe", "photo", "weight"]);
+  it("le passe-plat porte bien les quatre gestes du tiroir", () => {
+    // ⟳ 2026-09-23 — `meals`: la fenêtre « Suivi des repas ».
+    expect(kinds.sort()).toEqual(["describe", "meals", "photo", "weight"]);
   });
 
   it.each(kinds)("la coquille sait armer « %s »", (kind) => {

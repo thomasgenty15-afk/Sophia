@@ -1,5 +1,5 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
-import { readDishes, readEnergyBoxDishes } from "./plan_energy_read.ts";
+import { readDishes, readEnergyBoxDishes, readEnergySideCourses } from "./plan_energy_read.ts";
 
 // ⟳ LOT F (2026-09-04) — LE LECTEUR DES PLATS AVEC LEURS CONTENANTS.
 //
@@ -55,4 +55,92 @@ Deno.test("LOT F — l'absence n'est pas un zéro: pas de boîtes, `[]`; pas de 
   assertEquals(dish.slot, null);
   assertEquals(readEnergyBoxDishes(null), []);
   assertEquals(readEnergyBoxDishes("x"), []);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-23 — LES À-CÔTÉS ET L'IDENTIFIANT DES ITEMS, chantier « assiettes
+// normales », flux F. Un à-côté vit HORS des boîtes, dans
+// `dishes[i].side_courses[]`; ce lecteur est le seul chemin du JSON vers son
+// énergie (`served_final.ts`, `final_plan_audit.ts`, `meal-energy-v1`).
+// ═══════════════════════════════════════════════════════════════════════════
+
+const WITH_SIDES = [
+  { day: "mon", slot: "breakfast", method: "", ingredients: [], uses: [], boxes: [] },
+  {
+    day: "mon",
+    slot: "lunch",
+    method: "",
+    ingredients: [],
+    uses: [],
+    boxes: [{
+      id: "box_mon_lunch_fabrice",
+      member_ids: ["m-fabrice"],
+      items: [{ grams: 300, preparation_id: "prep_main", term: "poulet", ref: " chicken_breast " }],
+      legacy_total_grams: null,
+    }],
+    side_courses: [
+      {
+        member_id: "m-fabrice",
+        kind: "dessert",
+        term: " yaourt nature ",
+        ref: " plain_yogurt ",
+        grams: 125,
+        unit_count: 1,
+        preparation_id: null,
+        source: "engine_fallback",
+      },
+      {
+        member_id: "m-fabrice",
+        kind: "starter",
+        term: "soupe de légumes",
+        ref: null,
+        grams: 200,
+        unit_count: null,
+        preparation_id: "prep_soup",
+        source: "model",
+      },
+      // Sans personne: jeté — un à-côté n'est servi qu'à quelqu'un.
+      { member_id: "", kind: "cheese", term: "comté", ref: null, grams: 30 },
+      // Un type hors vocabulaire et une masse illisible: GARDÉ, compté, jamais à zéro.
+      { member_id: "m-fabrice", kind: "salad", term: "pomme", ref: "apple", grams: "?", source: "x" },
+      null,
+    ],
+  },
+];
+
+Deno.test("⟳ 2026-09-23 — readEnergySideCourses lit les à-côtés dans l'ordre du payload", () => {
+  const sides = readEnergySideCourses(WITH_SIDES);
+  assertEquals(sides.length, 3, "l'entrée sans personne et le `null` sont jetés");
+  assertEquals(sides[0], {
+    dishIndex: 1,
+    memberId: "m-fabrice",
+    day: "mon",
+    slot: "lunch",
+    kind: "dessert",
+    term: "yaourt nature",
+    // ⛔ LE SLUG EST GARDÉ TEL QU'ÉCRIT (après trim), jamais reconstruit du mot.
+    ref: "plain_yogurt",
+    preparationId: null,
+    grams: 125,
+    unitCount: 1,
+    source: "engine_fallback",
+  });
+  assertEquals([sides[1].ref, sides[1].preparationId, sides[1].kind], [null, "prep_soup", "starter"]);
+  // LE CAS QUI MORD: un type inconnu n'efface pas la nourriture, une masse
+  // illisible n'est pas un zéro.
+  assertEquals([sides[2].kind, sides[2].grams, sides[2].source, sides[2].ref], [null, null, null, "apple"]);
+});
+
+Deno.test("⟳ 2026-09-23 — un plan sans `side_courses` n'a aucun à-côté", () => {
+  assertEquals(readEnergySideCourses(STORED), []);
+  assertEquals(readEnergySideCourses(null), []);
+  assertEquals(readEnergySideCourses([{ day: "mon", side_courses: "x" }]), []);
+});
+
+Deno.test("⟳ 2026-09-23 — l'item de boîte garde son `ref` écrit, et seulement s'il est écrit", () => {
+  const [, lunch] = readEnergyBoxDishes(WITH_SIDES);
+  assertEquals(lunch.boxes[0].items, [{ grams: 300, preparationId: "prep_main", ref: "chicken_breast" }]);
+  // LE CAS QUI PASSE: une archive sans `ref` se relit à l'octet près comme avant.
+  const [dish] = readEnergyBoxDishes(STORED);
+  assert(!("ref" in dish.boxes[0].items[0]));
 });

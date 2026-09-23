@@ -191,6 +191,15 @@ export interface PlanRationaleFacts {
    * `[]` = rien n'est retenu. REQUIS, comme tous les faits de ce module.
    */
   slotsHeldForShopping: readonly string[];
+  /**
+   * ⟳ 2026-09-21 — LE DÉJEUNER DU PREMIER JOUR PUISE-T-IL DANS UNE CASSEROLE
+   * CUITE CE JOUR-LÀ ? Depuis que la session est le soir (méthode, étape 2),
+   * « courses ET cuisson dès le matin, pour être prêt à midi » est faux à
+   * moitié sur un plan dont le premier déjeuner se prépare sans cuisson: seules
+   * les courses sont nécessaires avant midi. Lu sur le plan `94c93ca9`.
+   * REQUIS, comme tous les faits de ce module: `true` rend la phrase d'avant.
+   */
+  firstDayLunchNeedsCooking: boolean;
   /** Les créneaux marqués absents DANS la fenêtre. `[]` = personne n'est parti. */
   awayInWindow: readonly { day: DayToken; slot: string }[];
   /**
@@ -759,6 +768,10 @@ const COPY = {
     // premier jour sont déjà passés ou retenus pour les courses, c'est celle-ci.
     cookSameDayLater: () =>
       `Courses et cuisson dès que possible : la journée est déjà entamée.`,
+    // ⟳ 2026-09-21 — la session est le soir; seules les courses pressent.
+    shopSameMorningCookEvening: () =>
+      `Courses dès le matin : le déjeuner se prépare sans cuisson, la cuisine ` +
+      `est le soir.`,
     // ── LES COURSES ──────────────────────────────────────────────────────
     // ⚠️ LE SINGULIER ET LE PLURIEL NE DISENT PAS LA MÊME CHOSE. Une seule
     // course est une BONNE nouvelle qu'il faut annoncer comme telle (« tout
@@ -776,8 +789,11 @@ const COPY = {
     // ⟳ 2026-09-09 — LE GESTE DU CONGÉLATEUR, DIT AVEC L'ARTICLE ET LE JOUR.
     // « la veille au soir » plutôt qu'un jour calculé: la phrase ne date rien,
     // elle suit la session, quel que soit le jour où elle tombe.
-    frozenAtPurchase: (day: string, terms: string) =>
-      `Pour ${day}, ${terms} : acheté à la première course et congelé en ` +
+    // ⟳ 2026-09-21 — LA COURSE EST NOMMÉE. Le repli peut congeler à la
+    // DEUXIÈME course (plan `64abd449`: jambon daté du mardi, phrase « à la
+    // première course ») ; la phrase lit la date écrite sur la ligne.
+    frozenAtPurchase: (day: string, terms: string, buyDay: string) =>
+      `Pour ${day}, ${terms} : acheté à la course de ${buyDay} et congelé en ` +
       `rentrant. Sors-le du congélateur la veille au soir.`,
     // ── LA SESSION QUI DÉBORDE, DITE AVANT LES FOURNEAUX ─────────────────
     // Le chiffre DÉCLARÉ est rappelé: sans lui, « compte 1 h 10 » se lit comme
@@ -1021,6 +1037,9 @@ const COPY = {
       `lunch.`,
     cookSameDayLater: () =>
       `Shop and cook as soon as you can: the day is already under way.`,
+    shopSameMorningCookEvening: () =>
+      `Shop first thing in the morning: lunch needs no cooking, the cooking is ` +
+      `in the evening.`,
     shoppingOnce: (day: string) =>
       `One shop, on ${day}: everything this plan asks for keeps until it is ` +
       `cooked.`,
@@ -1030,9 +1049,9 @@ const COPY = {
     shopLater: (days: string) =>
       `Part of what is cooked on ${days} is bought close to that day: fresh ` +
       `food from the first shop would not keep that long.`,
-    frozenAtPurchase: (day: string, terms: string) =>
-      `For ${day}, ${terms}: bought at the first shop and frozen on the way ` +
-      `in. Take it out of the freezer the night before.`,
+    frozenAtPurchase: (day: string, terms: string, buyDay: string) =>
+      `For ${day}, ${terms}: bought at the ${buyDay} shop and frozen on the ` +
+      `way in. Take it out of the freezer the night before.`,
     sessionRunsLong: (day: string, minutes: string, declared: string) =>
       `The ${day} session will take ${minutes} rather than ${declared}: it is ` +
       `your only cooking day, and cooking less would leave days empty.`,
@@ -1230,6 +1249,7 @@ const REQUIRED_FACTS: readonly (keyof PlanRationaleFacts)[] = [
   "localMinuteOfDay",
   "slotsDroppedToday",
   "slotsHeldForShopping",
+  "firstDayLunchNeedsCooking",
   "awayInWindow",
   "emptySlots",
   "daysOutOfBatchReach",
@@ -1475,7 +1495,9 @@ export function explainPlanChoices(input: {
       // phrase le dit, au lieu de promettre midi à 17 h.
       lines.push(
         facts.slotsDroppedToday.length === 0 && facts.slotsHeldForShopping.length === 0
-          ? copy.cookSameMorning()
+          ? (facts.firstDayLunchNeedsCooking
+            ? copy.cookSameMorning()
+            : copy.shopSameMorningCookEvening())
           : copy.cookSameDayLater(),
       );
     }
@@ -1623,6 +1645,7 @@ export function explainPlanChoices(input: {
     lines.push(copy.frozenAtPurchase(
       renderDays([frozen.cookOn], input.locale),
       frozen.terms.join(", "),
+      renderDays([dayTokenOfDate(frozen.buyOn)], input.locale),
     ));
   }
 

@@ -570,6 +570,22 @@ export interface CellDish {
    * remplacer (entrée de dernier recours). Voir `ExpectedDish.complementsShared`.
    */
   complementsShared?: boolean;
+  /**
+   * ⟳ 2026-09-23 — LES BOUCHES QUE LA CEINTURE RETIENT HORS DE CE PLAT
+   * (`judgeDishEaters`, `engine_box_belt.ts`) : une exclusion ou un régime
+   * mord la boîte que le moteur leur servirait.
+   *
+   * ⛔ REQUIS, JAMAIS `?`. `[]` est une réponse (« personne n'est retenu »).
+   * Optionnel, chaque appelant aurait hérité en silence de « personne n'est
+   * jamais retenu » — c'est exactement la garde désarmée que l'audit du
+   * 2026-09-23 a trouvée : `exclusion_belt.checked` = 0 sur tous les plans v4.
+   *
+   * ⚠️ UNE BOUCHE RETENUE N'EST NOURRIE PAR RIEN D'AUTRE ICI. Elle ne revient
+   * pas au plat de la table ni à un autre plat de la case : c'est l'invariant
+   * « personne sans repas » (`mealsDelivered`) qui voit le trou et demande la
+   * réparation. Lui donner un autre plat serait décider sa composition.
+   */
+  heldOff: readonly string[];
 }
 
 export interface EatersByDishCounters {
@@ -585,6 +601,14 @@ export interface EatersByDishCounters {
   excluded: number;
   /** Les plats à un nom qui COMPLÈTENT la table (leur porteur y reste). */
   complements: number;
+  /**
+   * ⟳ 2026-09-23 — combien de fois une bouche a été retirée d'un plat par
+   * `CellDish.heldOff`. Seul un mangeur que la grille donnait au plat compte :
+   * retenir quelqu'un qui n'y mangeait pas ne retire rien.
+   */
+  held_off: number;
+  /** ⟳ 2026-09-23 — les plats que `heldOff` a laissés sans aucun mangeur. */
+  held_off_emptied: number;
   fed_hist: { "0": number; "1": number; "2": number; "3_plus": number };
 }
 
@@ -615,6 +639,10 @@ export interface EatersByDishOutcome {
  * question — « tout ce qui est mangé compte » — donc un plat frais nourrit
  * quand même, et le moteur lui écrira ses grammes.
  *
+ * ⟳ 2026-09-23 — `CellDish.heldOff` RETIRE, APRÈS LA PARTITION. Le générateur
+ * appelle ce module deux fois : avec `heldOff: []` pour savoir qui mange quoi,
+ * puis — après `judgeDishEaters` — avec la retenue de chaque plat.
+ *
  * PURE: no I/O, no clock, no randomness.
  */
 export function eatersByDish(args: {
@@ -629,6 +657,8 @@ export function eatersByDish(args: {
     dedicated_off_cell: 0,
     excluded: 0,
     complements: 0,
+    held_off: 0,
+    held_off_emptied: 0,
     fed_hist: { "0": 0, "1": 0, "2": 0, "3_plus": 0 },
   };
   const byKey = new Map(args.cells.map((c) => [c.key, c]));
@@ -667,14 +697,35 @@ export function eatersByDish(args: {
     const outcome = mouthsFedByDish(expected, new Set(cell.eaters));
     counters.excluded += outcome.excluded;
     counters.complements += outcome.complements;
+    // ⟳ 2026-09-23 — LA CEINTURE PASSE APRÈS LA PARTITION. La règle « un plat
+    // dédié retire sa bouche de la table » reste celle de `mouthsFedByDish`;
+    // `heldOff` retire ensuite, plat par plat, ce que la ceinture a refusé.
+    // ⚠️ Retirer AVANT la partition changerait qui compte comme « servi à
+    // part » dans la case — une personne retenue de son propre plat dédié
+    // reviendrait au plat de la table, qu'on n'a jamais jugé pour elle.
+    const fedAfterBelt = indexes.map((i, j) => {
+      const fed = outcome.fedByDish[j] ?? null;
+      const heldOff = args.dishes[i].heldOff;
+      if (fed === null || heldOff.length === 0) return fed;
+      const kept = new Set<string>();
+      for (const memberId of fed) {
+        if (heldOff.includes(memberId)) {
+          counters.held_off++;
+          continue;
+        }
+        kept.add(memberId);
+      }
+      if (fed.size > 0 && kept.size === 0) counters.held_off_emptied++;
+      return kept;
+    });
     for (const [j, i] of indexes.entries()) {
       complementByDish[i] = expected[j].complementsShared === true &&
-        (outcome.fedByDish[j]?.size ?? 0) > 0;
+        (fedAfterBelt[j]?.size ?? 0) > 0;
     }
     counters.shared_fed_nobody += outcome.sharedFedNobody.length;
     counters.dedicated_off_cell += outcome.dedicatedOffRoster.length;
     for (const [j, i] of indexes.entries()) {
-      const fed = outcome.fedByDish[j] ?? null;
+      const fed = fedAfterBelt[j];
       fedByDish[i] = fed;
       if (fed === null) continue;
       counters.placed++;

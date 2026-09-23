@@ -152,12 +152,14 @@ const ENTRY: DraftNoteClarifyEntry = {
   text: "poisson",
   subject: null,
   when: null,
+  occasion: null,
+  force: null,
   options: [LEA, ZOE],
 };
 
 const MEMBERS: DraftNoteMember[] = [
-  { memberId: LEA, label: "Léa", ageState: "minor", sex: "female" },
-  { memberId: ZOE, label: "Zoé", ageState: "minor", sex: "female" },
+  { memberId: LEA, label: "Léa", ageState: "minor", sex: "female", writes: false },
+  { memberId: ZOE, label: "Zoé", ageState: "minor", sex: "female", writes: false },
 ];
 
 const ASK = {
@@ -391,7 +393,7 @@ Deno.test("notification: une ligne écrite, une bulle, un bouton « Voir »", as
   const out = await notifyMemoryWrite(admin, {
     userId: USER,
     kept: [{ text: "pas de poisson", until: null, kind: "preference", who: "Léa" }],
-    language: "fr",
+    safety: [], language: "fr",
   });
   assertEquals(out.delivered, true);
 
@@ -426,7 +428,7 @@ Deno.test("notification: la destination du bouton suit le genre de la ligne", as
     await notifyMemoryWrite(admin, {
       userId: USER,
       kept: [{ text: "quelque chose", until: null, kind, who: null }],
-      language: "fr",
+      safety: [], language: "fr",
     });
     const bubble = trace.find((op) =>
       op.table === "chat_messages" && op.ops.includes("insert")
@@ -449,7 +451,7 @@ Deno.test("notification: la destination du bouton suit le genre de la ligne", as
 Deno.test("notification: rien à dire — aucune bulle, aucun motif inventé", async () => {
   const { admin } = fake({ explodes: true });
   assertEquals(
-    await notifyMemoryWrite(admin, { userId: USER, kept: [], language: "fr" }),
+    await notifyMemoryWrite(admin, { userId: USER, kept: [], safety: [], language: "fr" }),
     { delivered: false, reason: "nothing_written" },
   );
   // Une ligne au texte vide n'est pas une ligne.
@@ -457,7 +459,7 @@ Deno.test("notification: rien à dire — aucune bulle, aucun motif inventé", a
     (await notifyMemoryWrite(admin, {
       userId: USER,
       kept: [{ text: "   ", until: null, kind: "preference", who: null }],
-      language: "fr",
+      safety: [], language: "fr",
     })).reason,
     "nothing_written",
   );
@@ -471,7 +473,7 @@ Deno.test("notification: le canal tombe — elle ne lève pas", async () => {
   const out = await notifyMemoryWrite(admin, {
     userId: USER,
     kept: [{ text: "pas de poisson", until: null, kind: "preference", who: null }],
-    language: "fr",
+    safety: [], language: "fr",
   });
   assertEquals(out.delivered, false);
   assert(out.reason.length > 0, "un refus muet ne se compte pas");

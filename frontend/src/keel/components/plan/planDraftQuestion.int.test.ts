@@ -38,7 +38,12 @@ describe("PlanDraftDialog — la question avant la composition", () => {
     const click = src.indexOf("const outcome = await onReadNote(note);");
     expect(click, "la reprise ne lit plus la phrase").toBeGreaterThan(0);
     const body = src.slice(click, click + 900);
-    const stop = body.indexOf("if (outcome.questions.length > 0) return;");
+    // ⟳ 2026-09-21 — L'ARRÊT PORTE MAINTENANT UN BLOC: le champ se vide LÀ,
+    // sur ce chemin-ci, parce qu'il ne se vide plus qu'après la composition
+    // sur l'autre (le placeholder revenait pendant les deux minutes
+    // d'attente). Ce qui est tenu ici est l'ORDRE — l'arrêt avant la
+    // composition —, pas la forme de l'instruction.
+    const stop = body.indexOf("if (outcome.questions.length > 0) {");
     const compose = body.indexOf("await renderNow(outcome);");
     expect(stop, "aucun arrêt sur une question ouverte").toBeGreaterThan(0);
     expect(compose, "la reprise ne refait plus le plan").toBeGreaterThan(0);
@@ -75,6 +80,26 @@ describe("PlanDraftDialog — la question avant la composition", () => {
     expect(body).toMatch(/await renderNow\(merged\);/);
   });
 
+  it("⟳ 2026-09-23 — « pour qui ? » sur un goût passe par le MÊME geste que la part, et le morceau repart tel quel", () => {
+    // Le serveur nomme la bouche manquante (`clarify.entries`) depuis le
+    // 2026-09-07 sans que rien ne la demande: « ma fille ne veut plus de
+    // yaourt » avec deux filles n'écrivait rien et ne demandait rien. La
+    // question `who` emprunte le canal de la part: mêmes boutons, même
+    // échappatoire, et l'entrée à écrire (`entry`) voyage dans la question
+    // et revient avec le tap — le front ne la lit pas.
+    const fn = src.slice(src.indexOf("const answerQuestion = async ("));
+    const body = fn.slice(0, fn.indexOf("finally {"));
+    expect(body).toMatch(/question\.kind === "portion"\s*\?\s*\{ kind: "portion", memberId, direction: question\.direction \}\s*:\s*\{ kind: "who", memberId, entry: question\.entry \}/);
+    const api = read("../../api/planDraft.ts");
+    expect(api).toMatch(/export type NoteQuestion = NotePortionQuestion \| NoteWhoQuestion;/);
+    expect(api).toMatch(/export type NoteAnswer = NotePortionAnswer \| NoteWhoAnswer;/);
+    // La lecture garde `who` AVEC son morceau, et refuse une question sans option lisible.
+    expect(api).toMatch(/if \(row\.kind === "who" && row\.entry && typeof row\.entry === "object"\) \{/);
+    expect(api).toMatch(/if \(options\.length === 0\) continue;/);
+    // La réponse repart avec `entry` tel quel — jamais recomposé côté front.
+    expect(api).toMatch(/: \{ kind: "who", member_id: answer\.memberId, entry: answer\.entry \}/);
+  });
+
   it("le champ et la reprise sont fermés tant qu'une question est ouverte, et l'échappatoire existe", () => {
     expect(src).toMatch(/disabled=\{busyNow \|\| !canAskAgain \|\| pendingQuestion !== null\}/);
     expect(src).toMatch(/!hasNote\(note\) \|\| pendingQuestion !== null\}/);
@@ -102,7 +127,11 @@ describe("la phrase n'est lue QU'UNE fois — jamais par le composeur ni l'adopt
     const answer = api.slice(api.indexOf("export async function answerNote("));
     const body = answer.slice(0, answer.indexOf("\n}\n"));
     expect(body).toMatch(/"keel-read-note-v1"/);
-    expect(body).toMatch(/answer: \{ kind: answer\.kind, member_id: answer\.memberId, direction: answer\.direction \}/);
+    // ⟳ 2026-09-23 — deux formes de réponse, discriminées par `kind`; la part
+    // garde la sienne à l'octet près, et `who` ne porte que la bouche et le
+    // morceau revenu tel quel.
+    expect(body).toMatch(/answer: answer\.kind === "portion"\s*\?\s*\{ kind: "portion", member_id: answer\.memberId, direction: answer\.direction \}/);
+    expect(body).toMatch(/: \{ kind: "who", member_id: answer\.memberId, entry: answer\.entry \}/);
     expect(body).not.toMatch(/draft_note/);
   });
 
@@ -130,7 +159,11 @@ describe("la phrase n'est lue QU'UNE fois — jamais par le composeur ni l'adopt
       expect(src, `${name}: onEditCells`).toMatch(/onEditCells=\{async \(id, cells\) =>/);
       expect(src, `${name}: edit`).toMatch(/edit=\{draft\?\.envelope\.edit \?\? null\}/);
       expect(src, `${name}: draftNote retenu`).not.toMatch(/setDraftNote\(/);
-      expect(src, `${name}: writeFromDraft`).toMatch(/writeFromDraft\(\s*draftInput\((facts!)?\),/);
+      // ⟳ 2026-09-21 — la page du plan adopte l'entrée de la SOURCE de
+      // l'aperçu (« Composer un autre plan ») ou, à défaut, la fenêtre libre.
+      expect(src, `${name}: writeFromDraft`).toMatch(
+        /writeFromDraft\(\s*(draftSource\?\.input \?\? )?draftInput\((facts!)?\),/,
+      );
     }
   });
 });

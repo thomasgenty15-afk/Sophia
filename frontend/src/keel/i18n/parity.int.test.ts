@@ -184,9 +184,14 @@ describe("pack français de la vitrine", () => {
       "allergen.lupin",
       // La forme COURTE de l'onglet du plan. « Plan » est le mot dans les deux
       // langues, et c'est le seul des dix onglets dans ce cas — sa forme
-      // longue, elle, diffère bien (« Le plan de ma semaine »). Le raccourci
+      // longue, elle, diffère bien (« Mon plan »). Le raccourci
       // existe parce qu'une colonne de la barre du téléphone fait 75 px.
       "app.nav.plan.short",
+      // ⟳ 2026-09-23 — L'onglet de conversation porte le PRÉNOM de
+      // l'assistante, « Sophia », en long comme en court. Un prénom ne se
+      // traduit pas.
+      "app.nav.chat",
+      "app.nav.chat.short",
       // ── L2b · LES CINQ TYPES DE SÉANCE ───────────────────────────────────
       // « Cardio » s'écrit pareil dans les deux langues — c'est le mot que les
       // gens emploient en français, sur la tuile qu'ils doivent reconnaître d'un
@@ -337,6 +342,11 @@ describe("pack français de la vitrine", () => {
       // Les libellés voisins, eux, sont bien rédigés — « La pesée » / « Weigh
       // it out », « Une boîte » / « One box ».
       "meals.boxes.grams",
+      // ⟳ 2026-09-22 — « {term} ~{n} g » sous une part de casserole: un terme
+      // qui vient du plan (déjà dans sa langue), un nombre, le symbole du
+      // gramme. Les mots à traduire vivent à côté: `meals.boxes.parts`
+      // (« dont » / « of which ») et `meals.boxes.part_vegetables`.
+      "meals.boxes.part",
       // « {name} {n} g » — un prénom, un nombre, un symbole. Il n'y a aucun mot
       // à traduire dedans, et en inventer un (« part de », « share ») ferait
       // dire à l'étiquette une chose que l'arbitrage ne lui fait pas dire.
@@ -448,6 +458,20 @@ describe("pack français de la vitrine", () => {
       // arrivait un jour, ce serait une clé oubliée, pas une coïncidence.
       "household.mouth.extra.fruit",
       "household.mouth.extra.dessert",
+      // ── ⟳ 2026-09-23 · LES À-CÔTÉS, PAR PERSONNE ────────────────────────
+      // « Dessert » s'écrit pareil dans les deux langues — même raison que
+      // `household.mouth.extra.dessert` juste au-dessus. ⚠️ SES HUIT VOISINES
+      // NE SONT PAS ICI (Entrée/Starter, Fromage/Cheese, Pain/Bread, Oui/Yes,
+      // Non/No, le titre, la légende, « Selon l'objectif »): si l'une d'elles y
+      // arrivait, ce serait une clé oubliée, pas une coïncidence.
+      "household.mouth.side_courses.dessert",
+      // « {n} × {term} » et « {term} ~{n} g », la ligne « À côté » d'une boîte:
+      // un nombre, un terme qui vient du plan (déjà dans sa langue), un signe de
+      // multiplication ou le symbole du gramme — même nature que
+      // `meals.boxes.part`. ⚠️ `meals.boxes.side_for` n'est PAS ici: le
+      // français met une espace avant les deux-points, et il diffère.
+      "meals.boxes.side_unit",
+      "meals.boxes.side_grams",
       // ── LOT M5 · LE NOM D'UN CHAMP DE RÉGLAGE ────────────────────────────
       // « Budget » s'écrit pareil dans les deux langues, et le traduire
       // autrement serait le bug. ⚠️ LES CINQ AUTRES NE SONT PAS ICI
@@ -467,6 +491,18 @@ describe("pack français de la vitrine", () => {
       "plan.validation.at",
       "plan.validation.term",
       "plan.validation.control_line",
+      // ── ⟳ 2026-09-22 · LA DOSE D'UN LIQUIDE ─────────────────────────────
+      // « ml » est un SYMBOLE D'UNITÉ du Système international, pas un mot: il
+      // s'écrit pareil dans les deux langues, et le traduire serait le bug —
+      // exactement comme « kcal » quatre entrées plus haut. ⚠️ SES DEUX
+      // VOISINES NE SONT PAS ICI (`teaspoons`, `tablespoons`): « c. à café »
+      // et « tsp » sont des mots abrégés, et ils diffèrent. Si l'une d'elles
+      // arrivait dans cette liste, ce serait une clé oubliée.
+      "meals.boxes.millilitres",
+      // ── ⟳ 2026-09-23 · LE BOUTON COURT DES SESSIONS ────────────────────────
+      // « Sessions » est le mot français aussi. Le libellé long, lui, diffère
+      // (« Tes sessions de cuisine » / « Your cooking sessions »).
+      "meals.sessions.button_short",
     ]);
     const copied = (Object.keys(fr) as Array<keyof typeof fr>)
       .filter((key) => !legitimatelyIdentical.has(key))

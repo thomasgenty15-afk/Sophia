@@ -19,7 +19,7 @@ import { buildMealPrompt } from "./meal_generation.ts";
 // s'interdit de faire dire.
 // ===========================================================================
 
-function promptWith(args: { today?: string | null; country?: string | null }): string {
+function promptWith(args: { today?: string | null; country?: string | null; countryAssumed?: boolean }): string {
   return buildMealPrompt({ budgetFloor: null, contentLocale: "en-US", firstDayCookable: true, hasFreezer: false, oneCookingSession: false,
     cookOnlyDay: null,
     soloBoxes: false,
@@ -49,6 +49,7 @@ function promptWith(args: { today?: string | null; country?: string | null }): s
     todayToken: "wed",
     today: args.today ?? null,
     country: args.country ?? null,
+    countryAssumed: args.countryAssumed ?? false,
   }).userMessage;
 }
 
@@ -102,4 +103,26 @@ Deno.test("le pays seul, sans date, ne fabrique pas de saison", () => {
   assertStringIncludes(prompt, "today's date: not known.");
   // Un hémisphère sud sans date ne dit rien: on ne comble pas le trou.
   assert(!/2026-/.test(prompt));
+});
+
+/**
+ * ⟳ 2026-09-20 — LE PAYS DIT AUSSI LES CONVENTIONS DE CUISINE, et quand il est
+ * déduit de la langue (faute de `profiles.country`), le modèle le sait.
+ */
+Deno.test("le pays règle l'unité du four et les formats des magasins, pas que la saison", () => {
+  const prompt = promptWith({ today: "2026-09-20", country: "FR" });
+  assert(prompt.includes("they shop in: FR (ISO-3166 country code)"));
+  assert(prompt.includes("the unit their oven reads (°C or °F)"));
+  assertEquals(prompt.includes("assumed from"), false);
+});
+
+Deno.test("un pays déduit de la langue est DIT déduit", () => {
+  const prompt = promptWith({ today: "2026-09-20", country: "FR", countryAssumed: true });
+  assert(prompt.includes("they shop in: FR (ISO-3166 country code — assumed from the language they write in, not confirmed by them)"));
+  assert(prompt.includes("the unit their oven reads (°C or °F)"));
+});
+
+Deno.test("sans pays du tout, aucune convention n'est affirmée", () => {
+  const prompt = promptWith({ today: null, country: null });
+  assertEquals(prompt.includes("the unit their oven reads"), false);
 });

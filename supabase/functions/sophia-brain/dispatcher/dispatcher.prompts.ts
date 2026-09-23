@@ -7,6 +7,7 @@ import {
   oneShotReminderCanonicalDispatcherPromptLines,
 } from "../router/one_shot_reminder_prompt_contract.ts";
 import type { DirectEffectTimeContext } from "../contracts/turn_frame.v1.ts";
+import { appHelpDispatcherLines } from "../../_shared/keel/app_help/block.ts";
 // W4.4 — listes fermees interpolees depuis tokens.ts (correctif vague 0: le
 // modele avait invente `epa_dha`). Le vocabulaire du prompt et celui de la base
 // ne peuvent pas diverger s'il n'y en a qu'un.
@@ -168,6 +169,7 @@ Contrat effectif unique:
 - skill_signals.plan_feedback (KEEL uniquement — voir regle 6-ter)
 - skill_signals.profile_statement (KEEL uniquement — voir regle 6-quater)
 - skill_signals.rule_question (KEEL uniquement — voir regle 6-quinquies)
+- skill_signals.app_help (KEEL uniquement — voir regle 6-sexies)
 - skill_signals.presence_conversation
 - memory_plan
 - needs_research
@@ -202,7 +204,7 @@ Interdits:
     when: ALWAYS,
     text: (audience) =>
       audience.keelStudent
-        ? `- Ne produis jamais de skill signal hors plan_question, plan_feedback, profile_statement et rule_question.`
+        ? `- Ne produis jamais de skill signal hors plan_question, plan_feedback, profile_statement, rule_question et app_help.`
         : `- Ne produis jamais de skill signal hors plan_question.`,
   },
   {
@@ -466,6 +468,38 @@ ${oneShotReminderCanonicalDispatcherPromptLines().join("\n")}`,
    (5) TU N'ANNONCES RIEN ET TU NE LEVES RIEN. Le runtime retrouve la ligne, la cite, et dit ou elle se leve. Ne promets a l'eleve aucune modification: le chat n'ecrit pas.`,
   },
   {
+    // ══════════════════════════════════════════════════════════════════════
+    // FF-066 · L'ÉCRIVAIN DE `app_help`
+    //
+    // ⛔ LE SIGNAL S'AJOUTE, IL NE CHOISIT PAS QUI RÉPOND (fiche R4). Il charge
+    // 1 à 3 fiches d'aide dans le contexte du composeur, et c'est tout.
+    //
+    // ⚠️ LA LISTE EST GÉNÉRÉE DEPUIS LES FICHES (`appHelpDispatcherLines`), et
+    // elle ne dépend que de l'audience: elle reste dans la partie du prompt
+    // identique d'un utilisateur à l'autre, donc mise en cache (fiche R7, R8).
+    //
+    // ⚠️ BILINGUE, exemples ET anti-faux-positifs (T9).
+    // ══════════════════════════════════════════════════════════════════════
+    when: (a: DispatcherPromptAudience) => a.keelStudent === true,
+    text: () =>
+      `6-sexies. skill_signals.app_help = l'eleve DEMANDE COMMENT L'APP FONCTIONNE: ou se trouve une chose, comment faire un geste dans l'app, si un geste "compte" ou est enregistre, ce que l'app sait faire ou non, le prix, l'abonnement, le compte, les notifications. Ce signal ne remplace jamais l'owner du tour: il s'emet EN PLUS.
+   Exemples FR: "comment je prends mon plat en photo ?", "la photo, c'est compte ?", "ou est ma liste de courses ?", "comment je resilie ?", "je peux changer un plat ?", "comment j'ajoute mon mari ?", "comment je donne un acces a ma femme ?", "pourquoi tu m'ecris le soir ?", "je peux scanner un code-barres ?".
+   Exemples EN: "how do I send a photo of my meal?", "does the photo count?", "where is my shopping list?", "how do I cancel?", "can I swap a dish?", "how do I add my wife?".
+   payload:
+   - detected: true.
+   - topics: 1 a 3 identifiants PRIS DANS LA LISTE CI-DESSOUS, le plus pertinent d'abord. Jamais un identifiant invente. Si la question porte sur une chose qu'aucune ligne ne couvre, topics = ["unknown_feature"].
+   REGLES DURES:
+   (1) UNE QUESTION SUR L'APP, PAS UN FAIT. "j'ai mange dehors ce midi" DECLARE un repas: pas app_help. "j'ai mange dehors, je le note comment ?" DEMANDE le geste: app_help (le repas declare garde son traitement).
+   (2) PAS UNE QUESTION D'ALIMENTATION. "je peux remplacer le riz par des pates ?" porte sur le CONTENU du plan => plan_question, pas ici. "je peux changer un plat de mon plan ?" / "can I swap a dish in my plan?" porte sur le GESTE dans l'app => ici (plan_change_dish).
+   (2-bis) CE QUE L'APP OU SOPHIA SAIT FAIRE, OU NE SAIT PAS FAIRE, EST ICI: "tu peux modifier mon plan pour moi ?" (sophia_can_do), "je peux faire un plan sur deux semaines ?" (plan_window), "pourquoi tu m'ecris le soir ?" (sophia_evening_messages), "je vois pas le bouton +" (meal_photo_how), "comment je change la langue ?" (language_change). Une question sur un ECRAN, un BOUTON, un REGLAGE, une LIMITE ou le FONCTIONNEMENT de l'app ou de Sophia est app_help.
+   (3) PAS UNE REVOCATION. "pourquoi il n'y a jamais de poulet ?" => rule_question, pas ici.
+   (4) PAS UN RETOUR NI UNE PREFERENCE. "les portions etaient enormes" => plan_feedback; "je n'aime pas le poisson" => profile_statement.
+   (5) Si le message porte app_help ET un autre signal, emets LES DEUX.
+   (6) TU N'ANNONCES RIEN. Le runtime charge la fiche; le composeur repond.
+   Liste des identifiants (identifiant: la question qu'il couvre):
+${appHelpDispatcherLines().join("\n")}`,
+  },
+  {
     when: ALWAYS,
     text: `8. needs_research.value=true si la reponse finale exige des infos fraiches/exterieures/verifiables ou si le user demande de chercher/verifier sur internet. Remplis query avec une requete de recherche autonome et precise (le runtime EXECUTE cette recherche et injecte le resultat au composeur). Une MISE EN DOUTE explicite d'une affirmation factuelle en domaine sante/nutrition/science ("est-ce que c'est vrai que... ?", "t'as une source ?", "je veux du concret, pas des generalites") = value=true (nina-global20 T2): la reponse doit etre groundee, pas parametrique. Une question personnelle ("verifie ou j'en suis") ou de coaching sans besoin d'infos externes → value=false.
 9. memory_plan est toujours present. Il sert a charger le contexte pour repondre maintenant; il ne sert jamais a ecrire en memoire.
@@ -638,6 +672,15 @@ export function buildDispatcherPrompt(input: {
             rule_question: {
               detected: false,
               food: "string|null",
+            },
+          }
+          : {}),
+        // FF-066 — « promesse et clé de schéma doivent se toucher ».
+        ...(keelStudent
+          ? {
+            app_help: {
+              detected: false,
+              topics: ["identifiant de la liste 6-sexies"],
             },
           }
           : {}),

@@ -37,7 +37,7 @@ function dish(over: Record<string, unknown> = {}) {
   };
 }
 function bite(terms: ReturnType<typeof exclusionTermsFor>, over = {}, uses: any[] = [], preps = new Map()) {
-  return dishBitesExclusion({ dish: dish(over) as never, uses, preparationById: preps, terms, surface: "ingredients" });
+  return dishBitesExclusion({ dish: dish(over) as never, uses, preparationById: preps, terms, surface: "ingredients" , slot: null });
 }
 
 // ===========================================================================
@@ -103,13 +103,12 @@ Deno.test("⛔ L'EXTRACTEUR REND DU BRUIT, et c'est la SURFACE qui protège", ()
     dish: { title: "Filet de dinde au fil du marché", method: "", ingredients: [{ term: "dinde" }] },
     uses: [], preparationById: new Map(), terms,
   };
-  assertEquals(dishBitesExclusion({ ...proseOnly, surface: "ingredients" } as never).matched, null);
+  assertEquals(dishBitesExclusion({ ...proseOnly, surface: "ingredients" , slot: null } as never).matched, null);
   // …et le vrai aliment mord toujours.
   assertEquals(
     dishBitesExclusion({
       dish: { title: "Assiette", method: "", ingredients: [{ term: "poisson blanc" }] },
-      uses: [], preparationById: new Map(), terms, surface: "ingredients",
-    } as never).matched !== null,
+      uses: [], preparationById: new Map(), terms, surface: "ingredients", slot: null } as never).matched !== null,
     true,
   );
 });
@@ -133,8 +132,7 @@ Deno.test("⛔ LA PROTÉINE EST DANS LA PRÉPARATION, et elle mord quand même",
     uses: [{ preparationId: "p1" }],
     preparationById: preps as never,
     terms,
-    surface: "ingredients",
-  });
+    surface: "ingredients", slot: null });
   assertEquals(out.matched !== null, true, "la préparation n'est pas pliée: la protéine échappe");
   assertEquals(out.preparationIds, ["p1"]);
 });
@@ -280,8 +278,7 @@ Deno.test("⛔ « poisson » MORD sur « saumon » — la catégorie déplie", (
   });
   const out = dishBitesExclusion({
     dish: { title: "Assiette", method: "", ingredients: [{ term: "saumon" }] },
-    uses: [], preparationById: new Map(), terms, surface: "ingredients",
-  } as never);
+    uses: [], preparationById: new Map(), terms, surface: "ingredients", slot: null } as never);
   assertEquals(out.matched !== null, true, "la catégorie ne déplie plus ses espèces");
   // ⚠️ ET LA RAISON RESTE LA PHRASE DE LA PERSONNE, pas le mot déplié: c'est
   // ce qu'on lui montrera.
@@ -308,8 +305,7 @@ Deno.test("⛔ « saumon » NE DÉPLIE RIEN — on n'écrit pas une règle plus 
   // Et le thon passe: elle n'a rien dit contre.
   const out = dishBitesExclusion({
     dish: { title: "Assiette", method: "", ingredients: [{ term: "thon" }] },
-    uses: [], preparationById: new Map(), terms, surface: "ingredients",
-  } as never);
+    uses: [], preparationById: new Map(), terms, surface: "ingredients", slot: null } as never);
   assertEquals(out.matched, null);
 });
 
@@ -404,8 +400,7 @@ Deno.test("⛔ « rougaille saucisse » ne mord PAS « lentilles aux saucisses �
   const bites = (title: string, ingredients: string[]) =>
     dishBitesExclusion({
       dish: { title, method: "", ingredients: ingredients.map((term) => ({ term })) },
-      uses: [], preparationById: new Map(), terms, surface: "all",
-    } as never).matched !== null;
+      uses: [], preparationById: new Map(), terms, surface: "all", slot: null } as never).matched !== null;
   assertEquals(bites("Lentilles aux saucisses", ["lentilles", "saucisses"]), false);
   assertEquals(bites("Rougaille de tomates", ["tomates"]), false);
   assertEquals(bites("Rougaille saucisse", ["saucisses", "tomates"]), true);
@@ -425,8 +420,7 @@ Deno.test("une catégorie dépliée reste UN mot: n'importe quelle espèce suffi
   assert(terms.every((t) => t.phrase));
   const out = dishBitesExclusion({
     dish: { title: "Assiette", method: "", ingredients: [{ term: "thon" }] },
-    uses: [], preparationById: new Map(), terms, surface: "ingredients",
-  } as never);
+    uses: [], preparationById: new Map(), terms, surface: "ingredients", slot: null } as never);
   assert(out.matched !== null);
 });
 
@@ -434,8 +428,7 @@ Deno.test("un terme SANS `word` (appelant ancien) vaut son jeton — rien ne cha
   const out = dishBitesExclusion({
     dish: { title: "Poulet rôti", method: "", ingredients: [{ term: "poulet" }] },
     uses: [], preparationById: new Map(),
-    terms: [{ ruleId: "pas de poulet", token: "poulet" }], surface: "ingredients",
-  } as never);
+    terms: [{ ruleId: "pas de poulet", token: "poulet" }], surface: "ingredients", slot: null } as never);
   assertEquals(out.matched !== null, true);
   assertEquals(out.because, "pas de poulet");
 });
@@ -449,20 +442,209 @@ Deno.test("une PHRASE DE PERSONNE garde la règle d'avant: chaque mot mord seul 
   assert(terms.every((t) => !t.phrase));
   const out = dishBitesExclusion({
     dish: { title: "Assiette", method: "", ingredients: [{ term: "saumon" }] },
-    uses: [], preparationById: new Map(), terms, surface: "ingredients",
-  } as never);
+    uses: [], preparationById: new Map(), terms, surface: "ingredients", slot: null } as never);
   assert(out.matched !== null);
   // Et « yaourt de soja » reste une phrase nue: « yaourt nature » ne mord pas.
   const soy = exclusionTermsFor({ items: [item("yaourt de soja", TOM)], subject: TOM });
   assert(soy.every((t) => t.phrase));
   const plain = dishBitesExclusion({
     dish: { title: "Yaourt nature et fruits", method: "", ingredients: [{ term: "yaourt nature" }] },
-    uses: [], preparationById: new Map(), terms: soy, surface: "all",
-  } as never);
+    uses: [], preparationById: new Map(), terms: soy, surface: "all", slot: null } as never);
   assertEquals(plain.matched, null);
   const both = dishBitesExclusion({
     dish: { title: "Bol", method: "", ingredients: [{ term: "yaourt de soja" }] },
-    uses: [], preparationById: new Map(), terms: soy, surface: "all",
-  } as never);
+    uses: [], preparationById: new Map(), terms: soy, surface: "all", slot: null } as never);
   assert(both.matched !== null);
+});
+
+// ===========================================================================
+// 6. ⟳ 2026-09-21 — LE MOMENT: une règle du matin ne juge pas un dîner
+// ===========================================================================
+//
+// ── LE DÉFAUT QUE CES CAS FERMENT, MESURÉ SUR UN FOYER RÉEL ────────────────
+// « Je veux pas de choses genre tofu, poissons au petit déjeuné » n'avait aucun
+// moyen de dire SON MOMENT: il restait dans le texte. Deux conséquences, et la
+// seconde est la plus chère:
+//   · la règle devenait une PHRASE NUE (`isBarePhrase` rend `true` — ni pronom,
+//     ni négation, ni verbe de goût), donc elle n'a mordu QUE si tous ses mots
+//     étaient dans le plat. Un petit-déjeuner au tofu n'en porte qu'un;
+//   · et si elle avait mordu, elle aurait mordu PARTOUT — le tofu du soir aussi,
+//     que personne n'a refusé.
+
+function itemAt(text: string, subject: string, occasion: string | null): RetainedItem {
+  return {
+    kind: "food.exclude", scope: "durable", subject, text, value: null,
+    source: "draft_note", at: "2026-09-01", item: "", confidence: null,
+    quote: text, occasion,
+  } as unknown as RetainedItem;
+}
+
+Deno.test("⛔ LE MOMENT: une exclusion du matin ne mord PAS un plat du soir", () => {
+  const terms = exclusionTermsFor({
+    items: [itemAt("tofu", TOM, "breakfast")],
+    subject: TOM,
+  });
+  const tofuDish = { title: "Tofu grillé", method: "poêle", ingredients: [{ term: "tofu" }] };
+  const soir = dishBitesExclusion({
+    dish: tofuDish,
+    uses: [],
+    preparationById: new Map(),
+    terms,
+    surface: "ingredients",
+    slot: "dinner",
+  });
+  assertEquals(soir.matched, null, "la règle du matin a retiré un dîner à quelqu'un");
+
+  const matin = dishBitesExclusion({
+    dish: tofuDish,
+    uses: [],
+    preparationById: new Map(),
+    terms,
+    surface: "ingredients",
+    slot: "breakfast",
+  });
+  assert(matin.matched !== null, "la règle du matin ne mord pas le matin: elle est inerte");
+  // ⚠️ LES DEUX MOITIÉS. Une garde qui ne mord jamais et une garde qui mord
+  // partout se ressemblent quand on n'en teste qu'une.
+});
+
+Deno.test("une exclusion SANS moment mord à tous les moments", () => {
+  const terms = exclusionTermsFor({ items: [itemAt("tofu", TOM, null)], subject: TOM });
+  const tofuDish = { title: "Tofu grillé", method: "poêle", ingredients: [{ term: "tofu" }] };
+  for (const slot of ["breakfast", "lunch", "dinner"]) {
+    const out = dishBitesExclusion({
+      dish: tofuDish,
+      uses: [],
+      preparationById: new Map(),
+      terms,
+      surface: "ingredients",
+      slot,
+    });
+    assert(out.matched !== null, `une règle de toute la journée ne mord pas à ${slot}`);
+  }
+});
+
+Deno.test("⛔ `slot: null` juge TOUT — c'est le repli des appelants sans créneau", () => {
+  // La relance et la garde finale jugent parfois un plan sans lire le créneau:
+  // elles passent `null`, et toutes les règles s'appliquent. C'est le
+  // comportement d'avant ce lot, nommé plutôt que subi.
+  const terms = exclusionTermsFor({
+    items: [itemAt("tofu", TOM, "breakfast")],
+    subject: TOM,
+  });
+  const out = dishBitesExclusion({
+    dish: { title: "Tofu grillé", method: "poêle", ingredients: [{ term: "tofu" }] },
+    uses: [],
+    preparationById: new Map(),
+    terms,
+    surface: "ingredients",
+    slot: null,
+  });
+  assert(out.matched !== null);
+});
+
+Deno.test("⛔ DEUX MOMENTS = DEUX RÈGLES, et leurs mots ne se mélangent pas", () => {
+  // Le même texte à deux moments partage son `ruleId` si le moment n'y entre
+  // pas — et alors les mots trouvés au dîner satisfont la règle du matin.
+  // C'est le mode d'échec silencieux de la règle « tous ses mots » des phrases
+  // nues, appliqué au créneau.
+  const terms = exclusionTermsFor({
+    items: [
+      itemAt("pain complet", TOM, "breakfast"),
+      itemAt("pain complet", TOM, "dinner"),
+    ],
+    subject: TOM,
+  });
+  const ruleIds = new Set(terms.map((t) => t.ruleId));
+  assertEquals(ruleIds.size, 2, "les deux moments partagent une seule règle");
+});
+
+Deno.test("⛔ CE QU'ON MONTRE EST LE TEXTE DE LA PERSONNE, jamais la clé de règle", () => {
+  // `ruleId` porte désormais `texte@moment`. C'est un identifiant; le montrer
+  // ferait lire à la personne une phrase qu'elle n'a pas écrite.
+  const terms = exclusionTermsFor({
+    items: [itemAt("tofu", TOM, "breakfast")],
+    subject: TOM,
+  });
+  const out = dishBitesExclusion({
+    dish: { title: "Tofu grillé", method: "poêle", ingredients: [{ term: "tofu" }] },
+    uses: [],
+    preparationById: new Map(),
+    terms,
+    surface: "ingredients",
+    slot: "breakfast",
+  });
+  assertEquals(out.because, "tofu");
+  assert(!String(out.because).includes("@"), "la clé de règle a fuité vers la personne");
+});
+
+// ===========================================================================
+// 7. ⟳ 2026-09-22 — « MOINS » NE RETIRE RIEN
+// ===========================================================================
+//
+// ── LE DÉFAUT, MESURÉ SUR LE SEUL COMPTE RÉEL ─────────────────────────────
+// « Pas AUTANT de petit suisse le matin » était rangée en `food.exclude`, et
+// cette ceinture en tirait des mots à interdire : l'aliment était retiré de
+// toutes les boîtes, pour toujours. La personne avait demandé MOINS, et ne
+// pouvait s'en apercevoir qu'en remarquant une absence.
+
+function itemForced(text: string, subject: string, force: string | null): RetainedItem {
+  return {
+    kind: "food.exclude", scope: "durable", subject, text, value: null,
+    source: "draft_note", at: "2026-09-01", item: "", confidence: null,
+    quote: text, occasion: null, force,
+  } as unknown as RetainedItem;
+}
+
+Deno.test("⛔ « moins » NE PRODUIT AUCUN MOT À INTERDIRE", () => {
+  const terms = exclusionTermsFor({
+    items: [itemForced("petit suisse", TOM, "less")],
+    subject: TOM,
+  });
+  assertEquals(terms, [], "« moins » arme encore la ceinture: elle retire ce qu'on voulait réduire");
+});
+
+Deno.test("⛔ ET « jamais » EN PRODUIT TOUJOURS — les deux moitiés", () => {
+  // Une garde qui rendrait tout inerte désarmerait la ceinture entière, et
+  // ressemblerait trait pour trait à une garde qui marche.
+  const terms = exclusionTermsFor({
+    items: [itemForced("coriandre", TOM, "never")],
+    subject: TOM,
+  });
+  assert(terms.length > 0, "« jamais » ne mord plus: la ceinture est morte");
+  const out = dishBitesExclusion({
+    dish: { title: "Salade", method: "cru", ingredients: [{ term: "coriandre" }] },
+    uses: [],
+    preparationById: new Map(),
+    terms,
+    surface: "ingredients",
+    slot: null,
+  });
+  assert(out.matched !== null);
+});
+
+Deno.test("⛔ UNE LIGNE SANS FORCE MORD — toute la base d'avant ce lot", () => {
+  // ⛔ LE REPLI VA VERS LA RÈGLE FORTE. Les lignes écrites avant le 2026-09-22
+  // n'ont pas la clé; les lire en « moins » aurait désarmé chaque exclusion
+  // déjà en base, en silence, le jour du déploiement.
+  const terms = exclusionTermsFor({
+    items: [itemForced("saumon", TOM, null)],
+    subject: TOM,
+  });
+  assert(terms.length > 0, "une exclusion d'avant ce lot ne mord plus");
+  assertEquals(bite(terms).matched !== null, true);
+});
+
+Deno.test("⛔ UNE LIGNE « moins » ET UNE LIGNE « jamais » COEXISTENT SANS SE MANGER", () => {
+  // Le dédoublonnage porte sur (mot, texte, moment) — pas sur la force. Deux
+  // règles de forces différentes sur des aliments différents doivent rester
+  // deux règles, et seule la forte doit armer.
+  const terms = exclusionTermsFor({
+    items: [
+      itemForced("petit suisse", TOM, "less"),
+      itemForced("saumon", TOM, "never"),
+    ],
+    subject: TOM,
+  });
+  assertEquals(terms.map((t) => t.because), ["saumon"]);
 });

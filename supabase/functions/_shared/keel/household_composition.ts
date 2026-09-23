@@ -27,7 +27,7 @@ import {
 } from "./meal_envelope.ts";
 import type { MemberAgeState } from "./household.ts";
 import type { MemberGoal, PortionMember } from "./household_portions.ts";
-import type { FoodGroupRef } from "./tokens.ts";
+import type { FoodGroupRef, GoalToken } from "./tokens.ts";
 
 // ---------------------------------------------------------------------------
 // 1. LE VERROU DE LANE — évalué AVANT tout autre calcul
@@ -148,11 +148,31 @@ export function mouthEnvelope(args: {
   accountEnvelope: Envelope | null;
   /** ⚠️ REQUIS. `null` = le corps de la fiche n'est pas renseigné. */
   lineBody: MouthBody | null;
+  /**
+   * ⟳ 2026-09-23 — L'OBJECTIF DE CETTE BOUCHE, POUR SA PROTÉINE SEULEMENT.
+   *
+   * Lu sur une seule branche: l'ADULTE sans compte, dont la fiche achète une
+   * maintenance d'énergie (`maintenanceEnvelopeFromBody`). Son plancher de
+   * protéines suit désormais son objectif — 1,6 g/kg en prise au lieu du 1,2
+   * de la maintenance —, parce qu'un plancher ne restreint rien. L'énergie,
+   * elle, reste une maintenance, et la garde de l'en-tête reste entière.
+   *
+   * ⛔ JAMAIS LU POUR UN MINEUR: `childEnvelopeFromBody` n'accepte aucun
+   * jeton, et `fat_loss` écrit sur la fiche d'un enfant reste inerte. Jamais
+   * lu non plus quand un compte a rendu son enveloppe: elle porte déjà
+   * l'objectif du compte.
+   *
+   * ⚠️ REQUIS, jamais `?`. `null` = aucun objectif lisible ⇒ le plancher de
+   * la maintenance, c'est-à-dire l'enveloppe d'avant ce lot.
+   */
+  lineProteinGoal: GoalToken | null;
 }): Envelope | null {
   if (args.accountEnvelope !== null) return args.accountEnvelope;
   if (args.lineBody === null) return null;
   if (args.ageState === "minor") return childEnvelopeFromBody(args.lineBody);
-  if (args.ageState === "adult") return maintenanceEnvelopeFromBody(args.lineBody);
+  if (args.ageState === "adult") {
+    return maintenanceEnvelopeFromBody(args.lineBody, args.lineProteinGoal);
+  }
   return null;
 }
 
@@ -572,6 +592,17 @@ export function toHouseholdMember(
   member: PortionMember,
   accountEnvelope: Envelope | null,
   lineBody: MouthBody | null,
+  /**
+   * ⟳ 2026-09-23 — L'OBJECTIF QUI FIXE LE PLANCHER DE PROTÉINES D'UNE BOUCHE
+   * SANS COMPTE. Voir `mouthEnvelope`.
+   *
+   * ⛔ PAS `member.goal`. La lane foyer passe son objectif GATÉ (`goalApplies`
+   * pour l'âge inconnu, `goalUnderConditionGate` pour la grossesse): le jeton
+   * brut du roster n'a traversé aucune de ces deux portes. Requis et
+   * positionnel, comme `lineBody`: c'est la casse de compilation qui recense
+   * l'appelant.
+   */
+  lineProteinGoal: GoalToken | null,
 ): HouseholdMember {
   return {
     memberId: member.memberId,
@@ -582,6 +613,7 @@ export function toHouseholdMember(
       ageState: member.ageState,
       accountEnvelope,
       lineBody,
+      lineProteinGoal,
     }),
   };
 }

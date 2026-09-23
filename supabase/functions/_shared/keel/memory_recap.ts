@@ -307,6 +307,53 @@ const FIELD_TITLE: Readonly<Record<string, { fr: string; en: string }>> = {
   // un champ, elle ne sait pas où il est rangé — et c'est ce qui lui permet de
   // servir les deux magasins sans en apprendre un second.
   appetite: { fr: "Appétit", en: "Appetite" },
+  // ⟳ 2026-09-21 — LA TAILLE D'UN MOMENT, déplacée d'une phrase de brouillon
+  // (« le matin c'est plutôt quelque chose de très léger »).
+  //
+  // ⛔ TROIS CHAMPS ET PAS UN, parce que c'est une case PAR MOMENT sur la
+  // fiche: « Repas léger » tout court ne dirait pas lequel, et la personne
+  // devrait aller voir pour savoir ce qui a bougé. Les trois moments sont ceux
+  // de `LIGHT_BEARING_SLOTS` — une collation pèse déjà un dixième de la
+  // journée, la marquer légère demanderait ≈ 40 kcal.
+  light_breakfast: { fr: "Petit-déjeuner", en: "Breakfast" },
+  light_lunch: { fr: "Déjeuner", en: "Lunch" },
+  light_dinner: { fr: "Dîner", en: "Dinner" },
+  // ⟳ 2026-09-23 — LES À-CÔTÉS, déplacés d'une phrase (« il ne prend jamais
+  // de dessert », « pas d'entrée le soir »). Un champ par TYPE et par MOMENT,
+  // pour la raison du « léger »: « Dessert : non » ne dirait pas lequel des
+  // deux repas a bougé.
+  //
+  // ⚠️ ET UN CHAMP PAR TYPE SEUL (`side_dessert`), pour la phrase qui ne nomme
+  // pas le repas: elle déplace le déjeuner ET le dîner, et deux lignes
+  // « Dessert au déjeuner : non » / « Dessert au dîner : non » diraient deux
+  // fois ce que la personne a dit une fois. L'appelant
+  // (`draft_note_classify_io.ts`) ne l'emploie que quand LES DEUX moments ont
+  // réellement bougé.
+  //
+  // ⛔ LES MOTS SONT CEUX DE LA FICHE: « Entrée / Fromage / Dessert / Pain ».
+  side_starter: { fr: "Entrée", en: "Starter" },
+  side_starter_lunch: { fr: "Entrée au déjeuner", en: "Starter at lunch" },
+  side_starter_dinner: { fr: "Entrée au dîner", en: "Starter at dinner" },
+  side_cheese: { fr: "Fromage", en: "Cheese" },
+  side_cheese_lunch: { fr: "Fromage au déjeuner", en: "Cheese at lunch" },
+  side_cheese_dinner: { fr: "Fromage au dîner", en: "Cheese at dinner" },
+  side_dessert: { fr: "Dessert", en: "Dessert" },
+  side_dessert_lunch: { fr: "Dessert au déjeuner", en: "Dessert at lunch" },
+  side_dessert_dinner: { fr: "Dessert au dîner", en: "Dessert at dinner" },
+  side_bread: { fr: "Pain", en: "Bread" },
+  side_bread_lunch: { fr: "Pain au déjeuner", en: "Bread at lunch" },
+  side_bread_dinner: { fr: "Pain au dîner", en: "Bread at dinner" },
+};
+
+/**
+ * ⟳ 2026-09-23 — LA VALEUR D'UN RÉGLAGE D'À-CÔTÉ: « oui » ou « non ».
+ *
+ * ⛔ PAS « jamais » / « toujours ». La fiche dit Oui / Non / Auto, et la ligne
+ * doit dire le mot que la personne retrouvera en cliquant « Voir ».
+ */
+const SIDE_COURSE_VALUE: Readonly<Record<string, { fr: string; en: string }>> = {
+  true: { fr: "oui", en: "yes" },
+  false: { fr: "non", en: "no" },
 };
 
 /**
@@ -350,6 +397,34 @@ const FIELD_VALUE: Readonly<
     average: { fr: "moyen", en: "average" },
     large: { fr: "grand", en: "large" },
   },
+  // ⚠️ « comme d'habitude » ET PAS « normal » POUR `false`. Décocher la case ne
+  // déclare pas un repas normal: ça retire une déclaration. Dire « normal »
+  // ferait lire à quelqu'un qu'on a jugé son dîner, alors qu'on a seulement
+  // cessé de le dire petit.
+  light_breakfast: {
+    true: { fr: "léger", en: "light" },
+    false: { fr: "comme d'habitude", en: "as usual" },
+  },
+  light_lunch: {
+    true: { fr: "léger", en: "light" },
+    false: { fr: "comme d'habitude", en: "as usual" },
+  },
+  light_dinner: {
+    true: { fr: "léger", en: "light" },
+    false: { fr: "comme d'habitude", en: "as usual" },
+  },
+  side_starter: SIDE_COURSE_VALUE,
+  side_starter_lunch: SIDE_COURSE_VALUE,
+  side_starter_dinner: SIDE_COURSE_VALUE,
+  side_cheese: SIDE_COURSE_VALUE,
+  side_cheese_lunch: SIDE_COURSE_VALUE,
+  side_cheese_dinner: SIDE_COURSE_VALUE,
+  side_dessert: SIDE_COURSE_VALUE,
+  side_dessert_lunch: SIDE_COURSE_VALUE,
+  side_dessert_dinner: SIDE_COURSE_VALUE,
+  side_bread: SIDE_COURSE_VALUE,
+  side_bread_lunch: SIDE_COURSE_VALUE,
+  side_bread_dinner: SIDE_COURSE_VALUE,
 };
 
 // ⟳ 2026-09-08 — L'ÉLISION, mesurée sur un vrai accusé: « de équilibré à

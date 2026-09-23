@@ -14,7 +14,7 @@
 //     paramètre que quelqu'un finira par piloter.
 
 import { envelopeDirectionFor } from "./weight_pace.ts";
-import { assert, assertEquals } from "jsr:@std/assert@1";
+import { assert, assertAlmostEquals, assertEquals } from "jsr:@std/assert@1";
 
 import {
   ACTIVITY_FACTOR,
@@ -44,8 +44,17 @@ import {
   type PortionAdjustFor,
   winningPortionAdjust,
   MAINTENANCE_ENVELOPE_DIRECTION,
+  SPORT_SESSIONS_PER_WEEK_LOW,
+  sessionsEdgeFor,
 } from "./meal_envelope.ts";
-import type { MealBodyContext } from "./meal_body.ts";
+import {
+  householdBodyFacts,
+  type MealBodyContext,
+  mealBodyBlocks,
+} from "./meal_body.ts";
+import type { MouthBody } from "./meal_envelope.ts";
+import { type AnchorMouth, maintenanceKcalOf } from "./mouth_anchor.ts";
+import { ageBandOf } from "./student_age.ts";
 import {
   ACTIVITY_LEVELS,
   DAY_ACTIVITY_LEVELS,
@@ -78,7 +87,7 @@ function body(over: Partial<MealBodyContext> = {}): MealBodyContext {
 // ---------------------------------------------------------------------------
 
 Deno.test("le mode per_portion ne PEUT PAS porter d'énergie ni de densité", () => {
-  const degraded = envelopeFor("fat_loss", null, null, true, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION);
+  const degraded = envelopeFor("fat_loss", null, null, true, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION, null);
   assertEquals(degraded.mode, "per_portion");
   // @ts-expect-error — `energy` n'existe pas sur cette branche du type. C'est
   // LA garde de FF-039 R1: il n'y a pas « un champ qu'on prend soin de ne pas
@@ -105,9 +114,9 @@ Deno.test("plancher TCA et corps inconnu rendent la MÊME enveloppe, au caractè
   // passer un champ ajouté six mois plus tard, un `undefined` de plus, ou un
   // mode écrit différemment — et c'est précisément par là qu'un statut de
   // restriction devient observable.
-  const flagged = envelopeFor("fat_loss", body({ restrictionFlag: true }), "30_44", true, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION);
-  const noBody = envelopeFor("fat_loss", null, null, false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION);
-  const noWeight = envelopeFor("fat_loss", body({ latestWeight: null }), "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION);
+  const flagged = envelopeFor("fat_loss", body({ restrictionFlag: true }), "30_44", true, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION, null);
+  const noBody = envelopeFor("fat_loss", null, null, false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION, null);
+  const noWeight = envelopeFor("fat_loss", body({ latestWeight: null }), "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION, null);
   assertEquals(envelopeFingerprint(flagged), envelopeFingerprint(noBody));
   assertEquals(envelopeFingerprint(flagged), envelopeFingerprint(noWeight));
 });
@@ -117,8 +126,8 @@ Deno.test("l'indiscernabilité tient pour TOUTES les dynamiques", () => {
   // l'objectif de l'élève qui deviendrait alors lisible sous flag.
   const prints = new Set<string>();
   for (const goal of GOAL_TOKENS) {
-    prints.add(envelopeFingerprint(envelopeFor(goal, body({ restrictionFlag: true }), "30_44", true, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION)));
-    prints.add(envelopeFingerprint(envelopeFor(goal, null, null, false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION)));
+    prints.add(envelopeFingerprint(envelopeFor(goal, body({ restrictionFlag: true }), "30_44", true, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION, null)));
+    prints.add(envelopeFingerprint(envelopeFor(goal, null, null, false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION, null)));
   }
   assertEquals(prints.size, 1, "les enveloppes dégradées doivent être identiques");
 });
@@ -127,8 +136,8 @@ Deno.test("l'empreinte DISTINGUE deux enveloppes per_kg différentes", () => {
   // Une empreinte qui confond deux états est pire qu'aucune empreinte: c'est
   // un test vert qui ne teste rien. Le piège concret était
   // `JSON.stringify(x, keys)`, qui réduit la bande imbriquée à `{}`.
-  const light = envelopeFor("fat_loss", body({ latestWeight: { weekStart: "w", value: 60 } }), "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION);
-  const heavy = envelopeFor("fat_loss", body({ latestWeight: { weekStart: "w", value: 110 } }), "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION);
+  const light = envelopeFor("fat_loss", body({ latestWeight: { weekStart: "w", value: 60 } }), "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION, null);
+  const heavy = envelopeFor("fat_loss", body({ latestWeight: { weekStart: "w", value: 110 } }), "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION, null);
   assert(envelopeFingerprint(light) !== envelopeFingerprint(heavy));
 });
 
@@ -140,9 +149,9 @@ Deno.test("le déficit ne dépasse JAMAIS 500 kcal/j, même sur un grand gabarit
   // Un très grand gabarit: « M − 25 % » y vaut bien plus que 500 kcal. C'est
   // exactement le cas qu'un pourcentage seul laisserait passer.
   const big = body({ heightCm: 200, latestWeight: { weekStart: "w", value: 140 } });
-  const env = envelopeFor("fat_loss", big, "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION);
+  const env = envelopeFor("fat_loss", big, "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION, null);
   assert(env.mode === "per_kg");
-  const maintenance = estimatedMaintenanceKcal({ activityLevel: null,
+  const maintenance = estimatedMaintenanceKcal({ ageYears: null, sessionsEdge: "mid", activityLevel: null,
     activityAxes: { day: null, sport: null, asked: false },
     appetite: null,
     weightKg: 140,
@@ -161,7 +170,7 @@ Deno.test("le plafond de déficit n'est jamais une consigne de manger MOINS", ()
   // Sur un très petit gabarit, le plafond est plus généreux que la bande. Il
   // est une PROTECTION: dans ce cas c'est la bande qui gagne, jamais l'inverse.
   const small = body({ heightCm: 150, latestWeight: { weekStart: "w", value: 45 } });
-  const env = envelopeFor("fat_loss", small, "18_29", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION);
+  const env = envelopeFor("fat_loss", small, "18_29", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION, null);
   assert(env.mode === "per_kg" && env.energy !== null);
   assert(env.energy!.low <= env.energy!.high);
 });
@@ -186,8 +195,12 @@ Deno.test("le plafond est une CONSTANTE, pas un paramètre", () => {
   // garde optionnel = garde désarmée », épinglée par un nombre.
   // ⟳ 2026-09-09 — DIX: le dixième est `directed`, ce que la balance de la
   // personne fait à sa bande. Voir `envelopeDirectionFor`.
-  assertEquals(envelopeFor.length, 10);
-  assertEquals(MAX_DAILY_DEFICIT_KCAL, 500);
+  // ⟳ 2026-09-23 — ONZE: le onzième est l'âge exact (`exactAgeYears`), qui
+  // remplace le milieu de la bande dans l'équation. Il ne lève pas A1 non plus:
+  // il déplace l'ENTRETIEN, et A1 se pose ensuite sur l'écart.
+  assertEquals(envelopeFor.length, 11);
+  // ⟳ 2026-09-22 — 880 : 0,8 kg/sem, décision produit (500 avant).
+  assertEquals(MAX_DAILY_DEFICIT_KCAL, 880);
 });
 
 // ---------------------------------------------------------------------------
@@ -196,7 +209,7 @@ Deno.test("le plafond est une CONSTANTE, pas un paramètre", () => {
 
 Deno.test("proteinPerMealG est null hors de ses cas", () => {
   for (const goal of ["fat_loss", "maintenance"] as const) {
-    const env = envelopeFor(goal, body(), "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION);
+    const env = envelopeFor(goal, body(), "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION, null);
     assert(env.mode === "per_kg");
     assertEquals(env.proteinPerMealG, null, `${goal} ne doit pas porter de part par repas`);
   }
@@ -209,19 +222,27 @@ Deno.test("proteinPerMealG est null hors de ses cas", () => {
 // d'un « il s'entraîne » que le jeton n'a jamais vérifié. Celui qui s'entraîne
 // pour prendre coche `muscle_gain` et garde les deux.
 Deno.test("les deux cas la portent: 60_plus et muscle_gain", () => {
-  const senior = envelopeFor("maintenance", body({ ageBand: "60_plus" }), "60_plus", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION);
+  const senior = envelopeFor("maintenance", body({ ageBand: "60_plus" }), "60_plus", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION, null);
   assert(senior.mode === "per_kg" && senior.proteinPerMealG !== null);
-  const gain = envelopeFor("muscle_gain", body(), "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION);
+  const gain = envelopeFor("muscle_gain", body(), "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION, null);
   assert(gain.mode === "per_kg" && gain.proteinPerMealG !== null);
 });
 
 Deno.test("le plancher senior ÉLÈVE, il n'abaisse jamais", () => {
-  // 1,2 g/kg est un plancher de sécurité; sur `fat_loss` (2,0) il ne doit pas
-  // faire baisser la protéine d'un senior en déficit.
-  const senior = envelopeFor("fat_loss", body({ ageBand: "60_plus" }), "60_plus", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION);
-  const adult = envelopeFor("fat_loss", body(), "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION);
+  // 1,2 g/kg est un plancher de sécurité; sur un objectif plus exigeant il ne
+  // doit pas faire baisser la protéine d'un senior.
+  //
+  // ⟳ 2026-09-23 — LE CAS PASSE DE `fat_loss` À `muscle_gain`. `fat_loss` vaut
+  // désormais 1,2, exactement le plancher senior: l'égalité ci-dessous serait
+  // restée vraie avec un `Math.max` remplacé par le seul plancher senior, et le
+  // test n'aurait plus rien gardé. `muscle_gain` (1,6) est le seul objectif
+  // au-dessus de 1,2. 80 kg sous l'IMC 30 ⇒ poids de référence 80 pour les
+  // deux: 1,6 × 80 = **128**.
+  const senior = envelopeFor("muscle_gain", body({ ageBand: "60_plus" }), "60_plus", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION, null);
+  const adult = envelopeFor("muscle_gain", body(), "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION, null);
   assert(senior.mode === "per_kg" && adult.mode === "per_kg");
-  assertEquals(senior.proteinFloorG, adult.proteinFloorG);
+  assertEquals(adult.proteinFloorG, 128);
+  assertEquals(senior.proteinFloorG, 128);
 });
 
 // ---------------------------------------------------------------------------
@@ -229,8 +250,8 @@ Deno.test("le plancher senior ÉLÈVE, il n'abaisse jamais", () => {
 // ---------------------------------------------------------------------------
 
 Deno.test("fat_loss porte un plafond de densité plus bas que le reste", () => {
-  const cut = envelopeFor("fat_loss", body(), "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION);
-  const other = envelopeFor("maintenance", body(), "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION);
+  const cut = envelopeFor("fat_loss", body(), "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION, null);
+  const other = envelopeFor("maintenance", body(), "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION, null);
   assert(cut.mode === "per_kg" && other.mode === "per_kg");
   assertEquals(cut.densityCeiling, DENSITY_CEILING_FAT_LOSS);
   assertEquals(other.densityCeiling, DENSITY_CEILING_DEFAULT);
@@ -242,18 +263,18 @@ Deno.test("fat_loss porte un plafond de densité plus bas que le reste", () => {
 // ---------------------------------------------------------------------------
 
 Deno.test("la maintenance rend null dès qu'une entrée manque — jamais un défaut", () => {
-  assertEquals(estimatedMaintenanceKcal({ appetite: null, activityAxes: { day: null, sport: null, asked: false }, activityLevel: null, weightKg: null, heightCm: 175, ageBand: "30_44", gender: "male" }), null);
-  assertEquals(estimatedMaintenanceKcal({ appetite: null, activityAxes: { day: null, sport: null, asked: false }, activityLevel: null, weightKg: 80, heightCm: null, ageBand: "30_44", gender: "male" }), null);
-  assertEquals(estimatedMaintenanceKcal({ appetite: null, activityAxes: { day: null, sport: null, asked: false }, activityLevel: null, weightKg: 80, heightCm: 175, ageBand: null, gender: "male" }), null);
+  assertEquals(estimatedMaintenanceKcal({ ageYears: null, sessionsEdge: "mid", appetite: null, activityAxes: { day: null, sport: null, asked: false }, activityLevel: null, weightKg: null, heightCm: 175, ageBand: "30_44", gender: "male" }), null);
+  assertEquals(estimatedMaintenanceKcal({ ageYears: null, sessionsEdge: "mid", appetite: null, activityAxes: { day: null, sport: null, asked: false }, activityLevel: null, weightKg: 80, heightCm: null, ageBand: "30_44", gender: "male" }), null);
+  assertEquals(estimatedMaintenanceKcal({ ageYears: null, sessionsEdge: "mid", appetite: null, activityAxes: { day: null, sport: null, asked: false }, activityLevel: null, weightKg: 80, heightCm: 175, ageBand: null, gender: "male" }), null);
 });
 
 Deno.test("`other` prend la moyenne des deux constantes, jamais l'une des deux", () => {
   // Choisir serait assigner. La moyenne est la seule réponse qui ne le fait
   // pas — et l'écart entre les deux constantes est du même ordre que
   // l'incertitude du facteur d'activité.
-  const m = estimatedMaintenanceKcal({ appetite: null, activityAxes: { day: null, sport: null, asked: false }, activityLevel: null, weightKg: 80, heightCm: 175, ageBand: "30_44", gender: "male" })!;
-  const f = estimatedMaintenanceKcal({ appetite: null, activityAxes: { day: null, sport: null, asked: false }, activityLevel: null, weightKg: 80, heightCm: 175, ageBand: "30_44", gender: "female" })!;
-  const o = estimatedMaintenanceKcal({ appetite: null, activityAxes: { day: null, sport: null, asked: false }, activityLevel: null, weightKg: 80, heightCm: 175, ageBand: "30_44", gender: "other" })!;
+  const m = estimatedMaintenanceKcal({ ageYears: null, sessionsEdge: "mid", appetite: null, activityAxes: { day: null, sport: null, asked: false }, activityLevel: null, weightKg: 80, heightCm: 175, ageBand: "30_44", gender: "male" })!;
+  const f = estimatedMaintenanceKcal({ ageYears: null, sessionsEdge: "mid", appetite: null, activityAxes: { day: null, sport: null, asked: false }, activityLevel: null, weightKg: 80, heightCm: 175, ageBand: "30_44", gender: "female" })!;
+  const o = estimatedMaintenanceKcal({ ageYears: null, sessionsEdge: "mid", appetite: null, activityAxes: { day: null, sport: null, asked: false }, activityLevel: null, weightKg: 80, heightCm: 175, ageBand: "30_44", gender: "other" })!;
   assert(o > f && o < m);
   // À l'arrondi près: les trois valeurs sont arrondies séparément, et exiger
   // l'égalité exacte ferait un test qui casse sur un changement de facteur
@@ -268,9 +289,9 @@ Deno.test("le plafond de déficit remonte les DEUX bords de la bande", () => {
   // l'enveloppe prescrire un déficit supérieur au plafond sur toute sa
   // largeur — un plafond qui ne mord que d'un côté n'est pas un plafond.
   const big = body({ heightCm: 200, latestWeight: { weekStart: "w", value: 140 } });
-  const env = envelopeFor("fat_loss", big, "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION);
+  const env = envelopeFor("fat_loss", big, "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION, null);
   assert(env.mode === "per_kg" && env.energy !== null);
-  const maintenance = estimatedMaintenanceKcal({ activityLevel: null,
+  const maintenance = estimatedMaintenanceKcal({ ageYears: null, sessionsEdge: "mid", activityLevel: null,
     activityAxes: { day: null, sport: null, asked: false },
     appetite: null,
     weightKg: 140,
@@ -301,7 +322,7 @@ Deno.test("⟳ un corps sans TAILLE garde une bande — par le REPLI, et il est 
   //   raccourci: 80 kg × 28–33 kcal/kg ⇒ 2 250–2 650 (arrondis aux 50),
   //   milieu **2 450**; largeur `fat_loss` = 0,10 ⇒ ±122,5 ⇒ [2 328 ; 2 573].
   //   A1 ne mord pas (2 450 − 500 = 1 950).
-  const env = envelopeFor("fat_loss", body({ heightCm: null }), "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION);
+  const env = envelopeFor("fat_loss", body({ heightCm: null }), "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION, null);
   assert(env.mode === "per_kg");
   assertEquals(env.energy, { low: 2328, high: 2573 });
   assert(env.proteinFloorG > 0);
@@ -310,7 +331,7 @@ Deno.test("⟳ un corps sans TAILLE garde une bande — par le REPLI, et il est 
   // gouverne, et elle rend un autre nombre. Sans cette moitié, un repli qui
   // mordrait sur TOUT LE MONDE ressemblerait trait pour trait à une équation
   // qui marche.
-  const withHeight = envelopeFor("fat_loss", body(), "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION);
+  const withHeight = envelopeFor("fat_loss", body(), "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION, null);
   assert(withHeight.mode === "per_kg" && withHeight.energy !== null);
   assert(
     withHeight.energy!.low !== env.energy!.low,
@@ -331,7 +352,7 @@ Deno.test("sans réponse, RIEN ne bouge: le facteur d'hypothèse est toujours 1,
   };
   const bmr = 10 * 70 + 6.25 * 175 - 5 * 37 + 5;
   assertEquals(
-    estimatedMaintenanceKcal({ appetite: null, activityAxes: { day: null, sport: null, asked: false }, ...b, activityLevel: null }),
+    estimatedMaintenanceKcal({ ageYears: null, sessionsEdge: "mid", appetite: null, activityAxes: { day: null, sport: null, asked: false }, ...b, activityLevel: null }),
     Math.round(bmr * 1.5),
   );
 });
@@ -358,9 +379,9 @@ Deno.test("répondre CHANGE le besoin estimé, dans les deux sens", () => {
     ageBand: "30_44" as const,
     gender: "male" as const,
   };
-  const unknown = estimatedMaintenanceKcal({ appetite: null, activityAxes: { day: null, sport: null, asked: false }, ...b, activityLevel: null })!;
-  const sitting = estimatedMaintenanceKcal({ appetite: null, activityAxes: { day: null, sport: null, asked: false }, ...b, activityLevel: "sedentary" })!;
-  const hard = estimatedMaintenanceKcal({ appetite: null, activityAxes: { day: null, sport: null, asked: false }, ...b, activityLevel: "trains_hard" })!;
+  const unknown = estimatedMaintenanceKcal({ ageYears: null, sessionsEdge: "mid", appetite: null, activityAxes: { day: null, sport: null, asked: false }, ...b, activityLevel: null })!;
+  const sitting = estimatedMaintenanceKcal({ ageYears: null, sessionsEdge: "mid", appetite: null, activityAxes: { day: null, sport: null, asked: false }, ...b, activityLevel: "sedentary" })!;
+  const hard = estimatedMaintenanceKcal({ ageYears: null, sessionsEdge: "mid", appetite: null, activityAxes: { day: null, sport: null, asked: false }, ...b, activityLevel: "trains_hard" })!;
   assert(sitting < unknown, `${sitting} devrait être sous ${unknown}`);
   assert(hard > unknown, `${hard} devrait être au-dessus de ${unknown}`);
   // L'écart entre les deux extrêmes est ce que le produit servait à tort à
@@ -372,8 +393,8 @@ Deno.test("l'activité déplace la BANDE D'ÉNERGIE, pas le plancher protéique"
   // Le plancher protéique est en g/kg de POIDS: il ne dépend pas de ce que la
   // personne fait de sa journée, et le laisser bouger ici serait un second
   // effet que personne n'a demandé.
-  const sitting = envelopeFor("fat_loss", body(), "30_44", false, null, "sedentary", { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION);
-  const hard = envelopeFor("fat_loss", body(), "30_44", false, null, "trains_hard", { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION);
+  const sitting = envelopeFor("fat_loss", body(), "30_44", false, null, "sedentary", { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION, null);
+  const hard = envelopeFor("fat_loss", body(), "30_44", false, null, "trains_hard", { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION, null);
   assert(sitting.mode === "per_kg" && hard.mode === "per_kg");
   assert(sitting.energy !== null && hard.energy !== null);
   assert(hard.energy!.low > sitting.energy!.low);
@@ -387,10 +408,10 @@ Deno.test("⚠️ sous plancher TCA, l'activité ne rend RIEN d'observable", () 
   const prints = new Set<string>();
   for (const level of [null, ...ACTIVITY_LEVELS]) {
     prints.add(envelopeFingerprint(
-      envelopeFor("fat_loss", body({ restrictionFlag: true }), "30_44", true, null, level, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION),
+      envelopeFor("fat_loss", body({ restrictionFlag: true }), "30_44", true, null, level, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION, null),
     ));
     prints.add(envelopeFingerprint(
-      envelopeFor("muscle_gain", null, null, false, null, level, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION),
+      envelopeFor("muscle_gain", null, null, false, null, level, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION, null),
     ));
   }
   assertEquals(prints.size, 1, "l'activité doit être invisible sous flag");
@@ -513,10 +534,10 @@ const AT_THE_FLOOR = body({
 Deno.test("⛔ LE CŒUR DU LOT — un `down`/`clear` sur un corps déjà au plancher ne retire RIEN", () => {
   // ⟳ 2026-09-10 — LE CAS EST LE MÊME, SA MÉCANIQUE A CHANGÉ (encore).
   //   BMR = 10×140 + 6,25×200 − 5×37 + 5 = 2 470  (bande 30_44, milieu 37)
-  //   M   = 2 470 × 1,5 (activité inconnue) = **3 705**, A1 = 3 705 − 500 = 3 205
-  //   0,5 kg/sem = 550 kcal/j, ÉCRÊTÉ à 500 ⇒ cible 3 205
-  //   largeur `fat_loss` = 0,10 de M ⇒ ±185,25 ⇒ [3 020 ; 3 390], puis A1
-  //   remonte le bas à 3 205: la bande est **exactement à son plancher**.
+  //   M   = 2 470 × 1,5 (activité inconnue) = **3 705**, A1 = 3 705 − 880 = 2 825
+  //   ⟳ 2026-09-22 — A1 vaut 880 kcal/j : 0,8 kg/sem = 880 kcal/j ⇒ cible 2 825
+  //   largeur `fat_loss` = 0,10 de M ⇒ ±185,25 ⇒ [2 640 ; 3 010], puis A1
+  //   remonte le bas à 2 825: la bande est **exactement à son plancher**.
   //
   // ⛔ LE CRAN PAR DÉFAUT NE SUFFIT PLUS À Y ARRIVER, ET C'EST POURQUOI CE TEST
   // RÈGLE LE CURSEUR. À 0,25 kg/sem l'écart exécuté vaut 275 kcal, la bande sort
@@ -538,6 +559,9 @@ Deno.test("⛔ LE CŒUR DU LOT — un `down`/`clear` sur un corps déjà au plan
         heightCm: 200,
         weightKg: 140,
         gender: "male",
+        // ⟳ 2026-09-23 — 37 EST le milieu de 30_44: l'âge exact lu ici et le
+        // `null` passé à `envelopeFor` ci-dessous rendent le MÊME entretien
+        // (3 705). Changer l'un sans l'autre ferait juger deux corps.
         ageYears: 37,
         activityLevel: null,
         activityAxes: { day: null, sport: null, asked: false },
@@ -545,11 +569,11 @@ Deno.test("⛔ LE CŒUR DU LOT — un `down`/`clear` sur un corps déjà au plan
       },
       isMinor: false,
     },
-    paceKgPerWeek: 0.5,
+    paceKgPerWeek: 0.8,
   });
-  const before = envelopeFor("fat_loss", AT_THE_FLOOR, "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, atTheFloorDirection);
+  const before = envelopeFor("fat_loss", AT_THE_FLOOR, "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, atTheFloorDirection, null);
   assert(before.mode === "per_kg");
-  assertEquals(before.energy, { low: 3205, high: 3390 });
+  assertEquals(before.energy, { low: 2825, high: 3010 });
 
   const after = envelopeFor(
     "fat_loss",
@@ -562,18 +586,19 @@ Deno.test("⛔ LE CŒUR DU LOT — un `down`/`clear` sur un corps déjà au plan
     null,
     forMouth("adult", [adjust({ direction: "down", magnitude: "clear" })]),
     atTheFloorDirection,
+    null,
   );
   assert(after.mode === "per_kg");
   // PAS UN GRAMME, NI EN BAS NI EN HAUT. Sans la garde, ce serait 2 885–3 051 —
   // c'est-à-dire A1 outrepassé par un adverbe, et sur les deux bords.
-  assertEquals(after.energy, { low: 3205, high: 3390 });
+  assertEquals(after.energy, { low: 2825, high: 3010 });
   assertEquals(envelopeFingerprint(after), envelopeFingerprint(before));
 });
 
 Deno.test("⛔ aucune dynamique ne laisse un `down` creuser au-delà de A1", () => {
   // La contre-épreuve générale: le plancher n'est pas une propriété de
   // `fat_loss`, il est la ceinture de toutes les bandes.
-  const maintenance = estimatedMaintenanceKcal({
+  const maintenance = estimatedMaintenanceKcal({ ageYears: null, sessionsEdge: "mid",
     appetite: null,
     weightKg: 140,
     heightCm: 200,
@@ -593,7 +618,7 @@ Deno.test("⛔ aucune dynamique ne laisse un `down` creuser au-delà de A1", () 
       { day: null, sport: null, asked: false },
       null,
       forMouth("adult", [adjust({ direction: "down", magnitude: "clear" })]),
-    MAINTENANCE_ENVELOPE_DIRECTION
+    MAINTENANCE_ENVELOPE_DIRECTION, null
   );
     assert(env.mode === "per_kg" && env.energy !== null);
     assert(
@@ -610,7 +635,7 @@ Deno.test("les DEUX crans rendent deux effets différents ET ordonnés", () => {
   //   direction nulle ⇒ cible = M ; largeur `maintenance` = 1,05 − 0,95 = 0,10
   //   ⇒ ±128,55 ⇒ **2 442–2 700**, plancher A1 = 2 071. La bande est LOIN du
   //   plancher: c'est là que les deux crans doivent se distinguer.
-  const base = envelopeFor("maintenance", body(), "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION);
+  const base = envelopeFor("maintenance", body(), "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION, null);
   assert(base.mode === "per_kg");
   assertEquals(base.energy, { low: 2442, high: 2700 });
 
@@ -625,7 +650,7 @@ Deno.test("les DEUX crans rendent deux effets différents ET ordonnés", () => {
       { day: null, sport: null, asked: false },
       null,
       forMouth("adult", [adjust({ direction, magnitude })]),
-    MAINTENANCE_ENVELOPE_DIRECTION
+    MAINTENANCE_ENVELOPE_DIRECTION, null
   );
     assert(env.mode === "per_kg");
     return env.energy;
@@ -658,7 +683,7 @@ Deno.test("⚠️ `null` DÉSARME: l'enveloppe d'avant le lot, au nombre près",
   // La condition de désarmement. Toute la base est à `null` aujourd'hui (le
   // seul producteur de `portion.adjust` est le questionnaire, qui n'existe pas
   // encore), et elle doit produire EXACTEMENT ce qu'elle produisait.
-  const none = envelopeFor("maintenance", body(), "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION);
+  const none = envelopeFor("maintenance", body(), "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION, null);
   const empty = envelopeFor(
     "maintenance",
     body(),
@@ -669,7 +694,7 @@ Deno.test("⚠️ `null` DÉSARME: l'enveloppe d'avant le lot, au nombre près",
     { day: null, sport: null, asked: false },
     null,
     forMouth("adult", []),
-  MAINTENANCE_ENVELOPE_DIRECTION
+  MAINTENANCE_ENVELOPE_DIRECTION, null
 );
   assert(none.mode === "per_kg");
   assertEquals(none.energy, { low: 2442, high: 2700 });
@@ -696,7 +721,7 @@ Deno.test("⛔ un MINEUR ne voit pas son assiette réduite — et un ADULTE, si"
       { day: null, sport: null, asked: false },
       null,
       forMouth(ageState, down),
-    MAINTENANCE_ENVELOPE_DIRECTION
+    MAINTENANCE_ENVELOPE_DIRECTION, null
   );
     assert(env.mode === "per_kg");
     return env.energy;
@@ -727,7 +752,7 @@ Deno.test("à la HAUSSE, personne n'est retiré — pas même un mineur", () => 
     { day: null, sport: null, asked: false },
     null,
     forMouth("minor", [adjust({ direction: "up", magnitude: "clear" })], KID_ID),
-  MAINTENANCE_ENVELOPE_DIRECTION
+  MAINTENANCE_ENVELOPE_DIRECTION, null
 );
   assert(env.mode === "per_kg");
   assertEquals(env.energy, { low: 2686, high: 2970 });
@@ -752,7 +777,7 @@ Deno.test("un sujet EXPLICITE n'est jamais filtré, même sur un mineur", () => 
       [adjust({ direction: "down", magnitude: "clear", subject: `member:${KID_ID}` })],
       KID_ID,
     ),
-  MAINTENANCE_ENVELOPE_DIRECTION
+  MAINTENANCE_ENVELOPE_DIRECTION, null
 );
   assert(env.mode === "per_kg");
   assertEquals(env.energy, { low: 2198, high: 2430 });
@@ -773,7 +798,7 @@ Deno.test("un ajustement qui vise une AUTRE bouche ne touche pas celle-ci", () =
       [adjust({ direction: "down", magnitude: "clear", subject: `member:${KID_ID}` })],
       ADULT_ID,
     ),
-  MAINTENANCE_ENVELOPE_DIRECTION
+  MAINTENANCE_ENVELOPE_DIRECTION, null
 );
   assert(env.mode === "per_kg");
   assertEquals(env.energy, { low: 2442, high: 2700 });
@@ -815,7 +840,7 @@ Deno.test("M3 — deux `slight` font un cran de plus, et ATTEIGNENT le pire cas"
       adjust({ direction: "down", magnitude: "slight", at: "2026-08-10" }),
       adjust({ direction: "down", magnitude: "slight", at: "2026-08-17" }),
     ]),
-  MAINTENANCE_ENVELOPE_DIRECTION
+  MAINTENANCE_ENVELOPE_DIRECTION, null
 );
   assert(env.mode === "per_kg");
   // −2 crans × 0,05 = −0,10, c'est-à-dire EXACTEMENT ce qu'un seul `clear`
@@ -831,7 +856,7 @@ Deno.test("M3 — deux `slight` font un cran de plus, et ATTEIGNENT le pire cas"
     { day: null, sport: null, asked: false },
     null,
     forMouth("adult", [adjust({ direction: "down", magnitude: "clear" })]),
-  MAINTENANCE_ENVELOPE_DIRECTION
+  MAINTENANCE_ENVELOPE_DIRECTION, null
 );
   assert(clearOnce.mode === "per_kg");
   assertEquals(env.energy, clearOnce.energy);
@@ -848,7 +873,7 @@ Deno.test("⛔ M3 — LA BORNE MORD: quatre `down` ne descendent pas plus bas qu
       adjust({ direction: "down", magnitude: "slight", at: "2026-08-10" }),
       adjust({ direction: "down", magnitude: "slight", at: "2026-08-11" }),
     ]),
-  MAINTENANCE_ENVELOPE_DIRECTION
+  MAINTENANCE_ENVELOPE_DIRECTION, null
 );
   const six = envelopeFor(
     "maintenance", body(), "30_44", false, null, null,
@@ -858,7 +883,7 @@ Deno.test("⛔ M3 — LA BORNE MORD: quatre `down` ne descendent pas plus bas qu
       adjust({ direction: "down", magnitude: "clear", at: "2026-08-11" }),
       adjust({ direction: "down", magnitude: "clear", at: "2026-08-12" }),
     ]),
-  MAINTENANCE_ENVELOPE_DIRECTION
+  MAINTENANCE_ENVELOPE_DIRECTION, null
 );
   assert(two.mode === "per_kg" && six.mode === "per_kg");
   assertEquals(six.energy, two.energy, "la borne basse ne tient pas");
@@ -875,13 +900,13 @@ Deno.test("M3 — deux réponses OPPOSÉES s'annulent: c'est ça, converger", ()
       adjust({ direction: "down", magnitude: "clear", at: "2026-08-10" }),
       adjust({ direction: "up", magnitude: "slight", at: "2026-08-17" }),
     ]),
-  MAINTENANCE_ENVELOPE_DIRECTION
+  MAINTENANCE_ENVELOPE_DIRECTION, null
 );
   const oneDown = envelopeFor(
     "maintenance", body(), "30_44", false, null, null,
     { day: null, sport: null, asked: false }, null,
     forMouth("adult", [adjust({ direction: "down", magnitude: "slight" })]),
-  MAINTENANCE_ENVELOPE_DIRECTION
+  MAINTENANCE_ENVELOPE_DIRECTION, null
 );
   assert(env.mode === "per_kg" && oneDown.mode === "per_kg");
   assertEquals(env.energy, oneDown.energy);
@@ -895,13 +920,13 @@ Deno.test("M3 — deux réponses OPPOSÉES s'annulent: c'est ça, converger", ()
       adjust({ direction: "down", magnitude: "slight", at: "2026-08-10" }),
       adjust({ direction: "up", magnitude: "slight", at: "2026-08-17" }),
     ]),
-  MAINTENANCE_ENVELOPE_DIRECTION
+  MAINTENANCE_ENVELOPE_DIRECTION, null
 );
   const none = envelopeFor(
     "maintenance", body(), "30_44", false, null, null,
     { day: null, sport: null, asked: false }, null,
     forMouth("adult", []),
-  MAINTENANCE_ENVELOPE_DIRECTION
+  MAINTENANCE_ENVELOPE_DIRECTION, null
 );
   assert(cancelled.mode === "per_kg" && none.mode === "per_kg");
   assertEquals(cancelled.energy, none.energy);
@@ -965,7 +990,7 @@ Deno.test("un `portion.adjust` déplace la BANDE, et RIEN d'autre", () => {
   // gros » n'est pas « moins de protéine par kilo ». Le plafond de densité est
   // une pression de minimisation: le resserrer en même temps compterait la même
   // remarque deux fois.
-  const base = envelopeFor("muscle_gain", body(), "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION);
+  const base = envelopeFor("muscle_gain", body(), "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION, null);
   const cut = envelopeFor(
     "muscle_gain",
     body(),
@@ -976,7 +1001,7 @@ Deno.test("un `portion.adjust` déplace la BANDE, et RIEN d'autre", () => {
     { day: null, sport: null, asked: false },
     null,
     forMouth("adult", [adjust({ direction: "down", magnitude: "clear" })]),
-  MAINTENANCE_ENVELOPE_DIRECTION
+  MAINTENANCE_ENVELOPE_DIRECTION, null
 );
   assert(base.mode === "per_kg" && cut.mode === "per_kg");
   // 80 kg × 1,6 g/kg = 128 g, et 128 / 3 prises ≈ 43 g. Écrits en dur.
@@ -998,16 +1023,16 @@ Deno.test("⛔ SOUS PLANCHER TCA, un `down`/`clear` ne rend RIEN d'observable", 
       for (const direction of ["down", "up"] as const) {
         const portion = forMouth(ageState, [adjust({ direction, magnitude })]);
         prints.add(envelopeFingerprint(
-          envelopeFor("fat_loss", body({ restrictionFlag: true }), "30_44", true, null, null, { day: null, sport: null, asked: false }, null, portion, MAINTENANCE_ENVELOPE_DIRECTION),
+          envelopeFor("fat_loss", body({ restrictionFlag: true }), "30_44", true, null, null, { day: null, sport: null, asked: false }, null, portion, MAINTENANCE_ENVELOPE_DIRECTION, null),
         ));
         prints.add(envelopeFingerprint(
-          envelopeFor("muscle_gain", null, null, false, null, null, { day: null, sport: null, asked: false }, null, portion, MAINTENANCE_ENVELOPE_DIRECTION),
+          envelopeFor("muscle_gain", null, null, false, null, null, { day: null, sport: null, asked: false }, null, portion, MAINTENANCE_ENVELOPE_DIRECTION, null),
         ));
       }
     }
   }
   prints.add(envelopeFingerprint(
-    envelopeFor("fat_loss", null, null, false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION),
+    envelopeFor("fat_loss", null, null, false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION, null),
   ));
   assertEquals(prints.size, 1, "un ajustement doit être invisible sous flag");
 });
@@ -1028,11 +1053,13 @@ Deno.test("sans bande d'énergie, un ajustement ne fabrique rien", () => {
     { day: null, sport: null, asked: false },
     null,
     forMouth("adult", [adjust({ direction: "down", magnitude: "clear" })]),
-  MAINTENANCE_ENVELOPE_DIRECTION
+  MAINTENANCE_ENVELOPE_DIRECTION, null
 );
   assert(env.mode === "per_kg");
   assertEquals(env.energy, null);
-  assertEquals(env.proteinFloorG, 160);
+  // ⟳ 2026-09-23 — 80 kg × 1,2 g/kg (`fat_loss`, 1,4 avant ce jour) = 96.
+  // Écrit en dur.
+  assertEquals(env.proteinFloorG, 96);
 });
 
 // ---------------------------------------------------------------------------
@@ -1059,7 +1086,7 @@ Deno.test("② la table de croisement est DÉRIVÉE, pas tabulée", () => {
       const expected = DAY_ACTIVITY_BASE[day] +
         SPORT_PAL_PER_WEEKLY_SESSION * SPORT_SESSIONS_PER_WEEK[sport];
       assertEquals(
-        crossedActivityFactor(day, sport),
+        crossedActivityFactor(day, sport, "mid"),
         Math.round(expected * 100) / 100,
       );
     }
@@ -1079,8 +1106,8 @@ Deno.test("⛔ ② LE CAS QUI A MOTIVÉ LE LOT — journée assise + 2-3 séance
   // L'ancien formulaire l'obligeait à choisir, elle cochait `trains_some`, et
   // elle héritait de 1,80. « 2 à 3 » est à cheval sur deux bandes; les DEUX
   // doivent encadrer 1,60, et AUCUNE ne doit atteindre 1,80.
-  const low = crossedActivityFactor("seated", "1_2");
-  const high = crossedActivityFactor("seated", "3_4");
+  const low = crossedActivityFactor("seated", "1_2", "mid");
+  const high = crossedActivityFactor("seated", "3_4", "mid");
   assert(low < 1.60 && high > 1.60, `1,60 hors de [${low}, ${high}]`);
   assert(high < ACTIVITY_FACTORS.trains_some, "le défaut de 1,80 n'a pas bougé");
   // L'écart mesuré, celui qui fabriquait 239 kcal/jour.
@@ -1093,7 +1120,7 @@ Deno.test("② aucune case du croisement ne sort des bandes FAO/WHO/UNU 2004", (
   // travail de force huit heures par jour, pas cinq séances par semaine.
   for (const day of DAY_ACTIVITY_LEVELS) {
     for (const sport of SPORT_FREQUENCIES) {
-      const pal = crossedActivityFactor(day, sport);
+      const pal = crossedActivityFactor(day, sport, "mid");
       assert(pal >= 1.40, `${day} x ${sport} = ${pal} sous le plancher FAO`);
       assert(pal <= 2.20, `${day} x ${sport} = ${pal} trop haut`);
     }
@@ -1103,11 +1130,11 @@ Deno.test("② aucune case du croisement ne sort des bandes FAO/WHO/UNU 2004", (
 Deno.test("⛔ ② LE REPLI EST NEUTRE — une fiche muette rend le nombre d'hier", () => {
   // La contre-épreuve du lot: rien de ce qui n'a pas répondu ne doit bouger.
   for (const level of ACTIVITY_LEVELS) {
-    const got = activityFactorOf(NO_AXES, level);
+    const got = activityFactorOf(NO_AXES, level, "mid");
     assertEquals(got.factor, ACTIVITY_FACTORS[level]);
     assertEquals(got.source, "legacy");
   }
-  const none = activityFactorOf(NO_AXES, null);
+  const none = activityFactorOf(NO_AXES, null, "mid");
   assertEquals(none.factor, ACTIVITY_FACTOR);
   assertEquals(none.source, "assumed");
 });
@@ -1120,9 +1147,9 @@ Deno.test("⛔ ② UN SEUL AXE NE FABRIQUE RIEN — le cran d'avant reprend la m
   const sportOnly: ActivityAxes = { day: null, sport: "5_plus", asked: true };
   for (const axes of [dayOnly, sportOnly]) {
     assertEquals(activityAnswerState(axes), "partial");
-    assertEquals(activityFactorOf(axes, "trains_some").source, "legacy");
+    assertEquals(activityFactorOf(axes, "trains_some", "mid").source, "legacy");
     assertEquals(
-      activityFactorOf(axes, "trains_some").factor,
+      activityFactorOf(axes, "trains_some", "mid").factor,
       ACTIVITY_FACTORS.trains_some,
     );
   }
@@ -1147,8 +1174,8 @@ Deno.test("② `none` EST UNE RÉPONSE, et elle pèse", () => {
   // « Je ne fais pas de sport » n'est pas « je n'ai pas répondu ». La première
   // gouverne le croisement; la seconde retombe sur le cran.
   const answered: ActivityAxes = { day: "seated", sport: "none", asked: true };
-  assertEquals(activityFactorOf(answered, "trains_hard").source, "crossed");
-  assertEquals(activityFactorOf(answered, "trains_hard").factor, 1.45);
+  assertEquals(activityFactorOf(answered, "trains_hard", "mid").source, "crossed");
+  assertEquals(activityFactorOf(answered, "trains_hard", "mid").factor, 1.45);
 });
 
 Deno.test("⛔ ② LE PLANCHER DE L'ENFANT SURVIT AUX DEUX AXES", () => {
@@ -1176,12 +1203,12 @@ Deno.test("⛔ ② LES AXES ATTEIGNENT VRAIMENT L'ÉQUATION D'ENTRETIEN", () => 
     // ⑤ — neutre vrai: ce test mesure les DEUX AXES, pas l'appétit.
     appetite: null,
   };
-  const legacy = estimatedMaintenanceKcal({
+  const legacy = estimatedMaintenanceKcal({ ageYears: null, sessionsEdge: "mid",
     ...common,
     activityLevel: "trains_some",
     activityAxes: NO_AXES,
   })!;
-  const crossed = estimatedMaintenanceKcal({
+  const crossed = estimatedMaintenanceKcal({ ageYears: null, sessionsEdge: "mid",
     ...common,
     activityLevel: "trains_some",
     activityAxes: { day: "seated", sport: "1_2", asked: true },
@@ -1243,12 +1270,12 @@ Deno.test("⛔ ⑤ L'APPÉTIT NE DÉPLACE PLUS L'ENTRETIEN ADULTE — un seul no
     activityLevel: null,
     activityAxes: NO_AXES,
   };
-  const small = estimatedMaintenanceKcal({ ...common, appetite: "small" })!;
-  const average = estimatedMaintenanceKcal({ ...common, appetite: "average" })!;
-  const large = estimatedMaintenanceKcal({ ...common, appetite: "large" })!;
+  const small = estimatedMaintenanceKcal({ ageYears: null, sessionsEdge: "mid", ...common, appetite: "small" })!;
+  const average = estimatedMaintenanceKcal({ ageYears: null, sessionsEdge: "mid", ...common, appetite: "average" })!;
+  const large = estimatedMaintenanceKcal({ ageYears: null, sessionsEdge: "mid", ...common, appetite: "large" })!;
   assertEquals(small, average, "un petit appétit fait encore baisser l'entretien");
   assertEquals(large, average, "un gros appétit fait encore monter l'entretien");
-  assertEquals(estimatedMaintenanceKcal({ ...common, appetite: null }), average);
+  assertEquals(estimatedMaintenanceKcal({ ageYears: null, sessionsEdge: "mid", ...common, appetite: null }), average);
   // ⛔ ET LA TABLE, ELLE, N'EST PAS MORTE: elle a changé de lecteur. Une table
   // à 1,00 partout ferait passer ce test ET désarmerait la masse — c'est
   // pourquoi la contre-épreuve est ici, à côté du renversement.
@@ -1288,11 +1315,11 @@ Deno.test("⛔ ⑤ LE PLANCHER TCA RESTE DESSOUS — mesuré, pas raisonné", ()
   const nothing = envelopeFor(
     "fat_loss", under, "18_29", /* restrictionFlag */ true, null, null, NO_AXES,
     "small", null,
-  MAINTENANCE_ENVELOPE_DIRECTION
+  MAINTENANCE_ENVELOPE_DIRECTION, null
 );
   const same = envelopeFor(
     "fat_loss", under, "18_29", true, null, null, NO_AXES, "large", null,
-  MAINTENANCE_ENVELOPE_DIRECTION
+  MAINTENANCE_ENVELOPE_DIRECTION, null
 );
   assertEquals(nothing, same, "sous plancher TCA, l'appétit déplace quelque chose");
   // ⛔ `per_portion` NE PORTE PAS D'ÉNERGIE — le TYPE le dit, pas une lecture.
@@ -1328,4 +1355,273 @@ Deno.test("⛔ ⑤ IL EST ÉCRIT TRANSITOIRE, ET LE TEST TIENT LA PHRASE", () =>
   const block = SOURCE.slice(SOURCE.indexOf("⑤ L'APPÉTIT"));
   assert(/TRANSITOIRE/.test(block.slice(0, 3000)), "la date de péremption a disparu");
   assert(/lot ⑦/.test(block.slice(0, 3000)), "ce qui le remplace n'est plus nommé");
+});
+
+
+// ── ⟳ 2026-09-21 — LE BAS DE LA BANDE, POUR LE MAINTIEN ────────────────────
+Deno.test("bord de bande — un maintien lit le bas, une perte et une prise le milieu", () => {
+  assertEquals(SPORT_SESSIONS_PER_WEEK_LOW, { none: 0, "1_2": 1, "3_4": 3, "5_plus": 5 });
+  assertEquals(sessionsEdgeFor("maintenance"), "low");
+  assertEquals(sessionsEdgeFor(null), "low");
+  assertEquals(sessionsEdgeFor("fat_loss"), "mid");
+  assertEquals(sessionsEdgeFor("muscle_gain"), "mid");
+  // Le corps de Christèle (plan `3e121b21`): assise, 3-4 séances.
+  assertEquals(crossedActivityFactor("seated", "3_4", "mid"), 1.63);
+  assertEquals(crossedActivityFactor("seated", "3_4", "low"), 1.6);
+  assertEquals(crossedActivityFactor("seated", "none", "low"), 1.45, "sans sport, les deux bords se confondent");
+  assertEquals(crossedActivityFactor("physical_job", "5_plus", "low"), 2.1);
+  // Et l'entretien d'un maintien descend d'autant: 1 200 × (1,63 − 1,60) = 36 kcal.
+  const body = {
+    weightKg: 58,
+    heightCm: 169,
+    ageBand: "45_59" as const,
+    gender: "female" as const,
+    activityLevel: null,
+    activityAxes: { day: "seated" as const, sport: "3_4" as const, asked: true },
+    appetite: null,
+  };
+  const mid = estimatedMaintenanceKcal({ ageYears: null, ...body, sessionsEdge: "mid" })!;
+  const low = estimatedMaintenanceKcal({ ageYears: null, ...body, sessionsEdge: "low" })!;
+  assert(mid > low, `${mid} > ${low}`);
+  // L'entretien est arrondi au kcal: 36,5 attendus, 37 rendus.
+  assertAlmostEquals(mid - low, (10 * 58 + 6.25 * 169 - 5 * 52 - 161) * 0.03, 1);
+});
+
+// ---------------------------------------------------------------------------
+// ⟳ 2026-09-23 · L'ÂGE EXACT REMPLACE LE MILIEU DE LA BANDE — DANS L'ÉQUATION
+// SEULEMENT
+// ---------------------------------------------------------------------------
+//
+// Décision du propriétaire, défaut calculé par l'audit du jour
+// (`docs/keel/AUDIT-DOSAGES-2026-09-23.md`, Q8): un homme de 59 ans était
+// compté 52 ans (milieu de `45_59`), et le jour de ses 60 ans il sautait au
+// milieu de la bande suivante (67 ans) — 15 ans d'un coup, soit 75 kcal de
+// métabolisme de base avant le facteur d'activité. À l'âge exact, un
+// anniversaire retire 5 kcal de métabolisme de base, et rien ne saute.
+//
+// ⛔ L'ÂGE EXACT NE SORT PAS DE L'ÉQUATION: les consignes impriment la BANDE.
+// Le dernier test de ce bloc tient cette moitié.
+//
+// Tous les nombres sont faits À LA MAIN, sur le corps de Fabrice (93 kg,
+// 173 cm, homme), activité inconnue (×1,5), aucun axe, aucun appétit:
+//   base commune = 10 × 93 + 6,25 × 173 + 5 = 2 016,25
+//   milieu 52 ans : (2 016,25 − 260) × 1,5 = 2 634,375 ⇒ 2 634
+//   59 ans        : (2 016,25 − 295) × 1,5 = 2 581,875 ⇒ 2 582
+//   60 ans        : (2 016,25 − 300) × 1,5 = 2 574,375 ⇒ 2 574
+//   milieu 67 ans : (2 016,25 − 335) × 1,5 = 2 521,875 ⇒ 2 522
+
+const FABRICE_EQUATION = {
+  weightKg: 93,
+  heightCm: 173,
+  gender: "male" as const,
+  activityLevel: null,
+  activityAxes: { day: null, sport: null, asked: false },
+  appetite: null,
+  sessionsEdge: "mid" as const,
+};
+
+Deno.test("⟳ âge exact — 59 ans contre la bande 45_59: −35 kcal de métabolisme × 1,5", () => {
+  // LE CAS QUI PASSE: sans âge, le nombre d'avant ce lot, au kcal près.
+  assertEquals(
+    estimatedMaintenanceKcal({ ...FABRICE_EQUATION, ageBand: "45_59", ageYears: null }),
+    2634,
+  );
+  // LE CAS QUI MORD: 7 ans de plus que le milieu ⇒ 35 kcal de métabolisme,
+  // × 1,5 = 52,5 ⇒ 2 582.
+  assertEquals(
+    estimatedMaintenanceKcal({ ...FABRICE_EQUATION, ageBand: "45_59", ageYears: 59 }),
+    2582,
+  );
+  // Et l'écart suit le FACTEUR D'ACTIVITÉ, pas un forfait: assis (×1,45),
+  //   (2 016,25 − 260) × 1,45 = 2 546,5625 ⇒ 2 547
+  //   (2 016,25 − 295) × 1,45 = 2 495,8125 ⇒ 2 496   (écart 35 × 1,45 = 50,75)
+  assertEquals(
+    estimatedMaintenanceKcal({
+      ...FABRICE_EQUATION,
+      activityLevel: "sedentary",
+      ageBand: "45_59",
+      ageYears: null,
+    }),
+    2547,
+  );
+  assertEquals(
+    estimatedMaintenanceKcal({
+      ...FABRICE_EQUATION,
+      activityLevel: "sedentary",
+      ageBand: "45_59",
+      ageYears: 59,
+    }),
+    2496,
+  );
+});
+
+Deno.test("⟳ âge exact — le jour des 60 ans ne retire plus 112 kcal, il en retire 8", () => {
+  const at59 = estimatedMaintenanceKcal({ ...FABRICE_EQUATION, ageBand: "45_59", ageYears: 59 })!;
+  const at60 = estimatedMaintenanceKcal({ ...FABRICE_EQUATION, ageBand: "60_plus", ageYears: 60 })!;
+  assertEquals(at60, 2574);
+  // Un anniversaire: 5 kcal × 1,5 = 7,5 ⇒ 8 après les deux arrondis.
+  assertEquals(at59 - at60, 8);
+  // Le saut d'avant, qu'on garde écrit pour qu'il ne revienne pas en silence:
+  // 52 → 67 ans d'un coup, 75 × 1,5 = 112,5 ⇒ 112.
+  const midBefore = estimatedMaintenanceKcal({ ...FABRICE_EQUATION, ageBand: "45_59", ageYears: null })!;
+  const midAfter = estimatedMaintenanceKcal({ ...FABRICE_EQUATION, ageBand: "60_plus", ageYears: null })!;
+  assertEquals(midAfter, 2522);
+  assertEquals(midBefore - midAfter, 112);
+});
+
+Deno.test("⛔ âge exact — la BANDE reste la porte, et un âge qui la contredit n'est pas cru", () => {
+  // Pas de bande ⇒ pas d'équation, âge exact ou pas. C'est la bande qui dit
+  // « adulte »; un nombre d'années seul ne rouvre pas le chemin.
+  assertEquals(
+    estimatedMaintenanceKcal({ ...FABRICE_EQUATION, ageBand: null, ageYears: 40 }),
+    null,
+  );
+  // 61 ans à côté d'une bande 45_59: deux sources en désaccord ⇒ le milieu
+  // de la bande, le nombre d'avant (2 634), jamais 61 ans (2 572).
+  assertEquals(
+    estimatedMaintenanceKcal({ ...FABRICE_EQUATION, ageBand: "45_59", ageYears: 61 }),
+    2634,
+  );
+  // ⛔ Un âge de MINEUR à côté d'une bande d'adulte: Mifflin-St Jeor ne lit
+  // jamais 16 ans. Milieu de 18_29 (24 ans): (2 016,25 − 120) × 1,5
+  // = 2 844,375 ⇒ 2 844 — et pas 2 904, ce que 16 ans aurait rendu.
+  assertEquals(
+    estimatedMaintenanceKcal({ ...FABRICE_EQUATION, ageBand: "18_29", ageYears: 16 }),
+    2844,
+  );
+});
+
+Deno.test("⟳ âge exact — `envelopeFor` le passe à l'ÉNERGIE, jamais à la protéine", () => {
+  // Le banc de ce fichier (80 kg, 175 cm, homme), en bande 45_59, maintien:
+  //   milieu 52 : (800 + 1 093,75 − 260 + 5) × 1,5 = 2 458,125 ⇒ 2 458
+  //               ⇒ round(2 458 × 0,95) – round(2 458 × 1,05) = 2 335 – 2 581
+  //   59 ans    : (800 + 1 093,75 − 295 + 5) × 1,5 = 2 405,625 ⇒ 2 406
+  //               ⇒ round(2 406 × 0,95) – round(2 406 × 1,05) = 2 286 – 2 526
+  const at = (exactAgeYears: number | null) =>
+    envelopeFor(
+      "maintenance", body({ ageBand: "45_59" }), "45_59", false, null, null,
+      { day: null, sport: null, asked: false }, null, null,
+      MAINTENANCE_ENVELOPE_DIRECTION, exactAgeYears,
+    );
+  const mid = at(null);
+  const exact = at(59);
+  assert(mid.mode === "per_kg" && exact.mode === "per_kg");
+  assertEquals(mid.energy, { low: 2335, high: 2581 });
+  assertEquals(exact.energy, { low: 2286, high: 2526 });
+  // 1,2 × 80 = 96 dans les deux: l'âge exact ne touche pas au plancher.
+  assertEquals(mid.proteinFloorG, 96);
+  assertEquals(exact.proteinFloorG, 96);
+
+  // ⛔ ET SANS BANDE, L'ÂGE EXACT NE FABRIQUE RIEN: le repli au poids
+  // gouverne, à l'identique.
+  const noBand = (exactAgeYears: number | null) =>
+    envelopeFor(
+      "maintenance", body({ ageBand: null }), null, false, null, null,
+      { day: null, sport: null, asked: false }, null, null,
+      MAINTENANCE_ENVELOPE_DIRECTION, exactAgeYears,
+    );
+  assertEquals(envelopeFingerprint(noBand(40)), envelopeFingerprint(noBand(null)));
+});
+
+Deno.test("⟳ âge exact — la lane d'ancrage (`maintenanceKcalOf`) lit le même âge", () => {
+  // `mouth_anchor.ts` appelle `adultMaintenanceKcal` avec `mouth.body.ageYears`.
+  // Le même corps rend le même nombre que l'équation nue: 2 582 à 59 ans,
+  // 2 634 à 52 ans (le milieu de la bande, donc le nombre d'avant ce lot).
+  const sheet = (ageYears: number): MouthBody => ({
+    weightKg: 93,
+    heightCm: 173,
+    gender: "male",
+    ageYears,
+    activityLevel: null,
+    activityAxes: { day: null, sport: null, asked: false },
+    appetite: null,
+  });
+  const mouth = (ageYears: number): AnchorMouth => ({
+    memberId: "fabrice",
+    ageState: "adult",
+    restriction: "clear",
+    body: sheet(ageYears),
+    direction: null,
+    paceKgPerWeek: null,
+    declaredSlots: ["breakfast", "lunch", "dinner"],
+    conditionRefs: [],
+    portionIndex: null,
+  });
+  assertEquals(maintenanceKcalOf(mouth(59)), { kcal: 2582, reason: "anchored" });
+  assertEquals(maintenanceKcalOf(mouth(52)), { kcal: 2634, reason: "anchored" });
+});
+
+/**
+ * ⛔ LES COMMENTAIRES PARTENT D'ABORD (cicatrice du dépôt: « audit d'appelants:
+ * retirer les commentaires »). Les deux fichiers ci-dessous PARLENT de l'âge
+ * exact dans le commentaire qui explique la ligne; un grep naïf serait vert
+ * sur une ligne qui passerait `null`.
+ */
+const stripCommentsForAge = (src: string) =>
+  src.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/(^|[^:])\/\/[^\n]*/g, "$1");
+
+Deno.test("⛔ âge exact — câblage: l'écran et le rythme passent l'âge de la FICHE, jamais `null`", async () => {
+  const flat = async (file: string) =>
+    stripCommentsForAge(
+      await Deno.readTextFile(new URL(`./${file}`, import.meta.url)),
+    ).replace(/\s+/g, " ");
+  // L'écran (`loadDailyEnergyTarget`): le chiffre affiché et le chiffre
+  // composé lisent le même âge.
+  const screen = await flat("meal_energy_shared.ts");
+  assert(
+    screen.includes("ageBand: ageBandOf(mouthBody.ageYears), ageYears: mouthBody.ageYears,"),
+    "meal_energy_shared.ts: l'âge exact n'atteint plus l'équation de l'écran",
+  );
+  // Le dénominateur du rythme, et la garde du poids visé: le même corps.
+  const pace = await flat("weight_pace.ts");
+  assert(
+    pace.includes("ageBand: ageBandOf(body.ageYears), ageYears: body.ageYears,"),
+    "weight_pace.ts: `estimatedMaintenanceFor` ne passe plus l'âge exact",
+  );
+  assert(
+    pace.includes(
+      "ageBand: ageBandOf(subject.body.ageYears), ageYears: subject.body.ageYears,",
+    ),
+    "weight_pace.ts: la garde du poids visé ne passe plus l'âge exact",
+  );
+  // Et aucun des trois n'écrit l'âge à `null` en dur.
+  for (const [name, src] of [["meal_energy_shared.ts", screen], ["weight_pace.ts", pace]]) {
+    assert(!src.includes("ageYears: null"), `${name}: un âge exact écrit à null en dur`);
+  }
+});
+
+Deno.test("⛔ âge exact — la CONSIGNE imprime la bande, jamais l'âge", () => {
+  // Fabrice, 59 ans. `MealBodyContext` — le type qui nourrit les consignes —
+  // ne porte qu'une BANDE: l'âge exact n'a pas de champ où entrer.
+  const context: MealBodyContext = {
+    heightCm: 173,
+    ageBand: ageBandOf(59),
+    gender: "male",
+    latestWeight: { weekStart: "2026-09-21", value: 93 },
+    latestWaist: null,
+    declaredWeightKg: null,
+    restrictionFlag: false,
+  };
+  // Le fait que la consigne du foyer lit, écrit en dur.
+  const facts = householdBodyFacts(context, "adult");
+  assert(facts.includes("age band 45 to 59"), `bande absente: ${JSON.stringify(facts)}`);
+  const blocks = mealBodyBlocks(context);
+  const prompt = [...facts, ...blocks.whoTheyAre, ...blocks.whereTheyAreNow].join("\n");
+  assert(prompt.includes("45 to 59"), "la bande doit rester dans la consigne");
+  // ⛔ LE CAS QUI MORD: la bande retirée, « 59 » ne doit plus apparaître nulle
+  // part — ni « 59 years », ni « aged 59 », ni un « 59 » nu.
+  assert(
+    !prompt.split("45 to 59").join("").includes("59"),
+    `l'âge exact est entré dans la consigne:\n${prompt}`,
+  );
+
+  // Et le type lui-même le refuse: si quelqu'un ajoute `ageYears` à
+  // `MealBodyContext`, la directive ci-dessous devient inutile et c'est la
+  // compilation de ce fichier qui rougit.
+  const withAge: MealBodyContext = {
+    ...context,
+    // @ts-expect-error — `MealBodyContext` n'a pas de champ d'âge exact.
+    ageYears: 59,
+  };
+  assertEquals(withAge.ageBand, "45_59");
 });

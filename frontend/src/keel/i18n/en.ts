@@ -595,7 +595,7 @@ export const en = {
   // pas parce que la copie a pris de l'assurance.
   "today.no_plan_title": "You don't have a plan for this week yet",
   "today.no_plan_body":
-    "Your coach teaches the method — the week itself is yours to build. Say what you are after, and your eating for the week gets written from their method.",
+    "Say what you are after, and your week's plan is put together from there — the meals, the shopping and the cooking sessions.",
   "today.no_plan_cta": "Build my week's plan",
   // ── LA JOURNÉE QUE L'ÉLÈVE S'EST COMPOSÉE ───────────────────────────────
   // `/app/today` ne lisait que le plan publié par un coach. Comme aucun coach
@@ -621,20 +621,17 @@ export const en = {
   // tient. Les fondre sous un seul titre ferait lire « poulet, riz, épinards »
   // et « build every meal around a protein anchor » comme la même demande.
   "today.own_meals_label": "What you eat today",
-  "today.own_meals_empty":
-    "Nothing placed on today. What is below holds any day of the week.",
+  "today.own_meals_empty": "Nothing today",
   // Vu quand la composition ne couvre QUE d'autres jours. Ne dit pas « rien
   // pour toi »: les plats existent, ils sont juste ailleurs dans la semaine.
-  "today.own_meals_other_days":
-    "Nothing placed on today — what you built sits on the other days of the week.",
+  "today.own_meals_other_days": "Nothing today",
   "today.own_meals_anyday": "Built for no particular day",
   // ── TODAY'S PHOTOS ─────────────────────────────────────────────────────
   // The section stays when there is none: what it shows is the PLACE a photo
   // lands. A block that disappears on the days without one teaches you to
   // stop looking on the days you took one.
   "today.photos_label": "Your photos today",
-  "today.photos_empty":
-    "No photo today. The ones you send in the conversation land here, whatever the moment.",
+  "today.photos_empty": "No photos",
   "today.own_lines_label": "What you set for yourself",
 
   "today.week_section": "This week, no fixed day",
@@ -1568,7 +1565,7 @@ export const en = {
   // intolérances et médicaments — c'est une page de sécurité, pas de santé.
   // Les CHEMINS ne bougent pas (`mealIdeasRemoved.int.test.ts` les verrouille).
   "app.nav.progress": "Tracking",
-  "app.nav.chat": "Chat",
+  "app.nav.chat": "Sophia",
   "app.nav.household": "Household",
   // `app.nav.cards` a été retirée avec l'onglet « Cards »: la page exigeait un
   // plan publié que le modèle 1:N ne produit jamais. Rien ne la lit plus.
@@ -1585,13 +1582,13 @@ export const en = {
   // seule langue que ce dépôt a déjà payé — la forme courte est donc écrite
   // dans les deux packs, même là où elle ne change rien.
   "app.nav.today.short": "Today",
-  "app.nav.chat.short": "Chat",
+  "app.nav.chat.short": "Sophia",
   "app.nav.plan.short": "Plan",
 
   // DE-WHATSAPP — la bulle. C'est LE canal, plus un simulateur: la
   // conversation quotidienne avec Sophia vit ici, dans l'app.
   "chat.title": "Sophia",
-  "chat.empty": "Nothing here yet. Say hello, or send a photo of your next meal.",
+  "chat.empty": "Nothing here yet. Ask me about your plan or the app, or tell me what you ate.",
   "chat.input.placeholder": "Write to Sophia",
   "chat.send": "Send",
   "chat.thinking": "Sophia is writing…",
@@ -1619,27 +1616,12 @@ export const en = {
   // Les réglages de la bulle. `proactive_muted_at` existait, la politique de
   // livraison le respectait, et AUCUN écran ne pouvait le poser.
   "chat.settings.toggle": "Notifications",
-  "chat.settings.checkins.label": "Check-ins from Sophia",
-  // La seconde phrase n'est pas du confort: le mute ne coupe QUE le proactif
-  // (`delivery_policy.ts`, garde 4 après la garde 2). Ne pas le dire ferait
-  // croire qu'on se coupe de Sophia, ce qui est le contraire de la règle.
-  // ⟳ 2026-09-09 — voir la note jumelle dans `fr.ts`: la phrase nommait le
-  // point du soir, qui n'a plus d'écrivain, et le bilan du dimanche, dont le
-  // cron est désactivé. Elle nomme maintenant ce qui part vraiment.
-  "chat.settings.checkins.help":
-    "Your weight follow-up, the reminder the night before when something needs to come out of the freezer, the check-in at the end of a plan, and a note if you go quiet. She always answers when you write, whatever this says.",
-  "chat.settings.notify.label": "Notify me on this device",
-  "chat.settings.notify.help":
-    "A system notification when she writes first and this tab isn't in front.",
+  // ⟳ 2026-09-23 — one switch, on or off (see `fr.ts`).
+  "chat.settings.all.label": "Get notifications",
+  "chat.settings.all.help":
+    "Sophia writes to you in the evening, and this device lets you know when she does. Turned off, she no longer writes first; she always answers when you write to her.",
   "chat.settings.notify.blocked":
     "Your browser is blocking notifications for this site — allow them there first.",
-  "chat.settings.notify.unsupported":
-    "This browser can't show notifications.",
-  // Same rule as the button under every question: it turns off a QUESTION, not
-  // the tracking.
-  "chat.settings.slotmeal.label": "Ask me at each meal",
-  "chat.settings.slotmeal.help":
-    "A question at each moment you eat, to know what it was. Turned off, your meals stay tickable on your day and the “+” stays.",
 
   // Le point hebdomadaire, dans l'app. C'était un WhatsApp Flow: deux écrans
   // declares chez Meta. Il ne reste que ce qui comptait.
@@ -1650,6 +1632,7 @@ export const en = {
   "chat.compose.add.photo": "Photo of an unplanned meal",
   "chat.compose.add.describe": "Describe an unplanned meal",
   "chat.compose.add.weight": "Update my weight",
+  "chat.compose.add.week": "Meal tracking",
   "chat.photo.label": "Photo",
   "chat.photo.sending": "Sending a photo…",
   "chat.photo.error.type": "That file type isn't supported — send a JPEG, PNG or WebP.",
@@ -2483,9 +2466,12 @@ export const en = {
   "shell.nav.weekly": "This week",
   // « My week » ne disait pas ce qu'on y fait. L'écran est celui où l'élève
   // CONSTRUIT sa semaine alimentaire; le nom doit porter le mot « plan ».
-  "app.nav.plan": "My week's plan",
+  "app.nav.plan": "My plan",
   "shell.nav.account": "Account",
   "shell.nav.billing": "Subscription",
+  // Le guide `/installer-app` (ajouter Sophia à l'écran d'accueil). Sous le
+  // séparateur du menu, avec le compte: ce qu'on consulte, pas ce qu'on habite.
+  "shell.nav.install_app": "Install the app",
   // FF-064 — le compte à rebours de la semaine offerte, dans la coquille.
   // `{days}` est déjà pluralisé par `plural()` au site d'appel: les deux formes
   // sont des clés à part, parce que le français dit « 0 jour » et l'anglais
@@ -2869,7 +2855,7 @@ export const en = {
   "home.demo.prep.bulgur": "Lemon bulgur",
   "home.demo.prep.chicken_method": "Roast the thighs and the vegetables at 200 °C with paprika and olive oil, 45 minutes.",
   "home.demo.prep.bulgur_method": "Cook the bulgur, then add the lemon zest and juice.",
-  "home.demo.run.sun": "Heat the oven. Once the chicken and vegetables are in, cook the bulgur. Let it cool before boxing Monday’s share.",
+  "home.demo.run.sun": "Heat the oven. Once the chicken and vegetables are in, cook the bulgur separately. Let it cool, then box it: chicken and vegetables on one side, bulgur beside them.",
   "home.demo.ing.chicken_thighs": "Chicken thighs",
   "home.demo.ing.peppers": "Peppers",
   "home.demo.ing.carrots": "Carrots",
@@ -2881,6 +2867,8 @@ export const en = {
   "home.demo.box.chicken": "roast chicken",
   "home.demo.box.bulgur": "bulgur",
   "home.demo.box.vegetables": "roast vegetables",
+  "home.demo.box.main": "Chicken and vegetables",
+  "home.demo.box.side": "Bulgur, on the side",
   "home.how.kicker": "How it works",
   "home.how.title_1": "Your shopping and cooking, organised.",
   "home.how.title_2": "All you do is cook.",
@@ -2888,12 +2876,22 @@ export const en = {
   "home.how.shop.title": "Your shopping",
   "home.how.shop.body":
     "One list brings together the ingredients to buy for your planned meals.",
-  "home.how.cook.title": "Your cooking",
+  "home.how.cook.title": "Your cooking session",
   "home.how.cook.body":
     "Recipes and preparations are organised around your cooking days.",
   "home.how.eat.title": "Your meals",
   "home.how.eat.body":
     "For each meal, you get the dish and the quantities to serve each person.",
+  "home.how.box.title": "Your boxes",
+  "home.flow.step_at": "{minutes} min",
+  "home.flow.cook.step_1": "Heat the oven to 200 °C. Slice the carrots into rounds and the peppers into strips.",
+  "home.flow.cook.step_2": "Toss the chicken and vegetables with the smoked paprika and a drizzle of olive oil, then roast for 45 minutes.",
+  "home.flow.cook.step_3": "Cook the bulgur separately, 15 minutes in salted boiling water, then add the lemon zest and juice.",
+  "home.flow.cook.step_4": "Take the dish out and let it cool before boxing.",
+  "home.flow.boxing": "Sunday, after cooking",
+  "home.flow.box_count": "Two boxes, one per meal",
+  "home.flow.box_side": "Chicken and vegetables come out of the same tray, always in the same proportions. The bulgur cooks separately and is portioned separately.",
+  "home.flow.box_weigh": "You weigh once, while boxing. On the day, you open and reheat.",
   "home.house.kicker": "When you cook for others",
   "home.house.title_1": "Cooking for other people?",
   "home.house.title_2": "Their appetite.",
@@ -2919,6 +2917,9 @@ export const en = {
   "home.life.demo.example": "Four-cheese pizza at a restaurant, two slices and a salad.",
   "home.life.demo.photo_example": "A photo of the plate, taken at the table.",
   "home.life.demo.send": "Send",
+  "home.life.scene.pizza": "Four-cheese pizza · 2 slices",
+  "home.life.scene.salad": "A salad",
+  "home.life.scene.counted": "Counted in your tracking",
   "home.reach.kicker": "Everyday support",
   "home.reach.title_1": "Sophia checks in.",
   "home.reach.title_2": "At the right moment.",
@@ -2972,9 +2973,9 @@ export const en = {
   "home.faq.q3": "What if I cook for other people?",
   "home.faq.a3":
     "Sophia takes into account the needs, preferences and habits of the members of the house. Shopping and preparations are grouped when possible. Depending on the constraints, the dishes can also differ.",
-  "home.faq.q4": "What is the individual coaching access for?",
+  "home.faq.q4": "Can someone else in the household have their own tracking?",
   "home.faq.a4":
-    "It lets another member of the household follow their own goal from their own access: have their off-plan meals counted by describing or photographing them, track their calories and their weight, and talk with Sophia the coach. Their updated information is used to generate their plans. It costs {extra} a month; your access is included in the offer, and a member without that access is still included at no extra cost.",
+    "Yes, with a personal access at {extra} a month. They can then talk to Sophia, track their weight and calories, and count their off-plan meals. Without it, their needs are already taken into account in the household menus, at no extra cost.",
   "home.faq.q5": "Does the plan change when I update my weight?",
   "home.faq.a5":
     "Your updated weight is part of the information used to generate the next plans. That is not an automatic reorganisation of the plan already in place, and it is not what happens after an unplanned meal either.",
@@ -3766,7 +3767,7 @@ export const en = {
   // D1 (2026-08-11) — dès qu'une bouche a un compte, son objectif vit dans SON
   // « about you ». Le dire ici évite qu'on cherche un champ qui n'y est plus.
   "household.member.goal_from_profile":
-    "Set in their own profile, under About you — it follows them everywhere, not just at this table.",
+    "Each person sets it from their own account — it follows them everywhere, not just at this table.",
   "household.member.save": "Save",
   "household.member.saved": "Saved.",
   "household.member.edit": "Edit",
@@ -3781,6 +3782,11 @@ export const en = {
     "Removing their access signs them out of this household — they stay at the table, with their serving and their allergies. Removing them from the household deletes all of it.",
   "household.member.remove_hint":
     "This deletes their serving, their allergies and anything this house does not serve them.",
+  // FF-066 lot 4 (2026-09-23) — the two-step confirmation the code promised
+  // and did not do: one click deleted the line.
+  "household.member.remove_confirm": "Remove for good? There is no undo.",
+  "household.member.remove_confirm_yes": "Yes, remove from the household",
+  "household.member.remove_cancel": "Cancel",
   // ── D14 (2026-08-12) · QUI EST LÀ, ET QUAND ──────────────────────────────
   // LE TITRE DIT « pas là », JAMAIS « absent ». Un enfant lit cet écran par
   // dessus l'épaule d'un parent, et « absences » est le vocabulaire de l'école
@@ -4571,6 +4577,7 @@ export const en = {
   "plan.validation.cause.double_meal": "A meal is served twice on the same slot",
   "plan.validation.cause.energy_off": "A meal is off its target",
   "plan.validation.cause.protein_short": "A day falls short of its protein",
+  "plan.validation.cause.protein_over": "A day goes over its protein",
   "plan.validation.cause.unmeasurable": "A portion could not be measured",
   "plan.validation.cause.shopping_missing": "An ingredient is on no shopping line",
   "plan.validation.cause.shopping_short": "A shopping line buys less than the recipe needs",
@@ -4849,8 +4856,13 @@ export const en = {
   // fail-closed; une RÈGLE DE MAISON est un pouvoir domestique; une AVERSION
   // est un goût. Les confondre à la saisie, c'est promettre une garde de
   // sécurité sur une préférence.
-  "setup.people.allergies_hint":
-    "Medical only. It comes out of the whole pot. Dislikes come later.",
+  // ⟳ 2026-09-20 — REMOVED FROM THE SCREEN, ON REQUEST (no reader left):
+  //   · setup.people.allergies_hint  — left with the seventeen chips.
+  //   · setup.mouths.body_hint
+  //   · household.mouth.tastes_hint (+ `_you`)
+  // The rules they announced still hold in code; only the wording is gone.
+  // ⛔ 2026-09-20 — no longer rendered; an empty section IS "nothing to
+  // declare". Kept: two tests read it to assert its absence.
   "setup.people.allergies_none": "Nothing to declare",
   "setup.people.allergies_other": "Something else",
   "setup.people.allergies_add": "Add",
@@ -4871,6 +4883,12 @@ export const en = {
   // conséquences différentes, une seule intention à nommer: « que ce bloc ne
   // soit plus là ».
   "setup.mouths.add": "Add someone who eats here",
+  // 2026-09-20 — the dashed frame opened straight onto "Who they are", the
+  // first block's title, with nothing above saying WHO. The title deliberately
+  // does NOT take the typed first name: a name in bold would make this read as
+  // one more card, i.e. someone already at the table. One line, not two: a
+  // second line under it was dropped the same day as filler.
+  "setup.mouths.new_title": "One more person",
   "setup.mouths.add_confirm": "Add to the table",
   // ⚠️ PAS `setup.people.first_name_hint`. Celui-là dit « ta » portion, et il
   // était réutilisé ici: le formulaire d'une AUTRE bouche promettait de nommer
@@ -4880,6 +4898,9 @@ export const en = {
   "setup.mouths.first_name_hint_you":
     "How the plan names your serving.",
   "setup.mouths.kind": "Are they an adult or a child?",
+  // ⛔ 2026-09-20 — no longer rendered. The "An adult / A child" pill left
+  // the mouth row; `m.kind` still decides which goals a mouth may carry.
+  // Two tests assert its ABSENCE from a screen, and read it from here.
   "setup.mouths.kind_adult": "An adult",
   "setup.mouths.kind_child": "A child",
   // LA CEINTURE D'ÂGE EST STRUCTURELLE (`goalApplies`, `weekPlanAgeGate`), pas
@@ -4898,7 +4919,6 @@ export const en = {
   // ⚠️ LES TROIS OU AUCUN, et la phrase le dit parce que la base le fait: la
   // RPC refuse un corps partiel, et le moteur SAUTE une bouche sans corps —
   // elle reçoit alors la part de tout le monde, en silence.
-  "setup.mouths.body_hint": "All three together, or none of them.",
   // Voir la note de `fr.ts`: la fiche d'ajout a éclaté le triplet en deux
   // paires étiquetées, donc « all three » n'y désigne plus de groupe.
   "setup.mouths.body_together": "Height, weight and sex go together: all three, or none.",
@@ -4918,6 +4938,9 @@ export const en = {
   // dix contrôles qui écrivent en base au moindre clic, sous chaque prénom.
   // Demandé: « si on clique pas sur modifier on peut rien modifier ».
   "setup.mouths.edit": "Edit",
+  // ⛔ 2026-09-20 — no longer rendered. A card's exit gesture moved to the
+  // bottom and is called "Save" (`household.member.save`): "Done" in the
+  // header promised nothing and read as the absence of a save.
   "setup.mouths.edit_done": "Done",
   "setup.mouths.summary_on_file": "On file",
   "setup.mouths.remove": "Remove",
@@ -4953,6 +4976,13 @@ export const en = {
     "{name} is now at the table — “Continue” saved this card before moving on. “Remove” on their card undoes it.",
 
   // ── L'ACCÈS — UN AJOUT PAR-DESSUS ───────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════
+  // ⛔ `setup.access.*` — DISARMED 2026-09-20, no component renders them
+  // ══════════════════════════════════════════════════════════════════════
+  // The invite panel left the funnel with its writer. Inviting lives on
+  // `/app/household`, under a DIFFERENT catalogue (`household.invite.*`).
+  // Kept rather than deleted: fr/en parity is held by a test, and the step
+  // may take the panel back. See the long note on the French side.
   "setup.access.title": "Give them their own access?",
   "setup.access.optional": "Optional. It changes nothing about tonight.",
   // LA PHRASE QUI RÉPOND À « faut-il attendre qu'elle s'inscrive ? ». Elle est
@@ -5081,17 +5111,27 @@ export const en = {
   "household.mouth.block_habits": "what they already eat",
   "household.mouth.block_allergies": "allergies",
   "household.mouth.block_tastes": "dislikes and diet",
+  // ⟳ 2026-09-20 — "optional" moved onto the GESTURE. The label used to give
+  // an order ("Fill in …") while the one sentence saying nothing is required
+  // (`preferences_intro`) lived INSIDE the window — read only after the click
+  // was paid for, and this door is rendered once PER MOUTH. Nothing behind it
+  // holds the funnel: see the long note on the French side for the three
+  // places in `api/onboarding.ts` that prove it. The NOUN is unchanged on
+  // purpose — the window titles itself after the button that opened it.
   "household.mouth.preferences_open":
-    "Fill in their food preferences",
+    "Their food preferences (optional)",
   "household.mouth.preferences_open_you":
-    "Fill in your food preferences",
+    "Your food preferences (optional)",
   "household.mouth.preferences_saved": "{name}’s preferences are saved.",
   "household.mouth.preferences_title": "Food preferences",
   "household.mouth.preferences_title_named": "{name} — food preferences",
   "household.mouth.preferences_intro":
     "None of this is required. It sharpens the plan; it does not decide its shape.",
+  // ⟳ 2026-09-20 — no longer a list of holes. It named the four empty blocks
+  // in the same voice as `household.mouth.held` ("Still missing: …"), which
+  // does hold. It now says what the absence costs: nothing.
   "household.mouth.preferences_empty":
-    "Nothing noted yet — habits, allergies, dislikes, diet.",
+    "Nothing noted — the plan composes without it. This can be filled in later.",
   "household.mouth.preferences_filled": "Already noted: {blocks}.",
   "household.mouth.preferences_done": "Done",
   "household.mouth.save": "Save",
@@ -5112,8 +5152,6 @@ export const en = {
     "The name is how the plan labels their serving — a serving with no name is dropped in silence.",
   "household.mouth.identity_hint_you":
     "Your name is how the plan labels your serving — a serving with no name is dropped in silence.",
-  "household.mouth.birth_date_hint":
-    "We never ask whether someone is an adult or a child: the birth date says it.",
   "household.mouth.age_unknown":
     "We cannot read that date, so no direction will apply to them yet.",
   // ── BLOC 2 ──────────────────────────────────────────────────────────────
@@ -5135,6 +5173,9 @@ export const en = {
   "household.mouth.pace": "How fast",
   // ⛔ `pace_hint` / `pace_hint_you` retirées le 2026-09-01 — voir le pack FR.
   "household.mouth.pace_value": "{pace} kg a week",
+  // ⟳ 2026-09-22 — le cran ENREGISTRÉ contre le cran CUISINÉ. Voir le pack FR.
+  "household.mouth.pace_executed":
+    "Saved at {chosen} kg a week. The plan only cooks {executed} — past that, this body has no room left.",
   // ⚠️ DEUX ÉCRANS DIFFÉRENTS, ET C'EST LE CONTRAT DU TYPE `PaceCeiling`:
   // `null` = « je ne connais pas ce corps », `0` = « je le connais, et il n'a
   // pas de marge ». Jamais un curseur de 0,05 à 0 — un contrôle mort se lit
@@ -5192,6 +5233,23 @@ export const en = {
   "household.mouth.takes_bread": "Bread?",
   "household.mouth.answer_yes": "Yes",
   "household.mouth.answer_no": "No",
+  // ── ⟳ 2026-09-23 · LES À-CÔTÉS, PAR PERSONNE ──────────────────────────
+  // Entrée / fromage / dessert / pain, en TROIS états par type: « Selon
+  // l'objectif » (clé absente — le défaut de son objectif), « Oui » (voulu),
+  // « Non » (jamais). Écrit au déjeuner ET au dîner
+  // (`household_member_habits.slots[].side_courses`). ⚠️ Ce n'est PAS la
+  // question `takes_*` au-dessus: ces colonnes portaient le sens inverse, et
+  // leurs valeurs sont périmées. Les types d'à-côté viennent de
+  // `_shared/keel/side_courses_types.ts` (`SIDE_COURSE_KINDS`).
+  "household.mouth.side_courses.title": "Starter, cheese, dessert, bread",
+  "household.mouth.side_courses.hint": "What's served alongside the dish, at lunch and dinner.",
+  "household.mouth.side_courses.starter": "Starter",
+  "household.mouth.side_courses.cheese": "Cheese",
+  "household.mouth.side_courses.dessert": "Dessert",
+  "household.mouth.side_courses.bread": "Bread",
+  "household.mouth.side_courses.auto": "Based on the goal",
+  "household.mouth.side_courses.yes": "Yes",
+  "household.mouth.side_courses.no": "No",
   // ── ⑤ L'APPÉTIT (2026-08-20) — ET IL EST TRANSITOIRE ──────────────────
   // ⚠️ LES LIBELLÉS NE DEMANDENT PAS « as-tu faim ». Les ±10 % sont
   // l'incertitude inter-individuelle de Mifflin-St Jeor, pas un curseur de
@@ -5271,8 +5329,10 @@ export const en = {
   // ⛔ ET IL NE SUPPRIME PAS LE MOMENT. « Je ne prends pas de goûter » se dit
   // en ne DÉCLARANT pas le goûter — la confusion entre les deux ferait cocher
   // « léger » pour dire « rien », et le plan composerait quand même un repas.
+  // ⟳ 2026-09-20 — shortened on request; see `fr.ts` for what was dropped
+  // and why the density floor stays out of the wording.
   "household.mouth.light_hint":
-    "A light moment weighs less in the day; the others take up the difference. It is still a meal — to skip one, leave the moment unticked.",
+    "This meal weighs less than usual; the others take up the difference.",
   // ⟳ 2026-09-15 — `portions_plan_only` was removed; see fr.ts for why.
   "household.mouth.habit_shaker_here": "{who}’s shaker sits at this moment.",
   "household.mouth.habit_shaker_here_you": "Your shaker sits at this moment.",
@@ -5364,14 +5424,22 @@ export const en = {
     "What {who} will not eat",
   "household.mouth.tastes_you":
     "What you will not eat",
-  "household.mouth.tastes_hint":
-    "A dislike, not an allergy.",
-  "household.mouth.tastes_hint_you":
-    "A dislike, not an allergy.",
+  // ⛔ 2026-09-20 — this key and `dislikes_placeholder` are no longer rendered:
+  // the one-word field became free text (`household.mouth.terms_*`). Kept for
+  // fr/en parity.
   "household.mouth.dislikes": "Food they refuse",
   // ⚠️ UN DÉGOÛT N'EST PAS UNE ALLERGIE, et la phrase le dit à l'écran: les
   // fondre promettrait une garde de sécurité sur une préférence.
   "household.mouth.dislikes_placeholder": "mushrooms",
+  // 2026-09-20 — free text for both sections; a short model call turns it
+  // into chips, already ticked. The placeholder shows BOTH accepted shapes.
+  "household.mouth.terms_placeholder_allergy":
+    "peanuts, shellfish — or a whole sentence",
+  "household.mouth.terms_placeholder_dislike":
+    "mushrooms, tuna and mango — or a whole sentence",
+  "household.mouth.terms_label_allergy": "Allergies, free text",
+  "household.mouth.terms_label_dislike": "Foods they refuse, free text",
+  "household.mouth.terms_working": "One moment…",
   // ── LE RÉGIME EST LA PREMIÈRE SECTION DEPUIS LE 2026-08-19 ──────────────
   // Il écarte des familles entières d'aliments: le poser après les dégoûts
   // faisait noter des dégoûts sur ce qu'on ne servirait jamais.
@@ -5463,8 +5531,6 @@ export const en = {
   "setup.request.title": "This plan",
   "setup.request.from": "From",
   "setup.request.to": "To",
-  "setup.request.intro":
-    "Asked again every time you build one: this week is not last week.",
   "setup.plan.rhythm": "When you eat",
   "setup.plan.rhythm_hint": "Only the moments you tick get composed.",
   "setup.plan.time": "How long a cooking session lasts",
@@ -5786,18 +5852,10 @@ export const en = {
   // Deux plats de table sur un seul moment. On COMPTE, on ne jette pas.
   "meals.grid.extra_one": "+1 more dish",
   "meals.grid.extra_many": "+{n} more dishes",
-  // Les trois silences VOULUS. Ils se ressemblent entre eux, et c'est fait
-  // exprès: ce sont tous des « rien ici, et c'est normal ».
-  "meals.grid.away": "not eating here",
   // L3 — ELLE MANGE, MAIS PAS CE QUE LE PLAN COMPOSE. Voisin d'`away` et
   // distinct de lui: aucun plat dans les deux cas, mais celui-ci est le seul
   // où le produit gardera le droit de dire un ordre de grandeur.
   "meals.grid.eating_out": "eating out",
-  "meals.grid.leftovers": "leftovers",
-  // Le quatrième, et le seul qui soit un défaut.
-  "meals.grid.empty": "nothing here",
-  "meals.grid.empty_hint":
-    "Nothing was composed for this moment, and you did not ask for it to be skipped.",
   // ── FF-053 · LE BLOC CUISINE ────────────────────────────────────────────
   "meals.kitchen.title": "What you cook",
   "meals.kitchen.cook_on": "cook it {day}",
@@ -5827,7 +5885,17 @@ export const en = {
   // Sur la carte d'un PLAT, ce ne sont pas des instructions de pesée — elle a eu
   // lieu à la session. Ce sont les bacs à aller chercher dans le frigo.
   "meals.boxes.title_dish": "Boxes to take out",
+  "meals.doses.title": "Portions per person",
   "meals.dish.who_eats": "Who eats this",
+  // ⟳ 2026-09-22 — the bottom list when several doses are shown above: it is
+  // their SUM, that is, what to prepare in total. With a single dose the list
+  // is not rendered at all — it repeated the dose word for word.
+  "meals.result.total_quantities": "The total to prepare",
+  // The fold on a dish card, on `/app/plan` and on the preview. "The detail"
+  // and not "the recipe": what opens are the boxes, the per-person doses and
+  // the added ingredients — the batch recipe lives in the cooking session.
+  "meals.dish.unfold": "See the detail",
+  "meals.dish.fold": "Hide the detail",
   // ⚠️ LE COMPTE EST EN TÊTE PARCE QU'ON SORT SES BACS AVANT DE COMMENCER.
   // C'est la seule chose qu'on veuille savoir avant d'avoir lu une ligne. Deux
   // clés et pas un suffixe fabriqué en code (R7), comme les courses du jour.
@@ -5846,6 +5914,12 @@ export const en = {
   // ferait un statut, alors que c'est une précision de lecture.
   "meals.boxes.for_n": "· for {n}",
   "meals.boxes.energy": "· {n} kcal",
+  // ⟳ 2026-09-22 — A LIQUID DOSE, in the unit of the gesture. The "≈" is not
+  // decoration: the spoon is a rounding, the grams next to it are the exact
+  // number. Both are read together (see `lib/householdMeasure.ts`).
+  "meals.boxes.teaspoons": "≈ {n} tsp",
+  "meals.boxes.tablespoons": "≈ {n} tbsp",
+  "meals.boxes.millilitres": "≈ {n} ml",
   // Au-delà de quatre prénoms, le couvercle dit combien ils sont: six noms ne se
   // lisent ni sur un bac ni sur un téléphone à 320 px.
   "meals.boxes.rest_of_table": "The rest of the table ({n})",
@@ -5854,6 +5928,22 @@ export const en = {
   "meals.boxes.lid_unnamed": "One container",
   // « g » est le symbole international du gramme.
   "meals.boxes.grams": "{n} g",
+  // ⟳ 2026-09-22 — what a batch share holds, under its Boxing line: "of which
+  // chicken ~110 g, vegetables ~140 g". The tilde says it is information, not a
+  // weighing — a stew does not come apart.
+  "meals.boxes.parts": "of which",
+  "meals.boxes.part": "{term} ~{n} g",
+  "meals.boxes.part_vegetables": "vegetables",
+  // ⟳ 2026-09-23 — LES À-CÔTÉS D'UNE BOÎTE: une ligne « À côté » à part,
+  // rattachée à la boîte de la personne — « 1 × apple », « cheddar ~30 g ».
+  // Sur un bac commun, la ligne dit pour qui: « Christèle: 1 × plain yoghurt ».
+  // ⚠️ Rien ne dit d'où vient un à-côté (modèle ou liste de secours).
+  // `side_unit` et `side_grams` n'ont aucun mot à traduire: un nombre, un
+  // terme qui vient du plan (déjà dans sa langue), un symbole.
+  "meals.boxes.side_courses": "On the side",
+  "meals.boxes.side_unit": "{n} × {term}",
+  "meals.boxes.side_grams": "{term} ~{n} g",
+  "meals.boxes.side_for": "{name}: {items}",
   // ── LE CONTENANT QUI PART AU CONGÉLATEUR (2026-09-04) ─────────────────────
   // ⛔ Une INSTRUCTION au moment de remplir le bac, pas un état constaté: la
   // moitié « sortir » est dite par `DishCard` quatre jours plus tard, et sans
@@ -5862,6 +5952,10 @@ export const en = {
   // ⟳ 2026-09-16 — a container holding only the batch share: the rest of the
   // meal (tortilla, lettuce…) is put together on the day, and the day says so.
   "meals.boxes.rest_on_the_day": "· the rest is made on the day",
+  // ⟳ 2026-09-23 — a share of the box cooked in ANOTHER session: named and
+  // dated, never weighed here (Wednesday was weighing Friday's salmon).
+  "meals.boxes.with_other_session": "· with {what}, cooked on {day}",
+  "meals.boxes.with_other_session_undated": "· with {what}, from another session",
   // Le compte en tête, muet à zéro: un plan à deux sessions n'a rien à congeler.
   "meals.boxes.freeze_count": "· {n} to the freezer",
   // ── LE TEMPS ──────────────────────────────────────────────────────────────
@@ -5874,6 +5968,7 @@ export const en = {
   "meals.sessions.total": "{n} min in all",
   "meals.sessions.recipe_show": "Recipe",
   "meals.sessions.recipe_hide": "Hide recipe",
+  "meals.sessions.overview_title": "Overall run-through",
   // ── CE QUI SE PASSE DANS LA CUISINE AUJOURD'HUI ───────────────────────────
   // `/app/today` répondait à « qu'est-ce que je mange » et pas à « qu'est-ce
   // que j'ai à faire ». Or les deux gestes qui DEMANDENT quelque chose à la
@@ -6025,66 +6120,8 @@ export const en = {
   "meals.energy.switch_off": "Hide calories",
   "meals.energy.switch_hint": "You can turn this off at any time, and it goes quiet everywhere.",
   "meals.energy.switch_failed": "That did not save. Nothing changed.",
-  // ── FF-059 LOT 3 · LA CIBLE (niveau C) ──────────────────────────────────
-  //
-  // ⚠️ UNE FOURCHETTE, ET AUCUN RESTE. « 2 100–2 500 a day for your weight »
-  // pose un ordre de grandeur à côté du total; « 680 kcal left » serait un
-  // tracker, et cette phrase n'existe nulle part dans ce produit.
-  //
-  // « for your weight » n'est PAS un ornement: c'est la seule chose sur
-  // laquelle la fourchette est posée. Sans ces trois mots, un élève croirait
-  // qu'on a tenu compte de son activité — et rien ne la collecte.
-  "meals.energy.target_range": "Around {low}–{high} a day for your weight",
-  // ── ⟳ LOT 4 (2026-09-01) · LA FOURCHETTE QUI A SUIVI LA DIRECTION ───────
-  //
-  // ⚠️ DEUX PHRASES ET PAS UNE INTERPOLATION. « for your {direction} » aurait
-  // demandé un mot injecté au milieu d'une phrase, et les deux langues ne le
-  // placent pas au même endroit — cicatrice « garde testée dans une seule
-  // langue ». Chaque direction porte sa phrase entière, dans les deux langues.
-  //
-  // ⚠️ « to lose weight at your pace », PAS « to lose weight ». Le décalage
-  // vaut le RYTHME que la personne a réglé, pas une perte en général: deux
-  // personnes de même poids aux rythmes différents lisent deux fourchettes
-  // différentes, et la phrase doit le porter sinon la seconde a l'air fausse.
-  "meals.energy.target_range_down":
-    "Around {low}–{high} a day to lose weight at your pace",
-  "meals.energy.target_range_up":
-    "Around {low}–{high} a day to gain at your pace",
-  "meals.energy.target_measured": "based on your weigh-in of {date}",
-  // La cible ne se raconte pas comme une consigne. « Roughly », « around »:
-  // c'est une estimation de maintenance, pas un objectif qu'on atteint.
-  //
-  // ⛔ « your plan is not built to hit it » A ÉTÉ RETIRÉ, ET C'EST UNE
-  // CORRECTION DE FAIT, PAS DE TON. La phrase est fausse depuis le 2026-08-18:
-  // la cible contraint les GRAMMAGES (`household_portions.ts`, lot L8), donc le
-  // plan EST dimensionné dessus. Elle est restée treize jours à l'écran en
-  // promettant le contraire de ce que le moteur faisait.
-  "meals.energy.target_note":
-    "Roughly what a body your size uses in a day. It is not a goal — the day's total sits beside it so you can see where you are, not so you can hit it.",
-  // ⟳ LOT 4 — LA MÊME NOTE, QUAND LA FOURCHETTE A SUIVI LA DIRECTION. Elle dit
-  // les deux choses que l'autre ne peut plus dire: d'où vient le décalage, et
-  // que les portions du plan sont déjà posées dessus — c'est-à-dire qu'il n'y a
-  // rien à compter soi-même.
-  "meals.energy.target_note_directed":
-    "Your weight range, shifted by the pace you set. Your portions are already sized for it — there is nothing to count.",
-  "meals.energy.target_no_weight":
-    "Add a weigh-in and this becomes a range for your size.",
-  "meals.energy.target_implausible_weight":
-    "The last weigh-in does not look right, so this is left blank.",
-  // ⟳ 2026-09-10 · LOT 3 — LE RYTHME RÉGLÉ NE S'APPLIQUE PAS, ET ON DIT
-  // POURQUOI.
-  //
-  // ⛔ ELLE NOMME LA DONNÉE ET L'ENDROIT. « Your pace could not be applied »
-  // tout court serait un mur muet: la personne a réglé un rythme, elle voit des
-  // nombres, et rien ne lui dirait quoi faire. La taille se saisit dans
-  // « Basics », sur cette même page — d'où le renvoi littéral.
-  //
-  // ⚠️ ELLE NE DIT PAS « ta perte est en pause » NI UN CHIFFRE D'ÉCART. Le
-  // serveur REFUSE de deviner un écart sur données manquantes (décision datée);
-  // annoncer un manque chiffré ici inventerait très exactement ce qu'il
-  // s'interdit.
-  "meals.energy.target_pace_missing_body":
-    "Your pace is not applied yet: your height is missing, so this is a maintenance range. Add it under Basics on this page.",
+  // ⛔ 2026-09-23 — the daily range is no longer shown (see `fr.ts`). Its
+  // seven sentences went with `EnergyTargetNote`.
   "meals.energy.target_switch_on": "Show a daily range",
   "meals.energy.target_switch_off": "Hide the daily range",
   "meals.day.mon": "Monday",
@@ -6110,8 +6147,21 @@ export const en = {
   // LA CASE. « I ate this » au passé et à la première personne: c'est l'élève
   // qui rapporte un fait, pas le produit qui lui demande de valider une
   // consigne. « Done » aurait fait du dîner une tâche.
-  "meals.tick.label": "I ate this",
+  "meals.tick.label": "Not eaten",
   "meals.tick.failed": "That did not save. Tap it again.",
+  "meals.week.title": "Meal tracking",
+  "meals.week.lead":
+    "Tick the meals you did not eat; the rest is counted automatically.",
+  "meals.week.loading": "Loading your week…",
+  "meals.week.error": "Your week could not be loaded.",
+  "meals.week.retry": "Try again",
+  "meals.week.empty_title": "No plan this week yet",
+  "meals.week.empty_body": "Your week is set up on your plan: your meals will show up here.",
+  "meals.week.empty_cta": "Go to my plan",
+  "meals.week.days_label": "Plan days",
+  "meals.week.day_empty": "Nothing planned for you that day.",
+  "meals.week.future_note":
+    "These meals are still ahead: you can tick them on the day.",
   // ── FF-057 §3.A · LE FORMULAIRE ACCIDENT ─────────────────────────────────
   // Il s'ouvre APRÈS que la décoche est écrite, donc il ne demande rien: il
   // propose de préciser. D'où une affirmation en tête et pas une question —
@@ -6711,7 +6761,7 @@ export const en = {
   // dit pas POURQUOI: nommer le drapeau serait un diagnostic posé par une
   // machine.
   "student_progress.restricted":
-    "We are setting the numbers aside for now. What matters this week is how you feel — and your coach knows.",
+    "We are setting the numbers aside for now. What matters this week is how you feel.",
   "student_progress.range_week": "7 days",
   "student_progress.range_month": "30 days",
 
@@ -7030,6 +7080,12 @@ export const en = {
   "meals.rebuild.button": "Build another plan",
   "meals.rebuild.title": "Build another plan",
   "meals.rebuild.prepare_next": "Prepare next plan",
+  // ⟳ 2026-09-23 — the four short labels, under 363 px wide
+  // (`NarrowLabel` in `MealBuilder.tsx`).
+  "meals.rebuild.prepare_next_short": "Next plan",
+  "meals.rebuild.button_short": "New plan",
+  "meals.sessions.button_short": "Sessions",
+  "meals.result.shopping_short": "Shopping",
   // ⟳ 2026-09-09 — voir la note jumelle dans `fr.ts`: le groupe qui porte les
   // deux onglets de plan a besoin d'un nom.
   "meals.result.plan_switch": "Which plan",
@@ -7047,6 +7103,12 @@ export const en = {
     "This replaces the week below. What is there now stops being what you open tomorrow.",
   "meals.rebuild.building":
     "Building your new week — it takes a few seconds. The one you had stays in place until this lands.",
+  "meals.rebuild.confirm_title": "Replace your current plan?",
+  "meals.rebuild.confirm_body":
+    "Your plan from {from} to {to} will be replaced by the one you are about to build. You will see a preview first, and nothing changes until you adopt it.",
+  "meals.rebuild.confirm_go": "See the preview",
+  "meals.rebuild.confirm_cancel": "Keep my plan",
+  "meals.rebuild.confirm_close": "Close",
 
   // ══════════════════════════════════════════════════════════════════════════
   // LOT 6 · `/app/plan` — LES DEUX AUTRES CATALOGUES PARALLÈLES
@@ -7177,7 +7239,7 @@ export const en = {
   // 1963 lignes sans un seul `t()`. Les clés vivent sous `plan.*`, à côté des
   // refus de composition qui y sont depuis le lot 2: c'est le même sujet — ce
   // que l'élève règle, et ce que le serveur refuse d'en faire.
-  "plan.page.title": "My week's plan",
+  "plan.page.title": "My plan",
   // ⚠️ IL DISAIT « NEVER CALORIE COUNTS », ET FF-059 A RENDU CETTE PHRASE
   // FAUSSE SUR LE MÊME ÉCRAN: mesuré en run réel, « 537 kcal » s'affiche à trois
   // centimètres d'elle. Une promesse contredite par ce qu'on voit en même temps
@@ -7321,6 +7383,16 @@ export const en = {
   "plan.progress.writing": "Saving the plan…",
   "plan.progress.relaunched": "Relaunched once — the first run stopped midway.",
   "plan.progress.elapsed": "{time} elapsed",
+  "plan.composing.title": "Your plan is being composed",
+  "plan.composing.waiting": "Starting…",
+  "plan.composing.steps": "Composition steps",
+  "plan.composing.step_composing": "Compose",
+  "plan.composing.step_checking": "Check",
+  "plan.composing.step_repairing": "Fix",
+  "plan.composing.step_writing": "Tidy up",
+  "plan.composing.eta": "Two to three minutes on average.",
+  "plan.composing.keeps_current": "Your current plan stays in place until you adopt the new one.",
+  "meals.eta": "Two to three minutes on average to compose a plan.",
   // ── LOT D · LE RETOUR DE FIN DE PLAN ────────────────────────────────────
   // ⚠️ LES LIBELLÉS DES QUESTIONS NE SONT PAS ICI, et c'est délibéré: ils
   // vivent dans `_shared/keel/plan_feedback.ts`, dans les DEUX langues, avec
@@ -7350,15 +7422,22 @@ export const en = {
   "plan.feedback.sending": "Sending…",
   "plan.feedback.dismiss": "Not now",
   "plan.draft.title": "What it would look like",
-  "plan.draft.note_label": "What's off",
-  "plan.draft.note_hint":
-    "One sentence is enough. What it says is kept — a taste, an appetite, a setting — then the preview is redone with it.",
+  // ⛔ 2026-09-20 — removed with the block's heading, on request (no reader):
+  //   · plan.draft.note_label / plan.draft.note_hint
   "plan.draft.note_placeholder": "Too much fish, and more pasta for the kids.",
-  "plan.draft.remix": "Redo with that",
+  // See `fr.ts`: one key for both steps of the gesture — it opens the
+  // writing area, and the button beside the field sends it. `note_send`
+  // ("Confirm") was removed.
+  "plan.draft.remix": "Adjust the plan",
   "plan.draft.adopt": "Adopt this plan",
+  "plan.draft.adopt_replace": "Replace my plan with this one",
   "plan.draft.adopting": "Saving...",
   "plan.draft.discard": "Drop it",
-  "plan.draft.not_saved": "Nothing is saved yet.",
+  // ⟳ 2026-09-20 — REMOVED FROM THE SCREEN, ON REQUEST (no reader left):
+  //   · plan.draft.not_saved        "Nothing is saved yet."
+  //   · plan.draft.adopt_recomposes "Adopting revalidates this preview…"
+  // Both opened the preview dialog with contract text before the plan itself.
+  // What they said still holds in code — it is just no longer written out.
   // ⟳ 2026-09-10 · LOT 7 — CE QU'UN MEMBRE SECONDAIRE LIT À LA PLACE DU BOUTON.
   // ⛔ ELLE NE FAIT ATTENDRE PERSONNE. Pas de « your plan is being prepared »:
   // rien n'est en cours, et une copie qui le laisserait croire ferait guetter
@@ -7385,12 +7464,11 @@ export const en = {
   "plan.draft.question_who": "You wrote “{text}” — who is that for?",
   "plan.draft.question_none": "None of them",
   "plan.draft.question_skipped": "OK, I changed nothing for that sentence.",
+  "plan.draft.safety_not_written":
+    "I couldn’t save this to the sheet: {lines}. Add it from the household sheet.",
   "plan.draft.cells_applied": "I redid {cells}; the rest is identical ({count} dishes kept as they were).",
   "plan.draft.note_at_edge": "Got it — but that is already at the end of the scale, there is no notch left to move.",
   "plan.draft.note_skipped": "I read it, but that is not something I can adjust from here yet. The plan is redone as is.",
-  // What adoption does: revalidate the stored preview, then write that payload.
-  "plan.draft.adopt_recomposes":
-    "Adopting revalidates this preview against your current constraints, then saves this exact plan without rebuilding it.",
 
   // ── LA PART DU RÉCLAMÉ (Lot E) ──────────────────────────────────────────
   // ⚠️ CETTE CARTE N'AFFICHE JAMAIS un objectif, un poids, une calorie, ni le
@@ -7399,8 +7477,6 @@ export const en = {
   // l'afficher: l'instruction est publique, le pourquoi ne l'est pas.
   "plan.mine.title": "Your share",
   "plan.mine.standard": "A standard serving",
-  "plan.mine.approve": "Looks right",
-  "plan.mine.approved": "Confirmed.",
   "plan.mine.request_change": "Ask for a change",
   "plan.mine.change_label": "What you'd like changed",
   "plan.mine.change_sent": "Sent to the household.",
@@ -7422,7 +7498,7 @@ export const en = {
     "Who you are and where you are now. Used to size your portions.",
   "plan.section.goal.title": "Your goal",
   "plan.section.goal.intro":
-    "What you are after. It decides which parts of your coach's method get brought forward for you.",
+    "What you are after. It decides what your plan brings forward for you.",
   // ── ⟳ LOT 5 · LES CHIFFRES, DANS LA FENÊTRE « À PROPOS DE TOI » ─────────
   //
   // ⚠️ « Numbers », PAS « Calories ». Le fronton est lu par quelqu'un qui vient
@@ -7649,6 +7725,8 @@ export const en = {
   "known.source.conversation": "I kept this from what you said on {day}",
   "known.source.questionnaire": "You ticked this in a plan review",
   "known.source.draft_note": "You wrote this on a draft plan",
+  "known.occasion": "· {slot} only",
+  "known.force.less": "· less often, not removed",
   "known.quote": "because you said: {quote}",
   "known.recent.title": "What just changed",
   "known.memo.title": "What Sophia kept otherwise",
@@ -7717,6 +7795,7 @@ export const en = {
   "known.error.opaque_store": "Nothing was written: one of the two stores is not a list, and writing over it would have destroyed what I cannot read.",
   "known.error.no_goal_row": "There is nothing to write to yet. Set your direction first.",
   "known.error.no_user": "You are not signed in any more.",
+  "known.error.not_owner": "This page is yours to read: your plan, your goal and your share. What goes in and out of the menu is decided on the account that runs the house — tell them, and it will show up here. Nothing was written.",
   "known.error.bad_items": "I refused that shape rather than store something I could not read back.",
   "known.error.unreadable": "I could not make a line out of that. Nothing was changed.",
   "known.error.generic": "That did not go through.",
@@ -7824,8 +7903,6 @@ export const en = {
   // ⟳ 2026-09-04 — voir le commentaire jumeau dans `fr.ts`: la phrase dit les
   // DEUX faits (elle commence demain, elle est plus courte d'un jour) et ne
   // reproche jamais une absence.
-  "meals.timing.starts_tomorrow":
-    "Your day is already under way: this plan starts tomorrow, and covers one day less than you asked for.",
   //
   // RETIRÉES PAR CE LOT (la case « je cuisine la veille » n'existe plus, et
   // `CookDayBeforeField.tsx` est supprimé — vérifié appelant par appelant):
@@ -8035,6 +8112,27 @@ export const en = {
   "student_progress.journal.target_goal_up": "Weight-gain goal",
   "student_progress.journal.target_goal_other": "Daily energy reference",
   "student_progress.journal.target_date": "Based on your measurement from {date}",
+  // 2026-09-21 — the calculation, step by step, behind a "Detail" button.
+  // ⛔ No verdict and no remainder on any of these labels: "you have N kcal
+  // left" is a tracker's sentence, and it exists nowhere in this chain.
+  "student_progress.journal.detail": "Detail",
+  "student_progress.journal.detail_close": "Close the detail",
+  "student_progress.journal.detail_title": "Where this number comes from",
+  "student_progress.journal.detail_weight": "Your weight",
+  // ⛔ 2026-09-21 — never rendered: the seam detector refused its row (it
+  // needed `setup.activity.*`, outside this page's declared namespaces).
+  "student_progress.journal.detail_activity": "Your days",
+  "student_progress.journal.detail_per_kg": "Per kilo",
+  "student_progress.journal.detail_per_kg_value": "{low} to {high} kcal",
+  "student_progress.journal.detail_maintenance": "Your estimated upkeep",
+  "student_progress.journal.detail_delta": "Your goal",
+  "student_progress.journal.detail_total": "Your daily reference",
+  "student_progress.journal.detail_chain_body_equation":
+    "Worked out from your body — your height, weight, age, sex and how your days go.",
+  "student_progress.journal.detail_chain_weight_per_kg":
+    "Worked out from your weight and how your days go. We will use your whole body as soon as we know your height and date of birth.",
+  "student_progress.journal.detail_reserve":
+    "This is an estimate, not a measurement. Two bodies identical on paper do not spend the same — hence a range, and not a single figure.",
   "student_progress.journal.target_missing": "Your daily reference is not available yet.",
   "student_progress.journal.week": "Your week on a plate",
   "student_progress.journal.previous": "Previous week",
@@ -8060,7 +8158,7 @@ export const en = {
   "student_progress.journal.leftovers": "Leftovers",
   "student_progress.journal.unattached": "To attach",
   "student_progress.journal.state_confirmed": "confirmed",
-  "student_progress.journal.state_planned": "not confirmed",
+  "student_progress.journal.state_planned": "counted as planned",
   "student_progress.journal.state_missing": "nothing recorded",
   "student_progress.journal.state_skipped": "not eaten",
   "student_progress.journal.state_future": "upcoming",
@@ -8315,4 +8413,183 @@ export const en = {
   "legal.referral.s5_title": "5. Nature of the reward",
   "legal.referral.s5_p1":
     "Free months have no monetary value: they are not refundable, transferable or convertible into cash. {name} may change or end the referral programme at any time; rewards already earned remain due.",
+
+  // ══ `/account` — LE COMPTE ══════════════════════════════════════════════
+  // `components/UserProfile.tsx`, `components/account/DataPrivacySection.tsx`
+  // et `components/account/DeletionPendingScreen.tsx`. Tout était en dur, en
+  // anglais. ⚠️ Le mot de confirmation « DELETE » n'est PAS ici: c'est
+  // `account-deletion-v1` qui le compare, dans les deux langues.
+  "account.close": "Close",
+  "account.cancel": "Cancel",
+  "account.save": "Save",
+  "account.saving": "Saving…",
+  "account.sign_out": "Sign out",
+  "account.fallback_name": "User",
+  "account.tab.general": "Account",
+  "account.tab.subscription": "Subscription",
+  "account.tab.settings": "Options",
+  "account.general.section": "Personal details",
+  "account.general.full_name": "Full name",
+  "account.general.full_name_placeholder": "Your name",
+  "account.general.saved": "Details saved.",
+  "account.general.error.save": "Could not save.",
+  "account.general.email": "Email",
+  "account.email.change": "Change my email",
+  "account.email.new_aria": "New email address",
+  "account.email.new_placeholder": "new-email@example.com",
+  "account.email.confirm": "Confirm",
+  "account.email.sending": "Sending…",
+  "account.email.hint":
+    "If email confirmation is enabled, Sophia will ask you to confirm through a link sent to your inbox.",
+  "account.email.error.required": "Email is required.",
+  "account.email.unchanged": "Email unchanged.",
+  "account.email.sent": "Request sent. Check your email to confirm the change.",
+  "account.email.error.failed": "Could not change the email.",
+  // Le lien part vers l'adresse DU COMPTE, jamais vers une adresse saisie.
+  "account.password.change": "Change my password",
+  "account.password.sending": "Sending…",
+  "account.password.sent": "A link to change your password was sent to {email}.",
+  "account.password.error": "Could not send the link.",
+  // `{days}` est déjà pluralisé par `plural()` au site d'appel.
+  "account.member_for": "Member for {days}",
+  "account.member_days_one": "{count} day",
+  "account.member_days_many": "{count} days",
+  // L'onglet ne gère plus rien lui-même: l'abonnement a sa page
+  // (`/app/billing`, ou `/coach/billing` pour un coach).
+  "account.subscription.body": "Your subscription is managed on its own page.",
+  "account.subscription.cta": "See my subscription",
+  "account.settings.section": "Preferences",
+  "account.settings.language": "Language",
+  "account.settings.language_hint":
+    "Applies immediately, and reloads. This is also the language Sophia answers you in.",
+  "account.settings.timezone": "Time zone (IANA)",
+  "account.settings.timezone_current_device": "Current: {tz} (device)",
+  "account.settings.timezone_current_profile": "Current: {tz} (profile)",
+  "account.settings.roaming": "Roaming",
+  "account.settings.roaming_hint": "Follow the device time zone automatically.",
+  "account.settings.roaming_aria": "Enable roaming",
+  "account.settings.saved": "Preferences saved.",
+  "account.settings.error.save": "Could not save preferences.",
+  "account.error.wrong_password": "Wrong password.",
+  "account.data.section": "My data",
+  "account.export.title": "Export my data",
+  "account.export.body":
+    "Download a copy of your data (profile, plans, conversations, memories) as JSON in a ZIP archive. Limit: 1 export per 24 h.",
+  "account.export.open": "Prepare my export",
+  "account.export.password_label": "Confirm your password to continue",
+  "account.export.password_placeholder": "Your password",
+  "account.export.download": "Download the archive (link valid for 15 minutes)",
+  "account.export.preparing": "Preparing the archive…",
+  "account.export.generate": "Generate my export",
+  "account.export.safety":
+    "For your safety, a notification is sent in your chat and by email for every export request. The file contains sensitive personal data: keep it somewhere safe.",
+  "account.export.error.rate_limited":
+    "You already requested an export recently (limit: 1 export per 24 h). Try again later.",
+  "account.export.error.failed":
+    "The export failed. Try again in a few minutes, or write to sophia@sophia-coach.ai.",
+  "account.delete.title": "Delete my account",
+  "account.delete.done_title": "Done",
+  "account.delete.export_body":
+    "Before you go, you can download a copy of your data (profile, plans, conversations, memories). It is optional — and only possible while your account still exists.",
+  "account.delete.export_first": "Download my data first",
+  "account.delete.continue": "Continue",
+  "account.delete.explain_title": "Here is what will happen:",
+  "account.delete.explain_access": "Your access to the app is cut off immediately.",
+  "account.delete.explain_messages": "Sophia stops writing to you straight away.",
+  "account.delete.explain_subscription":
+    "Your subscription is cancelled immediately, with no further charge. The period already paid is not refunded pro rata.",
+  "account.delete.explain_purge": "All your data is permanently deleted in 7 days.",
+  "account.delete.explain_irreversible": "This deletion is irreversible.",
+  "account.delete.explain_restore":
+    "You can change your mind: sign in again before that date and your account is restored in one click (the subscription is not reactivated automatically).",
+  // Trois morceaux par phrase: le gras est au milieu. Pas d'espace de bord
+  // (`parity.int.test.ts`), donc le deux-points vit DANS le gras.
+  "account.delete.member_lead": "Your place in {household} is",
+  "account.delete.member_kept": "kept by default:",
+  "account.delete.member_rest":
+    "your serving and your allergies stay part of the household so nobody there loses a meal. You can ask for it to go too, on the next screen.",
+  "account.delete.owner_lead": "You run {household}. It is",
+  "account.delete.owner_kept": "not deleted",
+  "account.delete.owner_rest":
+    "— the people in it keep their servings, their allergies and their meals. What you lose is your access to it.",
+  "account.delete.household_your": "your household",
+  "account.delete.household_a": "a household",
+  "account.delete.household_this": "this household",
+  "account.delete.kept_title": "What is kept",
+  "account.delete.kept_body":
+    "The invoices for your payments (statutory accounting retention obligation) and a minimal anonymised record of the deletion (hashed email and phone number, with the date) as proof of compliance. Nothing else.",
+  "account.delete.understand": "I understand, continue",
+  "account.delete.confirm_lead": "Last step. Confirm your password, then type",
+  "account.delete.confirm_rest": "to delete your account.",
+  "account.delete.leave_question": "Also remove my place in {household}?",
+  "account.delete.leave_body":
+    "Leave this unticked and your place stays: your first name, your serving and your allergies remain part of the household, and nobody there loses a meal. Tick it and all of that is deleted along with your account, on the same day.",
+  "account.delete.password": "Password",
+  "account.delete.type_word": "Type {word}",
+  "account.delete.error.rate_limited": "Too many attempts. Try again in an hour.",
+  "account.delete.error.request":
+    "The request failed. Try again, or write to sophia@sophia-coach.ai.",
+  "account.delete.error.word": "Type exactly \"{word}\" to confirm.",
+  "account.delete.error.subscription":
+    "Could not cancel your subscription right now. Nothing has been deleted — try again in a few minutes.",
+  "account.delete.error.failed": "The deletion failed. Nothing has been deleted — try again.",
+  "account.delete.deleting": "Deleting…",
+  "account.delete.confirm": "Permanently delete my account",
+  "account.delete.done_deactivated": "Your account is deactivated.",
+  "account.delete.done_restore":
+    "If you change your mind, sign in again before that date: your account will be restored in one click.",
+  "account.delete.done_subscription":
+    "Your subscription has been cancelled and will not be reactivated automatically.",
+  "account.delete.done_thanks":
+    "Thank you for walking part of the way with Sophia. Take care of yourself.",
+  // La date de purge. Deux formes: avec la date, et sans (la date manque).
+  "account.purge.lead": "All your data will be",
+  "account.purge.on": "permanently deleted on {date}",
+  "account.purge.soon": "permanently deleted in 7 days",
+  "account.pending.title": "Your account is being deleted",
+  "account.pending.restore_body":
+    "Until then, you can restore your account in one click: everything is put back (plans, conversations, memories, reminders).",
+  "account.pending.subscription":
+    "If you had a subscription, it has been cancelled and will not be reactivated automatically: you can take out a new one from the Subscription page.",
+  "account.pending.error": "The restore failed. Try again, or contact sophia@sophia-coach.ai.",
+  "account.pending.restoring": "Restoring…",
+  "account.pending.restore": "Restore my account",
+
+  // ══ `/installer-app` — AJOUTER SOPHIA À L'ÉCRAN D'ACCUEIL ════════════════
+  // `pages/InstallAppGuide.tsx`, page de support publique (noindex). Le texte
+  // d'origine était français, en dur.
+  "install_app.seo_title": "Install Sophia on your phone",
+  "install_app.seo_description":
+    "How to install Sophia on Android or iPhone, then save your login details to sign back in without friction.",
+  "install_app.back_home": "Back to home",
+  "install_app.title": "Install Sophia",
+  "install_app.lead": "Add Sophia to your phone to open it like a real app.",
+  "install_app.detected": "Detected device: {platform}",
+  "install_app.device_unknown": "your device",
+  "install_app.android.title": "Install Sophia on Android",
+  "install_app.android.body":
+    "If your browser allows it, you can install Sophia as an app. Otherwise, go through the browser menu.",
+  "install_app.android.step1": "Open Sophia in Chrome on Android.",
+  "install_app.android.step2": "Tap the browser menu.",
+  "install_app.android.step3": "Choose the option to install or add the app.",
+  "install_app.android.install_now": "Install now",
+  "install_app.android.fallback":
+    "If the direct install button doesn't appear, just use the browser menu.",
+  "install_app.ios.title": "Add Sophia to the Home Screen on iPhone",
+  "install_app.ios.body":
+    "On iPhone, installing goes through Safari. There is no native button like the one on Android.",
+  "install_app.ios.step1": "Open Sophia in Safari.",
+  "install_app.ios.step2": "Tap the Share button.",
+  "install_app.ios.step3": "Choose Add to Home Screen.",
+  "install_app.ios.step4": "Confirm to create the Sophia icon.",
+  "install_app.ios.tip":
+    "Tip: if you're using Chrome on iPhone, open Sophia in Safari to do this step.",
+  "install_app.credentials.title": "Save your login details",
+  "install_app.credentials.lead": "To come back to Sophia in one click, without friction.",
+  "install_app.credentials.android_title": "On Android",
+  "install_app.credentials.android_body":
+    "Turn on the saving offered by Chrome or Google Password Manager.",
+  "install_app.credentials.ios_title": "On iPhone",
+  "install_app.credentials.ios_body":
+    "Turn on iCloud Keychain so Safari offers to save your login details.",
 } as const

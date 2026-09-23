@@ -102,12 +102,6 @@ function html(patch: Record<string, unknown> = {}, maxOthers = 7): string {
       onTarget: () => {},
       confirmRemove: null,
       onConfirmRemove: () => {},
-      inviteFor: null,
-      onInviteFor: () => {},
-      inviteEmail: "",
-      onInviteEmail: () => {},
-      onInvite: () => {},
-      invite: null,
       busy: false,
     } as unknown as Parameters<typeof MouthsStep>[0]),
   );
@@ -415,6 +409,12 @@ describe("la porte des préférences, et plus aucun champ en ligne", () => {
    * ⚠️ LA LIGNE D'UNE BOUCHE DÉJÀ INSCRITE AUSSI, et son bouton n'est PAS
    * conditionné à « les allergies n'ont pas encore de réponse »: la fenêtre
    * porte aussi ce qu'elle mange déjà, ce qu'elle n'aime pas et son régime.
+   *
+   * ⟳ 2026-09-20 — MAIS SA CARTE DOIT ÊTRE OUVERTE. La porte a quitté l'état
+   * replié le même jour (elle prenait trois lignes par personne sous un résumé
+   * replié exprès pour tenir); `editingMemberId` la rouvre, et c'est ce que
+   * « Modifier » fait à l'écran. Ce que ce cas garde est inchangé: le bouton
+   * ne dépend pas de `allergiesReviewed`.
    */
   it("une bouche déjà inscrite a la même porte, même allergies répondues", () => {
     const markup = renderToStaticMarkup(
@@ -455,19 +455,14 @@ describe("la porte des préférences, et plus aucun champ en ligne", () => {
         onSaveMouthPreferences: () => {},
         onBody: () => {},
         onRemove: () => {},
-        editingMemberId: null,
+        editingMemberId: "m-1",
         onToggleEdit: () => {},
+        onSaveAndClose: () => {},
         targets: new Map(),
         birthDates: new Map(),
         onTarget: () => {},
         confirmRemove: null,
         onConfirmRemove: () => {},
-        inviteFor: null,
-        onInviteFor: () => {},
-        inviteEmail: "",
-        onInviteEmail: () => {},
-        onInvite: () => {},
-        invite: null,
         busy: false,
       } as unknown as Parameters<typeof MouthsStep>[0]),
     );
@@ -739,5 +734,99 @@ describe("A5 · un seul formulaire de personne — l'entonnoir et le Foyer", () 
     // de « 25 »), et la garde retomberait sur une coïncidence de chaîne.
     expect(mouth, "le plancher de poids d'une bouche est celui d'un adulte")
       .not.toMatch(/min="25"/);
+  });
+});
+
+// ===========================================================================
+// 2026-09-20 — LE CADRE D'AJOUT DIT DE QUI IL PARLE
+//
+// Signalé à l'écran, capture à l'appui: le cadre en pointillé s'ouvrait
+// directement sur « Qui c'est », le titre du premier bloc de la fiche. « Le
+// "qui c'est", on ne comprend pas facilement que c'est pour une nouvelle
+// personne. »
+//
+// ⚠️ LE POINTILLÉ NE SE TESTE PAS, ET IL NE SUFFISAIT PAS NON PLUS. Il porte
+// la même intention depuis le 2026-08-19, mais il ne la dit qu'à qui connaît
+// la convention — et cette convention s'apprend en COMPARANT un cadre pointillé
+// à un cadre plein, donc seulement quand quelqu'un est déjà inscrit au-dessus.
+// Le premier ajout n'a rien à comparer. Ce qui se teste est le mot.
+// ===========================================================================
+
+describe("le cadre d'ajout se nomme", () => {
+  it("porte un titre", () => {
+    expect(html()).toContain(en["setup.mouths.new_title"]);
+  });
+
+  /**
+   * ⛔ ET IL NE PREND PAS LE PRÉNOM TAPÉ. Les cartes du dessus titrent avec le
+   * prénom; ce cadre-ci ne doit pas leur ressembler, sinon il dit le contraire
+   * de ce qu'il vient d'être corrigé pour dire. Le prénom reste bien sûr dans
+   * son champ — c'est le TITRE qui n'en prend pas.
+   */
+  it("ne titre pas avec le prénom en cours de saisie", () => {
+    // ⚠️ UN PRÉNOM SANS ACCENT: `renderToStaticMarkup` échappe `è` en entité
+    // dans un attribut `value`, et on chercherait alors une chaîne qui n'est
+    // pas dans le HTML — un faux rouge qui ne dit rien du titre.
+    const markup = html({ firstName: "Zora" });
+    expect(markup).toContain(en["setup.mouths.new_title"]);
+    const title = markup.indexOf(en["setup.mouths.new_title"]);
+    const name = markup.indexOf("Zora");
+    expect(name).toBeGreaterThan(-1);
+    // Le prénom n'apparaît qu'APRÈS le titre, dans son champ — jamais à sa
+    // place ni avant lui.
+    expect(name).toBeGreaterThan(title);
+  });
+
+  /**
+   * Replié, il n'y a qu'un bouton: pas de titre orphelin.
+   *
+   * ⚠️ MONTÉ À LA MAIN, PAS PAR `html()`: ce helper patche le BROUILLON et
+   * force `formOpen: true`. Lui passer `{ formOpen: false }` aurait posé un
+   * champ inconnu sur le brouillon et rendu le formulaire quand même — un test
+   * vert sur un écran qu'on n'a pas regardé.
+   */
+  it("ne se nomme pas quand il est replié", () => {
+    Object.defineProperty(globalThis, "location", {
+      value: { pathname: PATH, search: "", href: `http://localhost${PATH}` },
+      configurable: true,
+      writable: true,
+    });
+    setChosenUiLocaleForTest("en");
+    const markup = renderToStaticMarkup(
+      createElement(MouthsStep, {
+        mouths: [],
+        maxOthers: 7,
+        draft: draft(),
+        onDraftChange: () => {},
+        onAdd: () => {},
+        held: null,
+        failure: null,
+        added: null,
+        formOpen: false,
+        onOpenForm: () => {},
+        onDiscard: () => {},
+        onGoal: () => {},
+        onBirthDate: () => {},
+        onAllergyAnswer: () => {},
+        onOpenDraftPreferences: () => {},
+        onOpenMouthPreferences: () => {},
+        mouthPrefs: null,
+        knownPrefs: () => emptyMouthDraft(),
+        onSaveMouthPreferences: () => {},
+        onBody: () => {},
+        onRemove: () => {},
+        editingMemberId: null,
+        onToggleEdit: () => {},
+        onSaveAndClose: () => {},
+        targets: new Map(),
+        birthDates: new Map(),
+        onTarget: () => {},
+        confirmRemove: null,
+        onConfirmRemove: () => {},
+        busy: false,
+      } as unknown as Parameters<typeof MouthsStep>[0]),
+    );
+    expect(markup).not.toContain(en["setup.mouths.new_title"]);
+    expect(markup).toContain(en["setup.mouths.add"]);
   });
 });

@@ -35,7 +35,9 @@
  * des lignes de liste de courses. Le repli propre mesuré est `gpt-5.6-sol`.
  * Détail: scratchpad/RAPPORT-BANC-MODELES.md §4.1
  *
- * ── LE DÉFAUT EST `gpt-5.6-luna` DEPUIS LE 2026-08-19 ─────────────────────
+ * ── LE DÉFAUT EST `gpt-6-luna` DEPUIS LE 2026-09-23 ──────────────────────
+ * Il remplace `gpt-5.6-luna`, défaut du 2026-08-19 au 2026-09-23. Le
+ * paragraphe suivant décrit la décision prise pour `gpt-5.6-luna`.
  * Décision du propriétaire, en connaissance de la mesure: `luna` n'a PAS été
  * éprouvé par le banc (il n'en faisait pas partie) et il est facturé au même
  * tarif que `sol` d'après la table de tarifs — la bascule n'achète donc aucune
@@ -66,7 +68,7 @@ function safeEnvGet(name: string): string | undefined {
  * note sur l'absence de repli en tête de fichier: un identifiant invalide ici
  * ne dégrade pas le produit, il l'arrête.
  */
-export const KEEL_GENERATION_MODEL_DEFAULT = "gpt-5.6-luna";
+export const KEEL_GENERATION_MODEL_DEFAULT = "gpt-6-luna";
 
 /**
  * Le modèle à passer dans `meta.model` d'un appel `generateWithGemini` fait
@@ -193,7 +195,7 @@ export function keelGenerationModel(): string {
  * comme une dégradation.
  *
  * ⛔ CE N'EST PAS UN IDENTIFIANT DE MODÈLE. « high fast » n'existe pas: le
- * modèle reste `gpt-5.6-luna`, l'effort reste `medium`/`high`, et le palier est
+ * modèle reste `gpt-6-luna`, l'effort reste `medium`/`high`, et le palier est
  * un TROISIÈME axe, transmis par `meta.serviceTier`.
  *
  * ⚠️ CE QU'IL NE RÉPARE PAS, ET IL FAUT LE DIRE AVANT LE BANC: un `546` du
@@ -246,7 +248,7 @@ export const PLAN_REPAIR_REASONING_EFFORT = "high" as const;
  * `thirdFallbackModel` occupent les deux emplacements que `gemini.ts` remplirait
  * sinon lui-même; `push` déduplique, donc la chaîne devient:
  *
- *     ["gpt-5.6-luna", "gpt-5.6-sol"]
+ *     ["gpt-6-luna", "gpt-5.6-sol"]
  *
  * Détail de la mesure: scratchpad/RAPPORT-BANC-MODELES.md §4.1
  */

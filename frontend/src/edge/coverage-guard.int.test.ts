@@ -306,6 +306,14 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       // des corps, les 256 combinaisons de régime et d'allergène du shaker, et
       // trois gardes lues sur la source du générateur).
       "eating-structure-v1",
+      // 2026-09-20 — DU TEXTE LIBRE AUX BULLES (allergies et dégoûts). Un
+      // appel modèle court, effort bas, puis le dépôt des termes inconnus au
+      // sas APRÈS la réponse (`keepWorking`). Le prompt, la relecture et le
+      // repli sans modèle sont couverts par
+      // _shared/keel/food_terms_extract_test.ts (11 cas); l'écran par
+      // components/mouthFormDialog.int.test.ts (« le texte libre des deux
+      // sections »).
+      "food-terms-extract-v1",
       "notify-profile-change",
       "plan-import-v1",
       // KEEL W6.2 — template -> clone+diff -> published plan_version. Sole
@@ -468,6 +476,16 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       // d'un brouillon (relu, adopté, périmé par une empreinte) vit dans le
       // code et dans les CHECK de la table, jamais ici.
       "student_meal_drafts_set_updated_at",
+      // 2026-09-23 (20260923130000) — « LAISSER TOMBER » EST UNE RÉPONSE. Au
+      // passage d'une ligne à `done`, les `done` plus anciens de la même
+      // personne passent à `discarded` : sans ça, `recoverLatestDraft()`
+      // rouvrait un brouillon d'avant à chaque retour sur `/app/plan`. Un
+      // déclencheur parce que deux écrivains posent `done` (`completeDraft`
+      // et `keel_household_complete_draft_generation`). Prouvé par le bloc
+      // `do $$` de la migration (l'ancien reste `done` tant que le récent est
+      // en vol, passe à `discarded` quand il est prêt) ; la lecture côté
+      // écran par keel/api/planRecoveryExpiry.int.test.ts.
+      "student_meal_drafts_newer_discards_older",
       // `/app/health` (20260804190000): l'élève peut RETIRER une contrainte
       // qu'il a déclarée, et rien d'autre. Une policy RLS porte sur des lignes,
       // pas sur des colonnes — sans ce trigger, un `update` autorisé laissait

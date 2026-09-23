@@ -213,6 +213,8 @@ describe("la liaison unique porte le formulaire, pas les deux écrans", () => {
         "../pages/TodayPage.tsx",
         "../components/MealBuilder.tsx",
         "../components/plan/MyShareCard.tsx",
+        // ⟳ 2026-09-23 — la quatrième: la fenêtre « Suivi des repas ».
+        "../components/MealsTrackingDialog.tsx",
       ]
     ) {
       const src = readFileSync(new URL(page, import.meta.url), "utf8")

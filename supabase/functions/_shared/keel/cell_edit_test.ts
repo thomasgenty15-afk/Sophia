@@ -66,6 +66,8 @@ Deno.test("cellEditInstruction — la promesse « ONLY » touche la liste des ca
   const cell = p.indexOf('- fri dinner — they wrote: "plutôt du poulet"');
   assert(only >= 0 && cell >= 0 && cell - only < 200, "la promesse et la case ne se touchent pas");
   assert(p.includes("Return the FULL plan"));
+  // La case vide du calendrier : le modèle l'écrit, il ne la laisse pas vide.
+  assert(p.includes("NO dish in THE PLAN below is an EMPTY cell") && p.includes("An empty cell is never an answer"));
   assert(p.endsWith('{"dishes":[]}'));
   // Les guillemets de la phrase ne cassent pas la ligne.
   assert(cellEditInstruction({ planSourceText: "", cells: [{ ...CELL, text: 'du "poulet"' }] }).includes("they wrote: \"du 'poulet'\""));
@@ -84,8 +86,9 @@ Deno.test("⛔ mergeCellEdit — SEULE la case demandée est prise ; une case no
     cooking_sessions: [{ day: "wed", preparationIds: ["prep_chicken", "prep_lentils"], runThrough: "", totalMinutes: 40 }] as never,
     shopping_list: [{ term: "poulet rôti", quantity: "500 g", aisle: "meat" }, { term: "lentilles", quantity: "500 g", aisle: "dry" }, { term: "courgettes", quantity: "400 g", aisle: "produce" }] as never,
   });
-  const out = mergeCellEdit({ base: b, retry, cells: [CELL] , index: null });
+  const out = mergeCellEdit({ base: b, retry, cells: [CELL], index: null, calendar: [] });
   assertEquals(out.taken, ["fri/dinner"]);
+  assertEquals(out.filled, []);
   assertEquals(out.notRendered, []);
   assertEquals(out.unknown, []);
   assertEquals(out.untouched, 3);
@@ -107,10 +110,43 @@ Deno.test("⛔ mergeCellEdit — SEULE la case demandée est prise ; une case no
 Deno.test("⛔ mergeCellEdit — case demandée absente de la réponse ⇒ `notRendered`, plan de départ rendu tel quel ; case inconnue au départ ⇒ `unknown`", () => {
   const b = base();
   const retry = meal({ dishes: [dish("thu", "lunch", "Dinde, quinoa")], preparations: [], cooking_sessions: [], shopping_list: [] });
-  const out = mergeCellEdit({ base: b, retry, cells: [CELL, { day: "sat", slot: "lunch", text: "x" }] , index: null });
+  const out = mergeCellEdit({ base: b, retry, cells: [CELL, { day: "sat", slot: "lunch", text: "x" }], index: null, calendar: [] });
   assertEquals(out.taken, []);
+  assertEquals(out.filled, []);
   assertEquals(out.notRendered, ["fri/dinner"]);
   assertEquals(out.unknown, ["sat/lunch"]);
   assertEquals(out.untouched, 4);
   assertEquals(JSON.stringify(out.meal), JSON.stringify(b));
+});
+
+Deno.test("⛔ mergeCellEdit — une case que le CALENDRIER sert mais que le plan laissait VIDE est connue : rendue par le modèle ⇒ prise et comptée `filled` ; absente de la réponse ⇒ `notRendered`, jamais `unknown`", () => {
+  // Mesuré le 2026-09-21 sur `d65f57e2` : « il manque le repas du mardi midi »
+  // → la case n'avait aucun plat, le modèle l'a écrite, la fusion refusait
+  // `cell_unknown`. Ici : sat/lunch n'est pas dans le plan de départ.
+  const b = base();
+  const ask = { day: "sat" as const, slot: "lunch" as const, text: "il manque ce repas" };
+  const calendar = [{ day: "sat", slot: "lunch" }, { day: "fri", slot: "dinner" }];
+  const rendered = meal({
+    dishes: [...b.dishes, dish("sat", "lunch", "Sardines, pain")],
+    preparations: [...b.preparations],
+    cooking_sessions: [...b.cooking_sessions],
+    shopping_list: [...b.shopping_list, { term: "sardines", quantity: "200 g", aisle: "fish" }] as never,
+  });
+  const out = mergeCellEdit({ base: b, retry: rendered, cells: [ask], index: null, calendar });
+  assertEquals(out.taken, ["sat/lunch"]);
+  assertEquals(out.filled, ["sat/lunch"]);
+  assertEquals(out.unknown, []);
+  assertEquals(out.notRendered, []);
+  assertEquals(out.untouched, 4);
+  assertEquals(out.meal.dishes.length, 5);
+  assertEquals(out.meal.dishes.find((d) => d.day === "sat" && d.slot === "lunch")?.title, "Sardines, pain");
+  // Le modèle n'a pas rendu la case vide : elle n'est pas « inconnue », elle
+  // est « non rendue » — l'écran dit la bonne chose.
+  const silent = mergeCellEdit({ base: b, retry: b, cells: [ask], index: null, calendar });
+  assertEquals(silent.taken, []);
+  assertEquals(silent.filled, []);
+  assertEquals(silent.notRendered, ["sat/lunch"]);
+  assertEquals(silent.unknown, []);
+  // Sans le calendrier, la même case reste inconnue : la garde tient à l'argument.
+  assertEquals(mergeCellEdit({ base: b, retry: rendered, cells: [ask], index: null, calendar: [] }).unknown, ["sat/lunch"]);
 });

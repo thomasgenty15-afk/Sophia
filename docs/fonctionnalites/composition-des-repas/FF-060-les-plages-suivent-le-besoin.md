@@ -1,8 +1,65 @@
 # FF-060 — Les plages suivent le besoin, et le plan porte le shaker
 
-> **Statut** : 🟡 En cours — lot 0 écrit (`_shared/keel/eating_structure.ts`), rien de câblé.
+> **Statut** : 🟢 Câblé — module pur (`_shared/keel/eating_structure.ts`), endpoint
+> `eating-structure-v1`, pré-coche de la fiche (`lib/rhythmPrefill.ts`) et injection
+> dans la lane foyer.
 > **Décidée le** 2026-09-04 par le propriétaire, sur la mesure ci-dessous.
+> **Amendée le 2026-09-20** — voir l'encart juste en dessous : qui la dérivation
+> touche, et qui elle ne touche pas.
 > **Autorité** : ce fichier. `docs/keel/BOITES-PAR-REPAS.md` pour la forme des boîtes.
+
+## 0. ⟳ 2026-09-20 — LA DÉRIVATION EST LA RÉPONSE DU **SILENCE**
+
+La question « le générateur a-t-il le droit d'ouvrir un moment ? » a reçu trois
+réponses en seize jours. La troisième est la bonne, et elle n'est ni l'une ni
+l'autre des deux premières :
+
+| date | règle | pour qui |
+|---|---|---|
+| 2026-09-04 | la lane ouvre et **écrit** les moments manquants | tout le monde |
+| 2026-09-07 | la lane **n'ajoute aucun repas** — elle informe seulement | personne |
+| **2026-09-20** | la lane **remplit le silence** | **les bouches qui n'ont RIEN déclaré** |
+
+Décision du propriétaire, mot pour mot : *« la détermination automatique des
+créneaux doit être faite de manière dynamique tant que le user n'est pas venu
+modifier ses créneaux lui-même ; c'est en amont du générateur que ça doit être
+fait »*.
+
+**La règle tient en une ligne** : `m.eatingSlots === null` ⇒ la structure dérivée
+de son corps devient sa grille ; non nul ⇒ on ne touche à rien, jamais.
+
+### Pourquoi ça ne ramène pas le défaut du 2026-09-07
+
+Le retrait de 09-07 réparait un cas réel (run `8e87a43f…`) : Thomas **déclarait**
+4 moments, la dérivation en voulait 5, et le plan sortait six « milieu de
+matinée » que personne n'avait demandés. Sous la règle ci-dessus, Thomas sort
+intact — il a déclaré. Le défaut ne peut plus se produire.
+
+### Ce que le retrait laissait ouvert, et que cet amendement ferme
+
+Rien n'écrit `eating_rhythm` tant que la personne n'a pas ouvert ses préférences
+alimentaires : `saveEatingRhythm` ne part que sur une liste non vide, et
+l'entonnoir ne l'exige pas (`peopleStepBlockers` ne le liste pas). Une bouche
+muette retombait donc sur `DEFAULT_EATING_RHYTHM` — **trois assiettes** — quel
+que soit son besoin. Au-delà de 32,4 kcal/kg/jour (§2), trois assiettes ne
+portent plus la journée : le plafond de masse mord, l'écart part dans
+`unmetDemand`, et **rien ne le dit à la personne**. Un `muscle_gain` à 3 500 kcal
+pour 80 kg réclame 5 moments ; il en recevait 3.
+
+### Les deux propriétés qui vont avec
+
+- **Dynamique, rien n'est figé en base.** Le poids, l'objectif et l'allure
+  bougent ; un rythme écrit à l'inscription serait faux le mois suivant. La
+  colonne reste vide — c'est elle qui porte « elle n'a pas répondu ».
+- **On ne remplit que si la dérivation a ouvert quelque chose.** `null` reste
+  `null` quand la structure vaut déjà les moments de la maison : l'écrire
+  transformerait « aux moments de la maison » en déclaration, et la ligne
+  « eats at … only » du brief mentirait.
+
+⚠️ **Le cas gris, nommé et non tranché** : la fiche du foyer écrit `[]` quand on
+enregistre sans rien cocher (`HouseholdPage.setRhythm` → `slots ?? []`). `[]`
+n'est pas `null` : cette personne est traitée comme ayant répondu, et ne reçoit
+aucune dérivation. Clé **absente** = jamais répondu ; clé **vide** = a décoché.
 
 ## 1. Le défaut, et il est PHYSIQUE
 

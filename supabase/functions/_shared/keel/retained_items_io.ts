@@ -111,10 +111,12 @@
 import {
   canProduce,
   isRetiredRetainedSource,
+  parseRetainedItem,
   type RetainedItem,
   type RetainedSource,
   RETAINED_SOURCES,
   type RetiredRetainedSource,
+  supersedes,
 } from "./retained_item.ts";
 import {
   partitionForDurableStore,
@@ -298,6 +300,17 @@ export interface RetainedWriteOutcome {
    * ça enfle se VOIE, et la décision de plafonner revient au produit.
    */
   readonly durableStored: number;
+  /**
+   * ⟳ 2026-09-22 — COMBIEN DE LIGNES UNE PHRASE NEUVE A DÉMENTIES.
+   *
+   * ⛔ UN RETRAIT QUE PERSONNE NE COMPTE EST UN RETRAIT INVISIBLE, et c'est
+   * le pire des deux mondes: la mémoire rétrécit sans qu'aucun lecteur ne
+   * sache pourquoi. `superseded > 0` dit qu'un souvenir a été REMPLACÉ;
+   * `superseded === 0` sur un producteur qui écrit beaucoup dit que la règle
+   * ne mord jamais — c'est-à-dire qu'elle est désarmée, et qu'on est revenu
+   * au magasin qui ne fait que grossir.
+   */
+  readonly superseded: number;
   readonly nextPlanStored: number;
   /** LOT A — les notes (③) entrées dans le mémo, et la taille du mémo après. */
   readonly memoWritten: number;
@@ -518,6 +531,7 @@ export async function persistRetainedItemsFor(args: {
       reason: "all_refused",
       durableWritten: 0,
       nextPlanWritten: 0,
+      superseded: 0,
       durableStored: (storedDurable ?? []).length,
       nextPlanStored: (storedNextPlan ?? []).length,
       memoWritten: 0,
@@ -533,11 +547,45 @@ export async function persistRetainedItemsFor(args: {
   // les items neufs (`{}` en base), et on préfixe les lignes déjà stockées
   // TELLES QUELLES. Leur passer le magasin entier aurait été plus court — et
   // aurait supprimé toute ligne que le socle refuse de relire.
+  // ══════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-22 · CE QU'UNE PHRASE NEUVE DÉMENT S'EN VA
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ LE DÉFAUT FERMÉ: le magasin ne faisait que GROSSIR. « Plus de poisson »
+  // puis « finalement du poisson le matin ça me va » laissait LES DEUX lignes
+  // en base, servies ensemble au modèle — une contradiction qu'aucun lecteur
+  // ne tranche et que la personne ne peut défaire qu'à la main.
+  //
+  // ⛔ ET CE PORT RESTE UN PORT, PAS UN RAMASSE-MIETTES. On ne retire QUE des
+  // lignes que le socle sait relire ET qu'un item neuf dément explicitement
+  // (`supersedes`). Une ligne illisible en base survit, comme avant: la règle
+  // du fichier est « une ligne illisible survit à l'écriture d'une voisine »,
+  // et elle ne bouge pas.
+  //
+  // ⚠️ LA RÈGLE EST DANS LE SOCLE, PAS ICI. Une seconde définition de « ces
+  // deux lignes se contredisent » divergerait de la première, et c'est celle
+  // qu'on relit le moins qui effacerait un souvenir que la personne a donné.
+  let superseded = 0;
+  const survivingDurable: unknown[] = [];
+  for (const row of storedDurable ?? []) {
+    const prior = parseRetainedItem(row);
+    if (prior === null) {
+      // Illisible ⇒ recopiée VERBATIM. On ne jette pas ce qu'on n'a pas su lire.
+      survivingDurable.push(row);
+      continue;
+    }
+    if (durableNew.some((next) => supersedes(next, prior))) {
+      superseded += 1;
+      continue;
+    }
+    survivingDurable.push(row);
+  }
+
   const touchesDurable = durableNew.length > 0;
   const touchesNextPlan = nextPlanNew.length > 0;
   const itemsPayload = touchesDurable
     ? [
-      ...(storedDurable ?? []),
+      ...survivingDurable,
       ...(withRetainedItems({}, durableNew)[RETAINED_ITEMS_KEY] as unknown[]),
     ]
     : null;
@@ -598,6 +646,7 @@ export async function persistRetainedItemsFor(args: {
         reason,
         durableWritten: 0,
         nextPlanWritten: 0,
+        superseded: 0,
         durableStored: (storedDurable ?? []).length,
         nextPlanStored: (storedNextPlan ?? []).length,
         memoWritten: 0,
@@ -611,6 +660,7 @@ export async function persistRetainedItemsFor(args: {
       reason: "written",
       durableWritten: durableNew.length,
       nextPlanWritten: nextPlanNew.length,
+      superseded,
       durableStored: itemsPayload?.length ?? (storedDurable ?? []).length,
       nextPlanStored: nextPayload?.length ?? (storedNextPlan ?? []).length,
       memoWritten: memoNewJson.length,
@@ -628,6 +678,11 @@ export async function persistRetainedItemsFor(args: {
       user_id: userId,
       producer,
       durable_written: outcome.durableWritten,
+      // ⚠️ À CÔTÉ DE `durable_written`, ET LES DEUX SE LISENT ENSEMBLE:
+      // « 1 écrit, 1 démenti » est un REMPLACEMENT; « 1 écrit, 0 démenti » est
+      // un ajout. Le magasin qui ne fait que grossir se lit à la seconde forme,
+      // répétée.
+      superseded: outcome.superseded,
       next_plan_written: outcome.nextPlanWritten,
       durable_stored: outcome.durableStored,
       next_plan_stored: outcome.nextPlanStored,
@@ -706,6 +761,7 @@ export async function persistRetainedItemsFor(args: {
       reason: "rpc_failed",
       durableWritten: 0,
       nextPlanWritten: 0,
+      superseded: 0,
       durableStored: (storedDurable ?? []).length,
       nextPlanStored: (storedNextPlan ?? []).length,
       memoWritten: 0,
@@ -1000,6 +1056,7 @@ function refuse(
     reason,
     durableWritten: 0,
     nextPlanWritten: 0,
+    superseded: 0,
     durableStored: 0,
     nextPlanStored: 0,
     memoWritten: 0,

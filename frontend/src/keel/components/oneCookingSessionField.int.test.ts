@@ -287,7 +287,12 @@ describe("la réponse part vraiment, sur le seul moteur", () => {
     // ce fichier. Sans elle, « un site » se lirait aussi bien « le champ a été
     // débranché d'une lane qui existe encore ».
     expect(BUILDER, "`generateMeal` est revenu").not.toContain("generateMeal(");
-    expect((BUILDER.match(/await generateHouseholdMeal\(/g) ?? []).length).toBe(1);
+    // ⟳ 2026-09-21 — le composeur n'écrit plus lui-même: il remet le brouillon
+    // à la page (`onPreviewPlan`), qui l'ouvre en aperçu puis l'adopte. Le
+    // site d'envoi unique est donc cet appel-là, et `generateHouseholdMeal`
+    // n'a plus rien à faire dans ce fichier.
+    expect((BUILDER.match(/await props\.onPreviewPlan\(/g) ?? []).length).toBe(1);
+    expect(BUILDER, "l'écriture directe est revenue").not.toContain("generateHouseholdMeal(");
     // ⟳ A1 — et `cookTheDayBefore` NE PART PLUS: il n'existe plus. La garde
     // du bloc précédent le tient sur la source privée de ses commentaires.
   });

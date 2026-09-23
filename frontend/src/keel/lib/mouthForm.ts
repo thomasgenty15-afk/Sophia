@@ -34,6 +34,8 @@
 // PURE MODULE: no I/O, no clock beyond the `today` an appelant passe.
 
 import {
+  type ExecutedPaceClamp,
+  executedPaceFor,
   paceCeilingFor,
   type PaceBound,
   type PaceWarning,
@@ -83,7 +85,11 @@ import { goalForAge } from "../api/household";
 import type { ShakerToWrite } from "../api/mouthProfile";
 import { EATING_OCCASIONS, type EatingOccasionSlot } from "../api/mealGeneration";
 import type { HabitSlotWrite } from "../api/householdHabits";
-import { habitEntriesToWrite, type LightDraft } from "./mealExtras";
+import {
+  habitEntriesToWrite,
+  type LightDraft,
+  type SideCoursesDraft,
+} from "./mealExtras";
 
 // ---------------------------------------------------------------------------
 // LES SIX BLOCS
@@ -184,6 +190,12 @@ export interface MouthFormDraft {
   habits: Readonly<Record<string, string>>;
   /** ⟳ 2026-09-07 — « + repas léger », par moment. Trois états, cf. `LightDraft`. */
   light: LightDraft;
+  /**
+   * ⟳ 2026-09-23 — LES À-CÔTÉS (entrée, fromage, dessert, pain), par moment.
+   * Trois états par type, cf. `SideCoursesDraft`: `{}` = « selon l'objectif »
+   * partout. Écrits par la MÊME liste que les habitudes et le léger.
+   */
+  sideCourses: SideCoursesDraft;
   /** Le shaker, ou `null`. Voir `ShakerDraft`. */
   shaker: ShakerDraft | null;
   // ── Bloc 5 · les allergies ──────────────────────────────────────────────
@@ -259,6 +271,8 @@ export function emptyMouthDraft(): MouthFormDraft {
     appetite: "",
     habits: {},
     light: {},
+    // `{}` = rien de réglé: chaque type suit l'objectif. Ce n'est pas « non ».
+    sideCourses: {},
     shaker: null,
     allergies: [],
     allergiesNone: false,
@@ -313,6 +327,14 @@ export interface KnownMouth {
    * enregistrer effacerait une bulle allumée, sans un mot.
    */
   light: Readonly<Record<string, boolean>>;
+  /**
+   * ⟳ 2026-09-23 — LES À-CÔTÉS DÉJÀ RÉGLÉS, par moment.
+   *
+   * ⛔ MÊME CICATRICE QUE `light` JUSTE AU-DESSUS: la porte REMPLACE la liste
+   * d'entrées. Ouvrir la fiche sans cette semence puis enregistrer effacerait
+   * « jamais de dessert », sans un mot.
+   */
+  sideCourses: SideCoursesDraft;
   /**
    * SES MOMENTS, tels que la base les porte — `null` = « comme la maison ».
    *
@@ -420,6 +442,12 @@ export function knownMouthForOwner(input: {
    * traverse.
    */
   light: Readonly<Record<string, boolean>>;
+  /**
+   * ⟳ 2026-09-23 — les à-côtés. ⚠️ REQUIS, ET PAS `?`, pour la raison écrite
+   * sur `light` juste au-dessus: `undefined` rouvrirait la fiche sur « selon
+   * l'objectif » alors que la base porte « non », puis l'effacerait au Save.
+   */
+  sideCourses: SideCoursesDraft;
 }): KnownMouth | null {
   if (!input.isOwner) return null;
   if (input.ownMouth === null || input.habits === null) return null;
@@ -438,6 +466,7 @@ export function knownMouthForOwner(input: {
     appetite: input.body?.appetite ?? null,
     habits: Object.fromEntries(input.habits.map((h) => [h.slot, h.usual])),
     light: input.light,
+    sideCourses: input.sideCourses,
     // ⚠️ `undefined` DEVIENT `null`, ET LES DEUX DISENT LA MÊME CHOSE ICI:
     // « rien sur sa ligne » = « aux moments de la maison ». L'appelant qui ne
     // sait pas encore passe donc la même réponse que celui qui sait qu'elle
@@ -465,6 +494,7 @@ export function draftFromKnown(known: KnownMouth): MouthFormDraft {
     appetite: known.appetite ?? "",
     habits: { ...known.habits },
     light: { ...known.light },
+    sideCourses: { ...known.sideCourses },
     rhythm: known.rhythm ?? null,
   };
 }
@@ -704,6 +734,83 @@ export function paceControlFor(
     bound: ceiling.bound,
     value,
     warning: paceWarning(direction, value),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// BLOC 2 bis — LE CRAN ENREGISTRÉ CONTRE LE CRAN EXÉCUTÉ
+// ---------------------------------------------------------------------------
+
+/**
+ * CE QUE LA LIGNE SOUS LE CURSEUR DIT — deux nombres, et celui qui a mordu.
+ *
+ * `chosenKgPerWeek` est le cran TEL QU'IL EST EN BASE, jamais celui que le
+ * curseur affiche. C'est toute la raison d'être de cet objet.
+ */
+export interface ExecutedPaceNotice {
+  /** Le cran écrit sur la ligne, non rabattu. */
+  chosenKgPerWeek: number;
+  /** Ce que la composition livre vraiment, en kg/semaine. */
+  executedKgPerWeek: number;
+  /** Laquelle des quatre bornes a mordu. Jamais `chosen` ici. */
+  clampedBy: ExecutedPaceClamp;
+}
+
+/**
+ * LE CRAN ENREGISTRÉ EST-IL PLUS RAPIDE QUE CE QUE LE PLAN CUISINE ?
+ *
+ * ── ⚠️ POURQUOI CETTE FONCTION LIT LE BROUILLON BRUT ET PAS `paceControlFor`
+ * `paceControlFor` RABAT déjà le cran sur le plafond du corps, et c'est voulu:
+ * un curseur ne doit pas montrer une butée qu'il n'a pas. Mais ce rabattage est
+ * un fait d'ÉCRAN — la base, elle, garde le cran d'origine, et c'est LUI que le
+ * moteur relit. Mesuré le 2026-09-22 sur le foyer de test: 72 kg en prise,
+ * `target_pace_kg_per_week = 0,45` en base depuis avant le resserrement du
+ * 2026-09-21 (`MAX_WEEKLY_BODY_FRACTION_UP`, 0,5 %/semaine), curseur affiché à
+ * 0,35, et RIEN à l'écran pour dire que les deux nombres diffèrent. Lire
+ * `paceControl.value` ici rendrait toujours `chosen` — une garde qui ne peut
+ * pas mordre.
+ *
+ * `null` = rien à dire, et les cinq cas sont distincts:
+ *   · pas de direction qui bouge (le bloc entier est replié);
+ *   · aucun cran écrit — le curseur part alors à son maximum, donc il n'y a
+ *     pas de cran « d'avant » à confronter;
+ *   · le corps ne suffit pas à estimer un besoin (`executedPaceFor` rend
+ *     `null`), et c'est `pace_needs_body` qui parle, pas cette ligne-ci;
+ *   · le cran passe tel quel (`chosen`);
+ *   · les deux nombres se rejoignent à l'affichage (deux décimales), auquel
+ *     cas la phrase dirait « 0,35 contre 0,35 » — c'est-à-dire rien.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function executedPaceNoticeFor(
+  draft: MouthFormDraft,
+  todayLocalIso: string,
+): ExecutedPaceNotice | null {
+  if (draft.goal === "") return null;
+  const direction = scaleDirectionOf(draft.goal);
+  if (direction === null) return null;
+  const chosen = numberOrNull(draft.paceKgPerWeek);
+  if (chosen === null) return null;
+
+  const executed = executedPaceFor(
+    direction,
+    {
+      body: bodyOfDraft(draft, todayLocalIso),
+      isMinor: ageStateOfDraft(draft, todayLocalIso) === "minor",
+    },
+    chosen,
+  );
+  if (executed === null) return null;
+  if (executed.clampedBy === "chosen") return null;
+  // ⚠️ LA COMPARAISON SE FAIT SUR CE QUI SERA ÉCRIT À L'ÉCRAN, PAS SUR LES
+  // FLOTTANTS. Les deux nombres sortent rendus à deux décimales; un écart de
+  // 0,001 kg produirait « choisi 0,35, exécuté 0,35 », une phrase qui se
+  // contredit elle-même.
+  if (executed.kgPerWeek.toFixed(2) === chosen.toFixed(2)) return null;
+  return {
+    chosenKgPerWeek: chosen,
+    executedKgPerWeek: executed.kgPerWeek,
+    clampedBy: executed.clampedBy,
   };
 }
 
@@ -1047,6 +1154,32 @@ export function targetPayloadOf(
 }
 
 /**
+ * LOT A2 (2026-09-22) — ÉCRIRE LA PAIRE SERAIT-IL ÉCRIRE SUR UNE IGNORANCE ?
+ *
+ * ⛔ CE N'EST PAS LA MÊME QUESTION QUE `targetPayloadOf`, ET LA CONFUSION
+ * COÛTE UNE DONNÉE. Ce traducteur rend `(null, null)` dans DEUX cas qui n'ont
+ * rien à voir:
+ *
+ *   · la direction ne bouge pas — `maintenance`, ou rien de choisi. Effacer
+ *     est alors le geste LÉGITIME: c'est comme ça qu'on laisse la colonne
+ *     propre en repassant à l'entretien;
+ *   · le corps ne suffit pas à borner un curseur (`needs_body`). Il n'y a
+ *     alors AUCUN contrôle à l'écran, donc personne n'a rien demandé — et un
+ *     Enregistrer effacerait une cible posée ailleurs, en silence.
+ *
+ * Le second est ce que cette fonction NOMME. L'appelant saute l'écriture:
+ * « on perd l'explication, jamais la main », dans l'autre sens.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function targetWriteIsBlind(
+  draft: MouthFormDraft,
+  todayLocalIso: string,
+): boolean {
+  return paceControlFor(draft, todayLocalIso).kind === "needs_body";
+}
+
+/**
  * LE BROUILLON, TRADUIT EN CE QUI PART EN BASE.
  *
  * ⚠️ IL SUPPOSE LES TROIS BLOCS OBLIGATOIRES REMPLIS, et le type le dit par ses
@@ -1137,9 +1270,12 @@ export function mouthToPersist(
     // ne porte QUE ça n'a pas de prose, donc pas de `own_usual` possible: elle
     // part en `household_dish` (« le plat de la maison, en plus petit »). Le
     // découpage vit dans `habitEntriesToWrite`, avec ses tests.
+    // ⟳ 2026-09-23 — ET LES À-CÔTÉS, PAR LA MÊME LISTE: la porte la remplace
+    // entière, donc ce qui n'y est pas est effacé.
     habits: habitEntriesToWrite({
       habits: draft.habits,
       light: draft.light,
+      sideCourses: draft.sideCourses,
       occasions: EATING_OCCASIONS,
     }),
     // ⚠️ LA MÊME LIGNE QUE LES HABITUDES, ET LA FRONTIÈRE ENTRE LES DEUX EST LE
@@ -1204,6 +1340,12 @@ export const SELF_SHEET_FIELDS = [
   // signaler ce qu'elle ne nomme pas. Tout champ ajouté à la fenêtre s'ajoute
   // ici DANS LE MÊME LOT, sans quoi la garde ne garde rien.
   "appetite",
+  // ── ⟳ 2026-09-23 · LES À-CÔTÉS ─────────────────────────────────────────
+  // La fenêtre les écrit par `set({ sideCourses })`: sans cette ligne, le
+  // bouton « Non » du titulaire se rallumerait sur « Selon l'objectif » dans la
+  // même image — le défaut du régime (2026-08-19) et de l'appétit (2026-08-24),
+  // une troisième fois.
+  "sideCourses",
 ] as const;
 
 export type SelfSheetField = (typeof SELF_SHEET_FIELDS)[number];

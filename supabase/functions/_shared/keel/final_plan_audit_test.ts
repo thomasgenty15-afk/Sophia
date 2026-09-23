@@ -62,6 +62,7 @@ import {
   type GateContext,
   type GatePlan,
   type GateRefusal,
+  PROTEIN_CEILING_TOLERANCE,
 } from "./final_plan_gate.ts";
 import {
   chooseReplacement,
@@ -651,7 +652,7 @@ Deno.test("⑧ le cas de Paul : 126,1 g pour un plancher de 176", () => {
     deltaPct: ((2455.69 - 2454) / 2454) * 100,
     proteinG: 126.1,
     proteinRoundingG: null,
-    protein: { coveredFloorG: 176, reason: "applied_full_day" },
+    protein: { coveredFloorG: 176, coveredCeilingG: null, reason: "applied_full_day" },
     state: "conforme" as const,
   };
   const outcome = finalPlanGate(minimalPlan(), ctxAvec({ cells: [], days: [day] }));
@@ -676,7 +677,7 @@ Deno.test("⑧ LE CAS QUI PASSE — la même journée avec 180 g ne mord pas", (
     deltaPct: 0.07,
     proteinG: 180,
     proteinRoundingG: null,
-    protein: { coveredFloorG: 176, reason: "applied_full_day" },
+    protein: { coveredFloorG: 176, coveredCeilingG: null, reason: "applied_full_day" },
     state: "conforme" as const,
   };
   const outcome = finalPlanGate(minimalPlan(), ctxAvec({ cells: [], days: [day] }));
@@ -708,7 +709,7 @@ Deno.test("⑧ une abstention PROTÉGÉE n'est pas une donnée perdue", () => {
 
 Deno.test("⑨ une fenêtre partielle ne met pas toute la journée sur le dîner", () => {
   // Paul, 176 g/jour, et la fenêtre ne compose que son dîner (858,90 sur 2 454).
-  const part = proteinFloorAllocation({
+  const part = proteinFloorAllocation({ dayCeilingG: null,
     dayFloorG: 176,
     perMealFloorG: null,
     abstention: "none",
@@ -720,7 +721,7 @@ Deno.test("⑨ une fenêtre partielle ne met pas toute la journée sur le dîner
   assertAlmostEquals(part.coveredFloorG ?? -1, 176 * (858.9 / 2454), 0.001);
   assert((part.coveredFloorG ?? 0) < 70, "un dîner ne doit pas 176 g");
   // LE CAS QUI MORD : la journée entière, elle, les doit.
-  const plein = proteinFloorAllocation({
+  const plein = proteinFloorAllocation({ dayCeilingG: null,
     dayFloorG: 176,
     perMealFloorG: null,
     abstention: "none",
@@ -733,7 +734,7 @@ Deno.test("⑨ une fenêtre partielle ne met pas toute la journée sur le dîner
 });
 
 Deno.test("⑨ les apports fixes sont comptés UNE fois, et jamais devinés", () => {
-  const avec = proteinFloorAllocation({
+  const avec = proteinFloorAllocation({ dayCeilingG: null,
     dayFloorG: 100,
     perMealFloorG: null,
     abstention: "none",
@@ -744,7 +745,7 @@ Deno.test("⑨ les apports fixes sont comptés UNE fois, et jamais devinés", ()
   assertAlmostEquals(avec.coveredFloorG ?? -1, 70, 0.001);
   // ⛔ `null` NE RETIRE RIEN, et c'est la direction d'erreur SÛRE : on exige un
   // peu plus, jamais moins. Un zéro implicite aurait fait le contraire.
-  const sans = proteinFloorAllocation({
+  const sans = proteinFloorAllocation({ dayCeilingG: null,
     dayFloorG: 100,
     perMealFloorG: null,
     abstention: "none",
@@ -757,7 +758,7 @@ Deno.test("⑨ les apports fixes sont comptés UNE fois, et jamais devinés", ()
 
 Deno.test("⑨ une enveloppe `per_portion` s'abstient, et dit laquelle des deux", () => {
   assertEquals(
-    proteinFloorAllocation({
+    proteinFloorAllocation({ dayCeilingG: null,
       dayFloorG: null,
       perMealFloorG: null,
       abstention: "protected",
@@ -768,7 +769,7 @@ Deno.test("⑨ une enveloppe `per_portion` s'abstient, et dit laquelle des deux"
     "protected",
   );
   assertEquals(
-    proteinFloorAllocation({
+    proteinFloorAllocation({ dayCeilingG: null,
       dayFloorG: null,
       perMealFloorG: null,
       abstention: "no_body",
@@ -796,6 +797,8 @@ Deno.test("⑨ une journée à trou est NON MESURABLE, pas en écart", () => {
         coveredFloorG: 100,
         perMealFloorG: null,
         fixedProteinG: null,
+        dayCeilingG: null,
+        coveredCeilingG: null,
         reason: "applied_full_day",
       },
     }],
@@ -814,6 +817,8 @@ Deno.test("⑨ une journée à trou est NON MESURABLE, pas en écart", () => {
         coveredFloorG: 100,
         perMealFloorG: null,
         fixedProteinG: null,
+        dayCeilingG: null,
+        coveredCeilingG: null,
         reason: "applied_full_day",
       },
     }],
@@ -1113,7 +1118,7 @@ function dayRow(over: {
     deltaPct: 0,
     proteinG: over.proteinG,
     proteinRoundingG: null,
-    protein: { coveredFloorG: over.coveredFloorG, reason: over.reason },
+    protein: { coveredFloorG: over.coveredFloorG, coveredCeilingG: null, reason: over.reason },
     state: "conforme" as const,
   };
 }
@@ -1133,7 +1138,7 @@ Deno.test("⛔ C1 · le ratio prend le budget BRUT, la protéine se retire UNE f
   //   fenêtre = la journée entière.
   //   brut   = 2 000  →  fraction 1,00  →  100 g  →  −24  =  76 g
   //   net    = 1 800  →  fraction 0,90  →   90 g  →  −24  =  66 g  ⛔ deux fois
-  const juste = proteinFloorAllocation({
+  const juste = proteinFloorAllocation({ dayCeilingG: null,
     dayFloorG: 100,
     perMealFloorG: null,
     abstention: "none",
@@ -1147,7 +1152,7 @@ Deno.test("⛔ C1 · le ratio prend le budget BRUT, la protéine se retire UNE f
   // LE CAS QUI MORD, ÉCRIT EXPLICITEMENT: passer le budget NET rendait 66 g.
   // Dix grammes de protéine de moins par jour, pour un seul pot, et dans le
   // sens qui abaisse une exigence.
-  const double = proteinFloorAllocation({
+  const double = proteinFloorAllocation({ dayCeilingG: null,
     dayFloorG: 100,
     perMealFloorG: null,
     abstention: "none",
@@ -1166,7 +1171,7 @@ Deno.test("⛔ C1 · sans apport fixe, brut = net et RIEN ne bouge", () => {
   // La propriété qui rend ce lot posable sans déplacer un seul plan existant:
   // quand personne ne déclare rien, `coveredBudgetGrossKcal` vaut exactement
   // `coveredBudgetKcal` et `fixedProteinG` vaut `null`.
-  const sans = proteinFloorAllocation({
+  const sans = proteinFloorAllocation({ dayCeilingG: null,
     dayFloorG: 176,
     perMealFloorG: null,
     abstention: "none",
@@ -1182,7 +1187,7 @@ Deno.test("⛔ C1 · une fenêtre PARTIELLE avec shaker: les deux règles se com
   // Fenêtre partielle ET apport fixe, pour vérifier qu'aucune des deux
   // corrections n'avale l'autre: fraction sur le brut (1 000 / 2 000 = 0,50),
   // puis une seule soustraction de 24 g.
-  const part = proteinFloorAllocation({
+  const part = proteinFloorAllocation({ dayCeilingG: null,
     dayFloorG: 100,
     perMealFloorG: null,
     abstention: "none",
@@ -1194,7 +1199,7 @@ Deno.test("⛔ C1 · une fenêtre PARTIELLE avec shaker: les deux règles se com
   assertEquals(part.reason, "applied_covered_window");
   // ⛔ ET JAMAIS SOUS ZÉRO: un shaker plus gros que la part couverte ne crée
   // pas un plancher négatif.
-  const enorme = proteinFloorAllocation({
+  const enorme = proteinFloorAllocation({ dayCeilingG: null,
     dayFloorG: 100,
     perMealFloorG: null,
     abstention: "none",
@@ -1260,4 +1265,299 @@ Deno.test("BÊTA 1C ⑤ — la borne exacte est plafonnée comme l'entier", () =
   assertEquals(corridor.minPer100G, MAX_ASKABLE_DENSITY_PER_100G);
   assertEquals(corridor.minExactPer100G, MAX_ASKABLE_DENSITY_PER_100G);
   assertEquals(corridor.maxExactPer100G, MAX_ASKABLE_DENSITY_PER_100G);
+});
+
+
+// ── ⟳ 2026-09-21 — LE PLAFOND, SUR LA MÊME JOURNÉE ──────────────────────────
+Deno.test("⑧ ter — le cas de Thomas : 198 g pour un plafond de 144, +38 %, compté et livrable", () => {
+  const day = {
+    memberId: "m1",
+    date: "2026-09-23",
+    cellsExpected: 5,
+    cellsMeasured: 5,
+    coveredBudgetKcal: 3386,
+    servedKcal: 3453,
+    deltaPct: ((3453 - 3386) / 3386) * 100,
+    proteinG: 198,
+    proteinRoundingG: null,
+    protein: { coveredFloorG: 115, coveredCeilingG: 144, reason: "applied_full_day" },
+    state: "conforme" as const,
+  };
+  const outcome = finalPlanGate(minimalPlan(), ctxAvec({ cells: [], days: [day] }));
+  assertEquals(outcome.counters.refusals_by_cause.protein_floor_short, 0);
+  assertEquals(outcome.counters.refusals_by_cause.protein_ceiling_over, 1);
+  assertEquals(outcome.counters.checked.protein_days, 1, "le même dénominateur que le plancher");
+  const refus = outcome.refusals.find((r) => r.cause === "protein_ceiling_over")!;
+  assertEquals(refus.day, "2026-09-23");
+  assertEquals(refus.member_id, "m1");
+  assert(refus.detail.includes("198 g"), refus.detail);
+  assert(refus.detail.includes("plafond couvert de 144 g"), refus.detail);
+  assert(refus.detail.includes("+38 %"), refus.detail); // 54 / 144 = 37,5 %, arrondi
+  assertEquals(finalGateDelivery(outcome, []).state, "deliverable_with_gaps");
+});
+
+Deno.test("⑧ ter — LE CAS QUI PASSE: 150 g pour 144 tient dans la tolérance de 10 %", () => {
+  assertEquals(PROTEIN_CEILING_TOLERANCE, 0.1);
+  const day = {
+    memberId: "m1",
+    date: "2026-09-23",
+    cellsExpected: 5,
+    cellsMeasured: 5,
+    coveredBudgetKcal: 3386,
+    servedKcal: 3386,
+    deltaPct: 0,
+    proteinG: 150,
+    proteinRoundingG: null,
+    protein: { coveredFloorG: 115, coveredCeilingG: 144, reason: "applied_full_day" },
+    state: "conforme" as const,
+  };
+  const outcome = finalPlanGate(minimalPlan(), ctxAvec({ cells: [], days: [day] }));
+  assertEquals(outcome.counters.refusals_by_cause.protein_ceiling_over, 0);
+  assertEquals(outcome.counters.refusals_by_cause.protein_floor_short, 0);
+  // Et sans plafond lisible, la cause ne sort jamais — même à 300 g.
+  const sansPlafond = finalPlanGate(minimalPlan(), ctxAvec({
+    cells: [],
+    days: [{ ...day, proteinG: 300, protein: { ...day.protein, coveredCeilingG: null } }],
+  }));
+  assertEquals(sansPlafond.counters.refusals_by_cause.protein_ceiling_over, 0);
+});
+
+Deno.test("⑧ ter — le plafond couvert suit la même règle de trois que le plancher, apports fixes déduits une fois", () => {
+  const part = proteinFloorAllocation({
+    dayCeilingG: 144,
+    dayFloorG: 115,
+    perMealFloorG: null,
+    abstention: "none",
+    coveredBudgetGrossKcal: 858.9,
+    dayTargetKcal: 2454,
+    fixedProteinG: null,
+  });
+  assertAlmostEquals(part.coveredCeilingG ?? -1, 144 * (858.9 / 2454), 0.001);
+  const avec = proteinFloorAllocation({
+    dayCeilingG: 144,
+    dayFloorG: 115,
+    perMealFloorG: null,
+    abstention: "none",
+    coveredBudgetGrossKcal: 2454,
+    dayTargetKcal: 2454,
+    fixedProteinG: 24,
+  });
+  assertAlmostEquals(avec.coveredCeilingG ?? -1, 120, 0.001);
+  assertAlmostEquals(avec.coveredFloorG ?? -1, 91, 0.001);
+  const sans = proteinFloorAllocation({
+    dayCeilingG: null,
+    dayFloorG: 115,
+    perMealFloorG: null,
+    abstention: "none",
+    coveredBudgetGrossKcal: 2454,
+    dayTargetKcal: 2454,
+    fixedProteinG: null,
+  });
+  assertEquals(sans.coveredCeilingG, null);
+  assertEquals(sans.dayCeilingG, null);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-23 — LES À-CÔTÉS: la case juge le PLAT, la journée additionne,
+// les courses les achètent. Chantier « assiettes normales », flux F.
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Un à-côté (entrée, fromage, dessert, pain) vit HORS des boîtes, dans
+// `dishes[i].side_courses[]`. La cible d'une case (`composeKcal`) est celle du
+// PLAT SEUL; le budget couvert du jour porte plat + à-côtés (contrat, flux B).
+
+const SIDE_INDEX: CompositionIndex = buildCompositionIndex([
+  ...REFS,
+  ref({ slug: "apple", foodGroupRef: "other_fruit", energyKcal: 52, proteinG: 0.4, unitGrams: 150 }),
+  ref({ slug: "plain_yogurt", foodGroupRef: "dairy_yogurt", energyKcal: 64, proteinG: 4 }),
+], [
+  { alias: "riz", slug: "white_rice" },
+  { alias: "pomme", slug: "apple" },
+  { alias: "pommes", slug: "apple" },
+  { alias: "yaourt nature", slug: "plain_yogurt" },
+]);
+
+/**
+ * VENDREDI MIDI: un plat de riz (100 g cru = 350 kcal, 7 g de protéine) dans
+ * une boîte de 260 g, et une pomme de 150 g à côté (52 × 1,5 = 78 kcal,
+ * 0,4 × 1,5 = 0,6 g de protéine).
+ */
+function planAvecPomme(): Record<string, unknown> {
+  return {
+    dishes: [{
+      day: "fri",
+      slot: "lunch",
+      method: "",
+      ingredients: [{ term: "riz", ref: "white_rice", amount: 100, unit: "g", state: "raw" }],
+      uses: [],
+      boxes: [{ id: "b_fri_lunch_m1", member_ids: ["m1"], items: [{ term: "riz", grams: 260 }] }],
+      side_courses: [{
+        member_id: "m1",
+        kind: "dessert",
+        term: "pomme",
+        ref: "apple",
+        grams: 150,
+        unit_count: 1,
+        preparation_id: null,
+        source: "model",
+      }],
+    }],
+    preparations: [],
+    shopping_list: [
+      { term: "riz", quantity: "100 g" },
+      { term: "pommes", quantity: "150 g" },
+    ],
+  };
+}
+
+function celluleVendredi(targetKcal: number): AuditCell {
+  return {
+    memberId: "m1",
+    day: "fri",
+    date: "2026-09-25",
+    slot: "lunch",
+    targetKcal,
+    gramsMin: null,
+    gramsMax: null,
+    densityMin: null,
+    densityMax: null,
+    densityMinExact: null,
+    densityMaxExact: null,
+  };
+}
+
+const PROTEIN_FULL_DAY = {
+  dayFloorG: 5,
+  coveredFloorG: 5,
+  perMealFloorG: null,
+  fixedProteinG: null,
+  dayCeilingG: null,
+  coveredCeilingG: null,
+  reason: "applied_full_day" as const,
+};
+
+Deno.test("⟳ 2026-09-23 — la case juge le PLAT; l'à-côté est dans une colonne à part", () => {
+  const [row] = cellNutritionTable({
+    index: SIDE_INDEX,
+    plan: planAvecPomme(),
+    cells: [celluleVendredi(350)],
+    portionsArePersonal: true,
+  });
+  assertAlmostEquals(row.servedKcal ?? -1, 350, 0.001);
+  assertAlmostEquals(row.sideKcal ?? -1, 78, 0.001);
+  assertEquals(row.sideProteinG, 0.6);
+  assertEquals(row.state, "conforme", "le plat tient la cible du plat");
+  // LE CAS QUI MORD: contre une cible plat + à-côté (428), le plat seul est à
+  // −18 % — la preuve que la pomme n'a PAS été fondue dans la case.
+  const [fondu] = cellNutritionTable({
+    index: SIDE_INDEX,
+    plan: planAvecPomme(),
+    cells: [celluleVendredi(428)],
+    portionsArePersonal: true,
+  });
+  assertEquals(fondu.state, "energy_off");
+  assertAlmostEquals(fondu.servedKcal ?? -1, 350, 0.001);
+});
+
+Deno.test("⟳ 2026-09-23 — sans à-côté la colonne vaut 0; sans référentiel elle est inconnue, pas nulle", () => {
+  const sans = planAvecPomme();
+  delete (sans.dishes as Record<string, unknown>[])[0].side_courses;
+  const [row] = cellNutritionTable({
+    index: SIDE_INDEX,
+    plan: sans,
+    cells: [celluleVendredi(350)],
+    portionsArePersonal: true,
+  });
+  assertEquals([row.sideKcal, row.sideProteinG], [0, 0]);
+  const [aveugle] = cellNutritionTable({
+    index: null,
+    plan: planAvecPomme(),
+    cells: [celluleVendredi(350)],
+    portionsArePersonal: true,
+  });
+  assertEquals(aveugle.sideKcal, null, "⛔ un à-côté non mesuré n'est pas un à-côté absent");
+});
+
+Deno.test("⟳ 2026-09-23 — la journée additionne plat + à-côtés contre le budget couvert", () => {
+  const cells = cellNutritionTable({
+    index: SIDE_INDEX,
+    plan: planAvecPomme(),
+    cells: [celluleVendredi(350)],
+    portionsArePersonal: true,
+  });
+  const [jour] = dayNutritionTable({
+    cells,
+    days: [{ memberId: "m1", date: "2026-09-25", coveredBudgetKcal: 428, protein: PROTEIN_FULL_DAY }],
+  });
+  assertAlmostEquals(jour.servedKcal ?? -1, 428, 0.001);
+  assertAlmostEquals(jour.sideKcal ?? -1, 78, 0.001);
+  assertAlmostEquals(jour.proteinG ?? -1, 7.6, 0.001);
+  assertEquals(jour.state, "conforme");
+  // LE CAS QUI MORD: la même journée lue SANS ses à-côtés est à −18 %.
+  const [amputee] = dayNutritionTable({
+    cells: cells.map((c) => ({ ...c, sideKcal: undefined, sideProteinG: undefined })),
+    days: [{ memberId: "m1", date: "2026-09-25", coveredBudgetKcal: 428, protein: PROTEIN_FULL_DAY }],
+  });
+  assertEquals(amputee.state, "energy_off");
+  // Un à-côté ILLISIBLE: la journée n'est pas mesurée, elle n'est pas amputée.
+  const [illisible] = dayNutritionTable({
+    cells: cells.map((c) => ({ ...c, sideKcal: null })),
+    days: [{ memberId: "m1", date: "2026-09-25", coveredBudgetKcal: 428, protein: PROTEIN_FULL_DAY }],
+  });
+  assertEquals(illisible.state, "unmeasurable");
+  assertEquals(illisible.sideKcal, null);
+  assertEquals(illisible.deltaPct, null);
+});
+
+Deno.test("⟳ 2026-09-23 — l'audit des courses achète la pomme servie à côté", () => {
+  const audit = shoppingIdentityAudit({
+    index: SIDE_INDEX,
+    plan: planAvecPomme(),
+    pantryTerms: [],
+    pantryCoveredG: new Map<string, number>(),
+  });
+  assertEquals(audit.sideLines, 1);
+  const pomme = audit.rows.find((r) => r.identity === "apple");
+  assertEquals(pomme?.state, "covered_measured");
+  assertAlmostEquals(pomme?.neededRawG ?? -1, 150, 0.001);
+  // LE CAS QUI MORD: la pomme oubliée de la liste sort `not_bought`.
+  const oubliee = planAvecPomme();
+  oubliee.shopping_list = [{ term: "riz", quantity: "100 g" }];
+  const manque = shoppingIdentityAudit({
+    index: SIDE_INDEX,
+    plan: oubliee,
+    pantryTerms: [],
+    pantryCoveredG: new Map<string, number>(),
+  });
+  assertEquals(manque.rows.find((r) => r.identity === "apple")?.state, "not_bought");
+});
+
+Deno.test("⟳ 2026-09-23 — une soupe tirée d'une casserole n'ajoute aucun besoin; sans à-côté, 0 ligne", () => {
+  const soupe = planAvecPomme();
+  const dish = (soupe.dishes as Record<string, unknown>[])[0];
+  dish.side_courses = [{
+    member_id: "m1",
+    kind: "starter",
+    term: "soupe",
+    ref: null,
+    grams: 200,
+    unit_count: null,
+    preparation_id: "prep_soup",
+    source: "model",
+  }];
+  const audit = shoppingIdentityAudit({
+    index: SIDE_INDEX,
+    plan: soupe,
+    pantryTerms: [],
+    pantryCoveredG: new Map<string, number>(),
+  });
+  assertEquals(audit.sideLines, 0, "ses légumes sont déjà les ingrédients de sa préparation");
+  delete dish.side_courses;
+  const sans = shoppingIdentityAudit({
+    index: SIDE_INDEX,
+    plan: soupe,
+    pantryTerms: [],
+    pantryCoveredG: new Map<string, number>(),
+  });
+  assertEquals(sans.sideLines, 0);
 });

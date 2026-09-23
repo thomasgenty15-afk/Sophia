@@ -66,7 +66,10 @@ function planchier(
     NO_AXES,
     null,
     null,
-  MAINTENANCE_ENVELOPE_DIRECTION
+  MAINTENANCE_ENVELOPE_DIRECTION,
+    // ⟳ 2026-09-23 — l'âge exact: `null`, le milieu de la bande. Il ne touche
+    // de toute façon que l'énergie, jamais le poids de référence protéique.
+    null,
 );
   assert(env.mode === "per_kg");
   return env.proteinFloorG;
@@ -122,27 +125,29 @@ Deno.test("① LE SEUIL, sur les trois — ≥ 15 % sur le troisième SEULEMENT"
 
 Deno.test("✅ LE CAS QUI PASSE — un corps GRAND ET MINCE ne bouge pas d'un gramme", () => {
   // 186 cm / 70 kg. Son plafond vaut 103,8 kg: il en est à 33,8 kg.
-  assertEquals(planchier("maintenance", 186, 70), 112);
+  // ⟳ 2026-09-20 — 70 × 1,2 = 84 (c'était 1,6 ⇒ 112).
+  assertEquals(planchier("maintenance", 186, 70), 84);
 });
 
 Deno.test("✅ LE CAS QUI PASSE — un corps MOYEN ne bouge pas d'un gramme", () => {
-  // 175 cm / 75 kg. Plafond 91,875 kg.
-  assertEquals(planchier("maintenance", 175, 75), 120);
+  // 175 cm / 75 kg. Plafond 91,875 kg. ⟳ 2026-09-20 — 75 × 1,2 = 90.
+  assertEquals(planchier("maintenance", 175, 75), 90);
 });
 
-Deno.test("⛔ LE CAS QUI MORD — un corps CORPULENT reçoit 173 g, plus 220", () => {
-  // 170 cm / 110 kg, `fat_loss` (2,0 g/kg). Plafond 86,7 kg.
-  //   avant ce lot: 110 × 2,0   = 220 g
-  //   après        : 86,7 × 2,0 = 173,4 → 173 g
-  // −47 g, soit −21,4 % — le seuil de la fiche est « ≥ 15 % ».
-  assertEquals(planchier("fat_loss", 170, 110), 173);
+Deno.test("⛔ LE CAS QUI MORD — un corps CORPULENT reçoit 104 g, plus 132", () => {
+  // 170 cm / 110 kg, `fat_loss` (⟳ 2026-09-23: 1,2 g/kg, 1,4 avant ce jour).
+  // Plafond 30 × 1,70² = 86,7 kg.
+  //   sans plafond: 110 × 1,2   = 132 g
+  //   avec        : 86,7 × 1,2 = 104,04 → 104 g
+  // −28 g, soit −21,2 % — le seuil de la fiche est « ≥ 15 % ».
+  assertEquals(planchier("fat_loss", 170, 110), 104);
 });
 
 Deno.test("⛔ LE SEUIL, LU SUR LES TROIS ENSEMBLE — ≥ 15 % sur le troisième SEULEMENT", () => {
   const temoins = [
-    { goal: "maintenance", h: 186, w: 70, sansPlafond: 112, attendu: 112 },
-    { goal: "maintenance", h: 175, w: 75, sansPlafond: 120, attendu: 120 },
-    { goal: "fat_loss", h: 170, w: 110, sansPlafond: 220, attendu: 173 },
+    { goal: "maintenance", h: 186, w: 70, sansPlafond: 84, attendu: 84 },
+    { goal: "maintenance", h: 175, w: 75, sansPlafond: 90, attendu: 90 },
+    { goal: "fat_loss", h: 170, w: 110, sansPlafond: 132, attendu: 104 },
   ] as const;
   temoins.forEach((t, i) => {
     const livre = planchier(t.goal, t.h, t.w);
@@ -228,8 +233,9 @@ Deno.test("⛔ SANS TAILLE — aucun plafond calculable, on ne retire rien", () 
   });
   assertEquals(out.referenceWeightKg, 110);
   assertEquals(out.reason, "no_height");
-  // …et sur l'enveloppe réelle: 110 × 2,0 = 220 g, inchangé.
-  assertEquals(planchier("fat_loss", null, 110), 220);
+  // …et sur l'enveloppe réelle: 110 × 1,2 = 132 g, inchangé
+  // (⟳ 2026-09-23: 1,2 g/kg en perte, 1,4 ⇒ 154 avant ce jour).
+  assertEquals(planchier("fat_loss", null, 110), 132);
 });
 
 Deno.test("⛔ 60 ANS ET PLUS — le plafond est suspendu, la cible ne descend pas", () => {
@@ -241,9 +247,9 @@ Deno.test("⛔ 60 ANS ET PLUS — le plafond est suspendu, la cible ne descend p
   });
   assertEquals(out.referenceWeightKg, 90);
   assertEquals(out.reason, "age_exempt");
-  // 160 cm / 90 kg: son plafond vaudrait 76,8 kg, donc −21 g/j. Il ne les perd
-  // pas. Voir l'en-tête du module et le registre §⑨.
-  assertEquals(planchier("maintenance", 160, 90, "60_plus"), 144);
+  // 160 cm / 90 kg: son plafond vaudrait 76,8 kg, donc −16 g/j. Il ne les perd
+  // pas. Voir l'en-tête du module et le registre §⑨. 90 × 1,2 = 108.
+  assertEquals(planchier("maintenance", 160, 90, "60_plus"), 108);
 });
 
 Deno.test("⚠️ la place de `O6` — `suspended: true` rend le poids réel", () => {

@@ -65,8 +65,18 @@ import {
   type RetainedItem,
   type RetainedKind,
   type RetainedSubject,
+  EXCLUSION_FORCES,
+  type ExclusionForce,
   RHYTHM_OCCASIONS,
+  type RhythmOccasion,
 } from "./retained_item.ts";
+import {
+  DRAFT_NOTE_DIETS,
+  DRAFT_NOTE_SAFETY_KINDS,
+  type DraftNoteSafetyReading,
+  EMPTY_DRAFT_NOTE_SAFETY,
+  readDraftNoteSafety,
+} from "./draft_note_safety.ts";
 import {
   MEMORY_CLARIFICATION_ABOUTS,
   MEMORY_CLARIFICATION_MAX_OPTIONS,
@@ -90,6 +100,26 @@ import { DRAFT_NOTE_MAX_CHARS } from "./plan_draft_note.ts";
 // Un second lecteur ici divergerait au premier jeton ajouté.
 import { type CellEdit, readCellEdits } from "./cell_edit.ts";
 import { DAY_TOKENS } from "./tokens.ts";
+// ⛔ `LIGHT_BEARING_SLOTS`, ET PAS `RHYTHM_OCCASIONS`, POUR LE TIROIR ⑥.
+//
+// Seuls trois moments portent la marque « léger », et c'est arithmétique: une
+// collation pèse déjà 0,10 de la journée, la marquer légère demanderait au plan
+// de composer ≈ 40 kcal — rien, servi comme une décision. Proposer les six au
+// modèle fabriquerait un TIROIR MUET: il rangerait « léger au goûter », le
+// lecteur le garderait, et `parseMemberLight` le jetterait sans un mot.
+//
+// ✅ `meal_extras.ts` N'IMPORTE RIEN (vérifié): le lire ne peut pas fermer de
+// cycle. C'est la même précaution que l'en-tête de `household_habits.ts`, dont
+// le premier jet a fait tomber six fichiers de test d'un coup.
+import { LIGHT_BEARING_SLOTS } from "./meal_extras.ts";
+// ⟳ 2026-09-23 — LE TIROIR ⑪, LES À-CÔTÉS: le vocabulaire vient du socle.
+// ✅ `side_courses_types.ts` n'importe qu'un TYPE (`tokens.ts`): aucun cycle.
+import {
+  SIDE_COURSE_KINDS,
+  SIDE_COURSE_SLOTS,
+  type SideCourseKind,
+  type SideCourseSlot,
+} from "./side_courses_types.ts";
 
 // ===========================================================================
 // LE JETON DE LA MATRICE
@@ -104,6 +134,36 @@ import { DAY_TOKENS } from "./tokens.ts";
  * Épinglé à son littéral par le test.
  */
 export const DRAFT_NOTE_PRODUCER = "draft_note" as const;
+
+/**
+ * ⟳ 2026-09-22 · LOT B — COMBIEN DE SOUVENIRS UNE SEULE PHRASE PEUT LAISSER.
+ *
+ * ── LE DÉFAUT QU'IL MESURE, VU EN BASE SUR LE SEUL COMPTE RÉEL ──────────
+ * Une phrase — « mets des bols de flocons d'avoines avec du lait d'avoine et
+ * des choses dedans genre graines amendes etc.. » — a produit **cinq
+ * souvenirs durables**, chacun une règle permanente du foyer. La personne a
+ * demandé UNE chose: changer son petit-déjeuner. Le produit en a retenu cinq,
+ * indépendantes, pour toujours — et le plan peut désormais servir des amandes
+ * au dîner en se croyant fidèle.
+ *
+ * ⛔ CE PLAFOND NE RÉPARE PAS ÇA. La réparation est dans la consigne (une
+ * recette est UN plat, pas N préférences). Celui-ci est ce qui le MESURE:
+ * `over_cap > 0` dit que la consigne ne tient pas sur ce cas, et c'est le seul
+ * moyen de le savoir sans relire des notes une par une.
+ *
+ * ── ⚠️ POURQUOI SIX, ET PAS UN NOMBRE MIEUX FONDÉ ───────────────────
+ * Parce qu'il n'y en a pas. La note la plus chargée du corpus des 50 en
+ * produit QUATRE légitimement (`composite-taille-et-aliment`); six laisse donc
+ * une marge d'une phrase qu'on n'a pas encore écrite, et refuse la liste
+ * d'ingrédients. C'est un réglage, il est nommé, il est épinglé, et le changer
+ * doit se lire ici.
+ *
+ * ── ⛔ IL COUPE PAR LA QUEUE, ET ÇA SE COMPTE ──────────────────────
+ * Le même geste que `buildHouseholdVoices` et pour la même raison: « les k
+ * premiers » est la seule règle qui se raconte. Jeter au hasard, ou refuser la
+ * note entière, coûterait à la personne des mots qu'elle a vraiment écrits.
+ */
+export const DRAFT_NOTE_MAX_RETAINED = 6;
 
 /** LES FAMILLES QUE CE PRODUCTEUR A LE DROIT D'ÉCRIRE — **CALCULÉES**. */
 export const DRAFT_NOTE_KINDS: readonly RetainedKind[] = RETAINED_KINDS
@@ -173,6 +233,66 @@ export type SettingAxis = (typeof SETTING_AXES)[number];
 export interface SettingMove {
   readonly about: SettingAxis;
   readonly direction: "down" | "up";
+}
+
+/**
+ * ⟳ 2026-09-21 — CE QU'UNE PHRASE DIT DE LA TAILLE D'UN REPAS: **le moment,
+ * et s'il est léger**. « très léger le matin » ⇒ `{breakfast, light: true}`.
+ *
+ * ⛔ CE N'EST PAS UN `RetainedItem`, ET C'EST LA MÊME RAISON QU'AU LOT M5.
+ * Un souvenir serait une COPIE du réglage, relue au moment de composer:
+ * l'écran dirait « petit-déjeuner léger » et le plan serait fait sur autre
+ * chose. Ici la phrase déplace LE CHAMP que la personne voit et peut
+ * décocher — `household_member_habits.light`, celui que
+ * `LIGHT_SLOT_WEIGHT` lit déjà.
+ *
+ * ⛔ AUCUNE AMPLITUDE, JAMAIS. Le modèle rend `true` ou `false`; ce que pèse
+ * un repas léger appartient au code (0,15 · 0,25 · 0,20 de la journée, selon
+ * le moment). Le prompt ne lui propose même pas de nombre.
+ *
+ * ⚠️ CE MODULE NE L'APPLIQUE PAS. Il CLASSE. L'écriture appartient à
+ * l'appelant, comme pour la part et pour les réglages de cuisine.
+ *
+ * ⚠️ MESURÉ LE 2026-09-21: sans ce tiroir, « le matin c'est plutôt quelque
+ * chose de très léger » n'avait AUCUNE destination — le levier existait et
+ * aucun producteur ne l'écrivait. Petit-déjeuner resté à 500 kcal.
+ */
+export interface SlotSizeMove {
+  readonly slot: RhythmOccasion;
+  /** `true` = ce moment est un petit repas; `false` = il ne l'est plus. */
+  readonly light: boolean;
+  /** ⚠️ `null` EST UNE RÉPONSE: toute la table mange léger à ce moment. */
+  readonly memberId: string | null;
+}
+
+/**
+ * ⟳ 2026-09-23 — CE QU'UNE PHRASE DIT D'UN À-CÔTÉ: **le type, le moment, et
+ * si la personne le prend**. « il ne prend jamais de dessert » ⇒
+ * `{kind: dessert, slot: null, takes: false}`.
+ *
+ * ⛔ CE N'EST PAS UN `RetainedItem`, POUR LA RAISON DU LOT M5 ET DU TIROIR ⑥.
+ * Le réglage a un CHAMP que la personne voit et change elle-même
+ * (`household_member_habits.slots[].side_courses`, lu par
+ * `parseMemberSideCourses`). Un souvenir « pas de dessert » serait une copie
+ * de ce champ, relue pendant que la fiche dirait autre chose.
+ *
+ * ⛔ UN À-CÔTÉ N'EST PAS UN ALIMENT. « pas de fromage le soir » reste un
+ * `food.exclude` au dîner (tiroir ①): il retire le fromage de TOUT ce qui est
+ * servi le soir, plat compris, et le moteur retire alors l'à-côté fromage du
+ * dîner. Seule une phrase qui parle de PRENDRE le plat d'à côté vient ici.
+ *
+ * ⚠️ `slot: null` = LES DEUX MOMENTS (déjeuner et dîner): une phrase qui ne
+ * nomme pas le repas vaut pour les deux, et l'appelant la déplie.
+ * ⚠️ `memberId: null` = TOUTE LA TABLE, déplié sur le rôle par l'appelant —
+ * comme le tiroir ⑥, et pour la même raison: retirer un dessert à chacun ne
+ * retire pas d'énergie (le plat reprend ce que l'à-côté ne porte plus).
+ */
+export interface SideCourseMove {
+  readonly kind: SideCourseKind;
+  readonly slot: SideCourseSlot | null;
+  /** `true` = la personne veut ce type; `false` = elle ne le prend pas. */
+  readonly takes: boolean;
+  readonly memberId: string | null;
 }
 
 /**
@@ -246,7 +366,7 @@ const KIND_BLURBS: Readonly<Record<RetainedKind, string>> = {
  */
 const KIND_NOTES: Partial<Readonly<Record<RetainedKind, string>>> = {
   "food.prefer":
-    "  DIRECTION FIRST, AND WHEN IN DOUBT DROP IT. These two are opposites, and getting them backwards makes the next plan serve MORE of the very thing they just rejected. French « plus de X » means BOTH \"no more X\" and \"more X\" — the negation is routinely dropped in speech, and the sentence alone does not always say which. When you cannot tell the direction, leave the item out. Being asked once more costs them a sentence; being served more of what they rejected costs them a week.",
+    "  DIRECTION FIRST, AND WHEN IN DOUBT DROP IT. These two are opposites, and getting them backwards makes the next plan serve MORE of the very thing they just rejected. French « plus de X » means BOTH \"no more X\" and \"more X\" — the negation is routinely dropped in speech, and the sentence alone does not always say which. ⚠️ BUT A REASON IN THE SENTENCE DECIDES IT: « plus de fruits à coque, ça me rend malade », « plus de poulet, on en a marre » can only mean NO MORE — nobody asks for more of what makes them ill or tired of it. The doubt is only when NOTHING else in the sentence says which: « plus de saumon » alone. When you cannot tell the direction, leave the item out of every drawer AND name it in \"skipped\" (7) with \"other\" — an answer with every list empty and no reason reads as a note nobody read. Being asked once more costs them a sentence; being served more of what they rejected costs them a week.",
 };
 
 /** POURQUOI CHAQUE FAMILLE INTERDITE L'EST — une raison PAR famille. */
@@ -291,11 +411,13 @@ const SKIP_BLURBS: Readonly<Record<DraftNoteSkipReason, string>> = {
 
 const WHO_RULES = [
   'WHO — "member_id", on every entry of "preferences", "next_plan" and "notes":',
-  "  null when it is for everyone at the table — that is the normal answer when the note names nobody. An id COPIED EXACTLY from the roster below when the note names that person. NEVER a first name.",
+  "  null when it is for everyone at the table — that is the normal answer when the note names nobody. An id COPIED EXACTLY from the roster below when the note names that person. NEVER a first name. ⚠️ « nous », « on », « pour nous », « chez nous », \"we\", \"us\" ARE the whole table: in (1), (2) and (3) that is ONE entry with null — never one per person. Only (4) and (10) split the table into one entry per person, because a share and an allergy belong to one body.",
+  '  ⚠️ A REASON IN THE FIRST PERSON DOES NOT NAME A PERSON. "no more nuts, they make ME ill", "I can\'t stand fennel" — the "me" is WHY, not WHO the rule is for. The rule itself names nobody, so it is for everyone at the table: member_id: null. ⛔ NEVER "clarify" here — there is nothing to ask, and asking costs them a tap to learn what they already wrote.',
+  '  ⚠️ THE ONE WHO WRITES SPEAKS FOR THE WHOLE TABLE BY DEFAULT. "no tofu in the morning", "I don\'t want fish at breakfast", "I fancy fajitas this week", "fish in the morning is fine by me" are the cook deciding the menu: they name nobody in particular, and they stay null. A first-person verb alone does not name a person. ⛔ "ME" IS THE PERSON WRITING ONLY WHEN THE SENTENCE SETS THEM APART FROM THE OTHERS, OR IS ABOUT THEIR OWN BODY OR PLATE — "for me", "me, I…", "my breakfast", "not for me", "I\'m still hungry after dinner": then it is the roster line with "writes": true, copy that id. "breakfast is just a coffee for me" is that one person\'s breakfast; "me, no starch at night" is that one person\'s dinner. Filed as null it puts four breakfasts on a coffee; and a menu rule filed on the writer leaves the rest of the table free to be served the very thing the cook just banned. ⛔ THIS DOES NOT UNDO THE RULE ABOVE — "they make ME ill" is still a REASON, and the rule it explains is for the table. "X and me" when X is the one who writes cannot name two people: "clarify" with "about": "who". When no roster line has "writes": true, "me" eats alone at this table: null.',
   '  A RELATIVE WORD IS THE NORMAL WAY PEOPLE WRITE: "my son", "my daughter", "my wife". Resolve it against the roster using "age" (minor/adult) and "sex". "my son" is the MINOR whose sex is male; "my wife" is an ADULT whose sex is female. If exactly ONE person at the table fits, copy that id.',
   '  ⛔ A PLURAL IS NOT AN AMBIGUITY, IT IS SEVERAL PEOPLE — AND THIS IS THE RULE THE NEXT ONE IS MOST OFTEN MISREAD AS OVERRIDING. "the kids", "the little ones", "the girls", "both of them", "everyone but Tom" name MORE THAN ONE person ON PURPOSE. File ONE ENTRY PER PERSON they cover, each with that person\'s own id. Never member_id: null (that would add the adults nobody mentioned), and NEVER "clarify" — there is nothing to ask, they already told you who. A question here can only take ONE of them, so asking DESTROYS what they said.',
   '  Only a SINGULAR word that fits more than one person is ambiguous ("my daughter" when two daughters are at the table). That, and only that, is what the next rule is about.',
-  '  ⛔ IF TWO PEOPLE FIT, OR NONE, OR EITHER "age" OR "sex" IS null FOR THE ONE YOU WOULD PICK: do NOT file it, and do NOT fall back to member_id: null, which means EVERYONE at the table and would apply one person\'s fact to all of them. Put that entry in "clarify" (see 5) with "about": "who", and in "options" the ids of the people it could be — the ones who fit, or everyone at the table when nobody clearly fits. Being asked which one costs them one tap; taking a food away from the whole table because one child dislikes it costs them the week.',
+  '  ⛔ IF TWO PEOPLE FIT, OR NONE, OR EITHER "age" OR "sex" IS null FOR THE ONE YOU WOULD PICK: do NOT file it, and do NOT fall back to member_id: null, which means EVERYONE at the table and would apply one person\'s fact to all of them. Put that entry in "clarify" (see 8) with "about": "who", and in "options" the ids of the people it could be — the ones who fit, or everyone at the table when nobody clearly fits. Being asked which one costs them one tap; taking a food away from the whole table because one child dislikes it costs them the week.',
 ] as const;
 
 /**
@@ -309,9 +431,10 @@ const WHO_RULES = [
  * découpé en « pain ».
  */
 const WHAT_RULES = [
-  'WHAT — on the same three drawers, when the note names a food only by a CATEGORY or a PRONOUN ("the meat", "it", "that dish", "the thing on Tuesday") and MORE THAN ONE food in the plan below could be what they mean:',
-  '  Put that entry in "clarify" (see 7) with "about": "what", and in "options" the plan foods it could mean, each copied EXACTLY from the list of plan foods given below. Never a food you rephrase, never one that is not in that list.',
+  'WHAT — on the same three drawers, when the note points at a food they were SERVED only by a CATEGORY or a PRONOUN ("the meat", "it", "that dish", "the thing on Tuesday") and MORE THAN ONE food in the plan below could be what they mean:',
+  '  Put that entry in "clarify" (see 8) with "about": "what", and in "options" the plan foods it could mean, each copied EXACTLY from the list of plan foods given below. Never a food you rephrase, never one that is not in that list.',
   '  If exactly ONE plan food fits, do not ask: file it normally, with that food as "text".',
+  '  ⛔ A CATEGORY STATED AS A RULE IS NOT A "what", AND IT IS FILED AS THE CATEGORY — never swapped for the one plan food that fits and never asked about: "the kids never eat fish" is "poisson", not the one fish dish in this plan; "less red meat" is "viande rouge", not the beef on Thursday. The category is what they said, it covers next week\'s fish too, and the plan check unfolds it into every species on its own. Narrowed to one dish, the rule lets every other fish through. The "what" is for a note that REACTS to a dish on the plan ("I did not like the meat"), where the category stands for the dish they ate.',
   '  ⛔ A food they NAMED is never a "what", even when it is not in the plan: "no more curry" is a preference, not a question.',
   '  ⛔ If the list of plan foods below is empty, never use "about": "what" at all.',
 ] as const;
@@ -323,20 +446,32 @@ export const DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT = [
   "",
   "Return ONE JSON object, and nothing else. No prose, no code fence.",
   "",
-  '{ "preferences": [ ... ], "next_plan": [ ... ], "notes": [ ... ], "portions": [ ... ], "settings": [ ... ], "cells": [ ... ], "skipped": [ ... ], "clarify": [ ... ] }',
+  '{ "preferences": [ ... ], "next_plan": [ ... ], "notes": [ ... ], "portions": [ ... ], "settings": [ ... ], "slots": [ ... ], "cells": [ ... ], "skipped": [ ... ], "clarify": [ ... ], "safety": [ ... ], "side_courses": [ ... ] }',
   "",
   "For each thing the note says, try the drawers IN THIS ORDER and file it in the FIRST one that fits. Never in two. Every drawer may be empty, and an empty drawer is a correct answer.",
   "",
   // ── PORTE ① — la promesse est SUR la ligne de `"kind"` ──────────────────
-  '1. "preferences" — a food or a preparation they do not want any more, or want to see again. LASTING: "my son doesn\'t like fish" is not about one week. Each entry is exactly:',
+  '1. "preferences" — a food or a preparation they do not want any more, or want to see again. LASTING, a STANDING FACT and never a mood — see (2): "my son doesn\'t like fish". Each entry is exactly:',
   "{",
   `  "kind": exactly one of ${
     DRAFT_NOTE_PREFERENCE_KINDS.join(" | ")
   } — NEVER craving here (an urge for this week goes in "next_plan"), and NEVER ${
     DRAFT_NOTE_FORBIDDEN_KINDS.join(", NEVER ")
-  }: those are not preferences, they go in "skipped" (see 6). NEVER a share that is too big or too small either — that has its own drawer (4). NEVER the cooking being too long, too hard, or not varied — that has its own drawer (5),`,
-  '  "text": the thing you are filing, in THEIR language and as close to THEIR OWN WORDS as you can. This is the line they will read on their own memory card, and they can edit it. Never a sentence you invented, never longer than what they wrote,',
-  '  "member_id": see WHO below',
+  }: those are not preferences, they go in "skipped" (see 7). NEVER a share that is too big or too small either — that has its own drawer (4). NEVER the cooking being too long, too hard, or not varied — that has its own drawer (5). ⛔ NEVER A COURSE someone takes or skips at lunch or dinner — "he never has dessert", "no starter in the evening", "no bread at the table": that is their switch in "side_courses" (11). "no cheese in the evening" names a FOOD, and stays here with dinner as its meal. ⛔ AND NEVER A FOOD RULE TIED TO A DAY OF THE WEEK: "never fish on Thursdays", "no red meat on Mondays" is a fact with a day, and it goes in "notes" (3) with its "when". Filed here it would ban that food EVERY day — six days they never asked for. ⛔ AND NEVER AN ALLERGY, AN INTOLERANCE OR A DIET STATED WITH ITS WORD ("allergic", "intolerant", "is vegetarian"): those go in "safety" (10). Without the word, it is a taste and it stays here,`,
+  '  "text": the thing you are filing, in THEIR language and as close to THEIR OWN WORDS as you can. This is the line they will read on their own memory card, and they can edit it. Never a sentence you invented, never longer than what they wrote. ⛔ ONE FOOD PER ENTRY when the sentence LISTS foods: "no tofu or fish" is two entries, "tofu" and "fish". They share the same note, and each is checked on its own; a list kept in ONE line is checked as a whole, so it matches nothing and protects nobody. ⛔ BUT ONE ENTRY — NOT ONE PER INGREDIENT — WHEN THEY DESCRIBE ONE DISH: "oat bowls with oat milk and seeds and almonds" is ONE thing they want at that meal, and the words that join it (with, in it, on top, and some) say so. File the dish ("oat bowl"), not four foods. Four entries would be four standing rules, each checked on its own, and the plan could then serve almonds at dinner and call it honoured — which is not what they asked. ⚠️ THE FOOD ALONE, WITHOUT WHAT HOLDS IT OR MEASURES IT: "a bowl of muesli" is "muesli", "130 g of wholemeal bread" is "wholemeal bread". The container and the quantity belong to one meal; the memory is about the food. ⚠️ THE FOOD, NOT THE VERDICT AND NOT THE PERSON: "kind" already carries what they think of it, and "member_id" who it is about. "lesoeuf ça convient pas à Christèle" files as "les œufs" — never the whole sentence. A sentence kept whole is searched whole in the plan: it matches nothing, and the rule never bites. ⚠️ AND SPELLED THE WAY THE FOOD IS SPELLED, not the way they typed it: "lesoeuf" becomes "les œufs". This line is SEARCHED in the plan — a misspelling matches nothing and the rule never bites — and they read it on their card. Their exact words are kept in the quote, so nothing of what they wrote is lost,',
+  '  "member_id": see WHO below,',
+  `  "occasion": exactly one of ${
+    RHYTHM_OCCASIONS.join(" | ")
+  } when the note says the rule holds AT ONE MEAL OF THE DAY only — "no fish AT BREAKFAST", "nothing fried IN THE EVENING" — or null when it holds all day. ⛔ NEVER A MEAL THEY DID NOT NAME: null is the normal answer, and a meal you invent turns a morning rule into an all-day ban nobody asked for. ⛔ AND NEVER LEAVE THE MEAL INSIDE "text": a moment written into the sentence is a moment nothing can read — the plan cannot check it, and the same food comes back at that very meal,`,
+  `  "force": ON ${
+    DRAFT_NOTE_PREFERENCE_KINDS.filter((k) => k === "food.exclude" || k === "method.avoid")
+      .join(" AND ")
+  } ONLY — exactly one of ${
+    EXCLUSION_FORCES.join(" | ")
+  }. "never" when they want it GONE: "no more curry", "he can't stand fish". "less" when they want LESS OF IT, not none: "not so much cheese", "too much pasta lately", "a bit less bread". ⛔ THIS ONE DECIDES WHETHER THE FOOD IS TAKEN OFF THEIR PLATE. "less" filed as "never" removes for good what they only wanted reduced, and they find out by noticing an absence — so when the sentence is about HOW MUCH, answer "less". ⛔ AND A COMPARISON IS NOT A BAN: "muesli rather than a bowl of cereal" files "muesli" as "food.prefer" and files NOTHING for the cereal — neither "never" nor "less". They ranked two foods; they did not reject one. Filed as "never", the cereal is gone every morning for good, and nobody asked for that. Omit the key on ${
+    DRAFT_NOTE_PREFERENCE_KINDS.filter((k) => k === "food.prefer" || k === "method.prefer")
+      .join(" and ")
+  }: wanting something has no degree here,`,
   "}",
   "WHAT EACH KIND IS FOR:",
   ...DRAFT_NOTE_PREFERENCE_KINDS.flatMap((k) => {
@@ -345,14 +480,14 @@ export const DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT = [
   }),
   "",
   // ── L'ENCART — la promesse est SUR la ligne du titre ────────────────────
-  '2. "next_plan" — ONLY what the note itself dates to this plan or this week: "no fish THIS WEEK", "I fancy fajitas". If the note does not say this week, this time, or the next plan, it is a preference (1), not a next_plan. Same entries as "preferences", and one more kind:',
+  '2. "next_plan" — what the note DATES ITSELF, in either of two ways. ① It names the window: "no fish THIS WEEK", "I fancy fajitas". ② ⛔ OR IT GIVES A REASON THAT WILL STOP BEING TRUE — a season, a mood, a passing state: "not in the mood for tartiflette, it is only early September", "I am fed up with chicken at the moment", "no soup, it is still warm out". The reason is the date: September ends, a mood passes, the weather turns. Filing these in (1) would turn "not right now" into "never again" — and they would never find out, because the only sign is a food that quietly stops appearing. When in doubt between (1) and (2), choose (2): being asked again costs them one sentence, a silent ban costs them the food. ⛔ BUT A TASTE IS NOT A MOOD: "my son doesn\'t like fish" gives no reason that expires, and it belongs in (1). Same entries as "preferences", and one more kind:',
   `  "kind": exactly one of ${DRAFT_NOTE_NEXT_PLAN_KINDS.join(" | ")},`,
   ...DRAFT_NOTE_NEXT_PLAN_KINDS.filter((k) => k === "craving").map((k) =>
     `- ${k} — ${KIND_BLURBS[k]}`
   ),
   "",
   // ── PORTE ③ — la promesse est SUR la ligne du titre, et la clé `when` juste après
-  '3. "notes" — a FACT about a person that no drawer above can hold and that matters for composing: a rehearsal, a late dinner, a day that is not like the others. NEVER a food or a preparation they like or dislike (that is a preference), NEVER a degree about the WORK such as too long or too complicated (that is "skipped"), NEVER a share that is too big or too small (that is "portions"), and NEVER a request to change ONE meal of THIS plan that names both its day and its moment (that is "cells", 8). A food someone ALWAYS has at one meal ("apple compote every afternoon") is a FACT with a slot, not a taste: it goes here, with "when". Each entry is exactly:',
+  '3. "notes" — a FACT about a person that no drawer above can hold and that matters for composing: a rehearsal, a late dinner, a day that is not like the others. NEVER a food or a preparation they like or dislike (that is a preference), NEVER a degree about the WORK such as too long or too complicated (that is "skipped"), NEVER a share that is too big or too small (that is "portions"), and NEVER a request to change ONE meal of THIS plan that names both its day and its moment (that is "cells", 9). A food someone ALWAYS has at one meal ("apple compote every afternoon") is a FACT with a slot, not a taste: it goes here, with "when". Each entry is exactly:',
   "{",
   '  "text": their fact, in THEIR language and their own words, one line,',
   '  "member_id": see WHO below,',
@@ -372,7 +507,8 @@ export const DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT = [
   '  "text": their own words, exactly as in "preferences" above — this is the line they will read on their memory card,',
   '  "member_id": see WHO below. ⛔ AND HERE IT MATTERS MORE THAN ANYWHERE: a share belongs to ONE person. When the note does not say clearly whose plate it is about, do NOT guess and do NOT use null — put it in "clarify" with "about": "who" and "gate": "portions", the entry carrying this same "direction" and "text". Taking food off the whole table because one person said they eat less is the exact harm this drawer exists to avoid,',
   "}",
-  '  ⚠️ A SENTENCE THAT NAMES A MEAL OF THE DAY IS NOT THIS. "in the evening I don\'t eat that much" is about that one meal, not about their whole day: it goes in "notes" (3) with "when". This drawer is for the size of someone\'s day.',
+  '  ⚠️ A SENTENCE THAT NAMES A MEAL OF THE DAY IS NOT THIS. "in the evening I don\'t eat that much", "very light in the morning" are about that ONE meal, not about their whole day: they go in "slots" (6). This drawer is for the size of someone\'s day, at EVERY meal.',
+  '  ⚠️ "WE EAT LESS", "ON MANGE MOINS", "WE ARE ALL EATING A BIT LESS" IS THE WHOLE TABLE, and the whole table is SEVERAL PEOPLE: ONE ENTRY PER PERSON on the roster, each with their own id and the same direction — the plural rule of WHO, applied here. Never member_id: null (refused, and they are told nothing was changed), never "clarify" (there is nothing to ask), never "skipped" as a degree (it names a direction, not a size).',
   '  ⛔ NOT a remark about the plan being long to cook, complicated, or repetitive. Those are about the WORK, and they have their own drawer (5).',
   "",
   // ── PORTE ⑤ — LE TRAVAIL DE CUISINE. L'axe et le sens, jamais une valeur.
@@ -385,21 +521,46 @@ export const DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT = [
   '  "direction": exactly one of down | up — "down" when they want LESS of it (less time, simpler, more repetition), "up" when they want MORE (more time, more ambitious, more variety). ⛔ THE DIRECTION AND NOTHING ELSE. Never a number of minutes, never the name of a level: it moves ONE notch, and the code decides which setting that notch lands on,',
   "}",
   '  ⚠️ NO "member_id" here: these are settings of the KITCHEN, not of a person. "my son finds it too complicated" is still about the cooking — file it, without a person.',
-  '  ⛔ NOT how many days they cook, what they spend, how often they shop, or which meals of the day they take. Those have no drawer here and go in "skipped" (6).',
+  '  ⛔ NOT how many days they cook, what they spend, how often they shop, or which meals of the day they take. Those have no drawer here and go in "skipped" (7).',
+  "",
+  // ── PORTE ⑥ — LA TAILLE D'UN REPAS QU'ILS PRENNENT DÉJÀ (2026-09-21).
+  //
+  // ⛔ LA PROMESSE TOUCHE LA CLÉ, comme aux tiroirs 4 et 5: « vrai ou faux et
+  // rien d'autre » est SUR la ligne de `"light"`.
+  //
+  // ⛔ ET CE N'EST PAS UN ITEM RETENU, POUR LA RAISON DU LOT M5. Un souvenir
+  // serait une COPIE du réglage, relue au moment de composer: l'écran dirait
+  // « petit-déjeuner léger » et le plan serait fait sur autre chose. Ici la
+  // phrase déplace LE CHAMP que la personne voit et peut décocher
+  // (`household_member_habits.light`), par la même porte que le bilan.
+  //
+  // ⚠️ MESURÉ LE 2026-09-21: « le matin c'est plutôt quelque chose de très
+  // léger » n'avait AUCUNE destination. Le levier existait (la case de la
+  // fiche, `LIGHT_SLOT_WEIGHT`) et aucun producteur ne l'écrivait: le
+  // petit-déjeuner de la personne est resté à 500 kcal.
+  '6. "slots" — the note says ONE MEAL OF THE DAY is a small one, or is not a small one any more, for someone who ALREADY takes that meal: "breakfast is just a fruit", "very light in the morning", "he needs a big dinner". Each entry is exactly:',
+  "{",
+  `  "slot": exactly one of ${LIGHT_BEARING_SLOTS.join(" | ")} — the meal they NAMED, never guessed. ⛔ THESE THREE ONLY: a snack already weighs a tenth of the day, and calling it light would ask the plan for about forty calories — nothing, served as a decision. "she skips her afternoon snack" is a setting, and it goes in "skipped" (7),`,
+  '  "light": true when that meal is a small one for them, false when it is NOT a small one any more. ⛔ TRUE OR FALSE AND NOTHING ELSE. Never a number, never calories, never a word of size, never "a bit": this is the "light meal" box on their own sheet, and the code alone decides what a light meal weighs,',
+  '  "member_id": see WHO below. null when the whole table eats light at that meal,',
+  "}",
+  '  ⛔ NOT WHICH MEALS THEY TAKE. "she does not have dinner", "we should add an afternoon snack" say that a meal exists or does not — that is a setting on their own screen, and it goes in "skipped" (7). This drawer is ONLY about a meal they ALREADY take being small, or not small any more.',
+  '  ⛔ NOT the size of someone\'s whole DAY. "my mother doesn\'t eat that much" is their share at EVERY meal — drawer 4.',
+  '  ⚠️ THE FOODS NAMED WITH THE SIZE ARE FILED TOO, in (1): "very light in the morning, fruit or muesli, but no eggs" is this drawer (breakfast, light) AND three entries in (1) — fruit and muesli preferred at breakfast, eggs excluded at breakfast. The size says HOW MUCH, the foods say WHAT, and neither absorbs the other: a light breakfast with no idea what she likes at it is half of what she wrote.',
   "",
   // ── CE QU'ON NE RANGE PAS — dit, et compté ──────────────────────────────
-  '6. "skipped" — what you read and deliberately did NOT file, one entry each, so it can be counted. EVERY thing the note says that you did not file in 1, 2, 3, 4, 5 or 8 MUST appear here, once: never return six empty lists without saying why. Each entry is exactly:',
+  '7. "skipped" — what you read and deliberately did NOT file, one entry each, so it can be counted. EVERY thing the note says that you did not file in 1, 2, 3, 4, 5, 6, 9, 10 or 11 MUST appear here, once: never return eight empty lists without saying why. Each entry is exactly:',
   `{ "why": exactly one of ${DRAFT_NOTE_SKIP_REASONS.join(" | ")} }`,
   ...DRAFT_NOTE_SKIP_REASONS.map((why) => `- ${why} — ${SKIP_BLURBS[why]},`),
   `  The families you never file, each for its own reason:${
     DRAFT_NOTE_FORBIDDEN_KINDS.map((k) => `\n    · ${k} — ${KIND_BLURBS[k]} ${FORBIDDEN_REASONS[k]};`).join("")
   }`,
-  '  ⛔ NEVER use "skipped" for something you could not attribute to a person or to a food. That is not a thing you chose not to file — it is a thing you could not file yet, and it goes in "clarify" (7).',
+  '  ⛔ NEVER use "skipped" for something you could not attribute to a person or to a food. That is not a thing you chose not to file — it is a thing you could not file yet, and it goes in "clarify" (8).',
   "",
   // ── PORTE ⑤ — ce qu'on n'a pas pu ranger FAUTE D'UNE PRÉCISION ──────────
   // La promesse est SUR la ligne du titre, et le schéma juste après: une
   // consigne séparée de sa clé par trois paragraphes n'est pas lue.
-  '7. "clarify" — one thing the note says that you could NOT file because you do not know WHO it is about or WHICH food it means. One entry per thing. Everything you put here is filed NOWHERE ELSE — not in 1, 2, 3, 4, 5 or 6. They will be asked, once, with buttons; if they do not answer, nothing is kept. Each entry is exactly:',
+  '8. "clarify" — one thing the note says that you could NOT file because you do not know WHO it is about or WHICH food it means. One entry per thing. Everything you put here is filed NOWHERE ELSE — not in 1, 2, 3, 4, 5, 6 or 7. They will be asked, once, with buttons; if they do not answer, nothing is kept. Each entry is exactly:',
   "{",
   `  "about": exactly one of ${MEMORY_CLARIFICATION_ABOUTS.join(" | ")},`,
   `  "gate": exactly one of ${DRAFT_NOTE_CLARIFY_GATES.join(" | ")} — the drawer it WOULD have gone to; "portions" only with "about": "who",`,
@@ -413,7 +574,7 @@ export const DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT = [
   // repli est nommé à côté (« the evening » sans jour = une note; « Thursday »
   // sans moment = skipped). Rien n'est écrit pour une case: c'est une
   // instruction pour CE plan, que le front rend au composeur (`edit_cells`).
-  '8. "cells" — the note asks to change ONE meal of THIS plan and names BOTH its day AND its moment: "Friday dinner, chicken instead", "jeudi midi c\'était trop lourd", "Saturday breakfast: something without eggs". Filed NOWHERE else — not in 1, 2, 3 or "skipped": it is a request for this plan, not a fact to remember. Each entry is exactly:',
+  '9. "cells" — the note asks to change ONE meal of THIS plan and names BOTH its day AND its moment: "Friday dinner, chicken instead", "jeudi midi c\'était trop lourd", "Saturday breakfast: something without eggs". Filed NOWHERE else — not in 1, 2, 3 or "skipped": it is a request for this plan, not a fact to remember. Each entry is exactly:',
   "{",
   `  "day": exactly one of ${DAY_TOKENS.join(" | ")} — the day they NAMED. Never guessed, never today by default,`,
   `  "slot": exactly one of ${RHYTHM_OCCASIONS.join(" | ")} — the moment they NAMED,`,
@@ -426,7 +587,47 @@ export const DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT = [
   "",
   ...WHAT_RULES,
   "",
-  "NEVER file an allergy, an intolerance, a diet, or a medical condition as a medical fact. \"no peanuts, they make me ill\" is at most a food.exclude — you are filing a preference, never a medical fact.",
+  "",
+  // ── PORTE ⑩ — LA SÉCURITÉ (2026-09-23). Rouverte sur décision du
+  // propriétaire, supprimée le 2026-09-09. ⛔ LA PROMESSE TOUCHE LA CLÉ: la
+  // condition (« le mot, sinon rien ») est sur la ligne du titre ET sur
+  // celle de `because`, qui est ce que la relecture VÉRIFIE.
+  '10. "safety" — an ALLERGY, an INTOLERANCE or a DIET, stated AS SUCH. This is the only list that reaches their medical sheet: what goes here is checked against every food served, for good, and only the sheet takes it back. So it takes CERTAINTY, and certainty means THE WORD. An allergy or an intolerance: "allergic", "allergy", "intolerant", "intolerance", "can\'t tolerate", "coeliac" — « allergique », « allergie », « intolérant(e) », « ne tolère pas », « cœliaque ». A diet: "vegetarian", "vegan", "pescatarian", "gluten-free" said of WHO SOMEONE IS OR HAS BECOME — « je suis végétarienne », « Léa est devenue vegan », « on est végétariens ». ⛔ WITHOUT THAT WORD IT IS NOT HERE: "it makes me ill", "it doesn\'t agree with her", « je supporte pas », « ça passe pas », « elle ne mange plus de viande » are tastes — (1), food.exclude. WHEN IN DOUBT, (1): a taste filed as an allergy locks a food out of the house for good; an allergy filed as a taste is still kept off the plan. Each entry is exactly:',
+  "{",
+  `  "kind": exactly one of ${DRAFT_NOTE_SAFETY_KINDS.join(" | ")},`,
+  '  "member_id": see WHO below — and here it is NEVER null: an allergy belongs to a person. "I" is the person writing (the roster line with "writes": true). "we are all allergic to…", « on est végétariens » is ONE ENTRY PER PERSON. If you cannot tell who ("my daughter" with two daughters), do NOT file it here: it becomes ONE entry in "clarify" (8) with "about": "who", "gate": "preferences" and the food as a food.exclude — and NOTHING in (1): filed there with member_id null it would ban the food for the whole table instead of asking,',
+  '  "text": for an allergy or an intolerance, the allergen alone, spelled the way it is spelled ("arachides", "lactose", "fruits à coque") — never the verdict, never the person. For a diet, null,',
+  `  "diet": for a diet only, exactly one of ${DRAFT_NOTE_DIETS.join(" | ")} — "omnivore" when they say someone is NO LONGER on a diet (« Léa n\'est plus végétarienne », « on remange de la viande »). null on an allergy or an intolerance,`,
+  '  "because": ⛔ THE WORDS OF THE NOTE THAT SAY IT, COPIED LETTER FOR LETTER, a few words: « allergique aux arachides », « intolérante au lactose », « est devenue vegan ». It is CHECKED against the note: an entry whose words are not in the note is dropped, and nothing is written,',
+  "}",
+  '  ⛔ A DIET TIED TO A DAY, A MEAL OR A FREQUENCY IS NOT A DIET: "vegetarian on Monday nights", « sans viande au dîner », « on essaie de manger végé » — a note (3) with its "when", or a preference (1).',
+  '  ⛔ AN ALLERGY IS NEVER TAKEN OFF BY A NOTE: « Zoé n\'est plus allergique » goes in "skipped" as "setting" — the sheet is where it comes off.',
+  '  ⛔ FILED HERE, IT IS FILED NOWHERE ELSE — not also in (1). The same food twice is the same rule twice.',
+  '  Return "safety": [] when the note says none of this. That is the normal answer.',
+  "",
+  // ── PORTE ⑪ — LES À-CÔTÉS (2026-09-23). Le type, le moment, oui ou non.
+  //
+  // ⛔ LA PROMESSE TOUCHE LA CLÉ, comme aux tiroirs 4, 5 et 6: « vrai ou faux
+  // et rien d'autre » est SUR la ligne de `"takes"`, et « jamais le matin »
+  // SUR celle de `"slot"`.
+  //
+  // ⛔ ET CE N'EST PAS UN ITEM RETENU: la phrase déplace le réglage que la
+  // personne voit sur sa fiche (`household_member_habits.side_courses`).
+  //
+  // ⚠️ LE PIÈGE EST « fromage » ET « pain »: ce sont aussi des ALIMENTS.
+  // « pas de fromage le soir » reste une exclusion au dîner (①), qui retire le
+  // fromage du plat ET de l'à-côté. Seule une phrase sur le fait de PRENDRE le
+  // plat d'à côté vient ici — d'où l'exemple nommé dans les deux tiroirs.
+  '11. "side_courses" — the note says someone TAKES or SKIPS a whole COURSE served next to the dish at lunch or dinner: a starter, a cheese course, a dessert, bread at the table. "he never has dessert", "no starter in the evening", "she loves to finish with cheese", "no bread at the table". The app serves one small course next to the dish, and this is the switch on their own sheet that says which. Each entry is exactly:',
+  "{",
+  `  "kind": exactly one of ${SIDE_COURSE_KINDS.join(" | ")} — the COURSE they named: starter is something before the dish (a salad, raw vegetables, a soup), cheese is a cheese course, dessert is what ends the meal (a fruit, a yogurt, a sweet), bread is bread on the table,`,
+  `  "slot": exactly one of ${SIDE_COURSE_SLOTS.join(" | ")} when they named that meal, or null when they named none — null means BOTH lunch and dinner. ⛔ NEVER breakfast or a snack: there is no course there, and "no bread in the morning" is a FOOD, in (1),`,
+  '  "takes": true when they WANT that course, false when they do NOT take it. ⛔ TRUE OR FALSE AND NOTHING ELSE. Never a size, never a food, never "sometimes": which food, how much and how often belong to the app,',
+  '  "member_id": see WHO above. null when the whole table takes it or skips it ("at home we never have dessert in the evening"). ⛔ When a singular word could be two people, do NOT file it here and do NOT use null: name it in "skipped" (7) with "other" — this drawer has no question, and one person\'s dessert is not the whole table\'s,',
+  "}",
+  '  ⛔ A FOOD IS NOT A COURSE. "no cheese in the evening", "less bread", "no more yogurt" name a FOOD: they go in (1), with their meal — and the app then keeps that food off the side course too. Only a sentence about TAKING the course itself comes here: "never has dessert", "to finish the meal", "as a starter", "on the table".',
+  '  ⚠️ THE FOOD NAMED WITH THE COURSE IS FILED TOO: "no dessert for Léa, she hates yogurt" is this drawer (dessert, false) AND a food in (1) (yogurt). Neither absorbs the other.',
+  '  Return "side_courses": [] when the note says none of this. That is the normal answer.',
 ].join("\n");
 
 /** Une bouche, réduite à ce dont ce prompt a besoin. */
@@ -443,6 +644,19 @@ export type DraftNoteMember = {
   readonly ageState: "adult" | "minor" | null;
   /** LE SEXE DÉCLARÉ, ou `null`. REQUIS, jamais `?`. */
   readonly sex: "male" | "female" | "other" | null;
+  /**
+   * LA PERSONNE DONT LE COMPTE ÉCRIT LA NOTE (`household_members.role =
+   * 'owner'`). REQUIS, jamais `?`.
+   *
+   * ⚠️ MESURÉ LE 2026-09-23, sur des notes hors corpus: sans ce champ, « le
+   * petit dej c'est juste un café POUR MOI » cochait « léger » pour TOUTE LA
+   * TABLE (6/6) et « moi le soir je mange pas de féculents » retirait les
+   * féculents à quatre personnes (3/3). Le rôle ne disait pas qui écrit, et la
+   * règle « une raison à la première personne ne nomme personne » débordait
+   * sur le SUJET de la phrase. `true` sur une seule ligne du rôle, jamais
+   * plusieurs; aucune ligne à `true` = un compte qui mange seul.
+   */
+  readonly writes: boolean;
 };
 
 /**
@@ -477,7 +691,7 @@ export function buildDraftNoteClassifyPrompt(args: {
     );
   } else {
     lines.push(
-      "The people at this table — copy an id EXACTLY, never a name: " +
+      'The people at this table — copy an id EXACTLY, never a name. "writes": true marks the person whose account this note is written from: ' +
         roster
           .map((m) =>
             JSON.stringify({
@@ -488,6 +702,11 @@ export function buildDraftNoteClassifyPrompt(args: {
               // « personne ne l'a renseigné », ce qui doit le faire s'abstenir.
               age: m.ageState,
               sex: m.sex,
+              // ⚠️ ÉCRIT À `false` AUSSI: « moi » se résout contre la ligne à
+              // `true`, et une clé absente sur les autres laisserait le modèle
+              // deviner qui écrit — c'est ce qu'il faisait (« Thomas et moi »
+              // → Christèle, parce que Thomas était nommé à part).
+              writes: m.writes === true,
             })
           )
           .join(", "),
@@ -551,6 +770,15 @@ export interface DraftNoteRefusals {
    * le tap peut désigner, donc la seule chose qui doit être vraie.
    */
   readonly badOptions: number;
+  /**
+   * ⟳ 2026-09-22 · LOT B — CE QUE LE PLAFOND A COUPÉ.
+   *
+   * ⚠️ `over_cap > 0` NE DIT PAS « la note était trop longue »: il dit que la
+   * consigne « une recette est UN plat » n'a pas tenu sur ce cas, et que la
+   * phrase a été lue comme une liste d'ingrédients. C'est le seul moyen de le
+   * savoir sans relire des notes une par une.
+   */
+  readonly overCap: number;
 }
 
 export interface DraftNoteGateCount {
@@ -590,6 +818,16 @@ export interface DraftNoteClarifyEntry {
   /** Le sujet DÉJÀ connu. `null` quand c'est justement ce qu'on demande. */
   readonly subject: RetainedSubject | null;
   readonly when: MemoWhen | null;
+  /**
+   * ⟳ 2026-09-23 — LE MOMENT ET LA FORCE SURVIVENT À LA QUESTION. Le prompt
+   * demande « l'entrée exactement comme dans son tiroir (mêmes clés) », et le
+   * lecteur les JETAIT: « pas de poisson LE MATIN pour ma fille », une fois la
+   * fille désignée, serait devenu « pas de poisson » toute la journée. Lus par
+   * `parseRetainedItem` avec un sujet de passage — un jeton hors liste fait
+   * tomber l'entrée (`malformed`), jamais un repli. `null` sur un mémo.
+   */
+  readonly occasion: RhythmOccasion | null;
+  readonly force: ExclusionForce | null;
   /** Les candidats — ids du rôle ou aliments du plan. Vérifiés, jamais crus. */
   readonly options: readonly string[];
 }
@@ -616,6 +854,18 @@ export interface DraftNoteClassification {
    * bouge et refuse les bords. Voir `SettingMove`.
    */
   readonly settings: DraftNoteGateCount & { readonly moves: readonly SettingMove[] };
+  /**
+   * ⑥ — LA TAILLE D'UN MOMENT (2026-09-21). Un MOUVEMENT, pas un item
+   * retenu: l'appelant coche (ou décoche) la case « repas léger » de la fiche
+   * de cette bouche. Voir `SlotSizeMove`.
+   */
+  readonly slots: DraftNoteGateCount & { readonly moves: readonly SlotSizeMove[] };
+  /**
+   * ⑪ — LES À-CÔTÉS (2026-09-23). Un MOUVEMENT, pas un item retenu:
+   * l'appelant pose (ou retire) le réglage d'un type d'à-côté sur la fiche de
+   * cette bouche. Voir `SideCourseMove`.
+   */
+  readonly sideCourses: DraftNoteGateCount & { readonly moves: readonly SideCourseMove[] };
   /**
    * ⑧ — LA CASE DE CE PLAN-CI (2026-09-09). Rien n'est ÉCRIT pour elle: c'est
    * une instruction que `keel-read-note-v1` rend au front, qui la donne au
@@ -645,6 +895,13 @@ export interface DraftNoteClassification {
    * une clé absente est un prompt que le modèle a lu de travers, et ça se
    * compte à part d'un vide.
    */
+  /**
+   * ⟳ 2026-09-23 — ⑩ LA SÉCURITÉ: allergie, intolérance, régime, DITS comme
+   * tels dans la note, chacun avec sa preuve (`because`) vérifiée présente
+   * dans la note. Écrits par `draft_note_safety_io.ts`, pas par la porte des
+   * souvenirs: ce ne sont pas des souvenirs, c'est la fiche.
+   */
+  readonly safety: DraftNoteSafetyReading;
   readonly listsMissing: readonly string[];
 }
 
@@ -675,6 +932,7 @@ const EMPTY_REFUSALS: DraftNoteRefusals = {
   badAbout: 0,
   badGate: 0,
   badOptions: 0,
+  overCap: 0,
 };
 
 const EMPTY_SKIPPED: DraftNoteSkipped = {
@@ -695,6 +953,8 @@ export const EMPTY_DRAFT_NOTE_CLASSIFICATION: DraftNoteClassification = {
   nextPlan: { proposed: 0, kept: 0, refused: EMPTY_REFUSALS, entries: [] },
   portions: { proposed: 0, kept: 0, refused: EMPTY_REFUSALS, moves: [] },
   settings: { proposed: 0, kept: 0, refused: EMPTY_REFUSALS, moves: [] },
+  slots: { proposed: 0, kept: 0, refused: EMPTY_REFUSALS, moves: [] },
+  sideCourses: { proposed: 0, kept: 0, refused: EMPTY_REFUSALS, moves: [] },
   cells: { proposed: 0, kept: 0, refused: EMPTY_REFUSALS, requests: [] },
   skipped: EMPTY_SKIPPED,
   clarify: {
@@ -706,6 +966,7 @@ export const EMPTY_DRAFT_NOTE_CLASSIFICATION: DraftNoteClassification = {
     who: 0,
     what: 0,
   },
+  safety: EMPTY_DRAFT_NOTE_SAFETY,
   listsMissing: [],
 };
 
@@ -721,11 +982,13 @@ class Refusals {
   badAbout = 0;
   badGate = 0;
   badOptions = 0;
+  /** ⟳ 2026-09-22 · LOT B — au-delà de `DRAFT_NOTE_MAX_RETAINED`. */
+  overCap = 0;
   freeze(): DraftNoteRefusals {
     return {
       total: this.unknownKind + this.forbiddenKind + this.unknownMember +
         this.badText + this.badWhen + this.malformed + this.badAbout +
-        this.badGate + this.badOptions,
+        this.badGate + this.badOptions + this.overCap,
       unknownKind: this.unknownKind,
       forbiddenKind: this.forbiddenKind,
       forbiddenKinds: [...this.forbiddenKinds].sort(),
@@ -736,6 +999,7 @@ class Refusals {
       badAbout: this.badAbout,
       badGate: this.badGate,
       badOptions: this.badOptions,
+      overCap: this.overCap,
     };
   }
 }
@@ -757,6 +1021,7 @@ function sumRefusals(parts: readonly DraftNoteRefusals[]): DraftNoteRefusals {
     badAbout: sum((r) => r.badAbout),
     badGate: sum((r) => r.badGate),
     badOptions: sum((r) => r.badOptions),
+    overCap: sum((r) => r.overCap),
   };
 }
 
@@ -889,6 +1154,15 @@ export function readDraftNoteClassification(args: {
       : null;
 
   // ── ① et l'encart: la même relecture, deux portes, deux scopes ──────────
+  /**
+   * ⟳ 2026-09-22 · LOT B — LE PLAFOND EST PARTAGÉ PAR LES DEUX PORTES.
+   *
+   * ⛔ UN PLAFOND PAR PORTE AURAIT LAISSÉ PASSER DOUZE SOUVENIRS: six
+   * préférences plus six envies, pour une seule phrase. Ce qu'on borne est ce
+   * qu'une phrase LAISSE DERRIÈRE ELLE, pas ce que chaque tiroir accepte.
+   */
+  let retainedKept = 0;
+
   const readItems = (
     rows: readonly unknown[],
     allowed: readonly RetainedKind[],
@@ -930,11 +1204,23 @@ export function readDraftNoteClassification(args: {
       // `parseRetainedItem`, qui revérifie la matrice et les invariants de
       // `scope` (craving ⇒ next_plan) — et refuse ce que ce module aurait
       // laissé passer.
+      // ⛔ LE MOMENT PASSE PAR LE SOCLE, ET UN JETON HORS LISTE FAIT TOMBER
+      // L'ITEM. On ne replie pas sur `null`: « je n'ai pas su lire le moment »
+      // deviendrait « la règle vaut toute la journée », c'est-à-dire une
+      // règle PLUS LARGE que la phrase de la personne. C'est `parseRetainedItem`
+      // qui refuse, pas ce module: une seconde lecture divergerait.
       const item = parseRetainedItem({
         kind,
         scope,
         subject,
         text,
+        occasion: record.occasion ?? null,
+        // ⛔ LA FORCE PASSE PAR LE SOCLE, COMME LE MOMENT, ET SON REPLI VA DANS
+        // L'AUTRE SENS: une clé absente vaut `never`. C'est délibéré — un
+        // modèle qui oublie la clé doit produire la règle FORTE, celle qui
+        // protège. L'erreur coûte alors un plat évité de trop; l'inverse
+        // servirait à quelqu'un ce qu'il vient de refuser.
+        force: record.force ?? null,
         value: null,
         source: DRAFT_NOTE_PRODUCER,
         at,
@@ -949,6 +1235,15 @@ export function readDraftNoteClassification(args: {
         refusals.malformed += 1;
         continue;
       }
+      // ⛔ LE PLAFOND, APRÈS TOUTES LES AUTRES GARDES. Le poser avant ferait
+      // compter `over_cap` sur des lignes que le socle aurait refusées de
+      // toute façon — c'est-à-dire un chiffre qui accuse la consigne d'une
+      // faute qu'elle n'a pas commise.
+      if (retainedKept >= DRAFT_NOTE_MAX_RETAINED) {
+        refusals.overCap += 1;
+        continue;
+      }
+      retainedKept += 1;
       items.push(item);
     }
     return { items, refused: refusals.freeze() };
@@ -1042,12 +1337,149 @@ export function readDraftNoteClassification(args: {
     return { moves, refused: refusals.freeze() };
   };
 
+  // ── ⑥ LA TAILLE D'UN MOMENT — le moment et le sens, jamais un nombre ──
+  //
+  // ⛔ CE LECTEUR NE CONSTRUIT PAS DE `RetainedItem`. La phrase coche la case
+  // « repas léger » de la fiche, pas une ligne de mémoire.
+  //
+  // ⚠️ ET LE FOYER EST ACCEPTÉ ICI, À L'INVERSE DE LA PART. Une table qui
+  // déjeune léger est une phrase ordinaire (« le midi on mange léger »), et
+  // l'appliquer à tout le monde ne retire de nourriture à personne: les parts
+  // sont RENORMALISÉES sur les moments déclarés — un repas léger DÉPLACE la
+  // journée, il ne la fait pas maigrir. C'est ce qui sépare ce tiroir du
+  // tiroir 4, où `member_id: null` retirerait vraiment une part à chacun.
+  const readSlots = (
+    rows: readonly unknown[],
+  ): { moves: SlotSizeMove[]; refused: DraftNoteRefusals } => {
+    const refusals = new Refusals();
+    const moves: SlotSizeMove[] = [];
+    const seen = new Set<string>();
+    for (const row of rows) {
+      const record = asRecord(row);
+      if (!record) {
+        refusals.malformed += 1;
+        continue;
+      }
+      const slot = String(record.slot ?? "").trim().toLowerCase();
+      // ⛔ LA LISTE DES MOMENTS QUI PORTENT LA MARQUE, PAS LES SIX. Un moment
+      // hors liste n'est pas un demi-moment: on ne devine pas « le matin », et
+      // on ne garde pas un « goûter léger » que l'écrivain jettera en silence.
+      if (!(LIGHT_BEARING_SLOTS as readonly string[]).includes(slot)) {
+        refusals.badWhen += 1;
+        continue;
+      }
+      // ⛔ BOOLÉEN STRICT. `"true"`, `1`, `"oui"` sont refusés — la même
+      // règle que `parseRhythmSetValue`, et pour la même raison: un repas
+      // rendu léger par une chaîne de caractères est une part retirée à
+      // quelqu'un par une coërcition.
+      if (typeof record.light !== "boolean") {
+        refusals.malformed += 1;
+        continue;
+      }
+      const subject = subjectOf(record);
+      if (!subject) {
+        refusals.unknownMember += 1;
+        continue;
+      }
+      const memberId = subject === HOUSEHOLD_SUBJECT
+        ? null
+        : String(subject).slice("member:".length);
+      // ⚠️ UNE BOUCHE, UN MOMENT, UN MOUVEMENT. Deux entrées sur la même case
+      // voudraient dire deux verdicts contraires tirés d'une seule phrase.
+      const key = `${memberId ?? "household"}|${slot}`;
+      if (seen.has(key)) {
+        refusals.malformed += 1;
+        continue;
+      }
+      seen.add(key);
+      moves.push({ slot: slot as RhythmOccasion, light: record.light, memberId });
+    }
+    return { moves, refused: refusals.freeze() };
+  };
+
+  // ── ⑪ LES À-CÔTÉS — le type, le moment, oui ou non; jamais un aliment ─
+  //
+  // ⛔ CE LECTEUR NE CONSTRUIT PAS DE `RetainedItem`: la phrase déplace le
+  // réglage de la fiche, pas une ligne de mémoire.
+  //
+  // ⚠️ LE FOYER EST ACCEPTÉ, comme au tiroir ⑥: « chez nous pas de dessert le
+  // soir » est une phrase ordinaire, et retirer un dessert à chacun ne retire
+  // pas d'énergie — le plat reprend ce que l'à-côté ne porte plus.
+  const readSideCourses = (
+    rows: readonly unknown[],
+  ): { moves: SideCourseMove[]; refused: DraftNoteRefusals } => {
+    const refusals = new Refusals();
+    const moves: SideCourseMove[] = [];
+    const taken = new Set<string>();
+    for (const row of rows) {
+      const record = asRecord(row);
+      if (!record) {
+        refusals.malformed += 1;
+        continue;
+      }
+      const kind = String(record.kind ?? "").trim().toLowerCase();
+      // ⛔ LA LISTE FERMÉE DU SOCLE. « soupe », « salade », « yaourt » ne sont
+      // pas des types: un aliment n'a rien à faire dans ce tiroir.
+      if (!(SIDE_COURSE_KINDS as readonly string[]).includes(kind)) {
+        refusals.unknownKind += 1;
+        continue;
+      }
+      // ⛔ `null` — ET SEULEMENT `null` — VEUT DIRE « les deux repas ». Une
+      // clé OUBLIÉE (`undefined`) n'est pas cette réponse: elle entre dans la
+      // branche ci-dessous et tombe en `badWhen`, sinon « pas de dessert le
+      // soir » lu sans son moment retirerait aussi celui du midi. D'où
+      // `!== null` STRICT, jamais `!= null`.
+      let slot: SideCourseSlot | null = null;
+      if (record.slot !== null) {
+        const value = String(record.slot ?? "").trim().toLowerCase();
+        // ⛔ DEUX MOMENTS, PAS SIX: la contrainte SQL refuserait le reste, et
+        // l'écriture compterait un `failed` que personne ne saurait lire.
+        if (!(SIDE_COURSE_SLOTS as readonly string[]).includes(value)) {
+          refusals.badWhen += 1;
+          continue;
+        }
+        slot = value as SideCourseSlot;
+      }
+      // ⛔ BOOLÉEN STRICT — `"false"`, `0`, `"non"` sont refusés, comme au
+      // tiroir ⑥ et pour la même raison.
+      if (typeof record.takes !== "boolean") {
+        refusals.malformed += 1;
+        continue;
+      }
+      const subject = subjectOf(record);
+      if (!subject) {
+        refusals.unknownMember += 1;
+        continue;
+      }
+      const memberId = subject === HOUSEHOLD_SUBJECT
+        ? null
+        : String(subject).slice("member:".length);
+      // ⚠️ UNE BOUCHE, UN MOMENT, UN TYPE, UN MOUVEMENT. `null` couvre les
+      // deux moments: « pas de dessert » puis « du dessert le midi » tirés
+      // d'une seule phrase sont deux verdicts sur la même case, et le second
+      // tombe.
+      const keys = (slot === null ? SIDE_COURSE_SLOTS : [slot])
+        .map((s) => `${memberId ?? "household"}|${s}|${kind}`);
+      if (keys.some((k) => taken.has(k))) {
+        refusals.malformed += 1;
+        continue;
+      }
+      for (const k of keys) taken.add(k);
+      moves.push({ kind: kind as SideCourseKind, slot, takes: record.takes, memberId });
+    }
+    return { moves, refused: refusals.freeze() };
+  };
+
   const prefRows = lists.preferences;
   const pref = readItems(prefRows, DRAFT_NOTE_PREFERENCE_KINDS, "durable");
   const portionRows = lists.portions;
   const portionRead = readPortions(portionRows);
   const settingRows = lists.settings;
   const settingRead = readSettings(settingRows);
+  const slotRows = lists.slots;
+  const slotRead = readSlots(slotRows);
+  const sideRows = lists.side_courses;
+  const sideRead = readSideCourses(sideRows);
   // ── ⑧ LA CASE — par le lecteur du générateur, ses refus rangés ici ─────
   // `badDay`/`badSlot` sont un `when` illisible (même famille que la note);
   // doublon et plafond sont `malformed`: deux entrées pour une case veulent
@@ -1297,9 +1729,37 @@ export function readDraftNoteClassification(args: {
       continue;
     }
 
+    // ⟳ 2026-09-23 — le moment et la force, par LA MÊME porte que le tiroir
+    // visé (`parseRetainedItem`), avec un sujet de passage: ce qu'on vérifie
+    // ici est le jeton, pas la bouche — elle est justement ce qu'on demande.
+    let occasion: RhythmOccasion | null = null;
+    let force: ExclusionForce | null = null;
+    if (drawer !== "notes" && kind !== null) {
+      const probe = parseRetainedItem({
+        kind,
+        scope: drawer === "next_plan" ? "next_plan" : "durable",
+        subject: HOUSEHOLD_SUBJECT,
+        text,
+        occasion: entry.occasion ?? null,
+        force: entry.force ?? null,
+        value: null,
+        source: DRAFT_NOTE_PRODUCER,
+        at,
+        item: "",
+        confidence: null,
+        quote: noteText,
+      });
+      if (!probe) {
+        clarifyRefusals.malformed += 1;
+        continue;
+      }
+      occasion = probe.occasion ?? null;
+      force = probe.force ?? null;
+    }
+
     if (asked === "who") clarifyWho += 1;
     else clarifyWhat += 1;
-    clarifyEntries.push({ about: asked, gate: drawer, kind, text, subject, when, options });
+    clarifyEntries.push({ about: asked, gate: drawer, kind, text, subject, when, occasion, force, options });
   }
 
   const preferences = {
@@ -1332,6 +1792,18 @@ export function readDraftNoteClassification(args: {
     refused: settingRead.refused,
     moves: settingRead.moves,
   };
+  const slots = {
+    proposed: slotRows.length,
+    kept: slotRead.moves.length,
+    refused: slotRead.refused,
+    moves: slotRead.moves,
+  };
+  const sideCourses = {
+    proposed: sideRows.length,
+    kept: sideRead.moves.length,
+    refused: sideRead.refused,
+    moves: sideRead.moves,
+  };
   const cells = {
     proposed: cellRows.length,
     kept: cellRead.cells.length,
@@ -1354,6 +1826,8 @@ export function readDraftNoteClassification(args: {
     cells.refused,
     portions.refused,
     settings.refused,
+    slots.refused,
+    sideCourses.refused,
     clarify.refused,
   ]);
 
@@ -1362,15 +1836,18 @@ export function readDraftNoteClassification(args: {
     refusal: null,
     classification: {
       proposed: preferences.proposed + notes.proposed + nextPlan.proposed +
-        portions.proposed + settings.proposed + cells.proposed + clarify.proposed,
+        portions.proposed + settings.proposed + slots.proposed +
+        sideCourses.proposed + cells.proposed + clarify.proposed,
       kept: preferences.kept + notes.kept + nextPlan.kept + portions.kept +
-        settings.kept + cells.kept + clarify.kept,
+        settings.kept + slots.kept + sideCourses.kept + cells.kept + clarify.kept,
       refused,
       preferences,
       notes,
       nextPlan,
       portions,
       settings,
+      slots,
+      sideCourses,
       cells,
       skipped: {
         total: degree + setting + mealStory + other + unknownSkip,
@@ -1381,6 +1858,9 @@ export function readDraftNoteClassification(args: {
         unknown: unknownSkip,
       },
       clarify,
+      // ⟳ 2026-09-23 — ⑩, relue à part: ses refus ne sont pas ceux des
+      // souvenirs (`noEvidence` n'existe qu'ici), donc hors de `refused`.
+      safety: readDraftNoteSafety({ rows: lists.safety, roster, note: noteText, textMax }),
       listsMissing: lists.missing,
     },
   };
@@ -1402,9 +1882,12 @@ function listsOf(raw: unknown): {
   next_plan: unknown[];
   portions: unknown[];
   settings: unknown[];
+  slots: unknown[];
   cells: unknown[];
   skipped: unknown[];
   clarify: unknown[];
+  safety: unknown[];
+  side_courses: unknown[];
   missing: string[];
 } | null {
   let value = raw;
@@ -1423,9 +1906,14 @@ function listsOf(raw: unknown): {
     "next_plan",
     "portions",
     "settings",
+    "slots",
     "cells",
     "skipped",
     "clarify",
+    "safety",
+    // ⟳ 2026-09-23 — ⑪. Même raison que `clarify`: une clé absente est un
+    // prompt lu de travers, et se compte à part d'un vide.
+    "side_courses",
   ] as const;
   if (!keys.some((k) => k in record)) return null;
   const missing: string[] = [];
@@ -1443,9 +1931,12 @@ function listsOf(raw: unknown): {
     next_plan: list("next_plan"),
     portions: list("portions"),
     settings: list("settings"),
+    slots: list("slots"),
     cells: list("cells"),
     skipped: list("skipped"),
     clarify: list("clarify"),
+    safety: list("safety"),
+    side_courses: list("side_courses"),
     missing,
   };
 }
@@ -1471,6 +1962,14 @@ export function draftNoteClassifyTrace(
     [`${name}_refused_unknown_member`]: g.refused.unknownMember,
     [`${name}_refused_bad_text`]: g.refused.badText,
     [`${name}_refused_malformed`]: g.refused.malformed,
+    // ⟳ 2026-09-22 · LOT B — CE QUE LE PLAFOND A COUPÉ, PAR PORTE.
+    //
+    // ⚠️ IL NE DIT PAS « la note était trop longue »: il dit que la phrase a
+    // été lue comme une LISTE D'INGRÉDIENTS alors que la consigne demande un
+    // plat. `over_cap > 0` de façon répétée est un prompt à durcir, pas un
+    // plafond à lever — lever le plafond rendrait le défaut invisible au lieu
+    // de le corriger.
+    [`${name}_refused_over_cap`]: g.refused.overCap,
   });
   return {
     proposed: classification.proposed,
@@ -1506,6 +2005,14 @@ export function draftNoteClassifyTrace(
     settings_time: classification.settings.moves.filter((m) => m.about === "time").length,
     settings_difficulty: classification.settings.moves.filter((m) => m.about === "difficulty").length,
     settings_variety: classification.settings.moves.filter((m) => m.about === "variety").length,
+    // ⑪ — LES À-CÔTÉS. Le sens se lit à part: `side_courses_skips` compte
+    // les « ne prend pas », `side_courses_takes` les « veut »; un tiroir qui
+    // ne rendrait que l'un des deux serait un prompt qui ne lit qu'une moitié.
+    ...gate("side_courses", classification.sideCourses),
+    side_courses_refused_unknown_kind: classification.sideCourses.refused.unknownKind,
+    side_courses_refused_bad_when: classification.sideCourses.refused.badWhen,
+    side_courses_takes: classification.sideCourses.moves.filter((m) => m.takes).length,
+    side_courses_skips: classification.sideCourses.moves.filter((m) => !m.takes).length,
     // ⑤ — la porte qui ne range rien. `clarify_kept > 0` veut dire qu'une
     // question part; `clarify_refused_bad_options > 0` veut dire que le modèle
     // a proposé des candidats qui n'existent pas, et que la personne ne sera
@@ -1533,6 +2040,18 @@ export function draftNoteClassifyTrace(
     skipped_meal_story: classification.skipped.mealStory,
     skipped_other: classification.skipped.other,
     skipped_unknown: classification.skipped.unknown,
+    // ⟳ 2026-09-23 — ⑩. `safety_refused_no_evidence > 0` = le modèle a vu
+    // une allergie ou un régime SANS le mot dans la note: la garde a tenu.
+    safety_proposed: classification.safety.proposed,
+    safety_kept: classification.safety.kept,
+    safety_allergy: classification.safety.declarations.filter((d) => d.kind === "allergy").length,
+    safety_intolerance: classification.safety.declarations.filter((d) => d.kind === "intolerance").length,
+    safety_diet: classification.safety.declarations.filter((d) => d.kind === "diet").length,
+    safety_refused_no_evidence: classification.safety.refused.noEvidence,
+    safety_refused_unknown_member: classification.safety.refused.unknownMember,
+    safety_refused_bad_text: classification.safety.refused.badText,
+    safety_refused_bad_diet: classification.safety.refused.badDiet,
+    safety_refused_unknown_kind: classification.safety.refused.unknownKind,
     lists_missing: classification.listsMissing,
   };
 }

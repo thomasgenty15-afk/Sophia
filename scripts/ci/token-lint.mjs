@@ -367,6 +367,16 @@ for (const file of files) {
   // Test files may use French day literals as parser fixtures (asserting
   // normalization or the R7 throw on "dimanche") — that is the guard, not the bug.
   if (/(_test|\.test)\.(ts|tsx|js|mjs)$/.test(r)) continue;
+  // ⟳ 2026-09-21 — LES CORPUS DE PHRASES TAPÉES PAR DES GENS, même raison
+  // que la ligne du dessus et même précédent que `labels.fr.ts`: leur raison
+  // d'être est de porter le français TEL QU'IL EST ÉCRIT, fautes comprises.
+  // « jeudi soir on rentre tard » est la DONNÉE d'entrée du classifieur, pas un
+  // jeton écrit en base — et le cas qu'il tient (un jour nommé dans une phrase)
+  // disparaîtrait si on le réécrivait en `thu`.
+  //
+  // ⛔ UNE LISTE NOMMÉE, PAS UN MOTIF LARGE. `*_corpus.ts` laisserait passer
+  // n'importe quel futur fichier de production qui prendrait ce suffixe.
+  if (/^supabase\/functions\/_shared\/keel\/draft_note_corpus\.ts$/.test(r)) continue;
   const raw = fs.readFileSync(file, "utf8");
   let scanned = raw; // comment-stripped, newline-preserving
   let exempt = [];

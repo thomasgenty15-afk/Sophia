@@ -1,6 +1,6 @@
 /// <reference path="../tsserver-shims.d.ts" />
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { loadDailyEnergyTarget, readViewerAddons, readViewerMealsOut, readViewerAway, type PlanRow } from "../_shared/keel/meal_energy_shared.ts";
+import { loadDailyEnergyTarget, readViewerMealsOut, readViewerAway, type PlanRow } from "../_shared/keel/meal_energy_shared.ts";
 import { createClient, type SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3";
 
 import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
@@ -54,10 +54,24 @@ import { indexForReading } from "../_shared/keel/composition_fill_io.ts";
 import {
   readDishes,
   readEnergyBoxDishes,
+  readEnergySideCourses,
   readPreparations,
 } from "../_shared/keel/plan_energy_read.ts";
+// ⟳ 2026-09-23 — LES À-CÔTÉS (entrée, fromage, dessert, pain), chantier
+// « assiettes normales », flux F. Ils vivent HORS des boîtes
+// (`dishes[i].side_courses[]`): sans ces lecteurs, la journée d'une personne
+// perdait jusqu'à 35 % de chaque déjeuner et de chaque dîner. La mesure,
+// l'attache sous la boîte et le total du jour sont dans le module partagé —
+// exécutés par des tests, ce que cette fonction edge n'est pas.
 import {
-  type MemberAddon,
+  type BoxWithSides,
+  measureSideCourses,
+  type SideEmitCounts,
+  sideCompositionLine,
+  sidesOnEmittedBoxes,
+  viewerDayEnergy,
+} from "../_shared/keel/served_final.ts";
+import {
   PLAN_ENERGY_BASIS,
   planEnergy,
 } from "../_shared/keel/plan_energy.ts";
@@ -155,37 +169,23 @@ const FN_NAME = "meal-energy-v1";
 type ResponseReason = EnergyGateReason | "unavailable" | "no_plan";
 
 /**
- * POURQUOI UN PLAN ENTIER PEUT N'AVOIR AUCUN CHIFFRE, alors que les portes sont
- * ouvertes.
+ * ⛔ LOT A1 (2026-09-22) — `household_portions_not_numeric` EST PARTIE D'ICI.
  *
- * ⚠️ `household_portions_not_numeric` EST UNE ABSTENTION, PAS UNE GARDE, et la
- * distinction compte: elle ne parle pas de l'élève, elle parle de la DONNÉE.
+ * Cette abstention avait UNE seule condition de déclenchement: `readViewerAddons`
+ * rendait `null` (plan composé avant que la trace des `member_deltas` existe, ou
+ * lecteur dont on n'a pas résolu le `member_id`). Elle existait parce que le
+ * total du jour VALAIT le tronc plus l'add-on du lecteur: sans l'add-on, le
+ * nombre aurait été un plancher.
  *
- * ── CE QU'ELLE COUVRAIT, ET CE QU'ELLE COUVRE DEPUIS ────────────────────────
- * `member_portions[].portion_note` ne porte qu'une PHRASE, et
- * `FORBIDDEN_PORTION_TERMS` y bannit « kcal ». Elle ne pourra JAMAIS porter la
- * part. La divergence numérique du foyer vit ailleurs: dans les `member_deltas`
- * de FF-043 — un aliment et des grammes, par bouche, qui comblent l'écart entre
- * le tronc (dimensionné sur le MIN de toutes les bouches) et le besoin de
- * chacun.
+ * Le total du jour ne compte plus d'add-on — pour personne. La condition n'a
+ * donc plus de cause, et la garder aurait laissé UN sous-ensemble de foyers sans
+ * chiffre pour un motif qui ne s'applique plus à eux.
  *
- * Ces deltas ne vivaient que dans la RÉPONSE HTTP de la composition. Ils sont
- * désormais gelés dans `generated_from.household.member_deltas`, et cette
- * fonction lit CEUX DU LECTEUR pour rendre son assiette à lui.
- *
- * L'abstention ne couvre donc plus que ce qu'on ne SAIT pas:
- *   · un plan composé AVANT que la trace existe;
- *   · un lecteur dont on n'a pas su résoudre le `member_id`.
- *
- * Dans les deux cas, le tronc seul serait un PLANCHER — vrai, et faux vers le
- * bas, sur exactement la question qui a motivé ce chantier (« est-ce que je
- * mange assez »). C'est la seule direction d'erreur que ce produit refuse.
- *
- * Un foyer d'UNE bouche n'a jamais rien qui diverge: le tronc EST l'assiette.
- * C'est l'entrée du produit (« entrée à 1 »), et elle garde son chiffre sans
- * dépendre d'aucune trace.
+ * ⚠️ CE QUE ÇA COÛTE, ÉCRIT ICI: le total du jour d'un foyer est le TRONC, donc
+ * la casserole divisée par le nombre de bouches. Il ne dit pas la part de chacun.
+ * Les `boxes[]` la disent, par bouche et par grammes nommés. Les deux nombres ne
+ * sont PAS égaux, et ce lot ne prétend pas les réconcilier — c'est le lot C.
  */
-const HOUSEHOLD_ABSTENTION = "household_portions_not_numeric";
 
 function requireEnv(name: string): string {
   const v = Deno.env.get(name);
@@ -385,8 +385,8 @@ async function boxEnergyByPlan(args: {
   coachCounting: CountingStance;
   viewerMemberId: string | null;
   requestId: string;
-}): Promise<Map<string, { boxes: EmittedBox[]; gate: BoxGateCounts }>> {
-  const out = new Map<string, { boxes: EmittedBox[]; gate: BoxGateCounts }>();
+}): Promise<Map<string, { boxes: BoxWithSides<EmittedBox>[]; gate: BoxGateCounts }>> {
+  const out = new Map<string, { boxes: BoxWithSides<EmittedBox>[]; gate: BoxGateCounts }>();
   const floors = new Map<string, boolean>();
   const switches = new Map<string, boolean | null>();
 
@@ -481,11 +481,13 @@ async function boxEnergyByPlan(args: {
         await readSwitch(m.userId);
       }
     }
+    const dishes = readEnergyBoxDishes(row.dishes);
+    const preparations = readPreparations(row.preparations);
     const decided = decideBoxEnergy({
       perBox: boxEnergies({
         index: args.index,
-        dishes: readEnergyBoxDishes(row.dishes),
-        preparations: readPreparations(row.preparations),
+        dishes,
+        preparations,
       }),
       mouths,
       floors,
@@ -506,7 +508,38 @@ async function boxEnergyByPlan(args: {
       plan_id: row.id,
       ...decided.gate,
     }));
-    out.set(row.id, decided);
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-23 — LES À-CÔTÉS SORTENT SOUS LEUR BOÎTE, ET SOUS SA PORTE
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ AUCUNE SECONDE PORTE. Un à-côté ne sort que sous une boîte ÉMISE de sa
+    // personne, sur son plat: l'émission de la boîte (plancher TCA, âge,
+    // interrupteur, appartenance du lecteur) EST son droit au chiffre. Voir
+    // `sidesOnEmittedBoxes`.
+    //
+    // ⚠️ UN PLAN SANS `side_courses` REND `sides: []` SUR CHAQUE BOÎTE, ET LES
+    // MÊMES `kcal` QU'AVANT: le `kcal` d'une boîte reste le plat seul.
+    const sides = readEnergySideCourses(row.dishes);
+    const attached = sidesOnEmittedBoxes({
+      boxes: decided.boxes,
+      dishes,
+      sides,
+      measures: sides.length === 0 ? [] : measureSideCourses({
+        index: args.index,
+        preparations,
+        sides,
+      }),
+    });
+    // ⛔ LE COMPTEUR SE JOURNALISE, MÊME À ZÉRO: « le plan n'a pas d'à-côté » et
+    // « la porte les jette tous » rendraient sinon la même réponse.
+    const sidesGate: SideEmitCounts = attached.counts;
+    console.log(JSON.stringify({
+      tag: "keel.meal_energy.side_gate",
+      request_id: args.requestId,
+      plan_id: row.id,
+      ...sidesGate,
+    }));
+    out.set(row.id, { boxes: attached.boxes, gate: decided.gate });
   }
   return out;
 }
@@ -808,6 +841,13 @@ Deno.serve(async (req) => {
       inputs: rows.flatMap((row) => [
         ...readDishes(row.dishes).flatMap((d) => d.ingredients),
         ...readPreparations(row.preparations).flatMap((p) => p.ingredients),
+        // ⟳ 2026-09-23 — LES À-CÔTÉS D'ALIMENT, PAR LA MÊME LIGNE QUE LEUR
+        // MESURE (`sideCompositionLine`). Une soupe passe par sa casserole,
+        // déjà lue juste au-dessus. Un plan sans à-côtés n'ajoute rien: la
+        // lecture est celle d'avant, à l'identique.
+        ...readEnergySideCourses(row.dishes)
+          .filter((s) => s.preparationId === null)
+          .map(sideCompositionLine),
       ]),
     });
     const index = reading.index;
@@ -921,34 +961,63 @@ Deno.serve(async (req) => {
       }
     }
 
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ LOT A1-bis (2026-09-22) — LE TOTAL D'UNE JOURNÉE EST LA SOMME DES
+    // BOÎTES DE SON LECTEUR, ET RIEN D'AUTRE
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ CE QUE LE LOT A1 A DÉCOUVERT EN RETIRANT L'ADD-ON. Cette réponse porte
+    // DEUX calculs étrangers l'un à l'autre, sur le même écran:
+    //
+    //   · `days[].kcal` ← `planEnergy`: le TRONC. Les plats du jour pliés et
+    //     divisés par `servings` — une part standard, celle de personne.
+    //   · `boxes[].kcal` ← `boxEnergies`: les GRAMMES NOMMÉS de chaque bouche,
+    //     ceux que `BoxTable` affiche ligne à ligne sous ce même total.
+    //
+    // Mesuré le 2026-09-22 sur le brouillon `6e4e5548`, lecteur Thomas: 2 419
+    // kcal au-dessus de cinq boîtes qui font 3 266. L'add-on (1 373 kcal/jour
+    // de riz jamais servi) ne raccordait pas les deux — il était dimensionné
+    // sur un écart d'ENVELOPPES, pas sur ce que les boîtes livrent, et il
+    // dépassait l'écart réel (847) de 526. Le retirer rend le tronc nu, donc
+    // un total 847 kcal SOUS les lignes qu'il chapeaute. Un lecteur qui
+    // additionne ce qu'il a sous les yeux trouve autre chose que le titre.
+    //
+    // ⚠️ LA SUBSTITUTION EST GARDÉE, et elle ne s'applique QUE quand le lecteur
+    // a des boîtes ce jour-là. Une bouche sans direction n'en reçoit aucune
+    // (`refused.no_direction`) — pour elle, rien à substituer, et le tronc
+    // reste tel quel plutôt que de devenir un zéro qui se lirait « cette
+    // journée ne te nourrit pas ».
+    //
+    // ⚠️ `meals_out` ET `subject` NE BOUGENT PAS: ce sont des comptes de repas,
+    // pas des énergies. Ils répondent à « de quoi ce nombre parle », et la
+    // réponse est la même que le nombre vienne du tronc ou des boîtes.
+    /** `planId` → (`day` → { kcal, boxes, sides, complete }) pour le SEUL lecteur. */
+    const viewerDayBoxKcal = new Map<
+      string,
+      Map<string, { kcal: number; boxes: number; sides: number; complete: boolean }>
+    >();
+    for (const [planId, decided] of boxesByPlan) {
+      // ⛔ LE LECTEUR, ET PERSONNE D'AUTRE. `decideBoxEnergy` ne laisse déjà
+      // sortir que des boîtes à UN nom, mais ce sont celles de TOUTES les
+      // bouches du foyer: sommer sans filtrer donnerait la journée de la
+      // table, pas celle de la personne qui regarde.
+      // ⟳ 2026-09-23 — LA SOMME VIT DANS `viewerDayEnergy` (`served_final.ts`),
+      // et elle ajoute les à-côtés de SES boîtes. Sans à-côté, elle rend
+      // exactement la somme des boîtes d'avant ce lot.
+      const byDay = viewerDayEnergy({ boxes: decided.boxes, viewerMemberId });
+      if (byDay.size > 0) viewerDayBoxKcal.set(planId, byDay);
+    }
+    /** ⛔ LE COMPTEUR DU BRANCHEMENT: un lot désarmé ressemble à un lot qui marche. */
+    const dayEnergyOrigin = { from_boxes: 0, from_trunk: 0, boxes_summed: 0, sides_summed: 0 };
+
     const plans = rows.map((row) => {
       const servings = Math.min(12, Math.max(1, Math.round(Number(row.servings) || 1)));
-
-      // ── LES ADD-ONS DU LECTEUR, ET DE LUI SEUL ──────────────────────────
-      const addons = readViewerAddons(row, viewerMemberId);
-      if (row.plan_kind === "household" && servings > 1 && addons === null) {
-        // La trace des deltas manque: plan composé AVANT que FF-059 la fige, ou
-        // bouche introuvable. Le tronc seul serait un PLANCHER — vrai, et faux
-        // vers le bas, sur exactement la question (« est-ce que je mange
-        // assez ») qui a motivé ce chantier. On s'abstient, et on le nomme.
-        return {
-          plan_id: row.id,
-          computable: false,
-          abstention: HOUSEHOLD_ABSTENTION,
-          // ⟳ LOT F — INDÉPENDANT DE L'ABSTENTION. Elle porte sur l'assiette du
-          // LECTEUR (ses add-ons manquent); une boîte à un nom a son kcal par
-          // ses propres grammes.
-          boxes: boxesByPlan.get(row.id)?.boxes ?? [],
-          boxes_gate: boxesByPlan.get(row.id)?.gate ?? boxGateZero(),
-        };
-      }
 
       const energy = planEnergy({
         index,
         dishes: readDishes(row.dishes),
         preparations: readPreparations(row.preparations),
         servings,
-        addons: addons ?? [],
         // L8 ③ — REQUIS, jamais optionnel. Une table vide est une valeur PLEINE
         // (« cette personne mange tous ses repas ici »), pas une ignorance.
         //
@@ -982,24 +1051,45 @@ Deno.serve(async (req) => {
           complete: d.complete,
           gaps: d.gaps,
         })),
-        days: energy.days.map((d) => ({
+        days: energy.days.map((d) => {
+          // ⟳ LOT A1-bis — LA SOMME DES BOÎTES DU LECTEUR PREND LA PLACE DU
+          // TRONC quand elle existe. Voir l'en-tête du bloc plus haut.
+          const own = d.day === null
+            ? undefined
+            : viewerDayBoxKcal.get(row.id)?.get(d.day);
+          if (own === undefined) dayEnergyOrigin.from_trunk += 1;
+          else {
+            dayEnergyOrigin.from_boxes += 1;
+            dayEnergyOrigin.boxes_summed += own.boxes;
+            dayEnergyOrigin.sides_summed += own.sides;
+          }
+          return {
           day: d.day,
-          kcal: d.kcal,
+          kcal: own === undefined ? d.kcal : own.kcal,
           basis: d.basis,
-          complete: d.complete,
-          dishes_counted: d.dishesCounted,
-          dishes_total: d.dishesTotal,
+          // ⚠️ UNE SOMME DE BOÎTES EST COMPLÈTE PAR CONSTRUCTION: chaque boîte
+          // émise porte un kcal lisible (`decideBoxEnergy` compte les autres en
+          // `unreadable` et ne les laisse pas sortir). Le dénominateur devient
+          // le nombre de SES boîtes, pas le nombre de plats du plan — c'est le
+          // seul dénominateur honnête d'un total qui ne parle que d'elle.
+          // ⟳ 2026-09-23 — SAUF UN À-CÔTÉ ILLISIBLE sous une de ses boîtes: il
+          // est servi, sa part manque au total, et `complete` le dit
+          // (`viewerDayEnergy`). Sans à-côté, `own.complete` vaut `true`.
+          complete: own === undefined ? d.complete : own.complete,
+          dishes_counted: own === undefined ? d.dishesCounted : own.boxes,
+          dishes_total: own === undefined ? d.dishesTotal : own.boxes,
           // L8 ③ — DE QUOI CE NOMBRE PARLE. `the_day` = la journée entière;
           // `what_the_plan_made` = ce que le plan a composé, et l'écran doit le
           // DIRE (« sur les 2 repas que j'ai composés »). Les deux champs
           // partent ensemble: un sujet sans son compte ne se rend pas.
           meals_out: d.mealsOut,
           subject: d.subject,
-          // ⚠️ CE SONT LES ADD-ONS DU LECTEUR. Ceux des autres bouches ont
-          // servi à composer la casserole et ne sortent d'ici sous aucune
-          // forme, pas même agrégée.
-          addon_kcal: d.addonKcal,
-        })),
+          // ⛔ LOT A1 (2026-09-22) — `addon_kcal` EST PARTI DE LA RÉPONSE. Il
+          // portait les `member_deltas` de FF-043, et ces grammes étaient AUSSI
+          // dans `kcal`: un aliment sans boîte, sans ligne de courses et sans
+          // carte, compté dans le total du jour.
+          };
+        }),
         // ══ ① · LE CONSEIL DU MIDI ══════════════════════════════════════
         //
         // « Au déjeuner, vise autour de 700. » Une CONSIGNE, jamais un solde:
@@ -1019,6 +1109,16 @@ Deno.serve(async (req) => {
         ),
       };
     });
+
+    // ⟳ LOT A1-bis — LE COMPTEUR DU BRANCHEMENT, LU. Un champ déclaré a besoin
+    // d'un compteur, et un compteur a besoin d'un lecteur: sans cette ligne, la
+    // substitution pourrait ne jamais se produire sans que rien ne le dise.
+    console.log(JSON.stringify({
+      tag: "keel.meal_energy.day_origin",
+      request_id: requestId,
+      viewer_is_member: viewerMemberId !== null,
+      ...dayEnergyOrigin,
+    }));
 
     return jsonResponse(req, {
       show: true,

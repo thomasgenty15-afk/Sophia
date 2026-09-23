@@ -177,7 +177,7 @@ Deno.test("③ la journée porte la SOMME des bornes de ses cases — et `null` 
     memberId: "m1",
     date: "2026-09-14",
     coveredBudgetKcal: 2400,
-    protein: { dayFloorG: 62, coveredFloorG: 62, perMealFloorG: null, fixedProteinG: null, reason: "applied_full_day" as const },
+    protein: { dayFloorG: 62, coveredFloorG: 62, perMealFloorG: null, fixedProteinG: null, dayCeilingG: null, coveredCeilingG: null, reason: "applied_full_day" as const },
   }];
   const somme = dayNutritionTable({
     cells: [
@@ -237,7 +237,7 @@ function journee(proteinG: number, proteinRoundingG: number | null) {
     deltaPct: 0,
     proteinG,
     proteinRoundingG,
-    protein: { coveredFloorG: 62, reason: "applied_full_day" },
+    protein: { coveredFloorG: 62, coveredCeilingG: null, reason: "applied_full_day" },
     state: "conforme" as const,
   };
 }

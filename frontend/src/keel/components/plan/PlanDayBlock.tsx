@@ -14,7 +14,6 @@ import { DayEnergyLine } from "./EnergyReadout";
 import { Badge } from "../ui/Badge";
 import { sessionForDish } from "../../lib/dishSession";
 import { groupByAisle } from "../../lib/mealBuilderModel";
-import { type DayMoment } from "../../lib/planDayView";
 import { groupDayBySlot } from "../../lib/planDaySlots";
 import { boxLinesForDish, boxLinesForSession } from "../../lib/mealBoxes";
 import { thawLineFor } from "../../lib/thawLine";
@@ -23,7 +22,7 @@ import { thawLineFor } from "../../lib/thawLine";
 // donnée structurée (`shopping_list[]` ne porte qu'une prose) et garde donc
 // son texte — c'est le lot E qui doit lui donner une identité et une unité.
 import { ingredientQuantityText } from "../../lib/ingredientQuantity";
-import { BoxTable } from "./BoxTable";
+import FoldSection, { BoxingFold } from "./FoldSection";
 import DayPersonSplit from "./DayPersonSplit";
 import DishCard from "../DishCard";
 import { Card } from "../ui/Card";
@@ -39,7 +38,7 @@ import { type DishTick } from "../../lib/useMealTicks";
 // jour-là, puis les plats. Rien de neuf n'est calculé: la session est déjà
 // dans `cookingSessions` (elle n'était lue que par `sessionForDish`), la vague
 // vient de `planGroceryWaves` (module serveur réexporté, résolue par le
-// parent), le motif d'une case vide vient de la grille déjà construite.
+// parent). Un moment sans plat ne s'affiche pas (retiré le 2026-09-23).
 // « Tes sessions de cuisine » et la liste de courses complète RESTENT — ce
 // bloc est leur déclinaison au jour, pas leur remplaçant.
 //
@@ -90,13 +89,6 @@ export interface PlanDayBlockProps {
   /** La liste entière — la vague la désigne par INDEX, jamais par terme. */
   shoppingList: readonly ShoppingItem[];
   /**
-   * LES MOMENTS DU JOUR, lus dans la grille (`dayMoments`). `[]` = on ne dit
-   * rien — c'est le choix du parent: en vue semaine, la grille au-dessus porte
-   * déjà ces silences, et les répéter sous sept jours ferait vingt lignes de
-   * bruit. En vue jour, ils sont le détail qu'on est venu lire.
-   */
-  moments: readonly DayMoment[];
-  /**
    * ⟳ 2026-09-09 — LA PHRASE DE TIMING DU JOUR, ou `null`.
    *
    * « Courses et cuisson dès le matin, pour être prêt à midi. » Elle vivait
@@ -139,9 +131,6 @@ export default function PlanDayBlock(props: PlanDayBlockProps) {
   // et `session.day` sont tous deux des JETONS — aucune conversion, donc
   // aucune divergence possible.
   const sessions = props.cookingSessions.filter((s) => s.day === group.day);
-  // LES SILENCES DU JOUR — tout moment dont la case n'est pas un plat. Les
-  // plats, eux, sont déjà les cartes dessous: les redire ici les doublerait.
-  const silences = props.moments.filter((m) => m.cell.kind !== "dish");
   // LOT 3 — LES MOMENTS DE CE JOUR, ET QUI MANGE QUOI À CHACUN. Une seule
   // dérivation: les plats du groupe, tels que `groupByDay` les a rangés.
   const slotGroups = groupDayBySlot({
@@ -149,12 +138,23 @@ export default function PlanDayBlock(props: PlanDayBlockProps) {
     portions: props.portions,
   });
   const quiet = group.dishes.length === 0 && sessions.length === 0 &&
-    props.wave === null && silences.length === 0;
+    props.wave === null;
   return (
     <div>
+      {/* ⟳ 2026-09-23 — LE JOUR EST LE TITRE LE PLUS FORT DU BLOC. Il était
+          en `text-sm`, plus petit que le titre d'un plat (`text-base`), et le
+          moment juste dessous avait la même allure que « Pour Thomas »: on ne
+          voyait ni où commençait un jour ni où commençait un repas. Demandé:
+          « le jour doit être plus important que les moments ». Ordre voulu:
+          jour (serif, `text-sub`, filet dessous) > moment (`text-sm` capitales,
+          encre pleine) > personne (`text-label`, encre secondaire) > plat.
+          Le nom du jour est seul dans le `h3`; les repères et la somme restent
+          en sans, à côté, pour que la serif ne passe jamais sous 19 px. */}
       {group.day && (
-        <h3 className="mb-2 flex items-baseline gap-2 text-sm font-semibold text-ink">
-          {dishDayLabel(group.day)}
+        <div className="mb-4 flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-line pb-2">
+          <h3 className="font-display text-sub text-ink">
+            {dishDayLabel(group.day)}
+          </h3>
           {/* OÙ ON EN EST DANS LE PLAN. Sans repère, une semaine qui
               commence mercredi se lit comme une semaine en retard: on ne
               sait pas si le premier jour affiché est passé, courant ou à
@@ -180,7 +180,7 @@ export default function PlanDayBlock(props: PlanDayBlockProps) {
           <span className="ml-auto">
             <DayEnergyLine energy={props.dayEnergy?.(group.day) ?? null} />
           </span>
-        </h3>
+        </div>
       )}
       <div className="space-y-3">
         {/* ── LA PHRASE DE TIMING, AVANT LES DEUX GESTES QU'ELLE ANNONCE ────
@@ -254,7 +254,7 @@ export default function PlanDayBlock(props: PlanDayBlockProps) {
             dédié se rend comme avant — c'est le cas majoritaire, et il ne paie
             rien. */}
         {slotGroups.map((slotGroup) => (
-          <section key={`${group.day}-${slotGroup.slot ?? "no_slot"}`}>
+          <section key={`${group.day}-${slotGroup.slot ?? "no_slot"}`} className="pt-2">
             {/* ══════════════════════════════════════════════════════════════
                 LE MOMENT EST UN TITRE, PLUS UNE PASTILLE SUR LA CARTE.
                 ══════════════════════════════════════════════════════════════
@@ -274,7 +274,7 @@ export default function PlanDayBlock(props: PlanDayBlockProps) {
                 les faire disparaître d'un plan vivant coûterait plus cher qu'un
                 titre imparfait. */}
             {slotGroup.slot !== null && (
-              <h4 className="mb-2 text-label font-semibold uppercase tracking-wide text-ink-soft">
+              <h4 className="mb-2 text-sm font-semibold uppercase tracking-wide text-ink">
                 {dishSlotLabel(slotGroup.slot)}
               </h4>
             )}
@@ -340,54 +340,22 @@ export default function PlanDayBlock(props: PlanDayBlockProps) {
                   // Garder la pastille ferait dire « Déjeuner » deux fois à
                   // trois centimètres d'écart, sur chaque carte du plan.
                   slotBadge={false}
+                  // ⟳ 2026-09-22 — LE PLI, ICI ET PAS SUR `/app/today`. Ce bloc
+                  // rend LA SEMAINE: jusqu'à vingt-six cartes empilées, chacune
+                  // avec ses contenants, ses doses et ses ingrédients. Le titre
+                  // et le geste du jour restent à découvert; le reste s'ouvre
+                  // carte par carte. La journée, elle, garde tout ouvert — le
+                  // détail y est le sujet de la page.
+                  collapsible
                 />
               )}
             />
           </section>
         ))}
-        {/* ── LES MOMENTS SANS PLAT, ET LEUR MOTIF ───────────────────────────
-            Les trois silences voulus se ressemblent entre eux (« rien ici, et
-            c'est normal ») et ne ressemblent PAS au quatrième — même règle et
-            mêmes textes que la grille, dont ces lignes sont la lecture. */}
-        {silences.length > 0 && (
-          <ul className="flex flex-col gap-1">
-            {silences.map(({ slot, cell }) => (
-              <li key={slot} className="text-xs text-ink-soft">
-                <span className="font-medium">{dishSlotLabel(slot) ?? slot}</span>
-                {" — "}
-                {cell.kind === "away" && (
-                  <span className="italic">{mealCopy("meals.grid.away")}</span>
-                )}
-                {/* ⛔ MÊME TROU QUE DANS LA GRILLE, ET IL COÛTE PLUS CHER ICI.
-                    La ligne se rendait « Déjeuner — » et s'arrêtait là: un tiret
-                    suivi de rien. C'est le moment PRÉCIS où le produit a le
-                    droit de dire un ordre de grandeur (« vise autour de 700 »),
-                    donc celui où un silence se lit comme une panne. */}
-                {cell.kind === "eating_out" && (
-                  <span className="italic">
-                    {mealCopy("meals.grid.eating_out")}
-                  </span>
-                )}
-                {cell.kind === "fixed_intake" && (
-                  <span className="italic">{cell.label}</span>
-                )}
-                {cell.kind === "leftovers" && (
-                  <span className="italic">{mealCopy("meals.grid.leftovers")}</span>
-                )}
-                {/* LE SEUL QUI SOIT UN DÉFAUT — il ne doit ressembler à aucun
-                    des trois autres. Même ambre que la grille. */}
-                {cell.kind === "empty" && (
-                  <span
-                    className="text-amber-700"
-                    title={mealCopy("meals.grid.empty_hint")}
-                  >
-                    {mealCopy("meals.grid.empty")}
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
+        {/* ⛔ 2026-09-23 — LA LISTE DES MOMENTS SANS PLAT EST PARTIE
+            (« Petit-déjeuner — rien ici », « Déjeuner — absent »…), sur
+            demande: « ça sert à rien, ça pollue l'UI ». La prop `moments` et
+            la grille qui la remplissait dans `PlanResult` sont parties avec. */}
         {/* UN JOUR OÙ IL N'Y A VRAIMENT RIEN LE DIT — sans rythme déclaré, la
             grille ne sait rien motiver, et un bloc muet sous un titre de jour
             se lirait comme une panne. */}
@@ -435,6 +403,7 @@ function DaySessionCard(props: {
     session.preparation_ids,
     props.allDishes,
     props.portions,
+    props.preparations,
   );
   /**
    * ⟳ 2026-09-09 — Y A-T-IL QUELQUE CHOSE À OUVRIR ? Le bouton était gardé par
@@ -533,12 +502,12 @@ function DaySessionCard(props: {
           de quoi ». `BoxTable` n'ajoute plus son propre sous-titre quand elle
           ne reçoit qu'une préparation: le titre est déjà juste au-dessus.
 
-          ⚠️ LE `method` EST VISIBLE, PAS SOUS LE DÉPLIANT. C'est l'instruction
-          du jour; la replier reviendrait à demander d'ouvrir un panneau pour
-          savoir quoi faire de la casserole qu'on a devant soi. Le dépliant
-          porte le DÉROULÉ — l'ORDRE des gestes entre les casseroles —, qui est
-          une autre question. */}
+          ⚠️ LE `method` EST VISIBLE DÈS QUE LA SESSION EST OUVERTE: c'est la
+          recette qu'on vient chercher en cliquant « Voir le détail ». */}
       {preps.map((prep) => (
+        // ⟳ 2026-09-23 — LES RECETTES SONT DÉPLIÉES DÈS « VOIR LE DÉTAIL »
+        // (demandé: un clic, pas deux). Seuls le déroulé global et le boxing
+        // restent des sections repliées.
         <div key={prep.id} className="mt-3 first:mt-2">
           {prep.title !== "" && (
             <p className="text-sm font-semibold text-ink">{prep.title}</p>
@@ -581,9 +550,25 @@ function DaySessionCard(props: {
           {prep.method && (
             <p className="mt-2 text-sm leading-6 text-ink-soft">{prep.method}</p>
           )}
-
         </div>
       ))}
+      {/* ⟳ 2026-09-23 — LE DÉROULÉ GLOBAL, JUSTE APRÈS LES PRÉPARATIONS, DANS
+          UNE ZONE TEINTÉE. Il était tout en bas, APRÈS le boxing: on lisait
+          l'ordre des gestes entre les casseroles une fois les quinze
+          contenants passés. Demandé: « en bas des plats et leurs recettes,
+          avec un titre du genre Déroulé global », dans une zone qui se
+          distingue des préparations. */}
+      {/* ⟳ 2026-09-23 — UNE SEULE RECETTE ⇒ PAS DE DÉROULÉ GLOBAL: il ne
+          ferait que redire sa méthode (mesuré: le pain grillé du mercredi). */}
+      {session.run_through && preps.length !== 1 && (
+        <FoldSection
+          title={mealCopy("meals.sessions.overview_title")}
+          meta={null}
+          tone="tinted"
+        >
+          <p className="text-sm leading-6 text-ink">{session.run_through}</p>
+        </FoldSection>
+      )}
       {/* ══════════════════════════════════════════════════════════════════
           LES CONTENANTS QUE CETTE SESSION DOIT REMPLIR.
           ══════════════════════════════════════════════════════════════════
@@ -599,19 +584,10 @@ function DaySessionCard(props: {
           soir ». Chacun tient tout ce que son repas sortira, toutes casseroles
           confondues — c'est un contenant en MOINS, et c'est voulu.
 
-          ⚠️ DEHORS DU DÉPLIANT, avec les durées: c'est ce qu'on lit en décidant
-          de se mettre à cuisiner. Le dépliant porte le DÉROULÉ, qui est une
-          autre question. */}
-      <BoxTable
-        lines={boxLines}
-        context="session"
-        boxEnergy={props.boxEnergy}
-      />
-      {session.run_through && (
-        <p className="mt-2 text-sm leading-6 text-ink">
-          {session.run_through}
-        </p>
-      )}
+          ⟳ 2026-09-23 — DANS SA PROPRE SECTION REPLIÉE (`BoxingFold`), dont le
+          titre porte le compte. */}
+      {/* ⟳ 2026-09-23 — REPLIÉ AUSSI, avec le compte dans son titre. */}
+      <BoxingFold lines={boxLines} boxEnergy={props.boxEnergy} />
         </div>
       )}
     </Card>

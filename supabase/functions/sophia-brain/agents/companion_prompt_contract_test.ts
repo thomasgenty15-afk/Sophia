@@ -6,6 +6,7 @@ import {
   buildCompanionSystemPrompt,
   parseCompanionDeliveryDirective,
 } from "./companion.ts";
+import { APP_HELP_BLOCK_TITLE } from "../../_shared/keel/app_help/block_title.ts";
 
 Deno.test("companion normal reply prompt stays conversation-first and product-thin", () => {
   const prompt = buildCompanionSystemPrompt({
@@ -34,17 +35,17 @@ Deno.test("companion normal reply prompt stays conversation-first and product-th
   assert(prompt.includes("TASK_OVERLAYS"));
   assert(prompt.includes("SILENCE_AND_REACTIONS"));
   assert(prompt.includes("Reconstruis le fil depuis le fil rouge/contexte"));
-  assert(prompt.includes("PLATFORM_SKETCH_FOR_NORMAL_REPLY"));
-  // Retrait résidus 2026-08-08: Ressources (cartes/potions) et Initiatives
-  // (messages récurrents) n'existent plus — le contrat vérifie leur ABSENCE.
-  assert(prompt.includes("Sections à nommer: Plan, Inspirations"));
+  // FF-066 lot 0 (2026-09-23): l'esquisse de plateforme décrivait l'ancien
+  // produit (« Plan: actions, missions… · Inspirations · Préférences coach »),
+  // et ce test l'obligeait à rester. Le contrat vérifie désormais son ABSENCE,
+  // et la présence de la règle qui interdit de nommer un écran hors du bloc
+  // d'aide.
+  assert(!prompt.includes("PLATFORM_SKETCH_FOR_NORMAL_REPLY"));
+  assert(!prompt.includes("Inspirations"));
   assert(!prompt.includes("Plan, Ressources, Inspirations, Initiatives"));
   assert(!prompt.includes("Pour ce cas, dis Initiatives"));
-  assert(
-    prompt.includes(
-      "Ne présente pas Soutien, Missions ou Habitudes comme des sections de destination",
-    ),
-  );
+  assert(prompt.includes(`bloc "${APP_HELP_BLOCK_TITLE.fr}"`));
+  assert(prompt.includes("Sans ce bloc, ne nomme AUCUN écran"));
   assert(
     prompt.includes(
       "Ce n'est pas du coaching par défaut",
@@ -121,7 +122,6 @@ Deno.test("companion normal reply prompt stays conversation-first and product-th
       "Chat normal ne crée, configure, active, prépare, lance ni modifie rien",
     ),
   );
-  assert(prompt.includes("Frontière plateforme"));
   // Retrait résidus 2026-08-08: cartes, potions et rappels récurrents n'existent
   // plus — le contrat vérifie désormais leur ABSENCE du prompt.
   assert(!prompt.includes("cartes de défense/attaque actives"));
@@ -248,10 +248,17 @@ Deno.test("companion normal reply requires platform fallback for non-injected So
     userState: { risk_level: 0, temp_memory: {} },
   });
 
-  assert(prompt.includes("hors éléments injectés"));
+  // FF-066 lot 0: « renvoie vers la plateforme » laissait le modèle deviner un
+  // chemin. La règle dit maintenant OÙ est la vérité (le bloc d'aide du tour) et
+  // ce qu'il fait sans elle (ne nommer aucun écran).
   assert(!prompt.includes("cartes de défense/attaque actives"));
-  assert(prompt.includes("préférences, objets Sophia"));
-  assert(prompt.includes("vue complète dans la plateforme"));
+  assert(!prompt.includes("vue complète dans la plateforme"));
+  assert(prompt.includes(`réponds UNIQUEMENT depuis le bloc "${APP_HELP_BLOCK_TITLE.fr}"`));
+  assert(prompt.includes("Sans ce bloc, ne nomme AUCUN écran, bouton, menu ou chemin"));
+  // Mesuré au banc FF-066: sans fiche, le modèle a affirmé « dans cette app tu
+  // ne coches pas ce que tu as mangé » — faux. Ne pas nommer d'écran ne suffit
+  // pas: il ne doit rien affirmer du fonctionnement non plus.
+  assert(prompt.includes("n'affirme rien sur ce que l'app fait ou ne fait pas"));
   assert(prompt.includes("Aucune liste inventée"));
   assert(prompt.includes('jamais "je vais vérifier ailleurs"'));
 });
@@ -532,6 +539,13 @@ Deno.test("W9 — en-US composer emits the English voice pack, zero French perso
   assert(prompt.includes("sophia_delivery:reaction_only"));
   assert(prompt.includes("sophia_delivery:no_response"));
   assert(prompt.includes("DIRECT_EFFECT_CONFIRMATION_CONTEXT is the ONLY truth"));
+
+  // FF-066 lot 0 — la même règle d'aide que le pack français (T9): répondre
+  // depuis le bloc, ne nommer aucun écran sans lui.
+  assert(prompt.includes(`"${APP_HELP_BLOCK_TITLE.en}" block`));
+  assert(prompt.includes("Without that block, name NO screen"));
+  assert(prompt.includes("state nothing about what the app does or does not do"));
+  assertEquals(prompt.includes("Platform boundary"), false);
 });
 
 Deno.test("W9 — the RESPONSE_LANGUAGE block is the LAST instruction", () => {

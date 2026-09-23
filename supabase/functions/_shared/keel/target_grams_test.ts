@@ -176,11 +176,15 @@ Deno.test("L8 — la date sentinelle du pont ne peut pas passer pour une naissan
 Deno.test("L8 ① — LE CAS QUI PASSE: une perte RÉTRÉCIT la boîte, une prise l'AGRANDIT", () => {
   // Sans cette ligne, une garde cassée qui refuse tout serait indiscernable
   // d'une garde qui marche.
-  const down = mouthTargetFactor(SIZING_ARGS);
+  // ⟳ 2026-09-21 — 80 kg plafonnaient alors à 0,40 kg/sem en prise (le
+  // gabarit de 0,5 % est retiré le 2026-09-23; 0,5 depuis). Les deux
+  // sens sont comparés AU MÊME cran, 0,4, pour que la ligne « la prise n'est
+  // plus rabotée sous la perte » reste une comparaison d'écarts exécutés.
+  const down = mouthTargetFactor({ ...SIZING_ARGS, paceKgPerWeek: 0.4 });
   assertEquals(down.reason, "sized");
   assert(down.factor < 1, `perte: facteur ${down.factor}`);
 
-  const up = mouthTargetFactor({ ...SIZING_ARGS, direction: "up" });
+  const up = mouthTargetFactor({ ...SIZING_ARGS, direction: "up", paceKgPerWeek: 0.4 });
   assertEquals(up.reason, "sized");
   assert(up.factor > 1, `prise: facteur ${up.factor}`);
 
@@ -191,9 +195,9 @@ Deno.test("L8 ① — LE CAS QUI PASSE: une perte RÉTRÉCIT la boîte, une pris
   // ne mord sous le plafond du curseur), pendant que la perte reste sous A1
   // (500 kcal/j). Sur ce corps, c'est donc la prise qui bouge au moins autant
   // — et le test l'AFFIRME, comme avant, plutôt que de supposer une symétrie.
-  const executedUp = executedPaceFor("up", SIZING_ARGS.subject, Number(SIZING_ARGS.paceKgPerWeek))!;
+  const executedUp = executedPaceFor("up", SIZING_ARGS.subject, 0.4)!;
   assertEquals(executedUp.clampedBy, "chosen");
-  assert(up.factor - 1 >= 1 - down.factor, "la prise n'est plus rabotée sous la perte");
+  assert(up.factor - 1 >= 1 - down.factor - 1e-9, "la prise n'est plus rabotée sous la perte");
   assert(
     Math.abs((up.factor - 1) * executedUp.maintenanceKcal - executedUp.dailyDeltaKcal) < 1,
     `la prise doit valoir exactement l'écart du cran: ${up.factor}`,
@@ -247,11 +251,16 @@ Deno.test("⛔ LOT B ① — UNE DIRECTION SANS CRAN PÈSE SUR LES GRAMMES, ET L
   // `test-parameterized-by-its-own-constant`.
   //
   // Sur `ADULT_BODY` (180 cm, 80 kg, homme, 35 ans, sans cran d'activité):
-  // entretien 2 618 kcal/j; 0,25 × 7 700 / 7 = 275 kcal/j, très en dessous
+  // entretien 2 633 kcal/j; 0,25 × 7 700 / 7 = 275 kcal/j, très en dessous
   // d'A1 (500) et du plancher, donc c'est LE CRAN qui décide, pas un plafond.
-  //     (2618 − 275) / 2618 = 0,894958…
+  //     (2633 − 275) / 2633 = 0,895556…
+  //
+  // ⟳ 2026-09-23 — L'ÂGE EXACT (35 ans) remplace le milieu de la tranche
+  // 30_44 (37) dans l'équation du corps :
+  //     BMR = 10×80 + 6,25×180 − 5×35 + 5 = 1 755 ; × 1,5 = 2 632,5 → 2 633
+  //     (au milieu de tranche : BMR 1 745, entretien 2 618, facteur 0,894958)
   assertEquals(DEFAULT_PACE_KG_PER_WEEK, 0.25);
-  assertEquals(derived.factor.toFixed(6), "0.894958");
+  assertEquals(derived.factor.toFixed(6), "0.895556");
 
   // ── ⛔ ET IL NE DESSERRE AUCUNE DES TROIS PORTES ──────────────────────
   // La mutation la plus rentable de ce lot serait de dériver le cran AVANT la
@@ -483,7 +492,10 @@ Deno.test("⛔ L8 ① — LES BORNES DE PLAUSIBILITÉ NE MORDENT SUR AUCUN CORPS
       }
     }
   }
-  assert(worstUp > 1.4, `le balayage ne pousse plus le facteur: ${worstUp}`);
+  // ⟳ 2026-09-21 — à 0,5 % du poids par semaine, le plus haut facteur balayé
+  // vaut ~1,29 (150 kg, petit corps, sédentaire): la ceinture `BOX_FACTOR_MAX`
+  // reste loin au-dessus, ce que la ligne suivante tient.
+  assert(worstUp > 1.25, `le balayage ne pousse plus le facteur: ${worstUp}`);
   assert(
     worstUp <= BOX_FACTOR_MAX,
     `BOX_FACTOR_MAX=${BOX_FACTOR_MAX} refuserait le plafond du curseur (${worstUp} à ${worstAt})`,
@@ -1325,16 +1337,18 @@ Deno.test("⛔ L8 — LE RYTHME EXÉCUTÉ NE DÉPASSE JAMAIS LE CRAN CHOISI", ()
 });
 
 Deno.test("L8 — chaque borne du rythme exécuté a son cas qui gagne, et il est nommé", () => {
-  // Une PRISE d'adulte de 80 kg: le curseur plafonne à 0,8 kg/sem (1 % du
-  // poids). Un cran de 1 kg venu de la base est raboté SUR CE PLAFOND — pas
-  // sur une bande d'enveloppe (⟳ 2026-09-09, `slider_ceiling`).
+  // Une PRISE d'adulte de 80 kg: le curseur plafonne à 0,5 kg/sem (⟳
+  // 2026-09-23, le plafond absolu d'une prise; 0,4 du 2026-09-21 au
+  // 2026-09-23 sous le gabarit de 0,5 %). Un cran de 1 kg venu de la base est
+  // raboté SUR CE PLAFOND — pas sur une bande d'enveloppe (⟳ 2026-09-09,
+  // `slider_ceiling`).
   const gain = executedPaceFor("up", { body: ADULT_BODY, isMinor: false }, 1)!;
   assertEquals(gain.clampedBy, "slider_ceiling");
   const gainCeiling = paceCeilingFor("up", { body: ADULT_BODY, isMinor: false })!;
-  assertEquals(gainCeiling.maxKgPerWeek, 0.8);
-  assertEquals(gain.dailyDeltaKcal, Math.round((0.8 * KCAL_PER_KG_BODY_MASS) / 7));
+  assertEquals(gainCeiling.maxKgPerWeek, 0.5);
+  assertEquals(gain.dailyDeltaKcal, 550);
   // Et le cran du curseur lui-même passe TEL QUEL: c'est le contrat.
-  const atCeiling = executedPaceFor("up", { body: ADULT_BODY, isMinor: false }, 0.8)!;
+  const atCeiling = executedPaceFor("up", { body: ADULT_BODY, isMinor: false }, 0.5)!;
   assertEquals(atCeiling.clampedBy, "chosen");
   assertEquals(atCeiling.dailyDeltaKcal, gain.dailyDeltaKcal);
 

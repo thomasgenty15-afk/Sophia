@@ -33,6 +33,7 @@
 import {
   type CompositionIndex,
   type CompositionRef,
+  millilitresOfSlug,
   normalizeTerm,
 } from "./food_composition.ts";
 // ⟳ 2026-09-11 · LOT B — LA MESURE D'UNE ASSIETTE VIT DANS `preparation_mass.ts`
@@ -411,14 +412,40 @@ export type PlateSlotClass = "meal" | "snack";
  * aux bornes de collation adulte (650/700, 450/700, 300/700). C'est écrit ici
  * plutôt que calculé pour que les nombres soient épinglables — mais il faut
  * savoir que ce sont des dérivées, pas des observations.
+ *
+ * ⟳ 2026-09-23 — ⚠️ CES RAPPORTS SONT CEUX D'AVANT LE PLAT À 550 g, ET ILS NE
+ * SONT PAS REFAITS. Ils ont été pris sur les plafonds de repas de l'époque
+ * (adulte 700, adolescent 650). Le repas adulte et adolescent passe à 550 g
+ * (ci-dessous); les collations, elles, ne bougent pas: le chantier des
+ * à-côtés change le PLAT, pas l'estomac. Refaire les rapports sur 550 aurait
+ * rétréci les collations au moment même où elles reçoivent le débordement du
+ * déjeuner (`relaxSharedForTable`). Ne pas les « corriger » par symétrie.
+ *
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ 2026-09-23 — LE PLAT ADULTE PASSE DE 700 À 550 g (chantier « assiettes
+ * normales », décision n° 3 du propriétaire)
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ LE DÉFAUT, AVEC SON CHIFFRE (`docs/keel/AUDIT-DOSAGES-2026-09-23.md`):
+ * un seul plat portait tout le repas, et la recette commune était écrite pour
+ * le plus gros mangeur — Thomas arrivait à 700 g d'assiette PAR CONSTRUCTION.
+ * Le plat ne porte plus tout le repas: un à-côté (entrée, fromage, dessert,
+ * pain) prend sa part, hors de l'assiette (`side_courses_types.ts`).
+ *
+ * ⚠️ 700 g N'A PAS DISPARU: c'est le plafond de REPLI (`PLATE_HARD_CEILING_G`),
+ * posé seulement quand le débordement d'un moment n'a trouvé aucune collation
+ * où aller (`slotContractsFor`, `overflow: "hard_ceiling"`).
+ *
+ * ⚠️ L'ADOLESCENT DESCEND AUSSI À 550 (650 avant): sinon son plat serait plus
+ * grand que celui de l'adulte. Enfant et tout-petit ne bougent pas.
  */
 export const PLATE_MASS_BOUNDS_G = Object.freeze({
   adult: Object.freeze({
-    meal: Object.freeze({ min: 250, max: 700 }),
+    meal: Object.freeze({ min: 250, max: 550 }),
     snack: Object.freeze({ min: 80, max: 300 }),
   }),
   teen: Object.freeze({
-    meal: Object.freeze({ min: 250, max: 650 }),
+    meal: Object.freeze({ min: 250, max: 550 }),
     snack: Object.freeze({ min: 75, max: 280 }),
   }),
   child: Object.freeze({
@@ -429,6 +456,29 @@ export const PLATE_MASS_BOUNDS_G = Object.freeze({
     meal: Object.freeze({ min: 100, max: 300 }),
     snack: Object.freeze({ min: 35, max: 130 }),
   }),
+});
+
+/**
+ * ⟳ 2026-09-23 — LE PLAFOND DE REPLI D'UNE ASSIETTE, en grammes.
+ *
+ * ⛔ CE N'EST PAS UNE BORNE ORDINAIRE, ET PERSONNE NE LA DEMANDE. Le plat vise
+ * `PLATE_MASS_BOUNDS_G` (550 g chez l'adulte). Quand un moment déborde — son
+ * plat dépasserait 550 g à la densité de table — le surplus part d'abord aux
+ * collations de la même personne (`relaxSharedForTable`). S'il n'en a pas, ou
+ * qu'elles sont pleines, l'énergie de la journée reste un contrat: le plat
+ * MONTE, et seulement jusqu'ici. Décision n° 1 du propriétaire, 2026-09-23:
+ * « le surplus va d'abord à ses collations, sinon le plat monte jusqu'à
+ * 700 g ». Le compteur `overflow_to_dish` dit combien de moments y sont allés.
+ *
+ * ⚠️ SEUL LE REPAS ADULTE A UN REPLI. Les autres tranches et les collations
+ * retombent sur le plafond de leur table (`hardCeilingBoundsFor`): un repli
+ * au-dessus de la capacité d'estomac d'un enfant n'est pas un repli, c'est une
+ * assiette d'adulte servie à un corps qui n'en est pas un.
+ */
+export const PLATE_HARD_CEILING_G: Readonly<
+  Partial<Record<PlateBoundBand, Readonly<Partial<Record<PlateSlotClass, number>>>>>
+> = Object.freeze({
+  adult: Object.freeze({ meal: 700 }),
 });
 
 /** Les moments où l'on s'assied. Les autres sont des collations. */
@@ -604,9 +654,54 @@ export function plateBoundsFor(args: {
    */
   appetite: AppetiteLevel | null;
 }): PlateBounds {
+  return plateBoundsUnder(args, (band, slotClass) => PLATE_MASS_BOUNDS_G[band][slotClass]);
+}
+
+/**
+ * ⟳ 2026-09-23 — LES BORNES D'UN MOMENT QUI DÉBORDE: la même règle que
+ * `plateBoundsFor`, sous le plafond de REPLI (`PLATE_HARD_CEILING_G`).
+ *
+ * ⛔ UN SEUL CALCUL, DEUX TABLES. Les deux fonctions passent par
+ * `plateBoundsUnder`; seule la table change. Recopier le couloir de masse
+ * ici en ferait une deuxième arithmétique — celle qu'on relit le moins, donc
+ * celle qui garderait l'ancienne règle d'appétit ou de plancher léger.
+ *
+ * ⚠️ UNE TRANCHE SANS REPLI RETOMBE SUR SA TABLE: le plancher, lui, ne bouge
+ * jamais (`PLATE_MASS_BOUNDS_G[…].min`), et un enfant ou une collation rend
+ * exactement `plateBoundsFor`.
+ *
+ * Appelée par `slotContractsFor` quand un moment garde un débordement que
+ * les collations n'ont pas pu prendre (`overflow: "hard_ceiling"`).
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function hardCeilingBoundsFor(
+  args: Parameters<typeof plateBoundsFor>[0],
+): PlateBounds {
+  return plateBoundsUnder(args, (band, slotClass) => {
+    const table = PLATE_MASS_BOUNDS_G[band][slotClass];
+    return {
+      min: table.min,
+      max: PLATE_HARD_CEILING_G[band]?.[slotClass] ?? table.max,
+    };
+  });
+}
+
+/**
+ * LE COULOIR DE MASSE SOUS UNE TABLE DONNÉE — le corps commun de
+ * `plateBoundsFor` et de `hardCeilingBoundsFor`. Voir le pavé de
+ * `plateBoundsFor` pour la règle; rien d'autre ne change que `tableOf`.
+ */
+function plateBoundsUnder(
+  args: Parameters<typeof plateBoundsFor>[0],
+  tableOf: (
+    band: PlateBoundBand,
+    slotClass: PlateSlotClass,
+  ) => { readonly min: number; readonly max: number },
+): PlateBounds {
   const { band, known } = plateBandOf(args.ageYears);
   const slotClass = plateSlotClassOf(args.slot);
-  const table = PLATE_MASS_BOUNDS_G[band][slotClass];
+  const table = tableOf(band, slotClass);
   const kcal = Number(args.slotTargetKcal);
   // ⛔ PAS D'APPÉTIT SUR UN MINEUR. La table pédiatrique est une capacité
   // d'estomac d'enfant; l'élargir de 10 % parce qu'il « mange bien » servirait
@@ -782,6 +877,26 @@ export interface DensityCorridor {
   incompatible: DensityIncompatibility | null;
 }
 
+/**
+ * ⟳ 2026-09-23 — LA DENSITÉ D'UNE PART DU GABARIT DE RECETTE, en kcal pour
+ * 100 g. C'est la VISÉE d'un repas dans `densityCorridorFor`.
+ *
+ * ⛔ D'OÙ VIENT 125 (audit `docs/keel/AUDIT-DOSAGES-2026-09-23.md`, lot 3):
+ * la part du gabarit — 110 à 130 g de protéine maigre crue, 180 à 200 g de
+ * légumes, 10 ml d'huile, au plus 15 g de fromage, et 60 à 70 g de céréale
+ * sèche à part — pèse environ 1,26 kcal/g avec le couscous, 1,225 pour la
+ * casserole principale seule. 125 est ce plat-là, arrondi à 5.
+ *
+ * ⚠️ CE N'EST PAS UN PLANCHER. Le plancher d'un repas reste
+ * `MEAL_KCAL_PER_G_FLOOR` (100 kcal/100 g), et le minimum du couloir reste le
+ * besoin de la case. 125 est ce qu'on DEMANDE quand l'assiette le permet.
+ *
+ * ⚠️ LE SEUIL DE TABLE EN DÉRIVE: `SHARED_TABLE_MAX_ASK_PER_100G` vaut 115 =
+ * 125 / 1,10 arrondi à 5 (`slot_nutrition_contract.ts`). Déplacer l'un sans
+ * relire l'autre remet le plat plein au-dessus de ce que la table accepte.
+ */
+export const TEMPLATE_DISH_KCAL_PER_100G = 125;
+
 export function densityCorridorFor(args: {
   targetKcal: number | null;
   bounds: PlateBounds;
@@ -819,7 +934,19 @@ export function densityCorridorFor(args: {
   // ⚠️ `bounds.preferred` (une MASSE) garde, lui, le milieu de `[bmin, bmax]`:
   // les deux répondent à deux questions différentes — « quelle assiette vise-
   // t-on » et « quelle densité DEMANDE-T-ON à un modèle qui rend ±23 à +63 % ».
-  const rawPref = neededMin * REPAIR_DENSITY_HEADROOM;
+  //
+  // ⟳ 2026-09-23 — ⛔ POUR UN REPAS, LA VISÉE EST LA DENSITÉ DU GABARIT
+  // (`TEMPLATE_DISH_KCAL_PER_100G`), ou le besoin minimal s'il est plus haut,
+  // ramenée dans le couloir par l'arrondi dirigé plus bas. « Viser la grande
+  // assiette » (A15) poussait le plat vers 700 g et le féculent vers 150 g de
+  // céréale sèche par part; le plat vise maintenant l'assiette ordinaire, et
+  // c'est l'à-côté qui porte le reste du repas. Lot 3a de l'audit du
+  // 2026-09-23: « visée = densité du gabarit, et non un calcul à part ».
+  // ⚠️ LES COLLATIONS NE CHANGENT PAS: elles n'ont pas de gabarit de plat, et
+  // elles reçoivent le débordement des repas; elles gardent `Dmin × marge`.
+  const rawPref = args.bounds.slotClass === "meal"
+    ? Math.max(TEMPLATE_DISH_KCAL_PER_100G, neededMin)
+    : neededMin * REPAIR_DENSITY_HEADROOM;
 
   const cap = MAX_ASKABLE_DENSITY_PER_100G;
   const incompatible: DensityIncompatibility | null = neededMin > cap
@@ -1290,6 +1417,12 @@ interface SizedBoxItem {
   grams: number;
   ref: string | null;
   refRefused: boolean;
+  /**
+   * ⟳ 2026-09-22 — CES GRAMMES-LÀ EN MILLILITRES, quand l'aliment se VERSE.
+   * Voir `BoxItem.ml` (`meal_generation.ts`): calculé ici, là où l'identifiant
+   * de la ligne est sous la main, jamais retrouvé plus tard par le libellé.
+   */
+  ml: number | null;
 }
 
 interface ScalableIngredient {
@@ -1377,6 +1510,21 @@ export interface SizingRowForApply {
    * ce dépôt paie en boucle les gardes qu'un paramètre facultatif désarme.
    */
   recipeShare: RecipeShareReason | null;
+  /**
+   * ⟳ 2026-09-23 — LE FÉCULENT À CÔTÉ, À **UNE** BOUCHE (lot 2 de l'audit,
+   * arbitrage 5).
+   *
+   * ⛔ LE MÊME CHAMP ET LA MÊME RÈGLE QU'À N BOUCHES (`EaterRowForApply.starchSide`,
+   * lue par `partFactorOf`): la casserole-féculent suit `sideFactor`, le frais
+   * du plat et les autres casseroles suivent `mainFactor`. Avant ce champ, la
+   * forme d'objectif (part d'énergie du féculent plafonnée en perte) ne
+   * pouvait pas atteindre une personne seule: `applySizing` n'avait qu'UN
+   * facteur par plat.
+   *
+   * ⛔ REQUIS ET NULLABLE, JAMAIS `?` — même raison que `recipeShare`. `null` =
+   * un seul facteur pour tout le plat, le cas de tout plat d'avant ce lot.
+   */
+  starchSide: StarchSideServing | null;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1497,6 +1645,47 @@ export interface EaterRowForApply {
    * appelant doit dire ce qu'il sait.
    */
   recipeShare: RecipeShareReason | null;
+  /**
+   * ⟳ 2026-09-22 · LOT C — LE FÉCULENT À CÔTÉ, SERVI À SA PROPORTION.
+   *
+   * Sur une case partagée écrite en deux casseroles (`starch_side.ts`), la
+   * casserole-féculent suit `sideFactor`; le frais du plat et les autres
+   * casseroles suivent `mainFactor`. L'énergie de la part reste celle de
+   * `factor` (`splitStarchSide` la garde exacte). `null` = un seul facteur pour
+   * tout le plat — le cas de tout plat d'avant ce lot.
+   *
+   * ⛔ REQUIS ET NULLABLE, JAMAIS `?`: un champ facultatif reprendrait en
+   * silence le facteur unique, c'est-à-dire le défaut exact que ce lot ferme.
+   */
+  starchSide: StarchSideServing | null;
+}
+
+/** Les deux facteurs d'une bouche sur un plat servi en deux proportions. */
+export interface StarchSideServing {
+  /** La casserole-féculent. */
+  preparationId: string;
+  /** Le frais du plat et les autres casseroles. */
+  mainFactor: number;
+  /** La casserole-féculent. */
+  sideFactor: number;
+}
+
+/**
+ * ⟳ 2026-09-22 · LOT C — LE FACTEUR D'UNE LIGNE POUR UNE PARTIE DU PLAT.
+ *
+ * `potId` = la casserole tirée; `null` = le frais du plat. Sans partage, c'est
+ * `factor` partout, octet pour octet le comportement d'avant ce lot.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function partFactorOf(
+  row: { factor: number; starchSide: StarchSideServing | null },
+  potId: string | null,
+): number {
+  if (row.starchSide === null) return row.factor;
+  return potId !== null && potId === row.starchSide.preparationId
+    ? row.starchSide.sideFactor
+    : row.starchSide.mainFactor;
 }
 
 /**
@@ -1543,12 +1732,19 @@ export function applySizingForEaters(args: {
   for (const r of args.rows) {
     byDish.set(r.dishIndex, [...(byDish.get(r.dishIndex) ?? []), r]);
   }
-  /** La somme des facteurs des mangeurs d'un plat. Non dimensionné ⇒ 1. */
-  const dishSum = (i: number): number => {
+  /**
+   * La somme des facteurs des mangeurs d'un plat, pour UNE partie du plat
+   * (`potId`, ou `null` pour le frais). Non dimensionné ⇒ 1.
+   *
+   * ⟳ 2026-09-22 · LOT C — PAR PARTIE: un plat servi en deux proportions
+   * multiplie sa casserole-féculent par la somme des `sideFactor`, le reste par
+   * la somme des `mainFactor`. Sans partage, les deux sommes sont la même.
+   */
+  const dishSum = (i: number, potId: string | null): number => {
     const rows = byDish.get(i) ?? [];
     if (rows.length === 0) return 1;
     return rows.reduce(
-      (a, r) => a + (r.sized ? r.factor : UNMEASURABLE_PORTION_FACTOR),
+      (a, r) => a + (r.sized ? partFactorOf(r, potId) : UNMEASURABLE_PORTION_FACTOR),
       0,
     );
   };
@@ -1560,12 +1756,11 @@ export function applySizingForEaters(args: {
   const factorsByPot = new Map<string, number[]>();
   const drawsByPot = new Map<string, number>();
   args.meal.dishes.forEach((d, i) => {
-    const sum = dishSum(i);
     for (const u of d.uses ?? []) {
       const id = String(u?.preparationId ?? "");
       if (!id) continue;
       drawsByPot.set(id, (drawsByPot.get(id) ?? 0) + 1);
-      factorsByPot.set(id, [...(factorsByPot.get(id) ?? []), sum]);
+      factorsByPot.set(id, [...(factorsByPot.get(id) ?? []), dishSum(i, id)]);
     }
   });
 
@@ -1640,7 +1835,7 @@ export function applySizingForEaters(args: {
       counts.recipe_shares_by[r.recipeShare] =
         (counts.recipe_shares_by[r.recipeShare] ?? 0) + 1;
     }
-    const sum = dishSum(i);
+    const sum = dishSum(i, null);
     const sc = scaleIngredients(
       (d.ingredients ?? []) as ScalableIngredient[],
       sum,
@@ -1648,8 +1843,11 @@ export function applySizingForEaters(args: {
     counts.fresh_scaled += sc.scaled;
     counts.fresh_unweighed += sc.unweighed;
 
-    /** Les items d'UNE part, à un facteur donné. */
-    const itemsAt = (f: number) => {
+    /**
+     * Les items d'UNE part. `fOf(potId)` rend le facteur de chaque partie —
+     * `null` pour le frais (⟳ 2026-09-22 · LOT C).
+     */
+    const itemsAt = (fOf: (potId: string | null) => number) => {
       const items: SizedBoxItem[] = [];
       for (const u of d.uses ?? []) {
         const id = String(u?.preparationId ?? "");
@@ -1662,7 +1860,7 @@ export function applySizingForEaters(args: {
         const prep = args.meal.preparations.find((p) =>
           String(p.id ?? "") === id
         );
-        const grams = Math.round(perDraw * f);
+        const grams = Math.round(perDraw * fOf(id));
         if (grams <= 0) {
           counts.items_unresolved++;
           continue;
@@ -1676,6 +1874,9 @@ export function applySizingForEaters(args: {
           // `term` est le TITRE de la casserole, pas un aliment.
           ref: null,
           refRefused: false,
+          // Et donc aucun volume: « Poulet, riz et courgettes » n'a pas de
+          // densité, c'est une casserole. Même abstention que `ref`.
+          ml: null,
         });
       }
       for (const ing of (d.ingredients ?? []) as ScalableIngredient[]) {
@@ -1684,7 +1885,7 @@ export function applySizingForEaters(args: {
           counts.items_unresolved++;
           continue;
         }
-        const grams = Math.round(ready * f);
+        const grams = Math.round(ready * fOf(null));
         if (grams <= 0) continue;
         items.push({
           preparationId: null,
@@ -1695,6 +1896,10 @@ export function applySizingForEaters(args: {
           // de cette ligne-ci, on n'a donc aucune raison de le rechercher.
           ref: ing.ref ?? null,
           refRefused: ing.refRefused === true,
+          // ⟳ 2026-09-22 — ET SON VOLUME AVEC, par le même identifiant. C'est
+          // ce chemin-ci qui écrit les doses d'un repas sans cuisson — celles
+          // où « huile de colza — 6 g » se lisait sans sa cuillère.
+          ml: millilitresOfSlug(args.index, ing.ref ?? null, grams),
         });
       }
       return items;
@@ -1722,7 +1927,12 @@ export function applySizingForEaters(args: {
       String(d.slot ?? "slot")
     }_${i}`;
     for (const lid of plan.own) {
-      const items = itemsAt(lid.factor);
+      // ⟳ LOT C — LA LIGNE DE CETTE BOUCHE, pour ses deux facteurs. Sans
+      // partage, `partFactorOf` rend `lid.factor` sur chaque partie.
+      const row = rows.find((r) => r.memberId === lid.memberId);
+      const items = itemsAt((potId) =>
+        row === undefined ? lid.factor : partFactorOf(row, potId)
+      );
       if (items.length === 0) continue;
       boxes.push({
         id: `${base}_${lid.memberId}`,
@@ -1735,7 +1945,13 @@ export function applySizingForEaters(args: {
     if (plan.tub !== null) {
       // ⛔ LA SOMME DES PARTS, JAMAIS UNE MOYENNE. Le bac est un RÉCIPIENT: il
       // doit contenir de quoi servir tous ses mangeurs.
-      const items = itemsAt(plan.tub.factorSum);
+      // ⟳ LOT C — LA SOMME PAR PARTIE. Sans partage elle vaut
+      // `plan.tub.factorSum` sur chaque partie.
+      const tub = plan.tub;
+      const tubRows = rows.filter((r) => tub.memberIds.includes(r.memberId));
+      const items = itemsAt((potId) =>
+        tubRows.reduce((a, r) => a + partFactorOf(r, potId), 0)
+      );
       if (items.length > 0) {
         boxes.push({
           id: `${base}_tub`,
@@ -1790,7 +2006,9 @@ export function applySizing(args: {
         // ⟳ 2026-09-13 · LOT 2 — LA CONSTANTE, PLUS LE LITTÉRAL `1`. Même
         // valeur, mais c'est ce nombre-là que la part de recette SERT plus bas:
         // les deux doivent bouger ensemble ou pas du tout.
-        row?.sized ? row.factor : UNMEASURABLE_PORTION_FACTOR,
+        // ⟳ 2026-09-23 — LE FACTEUR DE CETTE CASSEROLE, féculent à part
+        // (`partFactorOf`, la règle d'`applySizingForEaters`).
+        row?.sized ? partFactorOf(row, id) : UNMEASURABLE_PORTION_FACTOR,
       ]);
     }
   });
@@ -1877,7 +2095,9 @@ export function applySizing(args: {
     // ⛔ ET LE FACTEUR EST CELUI DE LA LIGNE, jamais un facteur inventé: sur une
     // part de recette il vaut déjà `UNMEASURABLE_PORTION_FACTOR`, posé par
     // `sizeDishForMouth`. Ce lot ne fabrique ni cible, ni âge, ni gramme.
-    const f = row.factor;
+    // ⟳ 2026-09-23 — LE FRAIS SUIT LA PART PRINCIPALE (`partFactorOf(row,
+    // null)`): sans partage, c'est `row.factor`, à l'octet.
+    const f = partFactorOf(row, null);
     const s = scaleIngredients(
       (d.ingredients ?? []) as ScalableIngredient[],
       f,
@@ -1897,7 +2117,8 @@ export function applySizing(args: {
       const prep = args.meal.preparations.find((p) =>
         String(p.id ?? "") === id
       );
-      const grams = Math.round(perDraw * f);
+      // ⟳ 2026-09-23 — la part de CETTE casserole: `sideFactor` pour le féculent.
+      const grams = Math.round(perDraw * partFactorOf(row, id));
       if (grams <= 0) {
         counts.items_unresolved++;
         continue;
@@ -1909,6 +2130,7 @@ export function applySizing(args: {
         grams,
         ref: null,
         refRefused: false,
+        ml: null,
       });
     }
     // ⚠️ LE FRAIS EST PESÉ SUR LA RECETTE D'ORIGINE PUIS MULTIPLIÉ, jamais sur
@@ -1929,6 +2151,7 @@ export function applySizing(args: {
         grams,
         ref: ing.ref ?? null,
         refRefused: ing.refRefused === true,
+        ml: millilitresOfSlug(args.index, ing.ref ?? null, grams),
       });
     }
     if (items.length === 0) {
@@ -2385,12 +2608,31 @@ export interface RepairAsk {
  *
  * ⚠️ ET LES DEUX RESTENT DANS LE COULOIR. La marge est intérieure: sur un
  * couloir étroit, `min × 1,10` peut dépasser `max`, et c'est `max` qui gagne.
+ *
+ * ⟳ 2026-09-23 — ⛔ LA VISÉE DE LA CONSIGNE NE SUFFIT PLUS À UN PLAT TROP
+ * DILUÉ. Jusqu'ici, `preferredPer100G` valait `Dmin × 1,10` partout, et la
+ * réparation la reprenait telle quelle. Depuis que la visée d'un REPAS est
+ * `max(TEMPLATE_DISH_KCAL_PER_100G ; Dmin)` (`densityCorridorFor`), un repas
+ * qui a besoin de plus de 125 est visé AU PLANCHER — mesuré: 1 200 kcal dans
+ * 550 g, visée 219 pour un plancher de 218,2. Un plat qui revient déjà trop
+ * dilué et qu'on renvoie viser le strict minimum repart dehors au moindre
+ * arrondi. La réparation garde donc la plus haute des deux: la visée de la
+ * consigne (125 chez un petit repas, jamais moins) et `Dmin × 1,10`, la marge
+ * d'avant. Une collation rend exactement le nombre d'avant.
  */
 function repairAimFor(
   corridor: DensityCorridor,
   direction: RepairDirection,
 ): number {
-  if (direction === "densify") return corridor.preferredPer100G;
+  if (direction === "densify") {
+    const withHeadroom = Math.round(
+      corridor.minExactPer100G * REPAIR_DENSITY_HEADROOM,
+    );
+    return Math.min(
+      corridor.maxPer100G,
+      Math.max(corridor.preferredPer100G, withHeadroom),
+    );
+  }
   const down = Math.floor(corridor.maxPer100G / REPAIR_DENSITY_HEADROOM);
   return Math.min(corridor.maxPer100G, Math.max(corridor.minPer100G, down));
 }

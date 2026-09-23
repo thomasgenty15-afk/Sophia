@@ -97,6 +97,64 @@ export interface JournalDay {
   estimated: boolean;
   state: "future" | "in_progress" | "incomplete" | "complete";
 }
+/**
+ * ⟳ 2026-09-21 — LE DÉTAIL DU CALCUL VOYAGE AVEC LA CIBLE.
+ *
+ * Les champs sont ceux d'`EnergyBreakdown` (`energy_breakdown.ts`), en
+ * `snake_case` comme le reste de cette charge utile. `null` = « il n'y a pas
+ * de fourchette à expliquer », et l'écran ne rend alors aucun bouton.
+ *
+ * ⛔ AUCUN CHAMP DE CONSOMMATION N'ENTRE ICI. Ce sont des ÉTAPES DE CALCUL; un
+ * `eaten_kcal` posé à côté permettrait de construire « il te reste 680 kcal »,
+ * la phrase qu'`energy_target.ts` interdit depuis le premier jour.
+ */
+import type { EnergyBreakdown } from "./energy_breakdown.ts";
+
+export interface JournalTargetBreakdown {
+  chain: string;
+  weight_kg: number | null;
+  activity_level: string | null;
+  per_kg_low: number | null;
+  per_kg_high: number | null;
+  maintenance_low: number | null;
+  maintenance_high: number | null;
+  /** SIGNÉ: négatif sur une perte. `0` = l'objectif n'a pas bougé la bande. */
+  daily_delta_kcal: number;
+  low: number;
+  high: number;
+}
+/**
+ * DU MODULE PUR À LA CHARGE UTILE — et c'est une GARDE, pas une commodité.
+ *
+ * ⛔ LE DÉFAUT QU'ELLE FERME, TROUVÉ AVANT D'ÊTRE ÉCRIT. `loadDailyEnergyTarget`
+ * n'a AUCUN type de retour déclaré: poser directement l'objet `camelCase`
+ * d'`energyBreakdownFor` dans la charge utile aurait compilé sans un mot, et
+ * le navigateur aurait lu `weight_kg` sur un objet qui porte `weightKg` —
+ * c'est-à-dire `undefined` partout, sous un panneau qui s'ouvre. Même famille
+ * que « `as` sur un type étranger désarme le typecheck »: ici c'est l'ABSENCE
+ * d'annotation qui désarme.
+ *
+ * Cette fonction est le seul endroit où les deux vocabulaires se touchent, et
+ * son type de retour EST déclaré: un champ renommé d'un côté ne compile plus.
+ */
+export function journalTargetBreakdown(
+  b: EnergyBreakdown | null,
+): JournalTargetBreakdown | null {
+  if (b === null) return null;
+  return {
+    chain: b.chain,
+    weight_kg: b.weightKg,
+    activity_level: b.activityLevel,
+    per_kg_low: b.perKgLow,
+    per_kg_high: b.perKgHigh,
+    maintenance_low: b.maintenanceLow,
+    maintenance_high: b.maintenanceHigh,
+    daily_delta_kcal: b.dailyDeltaKcal,
+    low: b.low,
+    high: b.high,
+  };
+}
+
 export interface JournalTarget {
   low: number | null;
   high: number | null;
@@ -104,6 +162,7 @@ export interface JournalTarget {
   gap: string | null;
   direction: string | null;
   weight_week_start: string | null;
+  breakdown: JournalTargetBreakdown | null;
 }
 export interface JournalReport {
   version: 2;
@@ -274,9 +333,17 @@ export function buildJournal(args: {
       const plannedKcal = ps.every((p) => p.energy !== null)
         ? total(ps.map((p) => p.energy))
         : null;
+      // ⟳ 2026-09-23 — PRÉSUMÉ MANGÉ. Décision du propriétaire: un repas prévu
+      // dont l'heure est passée compte comme mangé tant que la personne n'a pas
+      // dit « pas mangé ». Rien n'est écrit en base pour ça — seules les
+      // exceptions le sont — donc la présomption se calcule ici, à la lecture.
+      // L'état reste `planned`: il dit « venu du plan, personne ne l'a
+      // contredit », et les autres lecteurs du journal s'appuient dessus.
+      const presumed = !skipped && !replaced && !confirmed && !hasResponse &&
+        elapsed(date, ps[0].slot);
       const reported = replaced
         ? ordered.find((e) => e.energy)?.energy ?? null
-        : confirmed && plannedKcal !== null
+        : (confirmed || presumed) && plannedKcal !== null
         ? { kcal: plannedKcal, basis: "plan_quantities" as const }
         : hasResponse
         ? ordered.find((e) => !e.tick && e.energy)?.energy ?? null
@@ -414,9 +481,12 @@ export function buildJournal(args: {
         }));
       }
     }
+    // Un repas `planned` passé est présumé mangé: il ne rend plus la journée
+    // incomplète, sauf si son énergie est inconnue (le total serait faux).
     const incomplete = meals.some((m) =>
-      ["missing", "planned", "unattached"].includes(m.state) ||
-      (m.state === "reported" && args.energy.open && !m.reportedEnergy)
+      ["missing", "unattached"].includes(m.state) ||
+      ((m.state === "reported" || m.state === "planned") && args.energy.open &&
+        !m.reportedEnergy)
     );
     report.days.push({
       date,

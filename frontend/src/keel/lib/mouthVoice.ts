@@ -68,7 +68,9 @@ export type VoicedKey =
   | "household.mouth.rhythm_hint"
   | "household.mouth.rhythm_house"
   | "household.mouth.tastes"
-  | "household.mouth.tastes_hint"
+  // ⟳ 2026-09-20 — `tastes_hint` A ÉTÉ RETIRÉE D'ICI AVEC SA PAIRE DE CLÉS.
+  // « Un dégoût, pas une allergie. » ne se rend plus: plus rien à décliner
+  // en « tu ». Même geste que `rhythm_floor_locked` cinq jours plus tôt.
   | "household.mouth.shaker_title"
   | "household.mouth.shaker_label"
   | "household.mouth.shaker_label_hint"
@@ -103,7 +105,6 @@ const YOU: Record<VoicedKey, MessageKey> = {
   "household.mouth.rhythm_hint": "household.mouth.rhythm_hint_you",
   "household.mouth.rhythm_house": "household.mouth.rhythm_house_you",
   "household.mouth.tastes": "household.mouth.tastes_you",
-  "household.mouth.tastes_hint": "household.mouth.tastes_hint_you",
   "household.mouth.shaker_title": "household.mouth.shaker_title_you",
   "household.mouth.shaker_label": "household.mouth.shaker_label_you",
   "household.mouth.shaker_label_hint": "household.mouth.shaker_label_hint_you",

@@ -370,20 +370,6 @@ export interface DayEnergy {
    */
   subject: "the_day" | "what_the_plan_made";
   /**
-   * FF-059 — CE QUI S'AJOUTE À L'ASSIETTE DE CETTE BOUCHE, ce jour-là.
-   *
-   * `0` dans le cas nominal (plan personnel, ou bouche dont le besoin EST le
-   * tronc). Non nul dans un foyer où les portions divergent — et c'est très
-   * exactement la bifurcation par objectif, enfin lisible en nombre.
-   *
-   * ⚠️ IL EST DANS `kcal`, et il est aussi rendu À PART. L'écran doit pouvoir
-   * dire « le plat, plus ce qui va dans ton assiette », parce qu'un total qui
-   * fond les deux ferait croire que le plat est plus gros qu'il n'est — et deux
-   * personnes autour de la même casserole liraient deux chiffres pour le même
-   * plat sans que rien n'explique pourquoi.
-   */
-  addonKcal: number;
-  /**
    * L17 — LA PART DE `kcal` DE CETTE JOURNÉE QUI VIENT D'UNE BORNE DE GROUPE.
    *
    * La somme des `DishEnergy.boundedKcal` des plats COMPTÉS du jour. `0` dans
@@ -571,84 +557,6 @@ export function dishEnergyAtTolerance(
   };
 }
 
-// ---------------------------------------------------------------------------
-// FF-059 — L'ADD-ON D'UNE BOUCHE, dans un foyer
-// ---------------------------------------------------------------------------
-
-/**
- * UN ADD-ON, tel que `generated_from.household.member_deltas` le porte.
- *
- * Un slug de `food_composition_refs` et des grammes CRUS. Pas de prose, pas de
- * raison, pas d'objectif — c'est le contrat de `memberDeltasPayload`, et c'est
- * ce qui rend cet objet lisible sans rien révéler du corps de personne.
- */
-export interface MemberAddon {
-  foodRef: string;
-  grams: number;
-}
-
-/**
- * CE QUI S'AJOUTE À L'ASSIETTE D'UNE BOUCHE, PAR JOUR.
- *
- * ── POURQUOI C'EST UNE GRANDEUR DE JOUR ET PAS DE PLAT ─────────────────────
- * Le delta de FF-043 comble un écart QUOTIDIEN — `m.envelope.energy.low -
- * trunk.energy.low`, deux bandes journalières. Il n'est attaché à aucun plat, et
- * l'attacher à un plat au hasard inventerait un rattachement que le moteur n'a
- * jamais fait.
- *
- * ⚠️ ── LES DENSITÉS DU CATALOGUE NE SERVENT PAS ICI ─────────────────────────
- * `DELTA_CATALOGUE` porte des `kcalPer100g` que son propre commentaire déclare
- * bons « à DIMENSIONNER un ajout, jamais à afficher un chiffre ». On repasse
- * donc par le référentiel, comme pour n'importe quel ingrédient — sinon
- * l'add-on serait le seul nombre de l'écran calculé sur un ordre de grandeur.
- *
- * `complete: false` dès qu'un `food_ref` n'est pas résolvable: le total du jour
- * dira alors qu'il lui manque quelque chose, au lieu de compter l'add-on à
- * zéro et de rendre une journée qui a l'air maigre.
- */
-export function memberAddonEnergy(
-  index: CompositionIndex,
-  addons: readonly MemberAddon[],
-): DishEnergy {
-  if (addons.length === 0) {
-    // AUCUN ADD-ON EST UN RÉSULTAT, PAS UNE ABSENCE. Le tronc est dimensionné
-    // sur le MIN de toutes les bouches: celle qui a le plus petit besoin n'a
-    // rien à ajouter, et sa journée est COMPLÈTE à zéro. Rendre `null` ici
-    // ferait dire « incomplet » à la seule personne dont l'assiette est
-    // exactement le plat.
-    return {
-      kcal: 0,
-      basis: PLAN_ENERGY_BASIS,
-      complete: true,
-      gaps: [],
-      unreadableTerms: [],
-      boundedKcal: 0,
-      boundedTerms: [],
-    };
-  }
-  return dishEnergy(index, {
-    // Aucune méthode: un add-on n'est pas cuisiné, il est ajouté. Passer une
-    // méthode de plat ici lui imputerait l'huile de friture du plat.
-    method: "",
-    ingredients: addons.map((a) => ({
-      term: a.foodRef,
-      // ⟳ LOT A (2026-09-11) — `foodRef` EST DÉJÀ UN SLUG, pas un libellé:
-      // `memberDeltasPayload` n'écrit que des identifiants de
-      // `food_composition_refs`. Le poser ici le fait chercher par ÉGALITÉ
-      // EXACTE au lieu de passer par la normalisation et les alias — donc plus
-      // d'alias orphelin, plus de faux ami, et un `food_ref` disparu du
-      // référentiel devient un refus NOMMÉ au lieu d'un terme introuvable.
-      ref: a.foodRef,
-      amount: a.grams,
-      unit: "g" as const,
-      // Les grammes du delta sont CRUS — `DELTA_CATALOGUE` les dimensionne sur
-      // des `kcalPer100g` « pour 100 g CRUS ». Sans ce `state`, le riz (×2,6)
-      // s'abstiendrait.
-      state: "raw" as const,
-    })),
-  });
-}
-
 /**
  * L'énergie d'un plan entier — par plat, puis par jour.
  *
@@ -670,19 +578,6 @@ export function planEnergy(args: {
   preparations: readonly EnergyPreparation[];
   servings: number;
   /**
-   * FF-059 — LES ADD-ONS DE **CETTE** BOUCHE, par jour.
-   *
-   * REQUIS, jamais optionnel, et `[]` est une valeur pleine qui veut dire
-   * « rien à ajouter » — pas « on ne sait pas ». Un plan personnel passe `[]`;
-   * un foyer passe les deltas du lecteur, et personne d'autre.
-   *
-   * ⚠️ CEUX DU LECTEUR, ET D'EUX SEULS. Un add-on est dimensionné sur le corps
-   * et l'objectif de quelqu'un: rendre ceux des autres bouches ferait lire à
-   * table, en kcal, le déficit de sa mère. « Ce qui touche le corps est à soi »
-   * est déjà la règle du domaine, et c'est ici qu'elle se tient.
-   */
-  addons: readonly MemberAddon[];
-  /**
    * ══════════════════════════════════════════════════════════════════════════
    * L8 ③ — LES REPAS QUE **CE LECTEUR** PREND DEHORS, par jour.
    * ══════════════════════════════════════════════════════════════════════════
@@ -696,9 +591,9 @@ export function planEnergy(args: {
    * Un `?` aurait laissé les appelants continuer d'annoncer une JOURNÉE là où le
    * plan n'a fait que deux repas sur trois, sans qu'aucun compilateur ne les
    * recense. C'est la cicatrice `optional-gate-params-are-disarmed-gates`, et
-   * elle a déjà coûté `servings` et `addons` dans cette même signature.
+   * elle a déjà coûté `servings` dans cette même signature.
    *
-   * ⚠️ CEUX DU LECTEUR, ET D'EUX SEULS — même règle qu'`addons` juste au-dessus.
+   * ⚠️ CEUX DU LECTEUR, ET D'EUX SEULS.
    * Le jeudi midi de sa mère ne change pas ce que SON assiette a reçu.
    */
   mealsOutByDay: ReadonlyMap<string | null, number>;
@@ -720,7 +615,6 @@ export function planEnergyAtTolerance(
     dishes: readonly EnergyDish[];
     preparations: readonly EnergyPreparation[];
     servings: number;
-    addons: readonly MemberAddon[];
     mealsOutByDay: ReadonlyMap<string | null, number>;
   },
   tolerance: number,
@@ -731,15 +625,11 @@ export function planEnergyAtTolerance(
       `[keel/plan_energy] servings must be an integer >= 1, got ${JSON.stringify(servings)}`,
     );
   }
-  if (!Array.isArray(args.addons)) {
-    throw new Error("[keel/plan_energy] addons is required (pass [] for none)");
-  }
   if (!(args.mealsOutByDay instanceof Map)) {
     throw new Error(
       "[keel/plan_energy] mealsOutByDay is required (pass an empty Map for none)",
     );
   }
-  const addon = memberAddonEnergy(index, args.addons);
 
   // LE PLIAGE D'ABORD. En cuisine en lot, 41 % de l'énergie et 51 % de la
   // protéine vivent dans les préparations, pas dans les plats (mesuré le
@@ -802,7 +692,6 @@ export function planEnergyAtTolerance(
         dishesTotal: 0,
         mealsOut: 0,
         subject: "the_day",
-        addonKcal: 0,
         boundedKcal: 0,
       };
       byDay.set(day, entry);
@@ -819,19 +708,16 @@ export function planEnergyAtTolerance(
     }
   }
 
-  // ── L'ADD-ON S'AJOUTE AU JOUR, PAS AU PLAT ──────────────────────────────
-  // Le delta comble un écart QUOTIDIEN et n'est attaché à aucun plat. Le
-  // rattacher à l'un d'eux inventerait un lien que le moteur n'a jamais fait —
-  // et ferait lire deux chiffres différents pour la même casserole à deux
-  // personnes assises côte à côte.
-  //
-  // ⚠️ SUR UN JOUR DONT AUCUN PLAT N'EST LISIBLE, IL NE FABRIQUE PAS UN TOTAL.
-  // `kcal` reste `null`: « 180 kcal » sur une journée dont on n'a su lire aucun
-  // repas serait le total qui fait semblant, dans sa version la plus trompeuse.
+  // ⛔ LOT A1 (2026-09-22) — PLUS D'ADD-ON DANS LE TOTAL DU JOUR.
+  // FF-043 écrivait un delta par bouche (`generated_from.household.
+  // member_deltas`) et ce calcul l'AJOUTAIT au total: ~390 g de riz par jour
+  // pour un lecteur, soit 1 373 kcal, pour un aliment qui n'existe dans AUCUNE
+  // boîte, AUCUNE ligne de courses et AUCUNE carte. Le total du jour d'un
+  // lecteur ne compte donc plus que ce que le plan a réellement composé.
+  // Le générateur continue d'écrire `member_deltas` — valeur historique, aucun
+  // lecteur. La divergence par objectif se dira par le lot C (« le féculent à
+  // côté »), qui produira un aliment VISIBLE avant de le compter.
   for (const entry of byDay.values()) {
-    entry.addonKcal = addon.kcal ?? 0;
-    if (!addon.complete) entry.complete = false;
-    if (entry.kcal !== null && addon.kcal !== null) entry.kcal += addon.kcal;
     // ── L8 ③ · LE SUJET DU NOMBRE ─────────────────────────────────────────
     // ⚠️ IL NE TOUCHE NI `kcal`, NI `complete`, NI `dishesCounted`. Un repas
     // pris dehors n'est pas un plat qu'on n'a pas su lire: le total du plan

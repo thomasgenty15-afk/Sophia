@@ -46,6 +46,9 @@ const bare = (src: string) =>
 
 const MODAL = bare(read("./Modal.tsx"));
 const DRAFT = bare(read("../plan/PlanDraftDialog.tsx"));
+// LES DEUX ADRESSES DE L'APERÇU: l'entonnoir et la plateforme.
+const SETUP = bare(read("../../pages/SetupPage.tsx"));
+const PLAN_PAGE = bare(read("../../pages/StudentWeekPlanPage.tsx"));
 
 describe("le voile ne ferme que sur un geste qui lui appartient EN ENTIER", () => {
   it("⛔ le geste doit COMMENCER sur le voile (`pointerdown`)", () => {
@@ -130,6 +133,43 @@ describe("l'aperçu de brouillon EST la fenêtre qui en a besoin", () => {
     expect(DRAFT).toMatch(/closeOnlyByButton/);
   });
 
+  it("⛔ ET LES DEUX ÉCRANS PASSENT PAR LUI — l'entonnoir ET la plateforme", () => {
+    // ⟳ 2026-09-21 — REDEMANDÉ, ET DÉJÀ VRAI: « quand la pop-up sort, la seule
+    // façon d'avancer ou de sortir c'est de cliquer sur "laisser tomber" ou
+    // "ajuster" ou "valider" — autant dans l'onboarding que dans la plateforme ».
+    //
+    // ⛔ CE QUE CE CAS AJOUTE AUX DEUX AU-DESSUS. Ils prouvent que LE COMPOSANT
+    // porte le verrou; ils resteraient verts si une page montait un `Modal` nu
+    // pour rendre un aperçu — la garde vivrait dans un composant que cet
+    // écran-là n'emploie plus. C'est l'ADRESSE qui est mesurée ici, et il y en
+    // a deux.
+    expect(SETUP, "l'entonnoir ne monte plus l'aperçu gardé")
+      .toContain("<PlanDraftDialog");
+    expect(PLAN_PAGE, "la page du plan ne monte plus l'aperçu gardé")
+      .toContain("<PlanDraftDialog");
+  });
+
+  it("⛔ RIEN NE FERME CETTE FENÊTRE SAUF SON BOUTON — même dedans", () => {
+    // Le voile et Échap sont tenus par `Modal`. Ce qui reste possible, et
+    // qu'aucun des cas ci-dessus n'attraperait: un `onClose()` appelé DEPUIS le
+    // corps du dialogue — au bout d'une reprise, après une question, sur un
+    // refus. Le brouillon partirait alors sans qu'on ait touché à rien, et le
+    // signalement serait le même mot pour mot (« ça fait partir le draft »).
+    //
+    // ⛔ ON MESURE L'APPEL, PAS LES OCCURRENCES. Un compte de `onClose` tenait
+    // le type, le paramètre et les DEUX moitiés de `onClose={onClose}` — un
+    // nombre qu'on ajuste au lieu de le comprendre, et qui change au premier
+    // renommage. Ce qui ferme la fenêtre est un APPEL: `onClose()`.
+    expect(
+      DRAFT,
+      "le dialogue appelle `onClose()` lui-même: le brouillon peut partir sans"
+        + " que personne ait cliqué sur « Laisser tomber »",
+    ).not.toMatch(/onClose\(\)/);
+    // Et il le passe bien à `Modal`, sinon la fenêtre n'aurait plus de sortie
+    // du tout — l'autre bout du même défaut.
+    expect(DRAFT).toContain("onClose={onClose}");
+  });
+
   it("⛔ et sa sortie porte le mot du RENONCEMENT, pas « fermer »", () => {
     // Une fenêtre dont on ne sort que par un bouton doit dire ce que ce bouton
     // fait. « Fermer » sur un brouillon qu'aucun écran ne rouvre serait le
@@ -155,8 +195,12 @@ describe("l'aperçu de brouillon EST la fenêtre qui en a besoin", () => {
     //
     // Ce qui compte vraiment est que le second chemin soit GRATUIT. On le
     // mesure: l'effet de reprise ne cite aucun composeur.
+    // ⟳ 2026-09-21 — ON COMPTE `setDraft(`, PLUS `setDraftOpen(true)`. L'état
+    // d'ouverture n'existe plus: la fenêtre est ouverte si et seulement si un
+    // brouillon existe, et poser le brouillon EST l'ouvrir. Le fait tenu ici
+    // n'a pas bougé — DEUX chemins l'ouvrent, et un seul paye un appel modèle.
     const setup = bare(read("../../pages/SetupPage.tsx"));
-    const opens = setup.match(/setDraftOpen\(true\)/g) ?? [];
+    const opens = setup.match(/\bsetDraft\(recovered\)|\bsetDraft\(composed\)/g) ?? [];
     expect(
       opens.length,
       "un TROISIÈME chemin ouvre l'aperçu: relire le motif ci-dessus",
@@ -167,7 +211,7 @@ describe("l'aperçu de brouillon EST la fenêtre qui en a besoin", () => {
     // un simple rechargement paierait un appel modèle.
     const effet = setup.slice(
       setup.indexOf("recoverLatestDraft()"),
-      setup.indexOf("setDraftOpen(true)") + 40,
+      setup.indexOf("setDraft(recovered)") + 40,
     );
     expect(effet, "la reprise doit lire, jamais composer")
       .not.toMatch(/composeDraft\(/);

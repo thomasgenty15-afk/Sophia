@@ -295,8 +295,13 @@ function HabitsFields(
             // La porte REMPLACE la liste entière, et cette carte n'édite que la
             // prose: sans le report, enregistrer ici effacerait en silence la
             // bulle « + repas léger » cochée depuis la fiche de la bouche.
+            // ⟳ 2026-09-23 — même chose pour les à-côtés (« jamais de
+            // dessert »): le réglage LU part avec la prose.
             const ok = await onSave(
-              habitPayload(draft, { light: habits?.light ?? {} }),
+              habitPayload(draft, {
+                light: habits?.light ?? {},
+                sideCourses: habits?.sideCourses ?? {},
+              }),
               note.trim() || null,
             );
             if (ok) setSaved(true);

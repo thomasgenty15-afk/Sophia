@@ -1,25 +1,19 @@
 import React from "react";
 
 import type {
-  AwayDay,
   CookingSession,
-  EatingOccasionSlot,
   GeneratedDish,
   MealPreparation,
   MemberPortionView,
-  PlanDayProperty,
   PlanTimingView,
-  PlanFixedIntake,
   ShoppingItem,
 } from "../../api/mealGeneration";
 import type { BoxEnergyView, DayEnergyView, DishEnergyView } from "../../api/mealEnergy";
 import { waveAssignments } from "../../api/groceryWaves";
 import { dishDayLabel, mealCopy } from "../../api/mealLabels";
-import { EnergyBasisNote } from "./EnergyReadout";
 import { groupByDay, withDaysThatCarry } from "../../lib/mealBuilderModel";
 import {
   type DaySelection,
-  dayMoments,
   defaultSelectedDay,
   effectiveSelectedDay,
   waveForDate,
@@ -28,7 +22,6 @@ import { dishDate } from "../../api/mealStretch";
 import { dayTokenOf } from "../../api/dates";
 import { windowDates, windowDayOrder } from "../../api/mealWindow";
 import PlanDayBlock from "./PlanDayBlock";
-import { buildPlanGrid } from "../../lib/planGridModel";
 import { type DishTick } from "../../lib/useMealTicks";
 import { Card } from "../ui/Card";
 
@@ -138,24 +131,10 @@ export interface PlanResultProps {
    * faux pour l'un des deux, et c'est le genre de phrase qu'on ne relit jamais.
    */
   emptyLabel: string;
-  /**
-   * LES LIGNES DE LA GRILLE — les moments d'une journée normale.
-   *
-   * Vide = pas de grille. On ne devine pas un rythme: une grille à six lignes
-   * fixes ferait relire chaque semaine des moments que l'élève a déjà dit ne
-   * pas prendre.
-   */
-  rhythm?: readonly EatingOccasionSlot[];
-  /**
-   * CE QUI EXPLIQUE UNE CASE VIDE (FF-053 R3).
-   *
-   * Les trois viennent de la RÉPONSE de la fonction, jamais d'une relecture de
-   * `practical_constraints` par l'écran: elle seule sait ce qu'elle a réellement
-   * lu, entrées malformées écartées.
-   */
-  awayDays?: readonly AwayDay[];
-  fixedIntakes?: readonly PlanFixedIntake[];
-  dayProperties?: readonly PlanDayProperty[];
+  // ⛔ 2026-09-23 — `rhythm`, `awayDays`, `fixedIntakes` et `dayProperties`
+  // SONT PARTIS. Ils ne servaient qu'à la grille qui donnait, en vue jour, la
+  // liste « Petit-déjeuner — rien ici » sous les plats. Liste retirée sur
+  // demande (« ça sert à rien, ça pollue l'UI »), avec tout son câblage.
   /**
    * LA COCHE D'UN PLAT, quand l'appelant en fournit une.
    *
@@ -212,18 +191,6 @@ export default function PlanResult(props: PlanResultProps) {
     order: dayOrder,
     dates: dayDates,
     today: props.today,
-  });
-
-  // LA GRILLE, sur la MÊME donnée que les sections: elle lit `groups`, donc
-  // l'expansion des lots par jour est déjà faite et les deux ne peuvent pas se
-  // contredire. Deux dérivations du même plan finiraient par diverger.
-  const grid = buildPlanGrid({
-    days: dayOrder,
-    rhythm: props.rhythm ?? [],
-    groups,
-    awayDays: props.awayDays ?? [],
-    fixedIntakes: props.fixedIntakes ?? [],
-    dayProperties: props.dayProperties ?? [],
   });
 
   // LES VAGUES D'ACHAT — le module serveur réexporté (`api/groceryWaves`),
@@ -318,8 +285,18 @@ export default function PlanResult(props: PlanResultProps) {
     // qui le lit ». Le `else` rendait `same_morning` pour TOUT ce qui n'est pas
     // `day_before` — donc, depuis le 2026-09-04, pour un plan qui commence
     // DEMAIN. Chaque cas se nomme désormais, et l'inconnu ne dit rien.
+    // ⟳ 2026-09-20 — `starts_tomorrow` NE DIT PLUS RIEN **ICI**, sur demande.
+    // « Ta journée est déjà entamée… » ouvrait l'aperçu sur ce que le plan ne
+    // couvre pas. Le cas garde sa branche plutôt que de retomber dans le
+    // `else`: c'est la cicatrice du dessus — un cas non nommé avait rendu
+    // `same_morning` sur un plan qui commence demain, c'est-à-dire un fait
+    // FAUX et indémentable pour qui le lit. Nommé, et muet.
+    //
+    // ⚠️ LA PHRASE SURVIT SUR `KitchenToday`, et ce n'est pas un oubli: là-bas
+    // elle explique pourquoi la journée est vide, à quelqu'un qui a déjà
+    // adopté. Ce qui est retiré est l'AVERTISSEMENT AVANT LE CLIC.
     : timing.kind === "starts_tomorrow"
-    ? mealCopy("meals.timing.starts_tomorrow")
+    ? null
     : timing.kind === "same_morning"
     ? mealCopy("meals.timing.same_morning")
     : null;
@@ -467,10 +444,6 @@ export default function PlanResult(props: PlanResultProps) {
           // tomberait aujourd'hui s'accrocherait au bloc sans jour.
           wave={group.day ? waveForDate(waves, dayDates[group.day] ?? null) : null}
           shoppingList={props.shoppingList}
-          // LES MOTIFS DES MOMENTS VIDES, en vue JOUR seulement: en semaine,
-          // la grille au-dessus porte déjà ces silences case par case, et les
-          // répéter sous chaque jour ferait vingt lignes de bruit.
-          moments={shown === "all" ? [] : dayMoments(grid, group.day)}
           // ⟳ 2026-09-09 — LA PHRASE DE TIMING VA SUR SON JOUR, et sur lui
           // seul. En vue semaine elle apparaît sous ce jour-là; en vue jour,
           // seulement quand c'est ce jour qu'on regarde. Un groupe sans jour
@@ -490,15 +463,9 @@ export default function PlanResult(props: PlanResultProps) {
           boxEnergy={props.boxEnergy}
         />
       ))}
-      {/* D'OÙ VIENT LE CHIFFRE — une fois, en bas, et seulement s'il y en a un.
-          Sans cette ligne, rien ne distingue à l'écran ce CALCUL d'une
-          estimation par photo, que le produit refuse précisément d'afficher
-          (−26,6 % de biais, systématique). */}
-      {/* ⟳ 2026-09-04 — ET AUSSI QUAND SEULES LES BOÎTES PORTENT UN CHIFFRE:
-          sur un lecteur fermé par défaut, `energy` est absent mais un kcal de
-          boîte peut s'afficher, et il ne s'affiche jamais sans sa base. Les
-          appelants ne passent `boxEnergy` que s'il y a au moins un chiffre. */}
-      {(props.energy || props.boxEnergy) && <EnergyBasisNote />}
+      {/* ⛔ 2026-09-23 — LA NOTE « Calculé à partir des quantités de ton plan
+          et d'une table de composition des aliments… » EST PARTIE D'ICI ET DE
+          `CookingSessions`, sur demande (« ça sert à rien, ça pollue l'UI »). */}
     </div>
   );
 }

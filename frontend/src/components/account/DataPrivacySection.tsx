@@ -20,6 +20,9 @@ import { formatDateLong } from "../../keel/i18n/format";
 import { Button, buttonClass } from "../../keel/components/ui/Button";
 import { Card, SectionLabel } from "../../keel/components/ui/Card";
 import { Field, inputClass } from "../../keel/components/ui/Field";
+// Le texte de cet écran vit sous `account.*` (2026-09-23), comme celui de
+// `UserProfile` qui le monte.
+import { t } from "../../keel/i18n/t";
 
 type Props = {
   /**
@@ -57,7 +60,8 @@ type InvokeOutcome<T> =
   | { ok: false; status: number | null; code: string | null; message: string };
 
 // supabase.functions.invoke wraps non-2xx in FunctionsHttpError with the raw
-// Response in error.context — unwrap it to map backend error codes to French.
+// Response in error.context — unwrap it to map backend error codes to a
+// translated message.
 async function invokeFn<T>(name: string, body: Record<string, unknown>): Promise<InvokeOutcome<T>> {
   const reqId = newRequestId();
   const { data, error } = await supabase.functions.invoke(name, {
@@ -85,14 +89,14 @@ async function invokeFn<T>(name: string, body: Record<string, unknown>): Promise
   };
 }
 
-function frenchExportError(outcome: { status: number | null; code: string | null }): string {
-  if (outcome.code === "invalid_password") return "Wrong password.";
-  if (outcome.status === 429) {
-    return "You already requested an export recently (limit: 1 export per 24 h). Try again later.";
-  }
-  return "The export failed. Try again in a few minutes, or write to sophia@sophia-coach.ai.";
+function exportErrorMessage(outcome: { status: number | null; code: string | null }): string {
+  if (outcome.code === "invalid_password") return t("account.error.wrong_password");
+  if (outcome.status === 429) return t("account.export.error.rate_limited");
+  return t("account.export.error.failed");
 }
 
+// ⚠️ LE MÊME MOT DANS LES DEUX LANGUES: `account-deletion-v1` le compare tel
+// quel (`DELETION_CONFIRMATION_WORD`). Seules les phrases autour se traduisent.
 const CONFIRMATION_WORD = "DELETE";
 
 type DeleteStep = "export" | "explain" | "confirm" | "done";
@@ -168,7 +172,7 @@ export default function DataPrivacySection({ isArchitect: _dead }: Props) {
         password: exportPassword,
       });
       if (!outcome.ok) {
-        setExportError(frenchExportError(outcome));
+        setExportError(exportErrorMessage(outcome));
         return;
       }
       setExportUrl(outcome.data.url);
@@ -209,11 +213,11 @@ export default function DataPrivacySection({ isArchitect: _dead }: Props) {
       }>("account-deletion-v1", { action: "prepare", password: deletePassword });
       if (!prepare.ok) {
         if (prepare.code === "invalid_password") {
-          setDeleteError("Wrong password.");
+          setDeleteError(t("account.error.wrong_password"));
         } else if (prepare.status === 429) {
-          setDeleteError("Too many attempts. Try again in an hour.");
+          setDeleteError(t("account.delete.error.rate_limited"));
         } else {
-          setDeleteError("The request failed. Try again, or write to sophia@sophia-coach.ai.");
+          setDeleteError(t("account.delete.error.request"));
         }
         return;
       }
@@ -231,13 +235,11 @@ export default function DataPrivacySection({ isArchitect: _dead }: Props) {
       });
       if (!confirm.ok) {
         if (confirm.code === "confirmation_word_mismatch") {
-          setDeleteError(`Type exactly "${CONFIRMATION_WORD}" to confirm.`);
+          setDeleteError(t("account.delete.error.word", { word: CONFIRMATION_WORD }));
         } else if (confirm.code === "subscription_cancel_failed") {
-          setDeleteError(
-            "Could not cancel your subscription right now. Nothing has been deleted — try again in a few minutes.",
-          );
+          setDeleteError(t("account.delete.error.subscription"));
         } else {
-          setDeleteError("The deletion failed. Nothing has been deleted — try again.");
+          setDeleteError(t("account.delete.error.failed"));
         }
         return;
       }
@@ -260,13 +262,13 @@ export default function DataPrivacySection({ isArchitect: _dead }: Props) {
     window.location.reload();
   };
 
-  // ⚠️ LEGACY, et seul le FORMATAGE bouge ici: « in 7 days » reste une phrase
-  // anglaise en dur, parce que l'extraction de ce reliquat est un lot à part.
-  // Le `fr-FR` codé, lui, était faux dans les deux sens — français forcé sur
-  // un écran anglais.
-  const formatDate = (iso: string | null) => {
-    if (!iso) return "in 7 days";
-    return formatDateLong(iso) || "in 7 days";
+  // La fin de phrase en gras: « définitivement supprimées le {date} », ou
+  // « … dans 7 jours » quand la date manque. Deux clés et pas une date de
+  // repli glissée dans la première: « supprimées le dans 7 jours » ne se lit
+  // dans aucune langue.
+  const purgePhrase = (iso: string | null) => {
+    const date = iso ? formatDateLong(iso) : "";
+    return date ? t("account.purge.on", { date }) : t("account.purge.soon");
   };
 
   return (
@@ -276,24 +278,23 @@ export default function DataPrivacySection({ isArchitect: _dead }: Props) {
           `text-xs tracking-widest text-slate-400` (2,8:1 sur le papier), et elle
           met cette section au même rang visuel que « Preferences » juste au
           dessus, dans le même onglet: c'est le même niveau de titre. */}
-      <SectionLabel className="mt-8">My data</SectionLabel>
+      <SectionLabel className="mt-8">{t("account.data.section")}</SectionLabel>
 
       {/* --- Export RGPD --- */}
       <Card className="mb-4">
         <div className="mb-2 flex items-center gap-3">
           <Download className="h-4 w-4 shrink-0 text-ink-soft" />
-          <span className="text-sm font-medium text-ink">Export my data</span>
+          <span className="text-sm font-medium text-ink">{t("account.export.title")}</span>
         </div>
         {/* `text-sm` et non `text-[11px]`: 11 px n'est dans aucun cran de
             l'échelle de la charte, et c'est une ligne qui se lit. */}
         <p className="mb-3 text-sm leading-6 text-ink-soft">
-          Download a copy of your data (profile, plans, conversations, memories) as JSON in a
-          ZIP archive. Limit: 1 export per 24 h.
+          {t("account.export.body")}
         </p>
 
         {!exportOpen ? (
           <Button onClick={() => setExportOpen(true)}>
-            Prepare my export
+            {t("account.export.open")}
           </Button>
         ) : (
           <div className="space-y-3">
@@ -301,14 +302,14 @@ export default function DataPrivacySection({ isArchitect: _dead }: Props) {
                 qui la relie enfin au champ — le `<label>` maison n'en avait pas,
                 donc cliquer dessus ne donnait pas le focus et un lecteur d'écran
                 annonçait un champ sans nom. */}
-            <Field label="Confirm your password to continue" htmlFor="account-export-password">
+            <Field label={t("account.export.password_label")} htmlFor="account-export-password">
               <input
                 id="account-export-password"
                 type="password"
                 value={exportPassword}
                 onChange={(e) => setExportPassword(e.target.value)}
                 className={inputClass}
-                placeholder="Your password"
+                placeholder={t("account.export.password_placeholder")}
                 autoComplete="current-password"
               />
             </Field>
@@ -330,7 +331,7 @@ export default function DataPrivacySection({ isArchitect: _dead }: Props) {
                 className={buttonClass("secondary", "md", "w-full")}
                 download
               >
-                Download the archive (link valid for 15 minutes)
+                {t("account.export.download")}
               </a>
             ) : (
               <Button
@@ -338,12 +339,11 @@ export default function DataPrivacySection({ isArchitect: _dead }: Props) {
                 disabled={exportLoading || !exportPassword}
                 className="w-full"
               >
-                {exportLoading ? "Preparing the archive…" : "Generate my export"}
+                {exportLoading ? t("account.export.preparing") : t("account.export.generate")}
               </Button>
             )}
             <p className="text-sm leading-6 text-ink-soft">
-              For your safety, a notification is sent in your chat and by email for every export
-              request. The file contains sensitive personal data: keep it somewhere safe.
+              {t("account.export.safety")}
             </p>
           </div>
         )}
@@ -362,7 +362,7 @@ export default function DataPrivacySection({ isArchitect: _dead }: Props) {
           Le `justify-between` maison part avec le `<button>`: il poussait un
           libellé seul contre le bord gauche d'une ligne pleine largeur. */}
       <Button variant="danger" onClick={openDeleteModal} className="mb-4 w-full">
-        <Trash2 className="h-4 w-4 shrink-0" /> Delete my account
+        <Trash2 className="h-4 w-4 shrink-0" /> {t("account.delete.title")}
       </Button>
 
       {/* --- Modal de suppression (3 étapes, sans rétention) --- */}
@@ -408,11 +408,11 @@ export default function DataPrivacySection({ isArchitect: _dead }: Props) {
                   // ⛔ ÉMERAUDE = OK, ET C'EST UN FAIT: la demande a été
                   // enregistrée. `emerald-700` est la valeur du kit.
                   <>
-                    <ShieldCheck className="h-4 w-4 shrink-0 text-emerald-700" /> Done
+                    <ShieldCheck className="h-4 w-4 shrink-0 text-emerald-700" /> {t("account.delete.done_title")}
                   </>
                 ) : (
                   <>
-                    <Trash2 className="h-4 w-4 shrink-0 text-red-700" /> Delete my account
+                    <Trash2 className="h-4 w-4 shrink-0 text-red-700" /> {t("account.delete.title")}
                   </>
                 )}
               </h4>
@@ -422,7 +422,7 @@ export default function DataPrivacySection({ isArchitect: _dead }: Props) {
                   onClick={() => setDeleteOpen(false)}
                   // `aria-label` parce qu'une croix n'a pas de texte, et le
                   // survol de la charte (`fig-50`) plutôt qu'un gris.
-                  aria-label="Close"
+                  aria-label={t("account.close")}
                   className="rounded-full p-2 text-ink-soft hover:bg-fig-50 hover:text-ink"
                   disabled={deleteLoading}
                 >
@@ -434,11 +434,7 @@ export default function DataPrivacySection({ isArchitect: _dead }: Props) {
             <div className="min-h-0 flex-1 overflow-y-auto p-4 text-sm leading-6 text-ink">
               {deleteStep === "export" && (
                 <>
-                  <p>
-                    Before you go, you can download a copy of your data (profile, plans,
-                    conversations, memories). It is optional — and only possible while your account
-                    still exists.
-                  </p>
+                  <p>{t("account.delete.export_body")}</p>
                   {/* ── ⚠️ AUCUNE FIGUE DANS CETTE FENÊTRE, ET C'EST L'ARBITRAGE
                       DE CE FICHIER ────────────────────────────────────────────
                       Deux raisons cumulées. D'abord la contrainte du kit: une
@@ -461,10 +457,10 @@ export default function DataPrivacySection({ isArchitect: _dead }: Props) {
                       }}
                       className="w-full"
                     >
-                      Download my data first
+                      {t("account.delete.export_first")}
                     </Button>
                     <Button onClick={() => setDeleteStep("explain")} className="w-full">
-                      Continue
+                      {t("account.delete.continue")}
                     </Button>
                   </div>
                 </>
@@ -472,38 +468,35 @@ export default function DataPrivacySection({ isArchitect: _dead }: Props) {
 
               {deleteStep === "explain" && (
                 <>
-                  <p className="font-semibold text-ink">Here is what will happen:</p>
+                  <p className="font-semibold text-ink">{t("account.delete.explain_title")}</p>
                   <ul className="mt-3 space-y-2 list-disc pl-5">
-                    <li>Your access to the app is cut off immediately.</li>
-                    <li>Sophia stops writing to you straight away.</li>
+                    <li>{t("account.delete.explain_access")}</li>
+                    <li>{t("account.delete.explain_messages")}</li>
+                    <li>{t("account.delete.explain_subscription")}</li>
                     <li>
-                      Your subscription is cancelled immediately, with no further charge. The
-                      period already paid is not refunded pro rata.
+                      <strong>{t("account.delete.explain_purge")}</strong>{" "}
+                      {t("account.delete.explain_irreversible")}
                     </li>
-                    <li>
-                      <strong>All your data is permanently deleted in 7 days.</strong>{" "}
-                      This deletion is irreversible.
-                    </li>
-                    <li>
-                      You can change your mind: sign in again before that date and your account is
-                      restored in one click (the subscription is not reactivated automatically).
-                    </li>
+                    <li>{t("account.delete.explain_restore")}</li>
                     {/* LE FOYER EST DIT ICI, avant le mot de passe, parce que
                         c'est une conséquence sur les repas d'AUTRES personnes
                         — pas un réglage de compte. */}
                     {place.inHousehold && !place.isOwner && (
                       <li>
-                        Your place in {place.householdName || "your household"} is{" "}
-                        <strong>kept by default</strong>: your serving and your allergies
-                        stay part of the household so nobody there loses a meal. You can
-                        ask for it to go too, on the next screen.
+                        {t("account.delete.member_lead", {
+                          household: place.householdName || t("account.delete.household_your"),
+                        })}{" "}
+                        <strong>{t("account.delete.member_kept")}</strong>{" "}
+                        {t("account.delete.member_rest")}
                       </li>
                     )}
                     {place.inHousehold && place.isOwner && (
                       <li>
-                        You run {place.householdName || "a household"}. It is{" "}
-                        <strong>not deleted</strong> — the people in it keep their servings,
-                        their allergies and their meals. What you lose is your access to it.
+                        {t("account.delete.owner_lead", {
+                          household: place.householdName || t("account.delete.household_a"),
+                        })}{" "}
+                        <strong>{t("account.delete.owner_kept")}</strong>{" "}
+                        {t("account.delete.owner_rest")}
                       </li>
                     )}
                   </ul>
@@ -516,13 +509,9 @@ export default function DataPrivacySection({ isArchitect: _dead }: Props) {
                       (15:1); seul le pictogramme garde l'ambre du kit. */}
                   <Card tone="warning" className="mt-4 text-sm leading-6">
                     <p className="flex items-center gap-1.5 font-semibold text-ink">
-                      <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-amber-800" /> What is kept
+                      <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-amber-800" /> {t("account.delete.kept_title")}
                     </p>
-                    <p className="mt-1">
-                      The invoices for your payments (statutory accounting retention obligation)
-                      and a minimal anonymised record of the deletion (hashed email and phone
-                      number, with the date) as proof of compliance. Nothing else.
-                    </p>
+                    <p className="mt-1">{t("account.delete.kept_body")}</p>
                   </Card>
                   <div className="mt-5 grid gap-2">
                     {/* L'ESCALADE PORTE DÉJÀ LE ROUGE, et elle le porte au
@@ -536,13 +525,13 @@ export default function DataPrivacySection({ isArchitect: _dead }: Props) {
                       onClick={() => setDeleteStep("confirm")}
                       className="w-full"
                     >
-                      I understand, continue
+                      {t("account.delete.understand")}
                     </Button>
                     {/* « Annuler » est le geste qu'on peut ignorer: `ghost`, la
                         variante que le kit a pour ça. Il reste le seul contrôle
                         neutre de l'étape, donc il ne se confond avec rien. */}
                     <Button variant="ghost" onClick={() => setDeleteOpen(false)} className="w-full">
-                      Cancel
+                      {t("account.cancel")}
                     </Button>
                   </div>
                 </>
@@ -551,8 +540,9 @@ export default function DataPrivacySection({ isArchitect: _dead }: Props) {
               {deleteStep === "confirm" && (
                 <>
                   <p>
-                    Last step. Confirm your password, then type{" "}
-                    <strong>{CONFIRMATION_WORD}</strong> to delete your account.
+                    {t("account.delete.confirm_lead")}{" "}
+                    <strong>{CONFIRMATION_WORD}</strong>{" "}
+                    {t("account.delete.confirm_rest")}
                   </p>
 
                   {/* LA QUESTION DU FOYER (chantier 2, D3). Elle n'est posée
@@ -583,14 +573,12 @@ export default function DataPrivacySection({ isArchitect: _dead }: Props) {
                         />
                         <span>
                           <strong>
-                            Also remove my place in{" "}
-                            {place.householdName || "this household"}?
+                            {t("account.delete.leave_question", {
+                              household: place.householdName || t("account.delete.household_this"),
+                            })}
                           </strong>
                           <span className="mt-1 block">
-                            Leave this unticked and your place stays: your first name,
-                            your serving and your allergies remain part of the household,
-                            and nobody there loses a meal. Tick it and all of that is
-                            deleted along with your account, on the same day.
+                            {t("account.delete.leave_body")}
                           </span>
                         </span>
                       </label>
@@ -604,7 +592,7 @@ export default function DataPrivacySection({ isArchitect: _dead }: Props) {
                       un mot de passe sur un téléphone, et Safari iOS zoome sur un
                       champ de moins de 16 px au focus SANS dézoomer en sortant. */}
                   <div className="mt-4 space-y-3">
-                    <Field label="Password" htmlFor="account-delete-password">
+                    <Field label={t("account.delete.password")} htmlFor="account-delete-password">
                       <input
                         id="account-delete-password"
                         type="password"
@@ -614,7 +602,7 @@ export default function DataPrivacySection({ isArchitect: _dead }: Props) {
                         autoComplete="current-password"
                       />
                     </Field>
-                    <Field label={`Type ${CONFIRMATION_WORD}`} htmlFor="account-delete-word">
+                    <Field label={t("account.delete.type_word", { word: CONFIRMATION_WORD })} htmlFor="account-delete-word">
                       <input
                         id="account-delete-word"
                         type="text"
@@ -645,7 +633,7 @@ export default function DataPrivacySection({ isArchitect: _dead }: Props) {
                       }
                       className="w-full"
                     >
-                      {deleteLoading ? "Deleting…" : "Permanently delete my account"}
+                      {deleteLoading ? t("account.delete.deleting") : t("account.delete.confirm")}
                     </Button>
                   </div>
                 </>
@@ -654,17 +642,15 @@ export default function DataPrivacySection({ isArchitect: _dead }: Props) {
               {deleteStep === "done" && (
                 <>
                   <p>
-                    Your account is deactivated. All your data will be{" "}
-                    <strong>permanently deleted on {formatDate(purgeDate)}</strong>.
+                    {t("account.delete.done_deactivated")}{" "}
+                    {t("account.purge.lead")}{" "}
+                    <strong>{purgePhrase(purgeDate)}</strong>.
                   </p>
                   <p className="mt-3">
-                    If you change your mind, sign in again before that date: your account will be restored
-                    in one click.
-                    {hadSubscription
-                      ? " Your subscription has been cancelled and will not be reactivated automatically."
-                      : ""}
+                    {t("account.delete.done_restore")}
+                    {hadSubscription ? ` ${t("account.delete.done_subscription")}` : ""}
                   </p>
-                  <p className="mt-3">Thank you for walking part of the way with Sophia. Take care of yourself.</p>
+                  <p className="mt-3">{t("account.delete.done_thanks")}</p>
                   {/* LA SEULE SORTIE DE CETTE ÉTAPE, et elle fait un vrai geste
                       (révoquer la session locale, quitter l'écran) — c'est pour ça
                       que la croix du fronton est retirée à `done` et que le voile
@@ -672,7 +658,7 @@ export default function DataPrivacySection({ isArchitect: _dead }: Props) {
                       n'est pas l'action principale d'un écran, et rien de figue
                       n'entre dans ce parcours. */}
                   <Button onClick={handleAfterDeletion} className="mt-5 w-full">
-                    Close
+                    {t("account.close")}
                   </Button>
                 </>
               )}

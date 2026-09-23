@@ -311,7 +311,10 @@ describe("les six blocs se rendent, dans l'ordre de la conception", () => {
     expect(markup).toContain('id="mouth-gender"');
     // Et ce qui se cachait derrière un en-tête fermé est là aussi, sans clic.
     expect(markup).toContain('id="mouth-diet"');
-    expect(markup).toContain('id="mouth-dislike"');
+    // ⟳ 2026-09-20 — `mouth-dislike` est devenu `mouth-terms-dislike`: le champ
+    // « un mot puis Ajouter » a laissé place au texte libre (`TermsEntry`).
+    // Même place, même section, même rôle dans l'ordre mesuré plus bas.
+    expect(markup).toContain('id="mouth-terms-dislike"');
     // ⟳ 2026-09-01 — LE CHAMP D'HABITUDE A QUITTÉ CETTE LISTE, sur demande
     // explicite, après que l'écran a été vu: sur un compte neuf (`rhythm:
     // null`), CINQ champs vides et ouverts s'empilaient sous cinq cases
@@ -336,11 +339,11 @@ describe("les six blocs se rendent, dans l'ordre de la conception", () => {
     const markup = html({});
     const at = (needle: string) => markup.indexOf(needle);
     expect(at('id="mouth-diet"')).toBeGreaterThan(-1);
-    expect(at('id="mouth-diet"')).toBeLessThan(at('id="mouth-dislike"'));
+    expect(at('id="mouth-diet"')).toBeLessThan(at('id="mouth-terms-dislike"'));
     // ⚠️ ANCRÉ SUR LA CASE, PAS SUR LE CHAMP: depuis que le champ s'ouvre avec
     // sa case, il n'existe pas sur un brouillon qui n'a rien coché — et ce
     // test-ci parle d'ORDRE, pas de dépliant.
-    expect(at('id="mouth-dislike"'))
+    expect(at('id="mouth-terms-dislike"'))
       .toBeLessThan(at('id="mouth-rhythm-breakfast"'));
 
     // ⟳ 2026-09-01 — L'APPÉTIT ET L'ASSIETTE SONT PASSÉS SOUS LES DÉGOÛTS.
@@ -355,7 +358,7 @@ describe("les six blocs se rendent, dans l'ordre de la conception", () => {
     // l'assiette n'écartent rien, ils PRÉCISENT. Ils étaient les deux seuls
     // blocs informatifs coincés entre des blocs excluants.
     expect(at('name="mouth-appetite"')).toBeGreaterThan(-1);
-    expect(at('id="mouth-dislike"'))
+    expect(at('id="mouth-terms-dislike"'))
       .toBeLessThan(at('name="mouth-appetite"'));
     // …et ils restent AVANT les moments: la place refusée le 2026-08-20 était
     // « sous les habitudes par moment », et ce n'est pas celle-ci.
@@ -404,10 +407,24 @@ describe("aucune question « adulte ou enfant »", () => {
     expect(bodyFr).not.toContain(decode(fr["setup.mouths.kind_child"]));
   });
 
-  it("et l'écran DIT que la date de naissance le remplace", () => {
-    expect(text(html({}))).toContain(
-      decode(en["household.mouth.birth_date_hint"]),
-    );
+  /**
+   * ⟳ 2026-09-20 — L'ÉCRAN NE LE DIT PLUS, ET IL N'A PAS À LE DIRE.
+   *
+   * Il portait sous le champ de date: « On ne demande jamais si c'est un
+   * adulte ou un enfant : la date de naissance le dit. » Retiré sur demande.
+   * C'était la réponse à une question que personne ne pose — un choix de
+   * CONCEPTION expliqué à quelqu'un qui remplit un champ de date.
+   *
+   * ⚠️ CE QUE LA PHRASE PROTÉGEAIT TIENT TOUJOURS, et c'est le cas d'à côté
+   * qui le garde: la question n'apparaît nulle part, et le brouillon n'a pas
+   * de champ `kind`. La règle vit dans le CODE, pas dans une phrase d'écran.
+   * La clé est supprimée des deux catalogues, donc on mesure la disparition
+   * sur le texte lui-même.
+   */
+  it("et il ne l'explique plus sous le champ de date", () => {
+    const body = text(html({}));
+    expect(body).not.toContain("adult or a child");
+    expect(text(html({ locale: "fr" }))).not.toContain("un adulte ou un enfant");
   });
 
   it("une date illisible est SIGNALÉE — « je ne sais pas » n'est pas « enfant »", () => {
@@ -482,8 +499,13 @@ describe("le curseur — quatre états, et deux d'entre eux sont des PHRASES", (
     });
     expect(markup).toContain('id="mouth-pace"');
     expect(markup).toContain('type="range"');
-    // 60 kg → 0,45 kg/semaine, le cas du design.
-    expect(markup).toContain('max="0.45"');
+    // 60 kg → 0,6 kg/semaine (0,45 avant le 2026-09-22 : A1 est passé de 500 à 880 kcal/j).
+    expect(markup).toContain('max="0.6"');
+    // ⟳ 2026-09-22 — et un homme de 93 kg en perte va jusqu'à 0,8.
+    const fabrice = html({
+      draft: { ...ADULT_COMPLETE, goal: "fat_loss", heightCm: "173", weightKg: "93", gender: "male", targetWeightKg: "85" },
+    });
+    expect(fabrice).toContain('max="0.8"');
     expect(markup).toContain('min="0.05"');
     expect(markup).toContain('step="0.05"');
   });
@@ -536,20 +558,21 @@ describe("le curseur — quatre états, et deux d'entre eux sont des PHRASES", (
     const SELF = { existing: true, hasAccount: true, isSelf: true } as const;
     for (const locale of ["en", "fr"] as const) {
       const body = text(html({ draft: DRAFT, locale, subject: SELF }));
-      // ① LA DATE — 60 kg → 55 kg à 0,45 kg/semaine = 12 semaines arrondies au
-      // supérieur, donc 84 jours après `TODAY` (2026-08-18).
-      expect(body).toContain(locale === "fr" ? "10 novembre 2026" : "10 November 2026");
+      // ① LA DATE — 60 kg → 55 kg à 0,6 kg/semaine = 9 semaines arrondies au
+      // supérieur, donc 63 jours après `TODAY` (2026-08-18).
+      // ⟳ 2026-09-22 — 5 kg à 0,6 kg/sem : le 20 octobre (le 10 novembre à 0,45).
+      expect(body).toContain(locale === "fr" ? "20 octobre 2026" : "20 October 2026");
       // ⛔ ET LE NOMBRE DE SEMAINES NE SE REND PLUS À CÔTÉ. Deux façons de dire
       // le même horizon divergent au premier arrondi changé.
-      expect(body).not.toMatch(/12\s*(weeks|semaines)/);
+      expect(body).not.toMatch(/9\s*(weeks|semaines)/);
       // ② ⛔ ET SA CONDITION, DANS LA MÊME FENÊTRE. C'est l'assertion qui
       // compte: sans elle, ce test redeviendrait celui d'avant le lot `L3`.
       expect(body).toContain(decode(
         arrivalHorizonCopy(
           {
             kind: "weeks_at_this_pace",
-            weeks: 12,
-            arrivalOn: "2026-11-10",
+            weeks: 9,
+            arrivalOn: "2026-10-20",
             targetKg: 55,
           },
           locale,
@@ -633,51 +656,37 @@ describe("le curseur — quatre états, et deux d'entre eux sont des PHRASES", (
 });
 
 // ---------------------------------------------------------------------------
-// ⚠️ LE SEUIL DE 0,5 EST UN AVERTISSEMENT, PAS UNE BORNE
+// ⟳ 2026-09-23 — LE SEUIL DE 0,5 EST DEVENU LA BUTÉE D'UNE PRISE
 // ---------------------------------------------------------------------------
 
-describe("en prise, le curseur DIT sans interdire", () => {
+describe("⟳ 2026-09-23 — en prise, le curseur s'arrête à 0,5 kg/sem", () => {
+  // Décision du propriétaire du 2026-09-23: une prise est plafonnée à 0,5
+  // kg/semaine, et ce que le curseur montre est ce que la casserole cuisine.
+  // Jusque-là, un corps de 160 kg montait à 0,8 et lisait la phrase « le
+  // surplus part surtout en gras » (`PACE_WARNING_LABELS`); le seuil de la
+  // phrase est devenu la butée, elle ne se rend plus.
   const LIFTER: Partial<MouthFormDraft> = {
     firstName: "Theo",
     birthDate: ADULT_BIRTH,
     heightCm: "185",
-    weightKg: "110",
+    weightKg: "160",
     gender: "male",
     activityLevel: "trains_hard",
     goal: "muscle_gain",
   };
 
-  it("le curseur MONTE au-delà de 0,5 — la butée est ailleurs", () => {
+  it("MORD — la butée du curseur est 0,5, même à 160 kg", () => {
     const markup = html({ draft: LIFTER });
-    expect(markup).toContain('max="1"');
+    expect(markup).toContain('max="0.5"');
+    expect(markup).not.toContain('max="0.8"');
   });
 
-  it("au-delà du seuil, LA PHRASE DU MODULE — en anglais", () => {
-    const body = text(html({ draft: { ...LIFTER, paceKgPerWeek: "0.75" } }));
-    expect(body).toContain(
-      decode(PACE_WARNING_LABELS.surplus_becomes_fat.en),
-    );
-  });
-
-  it("… ET EN FRANÇAIS — le seuil et son mot sont une seule décision", () => {
-    const body = text(
-      html({ draft: { ...LIFTER, paceKgPerWeek: "0.75" }, locale: "fr" }),
-    );
-    expect(body).toContain(
-      decode(PACE_WARNING_LABELS.surplus_becomes_fat.fr),
-    );
-    // ⚠️ ET PAS L'ANGLAIS À CÔTÉ: une phrase anglaise au milieu d'un écran
-    // français est la couture exacte que le chantier i18n ferme.
-    expect(body).not.toContain(
-      decode(PACE_WARNING_LABELS.surplus_becomes_fat.en),
-    );
-  });
-
-  it("à 0,50 pile, aucune phrase: le seuil est FRANCHI, pas atteint", () => {
-    const body = text(html({ draft: { ...LIFTER, paceKgPerWeek: "0.5" } }));
-    expect(body).not.toContain(
-      decode(PACE_WARNING_LABELS.surplus_becomes_fat.en),
-    );
+  it("un cran de 0,75 venu de la base: curseur à 0,5, et plus aucune phrase de physiologie", () => {
+    for (const locale of ["en", "fr"] as const) {
+      const body = text(html({ draft: { ...LIFTER, paceKgPerWeek: "0.75" }, locale }));
+      expect(body).not.toContain(decode(PACE_WARNING_LABELS.surplus_becomes_fat.en));
+      expect(body).not.toContain(decode(PACE_WARNING_LABELS.surplus_becomes_fat.fr));
+    }
   });
 
   it("une PERTE n'affiche jamais cet avertissement", () => {
@@ -688,25 +697,6 @@ describe("en prise, le curseur DIT sans interdire", () => {
       decode(PACE_WARNING_LABELS.surplus_becomes_fat.en),
     );
   });
-
-  // ── ③ · LA SATURATION N'EXISTE PLUS (⟳ 2026-09-09) ───────────────────────
-  //
-  // Ce bloc gardait le RETRAIT d'affichage (2026-08-19) de « à partir de ce
-  // cran, l'assiette ne change plus » via `PACE_SATURATION_LABELS`. Le plafond
-  // caché qui justifiait la phrase est parti avec elle: un cran du curseur est
-  // exécuté tel quel (en-tête de `weight_pace.ts`), le jeton n'existe plus, et
-  // rien ne peut rebrancher un texte qui n'est plus nulle part. Ce qui reste
-  // à tenir ici est l'avertissement de PHYSIOLOGIE, qui n'a jamais dit la
-  // même chose.
-  const SATURATED = "0.75";
-
-  it("③ l'avertissement de PHYSIOLOGIE reste, à un cran que le moteur exécute tel quel", () => {
-    // « Le surplus part surtout en gras » est un fait sur le CORPS: il PARLE
-    // au-delà de 0,5 kg/sem et n'interdit rien — le cran est servi.
-    const body = text(html({ draft: { ...LIFTER, paceKgPerWeek: SATURATED } }));
-    expect(body).toContain(decode(PACE_WARNING_LABELS.surplus_becomes_fat.en));
-  });
-
 });
 
 // ---------------------------------------------------------------------------
@@ -949,30 +939,35 @@ describe("les goûts et le régime", () => {
     expect(html({ subject: NO_ACCOUNT })).toContain('id="mouth-diet"');
   });
 
-  it("un dégoût N'EST PAS une allergie, et ça se lit BLOC REPLIÉ", () => {
+  it("⟳ 2026-09-20 — un dégoût n'est toujours pas une allergie, et ce sont DEUX BLOCS", () => {
     // Les deux tables ont deux natures: une allergie est médicale et
     // fail-closed; un dégoût est un fait de foyer dont le verrou serveur TAIT
     // le pourquoi. Les fondre promettrait une garde de sécurité sur une
     // préférence.
     //
-    // ⚠️ LA DISTINCTION EST DANS L'EN-TÊTE DU BLOC, PAS SOUS SON CHAMP, ET
-    // C'EST UNE CORRECTION MESURÉE: sous le champ, elle n'était lisible
-    // qu'après avoir déplié — c'est-à-dire après avoir choisi le mauvais bloc.
+    // ── CE QUI A CHANGÉ, ET CE QUI NE POUVAIT PAS ───────────────────────────
+    // La phrase qui DISAIT la distinction (« Un dégoût, pas une allergie. »,
+    // `household.mouth.tastes_hint`) est partie sur demande, avec l'aide du
+    // bloc des allergies et les dix-sept pastilles. Ce test mesurait sa
+    // présence; il mesure maintenant ce qui reste — et ce qui reste est le
+    // seul porteur solide de la distinction: DEUX SECTIONS, deux titres.
+    //
+    // ⛔ IL NE SUFFIT PAS DE VÉRIFIER QUE LA PHRASE EST PARTIE. Un test qui ne
+    // dirait que ça resterait vert le jour où les deux blocs fusionneraient —
+    // c'est-à-dire sur le seul défaut que cette section existe pour empêcher.
     const body = text(html({}));
-    expect(body).toContain(decode(en["household.mouth.tastes_hint"]));
+    expect(body).not.toContain("A dislike, not an allergy");
     const bodyFr = text(html({ locale: "fr" }));
-    expect(bodyFr).toContain(decode(fr["household.mouth.tastes_hint"]));
-    // ⛔ ET UNE SEULE FOIS. Ce test exigeait AUSSI « Dislike, not allergy »
-    // sous le champ — la MÊME phrase, un cran plus bas. Le bloc disait donc
-    // trois fois la même chose: le titre, l'aide de section, puis un second
-    // libellé et une seconde aide. Jugé le 2026-08-20: « cette section est
-    // verbeuse, pas du tout optimisée ». La distinction reste là où le
-    // commentaire ci-dessus la veut — dans l'en-tête —, et n'y est plus qu'une
-    // fois.
-    expect(
-      countOf(body, decode(en["household.mouth.tastes_hint"])),
-      "la distinction dégoût/allergie est répétée",
-    ).toBe(1);
+    expect(bodyFr).not.toContain("pas une allergie");
+    // LES DEUX SECTIONS RESTENT DEUX, ET CHACUNE GARDE SON CHAMP. C'est la
+    // seule chose qui tienne encore la distinction maintenant que la phrase
+    // est partie — un test de titre aurait dû recomposer `{who}` à la main,
+    // c'est-à-dire réécrire le composant dans son propre test.
+    const markup = html({});
+    expect(markup).toContain('id="mouth-terms-allergy"');
+    expect(markup).toContain('id="mouth-terms-dislike"');
+    expect(markup.indexOf('id="mouth-terms-allergy"'))
+      .toBeLessThan(markup.indexOf('id="mouth-terms-dislike"'));
   });
 });
 
@@ -1460,39 +1455,42 @@ describe("la cloison entre les deux surfaces", () => {
   });
 
   /**
-   * CE QUI A ÉTÉ RENSEIGNÉ DERRIÈRE LE BOUTON EST DIT SOUS LE BOUTON.
+   * ══════════════════════════════════════════════════════════════════════
+   * ⟳ 2026-09-20 — LE RÉCAPITULATIF SOUS LE BOUTON A ÉTÉ RETIRÉ
+   * ══════════════════════════════════════════════════════════════════════
    *
-   * ⚠️ LE CAS VIDE EST LA MOITIÉ DE LA GARDE. Sans lui, un récapitulatif qui
-   * dirait toujours la même phrase — ou qui ne dirait jamais rien — passerait:
-   * ce qui est prouvé est que l'écran DISTINGUE « rien répondu » de « répondu ».
+   * Deux cas vivaient ici: « le récapitulatif distingue rien renseigné de ce
+   * qui l'a été » et « rien à déclarer compte comme renseigné ». Ils gardaient
+   * une ligne — « Déjà renseigné : les allergies. » — retirée sur demande.
+   *
+   * ⚠️ CE QU'ELLE PAYAIT EST MAINTENANT À DÉCOUVERT, et c'est écrit ici plutôt
+   * que perdu avec les deux cas: la fenêtre des préférences n'a pas de bouton
+   * qui enregistre, elle édite le brouillon de la fiche, et c'est le Save de
+   * la fiche qui écrit. Cette ligne était la contrepartie nommée — refermer la
+   * fenêtre ne laisse plus de trace visible de ce qu'on vient d'y taper. La
+   * donnée part bien; c'est la preuve à l'écran qui disparaît.
+   *
+   * ⛔ ET LE COMPTEUR N'EST PAS MORT. `filledPreferenceBlocks` et les deux
+   * clés servent encore trois cadres repliables de `/app/household`, où le
+   * récapitulatif EST la raison du repli. Ce qui se mesure ici est donc
+   * l'absence sur CETTE porte-ci, pas la disparition du compte.
    */
-  it("le récapitulatif distingue « rien renseigné » de ce qui l'a été", () => {
-    expect(text(coreHtml({}))).toContain(
+  it("ne récapitule plus ce qui est renseigné derrière", () => {
+    // Le cas vide…
+    expect(text(coreHtml({}))).not.toContain(
       decode(en["household.mouth.preferences_empty"]),
     );
+    // … et le cas rempli, qui est celui qu'on voyait à l'écran.
     const filled = text(
       coreHtml({ draft: { allergies: ["milk"], dislikes: ["mushrooms"] } }),
     );
-    expect(filled).not.toContain(
-      decode(en["household.mouth.preferences_empty"]),
+    expect(filled).not.toContain(decode(en["household.mouth.block_allergies"]));
+    expect(filled).not.toContain(decode(en["household.mouth.block_tastes"]));
+    // ⚠️ MAIS LA PORTE, ELLE, EST TOUJOURS LÀ. Sans cette ligne, supprimer le
+    // bouton entier laisserait ce cas vert.
+    expect(filled).toContain(
+      decode(en["household.mouth.preferences_open"].replace(/\{who\}/g, en["household.mouth.who_fallback"])),
     );
-    expect(filled).toContain(decode(en["household.mouth.block_allergies"]));
-    expect(filled).toContain(decode(en["household.mouth.block_tastes"]));
-    // ET PAS CELUI QU'ON N'A PAS TOUCHÉ: un récapitulatif qui nomme tout ne
-    // récapitule rien.
-    expect(filled).not.toContain(decode(en["household.mouth.block_habits"]));
-  });
-
-  /**
-   * « AUCUNE ALLERGIE » EST UNE RÉPONSE, et le récapitulatif la compte comme
-   * telle. Sinon quelqu'un qui a répondu « rien » lit qu'il n'a rien répondu,
-   * rouvre, et recoche — c'est exactement ce que `allergiesNone` existe pour
-   * éviter en base.
-   */
-  it("« rien à déclarer » compte comme renseigné", () => {
-    const body = text(coreHtml({ draft: { allergiesNone: true } }));
-    expect(body).not.toContain(decode(en["household.mouth.preferences_empty"]));
-    expect(body).toContain(decode(en["household.mouth.block_allergies"]));
   });
 });
 
@@ -2732,5 +2730,89 @@ describe("« + repas léger » — la bulle du lot 7", () => {
       draft: { ...base, rhythm: [{ slot: "dinner", size: null }] },
     });
     expect(text(html)).toContain(decode(en["household.mouth.light_hint"]));
+  });
+});
+
+// ===========================================================================
+// 2026-09-20 — ALLERGIES ET DÉGOÛTS EN TEXTE LIBRE
+//
+// Demandé à l'écran: une phrase ou des virgules, « Ajouter » qui s'allume dès
+// qu'il y a du texte, un appel modèle court, et les aliments en bulles déjà
+// cochées. « Rien à déclarer » part. Ce fichier garde la FORME rendue; l'appel
+// modèle et le repli sans modèle sont prouvés côté moteur
+// (`_shared/keel/food_terms_extract_test.ts`) et ne se montent pas ici.
+// ===========================================================================
+
+describe("le texte libre des deux sections", () => {
+  it("un champ par section, nommé, avec son exemple", () => {
+    const body = html({});
+    expect(body).toContain('id="mouth-terms-allergy"');
+    expect(body).toContain('id="mouth-terms-dislike"');
+    // ⚠️ SUR LE MARQUAGE, PAS SUR `text()`: un placeholder est un ATTRIBUT, et
+    // `text()` retire les balises avec leurs attributs. Le premier jet de ce
+    // cas cherchait la phrase dans le texte débalisé et tombait sur un champ
+    // pourtant rendu.
+    expect(decode(body)).toContain(en["household.mouth.terms_placeholder_allergy"]);
+    expect(decode(body)).toContain(en["household.mouth.terms_placeholder_dislike"]);
+  });
+
+  it("⛔ « Rien à déclarer » n'est plus rendu", () => {
+    expect(text(html({}))).not.toContain(decode(en["setup.people.allergies_none"]));
+    expect(text(html({ locale: "fr" }))).not.toContain(decode(fr["setup.people.allergies_none"]));
+  });
+
+  /**
+   * ⟳ 2026-09-20 — LES DIX-SEPT PASTILLES SONT PARTIES, SUR DEMANDE.
+   *
+   * Ce cas disait l'inverse (« elles sont toujours là »), et son commentaire
+   * disait pourquoi: une pastille couvre tous les noms d'un danger, un mot
+   * tapé ne couvre que lui-même. Ce coût est accepté; ce qui est mesuré ici
+   * est qu'elles sont VRAIMENT parties — un écran qui garderait la moitié de
+   * la liste se relit comme un écran nettoyé.
+   */
+  it("⛔ plus aucune pastille d'allergène n'est rendue", () => {
+    const body = text(html({}));
+    // ⛔ PAS `gluten` DANS CETTE LISTE, ET CE N'EST PAS UN TROU. Son libellé
+    // est « Gluten », et la question du RÉGIME juste au-dessus rend
+    // « Gluten-free »: un `not.toContain("Gluten")` mesurerait la présence
+    // d'un champ qui n'a rien à voir, et rougirait pour toujours. C'est la
+    // règle « laitue n'est pas lait », prise dans un test plutôt que dans un
+    // matcher.
+    for (const slug of ["peanut", "tree_nut", "dairy", "sesame", "mollusc"]) {
+      expect(
+        body,
+        `la pastille ${slug} est revenue`,
+      ).not.toContain(decode(en[`allergen.${slug}` as "allergen.peanut"]));
+    }
+    // ET LE CHAMP LIBRE RESTE LE SEUL PORTEUR: sans lui, la section ne
+    // collecterait plus rien du tout — c'est l'autre moitié du lot.
+    expect(html({})).toContain('id="mouth-terms-allergy"');
+  });
+
+  /**
+   * ⛔ TOUT CE QUE PORTE `draft.allergies` SE VOIT, SLUG DU CATALOGUE COMPRIS.
+   *
+   * Ce cas mesurait la cloison entre les deux listes: un slug avait sa
+   * pastille, donc le champ libre le TAISAIT. Sans pastilles, ce silence
+   * deviendrait un mot rendu nulle part et retirable par aucun geste — la
+   * cicatrice `null-port-hides-the-collection-too`, prise par l'autre bout.
+   */
+  it("un slug du catalogue est une bulle comme les autres", () => {
+    const body = text(html({ draft: { allergies: ["peanut", "cacahuete"] } }));
+    expect(body).toContain("cacahuete ×");
+    expect(body).toContain("peanut ×");
+  });
+
+  it("un dégoût est une bulle avec sa croix", () => {
+    expect(text(html({ draft: { dislikes: ["mushrooms"] } }))).toContain("mushrooms ×");
+  });
+
+  /** Le champ vide n'arme pas « Ajouter »: c'est le texte qui le colore. */
+  it("« Ajouter » est désarmé tant que le champ est vide", () => {
+    const body = html({});
+    const at = body.indexOf('id="mouth-terms-dislike"');
+    const after = body.slice(at, at + 1500);
+    expect(after).toContain("disabled");
+    expect(text(after)).toContain(decode(en["setup.people.allergies_add"]));
   });
 });

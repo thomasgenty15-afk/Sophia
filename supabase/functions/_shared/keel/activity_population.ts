@@ -138,7 +138,11 @@ export function activitySourceCensus(
   // `legacy` » et « le seau `legacy` n'existe pas » rendraient le même silence.
   for (const source of ACTIVITY_FACTOR_SOURCES) out[source] = 0;
   for (const mouth of mouths) {
-    tallyActivitySource(out, activityFactorOf(mouth.axes, mouth.legacyLevel).source);
+    // ⚠️ `mid`: seule la SOURCE compte ici, et elle ne dépend pas du bord.
+    tallyActivitySource(
+      out,
+      activityFactorOf(mouth.axes, mouth.legacyLevel, "mid").source,
+    );
   }
   return out;
 }

@@ -19,7 +19,7 @@ import { useMealEnergy } from "../lib/useMealEnergy";
 import KeelAppShell from "../components/KeelAppShell";
 import KitchenToday from "../components/KitchenToday";
 import { boxLinesForDish } from "../lib/mealBoxes";
-import { Button, ButtonLink } from "../components/ui/Button";
+import { ButtonLink } from "../components/ui/Button";
 import { Card, SectionLabel } from "../components/ui/Card";
 import { t } from "../i18n/t";
 
@@ -31,10 +31,11 @@ import { t } from "../i18n/t";
 //   1. ce que la journée DEMANDE — la session de cuisine et les courses
 //      (`KitchenToday`), avant les plats: un jour de cuisson découvert après
 //      le dîner ne sert plus à rien;
-//   2. les PLATS du jour, avec leur case « j'ai mangé ça » — la MÊME case que
+//   2. les PLATS du jour, avec leur case « pas mangé » — la MÊME case que
 //      `/app/plan`, par la même liaison (`useMealTicks`);
 //   3. le CHIFFRE du jour et celui de chaque plat, quand les portes sont
-//      ouvertes, avec la bascule qui l'éteint;
+//      ouvertes (la bascule qui l'éteint vit sur `/app/plan` depuis le
+//      2026-09-23);
 //   4. les PHOTOS prises aujourd'hui, quel que soit le créneau.
 //
 // ── CE QUI EST PARTI, ET POURQUOI CE N'EST PAS UNE PERTE ───────────────────
@@ -367,25 +368,10 @@ function TodayBody({
                 Ne les remets pas « parce que le contrat les demande » sans
                 repasser par la personne qui les a fait retirer.
                 ═══════════════════════════════════════════════════════════ */}
-            {energy.showing && (
-              // ON L'ÉTEINT LÀ OÙ ON LE RENCONTRE. « Un chiffre qu'on ne peut
-              // pas faire taire est un tracker. »
-              // ⚠️ SEULEMENT L'EXTINCTION: on n'invite pas à allumer ici.
-              <div className="mt-4 flex flex-wrap items-center gap-3">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => energy.toggle(false)}
-                >
-                  {mealCopy("meals.energy.switch_off")}
-                </Button>
-                {energy.error && (
-                  <span className="text-xs text-red-700">
-                    {mealCopy("meals.energy.switch_failed")}
-                  </span>
-                )}
-              </div>
-            )}
+            {/* ⟳ 2026-09-23 — LE BOUTON « MASQUER LES CALORIES » EST RETIRÉ DE
+                CET ÉCRAN, sur demande du propriétaire. La bascule vit sur
+                `/app/about-you` (`PlanNumbersSection`) depuis le 2026-09-23 —
+                la section de `/app/plan` n'avait plus d'ouvreur (FF-066). */}
           </section>
         )
         : <NoPlanYet />}

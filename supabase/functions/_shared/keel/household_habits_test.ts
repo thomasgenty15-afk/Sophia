@@ -23,6 +23,7 @@ import {
   parseMemberHabits,
   readHabitText,
   parseMemberLight,
+  parseMemberSideCourses,
 } from "./household_habits.ts";
 import { EATING_OCCASIONS } from "./meal_generation.ts";
 import { DRAFT_NOTE_MAX_CHARS } from "./plan_draft_note.ts";
@@ -731,4 +732,100 @@ Deno.test("⛔ CÂBLAGE — les jours plafonnés sont calculés UNE fois et lus 
     "la grille et les porteurs doivent lire la MÊME Map",
   );
   assert(src.includes("own_usual_capped:"), "le plafond ne se compte pas au journal");
+});
+
+// ---------------------------------------------------------------------------
+// ⟳ 2026-09-23 — LES À-CÔTÉS QUE LA BOUCHE VEUT OU REFUSE
+//
+// Le réglage que la mémoire (une note, un retour de fin de plan) et l'écran
+// écrivent dans `slots[].side_courses`. Les mêmes trois états que `light`, par
+// TYPE: absent = le défaut de l'objectif, `false` = jamais, `true` = toujours.
+// ---------------------------------------------------------------------------
+
+Deno.test("à-côtés — LE CAS QUI PASSE: un type refusé et un type forcé, sur leur moment", () => {
+  assertEquals(
+    parseMemberSideCourses([
+      { slot: "dinner", kind: "household_dish", usual: "", light: true, side_courses: { dessert: false, cheese: true } },
+      { slot: "lunch", side_courses: { starter: true } },
+    ]),
+    { dinner: { cheese: true, dessert: false }, lunch: { starter: true } },
+  );
+});
+
+Deno.test("à-côtés — ⛔ LES TROIS ÉTATS NE SE CONFONDENT PAS: absent ≠ false ≠ true", () => {
+  // Une entrée SANS la clé ne dit rien: le moment n'apparaît pas du tout.
+  assertEquals(parseMemberSideCourses([{ slot: "dinner", kind: "own_usual", usual: "x" }]), {});
+  assertEquals(parseMemberSideCourses([{ slot: "dinner", side_courses: { bread: false } }]), {
+    dinner: { bread: false },
+  });
+  assertEquals(parseMemberSideCourses([{ slot: "dinner", side_courses: { bread: true } }]), {
+    dinner: { bread: true },
+  });
+  // `{}` est « rien de réglé », lu comme l'absence.
+  assertEquals(parseMemberSideCourses([{ slot: "dinner", side_courses: {} }]), {});
+});
+
+Deno.test("à-côtés — seuls le déjeuner et le dîner portent un à-côté", () => {
+  // La contrainte SQL refuse aussi ces trois-là: si la lecture divergeait, la
+  // plus permissive des deux déciderait.
+  assertEquals(parseMemberSideCourses([{ slot: "breakfast", side_courses: { dessert: false } }]), {});
+  assertEquals(parseMemberSideCourses([{ slot: "snack_pm", side_courses: { bread: true } }]), {});
+  assertEquals(parseMemberSideCourses([{ slot: "before_bed", side_courses: { dessert: true } }]), {});
+});
+
+Deno.test("à-côtés — un type INCONNU est écarté, les autres survivent", () => {
+  assertEquals(
+    parseMemberSideCourses([{ slot: "lunch", side_courses: { soup: true, wine: false, dessert: false } }]),
+    { lunch: { dessert: false } },
+  );
+  // Un moment qui ne porte QUE des types inconnus ne dit rien.
+  assertEquals(parseMemberSideCourses([{ slot: "lunch", side_courses: { soup: true } }]), {});
+});
+
+Deno.test("à-côtés — seul un VRAI booléen compte — « false », 0 et null sont écartés", () => {
+  for (const value of ["false", "true", 0, 1, null, "non"]) {
+    assertEquals(
+      parseMemberSideCourses([{ slot: "dinner", side_courses: { dessert: value } }]),
+      {},
+      `\`dessert: ${JSON.stringify(value)}\` a été lu comme un réglage`,
+    );
+  }
+});
+
+Deno.test("à-côtés — le premier qui porte la clé gagne, jamais une fusion", () => {
+  assertEquals(
+    parseMemberSideCourses([
+      { slot: "dinner", light: true },
+      { slot: "dinner", side_courses: { dessert: false } },
+      { slot: "dinner", side_courses: { dessert: true, cheese: true } },
+    ]),
+    { dinner: { dessert: false } },
+  );
+});
+
+Deno.test("à-côtés — une forme illisible rend `{}`, jamais une exception", () => {
+  assertEquals(parseMemberSideCourses(null), {});
+  assertEquals(parseMemberSideCourses("side_courses"), {});
+  assertEquals(parseMemberSideCourses({ slot: "dinner", side_courses: { dessert: false } }), {});
+  assertEquals(
+    parseMemberSideCourses([
+      null,
+      "side_courses",
+      3,
+      { slot: "dinner", side_courses: ["dessert"] },
+      { slot: "dinner", side_courses: "dessert" },
+      { slot: "lunch", side_courses: { cheese: false } },
+    ]),
+    { lunch: { cheese: false } },
+  );
+});
+
+Deno.test("à-côtés — le « léger » et la prose du même moment se lisent sans eux", () => {
+  // La MÊME colonne, trois questions: chacun des trois parseurs lit la sienne.
+  const slots = [
+    { slot: "dinner", kind: "own_usual", usual: "une soupe", light: true, side_courses: { dessert: false } },
+  ];
+  assertEquals(parseMemberLight(slots), { dinner: true });
+  assertEquals(parseMemberHabits(slots).map((h) => h.usual), ["une soupe"]);
+  assertEquals(parseMemberSideCourses(slots), { dinner: { dessert: false } });
 });

@@ -18,6 +18,7 @@ import {
   MERGE_ANCHOR_INSTRUCTION,
   MERGE_MATERIAL_USE_INSTRUCTION,
 } from "./household_merge.ts";
+import { avoidLineOf } from "./plan_avoid_list.ts";
 
 /**
  * TOUT LE MONDE EST LÀ — le cas nominal, et il est CALCULÉ, jamais écrit à la
@@ -1914,7 +1915,16 @@ Deno.test("LOT 4 — la version de la lane foyer a bougé d'UN cran", () => {
   //   · v26 AVEC `decided` — les faits déjà tranchés partent aussi.
   // Le compteur `explanation.asked` sépare les deux dernières, et un test plus
   // bas tient l'identité du `userSuffix` sans les faits.
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v36_the_goal_outranks_the_habit");
+  // ⟳ 2026-09-23 — `v37_the_plate_is_not_the_meal`: la recette de référence
+  // (la part du MILIEU), les phrases qui poussaient au féculent retirées, le
+  // bloc SIDE COURSES dès qu'un à-côté est demandé, le sens du plan PAR
+  // PERSONNE. Population: tous les foyers (la recette change pour tous).
+  // ⟳ 2026-09-23 — `v38_every_plate_splits_its_starch`: le féculent à part
+  // pour tout déjeuner et tout dîner, seul ou partagé (`standardRecipeBlock`).
+  // ⟳ 2026-09-23 — `v39_side_courses_come_in_families`: le bloc SIDE COURSES
+  // dit la table, son exception, les deux jours et le dessert d'un aliment.
+  // ⟳ 2026-09-23 — v40: la table partage ses à-côtés (`side_courses_prompt.ts`).
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v41_what_came_back_is_named");
 });
 
 // ===========================================================================
@@ -2479,7 +2489,12 @@ const DECIDED = {
   cookDays: ["fri", "mon"],
   daysOutOfReach: ["thu"],
   strictestRegime: "vegan",
-  direction: "down",
+  // ⟳ 2026-09-23 — UNE DIRECTION PAR PERSONNE (plus celle du seul titulaire).
+  directions: [
+    { name: "Marc", direction: "down" },
+    { name: "Tom", direction: "up" },
+    { name: "Léa", direction: null },
+  ],
   wishServed: true,
 };
 
@@ -2529,7 +2544,20 @@ Deno.test("AVEC les faits, le bloc les dit ET renomme la clé dans CE message", 
   assert(userSuffix.includes("Cooking session(s) on: fri, mon."), userSuffix);
   assert(userSuffix.includes("cooked fresh that day): thu."), userSuffix);
   assert(userSuffix.includes("follows the vegan line"), userSuffix);
-  assert(userSuffix.includes("this plan leans: lighter"), userSuffix);
+  // ⟳ 2026-09-23 — UNE LIGNE PAR PERSONNE, dans l'ordre reçu.
+  assert(userSuffix.includes("- Which way this plan leans for Marc: lighter."), userSuffix);
+  assert(userSuffix.includes("- Which way this plan leans for Tom: bigger."), userSuffix);
+  assert(userSuffix.includes("- Which way this plan leans for Léa: steady."), userSuffix);
+  assertEquals((userSuffix.match(/Which way this plan leans/g) ?? []).length, 3);
+  assert(
+    userSuffix.indexOf("for Marc:") < userSuffix.indexOf("for Tom:") &&
+      userSuffix.indexOf("for Tom:") < userSuffix.indexOf("for Léa:"),
+    "l'ordre des personnes est celui reçu",
+  );
+  // ⛔ L'ANCIENNE LIGNE UNIQUE A DISPARU: sur le foyer de l'audit, « this plan
+  // leans: bigger » valait pour les trois, et la table entière se composait
+  // comme celle de Thomas.
+  assert(!userSuffix.includes("this plan leans:"), userSuffix);
   assert(userSuffix.includes("given to you: yes"), userSuffix);
   // ⛔ LA CLÉ EST RENOMMÉE ICI AUSSI. Un « ci-dessus » ne traverse pas la
   // frontière système/utilisateur — mesuré à 0 %, trois fois.
@@ -2543,7 +2571,7 @@ Deno.test("⛔ LE BLOC REND UNE DIRECTION, JAMAIS UN OBJECTIF", () => {
   for (const direction of ["down", "up", null]) {
     const { userSuffix } = buildHouseholdPromptBlocks({
       ...BASE_BLOCKS,
-      decided: { ...DECIDED, direction },
+      decided: { ...DECIDED, directions: [{ name: "Marc", direction }] },
     });
     for (const forbidden of ["fat_loss", "muscle_gain", "maintenance"]) {
       assert(!userSuffix.includes(forbidden), `${forbidden} dans le bloc`);
@@ -2551,6 +2579,16 @@ Deno.test("⛔ LE BLOC REND UNE DIRECTION, JAMAIS UN OBJECTIF", () => {
   }
 });
 
+
+Deno.test("⟳ 2026-09-23 — `directions: []` n'écrit AUCUNE ligne de sens, et le reste du bloc sort", () => {
+  const { userSuffix } = buildHouseholdPromptBlocks({
+    ...BASE_BLOCKS,
+    decided: { ...DECIDED, directions: [] },
+  });
+  assert(userSuffix.includes("DECIDED BEFORE YOU"), userSuffix);
+  assert(!userSuffix.includes("Which way this plan leans"), userSuffix);
+  assert(userSuffix.includes("given to you: yes"), userSuffix);
+});
 
 // ⟳ 2026-09-06 — QUAND UNE BOUCHE VEUT CE QU'UNE AUTRE REFUSE (rapport 0f §10)
 Deno.test("préférence contre exclusion — le bloc nomme la paire et demande le composant séparé par boîte ; absent sans paire", () => {
@@ -2598,4 +2636,64 @@ Deno.test("préférence contre exclusion — le bloc nomme la paire et demande l
     squeeze(withSplit.replace(/== ONE PERSON WANTS WHAT ANOTHER REFUSES ==[\s\S]*?two boxes: the component lives in the box of the person who wants it\.\n?/, "")),
     squeeze(without),
   );
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-23 — LA LIGNE « À ÉVITER » (v41), JUSTE APRÈS L'ENVIE
+// ═══════════════════════════════════════════════════════════════════════════
+
+function v33WithAvoid(over: {
+  envyLine?: string | null;
+  avoidLine?: string | null;
+  restrictions?: HouseholdRestriction[];
+  omitAvoid?: boolean;
+}) {
+  return buildHouseholdPromptBlocks({
+    sizingPath: "legacy_measure" as const,
+    ruleHolders: [],
+    traditions: [],
+    daysInWindow: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
+    members: [DAD, KID],
+    envyLine: over.envyLine ?? null,
+    ...(over.omitAvoid ? {} : { avoidLine: over.avoidLine ?? null }),
+    restrictions: over.restrictions ?? [],
+    presence: NOBODY_AWAY, merge: null,
+    cooking: "one_dish", divergingCount: 0, weightGroups: 1, dishBearers: [], dedicatedDishesAsked: 0,
+    medicalMouths: [], crossContactUnnamedMedical: 0,
+    kitchenEquipment: null,
+    unmerge: null,
+    dietBlock: "",
+    notes: [],
+    voices: [],
+  });
+}
+
+const AVOID_LINE = avoidLineOf({ proteins: ["chicken", "beef"], starches: ["rice"] })!;
+
+Deno.test("v41 — la ligne « à éviter » suit l'envie, et précède les règles de maison", () => {
+  const restrictions: HouseholdRestriction[] = [
+    { memberId: "m-kid", memberDisplayName: "Léa", label: "nutella" },
+  ];
+  const b = v33WithAvoid({ envyLine: "un curry", avoidLine: AVOID_LINE, restrictions });
+  const u = b.userSuffix;
+  // COLLÉE À L'ENVIE: la dernière phrase du bloc d'envie, une ligne vide, puis
+  // la nôtre — c'est ce qui rend vrai son « above ».
+  assertStringIncludes(u, `Never answer that the week is impossible.\n\n${AVOID_LINE}`);
+  // Ancré sur la LIGNE de la règle, pas sur « HOUSE RULES »: la méthode v34
+  // cite déjà ce titre plus haut, et `indexOf` rendrait cette mention-là.
+  const rule = u.indexOf("- Léa: never serve nutella");
+  assert(rule > 0 && u.indexOf(AVOID_LINE) < rule, "la ligne passe après une règle de maison");
+  assertEquals(b.avoidLineUsed, true);
+  assertEquals(b.promptVersion, "v41_what_came_back_is_named");
+});
+
+Deno.test("v41 — sans liste, la consigne est celle d'avant à l'octet près", () => {
+  const sans = v33WithAvoid({ envyLine: "un curry", omitAvoid: true });
+  for (const avoidLine of [null, "", "   "]) {
+    const b = v33WithAvoid({ envyLine: "un curry", avoidLine });
+    assertEquals(b.userSuffix, sans.userSuffix, `avoidLine=${JSON.stringify(avoidLine)}`);
+    assertEquals(b.avoidLineUsed, false);
+  }
+  assert(!sans.userSuffix.includes("EATEN A LOT"));
+  assertEquals(sans.avoidLineUsed, false);
 });

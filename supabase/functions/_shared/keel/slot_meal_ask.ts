@@ -252,6 +252,12 @@ export const SLOT_MEAL_SKIPS = [
    * mesure qui dira si cette boucle coûte plus qu'elle ne rapporte.
    */
   "ask_muted",
+  /**
+   * ⟳ 2026-09-23 — LE SEUL CRÉNEAU À DEMANDER EST UN CRÉNEAU QUE LE PLAN
+   * COMPOSE, et il ne se demande plus ici: le repas prévu est présumé mangé,
+   * et la question du soir (`day_meals_ask.ts`) couvre toute la journée.
+   */
+  "planned_in_evening",
 ] as const;
 export type SlotMealSkip = (typeof SLOT_MEAL_SKIPS)[number];
 
@@ -472,7 +478,17 @@ export function decideSlotMealAsk(args: {
   let sawFuture = false;
   let sawStale = false;
   let sawAsked = false;
+  let sawPlanned = false;
   for (const [slot, mark] of marked) {
+    // ⟳ 2026-09-23 — « TU AS MANGÉ LE PLAT PRÉVU ? » NE PART PLUS. Décision du
+    // propriétaire: le repas prévu est présumé mangé, et une seule question du
+    // soir (`day_meals_ask.ts`) remplace les questions par repas. Le créneau
+    // reste MARQUÉ en ① — sans ça, ② le reprendrait comme « non couvert » et
+    // demanderait « Rien n'était prévu » sur un repas que le plan compose.
+    if (mark.origin === "planned") {
+      sawPlanned = true;
+      continue;
+    }
     // L'heure déclarée si elle existe ET est lisible, sinon le repli. Un
     // `null` déclaré (« je prends un goûter », sans heure) retombe donc sur le
     // repli — et les trois moments sans repli (`snack_am`, `snack_pm`,
@@ -519,6 +535,7 @@ export function decideSlotMealAsk(args: {
   if (sawAsked) return { ask: false, reason: "already_asked" };
   if (sawStale) return { ask: false, reason: "too_late" };
   if (sawFuture) return { ask: false, reason: "not_elapsed" };
+  if (sawPlanned) return { ask: false, reason: "planned_in_evening" };
   return { ask: false, reason: "nothing_to_ask" };
 }
 

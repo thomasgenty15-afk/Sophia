@@ -71,11 +71,15 @@ import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import { parseRetainedDay } from "../_shared/keel/retained_item.ts";
 import {
   answerDraftNotePortion,
+  answerDraftNoteWho,
   classifyAndPersistDraftNote,
 } from "../_shared/keel/draft_note_classify_io.ts";
 import { draftNoteClassifyTrace } from "../_shared/keel/draft_note_classify.ts";
 import { draftNoteMembersOf } from "../_shared/keel/draft_note_members_io.ts";
 import { readDraftNote } from "../_shared/keel/plan_draft_note.ts";
+// ⟳ 2026-09-22 · LOT A — le référentiel qui donne sa clé à un souvenir.
+import type { CompositionIndex } from "../_shared/keel/food_composition.ts";
+import { loadCompositionIndex } from "../_shared/keel/food_composition_io.ts";
 import { loadPublishedDoctrine } from "../_shared/keel/doctrine_loader.ts";
 import { evaluateRestrictionForStudent } from "../_shared/keel/restriction_runtime.ts";
 import type { ForbiddenTerm } from "../_shared/keel/forbidden_matcher.ts";
@@ -132,7 +136,15 @@ Deno.serve(async (req) => {
       const kind = String(answer.kind ?? "").trim();
       const direction = String(answer.direction ?? "").trim().toLowerCase();
       const memberId = String(answer.member_id ?? "").trim().toLowerCase();
-      if (kind !== "portion" || (direction !== "down" && direction !== "up") || !memberId) {
+      // ⟳ 2026-09-23 — DEUX RÉPONSES, UN CANAL. `portion`: un cran d'appétit.
+      // `who`: le morceau (`entry`) revenu avec la bouche, écrit par la même
+      // porte que la note — et RELU par le même lecteur avant d'être écrit.
+      const entry = answer.entry && typeof answer.entry === "object"
+        ? answer.entry as Record<string, unknown>
+        : null;
+      const isPortion = kind === "portion" && (direction === "down" || direction === "up");
+      const isWho = kind === "who" && entry !== null && typeof entry.text === "string";
+      if ((!isPortion && !isWho) || !memberId) {
         return jsonResponse(req, { error: "bad_answer", request_id: requestId }, { status: 400 });
       }
       const members = await draftNoteMembersOf(admin, userId, TAG);
@@ -143,12 +155,53 @@ Deno.serve(async (req) => {
       } catch {
         // Sans locale, l'accusé sort en anglais — visible, jamais silencieux.
       }
+      if (isWho && entry !== null) {
+        let composition: CompositionIndex | null = null;
+        try {
+          composition = await loadCompositionIndex(admin, {
+            lang: locale.slice(0, 2).toLowerCase() === "fr" ? "fr" : "en",
+          });
+        } catch (error) {
+          console.warn(`[${FN_NAME}] composition index unavailable`, error);
+        }
+        const today = parseRetainedDay(body.today) ?? serverDay();
+        const out = await answerDraftNoteWho({
+          admin,
+          userId,
+          members,
+          contentLocale: locale,
+          composition,
+          today,
+          targetWeek: parseRetainedDay(body.starts_on) ?? today,
+          memberId,
+          // ⛔ Le morceau n'est PAS cru ici: `answerDraftNoteWho` le relit par
+          // le lecteur de la note. On ne fait que le porter tel quel.
+          entry: {
+            gate: String(entry.gate ?? "") as never,
+            kind: (typeof entry.kind === "string" ? entry.kind : null) as never,
+            text: String(entry.text ?? ""),
+            note: String(entry.note ?? ""),
+            occasion: (typeof entry.occasion === "string" ? entry.occasion : null) as never,
+            force: (typeof entry.force === "string" ? entry.force : null) as never,
+            when: (entry.when && typeof entry.when === "object" ? entry.when : null) as never,
+          },
+          requestId,
+        });
+        return jsonResponse(req, {
+          ok: out.ok,
+          reason: out.reason,
+          dropped_clauses: 0,
+          announced: out.announced.map((a) => ({ text: a.text, who: a.who ?? null, kind: a.kind })),
+          questions: [],
+          request_id: requestId,
+        });
+      }
       const out = await answerDraftNotePortion({
         admin,
         userId,
         members,
         contentLocale: locale,
-        move: { memberId, direction },
+        move: { memberId, direction: direction as "down" | "up" },
         requestId,
       });
       return jsonResponse(req, {
@@ -232,10 +285,37 @@ Deno.serve(async (req) => {
       // Sans locale, l'accusé sort en anglais — visible, jamais silencieux.
     }
 
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-22 · LOT A — LE RÉFÉRENTIEL, POUR POSER LA CLÉ D'UN SOUVENIR
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ CE QU'IL FERME, MESURÉ SUR LE SEUL COMPTE RÉEL: **4 souvenirs sur 9
+    // ne résolvent pas**. Ils s'affichent sur la carte et ne font RIEN — la
+    // ceinture n'y trouve aucun aliment, le constat ne peut rien vérifier.
+    //
+    // ⚠️ FAIL-OPEN NOMMÉ, comme dans la lane de génération: un référentiel
+    // indisponible rend `null`, la mémoire s'écrit sans clé, et le compteur
+    // `ref_askable` dit que ce zéro-là n'est pas « rien à résoudre ». Une
+    // phrase de la personne ne doit JAMAIS être perdue parce qu'une table
+    // n'a pas répondu.
+    //
+    // ⚠️ LA LANGUE EST CELLE DU CONTENU, la même que la lane de génération:
+    // les faux amis (`prune`, `raisin`) sont par langue, et en charger une
+    // autre ici ferait résoudre « prune » vers le fruit SEC.
+    let composition: CompositionIndex | null = null;
+    try {
+      composition = await loadCompositionIndex(admin, {
+        lang: contentLocale.slice(0, 2).toLowerCase() === "fr" ? "fr" : "en",
+      });
+    } catch (error) {
+      console.warn(`[${FN_NAME}] composition index unavailable`, error);
+    }
+
     // ── LE CLASSIFIEUR ET LES TROIS ÉCRITURES — UN SEUL APPEL ────────────
     const out = await classifyAndPersistDraftNote({
       admin,
       userId,
+      composition,
       note,
       today,
       targetWeek: startsOn,
@@ -257,6 +337,8 @@ Deno.serve(async (req) => {
       questions: out.questions.length,
       cells: out.cells.length,
       notice_delivered: out.notice.delivered,
+      safety_announced: out.safetyAnnounced.length,
+      safety_not_written: out.safetyNotWritten.length,
       ...trace,
     }));
 
@@ -264,7 +346,14 @@ Deno.serve(async (req) => {
       ok: out.ok,
       reason: out.reason,
       dropped_clauses: note.dropped.length,
-      announced: out.announced.map((a) => ({ text: a.text, who: a.who ?? null, kind: a.kind })),
+      // ⟳ 2026-09-23 — ⑩ ce qui est entré dans la fiche santé, dans la même
+      // liste « j'ai noté » que le reste: la personne le lit sous le champ.
+      announced: [
+        ...out.announced.map((a) => ({ text: a.text, who: a.who ?? null, kind: a.kind })),
+        ...out.safetyAnnounced.map((a) => ({ text: a.text, who: a.who, kind: "safety" })),
+      ],
+      // ⑩ ce qui n'a pas pu y entrer — le front le DIT, avec où l'ajouter.
+      safety_not_written: out.safetyNotWritten.map((a) => ({ text: a.text, who: a.who })),
       // ⟳ lot 4 — ce qu'on n'a PAS pu écrire faute d'une bouche, à demander.
       questions: out.questions,
       // ⟳ 2026-09-09 — les cases de CE plan, à rendre au composeur (`edit_cells`).

@@ -1,7 +1,6 @@
 import type {
   DayEnergyView,
   DishEnergyView,
-  EnergyTargetDirection,
   EnergyTargetView,
 } from "../../api/mealEnergy";
 import { dayEnergySubjectClause } from "../../api/mealEnergy";
@@ -11,11 +10,6 @@ import { mealCopy } from "../../api/mealLabels";
 // est ce qui garantit que les deux adresses de la rangée rendent le même
 // bouton, et pas deux qui se ressemblent.
 import { Button } from "../ui/Button";
-// ⟳ LOT 4 — `MealCopyKey`, PAS `MessageKey`. `mealCopy` n'accepte que le
-// sous-ensemble `meals.*`, et une fonction qui rendrait la clé LARGE ne
-// compilerait pas chez son appelant — c'est le compilateur qui recense ici
-// que ces deux choix ne peuvent désigner que de la copie de repas.
-import type { MealCopyKey } from "../../api/mealLabels";
 import { uiLocale } from "../../i18n/runtime";
 // ① — LA PHRASE DU CONSEIL DU MIDI, IMPORTÉE, JAMAIS RÉÉCRITE ICI. Elle vit
 // avec le nombre (`household_portions.ts`) pour la raison exacte de
@@ -174,16 +168,11 @@ export function DayEnergyLine({ energy }: { energy: DayEnergyView | null }) {
         .replace("{counted}", String(energy.dishesCounted))
         .replace("{total}", String(energy.dishesTotal)),
     )
-    // L'ADD-ON SE DIT, il ne se fond pas dans le total. Le taire ferait lire à
-    // deux personnes de la même table deux chiffres pour le même plat, sans
-    // rien pour expliquer l'écart — après quoi la plus servie croit que le plat
-    // est plus gros, et l'autre que le sien est rogné.
-    : energy.addonKcal > 0
-    ? withSubject(
-      mealCopy("meals.energy.day_with_addon")
-        .replace("{n}", String(energy.kcal))
-        .replace("{addon}", String(energy.addonKcal)),
-    )
+    // ⛔ LOT A1 (2026-09-22) — LA BRANCHE « dont {addon} ajoutées » EST PARTIE.
+    // Elle nommait les `member_deltas` de FF-043, un aliment qui n'existait sur
+    // aucune autre surface: ni boîte, ni ligne de courses, ni carte. Le total du
+    // jour ne compte plus que ce que le plan a composé, donc il n'y a plus rien
+    // à mettre à part.
     // ══ LA SEULE PHRASE QUI SE FAIT REMPLACER, ET C'EST TOUT LE LOT ══════
     //
     // `meals.energy.day` dit « {n} kcal SUR LA JOURNÉE ». C'est très exactement
@@ -221,162 +210,11 @@ export function DayEnergyLine({ energy }: { energy: DayEnergyView | null }) {
   );
 }
 
-/**
- * D'OÙ VIENT LE CHIFFRE — une fois par écran, jamais par plat.
- *
- * `CALORIE_REVERSAL` en une phrase: un chiffre vit dans un champ qui porte sa
- * base, ou il n'existe pas. Cette ligne est l'endroit où la base devient
- * LISIBLE — sans elle, la garantie n'est vraie que dans le code, et l'élève
- * n'a aucun moyen de distinguer ce calcul d'une estimation par photo, qui est
- * précisément ce que le produit refuse de lui montrer (−26,6 % de biais).
- */
-export function EnergyBasisNote() {
-  return (
-    <p className="text-xs leading-5 text-ink-soft">
-      {mealCopy("meals.energy.basis")}
-    </p>
-  );
-}
-
-/**
- * FF-059 LOT 3 — LA FOURCHETTE DE MAINTENANCE. Le niveau C, et le seul endroit
- * du produit où un chiffre parle de la PERSONNE et pas de la nourriture.
- *
- * ── CE QUE CE COMPOSANT NE FERA JAMAIS ─────────────────────────────────────
- * Il ne soustrait rien. Il n'affiche ni « il te reste », ni barre de
- * progression, ni couleur qui dit bien/mal, ni pourcentage. Le total de la
- * journée est ailleurs sur l'écran, cette fourchette est ici, et c'est l'élève
- * qui lit. Toute arithmétique entre les deux ferait de ce produit le tracker
- * que `coachStartingNumbers` refuse depuis le premier jour.
- *
- * ── ET IL N'EST PAS À CÔTÉ DU TOTAL, MAIS EN BAS ───────────────────────────
- * Deux nombres alignés se soustraient tout seuls dans la tête de qui les lit.
- * La fourchette vit donc avec la note de base, sous les plats — au rang d'un
- * repère, pas d'un score.
- */
-export function EnergyTargetNote({ target }: { target: EnergyTargetView | null }) {
-  if (!target) return null;
-  if (target.low === null || target.high === null) {
-    // L'ABSENCE SE DIT, avec son motif: « ajoute une pesée » et « ta dernière
-    // pesée n'a pas l'air juste » ne se réparent pas au même endroit, et un
-    // silence commun ferait ressaisir un poids à qui vient de taper 500.
-    const label = target.gap === "no_weight"
-      ? mealCopy("meals.energy.target_no_weight")
-      : target.gap === "implausible_weight"
-      ? mealCopy("meals.energy.target_implausible_weight")
-      : null;
-    return label ? <p className="text-xs leading-5 text-ink-soft">{label}</p> : null;
-  }
-  // ⟳ 2026-09-10 · LOT 3 — UN RYTHME QUI NE S'EXÉCUTE PAS NE S'ANNONCE PAS.
-  // La phrase dirigée dit « à ton rythme »; quand le serveur dit que le rythme
-  // n'a pas pu être calculé, ces nombres sont ceux de l'entretien et cette
-  // phrase est fausse mot pour mot. On retombe donc sur la phrase du poids —
-  // qui, elle, est vraie — et on DIT ce qui manque, juste en dessous.
-  const paceMissing = target.paceUnavailable !== null;
-  const rangeKey = energyTargetRangeKey(
-    paceMissing ? null : target.direction,
-  );
-  return (
-    <div className="text-xs leading-5 text-ink-soft">
-      <p className="tabular-nums text-ink-soft">
-        {mealCopy(rangeKey)
-          .replace("{low}", String(target.low))
-          .replace("{high}", String(target.high))}
-        {target.weightWeekStart && (
-          <span className="text-ink-soft">
-            {" — "}
-            {mealCopy("meals.energy.target_measured").replace(
-              "{date}",
-              target.weightWeekStart,
-            )}
-          </span>
-        )}
-      </p>
-      {/* CE QUE LA FOURCHETTE N'EST PAS. Ces phrases ne sont pas décoratives:
-          sans elles, un intervalle affiché sous un total se lit comme une cible
-          à atteindre.
-
-          ⟳ LOT 4 — LA NOTE SUIT LA MÊME BASCULE QUE LE NOMBRE, et elle DOIT la
-          suivre: la note d'entretien dit « à peu près ce qu'un corps de ta
-          taille dépense », ce qui est faux mot pour mot d'une fourchette qu'on
-          vient de décaler d'un déficit. Une phrase de garde qui survit à la
-          règle qui l'a fondée est pire que pas de phrase. */}
-      <p className="mt-1">
-        {mealCopy(energyTargetNoteKey(paceMissing ? null : target.direction))}
-      </p>
-      {/* ══════════════════════════════════════════════════════════════════
-          ⟳ 2026-09-10 · LOT 3 — LE MOTIF, À L'ENDROIT DU CHIFFRE QU'IL EXPLIQUE.
-          ══════════════════════════════════════════════════════════════════
-
-          ⛔ LE DÉFAUT ÉTAIT MUET, ET C'EST CE QUI LE RENDAIT CHER. Sans taille,
-          la fourchette sort quand même (raccourci au poids) pendant que l'écart
-          du rythme vaut zéro: l'écran annonçait « pour perdre à ton rythme »
-          au-dessus de nombres d'entretien. L'objectif était annulé sans un mot,
-          et rien à l'écran ne permettait de le savoir.
-
-          ⚠️ ELLE DIT CE QUI MANQUE ET OÙ LE CORRIGER. Un motif loin du geste
-          est un mur muet — cicatrice payée trois fois sur `SetupPage`. La
-          taille se saisit dans « Informations de base », sur cette même page.
-
-          ⛔ ET ON NE DEVINE PAS UN ÉCART À LA PLACE. Le refus de calculer sur
-          données manquantes est une décision datée du serveur; ce qui change
-          ici est qu'il porte enfin son motif. */}
-      {paceMissing && (
-        <p className="mt-1">{mealCopy("meals.energy.target_pace_missing_body")}</p>
-      )}
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// ⟳ LOT 4 (2026-09-01) — LES DEUX CHOIX DE PHRASE, EXTRAITS ET TESTABLES
-//
-// ── POURQUOI DEHORS PLUTÔT QU'EN LIGNE DANS LE JSX ────────────────────────
-// Ce dépôt n'a AUCUN harnais de rendu côté front — pas de testing-library, pas
-// de jsdom, aucun `.test.tsx`. Une décision laissée dans le JSX est donc une
-// décision qu'aucun test ne peut atteindre, et celle-ci choisit ce qu'un
-// chiffre de calories DIT à quelqu'un. Extraites, les deux tiennent dans un
-// `.int.test.ts` comme le reste du dépôt (`pageFrontier.int.test.ts` importe
-// déjà des composants).
-// ---------------------------------------------------------------------------
-
-/**
- * LA PHRASE DU NOMBRE, CHOISIE PAR LA DIRECTION QUE LA FOURCHETTE A SUIVIE.
- *
- * ⚠️ `direction` EST DÉJÀ TOUT-OU-RIEN À LA LECTURE (`readTarget`): il n'est
- * non nul que si la BASE dit `weight_range_with_direction` ET que les deux
- * bornes existent. Cette fonction n'a donc rien à revérifier, et elle ne doit
- * surtout pas refaire le test — deux points de décision sur « de quoi ce nombre
- * parle » finiraient par ne plus dire la même chose du même nombre.
- *
- * Le repli est la phrase de maintenance: le comportement d'avant ce champ, vrai
- * hier et vrai aujourd'hui.
- */
-// eslint-disable-next-line react-refresh/only-export-components
-export function energyTargetRangeKey(
-  direction: EnergyTargetDirection | null,
-): MealCopyKey {
-  if (direction === "down") return "meals.energy.target_range_down";
-  if (direction === "up") return "meals.energy.target_range_up";
-  return "meals.energy.target_range";
-}
-
-/**
- * LA NOTE SOUS LE NOMBRE, ET ELLE SUIT LA MÊME BASCULE — ELLE DOIT LA SUIVRE.
- *
- * ⛔ La note d'entretien dit « à peu près ce qu'un corps de ta taille dépense ».
- * Posée sous une fourchette qu'on vient de décaler d'un déficit, elle est fausse
- * mot pour mot. Une phrase de garde qui survit à la règle qui l'a fondée est
- * pire que pas de phrase: elle rassure sur une propriété qui n'existe plus.
- */
-// eslint-disable-next-line react-refresh/only-export-components
-export function energyTargetNoteKey(
-  direction: EnergyTargetDirection | null,
-): MealCopyKey {
-  return direction === null
-    ? "meals.energy.target_note"
-    : "meals.energy.target_note_directed";
-}
+// ⛔ 2026-09-23 — `EnergyBasisNote` (« Calculé à partir des quantités de ton
+// plan… »), `EnergyTargetNote` (« Autour de {low}–{high} par jour… — d'après
+// ta pesée du … ») et `energyTargetRangeKey` SONT PARTIS, sur demande: « ça
+// sert à rien, ça pollue l'UI ». Ils n'étaient rendus que sous le plan
+// (`PlanResult`, `MealBuilder`) et dans la fenêtre des sessions.
 
 // ---------------------------------------------------------------------------
 // ⟳ LOT 5 (2026-09-01) — LES DEUX INTERRUPTEURS, ET ILS N'EXISTENT QU'ICI

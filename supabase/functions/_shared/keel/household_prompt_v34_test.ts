@@ -29,6 +29,7 @@ import {
   buildHouseholdPromptBlocksV34,
   HOUSEHOLD_PROMPT_V34_VERSION,
   PORTION_V34_MIN_MOUTHS,
+  directionFoodsOf,
 } from "./household_prompt_v34.ts";
 import {
   HOUSEHOLD_PROMPT_VERSION,
@@ -37,9 +38,12 @@ import {
 } from "./household_meal_generation.ts";
 import type { PortionMember, ServingAxisDemands } from "./household_portions.ts";
 import type { HouseholdCell } from "./household_cells.ts";
+import type { EatingOccasionSlot } from "./meal_generation.ts";
 import { householdCells } from "./household_cells.ts";
 import { resolveWindowPresence } from "./household_presence.ts";
 import { parseMemberAway } from "./household_presence.ts";
+import type { SideCourseAsk } from "./side_courses_types.ts";
+import { avoidLineOf } from "./plan_avoid_list.ts";
 
 // ---------------------------------------------------------------------------
 // Fabriques
@@ -82,6 +86,10 @@ function gridFor(
     lightSlots?: string[];
     /** ⟳ 2026-09-14 (§ 2.2) — ce que sa direction réclame à la casserole. */
     demands?: ServingAxisDemands;
+    /** ⟳ 2026-09-20 — son rythme propre (`null` = celui de la maison). */
+    eatingSlots?: readonly EatingOccasionSlot[] | null;
+    /** ⟳ 2026-09-20 — les moments où elle a son plat à elle. */
+    ownMealSlots?: string[];
   }[],
   gridSlots = ["breakfast", "lunch", "dinner"],
   /** La ligne que la base partagée suit (R4), celle que le prompt déclare. */
@@ -90,12 +98,12 @@ function gridFor(
   return householdCells({
     mouths: mouths.map((m) => ({
       memberId: m.memberId,
-      eatingSlots: null,
+      eatingSlots: m.eatingSlots ?? null,
       away: [],
       lightSlots: m.lightSlots ?? [],
       diet: m.diet ?? null,
       demands: m.demands ?? { protein: null, starch: null, vegetables: null },
-      ownMealSlots: [],
+      ownMealSlots: m.ownMealSlots ?? [],
       ownMealDays: null,
     })),
     baseRegime,
@@ -513,20 +521,38 @@ Deno.test("⛔ LE PLAT PARTAGÉ PREND LA PLUS HAUTE DENSITÉ DE SES MANGEURS, ja
   // ⚠️ Une exigence de densité n'est pas une préférence qu'on moyenne.
   const { userSuffix } = build();
   const message = userSuffix;
+  // ⟳ 2026-09-21 — LE MAXIMUM PORTE SUR LE PLANCHER, ET LA VISÉE EST BASSE.
+  // Le plancher de chaque carte est ce qui garde chaque assiette sous sa
+  // borne; au-dessus de tous les planchers, la table vise le plus bas.
   assert(
-    /HIGHEST density asked by any of its\s+"?,?\s*"?\s*eaters/.test(message) ||
-      message.includes("HIGHEST density asked by any of its"),
+    message.includes("HIGHEST density FLOOR asked by any of"),
     "la consigne du maximum a disparu du brief",
   );
   assert(
-    message.includes("not the average of them"),
+    message.includes("never the average"),
     "rien n'interdit plus au modèle de moyenner les exigences",
   );
+  // ⟳ 2026-09-23 — LA VISÉE EST L'ASSIETTE ORDINAIRE, PLUS LA PLUS GROSSE.
+  // « as LOW as the calendar's aim … the largest plate each person's bounds
+  // allow » faisait remplir l'assiette jusqu'à sa borne (audit du 2026-09-23:
+  // 700 g pour Thomas par construction). La visée de case est celle de la
+  // personne du milieu; plus dense n'est pas mieux.
+  assert(
+    message.includes("write it at the calendar's aim for that cell: the"),
+    "la visée de case a disparu de la méthode",
+  );
+  assert(
+    message.includes("density of an ordinary plate (the template); denser is not better."),
+    "la méthode ne dit plus ce qu'est la visée",
+  );
+  for (const gone of ["as LOW as the calendar's aim", "the largest plate each person's bounds allow"]) {
+    assert(!message.includes(gone), `« ${gone} » est revenu dans la méthode`);
+  }
   // ⛔ ET ELLE VIT DANS LA MÉTHODE, à l'étape qui compose les cases — pas dans
   // le bloc de recette, qui parle d'un plat sans savoir qui le mange.
   const methode = message.indexOf("== THE METHOD, IN ORDER ==");
   const recette = message.indexOf("WRITE ONE STANDARD RECIPE PER DISH");
-  const consigne = message.indexOf("HIGHEST density asked by any of its");
+  const consigne = message.indexOf("HIGHEST density FLOOR asked by any of");
   assert(methode > 0 && consigne > methode, "la consigne n'est pas dans la méthode");
   assert(consigne < recette || recette < methode, "la consigne a glissé dans le bloc de recette");
 });
@@ -595,4 +621,242 @@ Deno.test("⛔ CHAQUE FAIT DE CARTE EST SUIVI DE CE QU'IL INTERDIT", () => {
     garni.includes("reach it by serving a smaller plate: the plate stays a plate"),
     "rien n'interdit d'atteindre la densité en rétrécissant l'assiette",
   );
+});
+
+/**
+ * ⟳ 2026-09-20 — QUAND CHAQUE MANGEUR D'UNE CASE A SON PLAT, LE CALENDRIER
+ * INTERDIT LE PLAT COMMUN. Mesuré en local : Thomas seul en milieu de matinée
+ * avec son plat à lui, et le modèle rendait AUSSI un plat de table pour
+ * personne, que l'écran donnait à toute la famille.
+ */
+Deno.test("une case où chaque mangeur a son plat commande AUCUN plat commun", () => {
+  const RYTHME4 = [{ slot: "snack_am" as const, size: null }, ...RYTHME3];
+  const { userSuffix } = build({
+    cells: gridFor(
+      [
+        { memberId: "m-a", eatingSlots: RYTHME4, ownMealSlots: ["snack_am"] },
+        { memberId: "m-b", eatingSlots: RYTHME3 },
+      ],
+      ["breakfast", "snack_am", "lunch", "dinner"],
+    ),
+    members: [JULIE, MARC],
+  });
+  const snack = userSuffix.split("\n").find((l) => l.startsWith("mon snack_am"));
+  assert(snack !== undefined, "la case du milieu de matinée manque");
+  assert(snack.includes("1 eat — Julie."), snack);
+  assert(snack.includes("A dish of their own is ordered for Julie (m-a)."), snack);
+  assert(
+    snack.includes("Every eater here has their own dish: write NO shared dish for this cell."),
+    snack,
+  );
+  const lunch = userSuffix.split("\n").find((l) => l.startsWith("mon lunch"));
+  assert(lunch !== undefined && !lunch.includes("write NO shared dish"), lunch);
+  assert(
+    userSuffix.includes("A cell where EVERY eater has a dish of their own gets NO shared dish:"),
+    "la méthode ne nomme pas l'exception",
+  );
+});
+
+/**
+ * ⟳ 2026-09-20 — L'OBJECTIF EST ÉCRIT SUR CHAQUE FICHE, en mots. Mesuré sur un
+ * prompt réel : seul le titulaire avait « goal: muscle_gain » ; les autres
+ * bouches n'avaient que leurs densités, la conséquence sans le nom.
+ */
+Deno.test("chaque fiche dit ce que la personne vise, ou qu'elle ne vise rien", () => {
+  const { userSuffix } = build({
+    members: [JULIE, MARC, member({ memberId: "m-c", displayName: "Nora", goal: "muscle_gain" })],
+  });
+  const cardOf = (name: string) => {
+    const start = userSuffix.indexOf(`== ${name} (`);
+    assert(start > 0, `${name} n'a pas de fiche`);
+    return userSuffix.slice(start, userSuffix.indexOf("\n\n", start));
+  };
+  assert(cardOf("Julie").includes("  after: no stated goal — feed them as usual"), cardOf("Julie"));
+  assert(cardOf("Marc").includes("  after: fat loss — they want to lose weight"), cardOf("Marc"));
+  assert(cardOf("Nora").includes("  after: muscle gain — they want to build muscle"), cardOf("Nora"));
+});
+
+
+// ── ⟳ 2026-09-21 — AVEC QUOI REMPLIR L'ASSIETTE, SELON LA DIRECTION ─────────
+Deno.test("⛔ la carte dit avec quoi remplir l'assiette selon l'objectif, sans aucun fait de corps", () => {
+  const perte = directionFoodsOf("fat_loss")!;
+  assert(perte.includes("vegetables first"), perte);
+  assert(perte.includes("150 g or"), perte);
+  assert(perte.includes("LOWER one is theirs"), perte);
+  const prise = directionFoodsOf("muscle_gain")!;
+  assert(prise.includes("OWN dishes and snacks"), prise);
+  assert(prise.includes("never as a second main dish"), prise);
+  assertEquals(directionFoodsOf("maintenance"), null);
+  assertEquals(directionFoodsOf(null), null);
+  for (const ligne of [perte, prise]) {
+    for (const forbidden of ["weight ", " kg", " cm", "kcal"]) {
+      assert(!ligne.includes(forbidden), `« ${forbidden} » dans ${ligne}`);
+    }
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-23 — LES À-CÔTÉS: SUR LA LIGNE DE CHAQUE CASE, ET LEUR BLOC
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// ⛔ Le calendrier est le seul endroit de v34 où la répartition s'écrit; le
+// bloc SIDE COURSES porte la promesse, les identifiants et la clé. Le compteur
+// `sideCourses` compense le champ optionnel de `HouseholdPromptInput`.
+
+function sideAsk(
+  memberId: string,
+  dayToken: string,
+  slot: "lunch" | "dinner",
+  kinds: readonly ("starter" | "cheese" | "dessert" | "bread")[],
+): SideCourseAsk {
+  return {
+    memberId,
+    dayToken,
+    slot,
+    dayIndex: 0,
+    goal: memberId === "m-b" ? "fat_loss" : "maintenance",
+    courses: kinds.map((kind) => ({ kind, kcal: 90, proteinEstG: 2 })),
+  };
+}
+
+const SIDE_ASKS: SideCourseAsk[] = [
+  sideAsk("m-a", "mon", "lunch", ["cheese", "dessert"]),
+  sideAsk("m-b", "mon", "lunch", ["starter", "dessert"]),
+  sideAsk("m-b", "mon", "dinner", ["dessert"]),
+  // ⚠️ UN JOUR HORS DE LA GRILLE: aucune case où s'écrire.
+  sideAsk("m-a", "tue", "dinner", ["cheese"]),
+];
+
+Deno.test("⟳ 2026-09-23 — la ligne de CHAQUE case porte ses à-côtés, pour ses mangeurs", () => {
+  const b = build({ sideCourses: SIDE_ASKS });
+  const u = b.userSuffix;
+  const lunch = u.split("\n").find((l) => l.startsWith("mon lunch:"))!;
+  assert(
+    lunch.endsWith(" Side courses: Julie cheese + dessert; Marc starter + dessert."),
+    lunch,
+  );
+  const dinner = u.split("\n").find((l) => l.startsWith("mon dinner:"))!;
+  assert(dinner.endsWith(" Side courses: Marc dessert."), dinner);
+  const breakfast = u.split("\n").find((l) => l.startsWith("mon breakfast:"))!;
+  assert(!breakfast.includes("Side courses"), breakfast);
+  // ⛔ COMPTÉ SUR LES LIGNES ÉCRITES: la demande du mardi n'a pas de case.
+  assertEquals(b.sideCourses, { given: 6, prompt_asked: 5, cells: 2, unplaced: 1 });
+  assert(!/\btue\b/.test(u), "une demande sans case a été écrite quelque part");
+});
+
+Deno.test("⟳ 2026-09-23 — le bloc SIDE COURSES suit la recette, porte la clé, et la recette y renvoie", () => {
+  const u = build({ sideCourses: SIDE_ASKS }).userSuffix;
+  const recette = u.indexOf("== WRITE ONE STANDARD RECIPE PER DISH ==");
+  const bloc = u.indexOf("== SIDE COURSES (household): ONE FOOD BESIDE THE DISH ==");
+  assert(recette > 0 && bloc > recette, "le bloc doit suivre la recette qui le cite");
+  assert(u.includes("(SIDE COURSES). Never add a dessert, bread or a starter to a dish."));
+  assert(u.includes('"side_courses": ['), "la clé de schéma n'est pas servie");
+  assert(u.includes('the calendar marks "Side courses:"'));
+  assert(u.includes("Exact member ids: Julie = m-a; Marc = m-b."), u);
+  assert(u.includes("For Marc: ONLY a fruit or a plain dairy, nothing sweeter."));
+  // ⛔ LA GARDE DU BRIEF TIENT: aucun kcal qui ne soit une densité.
+  assertEquals(u.match(/\d+\s*kcal(?!\s*per\s*100\s*g)/g), null);
+});
+
+Deno.test("⟳ 2026-09-23 — SANS à-côté: aucune ligne, aucun bloc, aucun renvoi, et le compteur le dit", () => {
+  const sans = build();
+  const vide = build({ sideCourses: [] });
+  assertEquals(sans.userSuffix, vide.userSuffix, "`[]` et champ absent se lisent pareil");
+  assert(!sans.userSuffix.includes("Side courses"), "une case porte un à-côté fantôme");
+  assert(!sans.userSuffix.includes("SIDE COURSES"), "le bloc sort sans demande");
+  assert(sans.userSuffix.includes("Never add a dessert, bread or a starter to a dish: the dish is"));
+  assertEquals(sans.sideCourses, { given: 0, prompt_asked: 0, cells: 0, unplaced: 0 });
+  assertEquals(sans.repairContext.sideCourses, "");
+});
+
+Deno.test("⟳ 2026-09-23 — `repairContext`: les TEXTES servis, et les à-côtés une ligne par jour", () => {
+  const b = build({ sideCourses: SIDE_ASKS });
+  const r = b.repairContext;
+  // ⛔ LA RÉPARATION N'A PAS LE CALENDRIER SOUS LES YEUX: son bloc ne renvoie
+  // pas à « the calendar marks », il porte la répartition lui-même.
+  assert(
+    r.sideCourses.includes("- mon: lunch — Julie cheese + dessert, Marc starter + dessert; dinner — Marc dessert."),
+    r.sideCourses,
+  );
+  assert(!r.sideCourses.includes("the calendar marks"), r.sideCourses);
+  assert(!/\btue\b/.test(r.sideCourses), "la réparation reçoit une demande que la consigne n'a pas écrite");
+  // Les cartes et la recette sont celles qui sont parties, au caractère près.
+  assert(r.cards.startsWith("== THE HOUSEHOLD — ONE CARD PER PERSON =="), r.cards);
+  assert(b.userSuffix.includes(r.cards));
+  assert(r.standardRecipe.startsWith("== WRITE ONE STANDARD RECIPE PER DISH =="));
+  assert(b.userSuffix.includes(r.standardRecipe));
+  assertEquals(r.notes, "");
+});
+
+Deno.test("⟳ 2026-09-23 — « Which way this plan leans »: UNE LIGNE PAR PERSONNE en v34 aussi", () => {
+  const u = build({
+    decided: {
+      timing: "same_morning",
+      droppedDay: null,
+      slotsDroppedToday: [],
+      cookDays: ["mon"],
+      daysOutOfReach: [],
+      strictestRegime: null,
+      directions: [
+        { name: "Julie", direction: null },
+        { name: "Marc", direction: "down" },
+      ],
+      wishServed: false,
+    },
+  }).userSuffix;
+  assert(u.includes("- Which way this plan leans for Julie: steady."), u);
+  assert(u.includes("- Which way this plan leans for Marc: lighter."), u);
+  assertEquals((u.match(/Which way this plan leans/g) ?? []).length, 2);
+});
+
+Deno.test("⟳ 2026-09-23 — v38: la recette de v34 porte la règle UNIQUE du féculent à part", () => {
+  const b = build();
+  const u = b.userSuffix.replace(/\n/g, " ");
+  // PASSE: la règle unique, sa clé, et la casserole-féculent exemptée partout.
+  assert(u.includes("Every lunch and dinner, eaten alone or shared, is ONE main preparation"), b.userSuffix);
+  assert(u.includes('role "separable_side", and the dish "uses" BOTH preparations'), b.userSuffix);
+  assert(u.includes("(the starch pot excepted: its vegetables are in the main pot)"), b.userSuffix);
+  // MORD: aucune des deux anciennes branches.
+  for (const branche of ["is a complete plate in ONE dish", "eaten by ONE person", "SHARED by two people or more", "starch pot of a shared dish"]) {
+    assert(!u.includes(branche), `« ${branche} » est revenu en v34`);
+  }
+  // La réparation reçoit le même texte.
+  assert(b.repairContext.standardRecipe.replace(/\n/g, " ").includes("eaten alone or shared"));
+  // ⟳ 2026-09-23 — v34_side_courses_come_in_families: le jeton a bougé avec
+  // le bloc des à-côtés (table, deux jours), servi par la même structure.
+  // ⟳ 2026-09-23 — v34_the_table_shares_its_sides: le jeton a bougé avec le
+  // bloc des à-côtés (la prise suit la table, le nom exact, le pain hors des deux jours).
+  // ⟳ 2026-09-23 — v34_what_came_back_is_named: la ligne « à éviter » suit l'envie.
+  assertEquals(b.promptVersion, "v34_what_came_back_is_named");
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-23 — LA LIGNE « À ÉVITER », MÊME PLACE QU'EN v33
+// ═══════════════════════════════════════════════════════════════════════════
+
+const AVOID_LINE = avoidLineOf({ proteins: ["salmon"], starches: ["pasta", "potato"] })!;
+
+Deno.test("v34 — la ligne « à éviter » suit l'envie, avant les verrous", () => {
+  const b = build({
+    envyLine: "des lasagnes",
+    avoidLine: AVOID_LINE,
+    restrictions: [{ memberId: "m-b", memberDisplayName: "Marc", label: "nutella" }],
+  });
+  const u = b.userSuffix;
+  assert(u.includes(`Never answer that the week is impossible.\n\n${AVOID_LINE}`), u);
+  // Ancré sur la LIGNE de la règle, pas sur « HOUSE RULES »: la méthode v34
+  // cite déjà ce titre plus haut, et `indexOf` rendrait cette mention-là.
+  const rule = u.indexOf("- Marc: never serve nutella");
+  assert(rule > 0 && u.indexOf(AVOID_LINE) < rule, "la ligne passe après une règle de maison");
+  assertEquals(b.avoidLineUsed, true);
+});
+
+Deno.test("v34 — sans liste, la consigne est celle d'avant à l'octet près", () => {
+  const sans = build({ envyLine: "des lasagnes" });
+  for (const avoidLine of [null, "", "   "]) {
+    const b = build({ envyLine: "des lasagnes", avoidLine });
+    assertEquals(b.userSuffix, sans.userSuffix, `avoidLine=${JSON.stringify(avoidLine)}`);
+    assertEquals(b.avoidLineUsed, false);
+  }
+  assertEquals(sans.avoidLineUsed, false);
 });

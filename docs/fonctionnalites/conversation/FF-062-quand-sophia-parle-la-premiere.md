@@ -9,6 +9,12 @@
 | **Dépend de** | `keel-daily-pulse-v1` · `keel-reengage-v1` · `keel-weekly-flow-v1` · `_shared/keel/weight_divergence_engine.ts` · `_shared/keel/household_presence.ts` (`work_lunch`, l'état `outside`) · `_shared/chat/delivery_policy.ts` |
 | **Effort estimé** | 5 jours — dont 1 de retrait, 2 pour le créneau déclaré, 1 pour la pesée, 1 pour sortir la divergence |
 
+> ⟳ **2026-09-23 — C1 ne demande plus les créneaux que le plan compose.** « Tu as mangé le
+> « X » prévu ? » est remplacée par UNE question du soir, « Est-ce que tu as mangé tous tes
+> repas de la journée ? » (`day_meals_ask.ts`, purpose `keel_day_meals`, même job
+> `keel-proactive-v1`). Le repas prévu est présumé mangé. C1 garde la question du créneau
+> non couvert. Détail : [FF-058](../suivi-quotidien/FF-058-la-bande-du-soir.md), bandeau du 2026-09-23.
+
 ---
 
 > ## ✅ CE QUI EST LIVRÉ, ET OÙ

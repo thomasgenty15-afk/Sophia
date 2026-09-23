@@ -1840,7 +1840,7 @@ function patchDepuisConsigne(args: {
 }
 
 const transport = installControlledTransport({
-  compositionModel: "gpt-5.6-luna",
+  compositionModel: "gpt-6-luna",
   // ⟳ 2026-09-13 · LOT 3 — LE MODÈLE VERS LEQUEL `_shared/gemini.ts` BASCULE
   // quand le premier échoue. Sans cette liste, le transport prend le repli
   // pour un appel de REMPLISSAGE et sert « items:[] » à une réparation :

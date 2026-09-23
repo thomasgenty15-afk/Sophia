@@ -138,6 +138,9 @@ describe("LOT 1 — la bouche sans cible, à l'écran", () => {
         "eaterCount",
         "eaters",
         "eatersLabel",
+        // ⟳ 2026-09-23 — `fromOtherSessions` : les parts d'une AUTRE session,
+        // un nom et un jour. Aucun chiffre.
+        "fromOtherSessions",
         "frozen",
         "id",
         "items",
@@ -146,9 +149,20 @@ describe("LOT 1 — la bouche sans cible, à l'écran", () => {
         // ⟳ 2026-09-16 — `partial` : un contenant de session qui ne tient que la
         // part de marmite. Un booléen, jamais un chiffre d'énergie.
         "partial",
+        // ⟳ 2026-09-23 — `restOnTheDay` : un booléen, jamais un chiffre d'énergie.
+        "restOnTheDay",
         "shared",
+        // ⟳ 2026-09-23 — `sides` : les à-côtés servis avec ce contenant
+        // (entrée, fromage, dessert, pain). Des grammes ou des unités
+        // d'aliment, jamais un chiffre d'énergie — et la ligne suivante le
+        // vérifie sur ce qui est rendu.
+        "sides",
         "total",
       ]);
+      const aCote = JSON.stringify(l.sides).toLowerCase();
+      for (const mot of ["kcal", "calorie"]) {
+        expect(aCote.includes(mot)).toBe(false);
+      }
     }
   });
 

@@ -27,13 +27,13 @@ import type { SlotContractLine } from "./slot_contract_brief.ts";
 /** Les nombres du tir n° 4: Max, dimanche, les trois moments. */
 function ligne(o: Partial<SlotContractLine> = {}): SlotContractLine {
   return {
+    memberId: "m_max",
     who: "Max",
     day: "sun",
     slot: "breakfast",
     targetKcal: 728,
     gramsMin: 380,
     gramsMax: 630,
-    gramsAim: 500,
     densityMin: 116,
     densityMax: 250,
     densityAim: 127,
@@ -72,7 +72,6 @@ Deno.test("LOT 2 ⑫ bis — une abstention du moteur est SAUTÉE, jamais écrit
       targetKcal: null,
       gramsMin: null,
       gramsMax: null,
-      gramsAim: null,
       densityMin: null,
       densityMax: null,
       densityAim: null,
@@ -108,7 +107,6 @@ Deno.test("LOT 2 ⑬ bis — la troncature se DIT, et les abstentions se compten
     targetKcal: null,
     gramsMin: null,
     gramsMax: null,
-    gramsAim: null,
     densityMin: null,
     densityMax: null,
     densityAim: null,
@@ -127,4 +125,97 @@ Deno.test("LOT 2 ⑬ ter — LE CAS QUI PASSE: aucune ligne ⇒ aucun bloc", () 
   const brief = slotContractBrief({ lines: [] });
   assertEquals(brief.text, "");
   assertEquals(brief.counters.chars, 0);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-23 — AUDIT DES DOSAGES, LOT 4 f : LA COUPE NE VIDE PLUS PERSONNE
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Mesuré sur le foyer audité : la liste était coupée à 32 lignes dans l'ordre
+// des personnes — 25 pour Thomas, 7 pour Fabrice, 0 pour Christèle.
+
+/** 15 lignes DISTINCTES pour une personne (aucune ne se regroupe). */
+function quinze(memberId: string, who: string): SlotContractLine[] {
+  const out: SlotContractLine[] = [];
+  const jours = ["sun", "mon", "tue", "wed", "thu"];
+  const moments = ["breakfast", "lunch", "dinner"];
+  let k = 0;
+  for (const day of jours) {
+    for (const slot of moments) {
+      out.push(ligne({ memberId, who, day, slot, targetKcal: 500 + k }));
+      k++;
+    }
+  }
+  return out;
+}
+
+Deno.test("⛔ 3 personnes × 15 lignes, plafond 32 : CHACUNE a des lignes, la coupe tourne", () => {
+  // L'ordre d'entrée est celui du générateur : une personne après l'autre.
+  const lignes = [
+    ...quinze("m_thomas", "Thomas"),
+    ...quinze("m_fabrice", "Fabrice"),
+    ...quinze("m_christele", "Christèle"),
+  ];
+  const brief = slotContractBrief({ lines: lignes });
+  const compte = (who: string) =>
+    brief.text.split("\n").filter((l) => l.startsWith(`  · ${who},`)).length;
+  // Dix tours complets (30 lignes), puis Thomas et Fabrice prennent les deux
+  // dernières places. Christèle n'est plus la personne qu'on coupe à zéro.
+  assertEquals(compte("Thomas"), 11);
+  assertEquals(compte("Fabrice"), 11);
+  assertEquals(compte("Christèle"), 10);
+  assertEquals(brief.counters.lines, 32);
+  assertEquals(brief.counters.truncated, 13);
+  assertEquals(brief.counters.people, 3);
+  assertEquals(brief.counters.people_cut_to_zero, 0);
+  assertEquals(brief.counters.merged, 0);
+  // ⚠️ LA COUPE NOMME À QUI ELLE A PRIS.
+  assert(brief.text.includes("… and 4 more plate(s) for Thomas"), brief.text);
+  assert(brief.text.includes("… and 4 more plate(s) for Fabrice"), brief.text);
+  assert(brief.text.includes("… and 5 more plate(s) for Christèle"), brief.text);
+  // Et le rendu reste groupé par personne : toutes les lignes de Thomas avant
+  // la première de Fabrice.
+  const derniereThomas = brief.text.lastIndexOf("  · Thomas,");
+  const premiereFabrice = brief.text.indexOf("  · Fabrice,");
+  assert(derniereThomas < premiereFabrice, "les lignes des personnes sont entremêlées");
+});
+
+Deno.test("les lignes identiques d'une personne à un moment se regroupent sur les jours", () => {
+  const jours = ["sun", "mon", "tue", "wed", "thu"];
+  const lignes = [
+    ...jours.map((day) => ligne({ memberId: "m_christele", who: "Christèle", day, slot: "lunch", targetKcal: 608 })),
+    // Un dîner aux mêmes nombres reste une AUTRE ligne : le moment compte.
+    ligne({ memberId: "m_christele", who: "Christèle", day: "sun", slot: "dinner", targetKcal: 608 }),
+  ];
+  const brief = slotContractBrief({ lines: lignes });
+  assertEquals(brief.counters.lines, 2);
+  assertEquals(brief.counters.merged, 4);
+  assert(
+    brief.text.includes("  · Christèle, lunch on sun, mon, tue, wed, thu: 608 kcal in one serving"),
+    brief.text,
+  );
+  assert(brief.text.includes("  · Christèle, sun dinner: 608 kcal in one serving"), brief.text);
+});
+
+Deno.test("PASSE — des nombres différents ne se regroupent pas, et deux personnes au même nom non plus", () => {
+  const brief = slotContractBrief({
+    lines: [
+      ligne({ memberId: "m_a", who: "", day: "sun", slot: "lunch" }),
+      ligne({ memberId: "m_b", who: "", day: "mon", slot: "lunch" }),
+      ligne({ memberId: "m_a", who: "", day: "mon", slot: "lunch", targetKcal: 729 }),
+    ],
+  });
+  assertEquals(brief.counters.merged, 0);
+  assertEquals(brief.counters.lines, 3);
+  assertEquals(brief.counters.people, 2);
+  assertEquals(brief.counters.truncated, 0);
+  assert(!brief.text.includes("more plate(s)"), brief.text);
+});
+
+Deno.test("⛔ UNE SEULE VISÉE PAR LIGNE : la densité, jamais la masse", () => {
+  const p = slotContractSentence(ligne());
+  assert(p !== null);
+  assertEquals(p.split("(aim ").length - 1, 1, p);
+  assert(p.includes("116 to 250 kcal per 100 g (aim 127)"), p);
+  assert(p.includes("380 to 630 g cooked ·"), p);
 });

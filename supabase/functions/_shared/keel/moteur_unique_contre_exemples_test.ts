@@ -95,7 +95,11 @@ Deno.test("CE-1 — le couloir d'un petit créneau est calculable, ET il est dit
   const corridor = densityCorridorFor({ targetKcal: 250, bounds })!;
   assertEquals(corridor.minPer100G, 100);
   assertEquals(corridor.maxPer100G, 135);
-  assertEquals(corridor.preferredPer100G, 110);
+  // ⟳ 2026-09-23 — 125 et non plus 110 : le couloir est calculé ici sur
+  // `slot: "lunch"`, un REPAS, dont la visée est désormais la densité du
+  // gabarit de recette, arrondi(max(125 ; 100)) = 125, dans [100, 135]. Une
+  // collation garderait `Dmin × 1,10` = 110.
+  assertEquals(corridor.preferredPer100G, 125);
 
   // ⟳ ET LE MODÈLE L'ENTEND. Avant le lot 4, `requiredDensityFor` ne gardait un
   // moment que si sa borne BASSE dépassait le plancher commun du bloc (100). À
@@ -181,8 +185,7 @@ Deno.test("CE-2 — deux aliments interdits dans le MÊME plat ne rendent qu'une
     uses: [],
     preparationById: new Map(),
     terms,
-    surface: "ingredients",
-  });
+    surface: "ingredients", slot: null });
 
   // ⛔ UN SEUL `matched`, ET C'EST LE TYPE QUI L'IMPOSE : `ExclusionBite` porte
   // `matched: string | null`, pas une liste. Le plat contient DEUX interdits ;

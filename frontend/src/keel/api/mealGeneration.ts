@@ -390,9 +390,29 @@ export interface DishBatch {
 }
 
 /** Ce qui se CUISINE. Plusieurs plats y puisent — une cuisson, plusieurs repas. */
+/**
+ * ⟳ 2026-09-22 — CE QU'UNE PART DE CETTE CASSEROLE CONTIENT, en fractions de
+ * sa masse prête (`pot_share_parts.ts`, calculé par le moteur: le front n'a pas
+ * le référentiel). Le Boxing la multiplie par les grammes d'une boîte pour dire
+ * « dont poulet ~110 g, légumes ~140 g ». `term` est `null` sur les légumes,
+ * sommés.
+ */
+export interface PotSharePartView {
+  kind: "protein" | "starch" | "vegetables";
+  term: string | null;
+  fraction: number;
+}
+
 export interface MealPreparation {
   id: string;
   title: string;
+  /**
+   * ⟳ 2026-09-22 — voir `PotSharePartView`. `null` = rien à dire (plan
+   * antérieur, référentiel absent, ligne non mesurable); `[]` = une casserole
+   * d'une seule famille (un riz nature), sans détail. Facultatif pour la même
+   * raison que `GeneratedDish.name`: un plan d'avant n'a pas la clé.
+   */
+  share_parts?: readonly PotSharePartView[] | null;
   servings_made: number;
   ingredients: DishIngredient[];
   method: string;
@@ -490,6 +510,73 @@ export interface BoxItem {
   term: string;
   /** Grammes d'aliment PRÊT. Entier > 0 — le moteur ne rend jamais zéro. */
   grams: number;
+  /**
+   * ⟳ 2026-09-22 — LES MÊMES GRAMMES, EN MILLILITRES, quand cet aliment se
+   * VERSE. Le moteur le calcule depuis la densité de la fiche résolue
+   * (`food_composition_refs.grams_per_ml`), jamais depuis le libellé.
+   *
+   * `null` est le cas de la quasi-totalité des items — un poulet n'a pas de
+   * volume — et de tout plan écrit avant ce jour. L'écran se tait alors: il ne
+   * devine aucune densité.
+   *
+   * ⛔ IL NE REMPLACE PAS `grams`, qui reste la grandeur du plan. Il ne sert
+   * qu'à dire la même dose dans l'unité du geste: « 6 g d'huile » se verse à la
+   * cuillère, pas à la balance.
+   */
+  ml: number | null;
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ 2026-09-23 — LES À-CÔTÉS D'UN REPAS: entrée, fromage, dessert, pain.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * Le moteur décide le type et les calories, le modèle nomme l'aliment, le
+ * moteur calcule les grammes. Le tout arrive rangé sous le plat qui sert la
+ * personne ce jour-là à ce moment-là (`attachSideCourses`, clé
+ * `dishes[i].side_courses[]`, forme `DishSideCoursePayload` du socle).
+ *
+ * ⛔ HORS DES `items` DE BOÎTE, ET C'EST LE POINT. Rangés à part, ils ne
+ * changent ni le poids affiché d'un contenant ni aucun lecteur de masse: le
+ * plat reste le plat, et l'à-côté se lit sur sa propre ligne « À côté ».
+ *
+ * ⚠️ RECOPIÉS ET PAS IMPORTÉS, comme `SAME_DAY_KINDS`: le front ne partage
+ * aucun module avec `supabase/functions/_shared/keel/`. La divergence est
+ * tenue par `components/sideCoursesDisplay.int.test.ts`, qui compare ces deux
+ * listes à celles du moteur (`SIDE_COURSE_KINDS`, `SIDE_COURSE_SOURCES`).
+ */
+export const DISH_SIDE_COURSE_KINDS = ["starter", "cheese", "dessert", "bread"] as const;
+export type DishSideCourseKind = (typeof DISH_SIDE_COURSE_KINDS)[number];
+
+/**
+ * D'OÙ VIENT L'ALIMENT: nommé par le modèle, ou pris dans la liste de secours
+ * du moteur. ⛔ AUCUN ÉCRAN NE LE REND — « rien n'indique la provenance d'un
+ * à-côté ». Il est relu pour que la forme reste le miroir exact de la charge.
+ */
+export const DISH_SIDE_COURSE_SOURCES = ["model", "engine_fallback"] as const;
+export type DishSideCourseSource = (typeof DISH_SIDE_COURSE_SOURCES)[number];
+
+/** UN À-CÔTÉ SERVI À UNE PERSONNE — miroir de `DishSideCoursePayload`. */
+export interface DishSideCourse {
+  /** La personne servie. La jointure vers son prénom et sa boîte est par ID. */
+  member_id: string;
+  kind: DishSideCourseKind;
+  /** Le mot affiché (« pomme », « comté »). Il ne sert à retrouver rien. */
+  term: string;
+  ref: string | null;
+  /** Grammes d'aliment prêt. Entier > 0. */
+  grams: number;
+  /**
+   * « 1 × pomme »: le nombre d'unités quand l'à-côté se COMPTE, `null` quand
+   * il se pèse (« comté ~30 g »). Entier ≥ 1 quand il est posé.
+   */
+  unit_count: number | null;
+  /**
+   * La casserole d'où l'à-côté est tiré (une soupe, des crudités préparées à
+   * la session). `null` = il s'ajoute le jour même, comme un fruit.
+   */
+  preparation_id: string | null;
+  source: DishSideCourseSource;
 }
 
 /** Quand on cuisine, et dans quel ORDRE. Le déroulé est le champ qui compte. */
@@ -539,6 +626,17 @@ export interface DishSameDay {
 
 export interface GeneratedDish {
   title: string;
+  /**
+   * ⟳ 2026-09-22 — LE NOM D'USAGE DU PLAT (« Frittata tomate-amande »), écrit
+   * par le modèle à côté du titre descriptif. C'est lui que porte le couvercle
+   * d'une boîte: « Œufs, blancs d'œufs, pomme de terre… » ne dit pas qu'il
+   * s'agit de la frittata.
+   *
+   * ⚠️ FACULTATIF, et c'est un repli documenté, pas une garde: un plan écrit
+   * avant le 2026-08 n'a pas la clé, et `readDishes` la rend `null`. Absent ou
+   * `null` = on montre le titre.
+   */
+  name?: string | null;
   slot: MealSlot | null;
   day: string | null;
   ingredients: DishIngredient[];
@@ -582,6 +680,19 @@ export interface GeneratedDish {
    * appelant n'a de branche à écrire pour le cas vide.
    */
   boxes: MealBox[];
+  /**
+   * ⟳ 2026-09-23 — LES À-CÔTÉS SERVIS AVEC CE PLAT, une entrée par personne
+   * et par aliment (voir `DishSideCourse`).
+   *
+   * `[]` sur tout plan écrit avant le 2026-09-23 (la clé n'existe pas) et sur
+   * tout plat qui n'en porte aucun: l'écran se tait, et le rendu est celui
+   * d'avant, octet pour octet.
+   *
+   * ⛔ REQUIS, jamais `T?`: `readDishes` est le seul chemin vers ce type, et
+   * c'est lui qui doit dire « aucun ». Un `?` laisserait un second
+   * constructeur l'oublier sans qu'aucun compilateur ne le signale.
+   */
+  side_courses: DishSideCourse[];
   /**
    * LOT 2 — CE QU'ON FAIT LE JOUR MÊME, tel que le moteur l'a validé.
    *
@@ -1122,6 +1233,8 @@ export function readDishes(raw: unknown): GeneratedDish[] {
     const d = (entry ?? {}) as Record<string, unknown>;
     return {
       title: String(d.title ?? ""),
+      // ⟳ 2026-09-22 — le nom d'usage; une chaîne vide vaut `null` (le titre).
+      name: typeof d.name === "string" && d.name.trim() !== "" ? d.name.trim() : null,
       slot: (d.slot ?? null) as MealSlot | null,
       day: d.day === null || d.day === undefined ? null : String(d.day),
       method: String(d.method ?? ""),
@@ -1142,6 +1255,8 @@ export function readDishes(raw: unknown): GeneratedDish[] {
         : [],
       ingredients: readIngredients(d.ingredients),
       boxes: readBoxes(d),
+      // ⟳ 2026-09-23 — les à-côtés; absents ⇒ `[]`, le rendu d'avant.
+      side_courses: readSideCourses(d.side_courses),
       same_day: readSameDay(d.same_day),
       // LOT 3 — L'ATTRIBUTION, RELUE TELLE QUELLE. Une chaîne vide vaut
       // `null`: « attribué à personne » et « attribué à la chaîne vide » se
@@ -1152,6 +1267,69 @@ export function readDishes(raw: unknown): GeneratedDish[] {
         : null,
     };
   });
+}
+
+/**
+ * ⟳ 2026-09-23 — LES À-CÔTÉS D'UN PLAT, RELUS ET REVALIDÉS ICI.
+ *
+ * ⛔ LECTEUR STRICT, ENTRÉE PAR ENTRÉE. Ce lecteur monte aussi des lignes
+ * écrites par une autre version du moteur; une entrée qui ne tient pas la
+ * forme est IGNORÉE, jamais réparée:
+ *   · `member_id` vide → elle n'est jointe à personne;
+ *   · `kind` ou `source` hors vocabulaire → une forme que ce lecteur ne
+ *     connaît pas; deviner le type d'un aliment d'après son mot serait un
+ *     matcher maison;
+ *   · `term` vide → une ligne « À côté » sans aliment ne dit rien;
+ *   · `grams` non numérique ou qui s'arrondit sous 1 g → « 0 g » se lit
+ *     « n'en mange pas »;
+ *   · `unit_count` posé mais pas un entier ≥ 1 → « 0 × pomme » ou
+ *     « 1,5 × pomme » seraient des instructions fausses.
+ *
+ * ⚠️ `typeof === "number"` ET PAS `Number(...)`: `Number(null)` vaut zéro et
+ * `Number("30")` vaut trente — une charge `jsonb` rend un nombre JSON, jamais
+ * une chaîne, et une chaîne ici est une forme étrangère.
+ *
+ * Absent ou pas un tableau ⇒ `[]`: le plan d'avant se lit comme avant.
+ */
+function readSideCourses(raw: unknown): DishSideCourse[] {
+  if (!Array.isArray(raw)) return [];
+  const out: DishSideCourse[] = [];
+  for (const entry of raw) {
+    if (entry === null || typeof entry !== "object") continue;
+    const s = entry as Record<string, unknown>;
+    const memberId = typeof s.member_id === "string" ? s.member_id.trim() : "";
+    if (memberId === "") continue;
+    const kind = s.kind;
+    if (!(DISH_SIDE_COURSE_KINDS as readonly unknown[]).includes(kind)) continue;
+    const source = s.source;
+    if (!(DISH_SIDE_COURSE_SOURCES as readonly unknown[]).includes(source)) continue;
+    const term = typeof s.term === "string" ? s.term.trim() : "";
+    if (term === "") continue;
+    if (typeof s.grams !== "number" || !Number.isFinite(s.grams)) continue;
+    const grams = Math.round(s.grams);
+    if (grams < 1) continue;
+    let unitCount: number | null = null;
+    if (s.unit_count !== null && s.unit_count !== undefined) {
+      if (
+        typeof s.unit_count !== "number" || !Number.isInteger(s.unit_count) ||
+        s.unit_count < 1
+      ) continue;
+      unitCount = s.unit_count;
+    }
+    const ref = typeof s.ref === "string" && s.ref.trim() !== "" ? s.ref.trim() : null;
+    const prep = typeof s.preparation_id === "string" ? s.preparation_id.trim() : "";
+    out.push({
+      member_id: memberId,
+      kind: kind as DishSideCourseKind,
+      term,
+      ref,
+      grams,
+      unit_count: unitCount,
+      preparation_id: prep === "" ? null : prep,
+      source: source as DishSideCourseSource,
+    });
+  }
+  return out;
 }
 
 /**
@@ -1262,8 +1440,33 @@ export function readPreparations(raw: unknown): MealPreparation[] {
       total_minutes: readMinutes(p.total_minutes),
       cook_on: p.cook_on === null || p.cook_on === undefined ? null : String(p.cook_on),
       ingredients: readIngredients(p.ingredients),
+      share_parts: readShareParts(p.share_parts),
     };
   }).filter((p) => p.id !== "" && p.title !== "");
+}
+
+/**
+ * ⟳ 2026-09-22 — LA COMPOSITION D'UNE CASSEROLE, RELUE ET REVALIDÉE.
+ *
+ * ⚠️ Même posture que `readBoxes`: ce lecteur monte aussi des plans écrits par
+ * une autre version du moteur. Une entrée hors vocabulaire, ou une fraction
+ * hors de ]0 ; 1], éteint le détail entier — une part fausse ferait lire des
+ * grammes faux sous une boîte.
+ */
+function readShareParts(raw: unknown): PotSharePartView[] | null {
+  if (!Array.isArray(raw)) return null;
+  const out: PotSharePartView[] = [];
+  for (const entry of raw) {
+    const e = (entry ?? {}) as Record<string, unknown>;
+    const kind = e.kind;
+    if (kind !== "protein" && kind !== "starch" && kind !== "vegetables") return null;
+    const fraction = Number(e.fraction);
+    if (!Number.isFinite(fraction) || !(fraction > 0) || fraction > 1) return null;
+    const term = typeof e.term === "string" && e.term.trim() !== "" ? e.term.trim() : null;
+    if (term === null && kind !== "vegetables") return null;
+    out.push({ kind, term, fraction });
+  }
+  return out;
 }
 
 /**
@@ -1363,6 +1566,13 @@ function readBoxV4(raw: unknown): MealBox | null {
       preparation_id: prep === "" ? null : prep,
       term: String(it.term ?? "").trim(),
       grams: Number.isFinite(grams) && grams > 0 ? Math.round(grams) : 0,
+      // ⟳ 2026-09-22 — LU, et pas déduit. Illisible, absent ou négatif ⇒
+      // `null`, c'est-à-dire « cet aliment ne se verse pas »: l'abstention,
+      // jamais une densité de secours. C'est le cas de tout plan écrit avant
+      // ce jour.
+      ml: Number.isFinite(Number(it.ml)) && Number(it.ml) > 0
+        ? Math.round(Number(it.ml))
+        : null,
     };
   }).filter((it) => it.term !== "" && it.grams > 0);
   // ══════════════════════════════════════════════════════════════════════════

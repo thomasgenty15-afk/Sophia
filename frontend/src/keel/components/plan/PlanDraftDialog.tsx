@@ -11,7 +11,9 @@
  * garde toutes les gardes amont: gel, objectif requis, méthode publiée,
  * fenêtre, chevauchement, plancher TCA, doctrine, règles de maison. Mesuré:
  * `select count(*) from student_generated_meals` INCHANGÉ après trois tours.
- * C'est ce que `plan.draft.not_saved` dit, et c'est ce qui autorise à refaire.
+ * C'est ce qui autorise à refaire. ⟳ 2026-09-20: la phrase qui le DISAIT
+ * (`plan.draft.not_saved`) a été retirée de l'écran sur demande — la
+ * propriété, elle, n'a pas bougé d'un octet.
  * ══════════════════════════════════════════════════════════════════════════
  *
  * ── ⛔ CE COMPOSANT NE REND PAS UN PLAN, IL EN MONTE UN ────────────────────
@@ -47,6 +49,7 @@ import {
   DRAFT_NOTE_MAX_CHARS,
   draftTurnsLeft,
   type DraftEdit,
+  type DraftProgress,
   hasNote,
   type NoteAnswer,
   type NoteCell,
@@ -62,6 +65,7 @@ import { Button } from "../ui/Button";
 import { Card, SectionLabel } from "../ui/Card";
 import { inputClass } from "../ui/Field";
 import Modal from "../ui/Modal";
+import ComposingLabel from "./ComposingLabel";
 import PlanResult from "./PlanResult";
 
 export interface PlanDraftDialogProps {
@@ -134,8 +138,25 @@ export interface PlanDraftDialogProps {
   edit: DraftEdit | null;
   /** Écrit le plan pour de bon. */
   onAdopt: () => Promise<void>;
+  /**
+   * ⟳ 2026-09-21 — LE LIBELLÉ DU GESTE QUI ÉCRIT, quand il REMPLACE un plan
+   * (« Remplacer mon plan par celui-ci ») plutôt qu'il n'en prépare un.
+   * Absent = « Adopter ce plan ».
+   */
+  adoptLabel?: string;
   /** Une composition est en cours. */
   busy: boolean;
+  /**
+   * ⟳ 2026-09-21 — OÙ EN EST LA COMPOSITION, quand c'est « Ajuster le plan »
+   * qui travaille. `null` = la page ne la suit pas encore; le bouton retombe
+   * alors sur les phrases minutées de `ComposingLabel`, qui restent vraies
+   * sans être mesurées.
+   *
+   * ⛔ LA PAGE LA COLLECTE, CE DIALOGUE NE FAIT QUE LA RENDRE. Il n'a pas
+   * l'identifiant de la ligne et ne relit rien: le suivi vit là où le
+   * `composeDraft` est lancé.
+   */
+  progress?: DraftProgress | null;
   /**
    * ⟳ 2026-09-08 — L'IDENTIFIANT DE L'APERÇU RANGÉ (`DraftEnvelope.draftId`).
    *
@@ -195,7 +216,9 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
     onEditCells,
     edit,
     onAdopt,
+    adoptLabel,
     busy,
+    progress = null,
     draftId,
   } = props;
 
@@ -220,6 +243,19 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
 
   const [note, setNote] = React.useState("");
   /**
+   * ⟳ 2026-09-20 — LA ZONE D'ÉCRITURE NE S'OUVRE QUE SUR DEMANDE.
+   *
+   * Elle était toujours dépliée, sous un titre (« Ce qui ne va pas ») et
+   * deux lignes d'explication — donc un formulaire posé sous le plan pour
+   * tout le monde, y compris pour qui vient juste adopter. « Ajuster le
+   * plan » l'ouvre; le geste de la barre devient alors « Valider ».
+   *
+   * ⛔ ELLE NE SE REFERME PAS TOUTE SEULE APRÈS UN ENVOI, et c'est délibéré:
+   * ce qui suit l'envoi (« J'ai noté : … », une question, un refus) se rend
+   * DANS ce bloc. Le replier emporterait la réponse avec la question.
+   */
+  const [noteOpen, setNoteOpen] = React.useState(false);
+  /**
    * COMBIEN DE COMPOSITIONS ONT DÉJÀ ÉTÉ RENDUES, aperçu initial compris.
    *
    * ⚠️ IL VIT ICI, PAS DANS UNE PROP. Le champ de commentaire est à cet écran,
@@ -232,7 +268,23 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
    * un quatrième tour.
    */
   const [turnsUsed, setTurnsUsed] = React.useState(1);
-  const [working, setWorking] = React.useState(false);
+  /**
+   * ⟳ 2026-09-21 — CE QUI TRAVAILLE, ET PAS SEULEMENT « QUELQUE CHOSE ».
+   *
+   * ── LE DÉFAUT, VU À L'ÉCRAN ────────────────────────────────────────────
+   * Un seul booléen servait les TROIS gestes (la reprise, la réponse à une
+   * question, l'adoption). Cliquer « Ajuster le plan » allumait donc le bouton
+   * d'ADOPTION, qui affichait « Enregistrement… » pendant deux minutes —
+   * c'est-à-dire un mot FAUX: un ajustement recompose, il n'enregistre rien.
+   * Et le bouton qui travaillait vraiment ne disait rien.
+   *
+   * ⛔ `"adjusting"` COUVRE AUSSI LA RÉPONSE À UNE QUESTION, et c'est exact:
+   * elle se termine par `renderNow`, donc par une composition. C'est le même
+   * geste, en deux temps.
+   */
+  const [working, setWorking] = React.useState<
+    "adjusting" | "adopting" | null
+  >(null);
   /**
    * ⟳ 2026-09-08 (lot 4) — CE QUE LA PHRASE A FAIT, ET CE QU'ELLE DEMANDE.
    * Vit ICI, avec le champ: c'est l'issue de la DERNIÈRE phrase, et elle
@@ -314,16 +366,17 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
    */
   const answerQuestion = async (question: NoteQuestion, memberId: string | null) => {
     if (noteOutcome === null) return;
-    setWorking(true);
+    setWorking("adjusting");
     setFailure(null);
     try {
       let merged: NoteOutcome = noteOutcome;
       if (memberId !== null) {
-        const res = await onAnswerNote({
-          kind: "portion",
-          memberId,
-          direction: question.direction,
-        });
+        // ⟳ 2026-09-23 — deux genres de question, un seul geste: la bouche.
+        const res = await onAnswerNote(
+          question.kind === "portion"
+            ? { kind: "portion", memberId, direction: question.direction }
+            : { kind: "who", memberId, entry: question.entry },
+        );
         merged = { ...merged, announced: [...merged.announced, ...res.announced] };
       } else {
         setDeclined((n) => n + 1);
@@ -337,7 +390,7 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
     } catch (e) {
       setFailure({ at: "body", message: failureText(e) });
     } finally {
-      setWorking(false);
+      setWorking(null);
     }
   };
 
@@ -350,24 +403,248 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
    * comportement. `onAdopt` reste l'unique écrivain.
    */
   const runAdopt = async (at: "header" | "body") => {
-    setWorking(true);
+    setWorking("adopting");
     setFailure(null);
     try {
       await onAdopt();
     } catch (e) {
       setFailure({ at, message: failureText(e) });
     } finally {
-      setWorking(false);
+      setWorking(null);
     }
   };
 
-  const busyNow = busy || working;
+  /** N'IMPORTE QUOI TRAVAILLE — c'est ce qui DÉSARME, et rien d'autre. */
+  const busyNow = busy || working !== null;
+  /**
+   * ⛔ « Enregistrement… » NE SE DIT QUE POUR UNE ÉCRITURE. `busy` (la prop)
+   * couvre une composition de la PAGE, et l'ajustement a désormais son propre
+   * jeton: ni l'un ni l'autre n'enregistre quoi que ce soit.
+   */
+  const adopting = working === "adopting";
+  /** La recomposition en cours — celle qui dure deux minutes. */
+  const adjusting = working === "adjusting";
   const pendingQuestion = noteOutcome !== null && noteOutcome.questions.length > 0
     ? noteOutcome.questions[0]
     : null;
   const left = draftTurnsLeft(turnsUsed);
   const canAskAgain = canRemix(turnsUsed);
   const charsLeft = DRAFT_NOTE_MAX_CHARS - noteLength(note);
+
+  /**
+   * ── LES DEUX GESTES, DANS LE PIED DE LA FENÊTRE ─────────────────────────
+   *
+   * ⛔ ILS Y SONT PARCE QUE `sticky` NE SUFFISAIT PAS, ET C'EST MESURÉ. Posée
+   * en `sticky bottom-0` au bas du corps le 2026-09-20, la barre ne collait à
+   * rien: un élément collant ne sort jamais de son parent, et ce parent-là
+   * commence APRÈS toute la semaine de plats. Il fallait donc défiler jusqu'en
+   * bas pour la voir — exactement ce que le lot voulait éviter. Signalé
+   * capture à l'appui: « je les vois pas les boutons en bas ».
+   *
+   * Le pied de `Modal` est le frère du conteneur qui défile: il ne bouge pas,
+   * quelle que soit la position dans la liste.
+   *
+   * ── LE GESTE DE GAUCHE EN A DEUX, ET C'EST LA DEMANDE ───────────────────
+   * Fermé, il OUVRE la zone d'écriture (« Ajuster le plan »). Ouvert, il
+   * ENVOIE (« Valider »), et il passe en primaire dès qu'il y a quelque chose
+   * à envoyer — « bien visible dès que la personne a commencé à taper ».
+   *
+   * ⚠️ DEUX BOUTONS, JAMAIS TROIS. À 320 px, trois débordent, et un bouton
+   * hors écran est un bouton absent.
+   */
+  /**
+   * Y A-T-IL QUELQUE CHOSE À DIRE SOUS LE PLAN ? — ⟳ 2026-09-21.
+   *
+   * Tous les enfants de ce bloc sont conditionnels. Sans cette sentinelle, il
+   * rendrait son trait de séparation et ses 24 px de marge au-dessus de RIEN,
+   * dans le cas nominal — une gouttière sous un plan se lit comme un bloc qui
+   * n'a pas fini de charger.
+   *
+   * ⚠️ ELLE SUR-APPROXIME, ET C'EST LA BONNE DIRECTION: `noteOutcome !== null`
+   * suffit, parce qu'une issue sans rien à annoncer rend quand même une des
+   * deux phrases de repli (« je n'ai rien trouvé à changer », « je ne sais pas
+   * encore le régler d'ici »). Se tromper dans l'autre sens masquerait une
+   * réponse.
+   */
+  const bodyNotice = droppedClauses > 0 || noteOutcome !== null ||
+    pendingQuestion !== null || edit !== null || failure?.at === "body";
+
+  const footerActions = (
+    /* ══════════════════════════════════════════════════════════════════════
+       ⟳ 2026-09-21 — LE CHAMP EST DANS LE PIED, ET SON GESTE EST À CÔTÉ
+       ══════════════════════════════════════════════════════════════════════
+
+       Deux demandes du même message, et elles tiennent ensemble:
+         · « la partie commentaire qui s'ouvre quand on clique sur ajuster,
+           c'est dans l'élément fixé » — elle était tout en bas du corps, donc
+           derrière une semaine de plats;
+         · « pas en bas à côté de valider le plan, ça prête à confusion » — le
+           geste d'envoi partageait sa ligne avec « Remplacer mon plan par
+           celui-ci ». Deux boutons voisins dont l'un écrit et l'autre non.
+
+       Le champ prend donc sa ligne, avec SON bouton au bout; l'adoption garde
+       la sienne, en dessous et à droite.
+
+       ⛔ LE BOUTON D'ENVOI DIT « AJUSTER LE PLAN », LA MÊME CLÉ QUE CELUI QUI
+       OUVRE (`plan.draft.remix`). Ce n'est pas un doublon: les deux ne sont
+       JAMAIS à l'écran en même temps, et c'est le même geste en deux temps.
+       « Valider » (`note_send`) a été retiré — à côté de « Remplacer mon plan
+       par celui-ci », deux mots de validation pour deux effets différents. */
+    noteOpen
+      ? (
+        <div className="flex flex-col gap-2">
+          <div className="flex items-end gap-2">
+            {/* ⛔ `min-w-0` AVEC `flex-1`, ET CE N'EST PAS DÉCORATIF: un enfant
+                de flex refuse par défaut d'être plus étroit que son contenu
+                (`min-width: auto`), donc le champ pousserait son bouton hors
+                du pied à 320 px. Cicatrice `flex-child-min-width-auto`. */}
+            <textarea
+              id="plan-draft-note"
+              className={`${inputClass} min-h-16 min-w-0 flex-1`}
+              rows={2}
+              value={note}
+              placeholder={t("plan.draft.note_placeholder")}
+              // ⛔ PAS DE `maxLength`. Le navigateur couperait la phrase EN
+              // SILENCE au 280e signe, et la personne enverrait une demande
+              // tronquée sans jamais savoir laquelle. On compte, on prévient,
+              // le serveur tranche.
+              disabled={busyNow || !canAskAgain || pendingQuestion !== null}
+              onChange={(e) => setNote(e.target.value)}
+            />
+            {/* ⛔ LA CONDITION DE `disabled` TIENT SUR UNE LIGNE, et ce n'est
+                pas de la mise en forme: `planDraftQuestion.int.test.ts` lit la
+                source pour prouver qu'une question ouverte ferme la reprise.
+                Coupée en deux, la garde est intacte et le test la déclare
+                absente. */}
+            <Button
+              variant={hasNote(note) ? "primary" : "secondary"}
+              disabled={busyNow || !canAskAgain || !hasNote(note) || pendingQuestion !== null}
+          onClick={async () => {
+            setWorking("adjusting");
+            setFailure(null);
+            try {
+              // ① LIRE — la phrase est appliquée et dite. Un refus d'entrée
+              // (`note_unusable`, sans appel modèle) lève ici, avant tout.
+              const outcome = await onReadNote(note);
+              setNoteOutcome(outcome);
+              setDeclined(0);
+              // ② UNE QUESTION ? On s'arrête là: le tap composera. Aucun
+              // tour consommé — rien n'a été composé.
+              //
+              // ⛔ LE CHAMP SE VIDE ICI AUSSI: la phrase a été LUE, donc
+              // appliquée. La garder ferait repartir la reprise d'après avec
+              // deux demandes collées, dont une que la personne croyait
+              // derrière elle.
+              if (outcome.questions.length > 0) {
+                setNote("");
+                return;
+              }
+              // ③ REFAIRE — la case seule si la phrase en désigne une et
+              // qu'un brouillon est rangé, sinon tout. Le tour se compte après.
+              await renderNow(outcome);
+              // ══════════════════════════════════════════════════════════
+              // ⟳ 2026-09-21 — LE CHAMP SE VIDE **APRÈS** LA COMPOSITION
+              // ══════════════════════════════════════════════════════════
+              //
+              // Il se vidait juste après la lecture, donc AVANT les deux
+              // minutes de recomposition: le placeholder revenait pendant
+              // l'attente, et la personne ne voyait plus ce qu'elle venait de
+              // demander. Signalé sur capture: « il faut pas que ce soit le
+              // placeholder qui soit affiché après avoir cliqué sur ajuster le
+              // plan, mais plutôt ce qui a été réellement écrit ».
+              //
+              // ⛔ ET SURTOUT PAS DANS LE `finally`. Un refus (`note_unusable`,
+              // ou une composition qui échoue) doit LAISSER la phrase: c'est
+              // le seul refus que la personne peut réparer elle-même, en
+              // reformulant, et vider le champ la ferait retaper. Le `catch`
+              // ci-dessous ne vide donc rien, et c'est voulu.
+              setNote("");
+            } catch (e) {
+              // `at: "body"` — la phrase refusée est DANS ce champ-ci, et le
+              // motif se lit sous lui. Jamais au fronton, qui ne porte pas
+              // ce geste.
+              setFailure({ at: "body", message: failureText(e) });
+            } finally {
+              setWorking(null);
+            }
+          }}
+            >
+              {/* ⛔ C'EST CE BOUTON-CI QUI TOURNE, ET IL LE DIT. Il envoyait sa
+                  phrase puis restait muet deux minutes pendant que le bouton
+                  d'adoption affichait « Enregistrement… » — le mauvais bouton,
+                  et le mauvais mot. */}
+              {adjusting
+                ? <ComposingLabel progress={progress} />
+                : t("plan.draft.remix")}
+            </Button>
+          </div>
+
+          {/* LES DEUX COMPTES, SUR UNE LIGNE ET EN PETIT — le pied ne défile
+              pas, donc il ne grandit pas.
+
+              ⚠️ LE PLAFOND EST DIT MAINTENANT, PAS AU MOMENT DE BUTER DEDANS.
+              Trois formes et pas une avec un `{count}`: « Encore 1 reprises »
+              est une phrase qu'on ne relit jamais, et zéro n'est pas un
+              compte, c'est un état.
+
+              ⚠️ LE COMPTEUR DE SIGNES passe au rouge APRÈS le plafond, pas
+              avant: une couleur d'alarme sur une phrase encore valable
+              apprendrait à ignorer la couleur. */}
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <span className="text-label text-ink-soft">
+              {left === 0
+                ? t("plan.draft.turns_none")
+                : left === 1
+                ? t("plan.draft.turns_one")
+                : t("plan.draft.turns_left", { count: left })}
+            </span>
+            <span
+              className={`text-label ${
+                noteOverflows(note) ? "text-red-700" : "text-ink-soft"
+              }`}
+            >
+              {noteOverflows(note)
+                ? t("plan.draft.note_too_long")
+                : t("plan.draft.chars_left", { count: charsLeft })}
+            </span>
+          </div>
+
+          <div className="flex justify-end">
+            {/* ⛔ `adoptLabel ?? …` ET PAS LA CLÉ NUE: ce bouton dit
+                « Remplacer mon plan par celui-ci » quand l'aperçu remplace un
+                plan existant. Écrite en dur, la clé faisait dire deux choses
+                au fronton et au pied de la MÊME fenêtre. */}
+            <Button
+              variant="primary"
+              disabled={busyNow || !draft}
+              onClick={() => void runAdopt("body")}
+            >
+              {adopting ? t("plan.draft.adopting") : (adoptLabel ?? t("plan.draft.adopt"))}
+            </Button>
+          </div>
+        </div>
+      )
+      : (
+        /* FERMÉ: les deux gestes aux deux bords, l'avance à droite — le même
+           sens que l'entonnoir (`SetupPage`, `setup.next` en `justify-end`). */
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <Button
+            variant="secondary"
+            disabled={busyNow || !canAskAgain}
+            onClick={() => setNoteOpen(true)}
+          >
+            {t("plan.draft.remix")}
+          </Button>
+          <Button
+            variant="primary"
+            disabled={busyNow || !draft}
+            onClick={() => void runAdopt("body")}
+          >
+            {adopting ? t("plan.draft.adopting") : (adoptLabel ?? t("plan.draft.adopt"))}
+          </Button>
+        </div>
+      )
+  );
 
   return (
     <Modal
@@ -416,28 +693,25 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
           disabled={busyNow || !draft}
           onClick={() => void runAdopt("header")}
         >
-          {busyNow ? t("plan.draft.adopting") : t("plan.draft.adopt")}
+          {adopting ? t("plan.draft.adopting") : (adoptLabel ?? t("plan.draft.adopt"))}
         </Button>
       }
       // `lg`: on y monte une SEMAINE — grille, préparations, jours. À `max-w-lg`
       // la grille du plan se lit à travers une meurtrière.
       size="lg"
+      footer={footerActions}
     >
-      {/* ── CE QUI EST VRAI AVANT TOUT LE RESTE ────────────────────────────
-          En tête, pas en pied: c'est ce qui rend le reste de cette fenêtre
-          sans conséquence, et donc ce qui autorise à essayer. Le lire après
-          avoir hésité sur « adopter » serait le lire trop tard. */}
-      <p className="text-sm text-ink-soft">{t("plan.draft.not_saved")}</p>
+      {/* ⟳ 2026-09-20 — DEUX PHRASES DE TÊTE RETIRÉES, SUR DEMANDE.
+          « Rien n'est encore enregistré. » (`plan.draft.not_saved`) et
+          « Adopter revalide cet aperçu… » (`plan.draft.adopt_recomposes`,
+          qui était aussi sous le bouton du bas) ouvraient cette fenêtre sur
+          deux lignes de contrat avant le plan lui-même. Les deux clés n'ont
+          plus aucun lecteur et sont sorties des deux fichiers de langue.
 
-      {/* La même phrase est posée sous chaque bouton « adopter »: elle dit que
-          le payload relu sera revalidé puis écrit tel quel, sans recomposition.
-          qu'elle doit être à l'écran avant le clic — et les deux ne sont jamais
-          en vue en même temps: celle-ci est au-dessus du plan, l'autre en
-          dessous. La retirer d'ici rendrait le raccourci du fronton silencieux
-          sur ce qu'il fait vraiment. */}
-      <p className="mt-1 text-label leading-5 text-ink-soft">
-        {t("plan.draft.adopt_recomposes")}
-      </p>
+          ⚠️ CE QU'ELLES DISAIENT RESTE VRAI: cette fenêtre n'écrit rien tant
+          qu'on n'a pas cliqué « Adopter », et l'adoption rejoue le
+          `write_payload` rangé après empreinte et garde finale, sans
+          recomposer. Ce qui change est qu'on ne l'écrit plus à l'écran. */}
 
       {/* LE REFUS DU BOUTON DU HAUT, SOUS LE BOUTON DU HAUT. Le fronton ne
           défile pas, donc cette ligne est visible d'où qu'on ait cliqué en
@@ -565,8 +839,6 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
               // lire le mardi du brouillon est à un clic. Le plan ADOPTÉ,
               // lui, ouvre sur le jour (le défaut de `PlanResult`).
               defaultView="week"
-              fixedIntakes={draft.fixedIntakes}
-              dayProperties={draft.dayProperties}
               // LE VIDE DE CETTE FENÊTRE N'EST PAS CELUI DE L'ÉCRAN. « Dis-moi
               // par où commencer ci-dessus » n'a pas de sens ici: il n'y a pas
               // de formulaire au-dessus. On dit ce qui s'est passé.
@@ -589,63 +861,30 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
           : <p className="text-sm text-ink-soft">{t("plan.draft.working")}</p>}
       </div>
 
-      {/* ── CE QUI NE VA PAS ───────────────────────────────────────────────
-          SOUS le plan: on ne commente pas ce qu'on n'a pas lu. */}
+      {/* ── AJUSTER LE PLAN ────────────────────────────────────────────────
+          SOUS le plan: on ne commente pas ce qu'on n'a pas lu.
+
+          ⛔ LE TITRE (« Ce qui ne va pas ») ET SON EXPLICATION (« Une phrase
+          suffit… ») SONT PARTIS LE 2026-09-20, sur demande, avec leurs deux
+          clés. Ce qu'ils annonçaient est maintenant porté par le geste
+          lui-même: on ne lit « Ajuster le plan » que si on veut ajuster. */}
+      {/* ══════════════════════════════════════════════════════════════════
+          ⟳ 2026-09-21 — LE CHAMP EST MONTÉ DANS LE PIED. CE BLOC NE PORTE
+          PLUS QUE CE QUE LA PHRASE A PRODUIT.
+          ══════════════════════════════════════════════════════════════════
+
+          Le champ, son compteur de signes et le compte des reprises vivaient
+          ici, tout en bas du corps: il fallait défiler toute la semaine pour
+          écrire, et le geste d'envoi se retrouvait collé à « Remplacer mon
+          plan par celui-ci ». Demandé: « la partie commentaire qui s'ouvre
+          quand on clique sur ajuster, c'est dans l'élément fixé ».
+
+          ⛔ ET CE BLOC-CI NE SE REND PLUS SOUS `noteOpen`. Ce qu'il porte est
+          la RÉPONSE (« J'ai noté : … », une question du serveur, un refus):
+          la lier à l'ouverture du champ ferait disparaître la réponse en même
+          temps que la question, au premier repli. */}
+      {bodyNotice && (
       <div className="mt-6 border-t border-line pt-4">
-        <label
-          htmlFor="plan-draft-note"
-          className="block text-sm font-semibold text-ink"
-        >
-          {t("plan.draft.note_label")}
-        </label>
-        <p className="mt-1 text-sm leading-6 text-ink-soft">
-          {t("plan.draft.note_hint")}
-        </p>
-
-        {/* ⚠️ LE PLAFOND EST DIT MAINTENANT, PAS AU MOMENT DE BUTER DEDANS.
-            Trois formes et pas une avec un `{count}`: « Encore 1 reprises »
-            est une phrase qu'on ne relit jamais, et zéro n'est pas un compte,
-            c'est un état. */}
-        <p className="mt-1 text-label text-ink-soft">
-          {left === 0
-            ? t("plan.draft.turns_none")
-            : left === 1
-            ? t("plan.draft.turns_one")
-            : t("plan.draft.turns_left", { count: left })}
-        </p>
-
-        <textarea
-          id="plan-draft-note"
-          className={`${inputClass} mt-2 min-h-24`}
-          value={note}
-          placeholder={t("plan.draft.note_placeholder")}
-          // ⛔ PAS DE `maxLength`. Le navigateur couperait la phrase EN SILENCE
-          // au 280e signe, et la personne enverrait une demande tronquée sans
-          // jamais savoir laquelle. On compte, on prévient, le serveur tranche.
-          disabled={busyNow || !canAskAgain || pendingQuestion !== null}
-          onChange={(e) => setNote(e.target.value)}
-        />
-
-        {/* LE COMPTEUR. Il descend, et il passe au rouge APRÈS le plafond —
-            pas avant: une couleur d'alarme sur une phrase encore valable
-            apprendrait à ignorer la couleur. */}
-        <div className="mt-1 flex flex-wrap items-baseline justify-between gap-2">
-          <span
-            className={`text-label ${
-              noteOverflows(note) ? "text-red-700" : "text-ink-soft"
-            }`}
-          >
-            {t("plan.draft.chars_left", { count: charsLeft })}
-          </span>
-          {noteOverflows(note)
-            ? (
-              <span className="text-label text-red-700">
-                {t("plan.draft.note_too_long")}
-              </span>
-            )
-            : null}
-        </div>
-
         {/* ── UNE CLAUSE A ÉTÉ ÉCARTÉE, ET IL FAUT QUE ÇA SE VOIE ──────────
             LE FAIT, JAMAIS LE MOTIF. « Une partie n'a pas été reprise » suffit
             à ne pas laisser croire qu'on a été entendu sur tout; nommer la
@@ -675,6 +914,21 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
                 ))}
               </ul>
             </div>
+          )
+          : null}
+        {/* ⟳ 2026-09-23 — ⑩ CE QUE LA NOTE A DIT DE LA SANTÉ ET QUI N'A PAS PU
+            ENTRER DANS LA FICHE. Dit ICI, à côté du geste: un refus loin du
+            geste se lit comme un bouton mort, et un refus tu comme une
+            allergie enregistrée. */}
+        {noteOutcome !== null && noteOutcome.safetyNotWritten.length > 0
+          ? (
+            <p role="alert" className="mt-2 text-sm leading-6 text-red-700 break-words">
+              {t("plan.draft.safety_not_written", {
+                lines: noteOutcome.safetyNotWritten
+                  .map((l) => (l.who ? `${l.who} : ${l.text}` : l.text))
+                  .join(" · "),
+              })}
+            </p>
           )
           : null}
 
@@ -780,7 +1034,15 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
         {/* ⛔ LE ROUGE RESTE: famille « échec » du produit, et un motif nommé
             est un FAIT. `note_unusable` est le seul refus que la personne peut
             réparer elle-même — en reformulant — donc il se lit ici, sous le
-            champ qu'il concerne, jamais ailleurs. */}
+            champ qu'il concerne, jamais ailleurs.
+
+            ⛔ ET IL EST **HORS** DU BLOC QUI SE REPLIE — 2026-09-20. `at:
+            "body"` est posé par DEUX gestes: la note, et « Adopter ce plan »
+            du bas (`runAdopt("body")`). Laissé sous `noteOpen`, un refus
+            d'adoption serait invisible tant que la zone d'écriture est
+            fermée — c'est-à-dire dans le cas nominal, et sur le seul bouton
+            qui écrit vraiment. Un bouton dont le refus ne se voit pas est un
+            bouton mort: la cicatrice est écrite trois fois dans `SetupPage`. */}
         {failure?.at === "body"
           ? (
             <p className="mt-2 text-sm leading-6 text-red-700 break-words">
@@ -789,61 +1051,8 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
           )
           : null}
 
-        {/* ── LES DEUX GESTES ─────────────────────────────────────────────
-            `flex-wrap`: à 320 px deux boutons côte à côte débordent, et un
-            bouton hors écran est un bouton absent. */}
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          <Button
-            variant="secondary"
-            disabled={busyNow || !canAskAgain || !hasNote(note) || pendingQuestion !== null}
-            onClick={async () => {
-              setWorking(true);
-              setFailure(null);
-              try {
-                // ① LIRE — la phrase est appliquée et dite. Un refus d'entrée
-                // (`note_unusable`, sans appel modèle) lève ici, avant tout.
-                const outcome = await onReadNote(note);
-                setNoteOutcome(outcome);
-                setDeclined(0);
-                // La phrase a servi: le champ se vide pour la suivante. La
-                // garder ferait repartir la reprise d'après avec deux demandes
-                // collées, dont une que la personne croyait derrière elle.
-                setNote("");
-                // ② UNE QUESTION ? On s'arrête là: le tap composera. Aucun
-                // tour consommé — rien n'a été composé.
-                if (outcome.questions.length > 0) return;
-                // ③ REFAIRE — la case seule si la phrase en désigne une et
-                // qu'un brouillon est rangé, sinon tout. Le tour se compte après.
-                await renderNow(outcome);
-              } catch (e) {
-                // `at: "body"` — la phrase refusée est DANS ce champ-ci, et le
-                // motif se lit sous lui. Jamais au fronton, qui ne porte pas
-                // ce geste.
-                setFailure({ at: "body", message: failureText(e) });
-              } finally {
-                setWorking(false);
-              }
-            }}
-          >
-            {t("plan.draft.remix")}
-          </Button>
-
-          <Button
-            variant="primary"
-            disabled={busyNow || !draft}
-            onClick={() => void runAdopt("body")}
-          >
-            {busyNow ? t("plan.draft.adopting") : t("plan.draft.adopt")}
-          </Button>
-        </div>
-
-        {/* L'adoption rejoue le write_payload rangé, après empreinte et garde
-            finale. La phrase reste sous le bouton pour que ce contrat soit
-            lisible avant le clic. */}
-        <p className="mt-2 text-label leading-5 text-ink-soft">
-          {t("plan.draft.adopt_recomposes")}
-        </p>
       </div>
+      )}
     </Modal>
   );
 }

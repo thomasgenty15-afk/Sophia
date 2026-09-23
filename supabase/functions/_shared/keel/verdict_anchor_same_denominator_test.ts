@@ -32,6 +32,10 @@ import { buildCompositionIndex, type CompositionRef } from "./food_composition.t
 import { envelopeFor,
   MAINTENANCE_ENVELOPE_DIRECTION,
 } from "./meal_envelope.ts";
+// ⟳ 2026-09-23 — `envelopeFor` prend un onzième paramètre, l'âge exact
+// (`exactAgeYears`). Ce fichier passe `null` à chaque appel : l'équation du
+// corps garde le milieu de la tranche d'âge, et aucun nombre ci-dessous ne
+// bouge.
 import type { MealBodyContext } from "./meal_body.ts";
 
 // ---------------------------------------------------------------------------
@@ -92,7 +96,8 @@ const PER_KG = envelopeFor(
   { day: null, sport: null, asked: false },
   null,
   null,
-MAINTENANCE_ENVELOPE_DIRECTION
+MAINTENANCE_ENVELOPE_DIRECTION,
+null,
 );
 const BAND = PER_KG.mode === "per_kg" && PER_KG.energy !== null ? PER_KG.energy : null;
 const TARGET = BAND === null ? 0 : (BAND.low + BAND.high) / 2;

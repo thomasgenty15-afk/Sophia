@@ -10,6 +10,7 @@ import PlanDemo, { MealPreview, PlanDemoBody } from "./PlanDemo";
 import {
   type DemoDish,
   boxLinesForDish,
+  boxPartsFor,
   boxLinesForSession,
   DEMO_DAYS,
   DEMO_DISHES,
@@ -175,6 +176,32 @@ describe("les contenants sont ceux du produit", () => {
     }
   });
 
+  // ⟳ 2026-09-23 — LE FÉCULENT À CÔTÉ (chantier du même nom, lot C). Le
+  // poulet et les légumes rôtissent sur la MÊME plaque: une boîte n'en reçoit
+  // qu'une composition, quel que soit l'objectif. Nombres en dur, jamais
+  // recalculés depuis la fixture qu'ils gardent.
+  it("une boîte = la casserole principale, PUIS le féculent à part", () => {
+    atPath("/");
+    for (const goal of ["fat_loss", "muscle_gain"] as const) {
+      const parts = boxPartsFor(DEMO_DISHES[0], goal);
+      expect(parts.map((p) => [p.prepId, p.role])).toEqual([
+        ["chicken", "main"],
+        ["bulgur", "separable_side"],
+      ]);
+    }
+    expect(boxPartsFor(DEMO_DISHES[0], "fat_loss").map((p) => p.grams)).toEqual([375, 140]);
+    expect(boxPartsFor(DEMO_DISHES[0], "muscle_gain").map((p) => p.grams)).toEqual([475, 220]);
+  });
+
+  it("la casserole principale garde UNE composition d'un objectif à l'autre: 40 % de poulet", () => {
+    atPath("/");
+    for (const goal of ["fat_loss", "muscle_gain"] as const) {
+      const [main] = boxPartsFor(DEMO_DISHES[0], goal);
+      const chicken = main.items.find((it) => it.term === fr["home.demo.box.chicken"])!;
+      expect(chicken.grams / main.grams, goal).toBeCloseTo(0.4, 5);
+    }
+  });
+
   it("prendre du muscle donne un contenant plus lourd que perdre du poids", () => {
     atPath("/");
     const heavier = boxLinesForSession(DEMO_SESSIONS[0], "muscle_gain");
@@ -248,15 +275,28 @@ describe("le rendu français reprend les libellés du produit, dans l'ordre véc
 });
 
 describe("un aperçu visible, des détails facultatifs", () => {
-  it("montre les trois étapes sans ouvrir le planning détaillé", () => {
+  // ⟳ 2026-09-23 — QUATRE ÉTAPES: « Tes boîtes » entre la cuisine et les
+  // repas. C'est elle qui dit ce qu'est une boîte et quand on pèse.
+  it("montre les quatre étapes sans ouvrir le planning détaillé", () => {
     atPath("/");
     const html = decode(renderToStaticMarkup(createElement(PlanDemo, { goal: "fat_loss" })));
     const shopping = html.indexOf(fr["home.how.shop.title"]);
     const cooking = html.indexOf(fr["home.how.cook.title"]);
+    const boxing = html.indexOf(fr["home.how.box.title"]);
     const meals = html.indexOf(fr["home.how.eat.title"]);
     expect(shopping).toBeGreaterThan(0);
     expect(cooking).toBeGreaterThan(shopping);
-    expect(meals).toBeGreaterThan(cooking);
+    expect(boxing).toBeGreaterThan(cooking);
+    expect(meals).toBeGreaterThan(boxing);
+    expect(html).toContain(fr["home.flow.box_side"]);
+    expect(html).toContain(fr["home.flow.box_weigh"]);
+    // La session, repère par repère — et le dernier repère tombe sur la durée
+    // annoncée de la session (50 min, en dur).
+    for (const key of ["home.flow.cook.step_1", "home.flow.cook.step_2", "home.flow.cook.step_3", "home.flow.cook.step_4"] as const) {
+      expect(html, key).toContain(fr[key]);
+    }
+    expect(DEMO_SESSIONS[0].totalMinutes).toBe(50);
+    expect(html).toContain(fr["home.flow.step_at"].replace("{minutes}", "50"));
     expect(html).toContain(fr["home.plan.window"]);
     expect(html).toContain('aria-expanded="false"');
     expect(html).not.toContain(fr["meals.boxes.title"]);
@@ -282,14 +322,19 @@ describe("un aperçu visible, des détails facultatifs", () => {
     expect(lean).not.toContain(`${DEMO_DISHES[0].kcal!.muscle_gain} kcal`);
   });
 
-  it("l’aperçu du repas reprend les portions de la démonstration, pour chaque objectif", () => {
+  it("l’aperçu du repas reprend la boîte de la démonstration, ligne par casserole, pour chaque objectif", () => {
     atPath("/");
+    const label = { main: fr["home.demo.box.main"], separable_side: fr["home.demo.box.side"] };
     for (const goal of ["fat_loss", "muscle_gain"] as const) {
       const html = decode(renderToStaticMarkup(createElement(MealPreview, { goal })));
       expect(html).toContain(fr["home.preview.label"]);
-      for (const item of DEMO_DISHES[0].boxItems) {
-        expect(html).toContain(fr[item.termKey as keyof typeof fr]);
-        expect(html).toContain(`${item.grams[goal]} g`);
+      for (const part of boxPartsFor(DEMO_DISHES[0], goal)) {
+        expect(html, part.prepId).toContain(label[part.role]);
+        expect(html, part.prepId).toContain(`${part.grams} g`);
+        // La répartition exacte de la casserole principale est écrite.
+        if (part.items.length > 1) {
+          for (const item of part.items) expect(html).toContain(`${item.term} ${item.grams} g`);
+        }
       }
     }
   });

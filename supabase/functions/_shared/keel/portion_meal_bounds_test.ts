@@ -34,6 +34,12 @@ import {
   fitPortionsToBounds,
   type PortionBounds,
 } from "./portion_boundary.ts";
+// ⟳ 2026-09-23 — `fitPortionsToBounds` exige `goalOf` (l'objectif de la
+// bouche, qui choisit l'ordre du rabotage) et chaque item porte `kcalPerG`
+// et `starch` (audit des dosages, lot 5). Ce fichier passe `goalOf: () =>
+// null`, c'est-à-dire `largest_first`, la règle d'avant ce lot, et des items
+// sans densité (`kcalPerG: null`) : les grammes attendus ne bougent pas.
+// `starch` dit la vérité du groupe même si cet ordre ne le lit pas.
 import {
   buildCompositionIndex,
   type CompositionRef,
@@ -93,11 +99,11 @@ function repasDuRapport(): BoundedBox[] {
       slot: "dinner",
       memberIds: ["lea"],
       items: [
-        { preparationId: "prep_tofu_table", grams: 158, group: null },
-        { preparationId: null, grams: 32, group: null },
-        { preparationId: null, grams: 8, group: null },
-        { preparationId: null, grams: 7, group: null },
-        { preparationId: null, grams: 11, group: null },
+        { preparationId: "prep_tofu_table", grams: 158, group: null, kcalPerG: null, starch: false },
+        { preparationId: null, grams: 32, group: null, kcalPerG: null, starch: false },
+        { preparationId: null, grams: 8, group: null, kcalPerG: null, starch: false },
+        { preparationId: null, grams: 7, group: null, kcalPerG: null, starch: false },
+        { preparationId: null, grams: 11, group: null, kcalPerG: null, starch: false },
       ],
     },
     {
@@ -105,7 +111,7 @@ function repasDuRapport(): BoundedBox[] {
       day: "mon",
       slot: "dinner",
       memberIds: ["lea"],
-      items: [{ preparationId: null, grams: 9, group: null }],
+      items: [{ preparationId: null, grams: 9, group: null, kcalPerG: null, starch: false }],
     },
   ];
 }
@@ -125,6 +131,7 @@ Deno.test("§2.4 ① — 216 g + 9 g font 225 g: le plancher est ATTEINT, rien n
     boundsFor: () => BORNES,
     potReadyGrams: new Map([["prep_tofu_table", 2000]]),
     potMarginPercent: 1,
+    goalOf: () => null,
   });
   // ⛔ AVANT CE LOT: `raised: 1, grams_raised: 9` sur la part commune (elle
   // passait de 216 à 225) ET `still_under_min: 1` sur le complément, pour une
@@ -156,6 +163,7 @@ Deno.test("§2.4 ① bis — LE CAS QUI MORD: deux MOMENTS différents restent d
     boundsFor: () => BORNES,
     potReadyGrams: new Map([["prep_tofu_table", 2000]]),
     potMarginPercent: 1,
+    goalOf: () => null,
   });
   assertEquals(counts.meals, 2);
   assertEquals(counts.multi_box_meals, 0);
@@ -180,14 +188,14 @@ Deno.test("§2.4 ② — complément DENSE: le rabotage porte sur le repas, pas 
       day: "tue",
       slot: "dinner",
       memberIds: ["lea"],
-      items: [{ preparationId: "pot", grams: 500, group: null }, { preparationId: null, grams: 150, group: null }],
+      items: [{ preparationId: "pot", grams: 500, group: null, kcalPerG: null, starch: false }, { preparationId: null, grams: 150, group: null, kcalPerG: null, starch: false }],
     },
     {
       boxId: "complement",
       day: "tue",
       slot: "dinner",
       memberIds: ["lea"],
-      items: [{ preparationId: null, grams: 40, group: null }],
+      items: [{ preparationId: null, grams: 40, group: null, kcalPerG: null, starch: false }],
     },
   ];
   const counts = fitPortionsToBounds({
@@ -195,6 +203,7 @@ Deno.test("§2.4 ② — complément DENSE: le rabotage porte sur le repas, pas 
     boundsFor: () => BORNES,
     potReadyGrams: new Map([["pot", 600]]),
     potMarginPercent: 1,
+    goalOf: () => null,
   });
   assertEquals(total(boxes), 660, "le repas ne retombe pas sur son plafond");
   assertEquals(counts.shaved, 1);
@@ -219,14 +228,14 @@ Deno.test("§2.4 ③ — complément LÉGER: le repas remonte, et jamais au-del�
       day: "tue",
       slot: "dinner",
       memberIds: ["lea"],
-      items: [{ preparationId: "pot", grams: 150, group: null }],
+      items: [{ preparationId: "pot", grams: 150, group: null, kcalPerG: null, starch: false }],
     },
     {
       boxId: "complement",
       day: "tue",
       slot: "dinner",
       memberIds: ["lea"],
-      items: [{ preparationId: null, grams: 60, group: null }],
+      items: [{ preparationId: null, grams: 60, group: null, kcalPerG: null, starch: false }],
     },
   ];
   const counts = fitPortionsToBounds({
@@ -235,6 +244,7 @@ Deno.test("§2.4 ③ — complément LÉGER: le repas remonte, et jamais au-del�
     boundsFor: () => BORNES,
     potReadyGrams: new Map([["pot", 300]]),
     potMarginPercent: 1,
+    goalOf: () => null,
   });
   assertEquals(total(boxes), 225);
   assertEquals(counts.raised, 1);
@@ -256,14 +266,14 @@ Deno.test("§2.4 ③ bis — la marge du LOT reste une limite du composant, et e
       day: "tue",
       slot: "dinner",
       memberIds: ["lea"],
-      items: [{ preparationId: "pot", grams: 150, group: null }],
+      items: [{ preparationId: "pot", grams: 150, group: null, kcalPerG: null, starch: false }],
     },
     {
       boxId: "complement",
       day: "tue",
       slot: "dinner",
       memberIds: ["lea"],
-      items: [{ preparationId: null, grams: 60, group: null }],
+      items: [{ preparationId: null, grams: 60, group: null, kcalPerG: null, starch: false }],
     },
   ];
   const counts = fitPortionsToBounds({
@@ -271,6 +281,7 @@ Deno.test("§2.4 ③ bis — la marge du LOT reste une limite du composant, et e
     boundsFor: () => BORNES,
     potReadyGrams: new Map([["pot", 160]]),
     potMarginPercent: 1,
+    goalOf: () => null,
   });
   assertEquals(total(boxes), 210, "le lot a été dépassé");
   assertEquals(counts.raised, 0);
@@ -292,14 +303,14 @@ Deno.test("§2.4 ④ — un ingrédient sans quantité ne fait pas de gramme, et
       day: "tue",
       slot: "dinner",
       memberIds: ["lea"],
-      items: [{ preparationId: null, grams: 0, group: null }, { preparationId: null, grams: 1, group: null }],
+      items: [{ preparationId: null, grams: 0, group: null, kcalPerG: null, starch: false }, { preparationId: null, grams: 1, group: null, kcalPerG: null, starch: false }],
     },
     {
       boxId: "complement",
       day: "tue",
       slot: "dinner",
       memberIds: ["lea"],
-      items: [{ preparationId: null, grams: 1, group: null }],
+      items: [{ preparationId: null, grams: 1, group: null, kcalPerG: null, starch: false }],
     },
   ];
   const counts = fitPortionsToBounds({
@@ -307,6 +318,7 @@ Deno.test("§2.4 ④ — un ingrédient sans quantité ne fait pas de gramme, et
     boundsFor: () => ({ min: 0, max: 1 }),
     potReadyGrams: new Map(),
     potMarginPercent: 1,
+    goalOf: () => null,
   });
   assertEquals(boxes.flatMap((b) => b.items.map((i) => i.grams)), [0, 1, 1]);
   assertEquals(counts.still_over_max, 1, "le repas de 2 g reste au-dessus de son plafond de 1 g");
@@ -327,14 +339,14 @@ Deno.test("§2.4 ⑤ — 631 g franchis PAR LE REPAS retombent à 630, un gramme
       day: "sun",
       slot: "breakfast",
       memberIds: ["m1"],
-      items: [{ preparationId: "prep_eggs", grams: 401, group: null }, { preparationId: null, grams: 150, group: null }],
+      items: [{ preparationId: "prep_eggs", grams: 401, group: null, kcalPerG: null, starch: false }, { preparationId: null, grams: 150, group: null, kcalPerG: null, starch: false }],
     },
     {
       boxId: "complement",
       day: "sun",
       slot: "breakfast",
       memberIds: ["m1"],
-      items: [{ preparationId: null, grams: 80, group: null }],
+      items: [{ preparationId: null, grams: 80, group: null, kcalPerG: null, starch: false }],
     },
   ];
   const counts = fitPortionsToBounds({
@@ -342,6 +354,7 @@ Deno.test("§2.4 ⑤ — 631 g franchis PAR LE REPAS retombent à 630, un gramme
     boundsFor: () => ({ min: 350, max: 630 }),
     potReadyGrams: new Map([["prep_eggs", 800]]),
     potMarginPercent: 1,
+    goalOf: () => null,
   });
   assertEquals(total(boxes), 630);
   assertEquals(boxes[0].items.map((i) => i.grams), [400, 150], "le rabotage n'a pas pris le plus gros du REPAS");
@@ -535,7 +548,7 @@ Deno.test("§2.4 ⑨ — frontière PUIS mesure finale: les contraintes tiennent
       // LE PLUS DUR: plancher générique à 50 % de la masse d'origine pour
       // chaque item. Le décor du handler, lui, porte le vrai groupe.
       items: b.items.map((i) =>
-        ({ ...(i as unknown as { preparationId: string | null; grams: number }), group: null })
+        ({ ...(i as unknown as { preparationId: string | null; grams: number }), group: null, kcalPerG: null, starch: false })
       ),
     }))
   );
@@ -544,6 +557,7 @@ Deno.test("§2.4 ⑨ — frontière PUIS mesure finale: les contraintes tiennent
     boundsFor: () => ({ min: 225, max: 660 }),
     potReadyGrams: new Map([["prep_tofu_table", 216]]),
     potMarginPercent: 1,
+    goalOf: () => null,
   });
   assertEquals(frontiere.already_in_bounds, 1);
   assertEquals(frontiere.raised, 0);
@@ -580,7 +594,7 @@ Deno.test("§2.4 ⑨ bis — ce qui ne tient pas reste EXPLICITEMENT non conform
       // LE PLUS DUR: plancher générique à 50 % de la masse d'origine pour
       // chaque item. Le décor du handler, lui, porte le vrai groupe.
       items: b.items.map((i) =>
-        ({ ...(i as unknown as { preparationId: string | null; grams: number }), group: null })
+        ({ ...(i as unknown as { preparationId: string | null; grams: number }), group: null, kcalPerG: null, starch: false })
       ),
     }))
   );
@@ -590,6 +604,7 @@ Deno.test("§2.4 ⑨ bis — ce qui ne tient pas reste EXPLICITEMENT non conform
     // La casserole ne produit que ce qu'elle contient: aucune marge utile.
     potReadyGrams: new Map([["prep_tofu_table", 216]]),
     potMarginPercent: 1,
+    goalOf: () => null,
   });
   assertEquals(frontiere.raised, 0);
   assertEquals(frontiere.still_under_min, 1);
@@ -645,8 +660,8 @@ Deno.test("BÊTA 1C ⑦ — le féculent garde la moitié de sa masse, même si 
     slot: "lunch",
     memberIds: ["m1"],
     items: [
-      { preparationId: null, grams: 300, group: "whole_grain" as const },
-      { preparationId: null, grams: 100, group: null },
+      { preparationId: null, grams: 300, group: "whole_grain" as const, kcalPerG: null, starch: true },
+      { preparationId: null, grams: 100, group: null, kcalPerG: null, starch: false },
     ],
   };
   const counts = fitPortionsToBounds({
@@ -655,6 +670,7 @@ Deno.test("BÊTA 1C ⑦ — le féculent garde la moitié de sa masse, même si 
     boundsFor: () => ({ min: 50, max: 150 }),
     potReadyGrams: new Map(),
     potMarginPercent: 1,
+    goalOf: () => null,
   });
   // ⛔ AVANT CE LOT, LE RABOTAGE RÉUSSISSAIT: 300 → 1 et 100 → 1, soit 398 g
   // disponibles. Le repas rentrait dans ses bornes et ce n'était plus le plat.
@@ -675,8 +691,8 @@ Deno.test("BÊTA 1C ⑦ — LE CAS QUI PASSE: un rabotage qui respecte les planc
     slot: "lunch",
     memberIds: ["m1"],
     items: [
-      { preparationId: null, grams: 300, group: "whole_grain" as const },
-      { preparationId: null, grams: 100, group: null },
+      { preparationId: null, grams: 300, group: "whole_grain" as const, kcalPerG: null, starch: true },
+      { preparationId: null, grams: 100, group: null, kcalPerG: null, starch: false },
     ],
   };
   const counts = fitPortionsToBounds({
@@ -684,6 +700,7 @@ Deno.test("BÊTA 1C ⑦ — LE CAS QUI PASSE: un rabotage qui respecte les planc
     boundsFor: () => ({ min: 50, max: 250 }),
     potReadyGrams: new Map(),
     potMarginPercent: 1,
+    goalOf: () => null,
   });
   assertEquals(box.items.map((i) => i.grams), [150, 100]);
   assertEquals(counts.shaved, 1);
@@ -700,13 +717,14 @@ Deno.test("BÊTA 1C ⑦ — un LÉGUME garde 70 %, pas 50 %: le plancher n'est p
     day: "sun",
     slot: "lunch",
     memberIds: ["m1"],
-    items: [{ preparationId: null, grams: 200, group: "non_starchy_veg" as const }],
+    items: [{ preparationId: null, grams: 200, group: "non_starchy_veg" as const, kcalPerG: null, starch: false }],
   };
   const counts = fitPortionsToBounds({
     boxes: [box],
     boundsFor: () => ({ min: 50, max: 140 }),
     potReadyGrams: new Map(),
     potMarginPercent: 1,
+    goalOf: () => null,
   });
   // 200 × 0,7 = 140 : le légume peut donner 60 g, tout juste assez.
   assertEquals(box.items.map((i) => i.grams), [140]);
@@ -715,13 +733,14 @@ Deno.test("BÊTA 1C ⑦ — un LÉGUME garde 70 %, pas 50 %: le plancher n'est p
   const serre = {
     ...box,
     boxId: "b_veg2",
-    items: [{ preparationId: null, grams: 200, group: "non_starchy_veg" as const }],
+    items: [{ preparationId: null, grams: 200, group: "non_starchy_veg" as const, kcalPerG: null, starch: false }],
   };
   const trop = fitPortionsToBounds({
     boxes: [serre],
     boundsFor: () => ({ min: 50, max: 139 }),
     potReadyGrams: new Map(),
     potMarginPercent: 1,
+    goalOf: () => null,
   });
   assertEquals(serre.items.map((i) => i.grams), [200]);
   assertEquals(trop.still_over_max, 1);

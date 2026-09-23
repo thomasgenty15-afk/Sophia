@@ -69,7 +69,6 @@ const WHOLE_DAY = readDay({
   complete: true,
   dishes_counted: 3,
   dishes_total: 3,
-  addon_kcal: 0,
   meals_out: 0,
   subject: "the_day",
 });
@@ -82,7 +81,6 @@ const ONE_MEAL_OUT = readDay({
   complete: true,
   dishes_counted: 2,
   dishes_total: 2,
-  addon_kcal: 0,
   meals_out: 1,
   subject: "what_the_plan_made",
 });
@@ -124,7 +122,6 @@ describe("② le total d'un jour dit de quoi il parle", () => {
       complete: false,
       dishes_counted: 1,
       dishes_total: 2,
-      addon_kcal: 0,
       meals_out: 1,
       subject: "what_the_plan_made",
     })));
@@ -132,10 +129,14 @@ describe("② le total d'un jour dit de quoi il parle", () => {
     expect(body).toContain("across the 2 meals I composed (1 meal out)");
   });
 
-  it("⚠️ L'ADD-ON SURVIT AUSSI: le sujet s'y ajoute, il ne le remplace pas", () => {
+  it("⛔ LOT A1 — AUCUN AJOUT INVISIBLE DANS LE TOTAL D'UN JOUR", () => {
+    // La branche « dont {addon} ajoutées » est partie avec les `member_deltas`
+    // de FF-043 (un riz sans boîte, sans ligne de courses et sans carte). Un
+    // serveur qui renverrait encore `addon_kcal` ne doit RIEN changer au
+    // rendu: ni le nombre, ni la phrase.
     const body = text(html(readDay({
       day: "tue",
-      kcal: 1580,
+      kcal: 1400,
       complete: true,
       dishes_counted: 2,
       dishes_total: 2,
@@ -143,7 +144,8 @@ describe("② le total d'un jour dit de quoi il parle", () => {
       meals_out: 1,
       subject: "what_the_plan_made",
     })));
-    expect(body).toContain("180");
+    expect(body).not.toContain("180");
+    expect(body).toContain("1400");
     expect(body).toContain("across the 2 meals I composed (1 meal out)");
   });
 
@@ -160,7 +162,6 @@ describe("② le total d'un jour dit de quoi il parle", () => {
         complete: true,
         dishes_counted: 3,
         dishes_total: 3,
-        addon_kcal: 0,
         meals_out: broken,
         subject: "what_the_plan_made",
       })));
@@ -181,7 +182,6 @@ describe("② le total d'un jour dit de quoi il parle", () => {
       complete: false,
       dishes_counted: 0,
       dishes_total: 2,
-      addon_kcal: 0,
       meals_out: 1,
       subject: "what_the_plan_made",
     })));
@@ -216,7 +216,6 @@ const WITH_ADVICE = attachEatingOutAdvice(
     complete: true,
     dishes_counted: 2,
     dishes_total: 2,
-    addon_kcal: 0,
     meals_out: 1,
     subject: "what_the_plan_made",
   })],

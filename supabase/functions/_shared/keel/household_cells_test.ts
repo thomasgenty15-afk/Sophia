@@ -661,8 +661,8 @@ Deno.test("un plat de table nourrit les mangeurs de SA case, pas le roster du pl
   });
   const fed = eatersByDish({
     dishes: [
-      { day: "mon", slot: "lunch", memberId: null },
-      { day: "tue", slot: "lunch", memberId: null },
+      { day: "mon", slot: "lunch", memberId: null, heldOff: [] },
+      { day: "tue", slot: "lunch", memberId: null, heldOff: [] },
     ],
     cells: out.cells,
   });
@@ -682,9 +682,9 @@ Deno.test("un plat dédié retire sa bouche du plat de table de la MÊME case", 
   });
   const fed = eatersByDish({
     dishes: [
-      { day: "mon", slot: "lunch", memberId: null },
-      { day: "mon", slot: "lunch", memberId: "nora" },
-      { day: "mon", slot: "dinner", memberId: null },
+      { day: "mon", slot: "lunch", memberId: null, heldOff: [] },
+      { day: "mon", slot: "lunch", memberId: "nora", heldOff: [] },
+      { day: "mon", slot: "dinner", memberId: null, heldOff: [] },
     ],
     cells: out.cells,
   });
@@ -709,9 +709,9 @@ Deno.test("DEUX dédiés dans une case laissent N−2 au plat de la table", () =
   });
   const fed = eatersByDish({
     dishes: [
-      { day: "mon", slot: "lunch", memberId: null },
-      { day: "mon", slot: "lunch", memberId: "vega" },
-      { day: "mon", slot: "lunch", memberId: "vege" },
+      { day: "mon", slot: "lunch", memberId: null, heldOff: [] },
+      { day: "mon", slot: "lunch", memberId: "vega", heldOff: [] },
+      { day: "mon", slot: "lunch", memberId: "vege", heldOff: [] },
     ],
     cells: out.cells,
   });
@@ -723,8 +723,8 @@ Deno.test("l'ordre du document ne change RIEN à la partition", () => {
   const out = grid({
     mouths: [mouth({ memberId: "a" }), mouth({ memberId: "nora", diet: "vegan" })],
   });
-  const shared = { day: "mon", slot: "lunch", memberId: null };
-  const own = { day: "mon", slot: "lunch", memberId: "nora" };
+  const shared = { day: "mon", slot: "lunch", memberId: null, heldOff: [] };
+  const own = { day: "mon", slot: "lunch", memberId: "nora", heldOff: [] };
   const before = eatersByDish({ dishes: [shared, own], cells: out.cells });
   const after = eatersByDish({ dishes: [own, shared], cells: out.cells });
   assertEquals([...(before.fedByDish[0] ?? [])], ["a"]);
@@ -734,7 +734,7 @@ Deno.test("l'ordre du document ne change RIEN à la partition", () => {
 Deno.test("un plat frais NOURRIT — la garde du contenant ne décide plus qui mange", () => {
   const out = grid({ mouths: [mouth({ memberId: "julie" })] });
   const fed = eatersByDish({
-    dishes: [{ day: "mon", slot: "breakfast", memberId: null }],
+    dishes: [{ day: "mon", slot: "breakfast", memberId: null, heldOff: [] }],
     cells: out.cells,
   });
   assertEquals(
@@ -752,8 +752,8 @@ Deno.test("un plat posé sur une case VIDE est écarté, et nommé", () => {
   });
   const fed = eatersByDish({
     dishes: [
-      { day: "mon", slot: "before_bed", memberId: null },
-      { day: "mon", slot: "lunch", memberId: null },
+      { day: "mon", slot: "before_bed", memberId: null, heldOff: [] },
+      { day: "mon", slot: "lunch", memberId: null, heldOff: [] },
     ],
     cells: out.cells,
   });
@@ -765,10 +765,11 @@ Deno.test("un plat posé sur une case VIDE est écarté, et nommé", () => {
 Deno.test("un plat sans jour ni moment est écarté, jamais deviné", () => {
   const out = grid({ mouths: [mouth({ memberId: "julie" })] });
   const fed = eatersByDish({
-    dishes: [{ day: null, slot: "lunch", memberId: null }, {
+    dishes: [{ day: null, slot: "lunch", memberId: null, heldOff: [] }, {
       day: "mon",
       slot: null,
       memberId: null,
+      heldOff: [],
     }],
     cells: out.cells,
   });
@@ -785,8 +786,8 @@ Deno.test("un plat dédié à une bouche qui ne mange PAS là est nommé", () =>
   });
   const fed = eatersByDish({
     dishes: [
-      { day: "mon", slot: "dinner", memberId: null },
-      { day: "mon", slot: "dinner", memberId: "marc" },
+      { day: "mon", slot: "dinner", memberId: null, heldOff: [] },
+      { day: "mon", slot: "dinner", memberId: "marc", heldOff: [] },
     ],
     cells: out.cells,
   });
@@ -800,8 +801,8 @@ Deno.test("un plat de table dont tous les mangeurs sont dédiés ne nourrit PERS
   });
   const fed = eatersByDish({
     dishes: [
-      { day: "mon", slot: "lunch", memberId: null },
-      { day: "mon", slot: "lunch", memberId: "nora" },
+      { day: "mon", slot: "lunch", memberId: null, heldOff: [] },
+      { day: "mon", slot: "lunch", memberId: "nora", heldOff: [] },
     ],
     cells: out.cells,
   });
@@ -826,8 +827,8 @@ Deno.test("les compteurs de partition ont un DÉNOMINATEUR non nul sur un vrai p
   const dishes = out.cells
     .filter((c) => !c.empty)
     .flatMap((c) => [
-      { day: c.day, slot: c.slot, memberId: null },
-      ...c.dedicated.map((d) => ({ day: c.day, slot: c.slot, memberId: d.memberId })),
+      { day: c.day, slot: c.slot, memberId: null, heldOff: [] },
+      ...c.dedicated.map((d) => ({ day: c.day, slot: c.slot, memberId: d.memberId, heldOff: [] })),
     ]);
   const fed = eatersByDish({ dishes, cells: out.cells });
   assertEquals(fed.counters.dishes, 12, "6 cases × (1 plat de table + 1 dédié)");
@@ -914,8 +915,8 @@ Deno.test("un plat à un nom marqué complément laisse sa bouche sur le plat de
   const slot = out.cells.find((c) => !c.empty)!.slot;
   const fed = eatersByDish({
     dishes: [
-      { day, slot, memberId: null },
-      { day, slot, memberId: "paul", complementsShared: true },
+      { day, slot, memberId: null, heldOff: [] },
+      { day, slot, memberId: "paul", complementsShared: true, heldOff: [] },
     ],
     cells: out.cells,
   });
@@ -960,4 +961,94 @@ Deno.test("⟳ 2026-09-19 — l'habitude d'une bouche ne vaut que SES jours : d�
     cookOnlyDay: null,
   });
   assertEquals(sans.cells.map((c) => c.dedicated.length), [1, 1]);
+});
+
+// ---------------------------------------------------------------------------
+// ⑪ ⟳ 2026-09-23 — LA CEINTURE SUR LES BOÎTES DU MOTEUR (`heldOff`)
+// ---------------------------------------------------------------------------
+//
+// ⛔ Le verdict vient de `judgeDishEaters` (`engine_box_belt.ts`). Ici on
+// épingle ce que la partition en fait : la bouche retenue quitte CE plat, et
+// rien ne la renvoie ailleurs.
+
+Deno.test("⛔ MORD — une bouche retenue quitte le plat de table ; les autres le gardent", () => {
+  const out = grid({
+    mouths: [
+      mouth({ memberId: "thomas" }),
+      mouth({ memberId: "christele" }),
+      mouth({ memberId: "fabrice" }),
+    ],
+  });
+  const fed = eatersByDish({
+    dishes: [
+      { day: "mon", slot: "breakfast", memberId: null, heldOff: ["christele"] },
+      { day: "mon", slot: "lunch", memberId: null, heldOff: [] },
+    ],
+    cells: out.cells,
+  });
+  assertEquals([...(fed.fedByDish[0] ?? [])].sort(), ["fabrice", "thomas"]);
+  assertEquals(
+    [...(fed.fedByDish[1] ?? [])].sort(),
+    ["christele", "fabrice", "thomas"],
+    "la retenue vaut pour CE plat, pas pour la journée",
+  );
+  assertEquals(fed.counters.held_off, 1);
+  assertEquals(fed.counters.held_off_emptied, 0);
+  assertEquals(fed.counters.fed_hist["2"], 1);
+  assertEquals(fed.counters.fed_hist["3_plus"], 1);
+});
+
+Deno.test("PASSE — retenir une bouche qui ne mangeait pas ce plat ne retire rien", () => {
+  const out = grid({
+    mouths: [mouth({ memberId: "paul" }), mouth({ memberId: "nora", diet: "vegan" })],
+  });
+  const fed = eatersByDish({
+    dishes: [
+      // Nora a son plat dédié : le plat de table ne la nourrissait déjà pas.
+      { day: "mon", slot: "lunch", memberId: null, heldOff: ["nora"] },
+      { day: "mon", slot: "lunch", memberId: "nora", heldOff: [] },
+    ],
+    cells: out.cells,
+  });
+  assertEquals([...(fed.fedByDish[0] ?? [])], ["paul"]);
+  assertEquals([...(fed.fedByDish[1] ?? [])], ["nora"]);
+  assertEquals(fed.counters.held_off, 0);
+});
+
+Deno.test("⛔ retenue de SON plat dédié, la bouche ne revient PAS au plat de la table", () => {
+  const out = grid({
+    mouths: [mouth({ memberId: "paul" }), mouth({ memberId: "nora", diet: "vegan" })],
+  });
+  const fed = eatersByDish({
+    dishes: [
+      { day: "mon", slot: "lunch", memberId: null, heldOff: [] },
+      { day: "mon", slot: "lunch", memberId: "nora", heldOff: ["nora"] },
+    ],
+    cells: out.cells,
+  });
+  // Le plat de la table n'a jamais été jugé pour elle : l'y remettre serait
+  // lui servir ce que personne n'a vérifié.
+  assertEquals([...(fed.fedByDish[0] ?? [])], ["paul"]);
+  assertEquals([...(fed.fedByDish[1] ?? [])], []);
+  assertEquals(fed.counters.held_off, 1);
+  assertEquals(fed.counters.held_off_emptied, 1);
+  assertEquals(fed.counters.fed_hist["0"], 1);
+  assertEquals(fed.counters.shared_fed_nobody, 0, "le plat de la table nourrit toujours Paul");
+});
+
+Deno.test("un complément vidé par la ceinture n'est plus marqué complément", () => {
+  const out = grid({
+    mouths: [mouth({ memberId: "paul" }), mouth({ memberId: "claire" })],
+  });
+  const day = out.cells.find((c) => !c.empty)!.day;
+  const slot = out.cells.find((c) => !c.empty)!.slot;
+  const fed = eatersByDish({
+    dishes: [
+      { day, slot, memberId: null, heldOff: [] },
+      { day, slot, memberId: "paul", complementsShared: true, heldOff: ["paul"] },
+    ],
+    cells: out.cells,
+  });
+  assertEquals(fed.complementByDish, [false, false]);
+  assertEquals(fed.counters.held_off, 1);
 });

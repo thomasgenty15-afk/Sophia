@@ -20,6 +20,7 @@ import {
   HOUSEHOLD_MAX_MOUTHS,
   missesForStep,
   peopleStepBlockers,
+  selfSheetIsHeld,
   nameAlreadyEating,
   nextIncomplete,
   normalizedMouthName,
@@ -1025,8 +1026,12 @@ describe("le niveau d'activité, de la question au calcul", () => {
     };
     const bmr = 10 * 70 + 6.25 * 175 - 5 * 37 + 5;
     expect(
-      estimatedMaintenanceKcal({
+      estimatedMaintenanceKcal({ sessionsEdge: "mid",
         ...body,
+        // ⟳ 2026-09-23 — l'âge exact est REQUIS depuis ce jour. `null` = le
+        // milieu de la bande (37 ans), c'est-à-dire EXACTEMENT le `bmr`
+        // ci-dessus: le comportement d'avant le lot vaut aussi pour celui-ci.
+        ageYears: null,
         activityLevel: null,
         // ⛔ AUCUN AXE RÉPONDU: le lot du 2026-08-20 ne doit RIEN déplacer
         // pour qui n'a rien dit. C'est la moitié de ce test qui compte —
@@ -1111,6 +1116,58 @@ describe("le niveau d'activité, de la question au calcul", () => {
 // naissance, taille, poids, objectif d'une personne — et ça doit signaler
 // précisément chez qui manque quoi ».
 // ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// LA CARTE DU TITULAIRE S'OUVRE-T-ELLE DÉPLIÉE ? — 2026-09-20
+//
+// Signalé à l'écran: « une fois qu'il y a eu un clic sur enregistrer, ça le
+// fait pour les personnes en plus, mais pas pour le compte maître ». Une ligne
+// de bouche se replie parce que son état d'édition naît à `null`; la carte du
+// maître, elle, renaissait ouverte à chaque montage.
+//
+// ⛔ ET LA RÉPONSE N'EST PAS UN DRAPEAU « déjà enregistré », c'est la lecture
+// des faits — même posture que `nextIncomplete`, qui refuse
+// `profiles.onboarding_completed` parce qu'un drapeau ment dans les deux sens.
+// ---------------------------------------------------------------------------
+
+describe("selfSheetIsHeld", () => {
+  it("⛔ une fiche complète ne retient rien — donc elle s'affiche en résumé", () => {
+    // LE CAS QUI PASSE. Sans lui, une fonction qui retiendrait TOUJOURS
+    // laisserait les autres verts, et la carte ne se replierait jamais.
+    expect(selfSheetIsHeld(complete("family"), "family")).toBe(false);
+    expect(selfSheetIsHeld(complete("pair"), "pair")).toBe(false);
+    expect(selfSheetIsHeld(complete("solo"), "solo")).toBe(false);
+  });
+
+  it("un champ du titulaire qui manque la garde ouverte", () => {
+    const base = complete("family");
+    expect(
+      selfSheetIsHeld({ ...base, self: { ...base.self, heightCm: null } }, "family"),
+    ).toBe(true);
+  });
+
+  /**
+   * ⛔ LE PIÈGE QUE CETTE FONCTION EXISTE POUR FERMER.
+   *
+   * Le titulaire est `who: null`; une bouche SANS PRÉNOM est `who: ""`. Les
+   * deux sont faux en JavaScript, donc le `.some(b => !b.who)` qu'on écrit
+   * naturellement replierait — pardon, DÉPLIERAIT — la carte du maître à cause
+   * de quelqu'un d'autre. Ce cas le mesure: une bouche anonyme retient bien
+   * l'étape, et elle ne dit rien de la fiche du maître.
+   */
+  it("une bouche sans prénom ne compte pas pour le titulaire", () => {
+    const base = complete("family");
+    const [first, ...rest] = base.others;
+    const state: FunnelState = {
+      ...base,
+      others: [{ ...first, firstName: "" }, ...rest],
+    };
+    // L'étape est bien retenue…
+    expect(peopleStepBlockers(state, "family").length).toBeGreaterThan(0);
+    // … mais pas par la fiche du maître.
+    expect(selfSheetIsHeld(state, "family")).toBe(false);
+  });
+});
 
 describe("peopleStepBlockers", () => {
   it("un état complet ne retient personne", () => {

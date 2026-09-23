@@ -251,10 +251,26 @@ describe("readDay — le total d'un jour", () => {
       complete: false,
       dishes_counted: 0,
       dishes_total: 4,
-      addon_kcal: 0,
     });
     expect(day.kcal).toBeNull();
     expect(day.dishesTotal).toBe(4);
+  });
+
+  it("⛔ LOT A1 — `addon_kcal` NE TRAVERSE PLUS, même quand le fil le porte", () => {
+    // Un serveur non redéployé peut encore l'envoyer. La vue d'un jour ne doit
+    // ni le porter, ni le fondre dans `kcal`: c'était un riz sans boîte, sans
+    // ligne de courses et sans carte (mesuré le 2026-09-22, 1 373 kcal/jour).
+    const day = readDay({
+      day: "tue",
+      kcal: 1400,
+      basis: "plan_quantities",
+      complete: true,
+      dishes_counted: 2,
+      dishes_total: 2,
+      addon_kcal: 1373,
+    });
+    expect(day.kcal).toBe(1400);
+    expect(Object.hasOwn(day, "addonKcal")).toBe(false);
   });
 
   it("LE CAS QUI PASSE: un total réel traverse", () => {
@@ -276,7 +292,6 @@ describe("readDay — de quoi ce nombre parle", () => {
     complete: true,
     dishes_counted: 2,
     dishes_total: 2,
-    addon_kcal: 0,
     meals_out: 1,
     subject: "what_the_plan_made",
   };

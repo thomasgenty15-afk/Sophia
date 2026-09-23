@@ -58,10 +58,15 @@ import {
   type PortionMove,
   type PortionQuestion,
   type SettingMove,
+  type SideCourseMove,
+  type SlotSizeMove,
+  type DraftNoteClarifyEntry,
+  type DraftNoteGate,
 } from "./draft_note_classify.ts";
 import type { DraftNoteVerdict } from "./plan_draft_note.ts";
 import type { CellEdit } from "./cell_edit.ts";
 import { keelGenerationModel } from "./generation_model.ts";
+import { SIDE_COURSE_SLOTS, type SideCourseKind } from "./side_courses_types.ts";
 import {
   type MinimalClient,
   persistRetainedItemsFor,
@@ -72,7 +77,11 @@ import {
   type MemoryClarificationAskReason,
   notifyMemoryWrite,
 } from "./memory_clarification_io.ts";
-import { type RecapKept, settingRecapLine } from "./memory_recap.ts";
+import {
+  type RecapKept,
+  settingRecapLine,
+  type RecapSafety,
+} from "./memory_recap.ts";
 // ⟳ 2026-09-08 — LA PORTE DU BILAN, POUR LES RÉGLAGES. `retainedItemsFromPlanFeedback`
 // tient l'échelle de chaque champ, le cadran unique du style, les bords et le
 // conflit des deux axes: une phrase passe par LÀ, jamais par une arithmétique
@@ -87,7 +96,20 @@ import {
   fieldChangesFrom,
   withFieldChanges,
 } from "./field_change.ts";
-import { memberSubject, type RetainedItem } from "./retained_item.ts";
+import {
+  memberSubject,
+  type RetainedItem,
+  type ExclusionForce,
+  type RetainedKind,
+  type RhythmOccasion,
+} from "./retained_item.ts";
+// ⟳ 2026-09-22 · LOT A — la clé d'un souvenir, posée après le modèle et
+// jamais par lui. Voir l'en-tête de `retained_resolve.ts`.
+import { resolveRetainedRefs } from "./retained_resolve.ts";
+import { draftNoteSafetyLine, draftNoteSafetyObject } from "./draft_note_safety.ts";
+import { persistDraftNoteSafety } from "./draft_note_safety_io.ts";
+import type { MemoWhen } from "./memo.ts";
+import type { CompositionIndex } from "./food_composition.ts";
 // ⛔ LE SECOND CANAL — arbitrage du 2026-09-01. Une allergie dite sur un retour
 // de plan EST une allergie: elle part dans une table qui a sa ceinture.
 import {
@@ -162,18 +184,57 @@ export interface DraftNoteClarificationOutcome {
 }
 
 /**
- * UNE QUESTION PRÊTE À AFFICHER: le morceau de phrase, le sens déjà lu, et
+ * UNE QUESTION PRÊTE À AFFICHER: le morceau de phrase, ce qui est déjà lu, et
  * les bouches candidates AVEC leur prénom — le front n'a pas le rôle.
- * ⛔ `kind` FERMÉ à `portion`: c'est la seule question que ce lot pose. Une
- * question `who` sur un goût ou une note reste désarmée depuis le 2026-09-07
- * (voir ⑤ plus bas), et l'ajouter ici sans son écrivain ferait un bouton mort.
+ *
+ * ⟳ 2026-09-23 — DEUX GENRES, UN SEUL CANAL (sous le champ de la note).
+ * `portion` (2026-09-08): la part, réponse = un cran d'appétit. `who`: un
+ * goût, une envie ou un mémo dont la bouche manque — réponse = l'entrée
+ * ÉCRITE avec la bouche choisie, par la même porte que la note
+ * (`answerDraftNoteWho`). Le morceau à écrire voyage DANS la question
+ * (`entry`) et revient avec le tap: le serveur ne garde rien entre les deux,
+ * comme pour la part — et RELIT le morceau au retour par le même lecteur que
+ * la note, donc avec les mêmes refus.
+ *
+ * ⛔ PAS DE `what` ICI, ET C'EST DIT: `keel-read-note-v1` lit la note SANS
+ * aliments du plan (`planFoods: []`, il n'y a pas encore de plan), et sans
+ * eux le prompt interdit « lequel ? ». Une entrée `what` qui arriverait
+ * malgré tout est comptée (`clarify_not_asked`), jamais transformée en
+ * bouton sans candidat vérifié.
  */
-export interface DraftNoteQuestion {
+export interface DraftNotePortionQuestion {
   readonly kind: "portion";
   readonly text: string;
   readonly direction: "down" | "up";
   readonly options: readonly { readonly memberId: string; readonly label: string }[];
 }
+
+/** Ce qu'il manquait à l'entrée pour être écrite: rien d'autre que la bouche. */
+export interface DraftNotePendingEntry {
+  readonly gate: DraftNoteGate;
+  /** `null` sur un mémo. */
+  readonly kind: RetainedKind | null;
+  readonly text: string;
+  /**
+   * LA PHRASE ENTIÈRE, telle qu'elle l'a tapée: c'est la `quote` de ce qui
+   * sera écrit. Mesuré sur la pile locale le 2026-09-23: sans elle, la ligne
+   * écrite après le tap citait « yaourt » au lieu de « ma fille ne veut plus
+   * de yaourt le matin » — ses mots, perdus entre la question et la réponse.
+   */
+  readonly note: string;
+  readonly occasion: RhythmOccasion | null;
+  readonly force: ExclusionForce | null;
+  readonly when: MemoWhen | null;
+}
+
+export interface DraftNoteWhoQuestion {
+  readonly kind: "who";
+  readonly text: string;
+  readonly entry: DraftNotePendingEntry;
+  readonly options: readonly { readonly memberId: string; readonly label: string }[];
+}
+
+export type DraftNoteQuestion = DraftNotePortionQuestion | DraftNoteWhoQuestion;
 
 export interface DraftNoteClassifyResult {
   readonly ok: boolean;
@@ -210,6 +271,20 @@ export interface DraftNoteClassifyResult {
    * le sera: une case est une demande pour CE plan, pas un souvenir.
    */
   readonly cells: readonly CellEdit[];
+  /**
+   * ⟳ 2026-09-23 — ⑩ CE QUI EST ÉCRIT DANS LA FICHE SANTÉ, pour la ligne sous
+   * le champ (« allergie : arachides · Zoé »).
+   */
+  readonly safetyAnnounced: readonly { readonly text: string; readonly who: string | null }[];
+  /**
+   * ⑩ CE QUI N'A PAS PU L'ÊTRE, ET POURQUOI — dit sous le champ, jamais tu:
+   * un refus silencieux ferait croire qu'une allergie d'enfant est enregistrée.
+   */
+  readonly safetyNotWritten: readonly {
+    readonly text: string;
+    readonly who: string | null;
+    readonly reason: string;
+  }[];
   /** Les trois nombres AGRÉGÉS. Le détail par porte est dans `classification`. */
   readonly proposed: number;
   readonly kept: number;
@@ -469,6 +544,20 @@ export async function classifyAndPersistDraftNote(args: {
   alsoAnnounce?: readonly RecapKept[];
   requestId?: string;
   now?: string;
+  /**
+   * ⟳ 2026-09-22 · LOT A — LE RÉFÉRENTIEL, POUR POSER LA CLÉ D'UN SOUVENIR.
+   *
+   * ⛔ REQUIS, JAMAIS `?`, ET `null` EST UNE RÉPONSE (« le référentiel n'a pas
+   * pu être chargé »). Optionnel, chaque appelant aurait hérité en silence
+   * d'une mémoire NON RÉSOLUE — c'est-à-dire du comportement d'avant ce lot,
+   * sans qu'une ligne ne le dise. Cicatrice nommée de ce dépôt, payée en
+   * boucle.
+   *
+   * ⚠️ MESURÉ: 4 souvenirs sur 9 ne résolvent pas en base, et un souvenir
+   * sans clé est décoratif — la ceinture n'y trouve aucun aliment, le constat
+   * ne peut rien vérifier.
+   */
+  composition: CompositionIndex | null;
   /** ⚠️ Test seulement. Ne change PAS le modèle demandé — voir le type. */
   run?: DraftNoteLlmRunner;
   classified?: DraftNoteEarlyClassification;
@@ -501,6 +590,8 @@ export async function classifyAndPersistDraftNote(args: {
       questions: [],
       atEdge: 0,
       cells: [],
+      safetyAnnounced: [],
+      safetyNotWritten: [],
     };
   };
 
@@ -543,6 +634,8 @@ export async function classifyAndPersistDraftNote(args: {
       questions: [],
       atEdge: 0,
       cells: [],
+      safetyAnnounced: [],
+      safetyNotWritten: [],
     };
   }
   const raw = classified.raw;
@@ -573,6 +666,12 @@ export async function classifyAndPersistDraftNote(args: {
     // même: un compteur absent d'un journal est un angle mort exactement là où
     // on regardera le jour où cette invariance cessera d'être vraie.
     portions_unapplied: classification.portions.moves.length,
+    // ⑥ — MÊME RAISON, MÊME INVARIANCE: zéro par construction sur cette
+    // sortie, écrit quand même pour que l'angle mort n'existe pas le jour où
+    // l'invariance cessera d'être vraie.
+    slots_moves: classification.slots.moves.length,
+    // ⑪ — même invariance, même raison.
+    side_courses_moves: classification.sideCourses.moves.length,
     settings_unapplied: classification.settings.moves.length,
     });
     return {
@@ -590,6 +689,8 @@ export async function classifyAndPersistDraftNote(args: {
       questions: [],
       atEdge: 0,
       cells: [],
+      safetyAnnounced: [],
+      safetyNotWritten: [],
     };
   }
 
@@ -612,11 +713,20 @@ export async function classifyAndPersistDraftNote(args: {
   // consentement synchrone abandonné le 2026-09-01. La question part, l'énoncé
   // reste.
   //
-  // ⟳ `notAsked` VALAIT `entries.length - 1` — tout sauf celle qu'on posait.
-  // Plus rien n'est posé, donc il vaut le compte ENTIER. C'est le discriminant
-  // qui distingue « le classifieur a tout compris » de « il a nommé trois
-  // ambiguïtés et personne ne les lèvera »: sans lui, les deux rendraient zéro.
-  const notAsked = classification.clarify.entries.length;
+  // ⟳ 2026-09-23 — RÉARMÉE, PAR LE CANAL SOUS LE CHAMP, PAS PAR LE CHAT.
+  //
+  // Le chat reste désarmé (les boutons n'y sont armés que sur la dernière
+  // bulle). Mais le canal de la part existe depuis le 2026-09-08 — la question
+  // rendue par `keel-read-note-v1`, posée sous le champ, un bouton par bouche —
+  // et rien n'empêchait d'y faire passer « pour qui ? » sur un goût, une envie
+  // ou un mémo. Mesuré au banc: 6 questions attendues sur 6, 0 parasite. La
+  // personne écrivait « ma fille ne veut plus de yaourt » avec deux filles, et
+  // rien n'était écrit ni demandé.
+  //
+  // `notAsked` = ce que le classifieur a nommé et qu'AUCUN bouton ne portera:
+  // les `what` (pas d'aliments du plan sur ce canal), et les `who` dont aucune
+  // option n'a de prénom. C'est le discriminant qui distingue « tout compris »
+  // de « nommé et perdu »: sans lui, les deux rendraient zéro.
   const language: "fr" | "en" = /^fr/i.test(String(args.contentLocale ?? ""))
     ? "fr"
     : "en";
@@ -625,7 +735,12 @@ export async function classifyAndPersistDraftNote(args: {
   // la phrase a été écrite, par la réponse de `keel-read-note-v1`. Construite
   // AVANT la sortie « rien à ranger »: c'est précisément le cas où elle est
   // tout ce que la note a produit.
-  const questions = portionQuestionsOf(classification.clarify.portions, args.members);
+  const whoQuestions = whoQuestionsOf(classification.clarify.entries, args.members, usableOf(args.note));
+  const questions: DraftNoteQuestion[] = [
+    ...portionQuestionsOf(classification.clarify.portions, args.members),
+    ...whoQuestions,
+  ];
+  const notAsked = classification.clarify.entries.length - whoQuestions.length;
 
   /**
    * LA BULLE « J'AI NOTÉ … », UNE FOIS, POUR TOUT CE QUE CE TOUR A ÉCRIT.
@@ -636,12 +751,14 @@ export async function classifyAndPersistDraftNote(args: {
    */
   const announce = async (
     written: readonly RecapKept[],
+    safety: readonly RecapSafety[],
   ): Promise<{ delivered: boolean; reason: string }> => {
     const all = [...(args.alsoAnnounce ?? []), ...written];
-    if (all.length === 0) return NO_NOTICE;
+    if (all.length === 0 && safety.length === 0) return NO_NOTICE;
     return await notifyMemoryWrite(args.admin as never, {
       userId,
       kept: all,
+      safety,
       language,
       requestId: args.requestId,
       now: args.now ? new Date(args.now) : undefined,
@@ -668,7 +785,21 @@ export async function classifyAndPersistDraftNote(args: {
     // elle ressortirait en `nothing_to_file`, et l'appelant ne verrait jamais
     // le mouvement qu'il doit appliquer.
     classification.portions.moves.length === 0 &&
-    classification.settings.moves.length === 0
+    classification.settings.moves.length === 0 &&
+    // ⟳ 2026-09-21 — LA SIXIÈME PORTE, et l'oubli était exactement le défaut
+    // que la quatrième a déjà payé en 2026-09-08. Une note qui ne dit QUE
+    // « le matin c'est plutôt quelque chose de très léger » remplit `slots` et
+    // rien d'autre: sans cette ligne elle ressortait `nothing_to_file`, la case
+    // de la fiche n'était jamais cochée, et le tiroir était vert et inerte.
+    classification.slots.moves.length === 0 &&
+    // ⟳ 2026-09-23 — ⑪, LE MÊME OUBLI QUE LA SIXIÈME PORTE, FERMÉ AVANT
+    // D'ÊTRE PAYÉ. « il ne prend jamais de dessert » remplit `side_courses` et
+    // rien d'autre: sans cette ligne, la phrase ressortait `nothing_to_file` et
+    // le réglage de la fiche n'était jamais posé.
+    classification.sideCourses.moves.length === 0 &&
+    // ⟳ 2026-09-23 — ⑩: une note qui ne dit QU'UNE allergie doit atteindre
+    // l'écriture. Sans cette ligne elle ressortait `nothing_to_file`.
+    classification.safety.declarations.length === 0
   ) {
     // ⚠️ CE N'EST PAS UNE PANNE, ET LES NOMBRES PAR PORTE LE DISENT.
     // `skipped_degree > 0` = le modèle a lu un degré et l'a DIT (phrases 1, 2,
@@ -678,7 +809,7 @@ export async function classifyAndPersistDraftNote(args: {
     // fréquent de cette porte: « ma fille n'aime pas le poisson » ne remplit
     // aucune des trois listes — c'est précisément pour ça qu'on relance.
     const clarification = NO_CLARIFICATION;
-    const notice = await announce([]);
+    const notice = await announce([], []);
     // ⟳ `clarification_asked` n'est plus atteignable: rien ne demande.
     // ⚠️ `nothing_to_file` RESTE LE MOTIF même quand une sécurité a été
     // écrite: il parle des PORTES. Les lignes annoncées, elles, disent
@@ -697,6 +828,12 @@ export async function classifyAndPersistDraftNote(args: {
     // même: un compteur absent d'un journal est un angle mort exactement là où
     // on regardera le jour où cette invariance cessera d'être vraie.
     portions_unapplied: classification.portions.moves.length,
+    // ⑥ — MÊME RAISON, MÊME INVARIANCE: zéro par construction sur cette
+    // sortie, écrit quand même pour que l'angle mort n'existe pas le jour où
+    // l'invariance cessera d'être vraie.
+    slots_moves: classification.slots.moves.length,
+    // ⑪ — même invariance, même raison.
+    side_courses_moves: classification.sideCourses.moves.length,
     settings_unapplied: classification.settings.moves.length,
       clarify_asked: clarification.asked,
       clarify_ask_reason: clarification.reason,
@@ -718,26 +855,31 @@ export async function classifyAndPersistDraftNote(args: {
       questions,
       atEdge: 0,
       cells: classification.cells.requests,
+      safetyAnnounced: [],
+      safetyNotWritten: [],
     };
   }
 
   // ── LA PORTE, UNE FOIS, AVEC LES TROIS LISTES. ⛔ ON NE LA CONTOURNE PAS ─
   // ⛔ `producer: DRAFT_NOTE_PRODUCER`, ET JAMAIS `"written"`.
-  const write = await persistRetainedItemsFor({
+  // ══════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-22 · LOT A — LA CLÉ, AVANT L'ÉCRITURE
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ APRÈS LE MODÈLE, ET JAMAIS PAR LUI. Il n'a ni les 945 slugs ni les
+  // 2 739 alias en tête ; la résolution est déterministe et vit dans
+  // `resolveIngredient` (égalité de clé, alias, faux amis nommés, AUCUNE
+  // distance d'édition). Un second résolveur divergerait, et c'est celui
+  // qu'on relit le moins qui attacherait un souvenir au mauvais aliment.
+  //
+  // ⚠️ ET LE `text` NE BOUGE PAS. La carte affiche les mots de la personne ;
+  // le slug vient à côté. Mesuré: `lesoeufs` ne résout rien, `les œufs` et
+  // `oeufs` résolvent tous deux vers `whole_eggs`.
+  const { write, durableResolved, nextResolved, nextPlanEntries, refCounts } = await resolveAndPersist({
     admin: args.admin,
     userId,
-    producer: DRAFT_NOTE_PRODUCER,
-    source: DRAFT_NOTE_CLASSIFY_SOURCE,
-    // ① — DURABLE. Depuis le lot A: « mon fils n'aime pas le poisson » n'est
-    // pas pour une semaine.
-    // ⛔ ④ N'EST PAS ICI, ET C'EST LA DÉCISION DU 2026-09-08. Une part ne
-    // s'écrit pas dans `retained_items`: elle déplace `appetite` sur la fiche
-    // de la bouche, par sa propre RPC, juste en dessous.
-    durable: classification.preferences.items,
-    // L'ENCART — ce que la phrase date elle-même, et les envies.
-    nextPlan: classification.nextPlan.entries,
-    // ③ — « ce que Sophia sait », par personne, au jour nommé.
-    memo: classification.notes.lines,
+    composition: args.composition,
+    classification,
   });
 
   // ══════════════════════════════════════════════════════════════════════
@@ -758,10 +900,79 @@ export async function classifyAndPersistDraftNote(args: {
   // pour le PROCHAIN plan, et l'accusé doit le dire — sans quoi elle attendrait
   // un changement à l'écran qui ne vient pas. La recomposition immédiate
   // demande de scinder la requête en deux (le triage), et c'est un lot à part.
+  // ── ⑩ LA SÉCURITÉ, PAR SA PROPRE PORTE (2026-09-23) ─────────────────────
+  // La personne qui écrit (`writes: true`) → sa ligne; une autre bouche →
+  // les RPC serveur `_for`. Ce qui n'a pas pu s'écrire est RENDU, et dit.
+  const writerMemberId = (args.members ?? []).find((m) => m?.writes === true)?.memberId ?? null;
+  const safetyWrite = classification.safety.declarations.length === 0
+    ? { written: [], notWritten: [] }
+    : await persistDraftNoteSafety({
+      admin: args.admin as never,
+      userId,
+      declarations: classification.safety.declarations,
+      writerMemberId,
+      contentLocale: String(args.contentLocale ?? ""),
+    });
+  const labelOfMember = (memberId: string): string | null => whoOf(`member:${memberId}`);
+  const safetyAnnounced = safetyWrite.written.map((d) => ({
+    text: draftNoteSafetyLine(d, language),
+    who: labelOfMember(d.memberId),
+  }));
+  const safetyNotWritten = safetyWrite.notWritten.map((n) => ({
+    text: draftNoteSafetyLine(n.declaration, language),
+    who: labelOfMember(n.declaration.memberId),
+    reason: n.reason,
+  }));
+  // La bulle du chat: `who: null` = la personne à qui on parle.
+  const writerId = String(writerMemberId ?? "").trim().toLowerCase();
+  const safetyRecap: RecapSafety[] = safetyWrite.written.map((d) => ({
+    kind: d.kind,
+    ref: draftNoteSafetyObject(d, language),
+    who: d.memberId === writerId ? null : labelOfMember(d.memberId),
+  }));
+
   const { counters: appetite, moved: appetiteMoved } = await moveAppetites(
     args.admin,
     userId,
     classification.portions.moves,
+  );
+
+  // ══════════════════════════════════════════════════════════════════════
+  // ⑥ · LA TAILLE D'UN MOMENT — LA CASE DE LA FICHE, PAS UN ITEM RETENU
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ LE CHAMP, PAS UNE COPIE — la raison du lot M5, appliquée une fois de
+  // plus. Un souvenir « petit-déjeuner léger » serait relu au moment de
+  // composer pendant que la case de la fiche dirait autre chose; ici l'écran
+  // et le plan lisent la MÊME valeur (`household_member_habits.slots[].light`,
+  // pesée par `LIGHT_SLOT_WEIGHT`).
+  //
+  // ⚠️ MESURÉ LE 2026-09-21: sans ce tiroir, « le matin c'est plutôt quelque
+  // chose de très léger » n'avait AUCUNE destination. Le levier existait
+  // depuis le 2026-09-07, et aucun producteur ne l'écrivait — son
+  // petit-déjeuner est resté à 500 kcal.
+  const { counters: slotLight, moved: slotLightMoved } = await moveSlotLights(
+    args.admin,
+    userId,
+    classification.slots.moves,
+    args.members,
+  );
+
+  // ══════════════════════════════════════════════════════════════════════
+  // ⑪ · LES À-CÔTÉS — LE RÉGLAGE DE LA FICHE, PAS UN ITEM RETENU
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ LE CHAMP, PAS UNE COPIE — la raison de ⑥ et du lot M5. L'écran et le
+  // moteur lisent la MÊME valeur (`household_member_habits.slots[].
+  // side_courses`, par `parseMemberSideCourses`).
+  //
+  // ⚠️ CE CHEMIN SERT AUSSI LE RETOUR DE FIN DE PLAN: `keel-plan-feedback-v1`
+  // passe sa phrase par `classifyAndPersistDraftNote`, donc par ici.
+  const { counters: sideCourse, moved: sideCourseMoved } = await moveSideCourses(
+    args.admin,
+    userId,
+    classification.sideCourses.moves,
+    args.members,
   );
 
   // ══════════════════════════════════════════════════════════════════════
@@ -913,45 +1124,7 @@ export async function classifyAndPersistDraftNote(args: {
   // refusée (un doublon, un mémo plein) apprendrait à la personne que les
   // accusés ne veulent rien dire — la même règle que « on ne dit jamais noté
   // sur une écriture qu'on n'a pas faite ».
-  const announced: RecapKept[] = [];
-  if (write.ok) {
-    if (write.durableWritten > 0) {
-      // ⛔ ON N'ANNONCE QUE CE QUI EST VRAIMENT ENTRÉ, et un mouvement de part
-      // n'est PAS entré: personne ne l'a encore écrit. L'annoncer ici dirait
-      // « j'ai noté » sur une fiche inchangée — la faute exacte que le
-      // commentaire au-dessus de cette boucle interdit.
-      for (const item of classification.preferences.items) {
-        announced.push({
-          text: item.text,
-          until: null,
-          kind: "preference",
-          who: whoOf(item.subject),
-          sense: item.kind,
-        });
-      }
-    }
-    if (write.memoWritten > 0) {
-      for (const line of classification.notes.lines) {
-        announced.push({
-          text: line.text,
-          until: null,
-          kind: "note",
-          who: whoOf(line.subject),
-        });
-      }
-    }
-    if (write.nextPlanWritten > 0) {
-      for (const entry of classification.nextPlan.entries) {
-        announced.push({
-          text: entry.item.text,
-          until: null,
-          kind: "next_plan",
-          who: whoOf(entry.item.subject),
-          sense: entry.item.kind,
-        });
-      }
-    }
-  }
+  const announced: RecapKept[] = writtenRecapLines(write, classification, whoOf);
   // ══════════════════════════════════════════════════════════════════════
   // ⛔ ④ ET ⑤ S'ANNONCENT HORS DU `if (write.ok)` — MESURÉ AU TIR N3b
   // ══════════════════════════════════════════════════════════════════════
@@ -966,6 +1139,10 @@ export async function classifyAndPersistDraftNote(args: {
   // not_attempted`. Le tir N1 ne l'avait pas montré parce que Leo avait une
   // préférence à côté, qui ouvrait le `if`.
   announced.push(...appetiteRecapLines(appetiteMoved, language, whoOf));
+  // ⑥ — une case cochée se dit comme un champ déplacé, par le même chemin.
+  announced.push(...slotLightRecapLines(slotLightMoved, language, whoOf));
+  // ⑪ — un à-côté réglé se dit comme la case du léger, par le même chemin.
+  announced.push(...sideCourseRecapLines(sideCourseMoved, language, whoOf));
   // ⑤ — un champ déplacé se dit comme au bilan: par `settingRecapLine`, qui
   // tient les libellés des quatre échelles dans les deux langues.
   for (const change of settingsWritten) {
@@ -973,14 +1150,19 @@ export async function classifyAndPersistDraftNote(args: {
     if (line === null) continue;
     announced.push({ text: line, until: null, kind: "setting", who: null });
   }
-  const notice = await announce(announced);
+  const notice = await announce(announced, safetyRecap);
   const clarification = NO_CLARIFICATION;
 
   // ⛔ TROIS CANAUX D'ÉCRITURE, UN SEUL VERDICT. `write.ok` ne parle que de la
   // porte des items retenus; un appétit ou un champ déplacé est une écriture
   // au même titre. Dire `not_written` alors que la fiche a bougé ferait lire
   // un échec là où il y a un effet — le contraire exact d'un compteur.
-  const wrote = write.ok || appetite.moved > 0 || settings.moved > 0;
+  // ⛔ QUATRE CANAUX D'ÉCRITURE, UN SEUL VERDICT. Une case de fiche cochée est
+  // une écriture au même titre qu'un item retenu: dire `not_written` ferait
+  // lire un échec là où il y a un effet.
+  const wrote = write.ok || appetite.moved > 0 || settings.moved > 0 ||
+    slotLight.moved > 0 || sideCourse.moved > 0 ||
+    safetyWrite.written.length > 0;
   const result: DraftNoteClassifyResult = {
     ok: wrote,
     reason: wrote ? "written" : "not_written",
@@ -996,6 +1178,8 @@ export async function classifyAndPersistDraftNote(args: {
     questions,
     atEdge: appetite.at_edge + settings.at_edge,
     cells: classification.cells.requests,
+    safetyAnnounced,
+    safetyNotWritten,
   };
   // UNE SEULE LIGNE, ET ELLE PORTE LES NOMBRES PAR PORTE AVEC LE MODÈLE.
   (result.ok ? console.info : console.warn)(JSON.stringify({
@@ -1014,6 +1198,10 @@ export async function classifyAndPersistDraftNote(args: {
     portions_at_edge: appetite.at_edge,
     portions_failed: appetite.failed,
     portions_unapplied: appetite.asked - appetite.moved,
+    // ⑩ — écrit / pas écrit, et les MOTIFS (jamais l'allergène).
+    safety_written: safetyWrite.written.length,
+    safety_not_written: safetyWrite.notWritten.length,
+    safety_not_written_reasons: safetyWrite.notWritten.map((n) => n.reason),
     // ⑤ — les six issues d'un mouvement de réglage. `asked > 0` avec tout le
     // reste à zéro est la signature d'un câblage rompu. `conflict` (les deux
     // axes en sens contraires sur le cadran unique), `at_edge` et
@@ -1026,6 +1214,41 @@ export async function classifyAndPersistDraftNote(args: {
     settings_unsupported: settings.unsupported,
     settings_failed: settings.failed,
     settings_unapplied: settings.asked - settings.moved,
+    // ⑥ — les quatre issues d'une case de fiche. `asked > 0` avec tout le
+    // reste à zéro est la signature d'un câblage rompu; `unchanged` est un
+    // REFUS QUI SE DIT (la case portait déjà cette valeur), pas un échec.
+    // ⚠️ `moves` À CÔTÉ DE `asked`, ET L'ÉCART EST LE SUJET: un mouvement de
+    // TABLE se déplie sur le roster, donc `asked` peut valoir quatre pour une
+    // seule phrase — et `moves > 0 && asked === 0` dit « roster vide », pas
+    // « rien demandé ».
+    slots_moves: classification.slots.moves.length,
+    slots_asked: slotLight.asked,
+    slots_moved: slotLight.moved,
+    slots_unchanged: slotLight.unchanged,
+    slots_failed: slotLight.failed,
+    // ⑪ — les quatre issues d'un réglage d'à-côté, lues comme celles de ⑥.
+    // ⚠️ `moves` À CÔTÉ DE `asked`: un mouvement de TABLE ou sans moment se
+    // déplie (bouches × deux repas), donc `asked` vaut jusqu'à 2 × le rôle
+    // pour une seule phrase.
+    side_courses_moves: classification.sideCourses.moves.length,
+    side_courses_asked: sideCourse.asked,
+    side_courses_moved: sideCourse.moved,
+    side_courses_unchanged: sideCourse.unchanged,
+    side_courses_failed: sideCourse.failed,
+    // ⟳ 2026-09-22 · LOT A — LA RÉSOLUTION, AVEC SON DÉNOMINATEUR.
+    //
+    // ⛔ `ref_resolved` SEUL EST AMBIGU: il rend le même zéro pour « aucun
+    // souvenir d'aliment » et « rien n'a résolu ». `ref_askable` sépare les
+    // deux, et c'est leur rapport qui dit si la mémoire agit ou décore.
+    //
+    // ⚠️ `ref_unresolved_forms` porte des NOMS D'ALIMENTS, jamais un texte de
+    // personne: ce sont les formes à verser au sas du référentiel, et c'est
+    // comme ça qu'il apprend. Une phrase de la personne n'a rien à faire dans
+    // un journal.
+    ref_askable: refCounts.askable,
+    ref_resolved: refCounts.resolved,
+    ref_unresolved: refCounts.askable - refCounts.resolved,
+    ref_unresolved_forms: refCounts.unresolved,
     write_reason: write.reason,
     durable_written: write.durableWritten,
     durable_stored: write.durableStored,
@@ -1119,6 +1342,226 @@ interface AppetiteMoved {
   readonly next: string;
 }
 
+// ════════════════════════════════════════════════════════════════════════════
+// ⑥ · LA TAILLE D'UN MOMENT — la case « repas léger » de la fiche
+// ════════════════════════════════════════════════════════════════════════════
+
+interface SlotLightMoved {
+  readonly memberId: string;
+  readonly slot: string;
+  readonly light: boolean;
+}
+
+/**
+ * UNE CASE « REPAS LÉGER » PAR BOUCHE ET PAR MOMENT, PAR LA RPC `_for`.
+ *
+ * ⛔ LA RPC EST UNE VARIANTE `_for`, et c'est obligatoire: celle que l'écran
+ * appelle lit `auth.uid()`, NULL sous service_role. Même raison mot pour mot
+ * que l'appétit, et même coût — un refus silencieux ressemblerait trait pour
+ * trait à « la personne n'avait rien demandé ».
+ *
+ * ⚠️ LE FOYER SE DÉPLIE ICI, SUR LE RÔLE, ET PAS DANS LA RPC. Une table qui
+ * déjeune léger est une phrase ordinaire, mais la case vit PAR BOUCHE: la
+ * déplier côté SQL demanderait à la base de connaître « tout le monde à table »,
+ * c'est-à-dire une seconde définition du roster à côté de celle du code.
+ *
+ * ⚠️ `unchanged` N'EST PAS UN ÉCHEC: la case portait déjà cette valeur. Sans
+ * ce compteur, recocher ce qui était coché se lirait comme un mouvement, et la
+ * mémoire aurait l'air d'agir alors qu'elle répète.
+ */
+async function moveSlotLights(
+  admin: MinimalClient,
+  userId: string,
+  moves: readonly SlotSizeMove[],
+  members: readonly DraftNoteMember[],
+): Promise<{
+  counters: { asked: number; moved: number; unchanged: number; failed: number };
+  moved: SlotLightMoved[];
+}> {
+  const counters = { asked: 0, moved: 0, unchanged: 0, failed: 0 };
+  const moved: SlotLightMoved[] = [];
+  const roster = (members ?? [])
+    .map((m) => String(m?.memberId ?? "").trim())
+    .filter((id) => id !== "");
+  for (const move of moves) {
+    // ⛔ `null` = TOUTE LA TABLE, dépliée sur le rôle. Un rôle vide ne devient
+    // pas « personne » en silence: `asked` reste à 0 pour ce mouvement, et
+    // `moves.length − asked` le dit.
+    const targets = move.memberId === null ? roster : [move.memberId];
+    for (const memberId of targets) {
+      counters.asked += 1;
+      try {
+        const { data, error } = await admin.rpc(
+          "keel_household_set_slot_light_for",
+          {
+            p_user: userId,
+            p_member: memberId,
+            p_slot: move.slot,
+            p_light: move.light,
+          },
+        );
+        const row = (data ?? {}) as { ok?: unknown; reason?: unknown };
+        if (error || row.ok !== true) {
+          if (String(row.reason ?? "") === "unchanged") counters.unchanged += 1;
+          else counters.failed += 1;
+          continue;
+        }
+        counters.moved += 1;
+        moved.push({ memberId, slot: move.slot, light: move.light });
+      } catch {
+        counters.failed += 1;
+      }
+    }
+  }
+  return { counters, moved };
+}
+
+/**
+ * ⛔ PAR `settingRecapLine`, comme l'appétit et les réglages de cuisine. Ce
+ * module ne connaît aucun libellé: `memory_recap` est le seul endroit qui dit
+ * un champ dans les deux langues.
+ *
+ * ⚠️ `previous: null` — ON NE DIT QUE L'ARRIVÉE. La RPC ne rend pas la valeur
+ * d'avant, et en relire une serait relire l'état d'après l'écriture de
+ * quelqu'un d'autre. « Petit-déjeuner : léger » se lit tout seul.
+ */
+function slotLightRecapLines(
+  moved: readonly SlotLightMoved[],
+  language: "fr" | "en",
+  whoOf: (subject: string) => string | null,
+): RecapKept[] {
+  const lines: RecapKept[] = [];
+  for (const m of moved) {
+    const line = settingRecapLine(
+      { field: `light_${m.slot}`, previous: null, next: m.light },
+      language,
+    );
+    if (line === null) continue;
+    lines.push({
+      text: line,
+      until: null,
+      kind: "setting",
+      who: whoOf(memberSubject(m.memberId) ?? ""),
+    });
+  }
+  return lines;
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// ⑪ · LES À-CÔTÉS — le réglage « Entrée / Fromage / Dessert / Pain » de la fiche
+// ════════════════════════════════════════════════════════════════════════════
+
+interface SideCourseMoved {
+  readonly memberId: string;
+  readonly slot: string;
+  readonly kind: SideCourseKind;
+  readonly takes: boolean;
+}
+
+/**
+ * UN RÉGLAGE D'À-CÔTÉ PAR BOUCHE, PAR MOMENT ET PAR TYPE, PAR LA RPC `_for`.
+ *
+ * ⛔ `keel_household_set_slot_side_courses_for`, jamais la fonction de
+ * l'écran: celle-ci lit `auth.uid()`, NULL sous service_role — la raison mot
+ * pour mot de ⑥ et de l'appétit.
+ *
+ * ⚠️ DEUX DÉPLIEMENTS, ICI ET PAS EN SQL, pour la raison de ⑥: la base ne
+ * connaît pas « tout le monde à table », et ne doit pas en avoir une seconde
+ * définition.
+ *   · `memberId: null` ⇒ toutes les bouches du rôle (« chez nous pas de
+ *     dessert le soir »);
+ *   · `slot: null`     ⇒ déjeuner ET dîner (`SIDE_COURSE_SLOTS`), la phrase
+ *     qui ne nomme pas le repas.
+ *
+ * ⚠️ `unchanged` N'EST PAS UN ÉCHEC: le réglage portait déjà cette valeur.
+ * Sans ce compteur, redire ce qui était dit se lirait comme un mouvement.
+ */
+async function moveSideCourses(
+  admin: MinimalClient,
+  userId: string,
+  moves: readonly SideCourseMove[],
+  members: readonly DraftNoteMember[],
+): Promise<{
+  counters: { asked: number; moved: number; unchanged: number; failed: number };
+  moved: SideCourseMoved[];
+}> {
+  const counters = { asked: 0, moved: 0, unchanged: 0, failed: 0 };
+  const moved: SideCourseMoved[] = [];
+  const roster = (members ?? [])
+    .map((m) => String(m?.memberId ?? "").trim())
+    .filter((id) => id !== "");
+  for (const move of moves) {
+    const targets = move.memberId === null ? roster : [move.memberId];
+    const slots: readonly string[] = move.slot === null ? SIDE_COURSE_SLOTS : [move.slot];
+    for (const memberId of targets) {
+      for (const slot of slots) {
+        counters.asked += 1;
+        try {
+          const { data, error } = await admin.rpc(
+            "keel_household_set_slot_side_courses_for",
+            {
+              p_user: userId,
+              p_member: memberId,
+              p_slot: slot,
+              p_kind: move.kind,
+              p_takes: move.takes,
+            },
+          );
+          const row = (data ?? {}) as { ok?: unknown; reason?: unknown };
+          if (error || row.ok !== true) {
+            if (String(row.reason ?? "") === "unchanged") counters.unchanged += 1;
+            else counters.failed += 1;
+            continue;
+          }
+          counters.moved += 1;
+          moved.push({ memberId, slot, kind: move.kind, takes: move.takes });
+        } catch {
+          counters.failed += 1;
+        }
+      }
+    }
+  }
+  return { counters, moved };
+}
+
+/**
+ * ⛔ PAR `settingRecapLine`, comme ⑥: `memory_recap` est le seul endroit qui
+ * dit un champ dans les deux langues.
+ *
+ * ⚠️ UNE LIGNE PAR (bouche, type), QUAND LES DEUX REPAS ONT BOUGÉ DANS LE
+ * MÊME SENS: « Dessert : non », et pas deux lignes qui répètent la phrase.
+ * Sinon une ligne par moment réellement déplacé (« Dessert au dîner : non »)
+ * — jamais une ligne pour un moment qui n'a pas bougé (`unchanged`).
+ */
+function sideCourseRecapLines(
+  moved: readonly SideCourseMoved[],
+  language: "fr" | "en",
+  whoOf: (subject: string) => string | null,
+): RecapKept[] {
+  const lines: RecapKept[] = [];
+  const done = new Set<number>();
+  for (let i = 0; i < moved.length; i++) {
+    if (done.has(i)) continue;
+    const m = moved[i];
+    const twin = moved.findIndex((o, j) =>
+      j > i && !done.has(j) && o.memberId === m.memberId && o.kind === m.kind &&
+      o.takes === m.takes && o.slot !== m.slot
+    );
+    done.add(i);
+    if (twin >= 0) done.add(twin);
+    const field = twin >= 0 ? `side_${m.kind}` : `side_${m.kind}_${m.slot}`;
+    const line = settingRecapLine({ field, previous: null, next: m.takes }, language);
+    if (line === null) continue;
+    lines.push({
+      text: line,
+      until: null,
+      kind: "setting",
+      who: whoOf(memberSubject(m.memberId) ?? ""),
+    });
+  }
+  return lines;
+}
+
 /**
  * ⛔ PAR `settingRecapLine`, PAS UNE PHRASE ÉCRITE ICI. Ce module est du Deno
  * et ne connaît aucun libellé; `memory_recap` est le seul endroit qui dit un
@@ -1154,6 +1597,149 @@ function appetiteRecapLines(
  * une question sans option tombe avec — le journal le compte par la
  * différence `clarify_portions − questions`.
  */
+/**
+ * ⟳ 2026-09-23 — LA RÉSOLUTION ET LA PORTE, UNE FOIS POUR LES DEUX CHEMINS.
+ *
+ * La note et la réponse à « pour qui ? » écrivent par la MÊME porte, avec le
+ * même référentiel et les mêmes compteurs. Ce bloc vivait dans la fonction
+ * principale; le copier dans la réponse aurait DOUBLÉ chaque chaîne que
+ * `draft_note_classify_test.ts` mute pour prouver le câblage — et `.replace`
+ * ne mute que la première: chaque garde serait devenue verte à vide.
+ */
+async function resolveAndPersist(args: {
+  admin: MinimalClient;
+  userId: string;
+  composition: CompositionIndex | null;
+  classification: DraftNoteClassification;
+}) {
+  const { classification } = args;
+  const durableResolved = resolveRetainedRefs({
+    items: classification.preferences.items,
+    index: args.composition,
+  });
+  const nextResolved = resolveRetainedRefs({
+    items: classification.nextPlan.entries.map((e) => e.item),
+    index: args.composition,
+  });
+  const nextPlanEntries = classification.nextPlan.entries.map((e, i) => ({
+    ...e,
+    item: nextResolved.items[i] ?? e.item,
+  }));
+  const refCounts = {
+    askable: durableResolved.askable + nextResolved.askable,
+    resolved: durableResolved.resolved + nextResolved.resolved,
+    // ⚠️ LES FORMES QU'AUCUN SLUG NI ALIAS NE CONNAÎT. Mesuré: `petit suisse`
+    // est une VRAIE absence des 945 lignes — et la chaîne de composition l'a
+    // déjà rencontrée (`food_composition_pending_aliases` la porte). Ce
+    // compteur est ce qui rend l'absence visible depuis la mémoire aussi.
+    unresolved: [...new Set([...durableResolved.unresolved, ...nextResolved.unresolved])],
+  };
+
+  const write = await persistRetainedItemsFor({
+    admin: args.admin,
+    userId: args.userId,
+    producer: DRAFT_NOTE_PRODUCER,
+    source: DRAFT_NOTE_CLASSIFY_SOURCE,
+    // ① — DURABLE. Depuis le lot A: « mon fils n'aime pas le poisson » n'est
+    // pas pour une semaine.
+    // ⛔ ④ N'EST PAS ICI, ET C'EST LA DÉCISION DU 2026-09-08. Une part ne
+    // s'écrit pas dans `retained_items`: elle déplace `appetite` sur la fiche
+    // de la bouche, par sa propre RPC, juste en dessous.
+    durable: durableResolved.items,
+    // L'ENCART — ce que la phrase date elle-même, et les envies.
+    nextPlan: nextPlanEntries,
+    // ③ — « ce que Sophia sait », par personne, au jour nommé.
+    memo: classification.notes.lines,
+  });
+  return { write, durableResolved, nextResolved, nextPlanEntries, refCounts };
+}
+
+/**
+ * LES LIGNES DE L'ACCUSÉ, DEPUIS CE QUI A ÉTÉ ÉCRIT. ⟳ 2026-09-23: sorties de
+ * la fonction principale pour servir aussi la RÉPONSE à « pour qui ? » — la
+ * même ligne sous le champ, qu'on ait écrit d'un coup ou après un tap.
+ * ⛔ ON N'ANNONCE QUE CE QUI EST VRAIMENT ENTRÉ: `write.ok` et le compteur de
+ * la porte, jamais la liste proposée — annoncer une part non écrite dirait
+ * « j'ai noté » sur une fiche inchangée.
+ */
+function writtenRecapLines(
+  write: { ok: boolean; durableWritten: number; memoWritten: number; nextPlanWritten: number },
+  classification: DraftNoteClassification,
+  whoOf: (subject: string) => string | null,
+): RecapKept[] {
+  const announced: RecapKept[] = [];
+  if (!write.ok) return announced;
+  if (write.durableWritten > 0) {
+    for (const item of classification.preferences.items) {
+      announced.push({
+        text: item.text,
+        until: null,
+        kind: "preference",
+        who: whoOf(item.subject),
+        sense: item.kind,
+      });
+    }
+  }
+  if (write.memoWritten > 0) {
+    for (const line of classification.notes.lines) {
+      announced.push({
+        text: line.text,
+        until: null,
+        kind: "note",
+        who: whoOf(line.subject),
+      });
+    }
+  }
+  if (write.nextPlanWritten > 0) {
+    for (const entry of classification.nextPlan.entries) {
+      announced.push({
+        text: entry.item.text,
+        until: null,
+        kind: "next_plan",
+        who: whoOf(entry.item.subject),
+        sense: entry.item.kind,
+      });
+    }
+  }
+  return announced;
+}
+
+/**
+ * ⟳ 2026-09-23 — « POUR QUI ? » SUR UN GOÛT, UNE ENVIE OU UN MÉMO.
+ *
+ * Une entrée `who` devient une question quand AU MOINS UNE de ses options a
+ * un prénom sur le rôle; les options sans prénom tombent (le lecteur a déjà
+ * vérifié l'id, mais un bouton sans nom est un bouton qu'on ne peut pas lire).
+ * Une entrée `what` ne devient jamais une question ici (voir le type).
+ */
+function whoQuestionsOf(
+  entries: readonly DraftNoteClarifyEntry[],
+  members: readonly DraftNoteMember[],
+  note: string,
+): DraftNoteWhoQuestion[] {
+  const labelOf = new Map<string, string>();
+  for (const m of members ?? []) {
+    const id = String(m?.memberId ?? "").trim().toLowerCase();
+    const label = String(m?.label ?? "").trim();
+    if (id && label) labelOf.set(id, label);
+  }
+  const out: DraftNoteWhoQuestion[] = [];
+  for (const e of entries) {
+    if (e.about !== "who") continue;
+    const options = e.options
+      .map((id) => ({ memberId: id, label: labelOf.get(id) ?? "" }))
+      .filter((o) => o.label !== "");
+    if (options.length === 0) continue;
+    out.push({
+      kind: "who",
+      text: e.text,
+      entry: { gate: e.gate, kind: e.kind, text: e.text, note, occasion: e.occasion, force: e.force, when: e.when },
+      options,
+    });
+  }
+  return out;
+}
+
 function portionQuestionsOf(
   asked: readonly PortionQuestion[],
   members: readonly DraftNoteMember[],
@@ -1175,7 +1761,166 @@ function portionQuestionsOf(
   return out;
 }
 
-export type DraftNoteAnswerReason = "moved" | "at_edge" | "failed" | "unknown_member";
+export type DraftNoteAnswerReason =
+  | "moved"
+  | "at_edge"
+  | "failed"
+  | "unknown_member"
+  /** ⟳ 2026-09-23 — la réponse à « pour qui ? » sur une entrée: écrite. */
+  | "written"
+  /** Le morceau revenu avec le tap n'a pas passé le lecteur (jeton, famille, texte). */
+  | "refused";
+
+/**
+ * ⟳ 2026-09-23 — LA RÉPONSE À « POUR QUI ? » SUR UN GOÛT, UNE ENVIE OU UN MÉMO.
+ *
+ * Le morceau est revenu avec la bouche choisie. On ne rappelle pas le modèle:
+ * la phrase a déjà été lue. On REBÂTIT la ligne telle que le modèle l'aurait
+ * écrite dans son tiroir, et on la passe par LE MÊME LECTEUR que la note
+ * (`readDraftNoteClassification`): famille permise, jeton de moment et de
+ * force, bouche sur le rôle, plafond — les mêmes refus, comptés pareil. Puis
+ * la même porte d'écriture (`persistRetainedItemsFor`, référentiel compris)
+ * et la même bulle. ⛔ Rien de ce qui revient du client n'est cru: un `kind`
+ * interdit, un moment inventé, une bouche hors rôle rendent `refused`, et
+ * rien n'est écrit.
+ */
+export async function answerDraftNoteWho(args: {
+  admin: MinimalClient;
+  userId: string;
+  members: readonly DraftNoteMember[];
+  contentLocale: string;
+  composition: CompositionIndex | null;
+  today: string;
+  targetWeek: string;
+  memberId: string;
+  entry: DraftNotePendingEntry;
+  requestId?: string;
+  now?: string;
+}): Promise<{
+  ok: boolean;
+  reason: DraftNoteAnswerReason;
+  announced: readonly RecapKept[];
+  notice: { delivered: boolean; reason: string };
+}> {
+  const userId = String(args.userId ?? "").trim();
+  const language: "fr" | "en" = /^fr/i.test(String(args.contentLocale ?? "")) ? "fr" : "en";
+  const memberId = String(args.memberId ?? "").trim().toLowerCase();
+  const known = (args.members ?? []).find((m) =>
+    String(m?.memberId ?? "").trim().toLowerCase() === memberId
+  );
+  const NO_NOTICE = { delivered: false, reason: "not_attempted" } as const;
+  const gate = String(args.entry?.gate ?? "");
+  const done = (
+    reason: DraftNoteAnswerReason,
+    announced: readonly RecapKept[],
+    notice: { delivered: boolean; reason: string },
+    counters: Record<string, unknown>,
+  ) => {
+    (reason === "written" ? console.info : console.warn)(
+      JSON.stringify({
+        tag: "keel/draft_note_answer",
+        event: reason,
+        user_id: userId,
+        request_id: args.requestId ?? null,
+        about: "who",
+        gate,
+        kind: args.entry?.kind ?? null,
+        member_known: known !== undefined,
+        announced: announced.length,
+        notice_delivered: notice.delivered,
+        notice_reason: notice.reason,
+        ...counters,
+      }),
+    );
+    return { ok: reason === "written", reason, announced, notice };
+  };
+  if (!userId || !known) return done("unknown_member", [], NO_NOTICE, {});
+  if (gate !== "preferences" && gate !== "next_plan" && gate !== "notes") {
+    return done("refused", [], NO_NOTICE, { refusal: "bad_gate" });
+  }
+  const text = String(args.entry?.text ?? "").trim();
+
+  // ── LA LIGNE, TELLE QUE LE MODÈLE L'AURAIT ÉCRITE DANS SON TIROIR ────────
+  const row: Record<string, unknown> = gate === "notes"
+    ? { text, member_id: memberId, when: args.entry.when }
+    : { kind: args.entry.kind, text, member_id: memberId, occasion: args.entry.occasion, force: args.entry.force };
+  const outcome = readDraftNoteClassification({
+    raw: {
+      preferences: gate === "preferences" ? [row] : [],
+      next_plan: gate === "next_plan" ? [row] : [],
+      notes: gate === "notes" ? [row] : [],
+      portions: [],
+      settings: [],
+      slots: [],
+      cells: [],
+      skipped: [],
+      clarify: [],
+      safety: [],
+    },
+    today: args.today,
+    targetWeek: args.targetWeek,
+    members: args.members,
+    // La phrase entière est la `quote`; sa longueur borne `text`, comme à la lecture.
+    note: String(args.entry?.note ?? "").trim() || text,
+    writtenAt: null,
+    planFoods: [],
+  });
+  const classification = outcome.classification;
+  const kept = classification.preferences.items.length +
+    classification.nextPlan.entries.length +
+    classification.notes.lines.length;
+  if (!outcome.ok || kept !== 1) {
+    return done("refused", [], NO_NOTICE, {
+      refusal: outcome.refusal ?? "not_kept",
+      proposed: classification.proposed,
+      kept,
+      refused: classification.refused.total,
+    });
+  }
+
+  // ── LA MÊME PORTE QUE LA NOTE: référentiel, écriture, accusé ─────────────
+  const { write, durableResolved, nextResolved, nextPlanEntries } = await resolveAndPersist({
+    admin: args.admin,
+    userId,
+    composition: args.composition,
+    classification,
+  });
+  const whoOf = (subject: string): string | null => {
+    const id = subject.startsWith("member:") ? subject.slice(7) : "";
+    if (!id) return null;
+    const found = (args.members ?? []).find((m) => String(m?.memberId ?? "").trim().toLowerCase() === id);
+    const label = String(found?.label ?? "").trim();
+    return label || null;
+  };
+  const announced = writtenRecapLines(
+    write,
+    {
+      ...classification,
+      preferences: { ...classification.preferences, items: durableResolved.items },
+      nextPlan: { ...classification.nextPlan, entries: nextPlanEntries },
+    },
+    whoOf,
+  );
+  const counters = {
+    write_ok: write.ok,
+    write_reason: write.reason,
+    durable_written: write.durableWritten,
+    next_plan_written: write.nextPlanWritten,
+    memo_written: write.memoWritten,
+    ref_askable: durableResolved.askable + nextResolved.askable,
+    ref_resolved: durableResolved.resolved + nextResolved.resolved,
+  };
+  if (!write.ok || announced.length === 0) return done("failed", [], NO_NOTICE, counters);
+  const notice = await notifyMemoryWrite(args.admin as never, {
+    userId,
+    kept: announced,
+    safety: [],
+    language,
+    requestId: args.requestId,
+    now: args.now ? new Date(args.now) : undefined,
+  });
+  return done("written", announced, notice, counters);
+}
 
 /**
  * ⟳ 2026-09-08 (lot 4) — LA RÉPONSE À « C'EST POUR QUI ? » SUR UNE PART.
@@ -1256,6 +2001,7 @@ export async function answerDraftNotePortion(args: {
   const notice = announced.length === 0 ? NO_NOTICE : await notifyMemoryWrite(args.admin as never, {
     userId,
     kept: announced,
+    safety: [],
     language,
     requestId: args.requestId,
     now: args.now ? new Date(args.now) : undefined,

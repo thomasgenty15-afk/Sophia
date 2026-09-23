@@ -38,9 +38,16 @@ import ShoppingListPanel from "./ShoppingListPanel";
 // là, il n'y a rien à dire, et le reste de l'écran le dit déjà.
 
 /** Ce que la journée réclame, résolu une fois pour les deux blocs. */
+type CookingSessionRow = GeneratedMealResult["cookingSessions"][number];
+
 interface KitchenDay {
-  cookToday: GeneratedMealResult["cookingSessions"][number] | null;
-  cookTomorrow: GeneratedMealResult["cookingSessions"][number] | null;
+  /**
+   * ⟳ 2026-09-23 — TOUTES les sessions du jour, pas la première. Un plan peut
+   * en poser deux le même jour (mesuré: 55 min + 15 min le mercredi), et
+   * `find` cachait la seconde en silence.
+   */
+  cookToday: CookingSessionRow[];
+  cookTomorrow: CookingSessionRow[];
   /**
    * LA COURSE QUI COMPTE — la prochaine à venir, ou la dernière ratée.
    *
@@ -56,7 +63,7 @@ function resolveDay(
   meals: GeneratedMealResult | null,
   todayDate: string,
 ): KitchenDay {
-  const empty: KitchenDay = { cookToday: null, cookTomorrow: null, shop: null };
+  const empty: KitchenDay = { cookToday: [], cookTomorrow: [], shop: null };
   if (!meals) return empty;
 
   const tomorrowDate = addDays(todayDate, 1);
@@ -67,8 +74,8 @@ function resolveDay(
   const tomorrowToken = dayTokenOf(tomorrowDate);
 
   const sessions = meals.cookingSessions ?? [];
-  const cookToday = sessions.find((s) => s.day === todayToken) ?? null;
-  const cookTomorrow = sessions.find((s) => s.day === tomorrowToken) ?? null;
+  const cookToday = sessions.filter((s) => s.day === todayToken);
+  const cookTomorrow = sessions.filter((s) => s.day === tomorrowToken);
 
   // LES VAGUES SONT RECALCULÉES ICI, à partir des mêmes entrées que le panneau
   // de courses. Pas recopiées: deux sources pour une même répartition
@@ -127,8 +134,7 @@ export default function KitchenToday(
     (meals.shoppingList ?? []).length > 0;
   if (!hasAnything) return null;
 
-  const prepTitles = (session: typeof day.cookToday) => {
-    if (!session) return "";
+  const prepTitles = (session: CookingSessionRow) => {
     const byId = new Map((meals.preparations ?? []).map((p) => [p.id, p]));
     return session.preparation_ids
       .map((id) => byId.get(id)?.title)
@@ -136,86 +142,79 @@ export default function KitchenToday(
       .join(", ");
   };
 
-  const todayTitles = prepTitles(day.cookToday);
+  // Le temps d'une journée de cuisine: la somme de ses sessions. `null` quand
+  // aucune ne déclare de durée — on n'affiche pas « 0 min ».
+  const totalMinutes = (rows: CookingSessionRow[]): number | null => {
+    const known = rows
+      .map((s) => s.total_minutes)
+      .filter((n): n is number => typeof n === "number");
+    return known.length > 0 ? known.reduce((a, b) => a + b, 0) : null;
+  };
+  const todayMinutes = totalMinutes(day.cookToday);
+  const tomorrowMinutes = totalMinutes(day.cookTomorrow);
 
-  // ── A1 (2026-09-03) · LE TIMING, MAIS SEULEMENT QUAND IL PARLE D'AUJOURD'HUI
-  //
-  // ⛔ PAS TOUS LES JOURS. « Courses et cuisson dimanche, la veille » rendu du
-  // lundi au samedi est du bruit sur l'écran du JOUR: cette carte dit ce qu'il
-  // y a à faire maintenant, et une phrase qui parle d'un autre jour y devient
-  // un meuble qu'on cesse de lire. Deux cas, et deux seulement:
-  //   · la veille EST aujourd'hui — c'est le jour où l'on court au magasin;
-  //   · pas de veille, et le plan commence aujourd'hui — c'est l'avertissement
-  //     « dès le matin », et il n'a de valeur que ce matin-là.
-  const timing = meals.timing ?? null;
-  const timingLine = timing === null
-    ? null
-    : timing.kind === "day_before" && timing.leadDay === todayDate
-    ? mealCopy("meals.timing.day_before", {
-      day: dishDayLabel(dayTokenOf(timing.leadDay)) ?? "",
-    })
-    : timing.kind === "same_morning" && meals.startsOn === todayDate
-    ? mealCopy("meals.timing.same_morning")
-    // ⟳ 2026-09-04 — LA JOURNÉE ÉTAIT DÉJÀ ENTAMÉE, LE PLAN COMMENCE DEMAIN.
-    //
-    // ⚠️ ET CETTE PHRASE-CI SE DIT AUJOURD'HUI, pas demain: c'est aujourd'hui
-    // que la personne cherche à comprendre pourquoi son plan de trois jours en
-    // couvre deux. Demain, la fenêtre commence et la phrase n'a plus d'objet —
-    // d'où la borne sur `startsOn`, la même forme que les deux cas au-dessus.
-    : timing.kind === "starts_tomorrow" && meals.startsOn > todayDate
-    ? mealCopy("meals.timing.starts_tomorrow")
-    : null;
+  // ⟳ 2026-09-23 — AUCUNE PHRASE DE TIMING SUR CET ÉCRAN, sur demande du
+  // propriétaire (« ça doit apparaître que sur le plan, pas dans aujourd'hui,
+  // ça pollue »). Les trois — « la veille », « dès le matin », « ta journée est
+  // déjà entamée » — vivaient en tête de cette carte. Les deux premières restent
+  // sur `/app/plan` (`PlanResult`), dans le bloc de leur jour; la troisième
+  // n'avait plus d'autre lecteur, et sa clé est retirée des deux packs.
 
   return (
     <section>
       <SectionLabel>{mealCopy("meals.today.title")}</SectionLabel>
       <Card>
-        {timingLine === null ? null : (
-          <p className="mb-3 break-words text-sm font-semibold text-ink">
-            {timingLine}
-          </p>
-        )}
         {/* ── CUISINE ─────────────────────────────────────────────────────── */}
-        {day.cookToday
+        {day.cookToday.length > 0
           ? (
             <div>
               <p className="text-sm font-semibold text-ink">
                 {mealCopy("meals.today.cook_today")}
-                {day.cookToday.total_minutes !== null && (
+                {todayMinutes !== null && (
                   <span className="ml-2 text-xs font-normal tabular-nums text-ink-soft">
                     {mealCopy("meals.sessions.session_time").replace(
                       "{n}",
-                      String(day.cookToday.total_minutes),
+                      String(todayMinutes),
                     )}
                   </span>
                 )}
               </p>
-              {todayTitles && (
-                <p className="mt-1 text-sm text-ink">
-                  {mealCopy("meals.today.makes").replace("{titles}", todayTitles)}
-                </p>
-              )}
-              {/* LE DÉROULÉ EST LA RAISON D'ÊTRE DE LA SESSION: l'ordre des
-                  gestes se joue ENTRE les préparations, et c'est ce qu'on lit
-                  avant de commencer. Le renvoyer derrière un bouton sur l'écran
-                  du jour même ferait rouvrir la semaine pour la seule phrase
-                  qui compte aujourd'hui. */}
-              {day.cookToday.run_through && (
-                <p className="mt-2 text-sm leading-6 text-ink">
-                  {day.cookToday.run_through}
-                </p>
-              )}
+              {day.cookToday.map((session, i) => {
+                const titles = prepTitles(session);
+                return (
+                  <div
+                    key={`${session.day}:${i}`}
+                    className={i > 0 ? "mt-3 border-t border-line pt-3" : ""}
+                  >
+                    {titles && (
+                      <p className="mt-1 text-sm text-ink">
+                        {mealCopy("meals.today.makes").replace("{titles}", titles)}
+                      </p>
+                    )}
+                    {/* LE DÉROULÉ EST LA RAISON D'ÊTRE DE LA SESSION: l'ordre des
+                        gestes se joue ENTRE les préparations, et c'est ce qu'on
+                        lit avant de commencer. Le renvoyer derrière un bouton
+                        sur l'écran du jour même ferait rouvrir la semaine pour
+                        la seule phrase qui compte aujourd'hui. */}
+                    {session.run_through && (
+                      <p className="mt-2 text-sm leading-6 text-ink">
+                        {session.run_through}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )
-          : day.cookTomorrow
+          : day.cookTomorrow.length > 0
           ? (
             <p className="text-sm text-ink">
               {mealCopy("meals.today.cook_tomorrow")}
-              {day.cookTomorrow.total_minutes !== null && (
+              {tomorrowMinutes !== null && (
                 <span className="ml-2 text-xs tabular-nums text-ink-soft">
                   {mealCopy("meals.sessions.session_time").replace(
                     "{n}",
-                    String(day.cookTomorrow.total_minutes),
+                    String(tomorrowMinutes),
                   )}
                 </span>
               )}
@@ -293,7 +292,8 @@ export default function KitchenToday(
         {/* Le jour de la session suivante, quand elle n'est ni aujourd'hui ni
             demain: sans repère, « today is assembling » ne dit pas jusqu'à
             quand. */}
-        {!day.cookToday && !day.cookTomorrow && sessions.length > 0 && (
+        {day.cookToday.length === 0 && day.cookTomorrow.length === 0 &&
+          sessions.length > 0 && (
           <p className="mt-3 text-xs text-ink-soft">
             {sessions
               .map((s) => dishDayLabel(s.day) ?? s.day)

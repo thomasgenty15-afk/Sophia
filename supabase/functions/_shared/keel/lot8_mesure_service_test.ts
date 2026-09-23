@@ -205,10 +205,12 @@ Deno.test("② l'eau d'un riz ne pèse rien — et sans cette règle le VERDICT 
   // ⚠️ LA DÉMONSTRATION EST DANS LE VERDICT, PAS DANS LA MASSE. À 700 kcal de
   // cible, le facteur vaut 700 ÷ 350 = 2 dans les DEUX lectures — c'est
   // l'énergie qui le fixe. Ce qui change, c'est la masse jugée:
-  //   · vraie   : 260 × 2 = 520 g, dans les bornes [250 ; 700];
-  //   · comptée : 460 × 2 = 920 g, au-dessus ⇒ rabotée à 700 g.
+  //   · vraie   : 260 × 2 = 520 g, dans les bornes [250 ; 550];
+  //   · comptée : 460 × 2 = 920 g, au-dessus ⇒ rabotée à 550 g.
+  // ⟳ 2026-09-23 — la table d'un repas d'adulte passe de 700 à 550 g ; 520 g
+  // restent dedans, la démonstration tient.
   const b = bornes(700);
-  assertEquals([b.min, b.max], [250, 700]);
+  assertEquals([b.min, b.max], [250, 550]);
   const juste = sizeDishForMouth({ standard: vraie, targetKcal: 700, bounds: b });
   assertEquals(juste.factor, 2);
   assertEquals(juste.personCookedG, 520);
@@ -218,9 +220,10 @@ Deno.test("② l'eau d'un riz ne pèse rien — et sans cette règle le VERDICT 
   const faux = sizeDishForMouth({ standard: douteuse, targetKcal: 700, bounds: b });
   assertEquals(faux.verdict, "over_max", "920 g devraient dépasser le plafond");
   const rabote = clampToBounds({ sized: faux, standard: douteuse, bounds: b });
-  // facteur raboté = 700 ÷ 460 = 1,5217 ⇒ (2 − 1,5217) × 350 = 167 kcal perdues.
-  assertEquals(rabote.personCookedG, 700);
-  assertEquals(rabote.unmetKcal, 167);
+  // facteur raboté = 550 ÷ 460 = 1,1957 ⇒ (2 − 1,1957) × 350 = 281,5 → 282 kcal perdues.
+  // (⟳ 2026-09-23 — 167 sous la borne de 700 g)
+  assertEquals(rabote.personCookedG, 550);
+  assertEquals(rabote.unmetKcal, 282);
 });
 
 Deno.test("② l'eau d'une SOUPE compte, elle — la règle ne déborde pas", () => {
@@ -269,10 +272,10 @@ Deno.test("③ ce que TOUS les plats tirent fait EXACTEMENT la casserole", () =>
   const out = applySizingForEaters({
     meal,
     rows: [
-      { dishIndex: 0, memberId: "a", factor: 1, sized: true, recipeShare: null },
-      { dishIndex: 1, memberId: "a", factor: 1, sized: true, recipeShare: null },
-      { dishIndex: 1, memberId: "b", factor: 1, sized: true, recipeShare: null },
-      { dishIndex: 1, memberId: "c", factor: 1, sized: true, recipeShare: null },
+      { dishIndex: 0, memberId: "a", factor: 1, sized: true, recipeShare: null, starchSide: null },
+      { dishIndex: 1, memberId: "a", factor: 1, sized: true, recipeShare: null, starchSide: null },
+      { dishIndex: 1, memberId: "b", factor: 1, sized: true, recipeShare: null, starchSide: null },
+      { dishIndex: 1, memberId: "c", factor: 1, sized: true, recipeShare: null, starchSide: null },
     ],
     weighed: new Set<string>(),
     index: INDEX,
@@ -317,11 +320,13 @@ Deno.test("③ un plat qui tire DEUX FOIS la même casserole reçoit DEUX parts"
 // ④ TRÈS PEU DENSE / TRÈS DENSE — la borne mord, et son prix est dit
 // ═══════════════════════════════════════════════════════════════════════════
 
-Deno.test("④ une soupe à 7,8 kcal/100 g ne porte pas 700 kcal — et 645 se perdent", () => {
+Deno.test("④ une soupe à 7,8 kcal/100 g ne porte pas 700 kcal — et 657 se perdent", () => {
   // ⛔ CE QUE CE CAS INTERDIT: un plan « conforme » parce que son facteur
   // atteint la cible sur le papier. Le facteur vaut 700 ÷ 60 = 11,67, donc
-  // 770 × 11,67 = 8 983 g de soupe — un seau. La borne raboté à 700 g, et le
-  // PRIX de ce rabotage est 645 kcal que la personne ne mange pas.
+  // 770 × 11,67 = 8 983 g de soupe — un seau. La borne raboté à 550 g, et le
+  // PRIX de ce rabotage est 657 kcal que la personne ne mange pas.
+  // ⟳ 2026-09-23 — 700 g et 645 kcal avant que la table d'un repas d'adulte
+  // passe à 550 g.
   const soupe = part([g("courgette", 300), g("water", 500)]);
   const b = bornes(700);
   const sized = sizeDishForMouth({ standard: soupe, targetKcal: 700, bounds: b });
@@ -333,9 +338,9 @@ Deno.test("④ une soupe à 7,8 kcal/100 g ne porte pas 700 kcal — et 645 se p
   assertEquals(sized.unmetKcal, 0);
 
   const rabote = clampToBounds({ sized, standard: soupe, bounds: b });
-  assertEquals(rabote.personCookedG, 700);
-  // facteur raboté = 700 ÷ 770 = 0,9091 ⇒ (11,6667 − 0,9091) × 60 = 645 kcal.
-  assertEquals(rabote.unmetKcal, 645);
+  assertEquals(rabote.personCookedG, 550);
+  // facteur raboté = 550 ÷ 770 = 0,7143 ⇒ (11,6667 − 0,7143) × 60 = 657,1 → 657 kcal.
+  assertEquals(rabote.unmetKcal, 657);
   assertEquals(rabote.verdict, "over_max", "le verdict a été effacé par le rabotage");
 });
 
@@ -381,6 +386,7 @@ function planPourN(n: number) {
       factor: 1,
       sized: true,
       recipeShare: null,
+      starchSide: null,
     })),
   };
 }
@@ -490,7 +496,7 @@ Deno.test("⑥ les grammes écrits sont ENTIERS, et ils somment la masse remesur
     const out = applySizing({
       meal: planSimple(),
       memberId: "m",
-      rows: [{ dishIndex: 0, factor: f, sized: true, recipeShare: null }],
+      rows: [{ dishIndex: 0, factor: f, sized: true, recipeShare: null, starchSide: null }],
       index: INDEX,
     });
     const items = (out.dishes[0].boxes[0] as Box).items;
@@ -537,7 +543,7 @@ Deno.test("⑥ ⛔ DÉFAUT ÉPINGLÉ — un FRAIS arrondi à zéro sort de la bo
   const petit = applySizing({
     meal: fresh,
     memberId: "m",
-    rows: [{ dishIndex: 0, factor: 0.2, sized: true, recipeShare: null }],
+    rows: [{ dishIndex: 0, factor: 0.2, sized: true, recipeShare: null, starchSide: null }],
     index: INDEX,
   });
   const items = (petit.dishes[0].boxes[0] as Box).items;
@@ -555,7 +561,7 @@ Deno.test("⑥ ⛔ DÉFAUT ÉPINGLÉ — un FRAIS arrondi à zéro sort de la bo
   const petitPot = applySizing({
     meal: pot,
     memberId: "m",
-    rows: [{ dishIndex: 0, factor: 0.2, sized: true, recipeShare: null }],
+    rows: [{ dishIndex: 0, factor: 0.2, sized: true, recipeShare: null, starchSide: null }],
     index: INDEX,
   });
   assertEquals((petitPot.dishes[0].boxes[0] as Box).items.map((i) => i.term), ["rice"]);
@@ -567,8 +573,8 @@ Deno.test("⑥ ⛔ DÉFAUT ÉPINGLÉ — un FRAIS arrondi à zéro sort de la bo
   const aTable = applySizingForEaters({
     meal: fresh,
     rows: [
-      { dishIndex: 0, memberId: "a", factor: 0.1, sized: true, recipeShare: null },
-      { dishIndex: 0, memberId: "b", factor: 0.1, sized: true, recipeShare: null },
+      { dishIndex: 0, memberId: "a", factor: 0.1, sized: true, recipeShare: null, starchSide: null },
+      { dishIndex: 0, memberId: "b", factor: 0.1, sized: true, recipeShare: null, starchSide: null },
     ],
     weighed: new Set<string>(),
     index: INDEX,
@@ -578,14 +584,19 @@ Deno.test("⑥ ⛔ DÉFAUT ÉPINGLÉ — un FRAIS arrondi à zéro sort de la bo
   assertEquals(aTable.counts.items_unresolved, 0, "⛔ DÉFAUT ÉPINGLÉ, chemin de la table");
 });
 
-Deno.test("⑥ l'arrondi du COMPLÉMENT retombe exactement sur la borne, sur 206 cibles", () => {
+Deno.test("⑥ l'arrondi du COMPLÉMENT retombe exactement sur la borne, sur 161 cibles", () => {
   // ⛔ LE DÉFAUT QUE CE BALAYAGE CHERCHE: `splitPlateWithComplement` arrondit
   // SÉPARÉMENT la part partagée et l'entrée. Deux arrondis dans le même sens
-  // donneraient 701 g sur une assiette bornée à 700 — un dépassement fabriqué
+  // donneraient 551 g sur une assiette bornée à 550 — un dépassement fabriqué
   // par l'arrondi lui-même, invisible sur un seul exemple.
   //
   // Le décor est celui du bloc ⑬: un plat dilué à 90 kcal/100 g, une entrée à
-  // 300. gC = (cible − 700 × 0,9) ÷ (3 − 0,9), et gS = 700 − gC.
+  // 300. gC = (cible − 550 × 0,9) ÷ (3 − 0,9), et gS = 550 − gC.
+  //
+  // ⟳ 2026-09-23 — LA BORNE PASSE DE 700 À 550 g, ET LE BALAYAGE AVEC ELLE.
+  // Une cible n'a de solution que dans ]550 × 0,9 ; 550 × 3[ = ]495 ; 1 650[
+  // (avant : ]630 ; 2 100[, balayé de 640 à 2 080). Même marge aux deux bouts,
+  // même pas de 7 : de 505 à 1 630, soit 161 cibles (505 + 160 × 7 = 1 625).
   // ⟳ 2026-09-11 · LOT B — `proteinG` EST NÉ SUR `StandardPortion` (pliage des
   // casseroles au prorata servi). Il vaut `null` ici parce que ce bloc ne
   // mesure QUE l'arrondi de la masse: écrire un gramme de protéine inventé
@@ -593,10 +604,10 @@ Deno.test("⑥ l'arrondi du COMPLÉMENT retombe exactement sur la borne, sur 206
   const dilue: StandardPortion = { kcal: 450, cookedG: 500, densityPer100G: 90, proteinG: null, pots: [], gaps: [] };
   const entree: StandardPortion = { kcal: 300, cookedG: 100, densityPer100G: 300, proteinG: null, pots: [], gaps: [] };
   const b = bornes(null);
-  assertEquals([b.min, b.max], [250, 700]);
+  assertEquals([b.min, b.max], [250, 550]);
 
   let resolus = 0;
-  for (let cible = 640; cible <= 2080; cible += 7) {
+  for (let cible = 505; cible <= 1630; cible += 7) {
     const s = splitPlateWithComplement({
       shared: dilue,
       complement: entree,
@@ -610,15 +621,15 @@ Deno.test("⑥ l'arrondi du COMPLÉMENT retombe exactement sur la borne, sur 206
     assert(s.sharedG > 0 && s.complementG > 0, `cible ${cible}: une part écrite à zéro`);
     assert(Number.isInteger(s.sharedG) && Number.isInteger(s.complementG), `cible ${cible}`);
   }
-  assertEquals(resolus, 206);
+  assertEquals(resolus, 161);
 
-  // ⚠️ ET LE CAS QUI MORD, dans le même geste: sous 630 kcal (700 × 0,9), il
+  // ⚠️ ET LE CAS QUI MORD, dans le même geste: sous 495 kcal (550 × 0,9), il
   // n'y a rien à compléter et la fonction rend `null` — jamais « presque ».
   assertEquals(
     splitPlateWithComplement({
       shared: dilue,
       complement: entree,
-      targetKcal: 600,
+      targetKcal: 480,
       bounds: b,
       verdict: "over_max",
     }),
@@ -644,7 +655,7 @@ Deno.test("⑦ mesurer → appliquer → remesurer: la boucle se ferme", () => {
     const out = applySizing({
       meal: planSimple(),
       memberId: "m",
-      rows: [{ dishIndex: 0, factor: f, sized: true, recipeShare: null }],
+      rows: [{ dishIndex: 0, factor: f, sized: true, recipeShare: null, starchSide: null }],
       index: INDEX,
     });
     const apres = remesure({ dishes: out.dishes, preparations: out.preparations });
@@ -677,7 +688,7 @@ Deno.test("⑦ ⛔ une mutation NON PROPORTIONNELLE rend FAUX le verdict d'avant
   const out = applySizing({
     meal: planSimple(),
     memberId: "m",
-    rows: [{ dishIndex: 0, factor: 2, sized: true, recipeShare: null }],
+    rows: [{ dishIndex: 0, factor: 2, sized: true, recipeShare: null, starchSide: null }],
     index: INDEX,
   });
   const sansPlafond = remesure({ dishes: out.dishes, preparations: out.preparations });
@@ -707,7 +718,7 @@ Deno.test("⑦ appliquer n'ABÎME PAS le plan d'entrée — la remesure porte su
   applySizing({
     meal: entree,
     memberId: "m",
-    rows: [{ dishIndex: 0, factor: 3, sized: true, recipeShare: null }],
+    rows: [{ dishIndex: 0, factor: 3, sized: true, recipeShare: null, starchSide: null }],
     index: INDEX,
   });
   assertEquals(JSON.stringify(entree), avant, "le plan d'entrée a été muté");

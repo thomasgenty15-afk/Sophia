@@ -36,6 +36,7 @@ import {
   HOUSEHOLD_ARBITRATION_BY_VERSION,
   precedenceBindingVerdict,
   precedenceDigest,
+  readHouseholdPromptV34Version,
   readHouseholdPromptVersion,
   sha256Hex,
 } from "./precedence_binding.ts";
@@ -68,6 +69,82 @@ Deno.test("① le millésime vivant est inscrit, et son empreinte est le texte s
       `bump HOUSEHOLD_PROMPT_VERSION *et* ajoute son empreinte dans ` +
       `HOUSEHOLD_ARBITRATION_BY_VERSION. N'ÉDITE PAS une entrée existante: elle décrit ` +
       `des lignes déjà écrites en base.`,
+  );
+});
+
+// ⟳ 2026-09-23 — LE SECOND JETON, CELUI DE LA STRUCTURE v34. Il est écrit en
+// base pour tout foyer de deux bouches et plus; sa clé était inscrite, mais
+// aucune épreuve ne relisait le jeton VIVANT. Même source de vérité: la ligne
+// de déclaration, lue dans le fichier, jamais importée.
+const SOURCE_V34 = new URL("./household_prompt_v34.ts", import.meta.url);
+const HOUSEHOLD_PROMPT_V34_VERSION = readHouseholdPromptV34Version(
+  await Deno.readTextFile(SOURCE_V34),
+);
+
+Deno.test("① bis — le jeton VIVANT de v34 est inscrit, sous la même empreinte", async () => {
+  const v = precedenceBindingVerdict(
+    HOUSEHOLD_PROMPT_V34_VERSION,
+    await precedenceDigest("household"),
+  );
+  assertEquals(
+    v.verdict,
+    "ok",
+    `HOUSEHOLD_PROMPT_V34_VERSION = « ${HOUSEHOLD_PROMPT_V34_VERSION} » n'est pas inscrit ` +
+      `(${JSON.stringify(v)}): bump ET inscris, dans HOUSEHOLD_ARBITRATION_BY_VERSION.`,
+  );
+  // ⚠️ LES DEUX JETONS NE SE CONFONDENT PAS: la ligne en base dit laquelle des
+  // deux structures a été servie.
+  assert(HOUSEHOLD_PROMPT_V34_VERSION !== HOUSEHOLD_PROMPT_VERSION);
+});
+
+Deno.test("① ter — ⟳ 2026-09-23 : les deux jetons du lot « assiettes normales »", () => {
+  // ÉCRITS EN DUR. Un test qui relirait la constante serait vert sur n'importe
+  // quel bump; celui-ci dit quelle population porte le texte de ce lot.
+  // ⟳ 2026-09-23 — v38: le féculent à part pour tout déjeuner et tout dîner.
+  // ⟳ 2026-09-23 — v39: les à-côtés viennent en familles (table, deux jours).
+  // ⟳ 2026-09-23 — v40: la table partage ses à-côtés (la prise suit la table,
+  // le nom exact, le pain hors de la règle des deux jours).
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v41_what_came_back_is_named");
+  assertEquals(HOUSEHOLD_PROMPT_V34_VERSION, "v34_what_came_back_is_named");
+  // Et les entrées d'avant restent: ce sont des affirmations sur des lignes
+  // déjà en base.
+  for (
+    const avant of [
+      "v34_one_card_per_person_the_engine_weighs",
+      "v37_the_plate_is_not_the_meal",
+      "v34_the_plate_is_not_the_meal",
+      "v38_every_plate_splits_its_starch",
+      "v34_every_plate_splits_its_starch",
+      "v39_side_courses_come_in_families",
+      "v34_side_courses_come_in_families",
+    ]
+  ) {
+    assertEquals(
+      HOUSEHOLD_ARBITRATION_BY_VERSION[avant],
+      "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
+      avant,
+    );
+  }
+});
+
+Deno.test("⑤ bis — le lecteur de v34 exige UNE ligne, et jette sur zéro, deux, ou deux lignes", () => {
+  const ligne = `export const HOUSEHOLD_PROMPT_V34_VERSION = "v34_essai";`;
+  assertEquals(readHouseholdPromptV34Version(`// x\n${ligne}\n`), "v34_essai");
+  assertThrows(() => readHouseholdPromptV34Version("rien ici"), Error, "0 déclaration");
+  assertThrows(
+    () => readHouseholdPromptV34Version(`${ligne}\n${ligne}\n`),
+    Error,
+    "2 déclaration",
+  );
+  // ⛔ LA FORME SUR DEUX LIGNES — celle que la constante avait avant ce lot —
+  // n'est PAS lue: elle ferait taire la garde au lieu de la faire parler.
+  assertThrows(
+    () =>
+      readHouseholdPromptV34Version(
+        `export const HOUSEHOLD_PROMPT_V34_VERSION =\n  "v34_essai";\n`,
+      ),
+    Error,
+    "0 déclaration",
   );
 });
 

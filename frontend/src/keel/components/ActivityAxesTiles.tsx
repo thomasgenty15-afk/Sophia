@@ -2,6 +2,7 @@ import React from "react";
 
 import { Field } from "./ui/Field";
 import { type MessageKey, t } from "../i18n/t";
+import { DAY_ACTIVITY_KEYS, SPORT_KEYS } from "../lib/activityAxisLabels";
 import {
   DAY_ACTIVITY_LEVELS,
   SPORT_FREQUENCIES,
@@ -44,45 +45,12 @@ import type {
 // donnée, et c'est la donnée qui divergeait.
 // ===========================================================================
 
-/**
- * ② LE PREMIER AXE — la journée, sport EXCLU. `Record` complet: un cran ajouté
- * sans ses mots ne compile pas.
- */
-const DAY_ACTIVITY_KEYS: Record<
-  DayActivityLevel,
-  { label: MessageKey; hint: MessageKey }
-> = {
-  seated: {
-    label: "setup.day_activity.seated",
-    hint: "setup.day_activity.seated_hint",
-  },
-  on_feet: {
-    label: "setup.day_activity.on_feet",
-    hint: "setup.day_activity.on_feet_hint",
-  },
-  physical_job: {
-    label: "setup.day_activity.physical_job",
-    hint: "setup.day_activity.physical_job_hint",
-  },
-};
-
-/**
- * ② LE SECOND AXE — les séances par semaine, journée EXCLUE.
- *
- * ⚠️ `none` EST UNE TUILE, ET CE N'EST PAS UN « JE NE SAIS PAS ». « Je ne fais
- * pas de sport » est une RÉPONSE, et elle pèse: elle fait descendre le PAL au
- * bas de la bande sédentaire. C'est `null` — aucune tuile cochée — qui veut
- * dire « pas répondu », et il n'a pas de tuile, exprès.
- */
-const SPORT_KEYS: Record<
-  SportFrequency,
-  { label: MessageKey; hint: MessageKey }
-> = {
-  none: { label: "setup.sport.none", hint: "setup.sport.none_hint" },
-  "1_2": { label: "setup.sport.1_2", hint: "setup.sport.1_2_hint" },
-  "3_4": { label: "setup.sport.3_4", hint: "setup.sport.3_4_hint" },
-  "5_plus": { label: "setup.sport.5_plus", hint: "setup.sport.5_plus_hint" },
-};
+// ⟳ 2026-09-20 — `DAY_ACTIVITY_KEYS` ET `SPORT_KEYS` SONT PARTIS DANS
+// `lib/activityAxisLabels.ts`. Les résumés des cartes repliées de `/app/setup`
+// doivent nommer le cran choisi sans monter de tuile, et `eslint` refuse qu'un
+// fichier de composant exporte aussi une constante
+// (`react-refresh/only-export-components`). Le rendu reste ici; le vocabulaire
+// est partagé. Le pourquoi complet est dans l'en-tête du fichier d'arrivée.
 
 /**
  * UNE GRILLE DE JETONS — titre court en haut de tuile, explication en dessous.

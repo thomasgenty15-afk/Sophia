@@ -34,7 +34,7 @@
 import { supabase } from "../../lib/supabase";
 // LOT B — le TYPE seul. La règle du plafond vit côté serveur, et aucune garde
 // n'est recopiée ici: c'est la règle de ce fichier.
-import { type CookingShape } from "./cookingShape";
+import { COOKING_SHAPES, type CookingShape } from "./cookingShape";
 import { readEdgeRefusal } from "./edgeErrors";
 import {
   type GeneratedMealResult,
@@ -52,6 +52,7 @@ import {
   readShopping,
 } from "./mealGeneration";
 import { type MealWindowRequest } from "./mealWindow";
+import { daysBetween } from "./dates";
 // ⟳ 2026-09-12 · ÉTAPE C5 — le MÊME lecteur que la ligne écrite. Deux lecteurs
 // du même objet divergeraient au premier champ ajouté, et c'est celui qu'on
 // regarde le moins qui garderait l'ancien comportement.
@@ -290,6 +291,13 @@ export interface NoteOutcome {
    */
   questions: ReadonlyArray<NoteQuestion>;
   /**
+   * ⟳ 2026-09-23 — CE QUE LA NOTE A DIT DE LA SANTÉ ET QUI N'A PAS PU ENTRER
+   * DANS LA FICHE (une allergie, un régime). Rendu sous le champ avec l'endroit
+   * où l'ajouter: un refus tu ferait croire qu'une allergie d'enfant est
+   * enregistrée. Ce qui EST entré arrive dans `announced`, `kind: "safety"`.
+   */
+  safetyNotWritten: ReadonlyArray<{ text: string; who: string | null }>;
+  /**
    * ⟳ 2026-09-09 (chirurgie locale, pièce 4) — LES CASES DE CE PLAN-CI que la
    * phrase désigne (jour ET moment). Rien n'a été écrit pour elles : le
    * dialogue les donne au composeur par `editCells`, qui ne refait que ces
@@ -315,7 +323,7 @@ export interface DraftEdit {
   untouched: number;
 }
 
-export interface NoteQuestion {
+export interface NotePortionQuestion {
   kind: "portion";
   /** Le morceau de phrase sur lequel le serveur a buté — cité, jamais la note entière. */
   text: string;
@@ -323,12 +331,47 @@ export interface NoteQuestion {
   options: ReadonlyArray<{ memberId: string; label: string }>;
 }
 
-/** Un tap sur une question: la bouche choisie, et le sens déjà lu. */
-export interface NoteAnswer {
+/**
+ * ⟳ 2026-09-23 — « POUR QUI ? » SUR UN GOÛT, UNE ENVIE OU UN MÉMO. Le morceau
+ * que le serveur écrira une fois la bouche connue voyage DANS la question et
+ * repart tel quel avec le tap (`NoteWhoAnswer`): le front ne le lit pas, ne le
+ * corrige pas, ne l'invente pas — le serveur le relit par le lecteur de la
+ * note avant d'écrire. Opaque ici, exprès.
+ */
+export interface NotePendingEntry {
+  gate: string;
+  kind: string | null;
+  text: string;
+  /** La phrase entière — la citation de ce qui sera écrit. Portée, jamais relue ici. */
+  note: string;
+  occasion: string | null;
+  force: string | null;
+  when: { weekday: string | null; slot: string | null } | null;
+}
+
+export interface NoteWhoQuestion {
+  kind: "who";
+  text: string;
+  entry: NotePendingEntry;
+  options: ReadonlyArray<{ memberId: string; label: string }>;
+}
+
+export type NoteQuestion = NotePortionQuestion | NoteWhoQuestion;
+
+/** Un tap sur une question: la bouche choisie, et ce qui était déjà lu. */
+export interface NotePortionAnswer {
   kind: "portion";
   memberId: string;
   direction: "down" | "up";
 }
+
+export interface NoteWhoAnswer {
+  kind: "who";
+  memberId: string;
+  entry: NotePendingEntry;
+}
+
+export type NoteAnswer = NotePortionAnswer | NoteWhoAnswer;
 
 /** Un brouillon: le plan tel qu'il serait, et ce que le serveur en dit. */
 export interface PlanDraft {
@@ -336,9 +379,36 @@ export interface PlanDraft {
   envelope: DraftEnvelope;
 }
 
+/**
+ * ⟳ 2026-09-21 — CE QU'UNE LIGNE REPRISE SAIT ENCORE D'ELLE-MÊME. `origin` :
+ * la surface qui l'a demandée. `replaces` : le plan qu'elle remplacerait à
+ * l'adoption (`request_body.replaces`) — sans lui, l'aperçu rouvert après un
+ * rechargement s'adoptait en `prepare_next` et le serveur refusait le
+ * chevauchement : la fenêtre revenait, mais son bouton était mort.
+ */
 export type RecoverablePlanDraft =
-  | { state: "done"; draft: PlanDraft }
-  | { state: "in_flight"; draftId: string }
+  | {
+    state: "done";
+    draft: PlanDraft;
+    origin: DraftOrigin | null;
+    replaces: string | null;
+    /**
+     * ⟳ 2026-09-22 — LA DEMANDE QUI A PRODUIT CE BROUILLON, relue dans
+     * `request_body`. Mesuré à 00:00 : l'aperçu repris se recomposait avec
+     * `draftInput()` de la page — la fenêtre SUIVANTE (26 → 2 oct) sur un
+     * brouillon qui remplaçait le plan courant (21 → 25), ou « aujourd'hui »
+     * calculé avant minuit et refusé `bad_window` après. Une reprise
+     * recompose CE que le brouillon demandait, pas ce que la page devine.
+     */
+    input: ComposeDraftInput | null;
+  }
+  | {
+    state: "in_flight";
+    draftId: string;
+    origin: DraftOrigin | null;
+    replaces: string | null;
+    input: ComposeDraftInput | null;
+  }
   | null;
 
 type DraftRecovery =
@@ -486,27 +556,80 @@ function recoverableRow(raw: unknown): RecoverablePlanDraft {
     if (outOfLease(row.created_at) && !(relaunchable(row) && Date.now() < relaunchDeadline(row))) {
       return null;
     }
-    return { state: "in_flight", draftId: id };
+    return {
+      state: "in_flight",
+      draftId: id,
+      origin: readDraftOrigin(row.origin),
+      replaces: readReplaces(row.replaces),
+      input: readComposeInput(row.request_body),
+    };
   }
   if (status === "done" && row.response && typeof row.response === "object" &&
     !Array.isArray(row.response)) {
-    return { state: "done", draft: planDraftFromResponse(row.response as Record<string, unknown>) };
+    return {
+      state: "done",
+      draft: planDraftFromResponse(row.response as Record<string, unknown>),
+      origin: readDraftOrigin(row.origin),
+      replaces: readReplaces(row.replaces),
+      input: readComposeInput(row.request_body),
+    };
   }
   return null;
 }
 
-/** Reprend, après rechargement, le dernier brouillon encore valable du compte. */
+/**
+ * Reprend, après rechargement, le dernier brouillon encore valable du compte.
+ *
+ * ⟳ 2026-09-23 — UNE ADOPTION FERME LES BROUILLONS QUI LA PRÉCÈDENT. Signalé :
+ * « j'ai validé un plan, et dès que je retourne sur le plan de ma semaine ça
+ * me demande de le revalider ». Mesuré en base locale : le brouillon adopté
+ * (00:30) était exclu de la lecture, qui retombait sur un brouillon `done` de
+ * 23:34 — une version d'avant, jamais validée — et le rouvrait. `adopted` est
+ * donc LU : s'il est le plus récent, il n'y a rien à reprendre
+ * (`recoverableRow` le rend `null`). `failed` reste ignoré : une reprise qui
+ * échoue depuis la fenêtre laisse l'aperçu d'avant en place, et c'est lui
+ * qu'on rouvre.
+ *
+ * ⟳ 2026-09-23 — « LAISSER TOMBER » AUSSI. Même défaut, l'autre réponse :
+ * la ligne restait `done` et revenait à chaque retour sur l'onglet.
+ * `discarded` est lu pour la même raison qu'`adopted` — l'exclure ferait
+ * retomber la lecture sur un brouillon plus ancien.
+ */
 export async function recoverLatestDraft(): Promise<RecoverablePlanDraft> {
+  // Un « Laisser tomber » encore en route doit arriver avant cette lecture :
+  // changer d'onglet juste après le clic relirait la ligne encore `done`.
+  if (pendingDiscard) await pendingDiscard;
   const { data, error } = await supabase
     .from("student_meal_drafts")
     .select(`id,status,response,error_code,expires_at,created_at,${RELAUNCH_COLUMNS}`)
-    .in("status", ["pending", "running", "done"])
+    .in("status", ["pending", "running", "done", "adopted", "discarded"])
     .gt("expires_at", new Date().toISOString())
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
   if (error) throw new Error("composition_unavailable");
   return recoverableRow(data);
+}
+
+let pendingDiscard: Promise<boolean> | null = null;
+
+/**
+ * « LAISSER TOMBER » — la ligne passe à `discarded` (20260923130000) et ne se
+ * rouvre plus. Rend `false` sans lever quand l'appel échoue : l'écran se
+ * ferme quand même, et le brouillon reviendra au prochain passage, où il
+ * pourra être laissé tomber de nouveau.
+ */
+export function discardDraft(draftId: string | null): Promise<boolean> {
+  if (!draftId) return Promise.resolve(false);
+  const call = (async () => {
+    const { data, error } = await supabase.rpc("keel_discard_meal_draft", { p_draft: draftId });
+    return !error && asRecord(data)?.ok === true;
+  })().catch(() => false);
+  pendingDiscard = call;
+  void call.finally(() => {
+    if (pendingDiscard === call) pendingDiscard = null;
+  });
+  return call;
 }
 
 /**
@@ -568,11 +691,20 @@ async function childOf(motherId: string): Promise<string | null> {
 }
 
 /** Les colonnes que la relance ajoute à chaque lecture d'une ligne. */
-const RELAUNCH_COLUMNS = "mode,attempt,relaunched_at,finished_at,operation:request_body->>operation";
+const RELAUNCH_COLUMNS = "mode,attempt,relaunched_at,finished_at,operation:request_body->>operation,origin:request_body->>origin,replaces:request_body->>replaces,request_body";
 
 export interface WaitForDraftOptions {
   onProgress?: (progress: DraftProgress) => void;
   timeoutMs?: number;
+  /**
+   * ⟳ 2026-09-21 — LE PLAN QUE CE BROUILLON REMPLACERAIT À L'ADOPTION.
+   *
+   * Un brouillon n'écrit toujours rien : le serveur ne s'en sert que pour
+   * exclure ce plan-là de sa garde de chevauchement. Sans lui, « Composer un
+   * autre plan » sur des jours déjà couverts rendait `plan_overlaps_existing`
+   * avant même que l'adoption — la seule qui remplace — puisse dire quoi.
+   */
+  replaces?: string | null;
 }
 
 function stageOf(raw: unknown): DraftStage | null {
@@ -904,6 +1036,84 @@ export interface ComposeDraftInput {
    * la lecture qu'elle déclarait impossible.
    */
   preferences: string | null;
+  /**
+   * ⟳ 2026-09-21 — D'OÙ L'APERÇU A ÉTÉ DEMANDÉ : l'entonnoir (`/app/setup`)
+   * ou la plateforme (`/app/plan`). Rangé dans `request_body` avec le reste
+   * de la demande ; c'est ce qui permet, au rechargement, de rouvrir la
+   * fenêtre SUR LA SURFACE OÙ ON ÉTAIT — et donc que « Laisser tomber »
+   * ramène là où on était, pas sur l'autre page. Requis, jamais `?`.
+   */
+  origin: DraftOrigin;
+}
+
+/** Les deux surfaces qui composent. Vocabulaire fermé, rangé en base. */
+export const DRAFT_ORIGINS = ["setup", "plan"] as const;
+export type DraftOrigin = (typeof DRAFT_ORIGINS)[number];
+export const DRAFT_ORIGIN_PATH: Record<DraftOrigin, string> = {
+  setup: "/app/setup",
+  plan: "/app/plan",
+};
+/**
+ * `request_body` → `ComposeDraftInput`. `null` dès qu'une fenêtre n'est pas
+ * lisible : la page repart alors de sa propre entrée, comme avant ce lot.
+ */
+export function readComposeInput(raw: unknown): ComposeDraftInput | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const body = raw as Record<string, unknown>;
+  const w = (body.window ?? null) as Record<string, unknown> | null;
+  if (!w || typeof w !== "object") return null;
+  const kind = String(w.kind ?? "");
+  let window: MealWindowRequest;
+  if (kind === "exact") {
+    const startsOn = String(w.starts_on ?? "").trim();
+    const durationDays = Number(w.duration_days);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(startsOn) || !Number.isInteger(durationDays) || durationDays < 1) return null;
+    window = { kind: "exact", startsOn, durationDays };
+  } else if (kind === "days") {
+    const count = Number(w.count);
+    if (!Number.isInteger(count) || count < 1) return null;
+    window = { kind: "days", count };
+  } else if (kind === "until_sunday") {
+    window = { kind: "until_sunday" };
+  } else {
+    return null;
+  }
+  const shape = String(body.cooking_shape ?? "");
+  const context = body.context === null || body.context === undefined ? null : String(body.context);
+  const preferences = body.preferences === null || body.preferences === undefined ? null : String(body.preferences);
+  return {
+    window,
+    cookingShape: (COOKING_SHAPES as readonly string[]).includes(shape) ? (shape as CookingShape) : null,
+    oneCookingSession: body.one_cooking_session === true,
+    context,
+    preferences,
+    origin: readDraftOrigin(body.origin) ?? "plan",
+  };
+}
+
+/**
+ * ⟳ 2026-09-22 — UNE RECOMPOSITION PART D'AUJOURD'HUI. Un brouillon qui
+ * remplaçait le plan courant porte la fenêtre de ce plan ; le lendemain,
+ * elle commence hier et le serveur la refuse (`bad_window`, « start in the
+ * past »). On avance le départ et on raccourcit d'autant : les jours passés
+ * sont passés. Une fenêtre qui serait vide n'est pas touchée — le refus du
+ * serveur est alors le bon.
+ */
+export function windowFromToday(input: ComposeDraftInput, today: string): ComposeDraftInput {
+  const w = input.window;
+  if (w.kind !== "exact" || w.startsOn >= today) return input;
+  const spent = daysBetween(w.startsOn, today);
+  if (spent >= w.durationDays) return input;
+  return { ...input, window: { kind: "exact", startsOn: today, durationDays: w.durationDays - spent } };
+}
+
+function readReplaces(raw: unknown): string | null {
+  const id = String(raw ?? "").trim();
+  return id === "" ? null : id;
+}
+function readDraftOrigin(raw: unknown): DraftOrigin | null {
+  const token = String(raw ?? "").trim();
+  return (DRAFT_ORIGINS as readonly string[]).includes(token) ? (token as DraftOrigin) : null;
 }
 
 /**
@@ -1005,7 +1215,12 @@ export async function readNote(
 export async function answerNote(answer: NoteAnswer): Promise<NoteOutcome> {
   const { data, error } = await supabase.functions.invoke("keel-read-note-v1", {
     body: {
-      answer: { kind: answer.kind, member_id: answer.memberId, direction: answer.direction },
+      answer: answer.kind === "portion"
+        ? { kind: "portion", member_id: answer.memberId, direction: answer.direction }
+        // ⟳ 2026-09-23 — le morceau repart tel qu'il est arrivé; `today` et
+        // `starts_on` comme à la lecture, pour l'ancre de l'encart.
+        : { kind: "who", member_id: answer.memberId, entry: answer.entry },
+      today: localTodayIso(),
     },
   });
   if (error) {
@@ -1038,7 +1253,7 @@ function readNoteOutcome(raw: Record<string, unknown>): NoteOutcome {
     const row = (q ?? {}) as Record<string, unknown>;
     const direction = String(row.direction ?? "");
     const text = String(row.text ?? "").trim();
-    if (row.kind !== "portion" || (direction !== "down" && direction !== "up") || !text) continue;
+    if (!text) continue;
     const options = (Array.isArray(row.options) ? row.options : [])
       .map((o) => {
         const opt = (o ?? {}) as Record<string, unknown>;
@@ -1046,7 +1261,33 @@ function readNoteOutcome(raw: Record<string, unknown>): NoteOutcome {
       })
       .filter((o) => o.memberId !== "" && o.label !== "");
     if (options.length === 0) continue;
-    questions.push({ kind: "portion", text, direction, options });
+    if (row.kind === "portion") {
+      if (direction !== "down" && direction !== "up") continue;
+      questions.push({ kind: "portion", text, direction, options });
+      continue;
+    }
+    // ⟳ 2026-09-23 — `who`: le morceau est gardé tel quel, pour repartir tel quel.
+    if (row.kind === "who" && row.entry && typeof row.entry === "object") {
+      const e = row.entry as Record<string, unknown>;
+      const when = e.when && typeof e.when === "object" ? e.when as Record<string, unknown> : null;
+      questions.push({
+        kind: "who",
+        text,
+        entry: {
+          gate: String(e.gate ?? ""),
+          kind: typeof e.kind === "string" ? e.kind : null,
+          text: String(e.text ?? text),
+          note: String(e.note ?? ""),
+          occasion: typeof e.occasion === "string" ? e.occasion : null,
+          force: typeof e.force === "string" ? e.force : null,
+          when: when === null ? null : {
+            weekday: typeof when.weekday === "string" ? when.weekday : null,
+            slot: typeof when.slot === "string" ? when.slot : null,
+          },
+        },
+        options,
+      });
+    }
   }
   const cells: NoteCell[] = [];
   for (const c of Array.isArray(raw.cells) ? raw.cells : []) {
@@ -1056,6 +1297,14 @@ function readNoteOutcome(raw: Record<string, unknown>): NoteOutcome {
     const text = String(row.text ?? "").trim();
     if (!day || !slot || !text) continue;
     cells.push({ day, slot, text });
+  }
+  const safetyNotWritten: { text: string; who: string | null }[] = [];
+  for (const r of Array.isArray(raw.safety_not_written) ? raw.safety_not_written : []) {
+    const row = (r ?? {}) as Record<string, unknown>;
+    const text = String(row.text ?? "").trim();
+    if (!text) continue;
+    const who = typeof row.who === "string" && row.who.trim() !== "" ? row.who.trim() : null;
+    safetyNotWritten.push({ text, who });
   }
   return {
     ok: raw.ok === true,
@@ -1067,6 +1316,7 @@ function readNoteOutcome(raw: Record<string, unknown>): NoteOutcome {
     atEdge: Number(counters.at_edge) || 0,
     skipped: Number(counters.skipped) || 0,
     questions,
+    safetyNotWritten,
     cells,
   };
 }
@@ -1087,7 +1337,19 @@ export async function composeDraft(
   // par `readNote` depuis le DIALOGUE, qui attend la réponse à une éventuelle
   // question avant d'appeler ceci. Lire ici « au cas où » a déjà coûté un
   // double cran: la reprise lisait, puis l'adoption relisait la même phrase.
-  const payload = await callGenerator(input, "draft", null, {}, opts.onProgress);
+  // ⟳ 2026-09-20 — LE BOUTON REPREND LA MAIN. Ce geste est le seul à passer
+  // `takeover: true` : si une composition tourne encore pour ce foyer (onglet
+  // fermé, note qui a relancé, worker mort avant son `catch`), le serveur la
+  // ferme et repart, au lieu de rendre `generation_in_flight` et de laisser le
+  // bouton muet jusqu'à la péremption. `editCells` et l'adoption ne le passent
+  // pas : une reprise locale ou une écriture ne doivent rien évincer.
+  const payload = await callGenerator(
+    input,
+    "draft",
+    opts.replaces ?? null,
+    { takeover: true },
+    opts.onProgress,
+  );
   return {
     plan: {
       ...readDraftPlan(payload),
@@ -1132,7 +1394,12 @@ export async function editCells(
   cells: ReadonlyArray<NoteCell>,
   opts: WaitForDraftOptions = {},
 ): Promise<PlanDraft> {
-  const payload = await callGenerator(input, "draft", null, {
+  // ⟳ 2026-09-21 — LE PLAN REMPLACÉ VOYAGE AUSSI SUR LA REPRISE DE CASE.
+  // Mesuré : « il n'y a pas de repas mardi midi » classée en case, la lane
+  // `edit_cells` appelée sans `replaces`, refusée en 600 ms par la garde de
+  // chevauchement (`plan_overlaps_existing`) — aucun tour de modèle, et la
+  // personne lit « ça n'a rien fait ». Même corps que `composeDraft`.
+  const payload = await callGenerator(input, "draft", opts.replaces ?? null, {
     operation: "edit_cells",
     draft_id: draftId,
     cells: cells.map((c) => ({ day: c.day, slot: c.slot, text: c.text })),
@@ -1247,9 +1514,11 @@ async function callGenerator(
     }
     : input.window;
 
-  // ⚠️ `replaces` EST REFUSÉ AVEC `draft` (`unknown_intent`), et c'est cohérent:
-  // un aperçu ne remplace rien, puisqu'il n'écrit rien.
-  const replacing = intent === "draft" ? null : replaces;
+  // ⟳ 2026-09-21 — `replaces` PASSE AUSSI AVEC `draft`, et il n'écrit rien :
+  // le serveur exclut ce plan de sa garde de chevauchement, c'est tout.
+  // L'adoption qui suit le renomme avec `replace_current`, et c'est elle qui
+  // retire l'ancien plan.
+  const replacing = replaces;
 
   // ══════════════════════════════════════════════════════════════════════
   // LE CORPS — UN SEUL, PARCE QU'IL N'Y A PLUS QU'UN MOTEUR (lot 7).
@@ -1292,6 +1561,7 @@ async function callGenerator(
     // serait pas celui qu'on vient de montrer.
     one_cooking_session: input.oneCookingSession,
     preferences: input.preferences,
+    origin: input.origin,
   };
   Object.assign(body, extra);
   // LA NOTE N'EST POSÉE QUE SI ELLE EXISTE. Un `draft_note: ""` serait lu comme

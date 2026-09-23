@@ -63,11 +63,22 @@ export function memberName(id: DemoMemberId): string {
   return id === "alex" ? "Alex" : "Lou";
 }
 
+/**
+ * Une quantité par objectif. ⚠️ LES COURSES SUIVENT L'OBJECTIF depuis le
+ * 2026-09-23: le sélecteur du héros pilote toute la démonstration, et deux
+ * boîtes de 190 g de poulet cuit ne sortent pas de 400 g de cru.
+ */
+export type DemoQuantity = Readonly<Record<DemoGoal, string>>;
+
+function same(quantity: string): DemoQuantity {
+  return { fat_loss: quantity, muscle_gain: quantity };
+}
+
 export interface DemoGrocery {
   id: string;
   aisle: DemoAisle;
   termKey: MessageKey;
-  quantity: string;
+  quantity: DemoQuantity;
   /** Les préparations que cet article sert. `[]` = un article d'assemblage. */
   prepIds: readonly string[];
   /** Les plats qu'il sert directement, sans passer par une casserole. */
@@ -80,14 +91,23 @@ export interface DemoWave {
   itemIds: readonly string[];
 }
 
+/**
+ * Le rôle de la casserole dans la boîte — le vocabulaire du produit
+ * (`CULINARY_ROLES`, `culinary_structure.ts`). `main` = la préparation
+ * principale, dont la composition est la même dans chaque boîte;
+ * `separable_side` = le féculent cuit à part, qui se dose à part.
+ */
+export type DemoPrepRole = "main" | "separable_side";
+
 export interface DemoPrep {
   id: string;
   titleKey: MessageKey;
+  role: DemoPrepRole;
   servings: number;
   activeMinutes: number;
   totalMinutes: number;
   cookOn: DemoDay;
-  ingredients: ReadonlyArray<{ termKey: MessageKey; quantity: string }>;
+  ingredients: ReadonlyArray<{ termKey: MessageKey; quantity: DemoQuantity }>;
   methodKey: MessageKey;
 }
 
@@ -100,6 +120,8 @@ export interface DemoSession {
 
 export interface DemoBoxItem {
   termKey: MessageKey;
+  /** La casserole d'où vient la ligne: une boîte = la principale + le féculent à côté. */
+  prepId: string;
   grams: Readonly<Record<DemoGoal, number>>;
 }
 
@@ -125,14 +147,14 @@ export interface DemoSilence {
 
 // ── LES COURSES ──────────────────────────────────────────────────────────────
 export const DEMO_GROCERIES: readonly DemoGrocery[] = [
-  { id: "chicken_thighs", aisle: "protein", termKey: "home.demo.ing.chicken_thighs", quantity: "400 g", prepIds: ["chicken"], dishIds: [] },
-  { id: "peppers", aisle: "produce", termKey: "home.demo.ing.peppers", quantity: "3", prepIds: ["chicken"], dishIds: ["omelette"] },
-  { id: "carrots", aisle: "produce", termKey: "home.demo.ing.carrots", quantity: "300 g", prepIds: ["chicken"], dishIds: [] },
-  { id: "lemons", aisle: "produce", termKey: "home.demo.ing.lemons", quantity: "1", prepIds: ["bulgur"], dishIds: [] },
-  { id: "green_salad", aisle: "produce", termKey: "home.demo.ing.green_salad", quantity: "1", prepIds: [], dishIds: ["omelette"] },
-  { id: "bulgur", aisle: "grains", termKey: "home.demo.ing.bulgur", quantity: "200 g", prepIds: ["bulgur"], dishIds: [] },
-  { id: "eggs", aisle: "dairy", termKey: "home.demo.ing.eggs", quantity: "6", prepIds: [], dishIds: ["omelette"] },
-  { id: "smoked_paprika", aisle: "pantry", termKey: "home.demo.ing.smoked_paprika", quantity: "1", prepIds: ["chicken"], dishIds: [] },
+  { id: "chicken_thighs", aisle: "protein", termKey: "home.demo.ing.chicken_thighs", quantity: { fat_loss: "400 g", muscle_gain: "500 g" }, prepIds: ["chicken"], dishIds: [] },
+  { id: "peppers", aisle: "produce", termKey: "home.demo.ing.peppers", quantity: same("3"), prepIds: ["chicken"], dishIds: ["omelette"] },
+  { id: "carrots", aisle: "produce", termKey: "home.demo.ing.carrots", quantity: { fat_loss: "300 g", muscle_gain: "450 g" }, prepIds: ["chicken"], dishIds: [] },
+  { id: "lemons", aisle: "produce", termKey: "home.demo.ing.lemons", quantity: same("1"), prepIds: ["bulgur"], dishIds: [] },
+  { id: "green_salad", aisle: "produce", termKey: "home.demo.ing.green_salad", quantity: same("1"), prepIds: [], dishIds: ["omelette"] },
+  { id: "bulgur", aisle: "grains", termKey: "home.demo.ing.bulgur", quantity: { fat_loss: "120 g", muscle_gain: "190 g" }, prepIds: ["bulgur"], dishIds: [] },
+  { id: "eggs", aisle: "dairy", termKey: "home.demo.ing.eggs", quantity: same("6"), prepIds: [], dishIds: ["omelette"] },
+  { id: "smoked_paprika", aisle: "pantry", termKey: "home.demo.ing.smoked_paprika", quantity: same("1"), prepIds: ["chicken"], dishIds: [] },
 ];
 
 /** Une seule vague: tout s'achète le dimanche, avant la session. */
@@ -149,28 +171,30 @@ export const DEMO_PREPS: readonly DemoPrep[] = [
   {
     id: "chicken",
     titleKey: "home.demo.prep.chicken",
+    role: "main",
     servings: 2,
     activeMinutes: 15,
     totalMinutes: 50,
     cookOn: "sun",
     ingredients: [
-      { termKey: "home.demo.ing.chicken_thighs", quantity: "400 g" },
-      { termKey: "home.demo.ing.peppers", quantity: "2" },
-      { termKey: "home.demo.ing.carrots", quantity: "300 g" },
-      { termKey: "home.demo.ing.smoked_paprika", quantity: "10 g" },
+      { termKey: "home.demo.ing.chicken_thighs", quantity: { fat_loss: "400 g", muscle_gain: "500 g" } },
+      { termKey: "home.demo.ing.peppers", quantity: same("2") },
+      { termKey: "home.demo.ing.carrots", quantity: { fat_loss: "300 g", muscle_gain: "450 g" } },
+      { termKey: "home.demo.ing.smoked_paprika", quantity: same("10 g") },
     ],
     methodKey: "home.demo.prep.chicken_method",
   },
   {
     id: "bulgur",
     titleKey: "home.demo.prep.bulgur",
+    role: "separable_side",
     servings: 2,
     activeMinutes: 5,
     totalMinutes: 20,
     cookOn: "sun",
     ingredients: [
-      { termKey: "home.demo.ing.bulgur", quantity: "200 g" },
-      { termKey: "home.demo.ing.lemons", quantity: "1" },
+      { termKey: "home.demo.ing.bulgur", quantity: { fat_loss: "120 g", muscle_gain: "190 g" } },
+      { termKey: "home.demo.ing.lemons", quantity: same("1") },
     ],
     methodKey: "home.demo.prep.bulgur_method",
   },
@@ -181,10 +205,24 @@ export const DEMO_SESSIONS: readonly DemoSession[] = [
 ];
 
 // ── LES PLATS ────────────────────────────────────────────────────────────────
+// ── LA BOÎTE: LA CASSEROLE PRINCIPALE + LE FÉCULENT À CÔTÉ (2026-09-23) ──────
+// Le modèle du chantier « féculent à côté » (lot C): le poulet et les légumes
+// rôtissent ENSEMBLE, donc chaque boîte en reçoit la MÊME composition —
+// 40 % de poulet, 60 % de légumes, quel que soit l'objectif. Seule la quantité
+// de cette casserole bouge (elle suit le besoin en protéines), et le boulgour,
+// cuit à part, porte le reste: c'est lui qui bouge le plus.
+//
+// ⚠️ D'OÙ « PLUS DE LÉGUMES » EN PRISE DE MUSCLE: 285 g contre 225. La version
+// d'avant (220 → 200 g) changeait la recette de la plaque d'une boîte à l'autre,
+// ce qu'une plaque cuite une fois ne sait pas faire. Le test d'à côté épingle
+// la proportion.
+//
+// Les kcal viennent des grammes: poulet rôti ≈ 1,9 kcal/g, légumes rôtis à
+// l'huile ≈ 0,6, boulgour au citron ≈ 1,0 → 560 et 750 (arrondis à 10).
 const CHICKEN_BOWL_ITEMS: readonly DemoBoxItem[] = [
-  { termKey: "home.demo.box.chicken", grams: { fat_loss: 150, muscle_gain: 190 } },
-  { termKey: "home.demo.box.bulgur", grams: { fat_loss: 140, muscle_gain: 220 } },
-  { termKey: "home.demo.box.vegetables", grams: { fat_loss: 220, muscle_gain: 200 } },
+  { termKey: "home.demo.box.chicken", prepId: "chicken", grams: { fat_loss: 150, muscle_gain: 190 } },
+  { termKey: "home.demo.box.vegetables", prepId: "chicken", grams: { fat_loss: 225, muscle_gain: 285 } },
+  { termKey: "home.demo.box.bulgur", prepId: "bulgur", grams: { fat_loss: 140, muscle_gain: 220 } },
 ];
 
 export const DEMO_DISHES: readonly DemoDish[] = [
@@ -196,7 +234,7 @@ export const DEMO_DISHES: readonly DemoDish[] = [
     prepIds: ["chicken", "bulgur"],
     sameDay: null,
     boxItems: CHICKEN_BOWL_ITEMS,
-    kcal: { fat_loss: 560, muscle_gain: 690 },
+    kcal: { fat_loss: 560, muscle_gain: 750 },
   },
   {
     // ⚠️ LE MÊME TITRE QUE LE DÎNER DE LA VEILLE, ET C'EST LE POINT: ici
@@ -219,7 +257,7 @@ export const DEMO_DISHES: readonly DemoDish[] = [
     prepIds: ["chicken", "bulgur"],
     sameDay: { kind: "reheat_only", minutes: 5 },
     boxItems: CHICKEN_BOWL_ITEMS,
-    kcal: { fat_loss: 560, muscle_gain: 690 },
+    kcal: { fat_loss: 560, muscle_gain: 750 },
   },
   {
     id: "omelette",
@@ -276,13 +314,50 @@ export function mealLabel(day: DemoDay, slot: DemoSlot): string {
     .join(" ");
 }
 
+/** Une ligne de boîte = ce qu'on prélève dans UNE casserole. */
+export interface DemoBoxPart {
+  prepId: string;
+  role: DemoPrepRole;
+  title: string;
+  grams: number;
+  /** Ce que la ligne contient, aliment par aliment: la répartition exacte. */
+  items: ReadonlyArray<{ term: string; grams: number }>;
+}
+
 export interface DemoBoxLine {
   id: string;
   dishId: string;
   lid: string;
   items: ReadonlyArray<{ term: string; grams: number }>;
+  /** Les mêmes grammes, rangés par casserole: la principale, puis le féculent à côté. */
+  parts: readonly DemoBoxPart[];
   total: number;
   kcal: number | null;
+}
+
+/**
+ * La boîte d'un plat, casserole par casserole — la principale d'abord, le
+ * féculent à côté ensuite (lot C: « BoxTable rend une boîte à deux lignes »).
+ */
+export function boxPartsFor(dish: DemoDish, goal: DemoGoal): DemoBoxPart[] {
+  const order: Record<DemoPrepRole, number> = { main: 0, separable_side: 1 };
+  return dish.prepIds
+    .map(prepById)
+    .filter((prep): prep is DemoPrep => prep !== undefined)
+    .sort((a, b) => order[a.role] - order[b.role])
+    .map((prep) => {
+      const items = dish.boxItems
+        .filter((it) => it.prepId === prep.id)
+        .map((it) => ({ term: t(it.termKey), grams: it.grams[goal] }));
+      return {
+        prepId: prep.id,
+        role: prep.role,
+        title: t(prep.titleKey),
+        grams: items.reduce((sum, it) => sum + it.grams, 0),
+        items,
+      };
+    })
+    .filter((part) => part.items.length > 0);
 }
 
 /**
@@ -298,6 +373,7 @@ export function boxLinesForDish(dish: DemoDish, goal: DemoGoal): DemoBoxLine[] {
     dishId: dish.id,
     lid: boxLidLabel(eatersLabelFor([memberName("you")], 1), mealLabel(dish.day, dish.slot), t(dish.titleKey)),
     items,
+    parts: boxPartsFor(dish, goal),
     total: items.reduce((sum, it) => sum + it.grams, 0),
     kcal: dish.kcal ? dish.kcal[goal] : null,
   }];

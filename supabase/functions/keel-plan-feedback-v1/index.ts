@@ -637,6 +637,19 @@ Deno.serve(async (req) => {
             await classifyAndPersistDraftNote({
               admin,
               userId,
+              // ⟳ 2026-09-22 · LOT A — `null`, ET C'EST UN TROU NOMMÉ.
+              //
+              // Cette fonction clôt un plan; elle ne charge pas le référentiel
+              // (945 lignes + 2 739 alias) et rien d'autre ici n'en a besoin.
+              // Un souvenir écrit par ce chemin part donc SANS clé: il
+              // s'affichera sur la carte et ne mordra pas.
+              //
+              // ⚠️ CE N'EST PAS UN OUBLI DE CÂBLAGE: le charger coûterait trois
+              // requêtes à chaque bilan, pour une phrase libre qui est
+              // facultative et souvent vide. Le compteur `ref_askable` du
+              // classifieur dit combien de souvenirs partent ainsi — c'est le
+              // nombre à regarder avant de décider si ça vaut le chargement.
+              composition: null,
               note,
               today: claimed ?? serverDay(),
               // ⚠️ LA SEMAINE VISÉE EST CELLE DU PLAN QU'ON VIENT DE CLORE.
@@ -691,6 +704,7 @@ Deno.serve(async (req) => {
           // passe par `classifyAndPersistDraftNote`, qui porte les siennes.
           userId,
           kept: announced,
+          safety: [],
           language: feedbackLanguage,
           requestId,
         });

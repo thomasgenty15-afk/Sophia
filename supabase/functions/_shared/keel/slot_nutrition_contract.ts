@@ -57,6 +57,37 @@
  * appelées entières, une fois par journée ou par case. Une seconde écriture de
  * la part d'un moment est exactement ce que ce module existe pour supprimer.
  *
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ 2026-09-23 — LE PLAT N'EST PLUS TOUT LE REPAS (chantier « assiettes
+ * normales », flux B)
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ LE DÉFAUT MESURÉ (`docs/keel/AUDIT-DOSAGES-2026-09-23.md`): un seul plat
+ * portait tout le repas. Le déjeuner de Christèle et de Fabrice faisait 40 %
+ * de leur journée, et le plat de Thomas arrivait à 700 g par construction.
+ *
+ * LA RÈGLE, DANS L'ORDRE OÙ LE CONSTRUCTEUR L'APPLIQUE:
+ *   ① la part du moment (`slotPlanTargets`), apports fixes retranchés;
+ *   ② pour un déjeuner ou un dîner qui a une entrée `ContractDay.sides`,
+ *      `sideBudgetFor` coupe cette part en À-CÔTÉ + PLAT. Le plat est plafonné
+ *      à ce que son assiette porte à la densité de table
+ *      (`plateBoundsFor(…).max × SHARED_TABLE_MAX_ASK_PER_100G / 100`, soit
+ *      550 × 1,15 = 632,5 kcal chez l'adulte); l'à-côté grossit avant que le
+ *      plat ne dépasse, jusqu'à sa part maximale;
+ *   ③ ce qui dépasse encore est le DÉBORDEMENT: il part aux COLLATIONS de la
+ *      même personne (`relaxSharedForTable`, receveurs `snacks`);
+ *   ④ s'il en reste, les bornes de CE moment passent au plafond de repli
+ *      (`hardCeilingBoundsFor`, 700 g) et le contrat dit
+ *      `overflow: "hard_ceiling"`. L'énergie de la journée reste un contrat.
+ *
+ * ⛔ `composeKcal` EST LE PLAT SEUL. L'à-côté est `sideKcal`, et l'invariant
+ * est `Σ composeKcal + Σ sideKcal = coveredBudgetKcal`. Un lecteur qui
+ * additionnerait `composeKcal` pour obtenir le repas perdrait l'à-côté.
+ *
+ * ⚠️ `sides: null` REND LE CONTRAT D'AVANT: aucun à-côté, la relâche de table
+ * avec ses receveurs d'avant (`own_slots`), aucun repli. C'est ce qui rend le
+ * champ ajoutable sans déplacer un plan qui ne le porte pas.
+ *
  * PURE: no I/O, no clock, no randomness.
  */
 import {
@@ -65,10 +96,13 @@ import {
   densityCorridorFor,
   type DayTargetGapClosed,
   dayTargetFor,
+  hardCeilingBoundsFor,
   MAX_ASKABLE_DENSITY_PER_100G,
   mergeCorridors,
   type PlateBounds,
+  plateBandOf,
   plateBoundsFor,
+  plateSlotClassOf,
   relaxDayForCorridors,
   type RequiredDensity,
   type SlotDensity,
@@ -82,6 +116,14 @@ import {
   wholeDaySlots,
 } from "./mouth_anchor.ts";
 import type { CountingStance } from "./energy_gate.ts";
+import { sideBudgetFor } from "./side_course_budget.ts";
+import {
+  SIDE_COURSE_SLOTS,
+  type SideCourseAlloc,
+  type SideCourseBudget,
+  type SideCourseSlot,
+  type SideCourseSlotInput,
+} from "./side_courses_types.ts";
 
 /**
  * POURQUOI UNE CASE N'A PAS DE NOMBRE. ⛔ Chaque motif est une ABSTENTION
@@ -135,6 +177,28 @@ export const SLOT_CONTRACT_STATUSES = [
 export type SlotContractStatus = (typeof SLOT_CONTRACT_STATUSES)[number];
 
 /**
+ * ⟳ 2026-09-23 — OÙ EST PARTI CE QUE LE PLAT NE POUVAIT PAS PORTER.
+ *
+ *   `none`          rien ne dépassait (ou le jour n'a pas d'entrée `sides`);
+ *   `snacks`        le débordement est parti, en entier, aux collations de la
+ *                   même personne;
+ *   `hard_ceiling`  il en restait: les bornes de ce moment sont passées au
+ *                   plafond de repli (`hardCeilingBoundsFor`, 700 g chez
+ *                   l'adulte). Compté dans `overflow_to_dish`.
+ *
+ * ⚠️ UN MOMENT PEUT AVOIR ENVOYÉ UNE PARTIE AUX COLLATIONS ET ÊTRE QUAND MÊME
+ * `hard_ceiling`: c'est le reste qui décide, pas ce qui a bougé.
+ *
+ * ⚠️ `hard_ceiling` DIT OÙ EST L'ÉNERGIE, PAS QUE L'ASSIETTE A GRANDI. Seul le
+ * repas adulte a un plafond de repli (`PLATE_HARD_CEILING_G`); chez un mineur,
+ * `hardCeilingBoundsFor` rend les bornes de sa table, et le reste est porté
+ * par un plat plus dense dans la même assiette. Le moment est compté quand
+ * même: le débordement est resté dans le plat.
+ */
+export const SLOT_OVERFLOWS = ["none", "snacks", "hard_ceiling"] as const;
+export type SlotOverflow = (typeof SLOT_OVERFLOWS)[number];
+
+/**
  * CE QU'UNE JOURNÉE DEMANDE AU PLAN, POUR UNE BOUCHE.
  *
  * ⛔ `rhythmSlots` N'EST PAS `coveredSlots`, ET C'EST TOUT LE LOT. Le premier
@@ -157,6 +221,33 @@ export interface ContractDay {
   lockedSlots: readonly string[];
   /** Moment → kcal déjà avalées ce jour-là (`slot_fixed_kcal.ts`). */
   fixedKcalBySlot: ReadonlyMap<string, number> | null;
+  /**
+   * ⟳ 2026-09-21 — LES CASES OÙ CETTE BOUCHE MANGE AVEC D'AUTRES. Absent =
+   * l'appelant ne sait pas (lane solo) et la relâche de table ne joue pas;
+   * `counters.shared_slots` dit combien de cases l'ont portée.
+   */
+  sharedSlots?: readonly string[];
+  /**
+   * ⟳ 2026-09-23 — LES À-CÔTÉS DE CE JOUR, par moment (déjeuner, dîner).
+   *
+   * ⛔ REQUIS, jamais `?`. C'est la casse de compilation qui recense les
+   * appelants: un défaut à « pas d'à-côté » aurait laissé le chantier construit
+   * et désarmé chez tous ceux qu'on a oubliés — le plat porterait de nouveau
+   * tout le repas, sans que rien ne le dise.
+   *
+   *   `null`          le contrat d'avant, à l'octet: aucun à-côté, la relâche
+   *                   de table avec ses receveurs d'avant, aucun repli;
+   *   une `Map`       les à-côtés s'appliquent, et la relâche de table ne
+   *                   donne plus qu'aux collations. Un moment ABSENT de la
+   *                   `Map` n'a pas d'à-côté; un moment présent avec
+   *                   `refused: true` n'en a pas non plus, mais son plat entre
+   *                   dans l'ensemble qui déborde (décision n° 1: « le surplus
+   *                   va d'abord à ses collations, sinon le plat monte jusqu'à
+   *                   700 g »).
+   *
+   * L'entrée vient du planificateur des à-côtés (flux A, `planSideCourses`).
+   */
+  sides: ReadonlyMap<SideCourseSlot, SideCourseSlotInput> | null;
 }
 
 /**
@@ -215,8 +306,28 @@ export interface SlotNutritionContract {
   fixedKcal: number;
   /** La part de la journée qui tombe sur ce moment, AVANT retrait des apports fixes. */
   mealTargetKcal: number | null;
-  /** Ce qu'il reste À COMPOSER dans cette case. `0` = déjà couvert. */
+  /**
+   * Ce qu'il reste À COMPOSER dans cette case. `0` = déjà couvert.
+   *
+   * ⟳ 2026-09-23 — ⛔ C'EST LE PLAT SEUL. Quand le jour porte des à-côtés, la
+   * part du moment est coupée en `composeKcal` (le plat) et `sideKcal`
+   * (l'à-côté, hors de l'assiette). Le repas entier est leur somme.
+   */
   composeKcal: number | null;
+  /**
+   * ⟳ 2026-09-23 — L'ÉNERGIE DES À-CÔTÉS DE CETTE CASE (base + croissance).
+   * `0` = pas d'à-côté ici (moment hors de `sides`, refus, `sides: null`,
+   * abstention). ⛔ JAMAIS COMPTÉE DANS `composeKcal`.
+   */
+  sideKcal: number;
+  /** Les à-côtés retenus, type par type, avec leurs kcal et leur estimation de protéines. */
+  sideCourses: readonly SideCourseAlloc[];
+  /** La part de `sideKcal` qui vient de la CROISSANCE (le plat aurait dépassé). */
+  sideGrowthKcal: number;
+  /** La personne refuse tous les à-côtés à ce moment: `sideKcal` vaut 0 par décision. */
+  sideRefused: boolean;
+  /** Où est parti ce que le plat ne pouvait pas porter. Voir `SLOT_OVERFLOWS`. */
+  overflow: SlotOverflow;
   /**
    * ⟳ 2026-09-11 · LOT B — CE QUE LA REDISTRIBUTION A DÉPLACÉ SUR CETTE CASE,
    * signé, en kcal. `0` = la part n'a pas bougé.
@@ -262,6 +373,40 @@ export interface SlotContractCounters {
   relaxed_days: number;
   /** Pourquoi une journée n'a pas pu être relâchée. */
   relax_refused: Record<string, number>;
+  /** ⟳ 2026-09-21 — la relâche de TABLE (`relaxSharedForTable`). */
+  shared_slots: number;
+  shared_relaxed_days: number;
+  shared_moved_kcal: number;
+  shared_relax_refused: Record<string, number>;
+  /**
+   * ⟳ 2026-09-23 — LES À-CÔTÉS ET LE DÉBORDEMENT. Tous comptés à zéro quand
+   * rien ne s'est produit: un compteur absent et un compteur à zéro ne disent
+   * pas la même chose.
+   *
+   *   `side_slots`              les cases qui avaient une entrée `sides`, refus
+   *                             compris;
+   *   `side_refused_slots`      celles où la personne refuse tout;
+   *   `side_base_kcal`          Σ des calories de BASE servies en à-côté
+   *                             (arrondi par case);
+   *   `side_grown_kcal`         Σ de la CROISSANCE (arrondi par case);
+   *   `side_capped`             les cases où la part maximale de l'à-côté a
+   *                             arrêté quelque chose (`SideCourseBudget.capped`);
+   *   `overflow_to_snacks_kcal` ce que la relâche a envoyé aux collations, en
+   *                             mode `snacks` seulement — il reste à 0 sur un
+   *                             jour `sides: null`, où `shared_moved_kcal`
+   *                             compte la relâche d'avant;
+   *   `overflow_to_dish`        les cases dont le débordement est resté dans
+   *                             le plat (`overflow: "hard_ceiling"`): bornes au
+   *                             plafond de repli chez l'adulte, bornes de la
+   *                             table chez un mineur.
+   */
+  side_slots: number;
+  side_refused_slots: number;
+  side_base_kcal: number;
+  side_grown_kcal: number;
+  side_capped: number;
+  overflow_to_snacks_kcal: number;
+  overflow_to_dish: number;
 }
 
 /**
@@ -313,6 +458,216 @@ function emptyCounters(): SlotContractCounters {
     density_infeasible: 0,
     relaxed_days: 0,
     relax_refused: {},
+    shared_slots: 0,
+    shared_relaxed_days: 0,
+    shared_moved_kcal: 0,
+    shared_relax_refused: {},
+    side_slots: 0,
+    side_refused_slots: 0,
+    side_base_kcal: 0,
+    side_grown_kcal: 0,
+    side_capped: 0,
+    overflow_to_snacks_kcal: 0,
+    overflow_to_dish: 0,
+  };
+}
+
+/** ⟳ 2026-09-23 — les champs d'à-côté d'une case qui n'en a pas. */
+const NO_SIDE = Object.freeze({
+  sideKcal: 0,
+  sideCourses: Object.freeze([]) as readonly SideCourseAlloc[],
+  sideGrowthKcal: 0,
+  sideRefused: false,
+  overflow: "none" as SlotOverflow,
+});
+
+/**
+ * ⟳ 2026-09-23 — L'ENTRÉE D'À-CÔTÉ D'UN MOMENT, ou `undefined`.
+ * ⛔ Seuls le déjeuner et le dîner en portent (`SIDE_COURSE_SLOTS`): un
+ * petit-déjeuner ou une collation n'est jamais lu dans la `Map`, même si un
+ * appelant y avait glissé une clé par un transtypage.
+ */
+function sideInputOf(
+  sides: ReadonlyMap<SideCourseSlot, SideCourseSlotInput>,
+  slot: string,
+): SideCourseSlotInput | undefined {
+  const s = SIDE_COURSE_SLOTS.find((x) => x === slot);
+  return s === undefined ? undefined : sides.get(s);
+}
+
+/**
+ * ⟳ 2026-09-21 — LA DENSITÉ LA PLUS HAUTE QU'UN PLAT PARTAGÉ PEUT SE VOIR
+ * DEMANDER, en kcal pour 100 g servis.
+ *
+ * ⛔ LE DÉFAUT, AVEC SON CHIFFRE (plans `836afa60` et `60c457cd`, 3 bouches):
+ * un homme en prise de masse à 1 129 kcal au déjeuner, dans une assiette de
+ * 700 g, demandait à la case 161 kcal pour 100 g. Le plat est PARTAGÉ et la
+ * consigne dit de viser la densité la plus haute de la table: le modèle y
+ * arrivait avec 30 ml d'huile et 85 g de parmesan par part (1,4 litre d'huile
+ * sur la liste), puis, l'huile bornée, avec 300 g de bœuf par part. La table
+ * entière payait l'assiette d'un seul, et une femme en maintien recevait
+ * 99 g de protéines à son déjeuner.
+ *
+ * Le 2026-09-21, 140 valait « un plat complet ordinaire — un féculent, une
+ * protéine, un filet de gras, des légumes — au plus dense qu'il reste un
+ * plat ». Au-dessus, ce n'est plus une recette, c'est de l'huile ou de la
+ * viande. (Ramené à 115 le 2026-09-23, voir plus bas.)
+ *
+ * ⚠️ CE N'EST PAS UN PLAFOND D'ASSIETTE (`PLATE_MASS_BOUNDS_G` ne se règle pas ici)
+ * ni un plafond de demande (`MAX_ASKABLE_DENSITY_PER_100G` reste 250 pour
+ * une case où l'on mange seul). C'est la part de l'énergie d'une case
+ * partagée qui DÉMÉNAGE vers les cases où la même bouche mange seule — ses
+ * collations — au lieu de densifier la casserole de tout le monde.
+ *
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ 2026-09-23 — 140 → 115, ET CE NOMBRE DÉCIDE TROIS CHOSES À LA FOIS
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * 115 = `TEMPLATE_DISH_KCAL_PER_100G` (125, la part du gabarit de recette)
+ * ÷ 1,10, arrondi à 5 — dix pour cent de marge contre l'écart du modèle. Un
+ * plat plein d'adulte pèse donc 550 g × 1,15 = **632,5 kcal**, et ce seul
+ * nombre décide:
+ *   · QUAND L'À-CÔTÉ GROSSIT (`sideBudgetFor`, `dishCapKcal`);
+ *   · LE PLANCHER DE DENSITÉ D'UNE TABLE (une case partagée ne se demande
+ *     jamais au-dessus);
+ *   · QUAND LE SURPLUS PART AUX COLLATIONS (`relaxSharedForTable`).
+ *
+ * ⛔ 140 N'EST PLUS UN PLAT ORDINAIRE depuis que l'assiette vise la part du
+ * gabarit: à 140, le plat de Thomas restait à 700 g × 1,40 = 980 kcal, et la
+ * recette commune restait écrite pour le plus gros mangeur (audit du
+ * 2026-09-23, lot 3c).
+ */
+export const SHARED_TABLE_MAX_ASK_PER_100G = 115;
+
+/**
+ * ⟳ 2026-09-23 — QUI PEUT RECEVOIR LE SURPLUS D'UNE CASE QUI DÉBORDE.
+ *
+ *   `own_slots`  la règle d'avant: toute case où la bouche mange seule, non
+ *                figée, non légère — un petit-déjeuner solitaire compris.
+ *                C'est la règle d'un jour `ContractDay.sides: null`;
+ *   `snacks`     les COLLATIONS seulement (`plateSlotClassOf(slot) ===
+ *                "snack"`). Un petit-déjeuner ne reçoit plus rien: son
+ *                assiette est bornée à 550 g comme les autres, et la décision
+ *                n° 1 du propriétaire nomme les collations, et elles seules.
+ *
+ * ⛔ REQUIS, jamais `?`: un défaut ferait de l'une des deux règles la réponse
+ * silencieuse de l'autre chemin.
+ */
+export const TABLE_RELAX_RECEIVERS = ["own_slots", "snacks"] as const;
+export type TableRelaxReceivers = (typeof TABLE_RELAX_RECEIVERS)[number];
+
+/**
+ * LA RELÂCHE DE TABLE — PURE: no I/O, no clock, no randomness.
+ *
+ * Pour chaque case QUI DÉBORDE dont la cible dépasse ce que son assiette porte à
+ * `SHARED_TABLE_MAX_ASK_PER_100G`, le surplus part vers les cases RECEVEUSES
+ * de la journée (`receivers`), au prorata de leur cible et dans la limite de
+ * ce que leur assiette accepte (`MAX_ASKABLE_DENSITY_PER_100G`). La somme est
+ * conservée au centième près. Sans receveur, rien ne bouge et le refus est
+ * nommé: la casserole reste dense, et ça se compte.
+ *
+ * ⟳ 2026-09-23 — « QUI DÉBORDE » N'EST PLUS « PARTAGÉE ». `overflowSlots`
+ * est ce que l'appelant nomme: les cases partagées, et, dès qu'un jour porte
+ * des à-côtés, tout déjeuner et tout dîner qui a une entrée `sides` — refus
+ * compris, même mangé seul. ⚠️ Le refus `no_own_slot` garde son nom: en mode
+ * `snacks`, il veut dire « aucune collation pour recevoir ».
+ */
+export function relaxSharedForTable(args: {
+  targets: ReadonlyMap<string, number>;
+  maxGramsBySlot: ReadonlyMap<string, number>;
+  /** ⟳ 2026-09-23 — les cases qui déversent leur surplus (l'ancien `sharedSlots`). */
+  overflowSlots: readonly string[];
+  lockedSlots: readonly string[];
+  lightSlots: readonly string[];
+  /** ⟳ 2026-09-23 — voir `TABLE_RELAX_RECEIVERS`. */
+  receivers: TableRelaxReceivers;
+}): {
+  targets: ReadonlyMap<string, number>;
+  moved: number;
+  refusal: "no_shared_surplus" | "no_own_slot" | "no_room" | null;
+} {
+  const overflowing = new Set(args.overflowSlots);
+  const locked = new Set(args.lockedSlots);
+  const light = new Set(args.lightSlots);
+  const out = new Map(args.targets);
+  let surplus = 0;
+  const trimmed: { slot: string; cap: number }[] = [];
+  for (const [slot, t] of args.targets) {
+    if (!overflowing.has(slot) || locked.has(slot)) continue;
+    const g = args.maxGramsBySlot.get(slot);
+    if (g === undefined || !(g > 0)) continue;
+    const cap = (g * SHARED_TABLE_MAX_ASK_PER_100G) / 100;
+    if (t > cap + 0.01) {
+      trimmed.push({ slot, cap });
+      surplus += t - cap;
+    }
+  }
+  if (surplus <= 0) {
+    return { targets: args.targets, moved: 0, refusal: "no_shared_surplus" };
+  }
+  const own = [...args.targets]
+    .filter(([slot]) =>
+      !overflowing.has(slot) && !locked.has(slot) && !light.has(slot) &&
+      (args.maxGramsBySlot.get(slot) ?? 0) > 0 &&
+      // ⟳ 2026-09-23 — en mode `snacks`, un repas ne reçoit jamais.
+      (args.receivers === "own_slots" || plateSlotClassOf(slot) === "snack")
+    )
+    .map(([slot, t]) => ({
+      slot,
+      target: t,
+      room: Math.max(
+        0,
+        ((args.maxGramsBySlot.get(slot) ?? 0) * MAX_ASKABLE_DENSITY_PER_100G) /
+            100 - t,
+      ),
+    }));
+  if (own.length === 0) {
+    return { targets: args.targets, moved: 0, refusal: "no_own_slot" };
+  }
+  const totalRoom = own.reduce((n, s) => n + s.room, 0);
+  if (totalRoom <= 0.01) {
+    return { targets: args.targets, moved: 0, refusal: "no_room" };
+  }
+  const moved = Math.min(surplus, totalRoom);
+  // Au prorata de la cible, en remplissant ce qui sature, jusqu'à épuisement.
+  let reste = moved;
+  let restants = own.filter((s) => s.room > 0);
+  for (
+    let passe = 0;
+    passe <= own.length && reste > 0.0001 && restants.length > 0;
+    passe++
+  ) {
+    const base = restants.reduce((n, s) => n + s.target, 0);
+    const partDe = (s: { target: number }) =>
+      base > 0 ? (s.target / base) * reste : reste / restants.length;
+    const satures = restants.filter((s) => partDe(s) >= s.room - 0.0001);
+    if (satures.length === 0) {
+      for (const s of restants) {
+        const part = partDe(s);
+        out.set(s.slot, (out.get(s.slot) ?? 0) + part);
+        s.room -= part;
+      }
+      reste = 0;
+      break;
+    }
+    for (const s of satures) {
+      out.set(s.slot, (out.get(s.slot) ?? 0) + s.room);
+      reste -= s.room;
+      s.room = 0;
+    }
+    restants = restants.filter((s) => s.room > 0);
+  }
+  const placed = moved - reste;
+  // Les cases partagées descendent de ce qui a trouvé une place, au prorata
+  // de leur propre surplus — la somme reste celle de la journée.
+  for (const t of trimmed) {
+    const before = args.targets.get(t.slot) ?? 0;
+    out.set(t.slot, before - placed * ((before - t.cap) / surplus));
+  }
+  return {
+    targets: out,
+    moved: placed,
+    refusal: placed > 0.01 ? null : "no_room",
   };
 }
 
@@ -368,11 +723,22 @@ export function slotContractsFor(args: {
   const light = new Set(args.lightSlots);
   const counters = emptyCounters();
   const contracts: SlotNutritionContract[] = [];
+  // ⟳ 2026-09-23 — la part maximale d'un à-côté est bornée par l'âge
+  // (`SIDE_COURSE_MAX_MEAL_SHARE`). Un mineur déclaré, ou un âge connu sous
+  // 18 ans (la même tranche que `plateBoundsFor`), est mineur.
+  const isMinor = args.mouth.ageState === "minor" ||
+    plateBandOf(args.ageYears).band !== "adult";
 
   for (const d of args.days) {
     const covered = [...new Set(d.coveredSlots)];
     if (covered.length === 0) continue;
     const rhythm = rhythmOfDay(args.rhythmSlots, covered);
+    // ⟳ 2026-09-23 — ⚠️ `?? null` NE REND PAS LE CHAMP OPTIONNEL: le type
+    // l'exige, et tout appelant typé casse sans lui. Il protège les appelants
+    // qui ne passent pas par un compilateur (vitest lit ce module sans vérifier
+    // les types): chez eux, un champ absent vaut `null`, le contrat d'avant, au
+    // lieu d'un `TypeError` au milieu d'un test étranger.
+    const sides = d.sides ?? null;
 
     // ── L'ABSTENTION DE JOURNÉE, NOMMÉE PAR CASE ────────────────────────
     if (day.kcal === null || !(day.kcal > 0)) {
@@ -395,6 +761,7 @@ export function slotContractsFor(args: {
           fixedKcal: 0,
           mealTargetKcal: null,
           composeKcal: null,
+          ...NO_SIDE,
           redistributedKcal: 0,
           bounds: null,
           corridor: null,
@@ -442,6 +809,11 @@ export function slotContractsFor(args: {
     const targets = new Map<string, number>();
     const maxGrams = new Map<string, number>();
     const locked = new Set(d.lockedSlots);
+    // ⟳ 2026-09-23 — le budget des à-côtés de chaque case qui en a une entrée.
+    const sideBySlot = new Map<
+      string,
+      { budget: SideCourseBudget; refused: boolean }
+    >();
     for (const slot of covered) {
       // ⛔ UNE CASE QUE L'APPORT FIXE COUVRE EST FIGÉE : le shaker est avalé,
       // il ne se déplace pas. Même règle que `redistributeDayBudget`.
@@ -451,11 +823,46 @@ export function slotContractsFor(args: {
       }
       const t = withFixed.bySlot.get(slot) ?? null;
       if (t === null || !(t > 0)) continue;
-      targets.set(slot, t);
+      // ── ③ bis ⟳ 2026-09-23 — L'À-CÔTÉ PREND SA PART, LE PLAT GARDE LE RESTE
+      //
+      // ⛔ APRÈS LES APPORTS FIXES, AVANT TOUTE RELÂCHE: l'à-côté se taille
+      // dans ce qui reste à composer (le shaker est déjà sorti), et les deux
+      // relâches ne voient plus que le PLAT. Les laisser voir le repas entier
+      // ferait déménager aux collations une énergie que l'à-côté porte déjà.
+      //
+      // ⚠️ LE PLAFOND DU PLAT EST CELUI DE LA TABLE: ce que l'assiette porte à
+      // `SHARED_TABLE_MAX_ASK_PER_100G`, le même nombre que la relâche lira
+      // juste après. Deux plafonds différents feraient grossir l'à-côté pour
+      // un plat que la relâche aurait laissé passer, ou l'inverse.
+      let dish = t;
+      const sideInput = sides === null ? undefined : sideInputOf(sides, slot);
+      if (sideInput !== undefined) {
+        const mealBounds = plateBoundsFor({
+          ageYears: args.ageYears,
+          slot,
+          slotTargetKcal: t,
+          light: light.has(slot),
+          appetite: args.mouth.body?.appetite ?? null,
+        });
+        const budget = sideBudgetFor({
+          mealKcal: t,
+          dishCapKcal: (mealBounds.max * SHARED_TABLE_MAX_ASK_PER_100G) / 100,
+          input: sideInput,
+          isMinor,
+        });
+        sideBySlot.set(slot, { budget, refused: sideInput.refused });
+        dish = budget.dishKcal;
+        counters.side_slots++;
+        if (sideInput.refused) counters.side_refused_slots++;
+        counters.side_base_kcal += Math.round(budget.sideKcal - budget.grownKcal);
+        counters.side_grown_kcal += Math.round(budget.grownKcal);
+        if (budget.capped) counters.side_capped++;
+      }
+      targets.set(slot, dish);
       const b = plateBoundsFor({
         ageYears: args.ageYears,
         slot,
-        slotTargetKcal: t,
+        slotTargetKcal: dish,
         light: light.has(slot),
         appetite: args.mouth.body?.appetite ?? null,
       });
@@ -499,6 +906,71 @@ export function slotContractsFor(args: {
         counters.relax_refused[why] = (counters.relax_refused[why] ?? 0) + 1;
       }
     }
+    // ── ⟳ 2026-09-21 — ④ bis LA RELÂCHE DE TABLE ─────────────────────────
+    // Après la relâche d'assiette, jamais à sa place: une case que 250 ne
+    // sauve pas est déjà nommée `density_infeasible`; ici on déplace ce qui
+    // dépasse `SHARED_TABLE_MAX_ASK_PER_100G` sur une case qui DÉBORDE vers
+    // les cases receveuses.
+    //
+    // ⟳ 2026-09-23 — ⛔ UN JOUR QUI PORTE DES À-CÔTÉS CHANGE LES DEUX LISTES:
+    // les cases qui débordent sont les cases partagées ET tout déjeuner ou
+    // dîner qui a une entrée `sides` (refus compris, même mangé seul); les
+    // receveuses ne sont plus que les collations. Un jour `sides: null` garde
+    // la règle d'avant, à l'octet.
+    const sharedToday = (d.sharedSlots ?? []).filter((s) => targets.has(s));
+    counters.shared_slots += sharedToday.length;
+    const overflowToday = sides === null
+      ? sharedToday
+      : [...new Set([...sharedToday, ...sideBySlot.keys()])];
+    const receivers: TableRelaxReceivers = sides === null ? "own_slots" : "snacks";
+    const beforeTable: ReadonlyMap<string, number> = relaxed ?? targets;
+    if (overflowToday.length > 0 && maxGrams.size > 0) {
+      const out = relaxSharedForTable({
+        targets: beforeTable,
+        maxGramsBySlot: maxGrams,
+        overflowSlots: overflowToday,
+        lockedSlots: [...locked],
+        lightSlots: args.lightSlots,
+        receivers,
+      });
+      if (out.moved > 0.01) {
+        relaxed = out.targets;
+        counters.shared_relaxed_days++;
+        counters.shared_moved_kcal += Math.round(out.moved);
+        if (receivers === "snacks") {
+          counters.overflow_to_snacks_kcal += Math.round(out.moved);
+        }
+      } else if (out.refusal !== null && out.refusal !== "no_shared_surplus") {
+        counters.shared_relax_refused[out.refusal] =
+          (counters.shared_relax_refused[out.refusal] ?? 0) + 1;
+      }
+    }
+    // ── ④ ter ⟳ 2026-09-23 — CE QUI DÉBORDE ENCORE MONTE DANS LE PLAT ────
+    //
+    // ⛔ L'ÉNERGIE DE LA JOURNÉE EST UN CONTRAT, LA BORNE DE 550 g NON. Ce que
+    // les collations n'ont pas pu prendre reste dans le plat, et les bornes de
+    // CE moment passent au plafond de repli (`hardCeilingBoundsFor`). Le
+    // raboter pour tenir sous 550 serait retirer de la nourriture en silence.
+    //
+    // ⚠️ SEULEMENT SUR UN JOUR QUI PORTE DES À-CÔTÉS: un jour `sides: null`
+    // garde ses bornes d'avant. Une case figée ne change jamais de bornes.
+    const overflowBySlot = new Map<string, SlotOverflow>();
+    if (sides !== null) {
+      const afterTable: ReadonlyMap<string, number> = relaxed ?? targets;
+      for (const slot of overflowToday) {
+        const g = maxGrams.get(slot);
+        if (g === undefined || locked.has(slot)) continue;
+        const cap = (g * SHARED_TABLE_MAX_ASK_PER_100G) / 100;
+        const before = beforeTable.get(slot) ?? 0;
+        const after = afterTable.get(slot) ?? 0;
+        if (after > cap + 0.01) {
+          overflowBySlot.set(slot, "hard_ceiling");
+          counters.overflow_to_dish++;
+        } else if (before > cap + 0.01) {
+          overflowBySlot.set(slot, "snacks");
+        }
+      }
+    }
 
     // ── ⑤ LE CONTRAT, CASE PAR CASE ─────────────────────────────────────
     for (const slot of covered) {
@@ -524,6 +996,7 @@ export function slotContractsFor(args: {
         contracts.push({
           ...base,
           composeKcal: 0,
+          ...NO_SIDE,
           redistributedKcal: 0,
           bounds: null,
           corridor: null,
@@ -536,6 +1009,7 @@ export function slotContractsFor(args: {
         contracts.push({
           ...base,
           composeKcal: null,
+          ...NO_SIDE,
           redistributedKcal: 0,
           bounds: null,
           corridor: null,
@@ -543,8 +1017,27 @@ export function slotContractsFor(args: {
         });
         continue;
       }
-      const target = relaxed?.get(slot) ?? planned;
-      const bounds = plateBoundsFor({
+      // ⟳ 2026-09-23 — LE PLAT AVANT LES RELÂCHES: la part du moment moins
+      // son à-côté. ⛔ C'est lui, et pas la part entière, que
+      // `redistributedKcal` compare: sans ça, l'à-côté se lirait comme une
+      // énergie « déplacée » hors de la journée, et la somme des déplacements
+      // d'un jour cesserait de valoir zéro.
+      const plannedDish = targets.get(slot) ?? planned;
+      const target = (relaxed ?? targets).get(slot) ?? plannedDish;
+      const side = sideBySlot.get(slot);
+      const overflow = overflowBySlot.get(slot) ?? "none";
+      const sideFields = side === undefined
+        ? { ...NO_SIDE, overflow }
+        : {
+          sideKcal: side.budget.sideKcal,
+          sideCourses: side.budget.courses,
+          sideGrowthKcal: side.budget.grownKcal,
+          sideRefused: side.refused,
+          overflow,
+        };
+      // ⟳ 2026-09-23 — ⛔ UN MOMENT QUI DÉBORDE ENCORE A SES BORNES AU
+      // PLAFOND DE REPLI (④ ter). La même fonction de couloir, une autre table.
+      const bounds = (overflow === "hard_ceiling" ? hardCeilingBoundsFor : plateBoundsFor)({
         ageYears: args.ageYears,
         slot,
         slotTargetKcal: target,
@@ -555,7 +1048,8 @@ export function slotContractsFor(args: {
         contracts.push({
           ...base,
           composeKcal: target,
-          redistributedKcal: target - planned,
+          ...sideFields,
+          redistributedKcal: target - plannedDish,
           bounds: null,
           corridor: null,
           status: "no_plate_bounds",
@@ -574,7 +1068,8 @@ export function slotContractsFor(args: {
       contracts.push({
         ...base,
         composeKcal: target,
-        redistributedKcal: target - planned,
+        ...sideFields,
+        redistributedKcal: target - plannedDish,
         bounds,
         corridor,
         status: corridor === null
@@ -744,6 +1239,21 @@ export function mergeSlotContractSets(
     for (const [why, n] of Object.entries(set.counters.relax_refused)) {
       counters.relax_refused[why] = (counters.relax_refused[why] ?? 0) + n;
     }
+    counters.shared_slots += set.counters.shared_slots;
+    counters.shared_relaxed_days += set.counters.shared_relaxed_days;
+    counters.shared_moved_kcal += set.counters.shared_moved_kcal;
+    for (const [why, n] of Object.entries(set.counters.shared_relax_refused)) {
+      counters.shared_relax_refused[why] =
+        (counters.shared_relax_refused[why] ?? 0) + n;
+    }
+    // ⟳ 2026-09-23 — les compteurs des à-côtés et du débordement.
+    counters.side_slots += set.counters.side_slots;
+    counters.side_refused_slots += set.counters.side_refused_slots;
+    counters.side_base_kcal += set.counters.side_base_kcal;
+    counters.side_grown_kcal += set.counters.side_grown_kcal;
+    counters.side_capped += set.counters.side_capped;
+    counters.overflow_to_snacks_kcal += set.counters.overflow_to_snacks_kcal;
+    counters.overflow_to_dish += set.counters.overflow_to_dish;
   }
   const byKey = new Map<string, SlotNutritionContract>();
   for (const c of contracts) byKey.set(contractKey(c.memberId, c.date, c.slot), c);
@@ -985,6 +1495,9 @@ export function requiredDensityFor(args: {
       coveredSlots: slots,
       lockedSlots: [],
       fixedKcalBySlot: args.slotFixedKcalByDay.get(dayToken) ?? null,
+      // ⟳ 2026-09-23 — ⚠️ CETTE PORTE NE CONNAÎT PAS LES À-CÔTÉS: elle rend
+      // le couloir d'avant. La voie du foyer passe par `slotContractsFor`.
+      sides: null,
     })),
     lightSlots: args.lightSlots,
     ageYears: args.ageYears,

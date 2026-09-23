@@ -107,7 +107,7 @@ Deno.test("① l'interdiction « aucun skill signal hors plan_question » est LE
   // ouverte.
   assert(
     KEEL_STUDENT_PROMPT.includes(
-      "Ne produis jamais de skill signal hors plan_question, plan_feedback, profile_statement et rule_question.",
+      "Ne produis jamais de skill signal hors plan_question, plan_feedback, profile_statement, rule_question et app_help.",
     ),
     "L'INTERDICTION N'EST PLUS LEVÉE. Le modèle lit à nouveau l'ordre de ne " +
       "produire aucun signal hors plan_question, et `plan_feedback` redevient " +

@@ -33,6 +33,7 @@ import {
 } from "./mealGeneration";
 import {
   type ComposeDraftInput,
+  type DraftOrigin,
   composeDraft,
   type DraftProgress,
   writeFromDraft,
@@ -1680,6 +1681,8 @@ export async function namedEdgeRefusal(error: unknown): Promise<string | null> {
 }
 
 export async function generateHouseholdMeal(args: {
+  /** ⟳ 2026-09-21 — la surface qui demande ; voir `ComposeDraftInput.origin`. */
+  origin: DraftOrigin;
   /**
    * ⚠️ LA TROISIÈME FORME EXISTAIT EN BASE ET PAS ICI. La fonction edge accepte
    * `{kind:'exact', starts_on, duration_days}` depuis toujours (son refus le
@@ -1697,8 +1700,11 @@ export async function generateHouseholdMeal(args: {
    * Toutes les gardes AMONT s'appliquent à l'identique; le SEUL saut est
    * l'écriture. Ni plan, ni `member_portions`, ni quota de fusion consommé.
    *
-   * ⚠️ `replaces` EST REFUSÉ AVEC `draft` (`unknown_intent`): un aperçu ne
-   * remplace rien, puisqu'il n'écrit rien.
+   * ⟳ 2026-09-21 — `replaces` ACCOMPAGNE LE BROUILLON quand l'intention est
+   * `replace_current` : il n'écrit rien, il dit seulement au serveur quel
+   * plan ne doit pas bloquer la fenêtre. Avant, « Composer un autre plan »
+   * sur des jours déjà couverts rendait `plan_overlaps_existing` au stade du
+   * brouillon, et le remplacement que sa phrase promettait était impossible.
    */
   intent?: "replace_current" | "prepare_next" | "draft";
   replaces?: string | null;
@@ -1787,13 +1793,17 @@ export async function generateHouseholdMeal(args: {
   // elle relit le `write_payload`, revalide et écrit dans une transaction.
   const input: ComposeDraftInput = {
     window: args.window,
+    origin: args.origin,
     context: args.context ?? null,
     cookingShape: args.cookingShape ?? null,
     oneCookingSession: args.oneCookingSession,
     preferences: args.preferences,
   };
   const intent = args.intent ?? "replace_current";
-  const draft = await composeDraft(input, { onProgress: args.onProgress });
+  const draft = await composeDraft(input, {
+    onProgress: args.onProgress,
+    replaces: intent === "replace_current" ? args.replaces ?? null : null,
+  });
   // `draft` n'écrit rien : la troisième intention rend l'aperçu composé, sans plan.
   if (intent === "draft") return { ok: true, mealId: null, issues: [] };
   const draftId = draft.envelope.draftId;

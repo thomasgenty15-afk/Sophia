@@ -38,7 +38,11 @@
 
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3";
 import { type AppetiteLevel, APPETITE_LEVELS } from "./tokens.ts";
-import { parseMemberLight } from "./household_habits.ts";
+import {
+  type MemberSideCourses,
+  parseMemberLight,
+  parseMemberSideCourses,
+} from "./household_habits.ts";
 
 export interface OwnMouthBody {
   /**
@@ -55,6 +59,20 @@ export interface OwnMouthBody {
    * inventée: « pas demandé » et « normal » ne se confondent pas.
    */
   lightSlots: readonly string[];
+  /**
+   * ⟳ 2026-09-23 — LES À-CÔTÉS QUE CETTE PERSONNE VEUT OU REFUSE, MOMENT PAR
+   * MOMENT (`{ dinner: { dessert: false } }`).
+   *
+   * ⛔ MÊME SOURCE ET MÊME PARSEUR QUE LA LANE DU FOYER (`parseMemberSideCourses`
+   * sur la colonne `slots` de `keel_household_habits_for`), et dans la MÊME
+   * lecture que `lightSlots`: deux lectures du même réglage rendraient deux
+   * réponses. Une personne seule qui a dit « jamais de dessert » doit être lue
+   * comme une table de six.
+   *
+   * REQUIS. `{}` = rien de réglé: chaque type retombe sur le défaut de
+   * l'objectif. Ce n'est pas « refuse tout » (qui s'écrit `false` par type).
+   */
+  sideCourses: MemberSideCourses;
   /** La ligne de foyer du titulaire, ou `null` s'il n'en a pas. */
   memberId: string | null;
   /** `null` = pas de réponse lisible. Voir `asked` pour la distinguer. */
@@ -73,6 +91,7 @@ const ABSENT: OwnMouthBody = Object.freeze({
   memberId: null,
   appetite: null,
   lightSlots: [],
+  sideCourses: {},
   asked: false,
   source: "no_household",
 });
@@ -103,6 +122,7 @@ export async function loadOwnMouthBody(
         memberId: null,
         appetite: null,
         lightSlots: [],
+        sideCourses: {},
         asked: false,
         source: "no_member",
       };
@@ -123,6 +143,11 @@ export async function loadOwnMouthBody(
     // donc tolérante (`[]` sur erreur), et le `catch` général reste la garde de
     // la lecture principale.
     let lightSlots: readonly string[] = [];
+    // ⟳ 2026-09-23 — le réglage des à-côtés vit sur la MÊME ligne, dans la même
+    // colonne `slots`: il est lu ici, par le même parseur que la lane du foyer.
+    // Même tolérance que le « léger »: `{}` sur erreur, c'est-à-dire le défaut
+    // de l'objectif, jamais un refus inventé.
+    let sideCourses: MemberSideCourses = {};
     try {
       const habits = await admin.rpc("keel_household_habits_for", { p_user: userId });
       if (!habits.error) {
@@ -131,13 +156,16 @@ export async function loadOwnMouthBody(
         lightSlots = Object.entries(parseMemberLight(mineHabits?.slots))
           .filter(([, on]) => on === true)
           .map(([slot]) => slot);
+        sideCourses = parseMemberSideCourses(mineHabits?.slots);
       }
     } catch {
       lightSlots = [];
+      sideCourses = {};
     }
     return {
       memberId,
       lightSlots,
+      sideCourses,
       // Hors vocabulaire ⇒ `null`, jamais un repli sur un cran: choisir un cran
       // à la place de quelqu'un ferait peser une réponse qu'il n'a pas donnée.
       appetite: (APPETITE_LEVELS as readonly string[]).includes(raw)
@@ -158,6 +186,7 @@ export async function loadOwnMouthBody(
       memberId: null,
       appetite: null,
       lightSlots: [],
+      sideCourses: {},
       asked: false,
       source: "unreadable",
     };

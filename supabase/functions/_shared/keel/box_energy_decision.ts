@@ -91,6 +91,19 @@ export function boxGateZero(): BoxGateCounts {
 
 export interface EmittedBox {
   box_id: string;
+  /**
+   * ⟳ LOT A1-bis (2026-09-22) — LE JOUR VOYAGE AVEC LA BOÎTE, et il est ici
+   * parce que le total d'une journée EST la somme des boîtes de son lecteur
+   * (`meal-energy-v1`). Sans ce champ, le seul moyen de regrouper les boîtes
+   * d'un jour était de découper `box_id` (`box_wed_lunch_15_<member>`) — un
+   * matcher maison sur une chaîne composée ailleurs, c'est-à-dire la classe de
+   * bug que ce dépôt a déjà payée plusieurs fois. `BoxEnergy` porte le jour
+   * depuis toujours; il s'arrêtait simplement à la porte.
+   *
+   * `null` = un plat sans jour (le parseur n'a pas su le dater). Une telle
+   * boîte ne peut alimenter aucun total de journée.
+   */
+  day: string | null;
   member_id: string;
   kcal: number;
   basis: string;
@@ -174,6 +187,7 @@ export function decideBoxEnergy(args: {
     gate.emitted++;
     boxes.push({
       box_id: box.boxId,
+      day: box.day,
       member_id: memberId,
       kcal: Math.round(box.kcal),
       basis: PLAN_ENERGY_BASIS,

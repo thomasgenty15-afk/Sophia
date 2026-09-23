@@ -655,6 +655,10 @@ function joursDe(b: BoucheFigee, fixe: FixedKcalParJour | null) {
     coveredSlots: slots,
     lockedSlots: [] as readonly string[],
     fixedKcalBySlot: fixe?.get(jourToken) ?? null,
+    // ⟳ 2026-09-23 — `ContractDay.sides` est REQUIS. `null` rend le contrat
+    // d'avant les à-côtés, identique à l'octet (flux B): l'instrument refait
+    // le comportement du 2026-09-11, où aucun à-côté n'existait.
+    sides: null,
   }));
 }
 
@@ -1547,6 +1551,9 @@ export function enveloppeDeLaBouche(b: BoucheFigee, dateMesure: string): {
         paceKgPerWeek: b.paceKgPerWeek,
         deficitCancelled: false,
       }),
+      // ⟳ 2026-09-23 — l'âge exact (11ᵉ argument, REQUIS). `null` = le milieu
+      // de la tranche, la règle du 2026-09-11 que ce banc rejoue.
+      null,
     );
   // ══════════════════════════════════════════════════════════════════════
   // ② LA PORTE UNIQUE — `mouthEnvelope`, jamais une seconde règle d'ordre
@@ -1555,6 +1562,9 @@ export function enveloppeDeLaBouche(b: BoucheFigee, dateMesure: string): {
     ageState: b.ageState,
     accountEnvelope: enveloppeDeCompte,
     lineBody: corps,
+    // ⟳ 2026-09-23 — REQUIS. `null` = le plancher de protéines de la
+    // maintenance pour une bouche sans compte: l'enveloppe du 2026-09-11.
+    lineProteinGoal: null,
   });
   const branche: BrancheEnveloppe = enveloppeDeCompte !== null
     ? (enveloppeDeCompte.mode === "per_portion" ? "protegee" : "compte")
@@ -2037,13 +2047,15 @@ export async function mesurerUnPlan(
   const contratsLus = contrats.filter((c) => c.couloirDuJour !== null);
   const attendues = contratsLus.map((c) =>
     slotContractSentence({
+      // ⟳ 2026-09-23 — `memberId` est REQUIS et jamais imprimé (regroupement);
+      // `gramsAim` est retiré: la masse est une bande sans visée (flux G).
+      memberId: bouche.memberId,
       who: bouche.prenom,
       day: c.jour,
       slot: c.slot,
       targetKcal: c.cibleCaseKcal,
       gramsMin: c.gMin,
       gramsMax: c.gMax,
-      gramsAim: c.gPref,
       densityMin: c.couloirDuJour?.min ?? null,
       densityMax: c.couloirDuJour?.max ?? null,
       densityAim: c.couloirDuJour?.pref ?? null,

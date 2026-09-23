@@ -172,3 +172,23 @@ describe("la vue d'un membre: sa ligne, et les autres en pastilles", () => {
  * sa porte SQL (`keel_household_set_member_work_lunch`, `not_your_line`) n'a
  * pas bougé. Ce qui est parti est le second endroit où on la posait.
  */
+
+describe("FF-066 lot 4 — « Retirer du foyer » demande une confirmation", () => {
+  it("le premier clic ouvre la confirmation, seul le second efface", () => {
+    // ⛔ LE DÉFAUT QU'ON FERME: le bouton appelait `onRemove` au premier clic,
+    // et la base effaçait la ligne (sa part, ses allergies, ses règles de
+    // maison) sans retour possible — alors que le commentaire du bouton
+    // promettait « une confirmation en deux temps ».
+    const row = src.slice(src.indexOf("function MemberRow("));
+    const first = row.indexOf('t("household.member.remove")');
+    expect(first, "le bouton « Retirer du foyer » a disparu").toBeGreaterThan(0);
+    const firstButton = row.slice(Math.max(0, first - 200), first);
+    expect(firstButton).toContain("onClick={() => setConfirmRemove(true)}");
+    expect(firstButton).not.toContain("onClick={onRemove}");
+    const yes = row.indexOf('t("household.member.remove_confirm_yes")');
+    expect(yes, "le bouton de confirmation a disparu").toBeGreaterThan(first);
+    expect(row.slice(Math.max(0, yes - 300), yes)).toContain("onRemove();");
+    // Et `onRemove` n'est appelé nulle part ailleurs dans la ligne.
+    expect(row.split("onRemove()").length - 1).toBe(1);
+  });
+});

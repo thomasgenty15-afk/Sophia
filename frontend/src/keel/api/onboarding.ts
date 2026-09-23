@@ -2618,6 +2618,35 @@ export interface StepBlocker {
   missing: FunnelMissId[];
 }
 
+/**
+ * LA FICHE DU TITULAIRE EST-ELLE ENCORE RETENUE ? — 2026-09-20
+ *
+ * C'est `peopleStepBlockers` filtré sur `who: null`, et ça n'a l'air de rien:
+ * l'écran s'en sert pour décider si la carte « Vous » s'ouvre DÉPLIÉE ou en
+ * résumé, à chaque arrivée sur l'étape 2.
+ *
+ * ── POURQUOI PAS UN DRAPEAU « déjà enregistré » ───────────────────────────
+ * Signalé à l'écran: « une fois qu'il y a eu un clic sur enregistrer, ça le
+ * fait pour les personnes en plus, mais pas pour le compte maître ». La
+ * tentation est de retenir le clic. Mais un drapeau ment dans les deux sens —
+ * c'est mot pour mot la raison pour laquelle `nextIncomplete` refuse
+ * `profiles.onboarding_completed` —, et ici il mentirait en repliant une fiche
+ * que quelqu'un vient de vider depuis `/app/household`. Les faits répondent
+ * déjà: rien ne la retient ⇒ elle est faite.
+ *
+ * ⚠️ NOMMÉE PLUTÔT QU'ÉCRITE EN LIGNE DANS LA PAGE, parce que `who: null` est
+ * une convention qu'on lit mal deux fois: c'est le titulaire, et une bouche
+ * sans prénom porte `who: ""`. Un `.some(b => !b.who)` — la faute naturelle —
+ * confondrait les deux et replierait la carte du maître sur le dos d'une
+ * bouche anonyme.
+ */
+export function selfSheetIsHeld(
+  state: FunnelState,
+  branch: FunnelBranch,
+): boolean {
+  return peopleStepBlockers(state, branch).some((b) => b.who === null);
+}
+
 export function peopleStepBlockers(
   state: FunnelState,
   branch: FunnelBranch,

@@ -55,6 +55,7 @@ function nominalFacts(): PlanRationaleFacts {
     localMinuteOfDay: 9 * 60,
     slotsDroppedToday: [],
     slotsHeldForShopping: [],
+    firstDayLunchNeedsCooking: true,
     awayInWindow: [],
     // ⛔ `[]` = « le plan est complet », et c'est le cas nominal. Un trou dans
     // le jeu de faits qui doit PASSER ferait de la phrase d'écart la phrase
@@ -179,6 +180,7 @@ Deno.test("un créneau tombé par l'heure ne s'attribue pas à l'élève", () =>
       localMinuteOfDay: 20 * 60,
       slotsDroppedToday: ["breakfast", "lunch"],
       slotsHeldForShopping: [],
+      firstDayLunchNeedsCooking: true,
     },
     locale: "fr",
   });
@@ -455,6 +457,7 @@ Deno.test("AUCUN gabarit ne culpabilise — la porte 4 ne doit jamais mordre", (
     localMinuteOfDay: 20 * 60 + 30,
     slotsDroppedToday: ["breakfast", "lunch"],
     slotsHeldForShopping: [],
+    firstDayLunchNeedsCooking: true,
     awayInWindow: [{ day: "fri", slot: "lunch" }],
     // ALLUMÉ AUSSI: la phrase des trous doit passer la porte 4 comme les
     // autres. Deux jours qui manquent LES MÊMES moments ⇒ la forme groupée.
@@ -1323,6 +1326,7 @@ Deno.test("⛔ AUCUNE LIGNE NE COMMENCE PAR UNE MINUSCULE — garde d'écran", (
     requestedWindow: { startsOn: "2026-08-13", durationDays: 7 },
     slotsDroppedToday: ["breakfast", "lunch"],
     slotsHeldForShopping: [],
+    firstDayLunchNeedsCooking: true,
     awayInWindow: [{ day: "fri", slot: "lunch" }],
     emptySlots: [{ day: "sat", slot: "dinner" }],
     daysOutOfBatchReach: ["wed", "thu", "fri", "sat"],
@@ -2439,4 +2443,18 @@ Deno.test("les phrases du congélateur passent la garde des majuscules", () => {
       );
     }
   }
+});
+
+
+// ── ⟳ 2026-09-21 — « DÈS LE MATIN » NE PROMET PLUS UNE CUISINE QUI N'A PAS LIEU ──
+Deno.test("la phrase du matin distingue les courses de la cuisine", () => {
+  // La veille dérivée et écartée (`starts_today`): c'est la branche « dès le matin ».
+  const base = { ...nominalFacts(), cookDayBefore: { day: null, refused: null, reason: "starts_today" as const } };
+  const avecCuisine = explainPlanChoices({ facts: { ...base, firstDayLunchNeedsCooking: true }, locale: "fr" }).lines.join("\n");
+  assertStringIncludes(avecCuisine, "Courses et cuisson dès le matin, pour être prêt à midi.");
+  const sansCuisine = explainPlanChoices({ facts: { ...base, firstDayLunchNeedsCooking: false }, locale: "fr" }).lines.join("\n");
+  assertStringIncludes(sansCuisine, "Courses dès le matin : le déjeuner se prépare sans cuisson, la cuisine est le soir.");
+  assert(!sansCuisine.includes("prêt à midi"), sansCuisine);
+  const en = explainPlanChoices({ facts: { ...base, firstDayLunchNeedsCooking: false }, locale: "en" }).lines.join("\n");
+  assertStringIncludes(en, "lunch needs no cooking");
 });

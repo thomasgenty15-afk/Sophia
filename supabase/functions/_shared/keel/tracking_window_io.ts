@@ -332,10 +332,10 @@ export function toTrackingPlan(
     : [];
 
   // La part exacte, et SEULEMENT sur un plan personnel — voir ci-dessus.
-  // `addons: []` et `mealsOutByDay: new Map()` sont ici des valeurs PLEINES,
-  // pas des défauts: c'est exactement ce que `meal-energy-v1` passe pour un
-  // plan personnel (`readViewerAddons` rend `[]` et `readViewerMealsOut` une
-  // table vide dès que `plan_kind !== "household"`).
+  // `mealsOutByDay: new Map()` est ici une valeur PLEINE, pas un défaut: c'est
+  // exactement ce que `meal-energy-v1` passe pour un plan personnel
+  // (`readViewerMealsOut` rend une table vide dès que
+  // `plan_kind !== "household"`).
   let dishKcal: Array<number | null> = rawDishes.map(() => null);
   if (index && planKind === "personal") {
     const energy = planEnergy({
@@ -343,7 +343,6 @@ export function toTrackingPlan(
       dishes: readDishes(row.dishes),
       preparations: readPreparations(row.preparations),
       servings: Math.min(12, Math.max(1, Math.round(Number(row.servings) || 1))),
-      addons: [],
       mealsOutByDay: new Map(),
     });
     dishKcal = energy.dishes.map((d) => (d.complete ? d.kcal : null));

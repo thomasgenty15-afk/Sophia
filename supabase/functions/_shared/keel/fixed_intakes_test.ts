@@ -47,6 +47,10 @@ import { verdictFor } from "./meal_verdict.ts";
 import { envelopeFor,
   MAINTENANCE_ENVELOPE_DIRECTION,
 } from "./meal_envelope.ts";
+// ⟳ 2026-09-23 — `envelopeFor` prend un onzième paramètre, l'âge exact
+// (`exactAgeYears`). Ce fichier passe `null` à chaque appel : l'équation du
+// corps garde le milieu de la tranche d'âge, et aucun nombre ci-dessous ne
+// bouge.
 
 // ---------------------------------------------------------------------------
 // LA DUPLICATION EST UNE DÉCISION, PAS UNE DÉRIVE
@@ -392,7 +396,7 @@ function body(over: Partial<MealBodyContext> = {}): MealBodyContext {
   };
 }
 
-const PER_KG = envelopeFor("muscle_gain", body(), "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION);
+const PER_KG = envelopeFor("muscle_gain", body(), "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION, null);
 
 const DISH = {
   slot: "dinner",
@@ -525,7 +529,8 @@ Deno.test("R3 — sous restriction, la branche 1 SURVIT et l'enveloppe n'existe 
   { day: null, sport: null, asked: false },
   null,
   null,
-MAINTENANCE_ENVELOPE_DIRECTION
+MAINTENANCE_ENVELOPE_DIRECTION,
+null,
 );
   assertEquals(restricted.mode, "per_portion");
   const v = verdictFor({

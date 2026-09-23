@@ -265,6 +265,22 @@ export type RetainedItemBase = {
 /** Miroir de `RETAINED_QUOTE_MAX_CHARS` (`retained_item.ts`). */
 export const RETAINED_QUOTE_MAX_CHARS = 280;
 
+/**
+ * ⟳ 2026-09-22 — MIROIR DE `EXCLUSION_FORCES` (`retained_item.ts`).
+ *
+ * ⛔ SANS CETTE COPIE, LA CARTE PERD LA NUANCE À LA PREMIÈRE ÉDITION. Le
+ * lecteur front ignorait la clé: une ligne « petit suisse — moins » réécrite
+ * depuis la page repartait en base SANS `force`, et le socle relit une force
+ * absente comme `"never"` — la règle douce devenait une interdiction, en
+ * silence, parce que la personne avait corrigé une faute de frappe.
+ *
+ * C'est le même défaut que `occasion` juste en dessous, et il a la même cause:
+ * deux runtimes, une copie, et rien qui oblige la seconde à suivre. Le test de
+ * parité (`retainedItems.int.test.ts`) lit le module Deno sur le disque.
+ */
+export const EXCLUSION_FORCES = ["never", "less"] as const;
+export type ExclusionForce = (typeof EXCLUSION_FORCES)[number];
+
 export type RetainedItem =
   | (RetainedItemBase & {
     readonly kind:
@@ -274,6 +290,32 @@ export type RetainedItem =
       | "method.prefer";
     readonly scope: RetainedScope;
     readonly value: null;
+    /**
+     * ⟳ 2026-09-22 — LE MOMENT OÙ LA RÈGLE VAUT (`NOMENCLATURE-MEMOIRE` §4,
+     * `occasion`). Le lecteur front l'ignorait : la page ne pouvait pas dire
+     * « petit suisse — au petit-déjeuner seulement », et pire, une édition
+     * depuis la page réécrivait le magasin SANS lui. `null` = tout moment.
+     */
+    readonly occasion: RhythmOccasion | null;
+    /**
+     * ⟳ 2026-09-22 — LA FORCE D'UN REFUS. `never` retire, `less` réduit.
+     * `null` sur les familles qui veulent: aucun lecteur ne distingue deux
+     * degrés d'envie, et une valeur que personne ne lit finit par être pilotée.
+     */
+    readonly force: ExclusionForce | null;
+    /**
+     * ⟳ 2026-09-22 · LOT A — L'IDENTIFIANT DU RÉFÉRENTIEL, à côté des mots.
+     *
+     * ⛔ SANS CETTE COPIE, LA CLÉ SE PERD À LA PREMIÈRE ÉDITION — exactement
+     * comme `force` et `occasion` avant elle. Une ligne réécrite depuis la
+     * carte repartirait en base SANS `ref`, et le souvenir redeviendrait
+     * décoratif parce que la personne a corrigé son texte.
+     *
+     * ⚠️ ET LE FRONT NE LE CALCULE JAMAIS: il n'a pas le référentiel (945
+     * slugs, 2 739 alias). Il le TRANSPORTE. La résolution vit côté serveur,
+     * dans `retained_resolve.ts`, après la classification.
+     */
+    readonly ref: string | null;
   })
   | (RetainedItemBase & {
     /** ⚠️ TOUJOURS `next_plan`. Une envie durable est une habitude subie. */
@@ -746,9 +788,45 @@ export function parseRetainedItem(value: unknown): RetainedItem | null {
     case "food.exclude":
     case "food.prefer":
     case "method.avoid":
-    case "method.prefer":
+    case "method.prefer": {
       if (row.value !== undefined && row.value !== null) return null;
-      return { ...base, kind, scope, value: null };
+      const occasionToken = String(row.occasion ?? "").trim().toLowerCase();
+      const occasion = (RHYTHM_OCCASIONS as readonly string[]).includes(occasionToken)
+        ? (occasionToken as RhythmOccasion)
+        : null;
+      // ⛔ LE MÊME REPLI QUE LE SOCLE, ET IL VA VERS LA RÈGLE FORTE: une clé
+      // absente vaut `never`. Toutes les lignes écrites avant le 2026-09-22
+      // n'en ont pas, et les lire en `less` désarmerait chaque exclusion
+      // déjà en base — ici, sur l'écran qui promet « rien d'opaque ».
+      const wants = kind === "food.prefer" || kind === "method.prefer";
+      const rawForce = row.force;
+      let force: ExclusionForce | null;
+      if (wants) {
+        if (rawForce !== undefined && rawForce !== null) return null;
+        force = null;
+      } else if (rawForce === undefined || rawForce === null) {
+        force = "never";
+      } else {
+        const token = String(rawForce).trim().toLowerCase();
+        if (token === "") force = "never";
+        else if ((EXCLUSION_FORCES as readonly string[]).includes(token)) {
+          force = token as ExclusionForce;
+        } else return null;
+      }
+      // ⟳ 2026-09-22 · LOT A — la FORME du slug, miroir du socle. Ce module
+      // ne vérifie pas l'existence (il n'a pas le référentiel): un `ref` qui
+      // porterait des espaces serait du TEXTE déguisé en identifiant.
+      const rawRef = row.ref;
+      let ref: string | null;
+      if (rawRef === undefined || rawRef === null) ref = null;
+      else {
+        const slug = String(rawRef).trim();
+        if (slug === "") ref = null;
+        else if (/^[a-z0-9_]+$/.test(slug)) ref = slug;
+        else return null;
+      }
+      return { ...base, kind, scope, value: null, occasion, force, ref };
+    }
 
     case "craving":
       if (scope !== "next_plan") return null;
@@ -789,7 +867,23 @@ export function parseRetainedItems(value: unknown): RetainedItem[] {
 
 /** La forme de STOCKAGE, exactement celle du §3. */
 export function retainedItemToJson(item: RetainedItem): Record<string, unknown> {
+  // ⟳ 2026-09-22 — le moment traverse l'écriture ; absent, rien n'est écrit.
+  const occasion = "occasion" in item ? item.occasion : null;
+  // ⟳ 2026-09-22 — ET LA FORCE TRAVERSE AUSSI, MAIS ELLE S'ÉCRIT MÊME À
+  // `"never"`, contrairement au moment. L'asymétrie n'est pas un oubli:
+  // l'absence de `occasion` se relit `null` des deux côtés, alors que
+  // l'absence de `force` se relit `"never"` — donc taire un `"less"` le
+  // transformerait en interdiction au prochain chargement. Ce qu'on tait ici,
+  // on le change; c'est la définition d'une perte silencieuse.
+  const force = "force" in item ? item.force : null;
+  // ⟳ 2026-09-22 · LOT A — la clé traverse l'écriture. Absente, rien n'est
+  // écrit: son absence se relit `null` des deux côtés, comme `occasion` et
+  // contrairement à `force`.
+  const ref = "ref" in item ? item.ref : null;
   return {
+    ...(occasion === null ? {} : { occasion }),
+    ...(force === null ? {} : { force }),
+    ...(ref === null ? {} : { ref }),
     kind: item.kind,
     scope: item.scope,
     subject: item.subject,
@@ -916,6 +1010,20 @@ export function rewriteRetainedItem(
     // `written`. La garder ferait rendre `null` à cette fonction — c'est-à-dire
     // perdre la ligne par l'autre bout.
     quote: keepsSource ? current.quote : null,
+    // ⟳ 2026-09-22 — une réécriture garde le moment de la ligne d'origine.
+    occasion: "occasion" in current ? current.occasion : null,
+    // ⟳ 2026-09-22 — ET SA FORCE. Sans cette ligne, corriger une faute de
+    // frappe sur « petit suisse » transformait « moins » en interdiction: la
+    // clé repartait absente, et le socle relit une force absente comme
+    // `never`. La personne aurait vu l'aliment disparaître de ses plans sans
+    // avoir rien demandé d'autre qu'une correction d'orthographe.
+    force: "force" in current ? current.force : undefined,
+    // ⟳ 2026-09-22 · LOT A — ET SA CLÉ. Corriger un texte sur la carte ne doit
+    // pas rendre le souvenir décoratif: le front ne sait pas résoudre, il
+    // transporte. ⚠️ La clé survit MÊME quand le texte change — c'est la
+    // résolution SERVEUR qui la corrigera à la prochaine phrase, jamais un
+    // rapprochement approximatif fait ici.
+    ref: "ref" in current ? current.ref : undefined,
   });
 }
 
@@ -2007,6 +2115,21 @@ export async function loadKnownStore(userId: string): Promise<KnownStore> {
  */
 export const KNOWN_WRITE_REFUSALS = [
   "no_user",
+  /**
+   * ⟳ 2026-09-22 · LOT D — UNE BOUCHE NE RESTREINT PAS LE MENU.
+   *
+   * L'autorité produit (`le-foyer/README`): « réclamer son profil donne la
+   * lecture du plan, son propre objectif, et une part qui tient compte de son
+   * corps. Ça ne donne JAMAIS le droit de composer, d'ajouter, de retirer ou
+   * de restreindre. »
+   *
+   * ⛔ ET CE REFUS REMPLACE PIRE QUE LUI. Avant, l'écriture RÉUSSISSAIT et
+   * n'atteignait aucun plan: seul le titulaire compose, et il lit SON magasin.
+   * La personne voyait sa ligne sur sa carte, sous la promesse « rien ici
+   * n'est caché », et croyait avoir changé le menu. Un écran qui ment coûte
+   * plus qu'un refus qui explique.
+   */
+  "not_owner",
   "no_goal_row",
   "bad_items",
   "bad_next_plan",
@@ -2477,6 +2600,17 @@ export function writtenFoodLine(args: {
     confidence: null,
     quote: null,
     value: null,
+    // ⟳ 2026-09-22 — une ligne écrite à la main vaut à tout moment.
+    occasion: null,
+    // ⟳ 2026-09-22 — ET C'EST UNE RÈGLE FERME. Un « Garder » sur un aliment
+    // refusé dit « plus jamais », pas « un peu moins »: la personne a tapé sur
+    // un bouton, pas écrit une nuance. `less` ne naît que d'une phrase qui dit
+    // une quantité, et seul le classifieur sait la lire.
+    force: args.kind === "food.exclude" ? "never" : null,
+    // ⟳ 2026-09-22 · LOT A — `null`: un « Garder » écrit depuis l'écran ne
+    // passe par aucune résolution. C'est un TROU NOMMÉ, et il se voit: le
+    // souvenir s'affichera sans clé tant qu'une phrase ne le redéclare pas.
+    ref: null,
   };
 }
 

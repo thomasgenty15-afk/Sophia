@@ -156,8 +156,8 @@ Deno.test("épinglage — KEEL_MINOR_AGE vaut 18 ans", () => {
 // ── LES BORNES DU CONTENANT (`household_portions.ts`) ────────────────────────
 // Déplacées par `L6′`. Elles bornent le facteur qui remplit un bac: une borne
 // haute qui monte sert davantage à quelqu'un qui n'a rien demandé.
-Deno.test("épinglage — BOX_FACTOR_MIN vaut 0,70", () => {
-  assertEquals(BOX_FACTOR_MIN, 0.70);
+Deno.test("épinglage — BOX_FACTOR_MIN vaut 0,55 (0,70 avant le 2026-09-22, quand A1 est passé à 880 kcal/j)", () => {
+  assertEquals(BOX_FACTOR_MIN, 0.55);
 });
 
 // ⟳ 2026-09-09 — 1,25 → 1,50: le curseur est le contrat, et au plafond d'une
@@ -173,8 +173,9 @@ Deno.test("épinglage — PACE_WARN_UP_KG_PER_WEEK vaut 0,5 kg/semaine", () => {
   assertEquals(PACE_WARN_UP_KG_PER_WEEK, 0.5);
 });
 
-Deno.test("épinglage — MAX_KG_PER_WEEK vaut 1,0 kg/semaine", () => {
-  assertEquals(MAX_KG_PER_WEEK, 1.0);
+// ⟳ 2026-09-23 — un plafond par direction (décision du propriétaire).
+Deno.test("épinglage — MAX_KG_PER_WEEK vaut 0,8 kg/semaine en perte et 0,5 en prise", () => {
+  assertEquals(MAX_KG_PER_WEEK, { down: 0.8, up: 0.5 });
 });
 
 // ── LE VERDICT DU REPAS (`meal_verdict.ts`) ──────────────────────────────────
@@ -772,9 +773,17 @@ Deno.test("épinglage — PLATE_MASS_BOUNDS_G, l'objet ENTIER", () => {
   // une borne qui mord toujours est indistinguable d'une borne qui ne mord
   // jamais si personne ne compte. `ANCHOR_FACTOR_MAX` et `BOX_FACTOR_MIN` ont
   // coûté cette leçon.
+  //
+  // ⟳ 2026-09-23 — « assiettes normales » : le plat d'un adulte passe de 700 à
+  // 550 g, celui d'un adolescent de 650 à 550 (sinon il serait au-dessus de
+  // l'adulte). Le reste du repas part dans un à-côté (`side_courses`). 700 g ne
+  // survit que comme repli, dans `PLATE_HARD_CEILING_G` (épinglé dans
+  // portion_sizing_test.ts). Enfant et tout-petit inchangés. Les bornes de
+  // collation d'enfant, dérivées du plafond ADULTE, ne sont pas recalculées :
+  // portion_sizing.ts dit pourquoi.
   assertEquals(PLATE_MASS_BOUNDS_G, {
-    adult: { meal: { min: 250, max: 700 }, snack: { min: 80, max: 300 } },
-    teen: { meal: { min: 250, max: 650 }, snack: { min: 75, max: 280 } },
+    adult: { meal: { min: 250, max: 550 }, snack: { min: 80, max: 300 } },
+    teen: { meal: { min: 250, max: 550 }, snack: { min: 75, max: 280 } },
     child: { meal: { min: 150, max: 450 }, snack: { min: 50, max: 195 } },
     toddler: { meal: { min: 100, max: 300 }, snack: { min: 35, max: 130 } },
   });
@@ -1249,6 +1258,12 @@ Deno.test("épinglage — CATALOG_TOTAL_CAP vaut 140", () =>
 // L'écart à partir duquel la consigne nomme LES DEUX densités (la visée, et
 // celle que la cible seule impliquerait). 15 %, c'est-à-dire juste au-dessus du
 // bruit de table et de cuisson que ce dépôt assume déjà (±10-15 %).
+//
+// ⟳ 2026-09-23 — ⚠️ PLUS AUCUNE CONSIGNE NE LE LIT : `anchorClause` et
+// `anchorNote` sont retirés (la phrase « aim N, not M » poussait vers la plus
+// grosse assiette). La constante reste exportée, donc la porte d'épinglage
+// exige toujours son littéral ; l'épingle est gardée tant que l'export vit. Le
+// jour où l'export part, cette épingle part avec lui — pas avant.
 Deno.test("épinglage — ANCHOR_DIVERGENCE_RATIO vaut 1,15", () =>
   assertEquals(ANCHOR_DIVERGENCE_RATIO, 1.15));
 
@@ -1312,3 +1327,51 @@ Deno.test("épinglage — PROTEIN_DISPLAY_HALF_STEP vaut un demi-dixième de gra
 // Le palier d'unité s'arrête à trois: au-delà, ce n'est plus « un œuf de plus »,
 // c'est une autre recette, et c'est au modèle de l'écrire.
 Deno.test("épinglage — MAX_UNIT_BUMPS vaut 3", () => assertEquals(MAX_UNIT_BUMPS, 3));
+
+// ⟳ 2026-09-20 · DU TEXTE LIBRE AUX BULLES (`food_terms_extract.ts`). Trois
+// bornes de saisie, aucune n'est un fait du moteur — ce sont des réglages
+// d'écran, et c'est exactement pour ça qu'ils sont épinglés: les changer doit
+// se lire ici, pas se découvrir sur un formulaire qui coupe une liste.
+import {
+  FOOD_TERM_MAX_LENGTH,
+  FOOD_TERMS_MAX,
+  FOOD_TERMS_TEXT_MAX,
+} from "./food_terms_extract.ts";
+// Quatre cents signes: une liste de courses, pas un texte collé.
+Deno.test("épinglage — FOOD_TERMS_TEXT_MAX vaut 400", () =>
+  assertEquals(FOOD_TERMS_TEXT_MAX, 400));
+// Vingt bulles d'un coup: au-delà, ce n'est plus une saisie, c'est un import.
+Deno.test("épinglage — FOOD_TERMS_MAX vaut 20", () => assertEquals(FOOD_TERMS_MAX, 20));
+// Quatre-vingts: la longueur d'une forme dans `food_composition_pending_aliases`.
+Deno.test("épinglage — FOOD_TERM_MAX_LENGTH vaut 80", () =>
+  assertEquals(FOOD_TERM_MAX_LENGTH, 80));
+
+// ⟳ 2026-09-21 · LE CORPUS DE LA MÉMOIRE (`draft_note_corpus.ts`). La taille
+// est épinglée ICI et pas seulement dans le test du corpus, et l'écart compte:
+// là-bas l'assertion est `DRAFT_NOTE_CORPUS.length === DRAFT_NOTE_CORPUS_SIZE`,
+// donc un test PARAMÉTRÉ PAR SA PROPRE CONSTANTE — il reste vert quand on vide
+// le corpus et qu'on descend le nombre avec. Le littéral ci-dessous est la
+// seule chose qui fasse rougir ce geste-là.
+//
+// ⟳ 2026-09-23 — 66 → 67 : une seule entrée ajoutée, « pas de fromage le soir
+// pour Christèle » (⑬). Elle reste une exclusion d'aliment au dîner, jamais un
+// réglage d'à-côté. Les phrases qui règlent un à-côté vivent dans une table à
+// part (`SIDE_COURSE_NOTE_CORPUS`), hors de ce compte.
+import { DRAFT_NOTE_CORPUS_SIZE } from "./draft_note_corpus.ts";
+Deno.test("épinglage — DRAFT_NOTE_CORPUS_SIZE vaut 67", () =>
+  assertEquals(DRAFT_NOTE_CORPUS_SIZE, 67));
+
+// ⟳ 2026-09-22 · LOT B — COMBIEN DE SOUVENIRS UNE SEULE PHRASE PEUT LAISSER.
+//
+// ⛔ CE PLAFOND NE RÉPARE RIEN, IL MESURE. La réparation est dans la consigne
+// (« une recette est UN plat, pas N préférences ») ; `over_cap > 0` dit que
+// cette consigne n'a pas tenu sur ce cas. Le LEVER rendrait le défaut
+// invisible au lieu de le corriger — d'où l'épingle ici plutôt qu'un nombre
+// qu'on ajuste au fil des runs.
+//
+// ⚠️ SIX N'A PAS DE MEILLEURE JUSTIFICATION QU'UNE MARGE, et le dire vaut
+// mieux que d'inventer une dérivation : la note la plus chargée du corpus des
+// 53 en produit QUATRE légitimement.
+import { DRAFT_NOTE_MAX_RETAINED } from "./draft_note_classify.ts";
+Deno.test("épinglage — DRAFT_NOTE_MAX_RETAINED vaut 6", () =>
+  assertEquals(DRAFT_NOTE_MAX_RETAINED, 6));

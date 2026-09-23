@@ -114,7 +114,16 @@ confondues.
   bien-être.
 - ❌ **Aucun score, aucune série, aucun compte fondu.** Une coche est exacte,
   une photo est incertaine, une déclaration est autre chose.
-- ❌ **Aucune coche automatique.** Rien n'est inféré d'un silence.
+- ~~❌ **Aucune coche automatique.** Rien n'est inféré d'un silence.~~
+  ⟳ **LEVÉ — constaté le 2026-09-23 (FF-066 Q7), décidé le 2026-08-18.** La
+  décision humaine du 2026-08-18 (« on tracke quand les gens sautent un repas
+  ou ne mangent pas ce qui est prévu ») a précédé ce no-go resté en place. Ce
+  que fait le code, et que l'aide sur l'app décrit : un repas **prévu** compte
+  comme mangé tant qu'il n'est pas coché « Pas mangé » (`MealsTrackingDialog` :
+  « le reste est automatiquement pris en compte ») ; une photo qui correspond
+  avec certitude à un plat prévu **coche ce plat** (`analyze-meal-photo-v1`,
+  garde `matchedTerms`, décochage sur correction — corrigé et revalidé les
+  2026-08-05/06).
 
 Le détail des retraits de comportement (plafond 2→1, rythme de question du
 compagnon, réduction du point hebdo) est un chantier à part :
@@ -130,6 +139,7 @@ compagnon, réduction du point hebdo) est un chantier à part :
 |---|---|---|---|
 | 1 | [FF-016](FF-016-la-question-d-alimentation.md) | La question d'alimentation | 🟠 En cours |
 | 2 | [FF-010](FF-010-la-lecture-du-foyer.md) | La lecture du foyer | 🟡 Spécifiée |
+| 17 | [FF-066](FF-066-l-aide-sur-l-app.md) | L'aide sur l'app — Sophia sait dire où est le bouton | 🟠 En cours — construite et mesurée en local, non mise en ligne |
 
 **L'accueil de la réalité** — *ce qui empêche le plan de mourir en silence*
 

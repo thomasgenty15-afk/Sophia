@@ -30,9 +30,34 @@ const base = () => ({
 
 Deno.test("LOT F — LE CAS QUI PASSE: la boîte du mari sans compte, en perte, sort chiffrée", () => {
   const out = decideBoxEnergy({ ...base(), perBox: [box("b1", ["m-marc"], 404.4)] });
-  assertEquals(out.boxes, [{ box_id: "b1", member_id: "m-marc", kcal: 404, basis: "plan_quantities" }]);
+  assertEquals(out.boxes, [{
+    box_id: "b1",
+    day: "sat",
+    member_id: "m-marc",
+    kcal: 404,
+    basis: "plan_quantities",
+  }]);
   assertEquals(out.gate.single, 1);
   assertEquals(out.gate.emitted, 1);
+});
+
+// ⟳ LOT A1-bis (2026-09-22) — LE JOUR TRAVERSE LA PORTE.
+//
+// ⛔ POURQUOI UN TEST À LUI SEUL. `meal-energy-v1` fait du total d'une journée
+// la SOMME DES BOÎTES DE SON LECTEUR, et il les regroupe par `day`. Si ce champ
+// cessait de traverser, chaque boîte tomberait dans le seau `null`, aucun jour
+// ne serait substitué, et le lecteur reverrait le tronc — un total 847 kcal
+// sous ses propres lignes, exactement le défaut mesuré le 2026-09-22. Rien
+// d'autre ici ne rougirait.
+Deno.test("⟳ LOT A1-bis — `day` sort avec la boîte, et un plat sans jour sort à `null`", () => {
+  const dated = decideBoxEnergy({ ...base(), perBox: [box("b1", ["m-marc"], 404.4)] });
+  assertEquals(dated.boxes.map((b) => b.day), ["sat"]);
+  const undated = decideBoxEnergy({
+    ...base(),
+    perBox: [{ ...box("b1", ["m-marc"], 404.4), day: null }],
+  });
+  assertEquals(undated.boxes.map((b) => b.day), [null]);
+  assertEquals(undated.gate.emitted, 1);
 });
 
 Deno.test("⛔ LOT F — la maintenance ne sort pas, et c'est `no_direction` qui le dit", () => {

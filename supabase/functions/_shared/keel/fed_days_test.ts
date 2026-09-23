@@ -24,6 +24,10 @@ import { offBandDistance } from "./meal_correction.ts";
 import { assessCoverage } from "./meal_coverage.ts";
 import { buildCompositionIndex, type CompositionRef } from "./food_composition.ts";
 import { envelopeFor } from "./meal_envelope.ts";
+// ⟳ 2026-09-23 — `envelopeFor` prend un onzième paramètre, l'âge exact
+// (`exactAgeYears`). Ce fichier passe `null` à chaque appel : l'équation du
+// corps garde le milieu de la tranche d'âge, et aucun nombre ci-dessous ne
+// bouge.
 import { envelopeDirectionFor } from "./weight_pace.ts";
 import type { MealBodyContext } from "./meal_body.ts";
 
@@ -127,6 +131,7 @@ const ENVELOPE = envelopeFor(
     },
     paceKgPerWeek: 0.5,
   }),
+  null,
 );
 
 function dish(slot: string, kcal: number) {
@@ -153,15 +158,15 @@ Deno.test("⛔ LE CAS DU LOT — 2 171 kcal en DEUX repas ne sont pas une journ�
   // ⟳ 2026-09-10 — LA BANDE DE CETTE PERSONNE, DÉRIVÉE À LA MAIN.
   //   BMR = 10×82 + 6,25×180 − 5×37 + 5 = 1 765   (bande 30_44, milieu 37)
   //   M   = 1 765 × 1,80 (`trains_some`) = **3 177**
-  //   0,5 kg/sem = 550 kcal/j, ÉCRÊTÉ par A1 à 500 ⇒ cible 3 177 − 500 = 2 677
+  //   0,5 kg/sem = 550 kcal/j (A1 = 880 depuis le 2026-09-22, il ne mord pas) ⇒ cible 3 177 − 550 = 2 627
   //   largeur `fat_loss` = 0,85 − 0,75 = 0,10 de M ⇒ ±158,85
-  //   bande brute [2 518 ; 2 836], puis A1 remonte le bas à 3 177 − 500 = 2 677
+  //   bande brute [2 468 ; 2 786] ; le plancher A1 (3 177 − 880 = 2 297) reste dessous
   //
   // ⛔ ET LE BAS EST EXACTEMENT À A1: c'est la forme que prend le plafond de
   // déficit quand il mord, et il mord ici parce que le cran choisi (550) le
   // dépassait déjà. Un test qui ne verrait pas cette égalité laisserait passer
   // une bande dont la moitié basse prescrit plus de 500 kcal/j de déficit.
-  assertEquals(ENVELOPE.energy, { low: 2677, high: 2836 });
+  assertEquals(ENVELOPE.energy, { low: 2468, high: 2786 });
   assertEquals(COVERED.days, 0.6);
 
   const verdict = verdictFor({
@@ -174,7 +179,7 @@ Deno.test("⛔ LE CAS DU LOT — 2 171 kcal en DEUX repas ne sont pas une journ�
     uncoverableSentinels: [],
     fixedIntakeInputs: [],
   });
-  // 2 171 / 0,60 = 3 618 kcal/j contre un plafond de 2 836.
+  // 2 171 / 0,60 = 3 618 kcal/j contre un plafond de 2 786.
   //
   // ⛔ C'EST L'ASSERTION QUE LE PLANCHER FAISAIT ÉCHOUER. Avec
   // `Math.max(1, 0,6)`, la lecture valait 2 171 kcal/j et le verdict rendait

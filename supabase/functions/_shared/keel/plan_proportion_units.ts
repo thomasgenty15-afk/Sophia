@@ -53,10 +53,17 @@ import type { StructureCounters } from "./culinary_structure.ts";
 import type {
   AdjustableIngredient,
   AdjustableUnit,
+  AdjustedUnit,
   AdjustResult,
   ConsumerConstraint,
   MeasureFn,
 } from "./proportion_adjust.ts";
+import { adjustProteinCeiling } from "./protein_ceiling_adjust.ts";
+import type {
+  CeilingMouthDay,
+  ProteinCeilingAdjustResult,
+  ProteinMeasureFn,
+} from "./protein_ceiling_adjust.ts";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // ① LES FORMES QUE CE MODULE LIT ET ÉCRIT
@@ -580,12 +587,38 @@ export function measureOfPlan(args: {
   preparations: readonly AdjustablePlanPreparation[];
   dishes: readonly AdjustablePlanDish[];
 }): MeasureFn {
+  // ⟳ 2026-09-22 · LOT B DU PLAFOND PROTÉIQUE — UN SEUL LECTEUR, DEUX VUES.
+  // La mesure complète rend AUSSI la protéine; celle du lot D n'en veut pas et
+  // son type ne la porte pas. Recopier les vingt lignes ci-dessous pour ajouter
+  // un champ aurait fait un TROISIÈME lecteur de la règle de l'eau dans ce
+  // dépôt — et c'est celui qu'on relit le moins qui garde l'ancienne.
+  const full = measureProteinOfPlan(args);
+  return (ingredients) => {
+    const m = full(ingredients);
+    return { kcal: m.kcal, readyG: m.readyG };
+  };
+}
+
+/**
+ * LA MÊME MESURE, PROTÉINE COMPRISE — la `ProteinMeasureFn` du lot du plafond.
+ *
+ * ⛔ `measurePreparation` ET `measureFresh` RENDENT DÉJÀ `proteinG`, et leur
+ * abstention est la bonne: un terme non résolu éteint la protéine même quand il
+ * laisse passer l'énergie (`proteinFrom`, `preparation_mass.ts`). Une borne de
+ * groupe donne une densité énergétique, jamais des grammes de protéine — la
+ * compter à zéro rendrait une somme amputée qui a l'air d'un résultat.
+ */
+export function measureProteinOfPlan(args: {
+  index: CompositionIndex;
+  preparations: readonly AdjustablePlanPreparation[];
+  dishes: readonly AdjustablePlanDish[];
+}): ProteinMeasureFn {
   const preps = new Map(args.preparations.map((p) => [prepUnitId(String(p.id)), p]));
   const dishes = new Map(
     args.dishes.map((d, i) => [dishUnitId(i), d] as const),
   );
   return (ingredients) => {
-    if (ingredients.length === 0) return { kcal: 0, readyG: 0 };
+    if (ingredients.length === 0) return { kcal: 0, readyG: 0, proteinG: 0 };
     const unitId = unitOfLineId(ingredients[0].ingredientId);
     const inputs = ingredients.map((ing) => ({
       term: ing.term,
@@ -608,7 +641,7 @@ export function measureOfPlan(args: {
         method: prep.method ?? null,
         ingredients: inputs,
       });
-      return { kcal: m.kcal, readyG: m.readyG };
+      return { kcal: m.kcal, readyG: m.readyG, proteinG: m.proteinG };
     }
     const dish = dishes.get(unitId);
     if (dish !== undefined) {
@@ -616,12 +649,12 @@ export function measureOfPlan(args: {
         method: dish.method ?? null,
         ingredients: inputs,
       });
-      return { kcal: m.kcal, readyG: m.readyG };
+      return { kcal: m.kcal, readyG: m.readyG, proteinG: m.proteinG };
     }
     // ⛔ UNE UNITÉ INCONNUE NE REND PAS ZÉRO. Zéro se lit « cette casserole ne
     // pèse rien », ce qui est un fait; `null` se lit « on ne sait pas », ce qui
     // est la vérité. Le lot D compte les deux séparément.
-    return { kcal: null, readyG: null };
+    return { kcal: null, readyG: null, proteinG: null };
   };
 }
 
@@ -659,7 +692,16 @@ export interface ApplyAdjustmentCounts {
  * soit cohérent ENTRE les deux, si une garde lit avant le regrammage.
  */
 export function applyAdjustment(args: {
-  result: AdjustResult;
+  /**
+   * ⚠️ LE TYPE EST STRUCTUREL, ET C'EST DÉLIBÉRÉ — 2026-09-22, LOT B DU PLAFOND
+   * PROTÉIQUE. `AdjustResult` le satisfait sans changer un seul appelant, et
+   * `ProteinCeilingAdjustResult` aussi: les deux ajusteurs rendent la MÊME
+   * forme d'unités. C'est ce qui garde UN SEUL écrivain de quantités dans ce
+   * dépôt. Un second, recopié pour le plafond protéique, aurait divergé au
+   * premier changement de `AdjustablePlanLine` — et c'est celui qu'on relit le
+   * moins qui aurait gardé l'ancienne règle.
+   */
+  result: { units: readonly AdjustedUnit[] };
   lines: ReadonlyMap<string, AdjustablePlanLine>;
 }): ApplyAdjustmentCounts {
   const counts: ApplyAdjustmentCounts = {
@@ -781,6 +823,80 @@ export function adjustPlanProportions(args: {
     touchedUnitIds: result.units.filter((u) => u.touched).map((u) => u.unitId),
     units: built.counts,
     missingPots,
+    ms,
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⑧ bis ⟳ 2026-09-22 · LOT B — LA MÊME MÉCANIQUE POUR LE PLAFOND PROTÉIQUE
+// ═══════════════════════════════════════════════════════════════════════════
+
+export interface PlanProteinCeilingAdjustment {
+  result: ProteinCeilingAdjustResult;
+  apply: ApplyAdjustmentCounts;
+  /** Les unités dont au moins une quantité a bougé — `prep:<id>` / `dish:<rang>`. */
+  touchedUnitIds: readonly string[];
+  units: UnitsOfPlan["counts"];
+  /** Le temps de la passe, en millisecondes. L'horloge est un ARGUMENT. */
+  ms: number;
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * RAMENER LES JOURNÉES SOUS LEUR PLAFOND PROTÉIQUE — construire, ajuster,
+ * écrire.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ MÊMES TROIS TRADUCTIONS QUE `adjustPlanProportions`, ET LES MÊMES
+ * FONCTIONS: `unitsOfPlan` construit les unités, `measureProteinOfPlan` mesure,
+ * `applyAdjustment` écrit. Rien de neuf n'est recopié ici — la seule chose que
+ * ce lot apporte, c'est l'ajusteur du milieu.
+ *
+ * ⚠️ CE QUE CETTE FONCTION NE FAIT PAS, ET QUE L'APPELANT DOIT FAIRE ENSUITE:
+ * recalculer les grammes crus (`regramMeal` fait autorité), invalider le
+ * `density_check` des plats qui tirent sur `touchedUnitIds`, et REJOUER LE
+ * DIMENSIONNEMENT. Les portions, les boîtes et les courses en descendent.
+ *
+ * @param tolerance `PROTEIN_CEILING_TOLERANCE` de `final_plan_gate.ts`, REQUISE.
+ * @param now l'horloge, en ARGUMENT — ce module reste pur.
+ *
+ * PURE: no I/O, no randomness. L'horloge est un argument.
+ */
+export function adjustPlanProteinCeiling(args: {
+  index: CompositionIndex;
+  dishes: readonly AdjustablePlanDish[];
+  preparations: readonly AdjustablePlanPreparation[];
+  mouthDays: readonly CeilingMouthDay[];
+  /** Les grammes crus de la recette INITIALE acceptée. `() => null` à la 1ʳᵉ passe. */
+  baselineOf: (lineId: string) => number | null;
+  tolerance: number;
+  now: () => number;
+}): PlanProteinCeilingAdjustment | null {
+  if (args.mouthDays.length === 0) return null;
+  const built = unitsOfPlan({
+    index: args.index,
+    dishes: args.dishes,
+    preparations: args.preparations,
+    baselineOf: args.baselineOf,
+  });
+  const started = args.now();
+  const result = adjustProteinCeiling({
+    units: built.units,
+    mouthDays: args.mouthDays,
+    measure: measureProteinOfPlan({
+      index: args.index,
+      preparations: args.preparations,
+      dishes: args.dishes,
+    }),
+    tolerance: args.tolerance,
+  });
+  const ms = Math.max(0, args.now() - started);
+  const apply = applyAdjustment({ result, lines: built.lines });
+  return {
+    result,
+    apply,
+    touchedUnitIds: result.units.filter((u) => u.touched).map((u) => u.unitId),
+    units: built.counts,
     ms,
   };
 }

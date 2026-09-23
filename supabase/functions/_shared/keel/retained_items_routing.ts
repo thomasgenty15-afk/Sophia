@@ -410,8 +410,27 @@ export interface MouthCompositionLines {
 export interface CompositionLinesByMouth {
   /** Dans l'ordre du roster. Une bouche sans ligne n'y figure PAS. */
   readonly byMouth: readonly MouthCompositionLines[];
-  /** Les lignes de la table quand personne ne peut les porter. */
-  readonly householdUnattached: readonly string[];
+  /**
+   * ⛔ LES LIGNES DE LA TABLE, RENDUES UNE FOIS ET SOUS AUCUN NOM — 2026-09-21.
+   *
+   * ── LE DÉFAUT QUE CE CHAMP FERME, MESURÉ SUR UN FOYER RÉEL ─────────────
+   * Ce champ s'appelait `householdUnattached` et ne portait QUE le cas où
+   * personne ne pouvait les porter; le reste du temps, une ligne écrite POUR
+   * LA TABLE partait dans la voix du TITULAIRE. Le modèle lisait donc
+   * « Je veux pas de tofu… » sous « == Thomas == »: une préférence
+   * personnelle, qu'une boîte d'échange a le droit de contourner pour les
+   * autres. Tofu servi au petit-déjeuner PARTAGÉ deux jours plus tard.
+   *
+   * ⚠️ ET L'AUTRE MOITIÉ ÉTAIT PIRE: sans titulaire à table, la ligne partait
+   * dans un champ que l'appelant COMPTAIT (`retained_lines_unattached:N`) et ne
+   * donnait à personne. Une règle de maison qui n'atteint pas le prompt
+   * n'existe pas — et le compteur en faisait une perte OBSERVÉE, pas réparée.
+   *
+   * Elles sortent donc TOUJOURS ici, quel que soit le roster, et jamais sous
+   * une carte. C'est l'axe 3 dans le bon sens: la ligne d'une bouche se marque,
+   * la ligne de la table ne se rétrécit pas.
+   */
+  readonly household: readonly string[];
   /** Les lignes d'un sujet hors roster — une bouche partie. Comptées. */
   readonly otherSubjects: readonly RetainedItem[];
 }
@@ -423,9 +442,23 @@ export interface CompositionLinesByMouth {
  * hiérarchie complète recopiée sur chaque ligne mangerait le plafond et ferait
  * tomber les lignes anciennes. La règle est dite UNE fois, dans le bloc.
  */
-function reachSuffix(kind: RetainedItem["kind"]): string {
+function reachSuffix(item: RetainedItem): string {
+  const kind = item.kind;
+  // ⟳ 2026-09-22 — LA PORTÉE SUIT LA FORCE, sinon la ligne se contredit
+  // elle-même. Mesuré en assemblant la ligne réelle:
+  //
+  //   « petit suisse -- ONLY AT breakfast -- LESS OFTEN, not banned: keep
+  //     serving it -- THIS PERSON ONLY: keep it out of the shared dish »
+  //
+  // Le modèle lit « continue d'en servir » ET « garde-le hors du plat » sur la
+  // MÊME ligne. C'est la cicatrice « la phrase de table contredit le
+  // couvercle », vue sur la voix d'une bouche: deux consignes opposées à un
+  // caractère d'intervalle, et rien pour départager.
+  const force = (item as { force?: string | null }).force ?? "never";
   if (kind === "food.exclude") {
-    return ` -- ${VOICE_REACH_MARK}: keep it out of the shared dish, or swap it in their box`;
+    return force === "less"
+      ? ` -- ${VOICE_REACH_MARK}: serve them a smaller share of it, or swap it in their box`
+      : ` -- ${VOICE_REACH_MARK}: keep it out of the shared dish, or swap it in their box`;
   }
   if (kind === "food.prefer") {
     return ` -- ${VOICE_REACH_MARK}: a hint for their own box, never a rule for the table`;
@@ -433,23 +466,90 @@ function reachSuffix(kind: RetainedItem["kind"]): string {
   return ` -- ${VOICE_REACH_MARK}`;
 }
 
+/**
+ * LE SUFFIXE QUI DIT LE MOMENT — et il est court pour la même raison que le
+ * suffixe de portée: `buildHouseholdVoices` coupe par la queue à 150 jetons
+ * par bouche, et une phrase recopiée sur chaque ligne mangerait le plafond.
+ *
+ * ⛔ LE JETON, PAS UNE PARAPHRASE. « le matin » en prose française dans un
+ * prompt anglais est exactement ce qui a échoué le 2026-09-21: le moment était
+ * DANS le texte, et aucun lecteur ne pouvait le séparer de l'aliment. Ici il
+ * sort sous le même mot que le schéma du prompt (`RHYTHM_OCCASIONS`).
+ */
+/**
+ * ⟳ 2026-09-22 — LE VERBE D'UNE LIGNE DE LA TABLE. Mesuré sur `6ef02747` :
+ * « petit suisse -- ONLY AT breakfast » (food.exclude) et « flocons d'avoines
+ * -- ONLY AT breakfast » (food.prefer) partaient au modèle mot pour mot
+ * pareil, sous « facts… honour them ». Le modèle a gardé le petit-suisse et
+ * servi trois petits-déjeuners au tofu sous « tofu, poissons au petit
+ * déjeuné » (food.exclude). Une ligne de bouche porte déjà son sens dans
+ * `reachSuffix` ; celle de la table ne portait rien. Vocabulaire fermé, un
+ * verbe par `kind` de composition.
+ */
+export const TABLE_LINE_VERB: Readonly<Record<
+  "food.exclude" | "food.prefer" | "method.avoid" | "method.prefer",
+  string
+>> = {
+  "food.exclude": "OFF the table",
+  "food.prefer": "wanted",
+  "method.avoid": "not this way",
+  "method.prefer": "this way",
+};
+function tableVerb(kind: RetainedItem["kind"]): string {
+  return TABLE_LINE_VERB[kind as keyof typeof TABLE_LINE_VERB] ?? "";
+}
+function occasionSuffix(item: RetainedItem): string {
+  const occasion = (item as { occasion?: RhythmOccasion | null }).occasion ?? null;
+  if (occasion === null) return "";
+  return ` -- ONLY AT ${occasion}`;
+}
+
+/**
+ * ⟳ 2026-09-22 — LE SUFFIXE QUI DIT « MOINS, PAS JAMAIS ».
+ *
+ * ⛔ SANS LUI, `less` SERAIT UNE RÈGLE DÉSARMÉE ET MUETTE. La ceinture ne mord
+ * plus dessus (c'est le lot), donc si la ligne partait au modèle sans rien qui
+ * la distingue d'une interdiction, deux choses arriveraient: le modèle la
+ * lirait comme un bannissement (on aurait déplacé le défaut, pas fermé), ou il
+ * l'ignorerait et « pas autant de petit suisse » n'aurait plus AUCUN effet.
+ *
+ * La marque est le seul endroit où la nuance existe: la ceinture ne sait pas
+ * servir « moins », le modèle si.
+ */
+function forceSuffix(item: RetainedItem): string {
+  const kind = item.kind;
+  if (kind !== "food.exclude" && kind !== "method.avoid") return "";
+  const force = (item as { force?: string | null }).force ?? "never";
+  if (force !== "less") return "";
+  return " -- LESS OFTEN, not banned: keep serving it, just less than before";
+}
+
 export function compositionLinesByMouth(args: {
   items: readonly RetainedItem[];
   /** Le roster, DANS SON ORDRE. L'ordre de sortie est le sien. */
   mouths: readonly { readonly memberId: string }[];
-  /** Qui porte les lignes de la table. `null` = personne à cette table. */
-  ownerMemberId: string | null;
+  /**
+   * ⛔ `ownerMemberId` A ÉTÉ RETIRÉ LE 2026-09-21, ET SON RETRAIT EST LE LOT.
+   *
+   * Il désignait « qui porte les lignes de la table ». C'était la question
+   * elle-même qui était fausse: une règle de maison n'est portée par PERSONNE,
+   * elle est dite à la table. Tant qu'un titulaire la portait, le modèle la
+   * lisait comme SA préférence et servait le plat aux autres; dès qu'il n'y en
+   * avait pas, elle tombait. Les deux moitiés sont refermées par `household`.
+   *
+   * Le paramètre n'est pas gardé « au cas où »: un argument que rien ne lit est
+   * un argument qu'un appelant croira branché.
+   */
 }): CompositionLinesByMouth {
   const roster: string[] = [];
   for (const m of args.mouths ?? []) {
     const id = String(m?.memberId ?? "").trim();
     if (id && !roster.includes(id)) roster.push(id);
   }
-  const owner = String(args.ownerMemberId ?? "").trim();
 
   const written = new Map<string, string[]>();
   const remembered = new Map<string, { at: string; text: string; index: number }[]>();
-  const householdUnattached: string[] = [];
+  const household: string[] = [];
   const otherSubjects: RetainedItem[] = [];
 
   let index = 0;
@@ -463,15 +563,24 @@ export function compositionLinesByMouth(args: {
     }
     const subject = String(item.subject ?? "");
     let to: string | null = null;
-    let text = item.text;
+    let text = `${item.text}${occasionSuffix(item)}${forceSuffix(item)}`;
     if (subject === HOUSEHOLD_SUBJECT) {
-      // ⚠️ LA LIGNE DE LA TABLE SORT INCHANGÉE, à l'octet près: elle vaut pour
-      // tout le monde, et lui coller une marque de portée la rétrécirait.
-      to = owner || null;
-      if (to === null) {
-        householdUnattached.push(text);
-        continue;
-      }
+      // ⚠️ AUCUNE MARQUE DE PORTÉE, et c'est la règle: la ligne vaut pour tout
+      // le monde à table, et lui coller `THIS PERSON ONLY` la rétrécirait. Le
+      // MOMENT, lui, la précise sans la rétrécir — il dit QUAND elle vaut, pas
+      // POUR QUI.
+      //
+      // ⛔ ET ELLE NE PASSE PLUS PAR UNE BOUCHE. Voir `household` ci-dessus.
+      //
+      // ⟳ 2026-09-22 — ET ELLE DIT CE QU'ELLE VEUT : « OFF the table: » ou
+      // « wanted: » devant le texte. Sans verbe, exclue et voulue s'écrivaient
+      // pareil (`TABLE_LINE_VERB`).
+      const verb = tableVerb(item.kind);
+      const said = verb === "" ? text : `${verb}: ${text}`;
+      household.push(
+        item.source === "written" ? said : `${item.at} — ${said}`,
+      );
+      continue;
     } else {
       const named = subject.startsWith("member:") ? subject.slice(7) : "";
       if (!named || !roster.includes(named)) {
@@ -479,7 +588,7 @@ export function compositionLinesByMouth(args: {
         continue;
       }
       to = named;
-      text = `${item.text}${reachSuffix(item.kind)}`;
+      text = `${text}${reachSuffix(item)}`;
     }
     if (item.source === "written") {
       const bag = written.get(to) ?? [];
@@ -507,7 +616,7 @@ export function compositionLinesByMouth(args: {
     });
   }
 
-  return { byMouth, householdUnattached, otherSubjects };
+  return { byMouth, household, otherSubjects };
 }
 
 // ===========================================================================

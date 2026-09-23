@@ -10,6 +10,7 @@ import {
   QUESTION_OPTIONS,
 } from "../../api/planFeedback";
 import { t } from "../../i18n/t";
+import { uiLocale } from "../../i18n/runtime";
 import { Button } from "../ui/Button";
 import { Card, SectionLabel } from "../ui/Card";
 import { inputClass } from "../ui/Field";
@@ -148,6 +149,9 @@ export interface PlanFeedbackDialogProps {
 const DISH_QUESTIONS: readonly FeedbackQuestion[] = ["never_again", "make_again"];
 
 export default function PlanFeedbackDialog(props: PlanFeedbackDialogProps) {
+  // La langue de la page: les libellés des questions vivent dans le module, en
+  // français ET en anglais (voir le commentaire sous la première question).
+  const lang = uiLocale();
   const [answers, setAnswers] = React.useState<Record<string, string>>({});
   const [marks, setMarks] = React.useState<Record<string, DishMark>>({});
   /** `household` | `member:<uuid>`. Jamais un prénom. */
@@ -280,13 +284,16 @@ export default function PlanFeedbackDialog(props: PlanFeedbackDialogProps) {
 
       {choiceQuestions.map((q) => (
         <Card key={q} className="mt-3">
-          <SectionLabel>{QUESTION_LABELS[q].en}</SectionLabel>
+          <SectionLabel>{QUESTION_LABELS[q][lang]}</SectionLabel>
           {/* ⚠️ LES LIBELLÉS VIENNENT DU MODULE, PAS DU CATALOGUE i18n. Ils y
               sont écrits dans les DEUX langues (`profiles.locale` vaut `fr-FR`
               par défaut sur ce produit), et les recopier en clés d'écran ferait
               deux tables de la même question — celle qu'on regarde le moins
-              garderait l'ancien mot. La langue servie est celle de la page,
-              anglaise pour toute l'app connectée (`catalog.ts`).
+              garderait l'ancien mot. La langue servie est celle de la page
+              (`uiLocale()`). ⟳ 2026-09-23 (FF-066): ce commentaire disait
+              « anglaise pour toute l'app connectée » — faux depuis que l'app
+              est traduite, et le questionnaire sortait en anglais à un
+              utilisateur français alors que le module porte le français.
 
               ⚠️ ET LE **NOMBRE** D'OPTIONS VIENT DU MODULE AUSSI. `portions`
               en porte CINQ depuis le 2026-08-19 (l'échelle a gagné un second
@@ -313,7 +320,7 @@ export default function PlanFeedbackDialog(props: PlanFeedbackDialogProps) {
                     [q]: prev[q] === opt ? "" : opt,
                   }))}
               >
-                {OPTION_LABELS[opt]?.en ?? opt}
+                {OPTION_LABELS[opt]?.[lang] ?? opt}
               </Button>
             ))}
           </div>
@@ -331,7 +338,7 @@ export default function PlanFeedbackDialog(props: PlanFeedbackDialogProps) {
           {q === "portions" && asksPortionSubject
             ? (
               <div className="mt-3 border-t border-line pt-3">
-                <SectionLabel>{PORTION_SUBJECT_LABEL.en}</SectionLabel>
+                <SectionLabel>{PORTION_SUBJECT_LABEL[lang]}</SectionLabel>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {/* LE DÉFAUT DE L'AXE 3 EN PREMIER: « tout le monde à
                       table ». C'est une réponse, pas une absence de réponse. */}
@@ -346,7 +353,7 @@ export default function PlanFeedbackDialog(props: PlanFeedbackDialogProps) {
                         prev === "household" ? null : "household"
                       )}
                   >
-                    {OPTION_LABELS.everyone.en}
+                    {OPTION_LABELS.everyone[lang]}
                   </Button>
                   {props.mouths.map((mouth) => {
                     // ⛔ LA CLÉ EST L'IDENTIFIANT, LE PRÉNOM EST L'AFFICHAGE.
@@ -445,7 +452,7 @@ export default function PlanFeedbackDialog(props: PlanFeedbackDialogProps) {
                               [term]: "household",
                             }))}
                         >
-                          {OPTION_LABELS.everyone.en}
+                          {OPTION_LABELS.everyone[lang]}
                         </Button>
                         {props.mouths.map((mouth) => {
                           // ⛔ LA CLÉ EST L'IDENTIFIANT, LE PRÉNOM EST L'AFFICHAGE.
@@ -490,7 +497,7 @@ export default function PlanFeedbackDialog(props: PlanFeedbackDialogProps) {
       {asksFreeText
         ? (
           <Card className="mt-3">
-            <SectionLabel>{QUESTION_LABELS.anything_else.en}</SectionLabel>
+            <SectionLabel>{QUESTION_LABELS.anything_else[lang]}</SectionLabel>
             <textarea
               id="plan-feedback-anything-else"
               className={`${inputClass} mt-2 min-h-20`}

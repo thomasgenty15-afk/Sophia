@@ -267,6 +267,28 @@ export interface CompositionRef {
    */
   condimentGrams: number | null;
   /**
+   * ⟳ 2026-09-22 — CE QUE PÈSE UN MILLILITRE DE CET ALIMENT.
+   *
+   * Une constante physique, seulement là pour redire un gramme dans l'unité du
+   * GESTE: « huile de colza — 6 g » se verse à la cuillère, pas à la balance.
+   * Absente sur 915 des 945 lignes, et c'est le cas normal — un poulet n'a pas
+   * de volume utile.
+   *
+   * ⛔ AUCUN CALCUL NE LA LIT. Ni l'énergie, ni la portion, ni les courses: le
+   * gramme reste l'autorité partout. Elle ne sert qu'à l'écran de la dose.
+   *
+   * ⛔ CE N'EST PAS `energyDense` NI UNE DENSITÉ DE KCAL. Les deux mots se
+   * ressemblent et ne se touchent jamais: celle-ci est masse ÷ volume.
+   *
+   * ⚠️ FACULTATIVE, pour la raison exacte de `ciqualCode` juste en dessous — la
+   * rendre requise ferait échouer le typecheck de ~47 fichiers de test qui
+   * construisent des `CompositionRef` littéraux et appartiennent à d'autres
+   * lots. Ce n'est PAS une garde désarmée: il n'y a aucune garde ici, et son
+   * absence dit la même chose que `null` — « cet aliment ne se verse pas », donc
+   * l'écran se tait. Elle ne se lit pas en direct: `millilitresOf`.
+   */
+  gramsPerMl?: number | null;
+  /**
    * LE CODE ANSES DE CETTE LIGNE, ET LE NOM FRANÇAIS QU'IL PORTE.
    *
    * ⛔ POURQUOI LE NOM FRANÇAIS REMONTE JUSQU'ICI (2026-09-11). `pear` portait
@@ -299,6 +321,23 @@ export interface CompositionRef {
    * `validationOf`. Son absence n'ouvre rien.
    */
   validation?: RefValidation;
+  /**
+   * ⟳ 2026-09-23 — CE QUE LA PERSONNE APPELLE « LE MÊME ALIMENT ».
+   *
+   * `chicken_breast` et `chicken_leg_meat` sont tous deux `chicken`. Rempli
+   * pour les protéines (hors `dairy_yogurt`) et les féculents (migration
+   * `20260923200000`); absent ailleurs. Lu par la liste « à éviter » de la
+   * génération de plan, et par rien d'autre.
+   *
+   * ⛔ NE SE LIT PAS EN DIRECT: `foodFamilyOf(ref)` (`plan_avoid_list.ts`), qui
+   * retombe sur le slug quand la famille manque — une ligne promue du sas
+   * compte alors sous son propre nom, au lieu de ne pas compter du tout.
+   *
+   * ⚠️ FACULTATIVE pour la raison exacte de `gramsPerMl` ci-dessus: la rendre
+   * requise ferait échouer ~46 fichiers de test qui construisent des
+   * `CompositionRef` littéraux.
+   */
+  family?: string | null;
 }
 
 /**
@@ -678,6 +717,10 @@ export function normalizeTerm(term: string): string {
  * `with` n'y est PAS, et c'est délibéré: « chicken with rice » nomme deux
  * aliments, et couper y perdrait le second. Seul le MILIEU se coupe.
  */
+/** Les articles qu'une préférence porte en tête, déjà normalisés (sans accent ni apostrophe). */
+const LEADING_ARTICLES: readonly string[] = [
+  "de la ", "de l ", "du ", "des ", "les ", "le ", "la ", "l ", "une ", "un ", "d ",
+];
 const MEDIUM_PREPOSITIONS: readonly string[] = [
   " in ",
   " au naturel",
@@ -718,6 +761,19 @@ function candidateForms(term: string): string[] {
   // s'appliquera QU'À ELLES. Voir sa justification plus bas: c'est la chaîne
   // « modificateur retiré PUIS pluriel réduit » qui atteint les lignes de
   // MOYENNE du référentiel, et c'est elle qu'on refuse.
+  // ⟳ 2026-09-22 — L'ARTICLE DE TÊTE. Une préférence s'écrit comme on parle :
+  // « du lait d'avoine », « des graines », « les œufs ». Mesuré : quatre
+  // textes voulus sur huit non résolus (`pinned_unresolved`), dont « du lait
+  // d'avoine » alors que l'alias « lait d'avoine » existait. Une forme sans
+  // l'article part avec les autres dans les passes qui suivent.
+  for (const f of [...forms]) {
+    for (const article of LEADING_ARTICLES) {
+      if (f.startsWith(article) && f.length > article.length) {
+        forms.push(f.slice(article.length));
+        break;
+      }
+    }
+  }
   const beforeModifiers = [...forms];
 
   // Chaque forme obtenue passe aussi par le retrait des modificateurs.
@@ -832,6 +888,18 @@ function candidateForms(term: string): string[] {
     // composition, et les formes qu'elle seule atteignait sont écrites en
     // alias, à la main, une par une.
     forms.push(w.join(" "));
+  }
+  // ⟳ 2026-09-22 — ET LE DERNIER MOT SEUL. « flocons d'avoines » : la passe
+  // au-dessus ôte le -s de TOUS les mots (« flocon d avoine ») et manque
+  // l'alias « flocons d'avoine ». Le pluriel fautif se pose souvent sur le
+  // seul dernier mot ; une forme qui n'ôte que celui-là l'atteint.
+  for (const f of beforeModifiers) {
+    const w = f.split(" ");
+    const last = w[w.length - 1];
+    if (w.length > 1 && last.length > 3 && last.endsWith("s") && !last.endsWith("ss")) {
+      w[w.length - 1] = last.slice(0, -1);
+      forms.push(w.join(" "));
+    }
   }
   return [...new Set(forms)];
 }
@@ -1180,6 +1248,45 @@ export function condimentMassFor(ref: CompositionRef): number | null {
   const maxKcal = (grams * CONDIMENT_PLAUSIBLE_MULTIPLE * ref.energyKcal) / 100;
   if (!(maxKcal <= CONDIMENT_MAX_KCAL)) return null;
   return grams;
+}
+
+/**
+ * ⟳ 2026-09-22 — CES GRAMMES-LÀ, DITS EN MILLILITRES. `null` dès que cet
+ * aliment ne se verse pas, c'est-à-dire presque toujours.
+ *
+ * ⛔ CE N'EST PAS UNE CONVERSION D'UNITÉ DE PLUS DANS LE MOTEUR. Rien ici ne
+ * remplace un gramme: le nombre rendu est le MÊME aliment, dit dans l'unité du
+ * geste, et le seul lecteur est l'écran de la dose. Le gramme reste l'autorité
+ * pour l'énergie, la portion, la pesée et les courses.
+ *
+ * ⛔ AUCUNE DEVINETTE DE LIBELLÉ. La densité vient de la ligne du référentiel
+ * qu'on a déjà résolue — « laitue » ne devient pas « lait » ici, parce que rien
+ * n'est cherché par le terme.
+ *
+ * ⚠️ L'ENTIER, ET PAS UNE DÉCIMALE. On s'apprête à en tirer une cuillère; un
+ * dixième de millilitre n'a pas de geste, et il donnerait une fausse précision
+ * à une densité arrondie au centième.
+ */
+export function millilitresOfSlug(
+  index: CompositionIndex | null | undefined,
+  slug: string | null,
+  grams: number,
+): number | null {
+  if (!index || slug === null || slug === "") return null;
+  // ⚠️ `bySlug` SEUL, jamais les alias ni les faux amis. L'identifiant est déjà
+  // celui que la ligne a RÉSOLU; repasser par une table de formes ici ouvrirait
+  // une seconde résolution sur un chemin qui n'en a pas besoin.
+  const ref = index.bySlug.get(slug);
+  return ref ? millilitresOf(ref, grams) : null;
+}
+
+export function millilitresOf(ref: CompositionRef, grams: number): number | null {
+  const density = ref.gramsPerMl;
+  if (density === null || density === undefined || !Number.isFinite(density)) return null;
+  if (!(density > 0)) return null;
+  if (!Number.isFinite(grams) || !(grams > 0)) return null;
+  const ml = Math.round(grams / density);
+  return ml > 0 ? ml : null;
 }
 
 // ---------------------------------------------------------------------------

@@ -193,7 +193,11 @@ describe("le câblage des deux écrans qui composent", () => {
     // ⟳ 2026-09-11 · LOT 7 — `draftInput` NE PREND PLUS DE PARAMÈTRE. Il lisait
     // les faits de l'entonnoir pour choisir une lane; il n'y en a plus qu'une.
     // La PROPRIÉTÉ gardée ici ne change pas: c'est l'ORDRE des deux gestes.
-    const compose = code.indexOf("composeDraft(draftInput())");
+    // ⟳ 2026-09-21 — ANCRE SUR L'APPEL, PAS SUR SA FORME EXACTE: la
+    // composition porte maintenant un `onProgress` (le bouton qui
+    // travaille doit dire où il en est), et le littéral nu ne matchait
+    // plus. Ce qui est tenu ici est l'ORDRE des appels, pas leur arité.
+    const compose = code.indexOf("composeDraft(draftInput(),");
     expect(compose).toBeGreaterThan(0);
     const guard = code.indexOf('floorVerdict.kind === "below_floor"');
     expect(guard).toBeGreaterThan(0);

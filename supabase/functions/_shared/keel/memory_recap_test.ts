@@ -23,6 +23,7 @@ import {
 import { COOKING_STYLES } from "./cooking_plan.ts";
 import { RECIPE_DIFFICULTIES, VARIETY_LEVELS } from "./retained_item.ts";
 import { APPETITE_LEVELS } from "./tokens.ts";
+import { SIDE_COURSE_KINDS, SIDE_COURSE_SLOTS } from "./side_courses_types.ts";
 
 Deno.test("⛔ LA SÉCURITÉ SORT MÊME SEULE, avec son « défaire »", () => {
   const fr = buildMemoryRecap({
@@ -515,4 +516,58 @@ Deno.test("« de » s'élide devant une voyelle — mesuré: « de équilibré �
     settingRecapLine({ field: "cooking_style", previous: "balanced", next: "minimal" }, "en"),
     "Cooking style: from balanced to minimal",
   );
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-23 — LES À-CÔTÉS RÉGLÉS PAR UNE PHRASE SE DISENT
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("à-côtés — la ligne dit le type, le repas et « oui/non », dans les deux langues", () => {
+  assertEquals(
+    settingRecapLine({ field: "side_dessert_dinner", previous: null, next: false }, "fr"),
+    "Dessert au dîner : non",
+  );
+  assertEquals(
+    settingRecapLine({ field: "side_dessert_dinner", previous: null, next: false }, "en"),
+    "Dessert at dinner: no",
+  );
+  assertEquals(
+    settingRecapLine({ field: "side_cheese_lunch", previous: null, next: true }, "fr"),
+    "Fromage au déjeuner : oui",
+  );
+  // La phrase qui ne nomme pas le repas: une ligne sans repas.
+  assertEquals(
+    settingRecapLine({ field: "side_starter", previous: null, next: false }, "fr"),
+    "Entrée : non",
+  );
+  assertEquals(
+    settingRecapLine({ field: "side_bread", previous: null, next: true }, "en"),
+    "Bread: yes",
+  );
+});
+
+// ⛔ LE VOCABULAIRE EST IMPORTÉ DU SOCLE, jamais recopié: un cinquième type ou
+// un troisième moment ajouté sans libellé fait rougir ici, par son nom.
+Deno.test("CÂBLAGE — chaque type × chaque repas (et chaque type seul) a son titre et ses deux valeurs, fr ET en", () => {
+  const fields = SIDE_COURSE_KINDS.flatMap((k) => [
+    `side_${k}`,
+    ...SIDE_COURSE_SLOTS.map((s) => `side_${k}_${s}`),
+  ]);
+  assertEquals(fields.length, 12);
+  for (const field of fields) {
+    for (const language of ["fr", "en"] as const) {
+      assert(
+        settingRecapLine({ field, previous: null, next: true }, language) !== null,
+        `${field} n'a pas de titre en ${language}: le réglage serait tu`,
+      );
+      for (const value of [true, false]) {
+        assert(
+          fieldValueLabel(field, value, language) !== null,
+          `${field}.${value} n'a pas de libellé en ${language}: il sortirait « ${value} »`,
+        );
+      }
+    }
+  }
+  // La contre-épreuve: un type inconnu n'a pas de titre.
+  assertEquals(settingRecapLine({ field: "side_soup_dinner", previous: null, next: true }, "fr"), null);
 });

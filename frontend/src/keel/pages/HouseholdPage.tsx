@@ -29,6 +29,7 @@ import {
   loadHousehold,
   loadHouseholdMeal,
   loadHouseholdRhythm,
+  loadMemberBirthDates,
   loadMemberBodies,
   loadRestrictions,
   MEMBER_GENDERS,
@@ -58,7 +59,6 @@ import {
 // L'écriture passe par `writtenDislikeWriter` (`api/mouthProfile`), qui adapte
 // le contrat « ça lève » de ce module au contrat « ça rend un refus » de cet
 // écran. La lecture, elle, n'a pas de refus à traduire.
-import { loadWrittenDislikes } from "../api/retainedItems";
 import {
   EATING_OCCASIONS,
   type EatingOccasion,
@@ -76,6 +76,8 @@ import { loadMutedMembers, muteMergeProposals } from "../api/householdMerge";
 // serait le seul dont on ne sait rien ».
 import {
   type KnownOwnMouth,
+  loadMemberTargets,
+  type MemberTargetView,
   loadOwnMouth,
   ownGoalWriter,
   ownShakerWriter,
@@ -91,6 +93,8 @@ import {
   blockList,
   draftFromKnown,
   emptyMouthDraft,
+  targetPayloadOf,
+  targetWriteIsBlind,
   filledPreferenceBlocks,
   type KnownMouth,
   knownMouthForOwner,
@@ -104,7 +108,10 @@ import {
 // La fiche d'une bouche écrit la même liste que l'entonnoir et que
 // `persistMouth`: une seconde règle ici ferait diverger le sens d'une entrée
 // qui ne porte QUE « + repas léger » (pas de prose ⇒ `household_dish`).
-import { habitEntriesToWrite } from "../lib/mealExtras";
+import {
+  habitEntriesToWrite,
+  type SideCoursesDraft,
+} from "../lib/mealExtras";
 // ⚠️ LE LIBELLÉ D'UN ALLERGÈNE, PAS SON SLUG. Le catalogue écrit `peanut`; la
 // liste de la fiche affichait le jeton nu sous une case cochée « Arachide ».
 import { allergenLabel } from "../copy/allergens";
@@ -121,6 +128,12 @@ import {
   type MouthActivityAndStructure,
   MouthCoreFields,
   MouthPreferencesFields,
+  // ⟳ 2026-09-22 (LOT A2) — LE POIDS VISÉ ET LE CURSEUR, SUR LA FICHE D'UNE
+  // BOUCHE DÉJÀ INSCRITE. ⛔ IMPORTÉ, JAMAIS RECOPIÉ: une seconde lecture de
+  // `paceControlFor` ferait deux écrans qui divergent au premier correctif —
+  // c'est le motif écrit sur le composant lui-même, et le dépôt l'a déjà payé
+  // sur les listes d'objectifs.
+  TargetAndPaceFields,
 } from "../components/MouthFormDialog";
 import Modal from "../components/ui/Modal";
 import {
@@ -135,6 +148,10 @@ import HouseholdTraditionsCard from "../components/HouseholdTraditionsCard";
 import { HOUSEHOLD_MAX_MOUTHS } from "../api/onboarding";
 import { householdErrorKey } from "../copy/planRefusals";
 import HouseholdHabitsCard from "../components/HouseholdHabitsCard";
+// ⟳ 2026-09-23 — LES À-CÔTÉS SUR LA LIGNE D'UN MEMBRE, à côté de sa carte
+// d'habitudes: c'est la seule porte que la base lui ouvre ici. La fiche
+// partagée (`MouthPreferencesFields`) monte le même champ pour le maître.
+import SideCoursesField from "../components/SideCoursesField";
 // ⟳ 2026-09-19 — SEPT IMPORTS SONT PARTIS AVEC LES BLOCS QU'ILS SERVAIENT:
 // `MealPickerGrid` (la grille d'absences), `EatingRhythmCard` et
 // `FoodPreferencesCard` (les deux cartes du compte), `MemberWorkLunchCard` et
@@ -276,17 +293,25 @@ export default function HouseholdPage(): React.ReactElement {
   const [phase, setPhase] = React.useState<Loading>("loading");
   const [household, setHousehold] = React.useState<HouseholdView | null>(null);
   const [restrictions, setRestrictions] = React.useState<RestrictionView[]>([]);
-  /**
-   * LES DÉGOÛTS PAR BOUCHE — `food.exclude` `source=written`, lot C.
-   *
-   * ⚠️ UNE `Map` VIDE N'EST PAS « PAS LU », et ici ça ne coûte rien: la seule
-   * chose qui en dépend est la valeur SEMÉE d'un champ qui AJOUTE. Semer vide
-   * quelqu'un qui a des dégoûts ne les efface pas — la porte n'écrit que le
-   * delta, et le magasin dédoublonne à sujet égal.
-   */
-  const [dislikes, setDislikes] = React.useState<Map<string, string[]>>(
-    new Map(),
-  );
+  /* ══════════════════════════════════════════════════════════════════════
+     ⛔ `dislikes` — L'ÉTAT ET SA LECTURE SONT PARTIS — ⟳ 2026-09-21
+     ══════════════════════════════════════════════════════════════════════
+
+     Les dégoûts par bouche (`food.exclude`, `source=written`, lot C) étaient
+     chargés ici pour UN lecteur: le résumé des cartes (« Déjà renseigné : ses
+     dégoûts et son régime. »), retiré le même jour sur demande. Le fil entier
+     est remonté avec — page → `MembersCard` → `MemberRow`.
+
+     ⚠️ LA FENÊTRE DES PRÉFÉRENCES NE LES PERD PAS, parce qu'elle ne les a
+     JAMAIS lus d'ici: son brouillon part vide, et c'est délibéré (« ni les
+     dégoûts ni le shaker ne se sèment depuis la base — ils s'AJOUTENT, ils ne
+     se posent pas »). Il n'y a donc aucun écran qui affichait l'existant et
+     qui cesserait de l'afficher.
+
+     ⚠️ `loadWrittenDislikes` RESTE — exportée, testée (`writtenDislikes`,
+     `retainedItems`), et c'est la seule lecture de ce magasin côté navigateur.
+     Ce qui est retiré est son APPEL sur cette page, c'est-à-dire une requête
+     par ouverture dont plus personne ne lisait le résultat. */
   const [allergies, setAllergies] = React.useState<AllergyView[]>([]);
   const [meal, setMeal] = React.useState<HouseholdMealView | null>(null);
   // `null` = pas encore lu. C'est la garde de montage: tant qu'on ne SAIT pas
@@ -363,6 +388,50 @@ export default function HouseholdPage(): React.ReactElement {
    */
   const [bodies, setBodies] = React.useState<
     Map<string, MemberBodyView> | null
+  >(null);
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * LOT A2, 2026-09-22 — LE POIDS VISÉ ET LE RYTHME DE CHAQUE BOUCHE
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * ⚠️ `null` = LA LECTURE N'A PAS EU LIEU, et ce n'est pas un état
+   * d'affichage: `keel_household_set_member_target` REMPLACE la paire. Le
+   * cadre « Informations personnelles » ne monte donc son curseur que quand
+   * cette Map existe, et son Enregistrer n'appelle la porte que dans ce cas.
+   * Monté sur `null`, il afficherait un champ vide non lu puis l'écrirait —
+   * cicatrice `mount-snapshot-forms-need-a-loading-gate`, prise par le bout
+   * qui coûte une donnée.
+   *
+   * ⚠️ `household_members`, PAS `student_goals`. La cible d'un TITULAIRE vit
+   * dans sa ligne d'objectif, et elle est déjà lue par `loadOwnMouth`: sa
+   * fiche à lui est `MeFiche`, pas `MemberRow`. Les deux colonnes portent le
+   * même nom des deux côtés — lire la mauvaise rendrait la valeur de
+   * quelqu'un d'autre.
+   */
+  const [targets, setTargets] = React.useState<
+    Map<string, MemberTargetView> | null
+  >(null);
+  /**
+   * LES DATES DE NAISSANCE DES BOUCHES — `null` = pas lu.
+   *
+   * ⛔ ELLES NE SONT PAS DANS LE ROSTER, ET C'EST VOULU: il rend l'état d'âge,
+   * jamais la date (le foyer doit savoir qu'il y a un enfant à table, pas son
+   * âge). Une porte scopée au maître la rend
+   * (`keel_household_member_birth_date_for_owner`).
+   *
+   * ⚠️ SANS ELLE, LE CURSEUR DE RYTHME N'EXISTE PAS. Son plafond se calcule sur
+   * l'entretien estimé, et `estimatedMaintenanceKcal` rend `null` sans bande
+   * d'âge: `paceCeilingFor` rend `null`, `paceControlFor` rend `needs_body`, et
+   * la fiche promet un rythme qu'elle ne donne pas. Exactement le défaut mesuré
+   * sur l'entonnoir le 2026-09-19.
+   *
+   * ⛔ ELLE NE SÈME AUCUN CHAMP DE SAISIE. Le champ date de la fiche reste ce
+   * qu'il était — vide, et il n'écrit que si on tape: le seeder ferait du Save
+   * une réécriture de la date à chaque passage, sur une porte qui a sa propre
+   * résolution (`birthDateDoor`).
+   */
+  const [memberBirthDates, setMemberBirthDates] = React.useState<
+    Map<string, string> | null
   >(null);
   /**
    * CE QUE CHAQUE BOUCHE MANGE D'HABITUDE (2026-08-14).
@@ -464,7 +533,6 @@ export default function HouseholdPage(): React.ReactElement {
         // de la personne qui compose, et le `subject` de chaque item dit de
         // quelle bouche il parle. RLS ne rend que sa propre ligne, donc un
         // membre lit `null` — et un membre n'ouvre pas la fiche des autres.
-        setDislikes(await loadWrittenDislikes(userId));
         setAllergies(await loadAllergies());
         setMeal(await loadHouseholdMeal(weekStart));
         setOwnerGoalRow(await hasOwnerGoalRow(userId));
@@ -480,6 +548,34 @@ export default function HouseholdPage(): React.ReactElement {
           // membre rendrait une carte vide, c'est-à-dire « personne n'a de
           // corps » — un fait qu'on n'a pas.
           setBodies(await loadMemberBodies());
+          // ── LOT A2 · LA CIBLE ET LE RYTHME DE CHAQUE BOUCHE ─────────────
+          // MÊME DISCIPLINE QUE LES HABITUDES, ET LE MÊME `null`: un échec
+          // dégrade LE SEUL cadre qui en dépend (le curseur ne se rend pas),
+          // il ne fait pas tomber les sept autres cartes. Et surtout il RESTE
+          // `null` — c'est ce qui empêche un Enregistrer d'effacer la paire
+          // qu'on n'a pas su lire.
+          // ⚠️ `hh.id` VIDE ⇒ ON NE LIT PAS, ET ON RESTE À `null`.
+          // `loadMemberTargets("")` rend une Map VIDE, c'est-à-dire « lu,
+          // personne n'a de cible » — un fait qu'on n'a pas.
+          try {
+            setTargets(hh.id ? await loadMemberTargets(hh.id) : null);
+          } catch (e) {
+            setTargets(null);
+            console.error("[household] member targets unreadable", e);
+          }
+          // ── LOT A2 · LES DATES, POUR BORNER LE CURSEUR ──────────────────
+          // ⚠️ `loadMemberBirthDates` REND UNE MAP PARTIELLE plutôt que de
+          // lever: une date absente se lit « corps incomplet » et le curseur
+          // le DIT (`pace_needs_body`). C'est une dégradation nommée, pas un
+          // silence.
+          try {
+            setMemberBirthDates(
+              await loadMemberBirthDates(hh.members.map((m) => m.memberId)),
+            );
+          } catch (e) {
+            setMemberBirthDates(null);
+            console.error("[household] member birth dates unreadable", e);
+          }
           // ── LES HABITUDES, ET POURQUOI LEUR ÉCHEC NE TUE PAS L'ÉCRAN ─────
           // Elles ne portent RIEN d'autre sur cette page: les bouches, les
           // allergies, les règles de maison, les corps et le plan se lisent et
@@ -650,9 +746,12 @@ export default function HouseholdPage(): React.ReactElement {
 
         // ① SES HABITUDES — la porte pose la liste ENTIÈRE, vide comprise:
         //    retirer la dernière habitude doit pouvoir vider la ligne.
+        //    ⟳ 2026-09-23 — LES À-CÔTÉS PARTENT DANS LA MÊME LISTE: la porte
+        //    la remplace entière, donc les omettre les effacerait.
         const slots = habitEntriesToWrite({
           habits: draft.habits,
           light: draft.light,
+          sideCourses: draft.sideCourses,
           occasions: EATING_OCCASIONS,
         });
         const written = await setMemberHabits(
@@ -801,6 +900,11 @@ export default function HouseholdPage(): React.ReactElement {
     // sont précisément celles des bulles. Sans cette semence, ouvrir la fiche
     // puis enregistrer effacerait une bulle cochée.
     light: habits === null ? {} : (habits.get(me.memberId)?.light ?? {}),
+    // ⟳ 2026-09-23 — ET LA TROISIÈME LECTURE DE LA MÊME COLONNE. Sans elle,
+    // ouvrir sa fiche puis enregistrer effacerait « jamais de dessert ».
+    sideCourses: habits === null
+      ? {}
+      : (habits.get(me.memberId)?.sideCourses ?? {}),
   });
 
   /**
@@ -1068,12 +1172,40 @@ export default function HouseholdPage(): React.ReactElement {
                   household={household}
                   todayLocalIso={weekStart}
                   restrictions={restrictions}
-                  dislikes={dislikes}
                   allergies={allergies}
                   busy={busy}
                   mutedMembers={mutedMembers}
                   rhythm={rhythm}
                   bodies={bodies}
+                  // LOT A2 — LES DEUX LECTURES QUI BORNENT ET QUI SÈMENT LE
+                  // CURSEUR. `null` traverse: c'est la LIGNE qui distingue
+                  // « pas lu » de « lu, rien pour cette bouche ».
+                  targets={targets}
+                  memberBirthDates={memberBirthDates}
+                  // ══════════════════════════════════════════════════════
+                  // LOT A2 — LA SEULE PORTE DE LA CIBLE D'UNE BOUCHE
+                  // ══════════════════════════════════════════════════════
+                  //
+                  // ⚠️ `keel_household_set_member_target` REMPLACE LA PAIRE,
+                  // et elle est TOUT-OU-RIEN: `(null, null)` efface (le geste
+                  // légitime de qui repasse en `maintenance`), un seul des
+                  // deux sort en `target_incomplete`. C'est `targetPayloadOf`
+                  // qui décide des deux nombres ensemble, côté ligne.
+                  //
+                  // ⛔ PAS `setOwnTarget` ICI. La cible d'un compte vit dans
+                  // `student_goals`, et la fiche d'un compte — le titulaire —
+                  // est `MeFiche`, qui passe déjà par `ownTargetWriter`.
+                  // Appeler cette porte-ci sur une bouche réclamée écrirait la
+                  // colonne que le moteur lit EN PREMIER, donc par-dessus ce
+                  // que la personne a réglé chez elle.
+                  //
+                  // `run` traduit le refus par `copy/planRefusals.ts` et
+                  // relit: `target_not_for_minor` et `target_needs_direction`
+                  // arrivent en phrase, jamais en jeton nu.
+                  onSaveTarget={(memberId, targetWeightKg, paceKgPerWeek) =>
+                    run(() =>
+                      setMemberTarget(memberId, targetWeightKg, paceKgPerWeek)
+                    )}
                   habits={habits}
                   invitations={invitations}
                   // A5 §5.5 — RELIRE LES INVITATIONS, PAS SEULEMENT LA PAGE:
@@ -1692,27 +1824,11 @@ export function MeFiche(
   // L'ÂGE DU FORMULAIRE DE REPLI: la date tapée gagne sur le roster.
   const meAge = ageStateOfTypedDate(draft.birthDate, me.ageState, todayLocalIso);
 
-  /**
-   * CE QUI EST DÉJÀ RENSEIGNÉ, DIT SUR LA FICHE REPLIÉE.
-   *
-   * ⚠️ MÊME COMPTEUR ET MÊMES PHRASES QUE LES AUTRES FICHES
-   * (`filledPreferenceBlocks`, `household.mouth.preferences_filled` / `_empty`).
-   *
-   * ⛔ IL PEUT SOUS-CLAMER, JAMAIS SUR-CLAMER: `allergiesNone` n'a aucun
-   * contrôle sur cette fiche-ci, donc il part à `false`. Les allergies, elles,
-   * viennent de la LECTURE (le brouillon ne les sème pas — elles s'AJOUTENT,
-   * elles ne se posent pas), sinon la ligne dirait « rien » à quelqu'un qui en
-   * a trois.
-   */
-  const filledBlocks = React.useMemo(
-    () =>
-      filledPreferenceBlocks({
-        ...sheetDraft,
-        allergies: allergies.map((a) => a.label),
-        allergiesNone: false,
-      }),
-    [sheetDraft, allergies],
-  );
+  /* ⛔ `filledBlocks` A ÉTÉ RETIRÉ D'ICI — ⟳ 2026-09-21. Il ne servait qu'au
+     résumé de la carte, parti le même jour (voir le pavé à son ancienne
+     place, sous les deux portes). `filledPreferenceBlocks` reste employé par
+     le cadre repliable du formulaire, où le résumé est la contrepartie du
+     repli; c'est cet appel-ci, et lui seul, qui n'avait plus de lecteur. */
 
   return (
     <li className="rounded-card border border-line bg-paper-2 p-3">
@@ -1745,19 +1861,34 @@ export function MeFiche(
                ⛔ SEULEMENT HORS `needsGoalRow`. Tant que la ligne d'objectif
                manque, il n'y a qu'UN geste sur cette carte — celui qui ouvre
                la composition —, et lui donner un voisin le noierait. */
-            <span className="ml-auto flex flex-wrap items-center gap-3">
-              <button
-                className="text-fig-700 underline"
+            /* ── DEUX PORTES, EN BOUTONS — ⟳ 2026-09-21 ───────────────────
+               Elles étaient deux textes soulignés, et le motif écrit ici
+               disait: « PAS DEUX BOUTONS PLEINS: huit bouches feraient seize
+               actions principales ». Renversé sur demande — « ils vont pas
+               dans la DA ceux-là ».
+
+               ⚠️ `secondary`, ET C'EST CE QUI GARDE LA MOITIÉ VRAIE DE
+               L'ANCIEN MOTIF. Un bouton de contour n'est pas une action
+               principale: huit bouches font seize portes lisibles, pas seize
+               appels à cliquer. Le plein (`primary`) reste réservé au geste
+               qui débloque la composition, juste au-dessus. */
+            <span className="ml-auto flex flex-wrap items-center gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={busy}
                 onClick={() => setSheet("identity")}
               >
                 {t("household.member.frame_identity")}
-              </button>
-              <button
-                className="text-fig-700 underline"
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={busy}
                 onClick={() => setSheet("preferences")}
               >
                 {t("household.member.frame_preferences")}
-              </button>
+              </Button>
             </span>
           )}
       </div>
@@ -1765,25 +1896,25 @@ export function MeFiche(
       {/* ⚠️ UN ÉTAT, PAS UNE PRÉSENTATION. Tant que la ligne `student_goals`
           n'existe pas, `generate-household-meal-v1` rend `goal_required` (409)
           — et on le découvrait après avoir saisi tout le foyer. */}
+      {/* ⛔ LE RÉSUMÉ DE LA CARTE EST PARTI — ⟳ 2026-09-21, SUR DEMANDE.
+          « Rien de renseigné — le plan se compose sans. Ça se remplit plus
+          tard. » / « Déjà renseigné : … » s'écrivait une fois par bouche, sous
+          deux portes qui disent déjà où aller.
+
+          ⚠️ CE QU'IL PAYAIT: « une réponse repliée est une réponse invisible »
+          (2026-08-19). Ce qui rend le retrait tenable est que les deux portes
+          restent, visibles et nommées — ce n'est plus un repli muet, c'est une
+          carte sans commentaire.
+
+          ⚠️ L'AVERTISSEMENT D'OBJECTIF, LUI, RESTE. Il ne résume rien: il dit
+          qu'une composition RENDRA 409 tant que la ligne manque. */}
       {needsGoalRow
         ? (
           <p className="mt-1 text-xs leading-5 text-amber-800">
             {t("household.me.unlock")}
           </p>
         )
-        : (
-          <p className="mt-1 text-xs leading-5 text-ink-soft">
-            {filledBlocks.length === 0
-              ? t("household.mouth.preferences_empty")
-              : t("household.mouth.preferences_filled", {
-                blocks: blockList(
-                  filledBlocks.map((b) =>
-                    t(`household.mouth.block_${b}` as "household.mouth.block_identity")
-                  ),
-                ),
-              })}
-          </p>
-        )}
+        : null}
 
       {/* ══════════════════════════════════════════════════════════════════
           DEUX FENÊTRES, DEUX CONTENUS — 2026-09-19
@@ -2335,7 +2466,7 @@ export function AddMouthForm(
  * quelle nature est cette contrainte.
  */
 function MembersCard(
-  { household, ownFiche, footer, restrictions, dislikes, allergies, busy, mutedMembers, rhythm, bodies, habits, invitations, onInvited, onSaveHabits, onSavePreferences, onSaveBody, onMute, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction, todayLocalIso }: {
+  { household, ownFiche, footer, restrictions, allergies, busy, mutedMembers, rhythm, bodies, targets, memberBirthDates, habits, invitations, onInvited, onSaveHabits, onSavePreferences, onSaveTarget, onSaveBody, onMute, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction, todayLocalIso }: {
     household: HouseholdView;
     /**
      * LA FICHE DU TITULAIRE, ou `null` — 2026-09-09.
@@ -2360,15 +2491,14 @@ function MembersCard(
      */
     footer: React.ReactNode;
     restrictions: RestrictionView[];
-    /**
-     * ⚠️ CE QUE LA BOUCHE N'AIME PAS — ET CE N'EST PAS `restrictions`.
-     * Une RÈGLE DE MAISON est une décision de la personne qui tient le foyer,
-     * étiquetée « pas servi ici, {prénom} l'a décidé »; un DÉGOÛT est une
-     * préférence de la bouche elle-même. Les confondre était le défaut fermé
-     * par le lot C: la fiche se semait avec les règles, et les réenregistrait
-     * en préférences au premier « Enregistrer ».
-     */
-    dislikes: Map<string, string[]>;
+    /* ⛔ `dislikes` A ÉTÉ RETIRÉ DE CETTE CARTE — ⟳ 2026-09-21, avec le
+       résumé qui était son seul lecteur. Le pavé qui vivait ici tenait une
+       distinction qui reste VRAIE et qui est écrite à sa source
+       (`MouthPreferencesFields`): une RÈGLE DE MAISON est une interdiction
+       du maître, un DÉGOÛT est une préférence de la bouche. Les confondre
+       avait fait réenregistrer chaque règle en préférence au premier
+       « Enregistrer » — défaut fermé par le lot C, et rien ici ne le
+       rouvre: ce fil ne transporte plus rien. */
     allergies: AllergyView[];
     busy: boolean;
     /** `YYYY-MM-DD` local, descendu à chaque fiche — voir `MeFiche`. */
@@ -2406,6 +2536,27 @@ function MembersCard(
      * personnelles » ne se rend pas tant que c'est `null`.
      */
     bodies: Map<string, MemberBodyView> | null;
+    /**
+     * LOT A2 — LA CIBLE ET LE RYTHME DE CHAQUE BOUCHE. `null` = PAS LU.
+     *
+     * ⛔ LA MAP ENTIÈRE DESCEND, `null` COMPRIS, et c'est la ligne qui y
+     * cherche la sienne: aplatir ici en `?? new Map()` ferait de « pas lu » un
+     * « lu, rien » — c'est-à-dire un curseur vide qu'un Enregistrer écrirait.
+     */
+    targets: Map<string, MemberTargetView> | null;
+    /** LOT A2 — les dates, pour l'âge qui borne le curseur. `null` = pas lu. */
+    memberBirthDates: Map<string, string> | null;
+    /**
+     * LOT A2 — ÉCRIT LA PAIRE, OU L'EFFACE. REQUIS, jamais optionnel: un
+     * curseur dont l'écrivain est facultatif est un curseur qui peut ne rien
+     * faire, et « un geste qui ne fait rien est indiscernable d'un geste qui a
+     * marché ».
+     */
+    onSaveTarget: (
+      memberId: string,
+      targetWeightKg: number | null,
+      paceKgPerWeek: number | null,
+    ) => Promise<boolean>;
     onSaveBody: (
       memberId: string,
       heightCm: number,
@@ -2485,7 +2636,6 @@ function MembersCard(
                   viewerIsOwner={false}
                   allergies={allergies.filter((a) => a.memberId === m.memberId)}
                   restrictions={restrictions.filter((r) => r.memberId === m.memberId)}
-                  dislikes={dislikes.get(m.memberId) ?? []}
                   busy={busy}
                   // Le réglage de fusion est au maître: `null` = on ne montre
                   // pas un interrupteur dont on ignore la position, et celui-ci
@@ -2497,6 +2647,17 @@ function MembersCard(
                   // le bloc — pas cette valeur, qui voudrait dire « lu, rien ».
                   body={null}
                   bodiesLoaded={bodies !== null}
+                  // ⛔ LOT A2 · TROIS FAITS QUE LA BASE NE LUI REND PAS, ET LE
+                  // CADRE NE SE REND PAS NON PLUS. `keel_household_set_member_
+                  // target` répond `not_owner` à un profil réclamé, et
+                  // `loadMemberTargets` n'est appelé que dans la branche du
+                  // maître: `targets` vaut donc `null` ici, ce qui est la
+                  // vérité — « pas lu », pas « rien ». C'est `viewerIsOwner`
+                  // qui retire le bloc, comme pour le corps.
+                  target={null}
+                  targetsLoaded={false}
+                  knownBirthDate={null}
+                  onSaveTarget={(tw, pw) => onSaveTarget(m.memberId, tw, pw)}
                   // ⚠️ CE COMMENTAIRE A ÉTÉ FAUX, et c'est le défaut n°1 de la
                   // vérification: il affirmait que `MemberAccess` ne rendait
                   // « qu'un état » à un membre, alors que le composant ne
@@ -2592,7 +2753,6 @@ function MembersCard(
             viewerIsOwner
             allergies={allergies.filter((a) => a.memberId === m.memberId)}
             restrictions={restrictions.filter((r) => r.memberId === m.memberId)}
-            dislikes={dislikes.get(m.memberId) ?? []}
             busy={busy}
             // D17 — `null` tant que le réglage n'est pas lu, et `null` aussi
             // quand la lecture a échoué: on ne montre pas un interrupteur dont
@@ -2606,6 +2766,19 @@ function MembersCard(
             // LA LECTURE DES CORPS, SÉPARÉE DE SON CONTENU — même partage que
             // `habitsLoaded` juste en dessous, et pour la même raison.
             bodiesLoaded={bodies !== null}
+            // ── LOT A2 · LA CIBLE, SA LECTURE, ET LA DATE QUI LA BORNE ──────
+            // MÊME PARTAGE QUE LES CORPS, ET IL EST OBLIGATOIRE ICI: `target`
+            // nul avec `targetsLoaded` vrai veut dire « lu, cette bouche ne
+            // vise rien » — une réponse, sur laquelle le curseur part à son
+            // maximum. `targetsLoaded` faux veut dire « on ne sait pas », et
+            // rien ne doit s'afficher ni s'écrire dessus.
+            target={targets?.get(m.memberId) ?? null}
+            targetsLoaded={targets !== null}
+            // `undefined` DEVIENT `null` — « pas de date lisible ». Le curseur
+            // le DIT (`pace_needs_body`) plutôt que de calculer un plafond sur
+            // un âge deviné.
+            knownBirthDate={memberBirthDates?.get(m.memberId) ?? null}
+            onSaveTarget={(tw, pw) => onSaveTarget(m.memberId, tw, pw)}
             invitations={invitations}
             onInvited={onInvited}
             // DEUX `null` QUI NE VEULENT PAS DIRE LA MÊME CHOSE, et c'est le
@@ -3246,8 +3419,44 @@ export function SheetFrame(
   );
 }
 
+/**
+ * LA FICHE D'UNE BOUCHE INSCRITE, DANS LE VOCABULAIRE DE `MouthFormDraft`.
+ *
+ * ⚠️ `TargetAndPaceFields` PARLE CE VOCABULAIRE-LÀ, et il lui faut le CORPS —
+ * pas seulement les deux nombres de la cible. Son plafond est borné par ce
+ * corps; sans lui, le curseur retombe sur `needs_body`, c'est-à-dire une fiche
+ * qui promet un rythme et n'en donne pas.
+ *
+ * ⛔ NI DATE NI DIRECTION ICI, ET C'EST DÉLIBÉRÉ: les deux sont DÉRIVÉES au
+ * rendu (`rowTargetDraft`), parce que les mettre dans la semence obligerait à
+ * les mettre dans la clé — et chaque frappe dans le champ date re-sèmerait le
+ * brouillon, donc effacerait un poids visé en cours de saisie.
+ */
+function memberTargetDraft(
+  member: HouseholdMemberView,
+  body: MemberBodyView | null,
+  target: MemberTargetView | null,
+): MouthFormDraft {
+  const asText = (n: number | null | undefined) =>
+    n === null || n === undefined ? "" : String(n);
+  return {
+    ...emptyMouthDraft(),
+    firstName: member.displayName === "—" ? "" : member.displayName,
+    goal: (member.goal as MemberGoal | null) ?? "",
+    heightCm: asText(body?.heightCm),
+    weightKg: asText(body?.weightKg),
+    gender: body?.gender ?? "",
+    activityLevel: body?.activityLevel ?? "",
+    dayActivity: body?.dayActivity ?? "",
+    sportFrequency: body?.sportFrequency ?? "",
+    appetite: body?.appetite ?? "",
+    targetWeightKg: asText(target?.targetWeightKg),
+    paceKgPerWeek: asText(target?.paceKgPerWeek),
+  };
+}
+
 function MemberRow(
-  { member, isMe, viewerIsOwner, allergies, restrictions, dislikes, busy, muted, rhythm, body, bodiesLoaded, habits, habitsLoaded, invitations, onInvited, onSaveHabits, onSavePreferences, onSaveBody, onMute, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction, todayLocalIso }: {
+  { member, isMe, viewerIsOwner, allergies, restrictions, busy, muted, rhythm, body, bodiesLoaded, target, targetsLoaded, knownBirthDate, onSaveTarget, habits, habitsLoaded, invitations, onInvited, onSaveHabits, onSavePreferences, onSaveBody, onMute, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction, todayLocalIso }: {
     member: HouseholdMemberView;
     isMe: boolean;
     /**
@@ -3274,8 +3483,12 @@ function MemberRow(
     todayLocalIso: string;
     allergies: AllergyView[];
     restrictions: RestrictionView[];
-    /** Ses `food.exclude` — voir `MembersCard`: ce n'est PAS `restrictions`. */
-    dislikes: string[];
+    /* ⛔ `dislikes` A ÉTÉ RETIRÉ DE CETTE LIGNE — ⟳ 2026-09-21. Ses
+       `food.exclude` n'étaient lus que par le résumé de la carte, parti le
+       même jour, et le fil entier (page → `MembersCard` → ici) est remonté
+       avec. La DONNÉE, elle, n'a pas bougé: `loadDislikes` la charge toujours
+       dans l'état de la page, et c'est la fenêtre des préférences qui la lit
+       et l'édite, par sa propre porte. */
     busy: boolean;
     /** `null` = rien de saisi. Voir `BodyFields`: la bouche a une part standard. */
     body: MemberBodyView | null;
@@ -3287,6 +3500,46 @@ function MemberRow(
      * affiche du vide non lu.
      */
     bodiesLoaded: boolean;
+    /**
+     * ══════════════════════════════════════════════════════════════════════
+     * LOT A2, 2026-09-22 — SON POIDS VISÉ ET SON RYTHME
+     * ══════════════════════════════════════════════════════════════════════
+     *
+     * `null` = LU, et cette bouche ne vise rien. Distinct de `targetsLoaded`
+     * faux, qui veut dire « on ne sait pas ».
+     */
+    target: MemberTargetView | null;
+    /**
+     * LA LECTURE A-T-ELLE EU LIEU ? REQUIS — jamais optionnel.
+     *
+     * ⛔ C'EST LA PORTE DE CHARGEMENT DU CURSEUR, et elle ne protège pas un
+     * affichage: `keel_household_set_member_target` REMPLACE la paire. Monté
+     * sur du vide non lu, le bloc afficherait « pas de poids visé » sur une
+     * bouche qui en a un, et « Enregistrer » l'effacerait.
+     */
+    targetsLoaded: boolean;
+    /**
+     * SA DATE DE NAISSANCE TELLE QUE LA BASE LA REND, ou `null`.
+     *
+     * ⛔ LE ROSTER NE LA REND JAMAIS (il rend l'état d'âge), et sans elle
+     * `estimatedMaintenanceKcal` n'a pas de bande d'âge: le curseur retombe sur
+     * `needs_body`, c'est-à-dire une fiche qui promet un rythme et n'en donne
+     * pas. Mesuré sur l'entonnoir le 2026-09-19, même cause.
+     *
+     * ⚠️ ELLE NE SÈME PAS LE CHAMP DE SAISIE, elle BORNE le curseur. La date
+     * tapée dans la fiche gagne sur elle — c'est la même règle que `rowAge`.
+     */
+    knownBirthDate: string | null;
+    /**
+     * ÉCRIT LA PAIRE, OU L'EFFACE. REQUIS.
+     *
+     * ⚠️ LES DEUX NOMBRES PARTENT ENSEMBLE: la porte est tout-ou-rien, et un
+     * seul des deux sort en `target_incomplete`.
+     */
+    onSaveTarget: (
+      targetWeightKg: number | null,
+      paceKgPerWeek: number | null,
+    ) => Promise<boolean>;
     /** `null` = LA LECTURE A EU LIEU et personne n'a rien dit de cette bouche. */
     habits: MemberHabitsView | null;
     /** Faux = la lecture n'a PAS eu lieu. Les deux `null` sont distincts. */
@@ -3355,6 +3608,13 @@ function MemberRow(
   },
 ) {
   /**
+   * ⟳ 2026-09-23 · FF-066 LOT 4 — LA CONFIRMATION EN DEUX TEMPS DE « RETIRER DU
+   * FOYER ». Le commentaire du bouton la promettait depuis A5; le bouton
+   * appelait `onRemove` au premier clic, et la base effaçait la ligne (sa part,
+   * ses allergies, ses règles de maison) sans retour possible.
+   */
+  const [confirmRemove, setConfirmRemove] = React.useState(false);
+  /**
    * QUELLE FENÊTRE EST OUVERTE — 2026-09-19.
    *
    * ⟳ IL REMPLACE `open` + `identityOpen` + `prefsOpen`. Les deux moitiés de la
@@ -3410,6 +3670,77 @@ function MemberRow(
   // C'est ce qui fait qu'une date de mineur tapée sur une bouche à `fat_loss`
   // plie la direction À L'ÉCRAN, avant le Save — et que le Save passe.
   const rowAge = ageStateOfTypedDate(draft.birthDate, member.ageState, todayLocalIso);
+
+  /* ══════════════════════════════════════════════════════════════════════
+     LOT A2, 2026-09-22 — LE BROUILLON DE SA CIBLE
+     ══════════════════════════════════════════════════════════════════════
+
+     ⚠️ IL PORTE LE CORPS, PAS SEULEMENT LES DEUX NOMBRES. `paceControlFor`
+     borne le curseur SUR CE CORPS-LÀ: un brouillon réduit à
+     `{goal, targetWeightKg}` proposerait un rythme calculé sur un corps
+     inexistant, c'est-à-dire un nombre inventé qui entre ensuite dans un
+     calcul d'énergie avec l'autorité d'une mesure.
+
+     ⚠️ ET IL SE RE-SÈME QUAND LA LECTURE CHANGE. `run` relit après chaque
+     écriture; un `useState` initialisé une seule fois garderait la photo
+     d'AVANT l'enregistrement, et le second Save reposerait cette photo —
+     cicatrice `stale-current-erases-the-previous-write`. La clé est la
+     VALEUR lue, donc une saisie en cours survit à tout re-rendu qui ne
+     change pas la base. */
+  const [targetDraft, setTargetDraft] = React.useState<MouthFormDraft>(() =>
+    memberTargetDraft(member, body, target)
+  );
+  const targetSeed = `${target?.targetWeightKg ?? ""}|${
+    target?.paceKgPerWeek ?? ""
+  }|${body?.heightCm ?? ""}|${body?.weightKg ?? ""}|${body?.gender ?? ""}|` +
+    `${body?.dayActivity ?? ""}|${body?.sportFrequency ?? ""}|${member.goal ?? ""}`;
+  // ⚠️ UN `useState`, PAS UN `useRef` — motif « ajuster l'état pendant le
+  // rendu »: la clé de semence doit participer au rendu qui la compare.
+  const [targetSeededFrom, setTargetSeededFrom] = React.useState(targetSeed);
+  if (targetSeededFrom !== targetSeed) {
+    setTargetSeededFrom(targetSeed);
+    setTargetDraft(memberTargetDraft(member, body, target));
+  }
+  /**
+   * LA DIRECTION ET LA DATE SONT **DÉRIVÉES**, PAS SEMÉES — ET C'EST LA MÊME
+   * RAISON QUE DANS L'ENTONNOIR.
+   *
+   * Les mettre dans la clé de semence ferait re-semer le brouillon à CHAQUE
+   * frappe dans le champ date ou à chaque clic sur une tuile — donc effacerait
+   * un poids visé en cours de saisie. On les dérive: le brouillon garde ce
+   * qu'on y tape, le curseur voit l'âge et la direction que la fiche montre.
+   *
+   * ⚠️ CHANGER DE DIRECTION VIDE LA CIBLE, comme sur la fiche d'ajout: les
+   * deux n'ont de sens que sous la direction qui les a produits, et
+   * `household_members_target_needs_direction_check` refuse une cible sur
+   * `maintenance`.
+   */
+  const rowShownGoal = goalForAge(draft.goal, rowAge);
+  const rowTargetDraft: MouthFormDraft = {
+    ...(rowShownGoal === targetDraft.goal ? targetDraft : {
+      ...targetDraft,
+      goal: rowShownGoal,
+      targetWeightKg: "",
+      paceKgPerWeek: "",
+    }),
+    // LA DATE TAPÉE GAGNE SUR CELLE DE LA BASE — même règle que `rowAge`.
+    birthDate: draft.birthDate || (knownBirthDate ?? ""),
+  };
+  /**
+   * LE CURSEUR SE REND-IL ? — TROIS PRÉMISSES, ET CHACUNE EST UN REFUS DE LA
+   * BASE OU UNE LECTURE MANQUANTE.
+   *
+   *   · `viewerIsOwner` — `keel_household_set_member_target` répond
+   *     `not_owner`. Un contrôle qui échoue à tous les coups est pire qu'un
+   *     contrôle absent, « parce qu'il promet »;
+   *   · `member.userId === null` — D1: la cible de qui a un COMPTE vit dans
+   *     son « about you » (`student_goals`), et le moteur lit
+   *     `household_members` EN PREMIER. Écrire ici par-dessus poserait, sur
+   *     la colonne prioritaire, un nombre que la personne n'a pas réglé.
+   *     C'est la même frontière que `goalEditable`, quelques lignes plus bas;
+   *   · `targetsLoaded` — la porte de chargement. Voir la prop.
+   */
+  const showTarget = viewerIsOwner && member.userId === null && targetsLoaded;
 
   /**
    * ══════════════════════════════════════════════════════════════════════════
@@ -3507,6 +3838,10 @@ function MemberRow(
       (habits?.slots ?? []).map((h) => [h.slot, h.usual]),
     ),
     light: { ...(habits?.light ?? {}) },
+    // ⟳ 2026-09-23 — SEMÉS POUR LA MÊME RAISON QUE LES BULLES: `emptyMouthDraft`
+    // les met à `{}`, et la porte REMPLACE la liste — oublier cette ligne ne
+    // casse aucun type, et efface le réglage au premier « Terminé ».
+    sideCourses: { ...(habits?.sideCourses ?? {}) },
   }), [
     member.displayName,
     member.goal,
@@ -3515,6 +3850,15 @@ function MemberRow(
     habits,
   ]);
   const [prefsDraft, setPrefsDraft] = React.useState<MouthFormDraft>(prefsSeed);
+  /**
+   * ⟳ 2026-09-23 — LA RÉPONSE D'UN CLIC SUR SES À-CÔTÉS, LE TEMPS DE L'ÉCRITURE.
+   *
+   * `null` = rien en vol: le champ montre la LECTURE. Sans cet état, le bouton
+   * cliqué ne s'allumerait qu'après l'aller-retour et la relecture — un geste
+   * qui a l'air de ne rien faire. Un refus remet `null`, donc la lecture, qui
+   * n'a pas bougé: l'écran ne garde jamais une réponse que la base a refusée.
+   */
+  const [sidePending, setSidePending] = React.useState<SideCoursesDraft | null>(null);
   /**
    * ⚠️ LA DÉPENDANCE EST LA VALEUR LUE, SÉRIALISÉE — comme `MeFiche`. Un
    * re-rendu qui rend la même lecture ne touche à rien, donc une saisie en
@@ -3547,46 +3891,13 @@ function MemberRow(
     subject: `member:${member.memberId}`,
   });
 
-  /**
-   * CE QUI EST DÉJÀ RENSEIGNÉ DERRIÈRE LE CADRE REPLIÉ — A5 (D5.1).
-   *
-   * ⚠️ C'EST LA CONTREPARTIE DU REPLI, PAS UNE DÉCORATION. Le repli avait été
-   * retiré le 2026-08-19 sur le motif exact « une réponse repliée est une
-   * réponse invisible »; sans ce résumé, refermer « Préférences alimentaires »
-   * cacherait un régime déjà choisi et une allergie déjà cochée sur un écran
-   * dont le seul travail est de dire ce qu'on sait de quelqu'un.
-   *
-   * ⚠️ ON PASSE PAR `filledPreferenceBlocks`, LE MÊME COMPTEUR QUE LA FICHE,
-   * et pas par un compte maison: c'est lui qui porte les deux cicatrices
-   * (« une bulle éteinte compte si son moment a été RÉPONDU »,
-   * « `allergiesNone` est une réponse »). Deux comptes divergeraient sur ces
-   * deux-là, et c'est l'écran le moins relu qui aurait tort.
-   *
-   * ⛔ IL PEUT SOUS-CLAMER, JAMAIS SUR-CLAMER, et le manque qui reste est
-   * NOMMÉ: `allergiesNone` est un geste de la fiche que rien ne RELIT sur une
-   * bouche (l'accusé vit sur la ligne `student_goals` du maître, pas sur elle),
-   * donc il part à `false`. Le shaker, lui, a maintenant son contrôle et il
-   * voyage dans le brouillon.
-   */
-  const filledBlocks = React.useMemo(
-    () =>
-      filledPreferenceBlocks({
-        ...prefsDraft,
-        // ⛔ LES ALLERGIES VIENNENT DE LA LECTURE, PAS DU BROUILLON, et c'est
-        // la même règle que `MeFiche`: leur porte AJOUTE (`add_allergy`), donc
-        // le brouillon ne les sème pas — le compter sur lui dirait « rien » à
-        // quelqu'un qui en a trois.
-        allergies: allergies.map((a) => a.label),
-        allergiesNone: false,
-        // ⛔ `dislikes`, JAMAIS `restrictions.map(r => r.label)`. Le brouillon
-        // se semait avec les RÈGLES DE MAISON: rouvrir la fiche et enregistrer
-        // recopiait chaque interdit parental en préférence de la bouche — une
-        // migration de données faite par accident, sur un sens qu'aucun libellé
-        // ne porte (le sort des lignes existantes est une décision humaine).
-        dislikes,
-      }),
-    [prefsDraft, allergies, dislikes],
-  );
+  /* ⛔ `filledBlocks` A ÉTÉ RETIRÉ D'ICI — ⟳ 2026-09-21, même geste et même
+     raison que sur la carte du titulaire: son seul lecteur était le résumé
+     de la carte. Le pavé qui portait ses trois gardes (allergies lues et
+     non semées, `allergiesNone` qui sous-clame, `dislikes` jamais semé
+     depuis les règles de maison) vivait ici; ces gardes restent VRAIES et
+     écrites dans `filledPreferenceBlocks` et dans le cadre qui l'appelle. */
+
 
   /**
    * LES MOMENTS DE CETTE PERSONNE — les LIGNES de la carte des habitudes.
@@ -3669,54 +3980,53 @@ function MemberRow(
             `Modal` démonte ses enfants — le brouillon d'un cadre ne survivrait
             pas au passage à l'autre.
 
-            ⚠️ DEUX TEXTES SOULIGNÉS, PAS DEUX BOUTONS PLEINS: huit bouches
-            feraient seize actions principales. La teinte de marque reste celle
-            de la navigation (charte §2). */}
-        <span className="ml-auto flex flex-wrap items-center gap-3">
-          <button
-            className="text-fig-700 underline"
+            ⟳ 2026-09-21 — ELLES ÉTAIENT DEUX TEXTES SOULIGNÉS. Le motif
+            d'alors: « PAS DEUX BOUTONS PLEINS: huit bouches feraient seize
+            actions principales ». Renversé sur demande — « ils vont pas dans
+            la DA ceux-là ».
+
+            ⚠️ `secondary`, ET C'EST CE QUI GARDE LA MOITIÉ VRAIE DE L'ANCIEN
+            MOTIF: un bouton de contour n'est pas une action principale. Le
+            plein reste au geste qui débloque la composition. */}
+        <span className="ml-auto flex flex-wrap items-center gap-2">
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => openSheet("identity")}
           >
             {t("household.member.frame_identity")}
-          </button>
-          <button
-            className="text-fig-700 underline"
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => openSheet("preferences")}
           >
             {t("household.member.frame_preferences")}
-          </button>
+          </Button>
         </span>
       </div>
 
-      {/* ── CE QUE LA FICHE REPLIÉE DIT QUAND MÊME ────────────────────────
-          LA CONTREPARTIE DU REPLI, PAS UNE DÉCORATION — c'est la règle que ce
-          dépôt s'est donnée le 2026-08-19 (« une réponse repliée est une réponse
-          invisible ») et qu'il paie depuis A5 dans les cadres de la fiche. Elle
-          vaut maintenant d'un cran au-dessus: la fiche entière est repliée, donc
-          c'est la CARTE qui doit dire ce qu'elle cache.
+      {/* ══════════════════════════════════════════════════════════════════
+          ⛔ ICI SE TENAIT « CE QUE LA FICHE REPLIÉE DIT QUAND MÊME » — RETIRÉ
+             LE 2026-09-21, SUR DEMANDE.
+          ══════════════════════════════════════════════════════════════════
 
-          ⚠️ MÊME COMPTEUR ET MÊMES PHRASES QUE LES CADRES (`filledBlocks`,
-          `household.mouth.preferences_filled` / `_empty`): un second compte
-          divergerait sur les deux cas qui comptent — une bulle éteinte sur un
-          moment RÉPONDU, et « aucune allergie » qui EST une réponse. */}
-      {/* ⛔ RIEN TANT QUE LA LECTURE N'A PAS EU LIEU — `habitsLoaded`, la même
-          garde que le cadre des préférences. Un résumé calculé sur une lecture
-          non faite dirait « rien de renseigné » à quelqu'un qui a tout rempli,
-          et il le dirait sur la carte REPLIÉE, c'est-à-dire à qui ne l'ouvrira
-          pas pour vérifier. On ne rend pas ce qu'on ne sait pas. */}
-      {habitsLoaded ? (
-        <p className="mt-1 text-xs leading-5 text-ink-soft">
-          {filledBlocks.length === 0
-            ? t("household.mouth.preferences_empty")
-            : t("household.mouth.preferences_filled", {
-              blocks: blockList(
-                filledBlocks.map((b) =>
-                  t(`household.mouth.block_${b}` as "household.mouth.block_identity")
-                ),
-              ),
-            })}
-        </p>
-      ) : null}
+          Une ligne par bouche: « Rien de renseigné — le plan se compose sans.
+          Ça se remplit plus tard. », ou « Déjà renseigné : ses dégoûts et son
+          régime. » Sur un foyer de trois, trois lignes de gris sous trois
+          paires de portes.
+
+          ⚠️ CE QU'ELLE PAYAIT, ET IL FAUT LE SAVOIR: « une réponse repliée est
+          une réponse invisible » (2026-08-19). La carte est repliée, donc elle
+          disait ce qu'elle cache. Ce qui rend le retrait tenable est que les
+          deux portes restent nommées et visibles — et elles sont maintenant
+          des boutons, donc plus lisibles qu'avant.
+
+          ⚠️ `filledPreferenceBlocks`, `habitsLoaded` ET LES DEUX CLÉS RESTENT
+          VIVANTS: le cadre repliable du formulaire (`SheetFrame summary=`) les
+          emploie toujours, et là-bas le résumé EST la contrepartie du repli —
+          on y referme un formulaire qu'on vient de remplir. Les retirer
+          « puisque la carte ne s'en sert plus » casserait cet autre écran. */}
 
       {/* ── A5 §5.5 · L'ACCÈS, DANS L'EN-TÊTE DE LA LIGNE ─────────────────
           Il vivait dans une carte tout en bas, derrière un menu déroulant qui
@@ -3832,10 +4142,66 @@ function MemberRow(
           />
           ) : null}
 
+          {/* ══════════════════════════════════════════════════════════════
+              LOT A2, 2026-09-22 — LE POIDS VISÉ ET LE CURSEUR DE RYTHME
+              ══════════════════════════════════════════════════════════════
+
+              ── LE FAIT MESURÉ ────────────────────────────────────────────
+              Cette fiche n'en portait AUCUN des deux. Conséquence sur le
+              foyer de test: une bouche réglée à 0,45 kg/semaine avant le
+              resserrement du 2026-09-21 restait figée là, alors que sa borne
+              était passée à 0,80 — et personne, sur aucun écran, ne pouvait
+              l'y amener. Le curseur existait pourtant, à deux endroits
+              (l'entonnoir et la fiche d'ajout); il manquait exactement là où
+              on va corriger quelqu'un qui est déjà inscrit.
+
+              ── ⚠️ SOUS LE CORPS, ET PAS AU-DESSUS ────────────────────────
+              Le plafond du curseur est borné par ce corps: tant qu'il manque,
+              ce bloc ne rend qu'une phrase (`pace_needs_body`) qui renvoie
+              « juste au-dessus ». Le monter avant `BodyFields` ferait pointer
+              cette phrase vers un bloc situé PLUS BAS — la cause exacte du
+              silence mesuré le 2026-08-18 sur la fiche du maître.
+
+              ⛔ IMPORTÉ, JAMAIS RECOPIÉ. Voir l'import en tête de fichier. */}
+          {showTarget ? (
+            <TargetAndPaceFields
+              draft={rowTargetDraft}
+              onChange={setTargetDraft}
+              todayLocalIso={todayLocalIso}
+              // ⚠️ UN PRÉFIXE PAR BOUCHE. Huit fiches peuvent être ouvertes
+              // l'une après l'autre dans la même page; deux `id` identiques
+              // feraient qu'un `<label for>` désigne le contrôle d'une autre
+              // personne. Même raison que les deux cartes de l'entonnoir.
+              idPrefix={`member-${member.memberId}`}
+              // ⚠️ LA VOIX EST OBLIGATOIRE: la phrase d'arrivée TUTOIE, et
+              // cette fiche se règle pour quelqu'un d'autre. Sans elle,
+              // « tu seras à ton objectif » s'afficherait sous le prénom d'un
+              // tiers — la cicatrice déjà payée sur cet écran.
+              voice={isMe ? "self" : "other"}
+              who={member.displayName === "—"
+                ? t("household.mouth.who_fallback")
+                : member.displayName}
+            />
+          ) : null}
+
             <div className="flex flex-wrap items-center gap-2">
             <Button
               disabled={busy || !draft.firstName.trim()}
               onClick={async () => {
+                // ⚠️ LA PAIRE EST CALCULÉE **AVANT** L'ATTENTE, et ce n'est
+                // pas du style: `onSave` passe par `run`, qui RELIT la page et
+                // re-sème ce brouillon. Lire la paire après l'attente rendrait
+                // la valeur d'avant le geste — c'est-à-dire un curseur qu'on
+                // pousse et qui revient tout seul.
+                // ⛔ ET PAS QUAND LE CORPS MANQUE. `targetPayloadOf` rend
+                // `(null, null)` aussi bien sur `maintenance` — où effacer est
+                // le geste légitime — que sur un corps qu'on ne connaît pas,
+                // où AUCUN contrôle n'est à l'écran: là, écrire effacerait une
+                // cible posée ailleurs, sans que personne n'ait rien demandé.
+                const pair =
+                  showTarget && !targetWriteIsBlind(rowTargetDraft, todayLocalIso)
+                    ? targetPayloadOf(rowTargetDraft, todayLocalIso)
+                    : null;
                 const ok = await onSave({
                   firstName: draft.firstName,
                   birthDate: draft.birthDate || null,
@@ -3844,6 +4210,20 @@ function MemberRow(
                   // en `maintenance`, et `saveMember` l'écrit AVANT la date.
                   goal: goalForAge(draft.goal, rowAge) || null,
                 });
+                // ⚠️ LA DIRECTION D'ABORD, LA CIBLE ENSUITE, ET L'ORDRE EST
+                // UNE CONTRAINTE DE LA BASE:
+                // `household_members_target_needs_direction_check` refuse une
+                // cible chiffrée tant que `goal` n'est pas `fat_loss` ou
+                // `muscle_gain`. Écrire la paire en premier ferait échouer le
+                // tout premier réglage de quelqu'un qui vient de choisir sa
+                // direction dans la même fenêtre.
+                //
+                // ⚠️ ET SEULEMENT SI LA DIRECTION EST PASSÉE: sur un refus, la
+                // base porte encore l'ancienne, et la paire d'à côté irait se
+                // poser sous une direction qui ne l'attend pas.
+                if (ok && pair !== null) {
+                  await onSaveTarget(pair.targetWeightKg, pair.paceKgPerWeek);
+                }
                 if (ok) setDraft((d) => ({ ...d, birthDate: "" }));
               }}
             >
@@ -3879,9 +4259,36 @@ function MemberRow(
                 au fond de la fiche ouverte, derrière une confirmation en deux
                 temps, pas dans un en-tête qu'on parcourt. */}
             {viewerIsOwner && member.role !== "owner" ? (
-              <Button variant="danger" disabled={busy} onClick={onRemove}>
-                {t("household.member.remove")}
-              </Button>
+              !confirmRemove
+                ? (
+                  <Button variant="danger" disabled={busy} onClick={() => setConfirmRemove(true)}>
+                    {t("household.member.remove")}
+                  </Button>
+                )
+                : (
+                  <>
+                    <span className="text-sm font-medium text-ink">
+                      {t("household.member.remove_confirm")}
+                    </span>
+                    <Button
+                      variant="danger"
+                      disabled={busy}
+                      onClick={() => {
+                        setConfirmRemove(false);
+                        onRemove();
+                      }}
+                    >
+                      {t("household.member.remove_confirm_yes")}
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      disabled={busy}
+                      onClick={() => setConfirmRemove(false)}
+                    >
+                      {t("household.member.remove_cancel")}
+                    </Button>
+                  </>
+                )
             ) : null}
           </div>
           {/* Le geste ne se distingue pas par sa couleur: on ÉCRIT ce qu'il
@@ -4029,13 +4436,54 @@ function MemberRow(
                  ⚠️ PAS DE `viewerIsOwner` ICI: il vaut `false` par
                  construction. Le tester donnerait une branche morte qui a
                  l'air d'une garde. */
-              <HouseholdHabitsCard
-                slots={habitSlots}
-                habits={habits}
-                loaded={habitsLoaded}
-                busy={busy}
-                onSave={onSaveHabits}
-              />
+              <>
+                <HouseholdHabitsCard
+                  slots={habitSlots}
+                  habits={habits}
+                  loaded={habitsLoaded}
+                  busy={busy}
+                  // ⟳ 2026-09-23 — les à-côtés LUS partent avec la prose DEPUIS
+                  // la carte (le `carried` de `habitPayload` les porte): plus de
+                  // report au montage.
+                  onSave={onSaveHabits}
+                />
+                {/* ── ⟳ 2026-09-23 · SES À-CÔTÉS, SUR SA PROPRE LIGNE ────────
+                    « La personne peut le changer elle-même » (décision du
+                    propriétaire). La porte le lui permet: un membre écrit sa
+                    ligne d'habitudes (`not_your_line` seulement ailleurs).
+
+                    ⛔ PAS AVANT LA LECTURE: le champ écrit la liste ENTIÈRE,
+                    prose et léger compris, depuis `habits`. Rendu sur du vide
+                    non lu, un clic effacerait ses habitudes — la cicatrice
+                    `mount-snapshot-forms-need-a-loading-gate`.
+
+                    ⚠️ UN CLIC = UNE ÉCRITURE. Pas de second bouton
+                    « Enregistrer »: ce champ n'a pas de brouillon à part, et la
+                    réponse affichée pendant l'écriture est celle du clic
+                    (`sidePending`), puis celle de la base relue. */}
+                {habitsLoaded ? (
+                  <div className="border-t border-line pt-3">
+                    <SideCoursesField
+                      value={sidePending ?? habits?.sideCourses ?? {}}
+                      disabled={busy}
+                      onChange={(next) => {
+                        setSidePending(next);
+                        void onSaveHabits(
+                          habitEntriesToWrite({
+                            habits: Object.fromEntries(
+                              (habits?.slots ?? []).map((h) => [h.slot, h.usual]),
+                            ),
+                            light: habits?.light ?? {},
+                            sideCourses: next,
+                            occasions: EATING_OCCASIONS,
+                          }),
+                          habits?.note ?? null,
+                        ).finally(() => setSidePending(null));
+                      }}
+                    />
+                  </div>
+                ) : null}
+              </>
             )}
           {/* ⛔ LES ALLERGIES ET LES RÈGLES DE MAISON SONT AU MAÎTRE (A5
               point 6). `add_allergy` / `add_restriction` répondent `not_owner`.

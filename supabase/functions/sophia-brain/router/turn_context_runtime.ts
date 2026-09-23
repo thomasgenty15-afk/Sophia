@@ -107,6 +107,9 @@ export function dispatcherSignalsFromTurnFrame(args: {
     // indiscernable d'un lot qui marche.
     rule_question: turnFrame?.skill_signals?.rule_question ??
       DEFAULT_SIGNALS.rule_question,
+    // FF-066 — même chaînon, même raison: oublié ici, le signal resterait à
+    // `{detected:false}` et l'aide ne partirait jamais, sans une ligne d'erreur.
+    app_help: turnFrame?.skill_signals?.app_help ?? DEFAULT_SIGNALS.app_help,
   };
 }
 

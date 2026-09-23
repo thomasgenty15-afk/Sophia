@@ -345,8 +345,11 @@ Deno.test("⛔ L'APPLICATION ÉCRIT L'`amount` ET RENUMÉROTE LA PROSE", () => {
   const lines = new Map([["u#0:huile d'olive", line]]);
   const counts = applyAdjustment({
     lines,
+    // ⟳ 2026-09-22 · LOT B DU PLAFOND PROTÉIQUE — `applyAdjustment` ne lit que
+    // `units`, et son type le dit désormais. Ce littéral portait sept champs
+    // que l'écrivain n'a jamais ouverts; les garder ferait croire qu'il en
+    // dépend, et interdirait au second ajusteur d'employer le même écrivain.
     result: {
-      outcome: "closed",
       units: [{
         unitId: "u",
         kind: "preparation",
@@ -369,13 +372,6 @@ Deno.test("⛔ L'APPLICATION ÉCRIT L'`amount` ET RENUMÉROTE LA PROSE", () => {
           fixedReason: null,
         }],
       }],
-      moves: [],
-      consumers: [],
-      components: [],
-      remaining: [],
-      fixedUnits: [],
-      // deno-lint-ignore no-explicit-any
-      counts: {} as any,
     },
   });
   assertEquals(counts.rewritten, 1);

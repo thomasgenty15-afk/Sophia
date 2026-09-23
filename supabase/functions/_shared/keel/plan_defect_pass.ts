@@ -64,6 +64,7 @@ import type {
   RepairSessionIndex,
   RepairUnitIndex,
 } from "./plan_repair_unit.ts";
+import type { RepairHouseholdContext } from "./side_courses_types.ts";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // ⓪ ⟳ 2026-09-12 · LOT 2 — LE CONTRAT D'UNE CASE, TEL QUE LE MOTEUR L'A POSÉ
@@ -276,6 +277,19 @@ export function nutritionMagnitudes(
       }
       continue;
     }
+    if (r.cause === "protein_ceiling_over") {
+      // ⟳ 2026-09-21 — même clé que le plancher (bouche + date), l'ampleur
+      // est ce qui DÉPASSE le plafond couvert.
+      const row = nutrition.days.find((d) =>
+        d.memberId === r.member_id && d.date === r.day
+      );
+      const ceiling = row?.protein.coveredCeilingG ?? null;
+      const now = row?.proteinG ?? null;
+      if (row && ceiling !== null && now !== null && now > ceiling) {
+        out.set(key, now - ceiling);
+      }
+      continue;
+    }
     if (r.cause === "day_energy_off") {
       const row = nutrition.days.find((d) =>
         d.memberId === r.member_id && d.date === r.day
@@ -439,7 +453,12 @@ export function nutritionReadout(
         unnumbered++;
         continue;
       }
-      measures.set(key, { of: "protein", servedG: now, floorG: floor });
+      measures.set(key, {
+        of: "protein",
+        servedG: now,
+        floorG: floor,
+        ceilingG: row.protein.coveredCeilingG,
+      });
       // ⛔ « AU MOINS », ET AUCUNE CONSIGNE DE MAXIMISATION. La revue § 7 le
       // mesure: environ 276–292 g servis pour un plancher de 176 g. « Sans
       // conclure à un risque médical, cette marge n'est pas un critère de
@@ -450,6 +469,34 @@ export function nutritionReadout(
         `that day's plates carry ${round(now)} g of protein and they must carry ` +
           `at least ${round(floor)} g. Reaching the floor is enough — going far ` +
           `above it is not better.`,
+      );
+      continue;
+    }
+    if (r.cause === "protein_ceiling_over") {
+      // ⟳ 2026-09-21 — LE SENS INVERSE, ET OÙ RETIRER: chez ce qu'on mange
+      // seul. Mesuré: le dépassement venait d'un goûter de thon, jamais de la
+      // casserole partagée — la toucher ferait descendre toute la table.
+      const row = journeeOf(r);
+      const ceiling = row?.protein.coveredCeilingG ?? null;
+      const now = row?.proteinG ?? null;
+      if (row === null || ceiling === null || now === null) {
+        unnumbered++;
+        continue;
+      }
+      measures.set(key, {
+        of: "protein",
+        servedG: now,
+        floorG: row.protein.coveredFloorG,
+        ceilingG: ceiling,
+      });
+      details.set(
+        key,
+        `that day's plates carry ${round(now)} g of protein and they must carry ` +
+          `at most ${round(ceiling)} g. Take the protein out of what this person ` +
+          `eats ALONE first — a snack or a dish of their own: swap tinned fish, ` +
+          `cheese or a second meat for starch, fruit, nuts or vegetables, at the ` +
+          `same calories. A shared dish stays as it is unless its line below says ` +
+          `everyone at that table is above their floor.`,
       );
       continue;
     }
@@ -838,6 +885,8 @@ export interface RepairDayContext {
   readonly dayToken: string;
   readonly proteinNowG: number | null;
   readonly proteinFloorG: number | null;
+  /** ⟳ 2026-09-21 — le plafond couvert de la journée, ou `null`. */
+  readonly proteinCeilingG: number | null;
   readonly kcalNow: number | null;
   readonly kcalBudget: number | null;
   /** Les plats qui nourrissent cette journée-là, dans l'ordre du jour. */
@@ -847,6 +896,16 @@ export interface RepairDayContext {
     readonly proteinG: number | null;
     readonly servedKcal: number | null;
     readonly grams: number | null;
+    /** ⟳ 2026-09-21 — d'autres bouches mangent ce plat à cette case. */
+    readonly shared: boolean;
+    /**
+     * ⟳ 2026-09-21 — vrai quand le plat est partagé ET que chaque autre
+     * bouche de la case est au-dessus de son plancher (marge de 10 %): sa
+     * protéine peut descendre sans affamer personne. C'est le seul geste qui
+     * ramène un gros mangeur sous son plafond quand ses cases seules sont
+     * déjà justes — mesuré: Thomas à +56 % avec des collations à la carte.
+     */
+    readonly sharedLowerable: boolean;
   }[];
 }
 
@@ -893,6 +952,125 @@ export const REPAIR_MAX_BLOCKS = 40;
  */
 export const REPAIR_DEFECT_HARD_CHARS = 30_000;
 
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ 2026-09-23 — LE PLAFOND DU FOYER DANS LA RÉPARATION, EN CARACTÈRES
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * Les quatre blocs de `RepairHouseholdContext` (notes, fiches, recette de
+ * référence, à-côtés) passent en ENTIER ou pas du tout — un bloc coupé au
+ * milieu est un contexte amputé présenté comme complet. L'audit du 2026-09-23
+ * estime l'ajout à ~3 Ko sur le foyer audité; 8 000 laisse la marge d'un
+ * foyer de six sans laisser passer un corpus de notes sans fond. Le plafond
+ * porte sur le CONTENU des blocs ; l'en-tête fixe (quatre lignes) s'y ajoute.
+ *
+ * ⚠️ AU-DELÀ, ON LE DIT (`household.dropped`), et si ce sont les NOTES qui ne
+ * tiennent pas, on ne part pas (`contextIncomplete`) : sans elles, la
+ * réparation a resservi des œufs à Christèle sur e0325544.
+ */
+export const REPAIR_HOUSEHOLD_MAX_CHARS = 8_000;
+
+/**
+ * LES QUATRE BLOCS DU FOYER, DANS L'ORDRE OÙ ILS ENTRENT SOUS LE PLAFOND.
+ *
+ * ⛔ Les notes d'abord : ce que quelqu'un a demandé d'éviter est la seule
+ * perte qui fait resservir un aliment refusé. Puis les fiches (qui mange, avec
+ * quel objectif), la recette de référence (ce qu'est une part), les à-côtés.
+ * Le RENDU, lui, suit l'ordre de lecture : qui, ce qu'ils ont demandé, une
+ * part, les à-côtés.
+ */
+export const REPAIR_HOUSEHOLD_BLOCKS = [
+  "notes",
+  "cards",
+  "standardRecipe",
+  "sideCourses",
+] as const;
+export type RepairHouseholdBlock = (typeof REPAIR_HOUSEHOLD_BLOCKS)[number];
+
+/** L'ordre de lecture des blocs dans le message. */
+const HOUSEHOLD_READING_ORDER: readonly RepairHouseholdBlock[] = [
+  "cards",
+  "notes",
+  "standardRecipe",
+  "sideCourses",
+];
+
+/** Ce que le rendu du foyer a produit, et ce qu'il a laissé dehors. */
+export interface RepairHouseholdRender {
+  readonly lines: readonly string[];
+  /** Les blocs rendus, dans l'ordre de lecture. */
+  readonly kept: readonly RepairHouseholdBlock[];
+  /** Les blocs NON VIDES laissés dehors par le plafond. */
+  readonly dropped: readonly RepairHouseholdBlock[];
+  /** Les blocs vides — rien à dire, pas une perte. */
+  readonly empty: readonly RepairHouseholdBlock[];
+  readonly chars: number;
+}
+
+/**
+ * ⟳ 2026-09-23 — LE FOYER, RENDU POUR LA RÉPARATION.
+ *
+ * ⛔ CE QU'IL FERME, MESURÉ (audit du 2026-09-23, lot 4 d). La réparation ne
+ * recevait ni les fiches, ni les notes, ni la recette de référence : sur
+ * cc012345 elle a réécrit 12 boîtes — sardines et 3 tranches de pain, tofu au
+ * déjeuner, 200 g de yaourt pour tout le monde ; sur e0325544 elle a resservi
+ * des œufs à Christèle. Elle composait pour une table qu'on ne lui avait pas
+ * décrite.
+ *
+ * ⚠️ LES BLOCS SONT DÉJÀ RÉDIGÉS PAR L'APPELANT, par les mêmes fonctions que le
+ * premier jet. Les réécrire ici serait une seconde formulation de la même
+ * règle, à deux fichiers d'écart.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function repairHouseholdLines(
+  household: RepairHouseholdContext,
+  maxChars: number,
+): RepairHouseholdRender {
+  const texte = (b: RepairHouseholdBlock): string => String(household[b] ?? "").trim();
+  const empty = REPAIR_HOUSEHOLD_BLOCKS.filter((b) => texte(b) === "");
+  const kept = new Set<RepairHouseholdBlock>();
+  const dropped: RepairHouseholdBlock[] = [];
+  let used = 0;
+  for (const b of REPAIR_HOUSEHOLD_BLOCKS) {
+    const t = texte(b);
+    if (t === "") continue;
+    // +2 : la ligne vide qui sépare deux blocs.
+    if (used + t.length + 2 > maxChars) {
+      dropped.push(b);
+      continue;
+    }
+    used += t.length + 2;
+    kept.add(b);
+  }
+  const ordre = HOUSEHOLD_READING_ORDER.filter((b) => kept.has(b));
+  if (ordre.length === 0) {
+    return { lines: [], kept: [], dropped, empty, chars: 0 };
+  }
+  const lines = [
+    "== THE HOUSEHOLD THIS PLAN FEEDS — THE SAME FACTS THE FIRST PLAN WAS WRITTEN FROM ==",
+    // ⛔ L'ÉCHAPPATOIRE NOMMÉE : une réparation qui ne voit que ses défauts
+    // compose pour personne, et resservir un aliment refusé est exactement ce
+    // qu'elle a fait (œufs, e0325544).
+    "⛔ Every dish you return is eaten by these people. What a note asks to avoid",
+    // ⚠️ « below » NE RENVOIE À LA RECETTE QUE SI ELLE EST IMPRIMÉE : un renvoi
+    // vers un bloc absent est la cicatrice du « ci-dessus » qui ne pointe nulle
+    // part.
+    ...(kept.has("standardRecipe")
+      ? [
+        "stays avoided in the dishes you rewrite, and one serving stays the size of",
+        "the reference recipe below — fixing one figure never licenses breaking these.",
+      ]
+      : ["stays avoided in the dishes you rewrite — fixing one figure never licenses that."]),
+    "",
+  ];
+  for (const [k, b] of ordre.entries()) {
+    if (k > 0) lines.push("");
+    lines.push(...texte(b).split("\n"));
+  }
+  return { lines, kept: ordre, dropped, empty, chars: lines.join("\n").length };
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // ④ bis · ⟳ 2026-09-13 · LOT 1 — L'ADRESSE STRUCTURÉE D'UNE INSTRUCTION
 // ═══════════════════════════════════════════════════════════════════════════
@@ -917,6 +1095,7 @@ export const PERSONAL_DEFECT_CAUSES: ReadonlySet<string> = new Set([
   "cell_energy_off",
   "day_energy_off",
   "protein_floor_short",
+  "protein_ceiling_over",
   "mouth_energy_short",
   "mouth_unfed",
   "cell_without_portion",
@@ -1008,6 +1187,7 @@ export function repairMeasureFields(m: RepairMeasure): string {
         `measure=protein(${measureUnit(m)})`,
         `protein_served_g=${champ(m.servedG)}`,
         `protein_floor_g=${champ(m.floorG)}`,
+        `protein_ceiling_g=${champ(m.ceilingG)}`,
       ].join(" | ");
   }
 }
@@ -1387,14 +1567,28 @@ function repairDefectLines(args: {
     }
     const lignes = [
       tete,
-      `  On ${ctx.dayToken}, the plates served carry ${
-        num(ctx.proteinNowG)
-      } g of protein; they must carry at least ${num(ctx.proteinFloorG)} g.`,
+      d.cause === "protein_ceiling_over"
+        ? `  On ${ctx.dayToken}, the plates served carry ${
+          num(ctx.proteinNowG)
+        } g of protein; they must carry at most ${
+          num(ctx.proteinCeilingG)
+        } g. Take it out of what this person eats alone first.`
+        : `  On ${ctx.dayToken}, the plates served carry ${
+          num(ctx.proteinNowG)
+        } g of protein; they must carry at least ${num(ctx.proteinFloorG)} g.`,
     ];
     for (const dish of ctx.dishes) {
+      // ⟳ 2026-09-21 — SUR UN DÉPASSEMENT, CHAQUE PLAT DIT S'IL PEUT BAISSER.
+      const geste = d.cause !== "protein_ceiling_over"
+        ? ""
+        : !dish.shared
+        ? " This person's own dish: take the protein out HERE first."
+        : dish.sharedLowerable
+        ? " Shared, and everyone at this table is above their floor: its protein MAY come down."
+        : " Shared: leave it as it is, someone at this table needs it.";
       lignes.push(
         `  · "${dish.title}" at ${dish.slot} — ${num(dish.proteinG)} g protein, ` +
-          `${num(dish.servedKcal)} kcal, ${num(dish.grams)} g cooked, in one serving.`,
+          `${num(dish.servedKcal)} kcal, ${num(dish.grams)} g cooked, in one serving.${geste}`,
       );
     }
     if (ctx.kcalBudget !== null) {
@@ -1586,6 +1780,15 @@ export function planRepairMessage(args: {
    * sur ce plan. Le premier jet, lui, reçoit le catalogue et écrit des refs.
    */
   readonly catalogLines: readonly string[];
+  /**
+   * ⟳ 2026-09-23 — LE FOYER : fiches, notes, recette de référence, à-côtés.
+   *
+   * ⛔ REQUIS, JAMAIS `?`. Optionnel, « je n'ai pas le foyer » serait devenu la
+   * réponse silencieuse de chaque appelant — c'est l'état mesuré par l'audit
+   * (lot 4 d). Un bloc vide (`""`) est une réponse : rien à dire, rien
+   * d'imprimé. Voir `repairHouseholdLines`.
+   */
+  readonly household: RepairHouseholdContext;
   readonly softMaxChars?: number;
   readonly hardMaxChars?: number;
 }): PlanRepairMessage | null {
@@ -1631,11 +1834,15 @@ export function planRepairMessage(args: {
     `⚠️ ${args.scope.unresolved.length} other problem(s) could not be tied to a`,
     `meal we can let you change. They are not yours to fix in this answer.`,
   ];
+  // ⟳ 2026-09-23 — LE FOYER, ENTRE CE QUI NE VA PAS ET LE PLAN : le modèle
+  // lit ce qu'il doit corriger, POUR QUI il le corrige, puis ce qui existe.
+  const foyer = repairHouseholdLines(args.household, REPAIR_HOUSEHOLD_MAX_CHARS);
   return {
     text: [
       ...rejet,
       ...lignes,
       ...perdus,
+      ...(foyer.lines.length === 0 ? [] : ["", ...foyer.lines]),
       "",
       "== THE PLAN AS THE APP READS IT RIGHT NOW ==",
       projection.text,
@@ -1661,13 +1868,23 @@ export function planRepairMessage(args: {
     // un repas manquant / un interdit ». Un grammage de trop laissé dehors
     // n'est plus un arrêt : mesuré tir2-s2, ça empêchait de réparer le lundi
     // soir absent.
-    contextIncomplete: rendu.ownerless.length > 0 || rendu.incomplete,
+    //
+    // ⟳ 2026-09-23 — ET LES NOTES DU FOYER QUI NE TIENNENT PAS SOUS LEUR
+    // PLAFOND : partir sans elles, c'est la réparation qui resservait des œufs.
+    contextIncomplete: rendu.ownerless.length > 0 || rendu.incomplete ||
+      foyer.dropped.includes("notes"),
     defectCounts: {
       blocks: rendu.counts.blocks,
       dropped: rendu.counts.dropped,
       ownerless: rendu.ownerless.length,
     },
     ownerless: rendu.ownerless,
+    household: {
+      chars: foyer.chars,
+      kept: foyer.kept,
+      dropped: foyer.dropped,
+      empty: foyer.empty,
+    },
   };
 }
 
@@ -1701,6 +1918,16 @@ export interface PlanRepairMessage {
   };
   /** Les défauts personnels sans propriétaire, par cause et par case. */
   readonly ownerless: readonly string[];
+  /**
+   * ⟳ 2026-09-23 — ce que le foyer a coûté au message, et ce qui n'a pas
+   * tenu (`repairHouseholdLines`). À journaliser avec `defectCounts`.
+   */
+  readonly household: {
+    readonly chars: number;
+    readonly kept: readonly RepairHouseholdBlock[];
+    readonly dropped: readonly RepairHouseholdBlock[];
+    readonly empty: readonly RepairHouseholdBlock[];
+  };
 }
 
 /** Un nombre lisible, ou `?`. ⛔ Jamais `0` pour « on ne sait pas ». */

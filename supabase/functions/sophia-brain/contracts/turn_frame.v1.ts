@@ -198,6 +198,24 @@ export type DispatcherRuleQuestionSignal = {
   food?: string | null;
 };
 
+/**
+ * FF-066 · L'AIDE SUR L'APP — la personne demande COMMENT l'app fonctionne (où
+ * est un bouton, si un geste compte, ce que ça coûte).
+ *
+ * ⚠️ LE SIGNAL S'AJOUTE, IL NE CHOISIT PAS QUI RÉPOND (fiche R4). Il ne fait que
+ * charger 1 à 3 fiches dans le contexte du composeur (`_shared/keel/app_help/`).
+ * Un tour de crise le perd avec tous les autres signaux (`safetyBlocksToolSkills`).
+ *
+ * `topics` est BRUT: le parseur ne garde que des identifiants de
+ * `APP_HELP_TOPIC_IDS`, trois au plus, et rend `unknown_feature` s'il n'en reste
+ * aucun. `dropped_topics` garde ce qu'il a jeté, pour le log seulement.
+ */
+export type DispatcherAppHelpSignal = {
+  detected: boolean;
+  topics?: string[];
+  dropped_topics?: string[];
+};
+
 export type DispatcherSkillSignals = {
   // W2.A: `feature_opportunity` (initiatives / coach_preferences) est retiré
   // du contrat de signaux — la lane n'est plus routable. Le type de contexte
@@ -220,6 +238,8 @@ export type DispatcherSkillSignals = {
   profile_statement?: DispatcherProfileStatementSignal;
   // LOT M6 — la porte d'entrée du modèle vers la révocation par la question.
   rule_question?: DispatcherRuleQuestionSignal;
+  // FF-066 — la porte d'entrée du modèle vers les fiches d'aide sur l'app.
+  app_help?: DispatcherAppHelpSignal;
 };
 
 export type DispatcherMemoryTargetType =

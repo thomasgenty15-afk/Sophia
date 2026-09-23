@@ -2,7 +2,7 @@ import React from "react";
 import { supabase } from "../../lib/supabase";
 import { KeelAppShell } from "../components/KeelAppShell";
 import { Button } from "../components/ui/Button";
-import { Card, SectionLabel } from "../components/ui/Card";
+import { Card } from "../components/ui/Card";
 // `Field` n'est plus utilisé: les deux zones de texte qu'il habillait ont
 // disparu de cet écran (« Your situation » retirée, l'aspiration passée dans
 // l'option choisie, avec son propre `label`).
@@ -25,21 +25,23 @@ import {
 } from "../api/planFeedback";
 import { windowDayOrder } from "../api/mealWindow";
 import { selectMyShare } from "../api/myShare";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { type ComposePlace, mayCompose } from "../api/planRouting";
 import {
   answerNote,
   type ComposeDraftInput,
   composeDraft,
+  discardDraft,
   editCells,
   type PlanDraft,
   readNote,
+  DRAFT_ORIGIN_PATH,
   recoverLatestDraft,
+  windowFromToday,
   waitForDraft,
   writeFromDraft,
   type DraftProgress,
 } from "../api/planDraft";
-import { draftProgressLabel } from "../lib/draftProgressLabel";
 import { loadMealPlans } from "../api/mealGeneration";
 // LA TABLE DES REFUS EST FERMÉE ET PARTAGÉE. Un jeton inconnu ressort tel quel,
 // jamais sous une phrase passe-partout: `note_unusable` est le seul refus que la
@@ -67,7 +69,9 @@ import { parseEatingRhythm } from "../api/mealGeneration";
 // case. Les quatre écrans lisent maintenant pareil, et `MealPickerGridProps.away`
 // refuse désormais un tableau sans jeton, à la compilation.
 import { type AwayMark, parseAwayMarks } from "../lib/presenceMarks";
-import { dishDayLabel, mealCopy } from "../api/mealLabels";
+// ⛔ `mealCopy` EST PARTI AVEC `rhythmSummary` (2026-09-21): il ne servait
+// qu'à nommer les moments de la ligne « Ta journée » de la carte retirée.
+import { dishDayLabel } from "../api/mealLabels";
 import { mergePracticalConstraints } from "../api/practicalConstraints";
 import { sendChatMessage } from "../api/chat";
 // `weekStartFor` — LOT D: la ligne d'envies est ancrée sur un LUNDI ISO, et la
@@ -119,8 +123,6 @@ import { goalOptions } from "../lib/goalOptions";
 // importés et pas réécrits: la règle d'affichage vient du serveur, et deux
 // écritures de « qui a le droit de voir ce bouton » finiraient par diverger sur
 // la garde la plus sensible du produit.
-import { EnergySwitches } from "../components/plan/EnergyReadout";
-import { useMealEnergy } from "../lib/useMealEnergy";
 import { buildMeasuresToken } from "../../../../supabase/functions/_shared/keel/weekly_flow.ts";
 
 /**
@@ -1112,6 +1114,7 @@ export default function StudentWeekPlanPage() {
   // lignes plus bas, et les épreuves échouaient sur du code bien présent.
   const { user } = useAuth();
   const userId = user?.id ?? null;
+  const navigate = useNavigate();
   const [state, setState] = React.useState<LoadState>({ kind: "loading" });
   const [goal, setGoal] = React.useState<GoalRow | null>(null);
   /**
@@ -1129,23 +1132,6 @@ export default function StudentWeekPlanPage() {
     HouseholdMealView | null
   >(null);
   const [isOwner, setIsOwner] = React.useState(false);
-  /**
-   * ⟳ 2026-09-10 · LOT 7 — MA PLACE, ENTIÈRE, ET `null` TANT QU'ELLE N'EST PAS
-   * LUE.
-   *
-   * ⛔ ELLE NE SE DÉDUIT PAS D'`isOwner`. Celui-ci démarre à `false`, et sous la
-   * règle du lot 7 un `false` VOUDRAIT DIRE « secondaire, cache le bouton » —
-   * donc l'écran d'un maître serait amputé pendant toute la durée de sa
-   * lecture, puis reviendrait. `null` dit « pas encore lu », et `composeRight`
-   * autorise sur `null`: le chemin majoritaire est le maître, et le refus, lui,
-   * existe côté serveur de toute façon.
-   *
-   * ⚠️ `loadMyHouseholdPlace` REND `{inHousehold:false, isOwner:false}` QUAND SA
-   * LECTURE ÉCHOUE. « Pas maître » n'y est donc jamais une preuve; seul
-   * `inHousehold: true` en est une. C'est pour ça que la règle porte sur la
-   * PAIRE et pas sur `isOwner` seul.
-   */
-  const [place, setPlace] = React.useState<ComposePlace | null>(null);
 
   /**
    * ══════════════════════════════════════════════════════════════════════
@@ -1174,11 +1160,89 @@ export default function StudentWeekPlanPage() {
   // ⛔ PLUS DE `draftNote` (lot 4, 2026-09-08): lire la phrase c'est
   // l'appliquer, et la retenir pour l'adoption la faisait relire — un cran
   // d'appétit appliqué deux fois. Voir `composeDraft`.
-  const [draftOpen, setDraftOpen] = React.useState(false);
+  /**
+   * ⟳ 2026-09-21 — UN BROUILLON EN ATTENTE NE SE PERD PLUS: LA FENÊTRE EST
+   * OUVERTE **TANT QU'IL EXISTE**.
+   *
+   * ── LE DÉFAUT, SIGNALÉ ────────────────────────────────────────────────
+   * « Quand on a un plan en attente d'être validé ou annulé, il faut que
+   * l'écran revienne à la pop-up du draft, sinon ça se perd et on peut plus
+   * jamais y accéder. » C'était exact DANS LA SESSION: « Laisser tomber »
+   * fermait la fenêtre (`setDraftOpen(false)`) et laissait `draft` en
+   * mémoire. Plus rien ne le montrait, et plus aucun geste ne le rouvrait —
+   * la seule issue était de recomposer, c'est-à-dire un tour de modèle de
+   * plus pour un brouillon déjà payé.
+   *
+   * ── LA RÈGLE ──────────────────────────────────────────────────────────
+   * Il n'y a plus d'état d'ouverture. La fenêtre est ouverte si et seulement
+   * si un brouillon existe; « Laisser tomber » le jette (`setDraft(null)`),
+   * l'adoption aussi. Deux états qui pouvaient diverger n'en font plus qu'un.
+   *
+   * ⚠️ ET ÇA REJOINT LA GARDE DU 2026-09-07 (`closeOnlyByButton`): on ne sort
+   * de cette fenêtre que par un de ses boutons. Un état « fermé mais
+   * existant » était le dernier chemin qui la contournait.
+   *
+   * ⟳ 2026-09-23 — « LAISSER TOMBER » EST UNE RÉPONSE, RANGÉE EN BASE.
+   * La ligne restait `done` jusqu'à son `expires_at`, et `recoverLatestDraft()`
+   * la rouvrait à chaque retour sur l'onglet. Signalé : « je viens de cliquer
+   * sur Laisser tomber, et ça me redemande de valider ». Un brouillon n'a que
+   * deux fins, « Valider » (`adopted`) ou « Laisser tomber » (`discarded`,
+   * `discardDraft`). Et un nouveau brouillon prêt refuse ceux qui n'ont pas eu
+   * de réponse (déclencheur en base, 20260923130000) : c'est le sens de « ça
+   * permet de pas faire 25k plans ».
+   */
   const [draftBusy, setDraftBusy] = React.useState(false);
   /** ⟳ 2026-09-15 · LOT B — le stade réel de la composition, lu dans la ligne. */
   const [draftProgress, setDraftProgress] = React.useState<DraftProgress | null>(null);
   const [draftFailure, setDraftFailure] = React.useState<string | null>(null);
+  /**
+   * ⟳ 2026-09-23 — UNE COMPOSITION EN VOL, RETROUVÉE AU MONTAGE ET SUIVIE.
+   * Distinct de `draftBusy`, qui couvre aussi l'adoption et la reprise depuis
+   * la fenêtre : seul ce cas-ci remet l'écran d'attente de `MealBuilder`.
+   */
+  const [resumingDraft, setResumingDraft] = React.useState(false);
+  /**
+   * ⟳ 2026-09-21 — D'OÙ VIENT L'APERÇU OUVERT, ET COMMENT IL S'ADOPTE.
+   *
+   * `null` = la carte « Prévisualiser » (première fenêtre libre,
+   * `prepare_next`). Sinon « Composer un autre plan » l'a remis à la page avec
+   * SON entrée (fenêtre, mode de cuisson) et SON intention: `replace_current`
+   * nomme le plan que l'adoption retirera. Un seul dialogue pour les deux
+   * gestes — reprise, cases refaites, adoption — et c'est ce champ qui dit
+   * lequel écrit quoi.
+   */
+  const [draftSource, setDraftSource] = React.useState<{
+    input: ComposeDraftInput;
+    intent: "replace_current" | "prepare_next";
+    replaces: string | null;
+  } | null>(null);
+  /**
+   * ⟳ 2026-09-21 — « COMPOSER UN AUTRE PLAN » PASSE PAR L'APERÇU. Vu à
+   * l'écran: le bouton écrivait le plan en un seul geste, sans la fenêtre
+   * d'aperçu ni « Ajuster le plan ». La page compose le brouillon (avec
+   * `replaces`, sinon la garde de chevauchement le refuse), l'ouvre, et
+   * l'adoption écrit avec la même intention.
+   */
+  const previewPlan = React.useCallback(async (args: {
+    input: ComposeDraftInput;
+    intent: "replace_current" | "prepare_next";
+    replaces: string | null;
+    onProgress: (progress: DraftProgress) => void;
+  }) => {
+    setDraftBusy(true);
+    setDraftFailure(null);
+    try {
+      const composed = await composeDraft(args.input, {
+        onProgress: args.onProgress,
+        replaces: args.intent === "replace_current" ? args.replaces : null,
+      });
+      setDraftSource({ input: args.input, intent: args.intent, replaces: args.replaces });
+      setDraft(composed);
+    } finally {
+      setDraftBusy(false);
+      setDraftProgress(null);
+    }
+  }, []);
   /**
    * LOT D — LE PLAN ÉCOULÉ QUI ATTEND SON RETOUR. `null` = il n'y en a pas, et
    * c'est le cas nominal.
@@ -1280,32 +1344,12 @@ export default function StudentWeekPlanPage() {
    * fenêtre, en quatre sections colorées.
    */
   const [setupOpen, setSetupOpen] = React.useState(false);
-  /**
-   * ⟳ LOT 5 — L'ÉTAT DES DEUX INTERRUPTEURS, POUR LA FENÊTRE « À PROPOS DE TOI ».
-   *
-   * ── POURQUOI ICI ET PAS DANS `MealBuilder` ────────────────────────────────
-   * Parce que la fenêtre vit sur CETTE page, et que le hook doit être monté au
-   * même niveau que ce qu'il pilote. Les deux instances (celle-ci et celle de
-   * `MealBuilder`) lisent la même réponse serveur et écrivent la même colonne;
-   * elles ne peuvent pas diverger sur la DÉCISION, seulement se recharger
-   * chacune de son côté — ce qui est le comportement voulu: `flip` recharge, il
-   * ne devine pas.
-   *
-   * ⚠️ `dishes: []` EST EXACT, PAS UN RACCOURCI. Cette instance ne rend aucun
-   * chiffre par plat: elle n'a besoin que de `switchOfferable`, `showing` et
-   * les deux bascules. Lui passer les plats de l'écran l'obligerait à les
-   * suivre pour rien.
-   *
-   * ⚠️ SANS PLAN VIVANT, `planId` VAUT `null` et le hook rend `no_plan`: la
-   * rangée ne s'affiche pas. C'est exact — il n'y a alors aucun chiffre à
-   * éteindre ni à rallumer.
-   */
-  const energySwitches = useMealEnergy({
-    planId: livePlans.current?.mealId ?? null,
-    // Un plan ÉCRIT: pas d'aperçu à chiffrer ici (2026-09-08).
-    draftId: null,
-    dishes: [],
-  });
+  // ⟳ 2026-09-23 · FF-066 LOT 4 — L'ÉTAT DES DEUX INTERRUPTEURS EST PARTI D'ICI,
+  // avec leur section. Ils vivaient dans la fenêtre « À propos de toi », que
+  // plus rien n'ouvrait depuis le 2026-09-21: un réglage de calories qu'on ne
+  // peut plus atteindre, c'est un chiffre qu'on ne peut plus faire taire. Leur
+  // seule adresse est maintenant `/app/about-you` (`StudentKnownPage`,
+  // `PlanNumbersSection`).
   /** L'ouverture automatique n'a lieu qu'une fois — voir `refresh`. */
   const openedOnce = React.useRef(false);
   const [busy, setBusy] = React.useState<string | null>(null);
@@ -1349,11 +1393,6 @@ export default function StudentWeekPlanPage() {
     try {
       const place = await loadMyHouseholdPlace(uid);
       setIsOwner(place.isOwner);
-      // LA PAIRE ENTIÈRE, pour `mayCompose`. Posée AVANT la sortie anticipée
-      // ci-dessous: un compte sans foyer est un état LU, et il doit cesser
-      // d'être « non lu » — sinon la carte d'aperçu resterait ouverte par
-      // ignorance plutôt que par droit.
-      setPlace({ inHousehold: place.inHousehold, isOwner: place.isOwner });
       if (!place.inHousehold) {
         setHousehold(null);
         setHouseholdMeal(null);
@@ -1640,16 +1679,11 @@ export default function StudentWeekPlanPage() {
     [goal],
   );
 
-  const rhythmSummary = React.useMemo(() => {
-    const slots = parseEatingRhythm(pc.eating_rhythm);
-    if (slots.length === 0) return null;
-    return slots
-      .map((o) => {
-        const label = mealCopy(`meals.slot.${o.slot}` as Parameters<typeof mealCopy>[0]);
-        return o.size ? `${label} (${o.size})` : label;
-      })
-      .join(" · ");
-  }, [pc.eating_rhythm]);
+  /* ⛔ ICI SE TENAIT `rhythmSummary` — la ligne « Ta journée » de la carte
+     « À propos de toi », retirée le 2026-09-21. Son SEUL lecteur était cette
+     carte: la fenêtre de réglages, elle, résume le rythme par sa propre
+     section. `personalSummary` et `cookingSummary` survivent pour cette
+     raison — ils sont passés en `summary` à deux `SetupSection`. */
 
   /**
    * CE QUE LE DERNIER PLAN A DEMANDÉ — et plus « ce que tu peux cuisiner ».
@@ -1700,20 +1734,6 @@ export default function StudentWeekPlanPage() {
   }, [savedBasics, reviews, measures, restricted]);
 
   /**
-   * ⟳ 2026-09-10 · LOT 7 — AI-JE LE DROIT DE COMPOSER, SUR CET ÉCRAN.
-   *
-   * Un seul lecteur pour la règle, et il gouverne DEUX surfaces de cette page:
-   * le formulaire de composition (`MealBuilder`) et la carte d'aperçu. Deux
-   * conditions à tenir d'accord, c'est une surface orpheline le jour où l'une
-   * bouge — et la surface orpheline serait ici un bouton qui ne peut que
-   * refuser.
-   *
-   * ⚠️ CE N'EST PAS LA GARDE. Le serveur rend 403 `not_owner` sur toutes ses
-   * entrées, et il doit continuer: une limite d'UI n'est pas une limite.
-   */
-  const canCompose = mayCompose(place);
-
-  /**
    * ══════════════════════════════════════════════════════════════════════
    * LA DEMANDE D'APERÇU — LES MÊMES ENTRÉES À CHAQUE TOUR.
    * ══════════════════════════════════════════════════════════════════════
@@ -1740,6 +1760,7 @@ export default function StudentWeekPlanPage() {
       ? addDays(anchor.startsOn, anchor.durationDays)
       : todayIso();
     return {
+      origin: "plan",
       // `exact` et pas `until_sunday`: la fenêtre libre commence là où le
       // dernier plan finit, ce qui n'est pas un dimanche en général. Demander
       // « jusqu'à dimanche » rendrait une fenêtre qui chevauche.
@@ -1811,25 +1832,52 @@ export default function StudentWeekPlanPage() {
   const recoveredDraftFor = React.useRef<string | null>(null);
   React.useEffect(() => {
     if (!userId || recoveredDraftFor.current === userId) return;
-    recoveredDraftFor.current = userId;
+    // ⛔ LA GARDE SE POSE À L'ATTERRISSAGE, PAS AU DÉPART. Posée ici, avant
+    // l'`await`, elle tuait la reprise en développement : `StrictMode` monte
+    // l'effet deux fois, le premier passage était annulé par son nettoyage
+    // et le second refusé par la garde — la ligne `done` était lue (une
+    // requête, 200) et jetée. Mesuré le 2026-09-21 sur `a74f96af`.
     let cancelled = false;
     void (async () => {
       try {
         const recoverable = await recoverLatestDraft();
         if (cancelled || recoverable === null) return;
+        // ⟳ 2026-09-21 — L'APERÇU ROUVRE SUR SA SURFACE D'ORIGINE. Demandé
+        // depuis l'entonnoir, il se rouvre dans l'entonnoir : « Laisser
+        // tomber » y ramène là où on était. Sans origine (ligne d'avant ce
+        // lot), il s'ouvre ici.
+        if (recoverable.origin === "setup") {
+          navigate(DRAFT_ORIGIN_PATH.setup, { replace: true });
+          return;
+        }
         setDraftBusy(true);
+        // ⟳ 2026-09-23 — L'ÉCRAN D'ATTENTE REVIENT AVEC L'ATTENTE. Sans ça, la
+        // page suivait la ligne en silence et la fenêtre surgissait à la fin :
+        // « je suis revenu sur le plan, le chargement avait disparu ».
+        if (recoverable.state === "in_flight") setResumingDraft(true);
         const recovered = recoverable.state === "done"
           ? recoverable.draft
           : await waitForDraft(recoverable.draftId, { onProgress: setDraftProgress });
         if (cancelled) return;
+        // ⟳ 2026-09-21 — LA SOURCE REVIENT AVEC L'APERÇU. Sans elle, le
+        // bouton adoptait en `prepare_next` un brouillon qui remplaçait le
+        // plan courant, et le serveur refusait le chevauchement.
+        setDraftSource({
+          // ⟳ 2026-09-22 — SA demande, relue dans la ligne ; la devinette de
+          // la page seulement pour une ligne d'avant ce lot.
+          input: recoverable.input ?? draftInput(),
+          intent: recoverable.replaces === null ? "prepare_next" : "replace_current",
+          replaces: recoverable.replaces,
+        });
         setDraft(recovered);
-        setDraftOpen(true);
         setDraftFailure(null);
       } catch (error) {
         if (!cancelled) setDraftFailure(draftRefusal(error));
       } finally {
         if (!cancelled) {
+          recoveredDraftFor.current = userId;
           setDraftBusy(false);
+          setResumingDraft(false);
           setDraftProgress(null);
         }
       }
@@ -1837,7 +1885,7 @@ export default function StudentWeekPlanPage() {
     return () => {
       cancelled = true;
     };
-  }, [userId, draftRefusal]);
+  }, [userId, draftRefusal, navigate, draftInput]);
 
   /**
    * COMPOSER UN APERÇU, ET OUVRIR LA FENÊTRE SUR CE QU'IL A RENDU.
@@ -1846,6 +1894,11 @@ export default function StudentWeekPlanPage() {
    * que `draft` est nul, et l'ouvrir d'abord ferait regarder un cadre vide
    * pendant deux minutes. Le geste dit qu'il travaille là où on a cliqué.
    */
+  // ⟳ 2026-09-23 — SANS APPELANT depuis le retrait de la carte d'aperçu
+  // (section 10, 2026-09-21), GARDÉE EXPRÈS: c'est le chemin `prepare_next`
+  // de l'aperçu, et des tests de câblage lisent sa définition dans la source
+  // (`setupDraftWiring`, `eatingRhythm`). Dérogation qui part avec elle.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const askForDraft = React.useCallback(async () => {
     setDraftBusy(true);
     setDraftFailure(null);
@@ -1860,9 +1913,9 @@ export default function StudentWeekPlanPage() {
       // d'aperçu (`onReadNote`, plus bas), qui LUI peut afficher la question et
       // attendre la réponse avant de recomposer.
       const composed = await composeDraft(draftInput(), { onProgress: setDraftProgress });
+      setDraftSource({ input: draftInput(), intent: "prepare_next", replaces: null });
       setDraft(composed);
       // (voir `draftRefusal` pour la traduction du motif)
-      setDraftOpen(true);
     } catch (e) {
       setDraftFailure(draftRefusal(e));
     } finally {
@@ -2158,64 +2211,30 @@ export default function StudentWeekPlanPage() {
           </Card>
         ) : null}
 
-        {/*
-          UNE CARTE, UN BOUTON — et les quatre réponses lisibles sans rien
-          ouvrir.
+        {/* ══════════════════════════════════════════════════════════════
+            ⛔ ICI SE TENAIT LA CARTE « À PROPOS DE TOI » — RETIRÉE 2026-09-21
+            ══════════════════════════════════════════════════════════════
 
-          Ce que la page montrait avant: quatre encadrés, quatre liens
-          « Change », quatre « Save », et les repas repoussés sous la ligne de
-          flottaison. Ce qu'elle montre maintenant: où on en est, et une porte.
-        */}
-        <Card>
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <SectionLabel className="mb-0">{t("plan.about.title")}</SectionLabel>
-            <Button variant="secondary" onClick={() => setSetupOpen(true)}>
-              {t(goal ? "plan.change" : "plan.about.setup")}
-            </Button>
-          </div>
+            Un en-tête, un bouton « Modifier », et quatre lignes de résumé:
+            Chiffres · Objectif · Ta journée · Dernier plan demandé. Elle était
+            l'INDEX de la fenêtre de réglages juste en dessous — « une carte,
+            un bouton, et les quatre réponses lisibles sans rien ouvrir ».
 
-          {/* SANS OBJECTIF, RIEN NE PEUT ÊTRE COMPOSÉ — et c'est la seule
-              phrase de la carte, parce que c'est le seul geste qui compte
-              tant qu'il n'est pas fait. */}
-          {!goal ? (
-            <p className="mt-3 max-w-[62ch] text-sm text-ink-soft">
-              {t("plan.about.empty")}
-            </p>
-          ) : (
-            <dl className="mt-3 space-y-2">
-              {/* UNE LIGNE PAR SECTION DE LA FENÊTRE, DANS LE MÊME ORDRE.
-                  Cette carte est l'index du dialogue: une section qui n'y a pas
-                  sa ligne est une section qu'on ne sait pas avoir oublié de
-                  remplir. */}
-              {([
-                [t("plan.about.numbers"), personalSummary],
-                [
-                  t("plan.about.goal"),
-                  goalOptions().find((g) => g.value === goal.goal)?.label ?? goal.goal,
-                ],
-                [t("plan.about.day"), rhythmSummary],
-                [t("plan.about.last_request"), cookingSummary],
-                // ⛔ LA LIGNE « CE QUE TU M'AS DIT » EST PARTIE AVEC SA
-                // SECTION (lot C). Cette carte est l'INDEX du dialogue: y
-                // laisser une ligne dont la section n'existe plus enverrait
-                // quelqu'un chercher un contrôle absent — et la ligne comptait
-                // des phrases d'un magasin qui n'atteint plus le prompt.
-                // L'archive se lit sur « Ce que Sophia sait de toi ».
-              ] as const).map(([label, value]) => (
-                <div key={label} className="flex flex-wrap gap-x-2 text-sm">
-                  <dt className="w-20 shrink-0 text-ink-soft">{label}</dt>
-                  {/* `min-w-0` sur l'enfant flex: sans lui, `min-width:auto`
-                      empêche le texte long de se replier et la carte déborde
-                      à 320 px. */}
-                  <dd className="min-w-0 flex-1 text-ink">
-                    {value ??
-                      <span className="text-ink-soft">{t("plan.about.not_set")}</span>}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          )}
-        </Card>
+            Retirée sur demande: « supprime la partie UI du "à propos de toi"
+            dans Le plan de ma semaine ». Ce que ça ne coûte pas, vérifié avec
+            l'utilisateur avant le geste: **les mêmes réglages s'atteignent par
+            le foyer** (`/app/household`, la fiche d'une bouche) et par
+            l'entonnoir (`/app/setup`). Aucun champ ne devient inaccessible.
+
+            ⚠️ CE QUE ÇA LAISSE OUVERT, ET IL FAUT LE SAVOIR: son bouton était
+            le SEUL ouvreur de la fenêtre pour quelqu'un qui a déjà un
+            objectif. Le second (`setSetupOpen(true)`, à la relecture) ne tire
+            qu'au tout premier passage, `!g && !openedOnce` — et la garde de
+            route envoie de toute façon un compte sans objectif sur
+            `/app/setup`. La fenêtre et ses quatre sections sont donc
+            probablement injoignables depuis cette page. Elles ne sont PAS
+            retirées ici: c'est trois cents lignes et quatre formulaires, et ce
+            lot-ci n'était pas ça. */}
 
         {/* LA FENÊTRE. Montée en permanence (voir `Modal`: `open === false`
             rend `null` mais l'appelant garde son état), donc un brouillon de
@@ -2437,34 +2456,10 @@ export default function StudentWeekPlanPage() {
           </div>
         </SetupSection>
 
-        {/* ⟳ LOT 5 · LES CHIFFRES — LA SECONDE ADRESSE DES DEUX INTERRUPTEURS.
-            ══════════════════════════════════════════════════════════════════
-            Ils vivaient UNIQUEMENT sous les plats, en bas de l'écran. Éteindre
-            était à un clic; rallumer demandait de revenir sur un plan et de
-            dérouler jusqu'au bout. Un réglage dont le geste inverse est une
-            fouille n'est pas un réglage — et R7 (« un chiffre qu'on ne peut
-            pas faire taire est un tracker ») a un corollaire: un chiffre qu'on
-            ne peut pas faire REVENIR est une porte à sens unique.
-
-            ⛔ ELLE SE PLACE APRÈS L'OBJECTIF, ET C'EST L'ARBITRAGE. C'est
-            l'objectif qui ouvre ces deux portes depuis le lot 4: les lire
-            l'une sous l'autre est ce qui rend la dérivation compréhensible
-            sans qu'on ait à l'expliquer.
-
-            ⚠️ LA SECTION ENTIÈRE DISPARAÎT quand `switchOfferable` est faux.
-            Un fronton « Les chiffres » posé au-dessus du vide dirait à
-            quelqu'un que son plancher TCA, son âge ou son coach protègent
-            qu'il existe un réglage de calories qu'on lui refuse — c'est-à-dire
-            encore lui parler de calories. `EnergySwitches` rend `null`, et le
-            `&&` retire le fronton avec. */}
-        {energySwitches.ready && energySwitches.switchOfferable && (
-          <SetupSection
-            title={t("plan.section.numbers.title")}
-            intro={t("plan.section.numbers.intro")}
-          >
-            <EnergySwitches energy={energySwitches} />
-          </SetupSection>
-        )}
+        {/* ⟳ 2026-09-23 · FF-066 LOT 4 — LA SECTION « CE QUE TON PLAN AFFICHE »
+            EST PARTIE D'ICI: cette fenêtre n'a plus d'ouvreur depuis le
+            2026-09-21 (voir plus haut). Elle vit sur `/app/about-you`, un écran
+            où l'on vient pour régler — ses gardes avec elle. */}
 
         {/* ══ 2026-09-19 · « COMMENT SE PASSE TA JOURNÉE » EST DÉMONTÉE ════
             ══════════════════════════════════════════════════════════════════
@@ -2611,6 +2606,9 @@ export default function StudentWeekPlanPage() {
           awayDays={parseAwayMarks(pc.away_days)}
           onAwaySaved={saveAwayDays}
           plansVersion={plansVersion}
+          onPreviewPlan={previewPlan}
+          resumedComposition={resumingDraft ? { progress: draftProgress } : null}
+          resumeFailure={draftFailure}
           onHouseholdComposed={async () => {
             const uid = (await supabase.auth.getUser()).data.user?.id;
             if (uid) await refreshHousehold(uid);
@@ -2665,8 +2663,9 @@ export default function StudentWeekPlanPage() {
           userId={userId}
           householdMealId={householdMeal?.mealId ?? null}
           planStartsOn={householdMeal?.startsOn ?? null}
-          busy={draftBusy}
-          onApprove={async () => {}}
+          // ⛔ `onApprove` et `busy` SONT PARTIS LE 2026-09-23 (FF-066 lot 4)
+          // avec « Je valide », qui n'enregistrait rien: cet appelant passait
+          // `async () => {}` et la carte affichait « Validé. ».
           // ⛔ `onRequestChange` A ÉTÉ RETIRÉ LE 2026-09-10 (lot 7). Il
           // composait un aperçu de SA propre semaine par la lane individuelle;
           // il n'y a plus qu'un moteur, et il refuse un secondaire par 403
@@ -2704,55 +2703,13 @@ export default function StudentWeekPlanPage() {
             touché — `member_portions` est toujours écrit et toujours lu par
             les plats. */}
 
-        {/* ── 10 · L'APERÇU (Lot C) ───────────────────────────────────────
-            SOUS le plan et sous « à table »: on prévisualise la semaine
-            SUIVANTE, pas celle qu'on est en train de lire. La fenêtre visée
-            est la première LIBRE — `intent: "draft"` refuse `replaces`, et la
-            garde de chevauchement mord bien avant le seam du brouillon, donc
-            un aperçu ne peut pas porter sur des jours déjà pris.
-
-            ⚠️ RIEN N'EST ÉCRIT PAR CE GESTE. Ni plan, ni parts, ni quota de
-            fusion consommé: le seul saut de `draft` est l'écriture. */}
-        <Card className="mb-3">
-          <SectionLabel>{t("plan.draft.title")}</SectionLabel>
-          <p className="mt-1 text-sm leading-6 text-ink-soft">
-            {/* ⟳ 2026-09-10 · LOT 7 — LA CARTE RESTE, LE BOUTON NON. Un
-                secondaire lisait ici « rien n'est enregistré » sous un bouton
-                qui allait lui rendre 403: la carte DIT maintenant qui compose,
-                à la place exacte du geste. Retirer la carte entière aurait été
-                pire — « la section a disparu » et « le bouton a disparu » se
-                relisent pareil, et c'est la cicatrice payée sur les bulles
-                d'extras. */}
-            {canCompose
-              ? t("plan.draft.not_saved")
-              : t("plan.draft.owner_composes")}
-          </p>
-          {canCompose
-            ? (
-              <div className="mt-3">
-                <Button
-                  variant="secondary"
-                  disabled={draftBusy}
-                  onClick={() => void askForDraft()}
-                >
-                  {draftBusy
-                    ? draftProgressLabel(draftProgress) ?? t("plan.draft.working")
-                    : t("plan.draft.cta")}
-                </Button>
-              </div>
-            )
-            : null}
-          {/* ⛔ LE ROUGE RESTE, ET LE MOTIF EST NOMMÉ. Un refus d'aperçu se lit
-              ICI quand la fenêtre n'a pas pu s'ouvrir — elle ne s'ouvre
-              qu'avec un brouillon, donc sans cette ligne le clic serait muet. */}
-          {draftFailure && !draftOpen
-            ? (
-              <p className="mt-2 text-sm leading-6 text-red-700 break-words">
-                {draftFailure}
-              </p>
-            )
-            : null}
-        </Card>
+        {/* ── 10 · « CE QUE ÇA DONNERAIT » — RETIRÉE LE 2026-09-21 ──────────
+            La carte d'aperçu (bouton « Prévisualiser ») doublait le geste des
+            deux boutons du composeur, qui ouvrent désormais TOUS l'aperçu
+            avant d'écrire (confirmation, puis `PlanDraftDialog`, puis
+            adoption). Décision du propriétaire, à la lecture du plan : « il
+            faut supprimer cette section ». `askForDraft` reste : c'est le
+            chemin `prepare_next` de l'aperçu, et un test de câblage le lit. */}
 
         {/* ⚠️ LA FENÊTRE EST MONTÉE EN PERMANENCE ET REÇOIT SA DONNÉE. `Modal`
             rend `null` fermé — il ne démonte pas ses enfants — donc l'état de
@@ -2763,8 +2720,17 @@ export default function StudentWeekPlanPage() {
             une carte plus haut, et il a rendu muet un lot entier: chaque prop
             ci-dessous vient du brouillon réellement composé. */}
         <PlanDraftDialog
-          open={draftOpen}
-          onClose={() => setDraftOpen(false)}
+          open={draft !== null}
+          /* ⛔ « LAISSER TOMBER » JETTE LE BROUILLON, il ne referme pas
+             une fenêtre en laissant l'objet derrière: c'était le seul chemin
+             par lequel un aperçu payé devenait inatteignable. */
+          onClose={() => {
+            // ⟳ 2026-09-23 — et la réponse est rangée en base : sans elle,
+            // la ligne restait `done` et revenait au retour sur l'onglet.
+            void discardDraft(draft?.envelope.draftId ?? null);
+            setDraft(null);
+            setDraftSource(null);
+          }}
           draft={draft?.plan ?? null}
           // LES PHRASES DU SERVEUR, TELLES QU'IL LES REND. Assemblées côté
           // serveur, dans la langue du contenu: cet écran les affiche, il ne
@@ -2783,6 +2749,9 @@ export default function StudentWeekPlanPage() {
           // rien rangé: l'aperçu s'affiche alors comme hier, sans ses kcal.
           draftId={draft?.envelope.draftId ?? null}
           busy={draftBusy}
+          adoptLabel={draftSource?.intent === "replace_current"
+            ? t("plan.draft.adopt_replace")
+            : undefined}
           // ⟳ 2026-09-08 (lot 4) — TROIS GESTES AU LIEU D'UN. Le dialogue lit
           // la phrase (`readNote`), pose la question du serveur s'il y en a
           // une, la répond (`answerNote`), PUIS compose — sans la phrase:
@@ -2795,7 +2764,7 @@ export default function StudentWeekPlanPage() {
           // un tour, puisque rien n'a été composé.
           onReadNote={async (note) => {
             try {
-              return await readNote(note, draftInput().window);
+              return await readNote(note, (draftSource?.input ?? draftInput()).window);
             } catch (e) {
               throw new Error(draftRefusal(e));
             }
@@ -2807,11 +2776,26 @@ export default function StudentWeekPlanPage() {
               throw new Error(draftRefusal(e));
             }
           }}
+          /* ⟳ 2026-09-21 — `progress` ET `onProgress`, LES DEUX MOITIÉS D'UN
+             MÊME LOT. Une recomposition depuis l'aperçu dure autant qu'une
+             composition (deux minutes), et le bouton « Ajuster le plan »
+             restait muet pendant ce temps. Sans `onProgress`, la prop
+             `progress` resterait à `null` et le bouton retomberait sur les
+             seules phrases minutées — vraies, mais aveugles au stade réel. */
+          progress={draftProgress}
           onCompose={async () => {
             try {
-              setDraft(await composeDraft(draftInput()));
+              // ⟳ 2026-09-22 — une recomposition part d'aujourd'hui : la
+              // fenêtre d'un brouillon d'hier commence hier, et le serveur
+              // refuse un départ passé.
+              setDraft(await composeDraft(windowFromToday(draftSource?.input ?? draftInput(), todayIso()), {
+                onProgress: setDraftProgress,
+                replaces: draftSource?.intent === "replace_current" ? draftSource.replaces : null,
+              }));
             } catch (e) {
               throw new Error(draftRefusal(e));
+            } finally {
+              setDraftProgress(null);
             }
           }}
           // ⟳ 2026-09-09 — LA REPRISE LOCALE : la case seule, sur le brouillon
@@ -2819,7 +2803,13 @@ export default function StudentWeekPlanPage() {
           // pourrait être en retard d'une composition).
           onEditCells={async (id, cells) => {
             try {
-              setDraft(await editCells(draftInput(), id, cells));
+              setDraft(await editCells(windowFromToday(draftSource?.input ?? draftInput(), todayIso()), id, cells, {
+                // ⟳ 2026-09-21 — même plan remplacé que la composition du
+                // brouillon, sinon la garde de chevauchement refuse la case.
+                replaces: draftSource?.intent === "replace_current"
+                  ? draftSource.replaces
+                  : null,
+              }));
             } catch (e) {
               throw new Error(draftRefusal(e));
             }
@@ -2838,11 +2828,14 @@ export default function StudentWeekPlanPage() {
             try {
               const reviewedDraftId = draft?.envelope.draftId ?? null;
               if (reviewedDraftId === null) throw new Error("draft_not_ready");
+              // ⟳ 2026-09-21 — l'intention est celle de la source de l'aperçu:
+              // `replace_current` retire le plan nommé, `prepare_next` n'en
+              // touche aucun.
               written = await writeFromDraft(
-                draftInput(),
+                draftSource?.input ?? draftInput(),
                 reviewedDraftId,
-                "prepare_next",
-                null,
+                draftSource?.intent ?? "prepare_next",
+                draftSource?.intent === "replace_current" ? draftSource.replaces : null,
               );
             } catch (e) {
               // Même règle que la reprise: un jeton nu n'apprend rien.
@@ -2852,8 +2845,11 @@ export default function StudentWeekPlanPage() {
             // il ne doit pas non plus atterrir comme un succès: il rejoint la
             // même table de refus que tout le reste.
             if (!written.ok) throw new Error(draftRefusal(new Error("plan_not_written")));
-            setDraftOpen(false);
             setDraft(null);
+            setDraftSource(null);
+            // ⟳ 2026-09-21 — le composeur relit ses plans: c'est lui qui
+            // affiche le plan courant, et il vient peut-être de changer.
+            setPlansVersion((v) => v + 1);
             const uid = (await supabase.auth.getUser()).data.user?.id;
             if (uid) {
               await refreshLivePlans(uid);

@@ -97,6 +97,9 @@ const READER_OF: Readonly<Record<string, string | null>> = Object.freeze({
   PULSE_BUTTON_PREFIX: null,
   FEEDBACK_BUTTON_PREFIX: "readFeedbackReply",
   SLOT_MEAL_BUTTON_PREFIX: "parseSlotMealButton",
+  // ⟳ 2026-09-23 — la question du soir sur les repas prévus. Ajouté AVEC son
+  // lecteur.
+  DAY_MEALS_BUTTON_PREFIX: "parseDayMealsButton",
   SHARE_BUTTON_PREFIX: null,
   // Jeton de FORMULAIRE, désarmé le 2026-09-07 et listé le même jour — il ne
   // l'était pas, parce que l'écran l'interceptait avant le serveur.

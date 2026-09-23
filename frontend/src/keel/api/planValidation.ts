@@ -151,6 +151,7 @@ export const CALORIE_PROTECTED_CAUSES: readonly string[] = [
   "cell_bounds_off",
   "day_energy_off",
   "protein_floor_short",
+  "protein_ceiling_over",
   "cell_energy_unmeasurable",
   "mouth_energy_short",
 ];

@@ -1,0 +1,8 @@
+Personnage fictif Sophia — objectif prise de muscle
+
+Six références générées : face, trois quarts gauche/droite, profils gauche/droite et dos. Gauche/droite désignent la direction dans l’image.
+Image principale : 01-face.png
+Nom proposé : Lucas - Muscle
+Description courte : Homme de 28 ans, mince, cheveux bruns ondulés, barbe légère, t-shirt vert sauge.
+
+Aucune vidéo produite : le connecteur Higgsfield a refusé la génération, exigeant un abonnement Plus.

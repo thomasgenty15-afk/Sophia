@@ -116,6 +116,8 @@ export type RepairMeasure =
     readonly of: "protein";
     readonly servedG: number | null;
     readonly floorG: number | null;
+    /** ⟳ 2026-09-21 — le plafond couvert, `null` sans plafond lisible. */
+    readonly ceilingG: number | null;
   };
 
 /** Les natures de mesure, fermées — un `switch` exhaustif s'y appuie. */
@@ -1003,6 +1005,9 @@ const CAUSE_TO_DEFECT: Readonly<
   mouth_energy_short: { kind: "sizing", repairable: true },
   // ── la protéine ────────────────────────────────────────────────────────
   protein_floor_short: { kind: "protein", repairable: true },
+  // ⟳ 2026-09-21 — le sens inverse, même nature: un appel modèle sait très
+  // bien retirer une boîte de thon d'un goûter.
+  protein_ceiling_over: { kind: "protein", repairable: true },
   // ── ce qu'un appel modèle ne répare PAS ────────────────────────────────
   uses_dangling: { kind: "preference", repairable: false },
   box_item_dangling: { kind: "preference", repairable: false },

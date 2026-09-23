@@ -12,8 +12,10 @@
  *       **à une bouche comme à cinq**, sans exception `single_mouth`;
  *   B6  la cible du moteur est explicite: personne ne la reconstruit depuis le
  *       milieu d'une bande asymétrique;
- *   B7  `Dpréf` reste `Dmin × REPAIR_DENSITY_HEADROOM` (arbitrage A15), et
+ *   B7  `Dpréf` reste ancré au bas du couloir (arbitrage A15), et
  *       `100 × E / Gpréf` sort À CÔTÉ, avec sa divergence.
+ *       ⟳ 2026-09-23 — pour un repas, `Dpréf` = max(125 ; Dmin) projeté (visée
+ *       du gabarit de recette) ; une collation garde `Dmin × 1,10`.
  */
 import { assert, assertEquals } from "jsr:@std/assert@^1.0.0";
 import {
@@ -28,7 +30,6 @@ import {
   finalPortionCheck,
   type PlateBounds,
   plateBoundsFor,
-  REPAIR_DENSITY_HEADROOM,
   sizeDishForMouth,
   standardPortionOf,
 } from "./portion_sizing.ts";
@@ -117,7 +118,7 @@ Deno.test("B3 — la casserole a UNE masse et UNE densité dans tout le moteur",
       preparations: pots.map((p) => ({ ...p, servingsMade: 1 })),
     },
     memberId: "m1",
-    rows: [{ dishIndex: 0, factor: 1, sized: true, recipeShare: null }],
+    rows: [{ dishIndex: 0, factor: 1, sized: true, recipeShare: null, starchSide: null }],
     index: INDEX,
   });
   assertEquals(applied.dishes[0].boxes[0].items[0].grams, 260);
@@ -152,7 +153,7 @@ Deno.test("B3 — mesurer l'assiette et mesurer les composants appliqués donnen
   const applied = applySizing({
     meal,
     memberId: "m1",
-    rows: meal.dishes.map((_, i) => ({ dishIndex: i, factor: 1, sized: true, recipeShare: null })),
+    rows: meal.dishes.map((_, i) => ({ dishIndex: i, factor: 1, sized: true, recipeShare: null, starchSide: null })),
     index: INDEX,
   });
   const ecrit = applied.dishes[0].boxes[0].items.reduce(
@@ -244,10 +245,11 @@ Deno.test("B5 — un foyer d'UNE bouche est mesuré, pas exempté", () => {
   const applied = applySizing({
     meal,
     memberId: "m_seul",
-    rows: [{ dishIndex: 0, factor: 1, sized: true, recipeShare: null }],
+    rows: [{ dishIndex: 0, factor: 1, sized: true, recipeShare: null, starchSide: null }],
     index: INDEX,
   });
-  // 400 g de riz ⇒ 1 040 g prêts. Le plafond d'un dîner d'adulte est 700 g.
+  // 400 g de riz ⇒ 1 040 g prêts. Le plafond d'un dîner d'adulte est 550 g
+  // (⟳ 2026-09-23 — 700 g avant le chantier « assiettes normales »).
   const check = finalPortionCheck({
     index: INDEX,
     dishes: applied.dishes.map((d) => ({
@@ -272,10 +274,10 @@ Deno.test("B5 — un foyer d'UNE bouche est mesuré, pas exempté", () => {
   assertEquals(check.reason, "remeasured_after_apply");
   assertEquals(check.boxes, 1);
   assertEquals(check.judged, 1);
-  assertEquals(check.verdicts.over_max, 1, "1 040 g écrits contre un plafond de 700");
+  assertEquals(check.verdicts.over_max, 1, "1 040 g écrits contre un plafond de 550");
   assertEquals(check.outOfBounds.length, 1);
   assertEquals(check.outOfBounds[0].grams, 1040);
-  assertEquals(check.outOfBounds[0].limit, 700);
+  assertEquals(check.outOfBounds[0].limit, 550);
   assertEquals(check.outOfBounds[0].bound, "max");
   // ⚠️ LE JOURNAL NE NOMME PERSONNE: pas de `member_id` dans les dépassements.
   assertEquals(
@@ -317,12 +319,13 @@ Deno.test("B5 — la remesure porte sur les grammes ÉCRITS, pas sur la part ann
     standard: std,
     bounds: b,
   });
-  assertEquals(sized.personCookedG, 700, "la borne rabote l'annonce à 700 g");
+  // ⟳ 2026-09-23 — plafond d'un dîner d'adulte : 550 g (700 avant).
+  assertEquals(sized.personCookedG, 550, "la borne rabote l'annonce à 550 g");
 
   const applied = applySizing({
     meal,
     memberId: "m_seul",
-    rows: [{ dishIndex: 0, factor: sized.factor, sized: true, recipeShare: null }],
+    rows: [{ dishIndex: 0, factor: sized.factor, sized: true, recipeShare: null, starchSide: null }],
     index: INDEX,
   });
   const check = finalPortionCheck({
@@ -344,7 +347,7 @@ Deno.test("B5 — la remesure porte sur les grammes ÉCRITS, pas sur la part ann
     plateFor: () => b,
   });
   assertEquals(check.measured, true);
-  assertEquals(check.rows[0].grams, 700, "l'écrit retombe sur la borne");
+  assertEquals(check.rows[0].grams, 550, "l'écrit retombe sur la borne");
   assertEquals(check.verdicts.in_bounds, 1);
   assertEquals(check.rows[0].overshootG, 0);
 });
@@ -421,7 +424,7 @@ Deno.test("B6 — PERTE: cible 2 454, bande 2 454–2 602, et 2 528 n'est PAS la
   const cCible = densityCorridorFor({ targetKcal: surCible, bounds: bCible })!;
   const cMilieu = densityCorridorFor({ targetKcal: surMilieu, bounds: bMilieu })!;
   // ⚠️ SUR CE DÎNER-LÀ, LA TABLE D'ÂGE RABAT LES DEUX BORNES AU MÊME PLAFOND
-  // (700 g): ce sont donc les DENSITÉS qui portent l'écart, et elles le portent
+  // (550 g depuis le 2026-09-23, 700 avant): ce sont donc les DENSITÉS qui portent l'écart, et elles le portent
   // entièrement. C'est ce qui rend la substitution invisible à qui ne regarde
   // que les grammes — et parfaitement lisible à qui regarde la consigne.
   assertEquals(bCible.max, bMilieu.max, "la table rabat les deux au même plafond");
@@ -452,10 +455,24 @@ Deno.test("B6 — PERTE: cible 2 454, bande 2 454–2 602, et 2 528 n'est PAS la
 // B7 — `Dpréf` RESTE A15, ET LA CIBLE SORT À CÔTÉ
 // ═══════════════════════════════════════════════════════════════════════════
 
-Deno.test("B7 — `preferredPer100G` reste `Dmin × 1,10`; `100 × E / Gpréf` sort À CÔTÉ", () => {
+Deno.test("B7 — la visée d'un repas vaut max(125 ; Dmin); `100 × E / Gpréf` sort À CÔTÉ", () => {
   // Le cas d'A15: un déjeuner de 1 120 kcal. `100 × E / Gpréf` rend un nombre
   // qu'aucun plat de ce dépôt n'atteint (les plats réels vivent entre 113 et
-  // 156); `Dmin × 1,10` reste tenable.
+  // 156); la visée reste ancrée au BAS du couloir.
+  //
+  // ⟳ 2026-09-23 — LA VISÉE D'UN REPAS N'EST PLUS `Dmin × 1,10`. C'est la
+  // densité du gabarit de recette (125), ou le besoin s'il est plus haut,
+  // projetée dans le couloir (`densityCorridorFor`, flux B du chantier
+  // « assiettes normales »). Les collations gardent `Dmin × 1,10`. L'ancienne
+  // assertion recalculait la visée depuis `REPAIR_DENSITY_HEADROOM` ; elle est
+  // remplacée par les nombres dérivés à la main :
+  //
+  //   déjeuner d'adulte, 1 120 kcal, table 250 – 550 g :
+  //     Gmax = min(1 120 ; 550) = 550      Gmin = min(1 120/1,35 = 829,6 ; 250) = 250
+  //     Gpréf = (250 + 550)/2 = 400
+  //     Dmin = ⌈112 000/550 = 203,64⌉ = 204     Dmax = ⌊448⌋, rabattu à 250
+  //     visée = arrondi(max(125 ; 203,64)) = 204, dans [204, 250]
+  //     témoin = arrondi(112 000/400) = 280 ; écart = 280 − 204 = 76
   const b = plateBoundsFor({
     ageYears: 35,
     slot: "lunch",
@@ -463,15 +480,16 @@ Deno.test("B7 — `preferredPer100G` reste `Dmin × 1,10`; `100 × E / Gpréf` s
     light: false,
     appetite: null,
   });
+  assertEquals([b.min, b.max, b.preferred], [250, 550, 400]);
   const c = densityCorridorFor({ targetKcal: 1120, bounds: b })!;
 
   assertEquals(
-    c.preferredPer100G,
-    Math.min(c.maxPer100G, Math.max(c.minPer100G, Math.round((1120 / b.max) * 100 * REPAIR_DENSITY_HEADROOM))),
-    "la consigne reste ancrée au BAS du couloir, avec sa marge",
+    [c.minPer100G, c.maxPer100G, c.preferredPer100G],
+    [204, 250, 204],
+    "la consigne reste ancrée au BAS du couloir",
   );
-  assertEquals(c.targetAnchoredPer100G, Math.round((1120 / b.preferred) * 100));
-  assertEquals(c.anchorDivergencePer100G, c.targetAnchoredPer100G - c.preferredPer100G);
+  assertEquals(c.targetAnchoredPer100G, 280);
+  assertEquals(c.anchorDivergencePer100G, 76);
   // ⛔ LA DIVERGENCE EST RÉELLE ET ELLE EST DU CÔTÉ QU'A15 DÉCRIT: la formule
   // demandée exige PLUS que ce qu'on demande, et c'est pour ça qu'on ne la
   // substitue pas.

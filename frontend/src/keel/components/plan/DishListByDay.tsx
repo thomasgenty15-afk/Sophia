@@ -201,13 +201,13 @@ function DishTickBox({ tick }: { tick: DishTick }): React.ReactElement {
           id={tickId}
           type="checkbox"
           className="h-4 w-4 rounded-part border-line-strong text-ink focus:ring-fig-600 disabled:opacity-50"
-          checked={tick.checked}
+          checked={tick.missed}
           disabled={tick.busy}
           onChange={tick.onToggle}
         />
         <label
           htmlFor={tickId}
-          className={`text-sm ${tick.checked ? "text-ink" : "text-ink-soft"}`}
+          className={`text-sm ${tick.missed ? "text-ink" : "text-ink-soft"}`}
         >
           {t("meals.tick.label")}
         </label>

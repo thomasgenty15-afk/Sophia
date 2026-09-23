@@ -162,6 +162,67 @@ export const HOUSEHOLD_ARBITRATION_BY_VERSION: Readonly<Record<string, string>> 
   // en-tête de verrou ne bouge, et le rang 1 les cite en toutes lettres.
   v36_the_goal_outranks_the_habit:
     "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
+  // ⟳ v37 (2026-09-23) — MÊME EMPREINTE, ET C'EST L'AFFIRMATION. v37 change la
+  // recette de référence (l'assiette de la personne du MILIEU), retire les
+  // phrases qui poussaient au féculent, ajoute le bloc « SIDE COURSES » et dit
+  // le sens du plan PAR PERSONNE (audit `docs/keel/AUDIT-DOSAGES-2026-09-23.md`).
+  // Tout cela vit dans le message utilisateur, hors du texte d'arbitrage;
+  // aucun en-tête de verrou ne bouge, et le rang 1 les cite en toutes lettres.
+  v37_the_plate_is_not_the_meal:
+    "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
+  // ⟳ LE JETON DE LA STRUCTURE v34, BUMPÉ LE MÊME JOUR ET POUR LA MÊME RAISON
+  // (`HOUSEHOLD_PROMPT_V34_VERSION`, `household_prompt_v34.ts`). v34 reprend
+  // les trois blocs de verrou de v33 dans le même ordre: même empreinte, comme
+  // `v34_one_card_per_person_the_engine_weighs` avant lui. ⚠️ Un nom distinct
+  // de celui de v37: la ligne en base dit laquelle des deux structures a été
+  // servie, et `readHouseholdPromptV34Version` le relit dans la source.
+  v34_the_plate_is_not_the_meal:
+    "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
+  // ⟳ v38 (2026-09-23) — MÊME EMPREINTE, ET C'EST L'AFFIRMATION. v38 change
+  // une phrase de `standardRecipeBlock`: le féculent à part vaut pour tout
+  // déjeuner et tout dîner, plus seulement pour une case partagée. Cette
+  // recette vit dans le message utilisateur, hors du texte d'arbitrage; aucun
+  // en-tête de verrou ne bouge, et le rang 1 les cite en toutes lettres.
+  v38_every_plate_splits_its_starch:
+    "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
+  // ⟳ Le jeton de la structure v34, bumpé le même jour pour la même raison
+  // (`HOUSEHOLD_PROMPT_V34_VERSION`): v34 sert la même recette et reprend les
+  // trois blocs de verrou de v33 dans le même ordre. Même empreinte.
+  v34_every_plate_splits_its_starch:
+    "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
+  // ⟳ v39 (2026-09-23) — MÊME EMPREINTE, ET C'EST L'AFFIRMATION. v39 change le
+  // bloc « SIDE COURSES » (`side_courses_prompt.ts`): la règle de la table, son
+  // exception, la règle des deux jours, le dessert d'un seul aliment. Ce bloc
+  // vit dans le message utilisateur, hors du texte d'arbitrage; aucun en-tête
+  // de verrou ne bouge, et le rang 1 les cite en toutes lettres.
+  v39_side_courses_come_in_families:
+    "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
+  // ⟳ Le jeton de la structure v34, bumpé le même jour pour la même raison
+  // (`HOUSEHOLD_PROMPT_V34_VERSION`): v34 sert le même bloc des à-côtés et
+  // reprend les trois blocs de verrou de v33 dans le même ordre. Même empreinte.
+  v34_side_courses_come_in_families:
+    "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
+  // ⟳ v40 (2026-09-23) — MÊME EMPREINTE, ET C'EST L'AFFIRMATION. v40 change le
+  // bloc « SIDE COURSES » (`side_courses_prompt.ts`): le dessert dense de la
+  // prise retiré, la prise nommée pour suivre la table, le nom exact jamais la
+  // catégorie, le pain hors de la règle des deux jours. Ce bloc vit dans le
+  // message utilisateur, hors du texte d'arbitrage; aucun en-tête de verrou ne
+  // bouge, et le rang 1 les cite en toutes lettres.
+  v40_the_table_shares_its_sides:
+    "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
+  // ⟳ Le jeton de la structure v34, bumpé le même jour pour la même raison
+  // (`HOUSEHOLD_PROMPT_V34_VERSION`): v34 sert le même bloc des à-côtés et
+  // reprend les trois blocs de verrou de v33 dans le même ordre. Même empreinte.
+  v34_the_table_shares_its_sides:
+    "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
+  // ⟳ v41 (2026-09-23) — MÊME EMPREINTE, ET C'EST L'AFFIRMATION. v41 ajoute
+  // la ligne « à éviter » juste après l'envie, dans le message utilisateur,
+  // hors du texte d'arbitrage; aucun en-tête de verrou ne bouge.
+  v41_what_came_back_is_named:
+    "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
+  // ⟳ Le jeton de la structure v34, bumpé le même jour pour la même raison.
+  v34_what_came_back_is_named:
+    "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
 };
 
 /** SHA-256 hexadécimal — `crypto.subtle`, standard web, présent en edge. */
@@ -203,6 +264,31 @@ export function readHouseholdPromptVersion(source: string): string {
       `readHouseholdPromptVersion: ${found.length} déclaration(s) trouvée(s), 1 attendue. ` +
         `La constante a été renommée, supprimée, ou dédoublée — dans les trois cas la ` +
         `garde ne peut plus dire quel texte a été servi à quelle population.`,
+    );
+  }
+  return found[0][1];
+}
+
+/**
+ * LE JETON DE LA STRUCTURE v34, LU DANS SA SOURCE — la même règle que
+ * `readHouseholdPromptVersion`, sur `household_prompt_v34.ts`.
+ *
+ * ⟳ 2026-09-23 — ⛔ LE SECOND JETON N'ÉTAIT RELU PAR PERSONNE. Sa clé était
+ * inscrite dans `HOUSEHOLD_ARBITRATION_BY_VERSION`, mais aucune épreuve ne
+ * vérifiait que le jeton VIVANT de v34 y figure: un bump de
+ * `HOUSEHOLD_PROMPT_V34_VERSION` sans inscription serait passé vert, et toute
+ * la population v34 (les foyers de deux bouches et plus) serait tombée en
+ * `unknown_version` sans bruit. Même forme littérale exigée, en début de
+ * ligne, sur une seule ligne; zéro ou deux déclarations jettent.
+ */
+export function readHouseholdPromptV34Version(source: string): string {
+  const found = [...String(source ?? "").matchAll(
+    /^export const HOUSEHOLD_PROMPT_V34_VERSION = "([^"]+)";$/gm,
+  )];
+  if (found.length !== 1) {
+    throw new Error(
+      `readHouseholdPromptV34Version: ${found.length} déclaration(s) trouvée(s), 1 attendue. ` +
+        `La constante a été renommée, supprimée, dédoublée, ou écrite sur deux lignes.`,
     );
   }
   return found[0][1];

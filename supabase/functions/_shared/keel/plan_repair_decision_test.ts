@@ -78,6 +78,8 @@ const PLANCHER = (coveredFloorG: number | null): ProteinFloorAllocation => ({
   coveredFloorG,
   perMealFloorG: null,
   fixedProteinG: null,
+  dayCeilingG: null,
+  coveredCeilingG: null,
   reason: coveredFloorG === null ? "no_body" : "applied_full_day",
 });
 

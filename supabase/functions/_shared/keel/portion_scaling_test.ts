@@ -56,7 +56,11 @@ const LOSS_DIRECTION = envelopeDirectionFor({
   },
   paceKgPerWeek: null,
 });
-const PER_KG = envelopeFor("fat_loss", bodyOf(92, 186, "male"), "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, LOSS_DIRECTION);
+// ⟳ 2026-09-23 — onzième paramètre `exactAgeYears` à `null` : le milieu de
+// 30_44 (37 ans), le même âge que le sujet de `LOSS_DIRECTION` ci-dessus.
+// Plancher de protéines de ce corps : 92 kg × 1,2 g/kg (`fat_loss`, 1,4 avant
+// le 2026-09-23) = 110,4 → 110 g.
+const PER_KG = envelopeFor("fat_loss", bodyOf(92, 186, "male"), "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, LOSS_DIRECTION, null);
 const PER_PORTION = envelopeFor(
   "fat_loss",
   bodyOf(92, 186, "male", true),
@@ -68,6 +72,7 @@ null,
   null,
   null,
   LOSS_DIRECTION,
+  null,
 );
 
 function ing(over: Partial<ScalableIngredient> = {}): ScalableIngredient {
@@ -118,7 +123,7 @@ Deno.test("SOUS LE PLANCHER TCA, rien ne se met à l'échelle", () => {
     null,
   );
   // Corps inconnu: même silence, ce qui rend les deux indiscernables.
-  const unknown = envelopeFor("fat_loss", null, null, false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION);
+  const unknown = envelopeFor("fat_loss", null, null, false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION, null);
   assertEquals(
     scaleFactorFor({ computedKcal: 800, envelope: unknown, daysCovered: 1, resolvedShare: 1 }),
     null,
@@ -497,11 +502,19 @@ Deno.test("la protéine grossit PLUS VITE que le reste", () => {
   // aussi vite que la protéine — on touche la cible énergétique bien avant le
   // plancher, et on s'arrête là.
   const f = scaleFactorsFor({
+    // ⟳ 2026-09-20 — le plancher de PER_KG vaut 129 g (92 × 1,4), plus 184:
+    // la protéine servie descend à 80 g pour que le plancher reste LOIN, et
+    // atteignable sous MAX_SCALE (×2): (129 − 10) / 70 = ×1,7.
+    // ⟳ 2026-09-23 — le plancher descend à 110 g (92 × 1,2). Avec 80 g servis
+    // dont 70 pesables, le facteur protéique ne valait plus que
+    // (110 − 10)/70 = ×1,43, sous le facteur d'énergie (×1,58) : le cas ne
+    // mesurait plus ce qu'il dit. La protéine servie descend donc à 65 g, dont
+    // 55 pesables : (110 − 10)/55 = ×1,82, toujours sous MAX_SCALE (×2).
     computedKcal: 1800,
-    computedProteinG: 120,
+    computedProteinG: 65,
     proteinFoodKcal: 600,
     otherScalableKcal: 900,
-    proteinFoodProteinG: 110,
+    proteinFoodProteinG: 55,
     envelope: PER_KG,
     daysCovered: 1, resolvedShare: 1 })!;
   assert(f !== null);
@@ -518,8 +531,10 @@ Deno.test("la protéine grossit PLUS VITE que le reste", () => {
   // garder — et le run réel du 2026-08-12 l'a payé: plancher 156, plan monté
   // à 133 seulement, sur une mise à l'échelle qui se croyait terminée.
   const floor = "proteinFloorG" in PER_KG ? PER_KG.proteinFloorG : 0;
-  const fixe = 120 - 110;
-  assertEquals(Math.round(fixe + 110 * f.protein), Math.round(floor));
+  // ⟳ 2026-09-23 — le plancher écrit en dur : 92 × 1,2 = 110,4 → 110.
+  assertEquals(floor, 110);
+  const fixe = 65 - 55;
+  assertEquals(Math.round(fixe + 55 * f.protein), 110);
 });
 
 Deno.test("le facteur protéique tient compte de la protéine NON pesable", () => {
@@ -532,9 +547,16 @@ Deno.test("le facteur protéique tient compte de la protéine NON pesable", () =
   // Ici, 90 g des 118 sont pesables et 28 ne le sont pas. Un facteur calculé
   // sur le total rendrait 184/118 = 1,56 et atterrirait à 168 g; le bon est
   // (184 − 28)/90 = 1,73, et il atterrit sur le plancher.
+  //
+  // ⟳ 2026-09-23 — LE PLANCHER DE PER_KG DESCEND À 110 g (92 × 1,2). Un plan
+  // à 118 g le dépassait déjà : il n'y avait plus rien à monter, et le cas ne
+  // mesurait plus rien. Le plan descend à 90 g, dont 62 pesables et 28 non.
+  //   facteur naïf  = 110/90 = 1,22 ⇒ 28 + 62 × 1,22 = 103,8 g, sous le plancher
+  //   bon facteur   = (110 − 28)/62 = 1,32 ⇒ 28 + 62 × 1,32 = 110 g
   const floor = "proteinFloorG" in PER_KG ? PER_KG.proteinFloorG : 0;
-  const totalProt = 118;
-  const scalableProt = 90;
+  assertEquals(floor, 110);
+  const totalProt = 90;
+  const scalableProt = 62;
   const f = scaleFactorsFor({
     computedKcal: 1843 * 5,
     computedProteinG: totalProt * 5,
@@ -563,10 +585,11 @@ Deno.test("le reste RECULE quand la protéine prend toute la place", () => {
   // plancher protéique ferait exploser l'énergie.
   const f = scaleFactorsFor({
     computedKcal: 2300,
-    computedProteinG: 90,
+    // ⟳ 2026-09-20 — 60 g servis pour un plancher de 129 (92 × 1,4).
+    computedProteinG: 60,
     proteinFoodKcal: 500,
     otherScalableKcal: 1500,
-    proteinFoodProteinG: 85,
+    proteinFoodProteinG: 55,
     envelope: PER_KG,
     daysCovered: 1, resolvedShare: 1 })!;
   assert(f.protein > 1.5, `protéine: ${f.protein}`);
@@ -626,10 +649,10 @@ Deno.test("le plancher protéique n'est PAS gouverné par la zone morte d'énerg
 
   const f = scaleFactorsFor({
     computedKcal: target,          // énergie PARFAITE
-    computedProteinG: 90,          // protéine à la moitié du plancher (184)
+    computedProteinG: 60,          // protéine à la moitié du plancher (129)
     proteinFoodKcal: 500,
     otherScalableKcal: 1500,
-    proteinFoodProteinG: 85,
+    proteinFoodProteinG: 55,
     envelope: PER_KG,
     daysCovered: 1, resolvedShare: 1 });
   assert(f !== null, "un plancher protéique manqué doit déclencher une recomposition");

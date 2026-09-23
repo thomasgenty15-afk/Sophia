@@ -176,6 +176,23 @@ export interface GateDish {
   readonly ingredients: readonly GateIngredient[];
   readonly uses: readonly GateUse[];
   readonly boxes: readonly GateBox[];
+  /**
+   * ⟳ 2026-09-23 — LES À-CÔTÉS DU PLAT (entrée, fromage, dessert, pain),
+   * rangés HORS des ingrédients et des boîtes (`DishSideCoursePayload`,
+   * `side_courses_types.ts`). Absent d'un plan écrit avant le 2026-09-23.
+   * Lu ici par le seul verrou de la maison (④.f).
+   */
+  readonly side_courses?: readonly GateSideCourse[] | null;
+}
+
+/**
+ * ⟳ 2026-09-23 — un à-côté persisté, réduit à ce que la garde lit. Le JSON
+ * relu n'est pas re-typé: chaque champ est lu défensivement.
+ */
+export interface GateSideCourse {
+  readonly member_id?: string | null;
+  readonly kind?: string | null;
+  readonly term?: string | null;
 }
 
 export interface GatePreparation {
@@ -453,6 +470,12 @@ export interface DayNutritionRow {
   readonly proteinRoundingG: number | null;
   readonly protein: {
     readonly coveredFloorG: number | null;
+    /**
+     * ⟳ 2026-09-21 — LE PLAFOND COUVERT, à côté du plancher. ⛔ REQUIS ET
+     * NULLABLE, jamais `?`: un appelant qui l'oublie ne compile pas, au lieu
+     * de rendre une cause qui ne sort jamais.
+     */
+    readonly coveredCeilingG: number | null;
     readonly reason: string;
   };
   readonly state: "conforme" | "energy_off" | "unmeasurable";
@@ -648,8 +671,28 @@ export const FINAL_GATE_CAUSES = [
    * « Non applicable » était faux: c'est « non contrôlé ».
    */
   "protein_floor_short",
+  /**
+   * ⟳ 2026-09-21 — LE PLAFOND, ENFIN COMPARÉ LUI AUSSI. Mesuré sur le plan
+   * `3e121b21`: 198 g servis à l'homme en prise de masse pour un plafond de
+   * 144 (+37 %), par un goûter de thon en boîte chaque jour, et le seul
+   * compteur (`generated_from.protein_ceiling`) ne nommait ni la journée ni
+   * la bouche. Comptée, jamais bloquante: un plan qui dépasse est livré avec
+   * son écart, comme sous le plancher. Tolérance `PROTEIN_CEILING_TOLERANCE`.
+   */
+  "protein_ceiling_over",
 ] as const;
 export type FinalGateCause = typeof FINAL_GATE_CAUSES[number];
+
+/**
+ * LA TOLÉRANCE AU-DESSUS DU PLAFOND PROTÉIQUE, en fraction — 10 %.
+ *
+ * ⚠️ 2,0 g/kg est le plafond de confort (`PROTEIN_CEILING_G_PER_KG`); la
+ * borne haute de la littérature sur la prise de muscle est 2,2 g/kg (Morton
+ * 2018, borne haute de l'intervalle). La tolérance couvre exactement cet
+ * écart: entre 2,0 et 2,2 on ne dit rien, au-delà on compte. EXPORTÉE pour
+ * qu'un test l'épingle et qu'un déplacement soit un commit, pas un littéral.
+ */
+export const PROTEIN_CEILING_TOLERANCE = 0.1;
 
 /**
  * LE SEUIL DE LA BOUCHE SOUS-NOURRIE : servi < enveloppe × ce ratio.
@@ -692,7 +735,14 @@ export type GateRepairKind =
   | "drop_dangling_use"
   | "drop_dangling_box_item"
   | "drop_dangling_session_id"
-  | "strip_title_promise";
+  | "strip_title_promise"
+  /**
+   * ⟳ 2026-09-23 — un à-côté qui sert un aliment que la maison a exclu. Même
+   * geste que le verrou du générateur (`applyHouseRuleLock`): l'à-côté TOMBE,
+   * le plat reste, et ce n'est PAS `house_rule_served` — aucune cause, donc
+   * aucun refus et aucun 422 pour un dessert posé à côté du plat.
+   */
+  | "drop_house_rule_side_course";
 
 /**
  * OÙ LA RÉPARATION S'APPLIQUE, en index dans le payload persisté.
@@ -701,6 +751,7 @@ export type GateRepairKind =
  * · `drop_dangling_box_item`   → `{ dish, box, item }`
  * · `drop_dangling_session_id` → `{ session, item }` (index dans `preparation_ids`)
  * · `strip_title_promise`      → `{ dish }`
+ * · `drop_house_rule_side_course` → `{ dish, item }` (index dans `side_courses`)
  */
 export interface GateRepairAt {
   readonly dish?: number;
@@ -716,7 +767,7 @@ export interface GateRepair {
   /** Ce qui est retiré : un identifiant pendant, ou la phrase de promesse. */
   readonly from: string;
   /**
-   * `null` pour les quatre réparations livrées : toutes sont des RETRAITS.
+   * `null` pour les cinq réparations livrées : toutes sont des RETRAITS.
    * Le champ existe pour qu'un remplacement futur n'ait pas à changer la forme
    * — et il reste `null` tant qu'aucun n'existe, plutôt que de porter une
    * chaîne vide qu'un lecteur prendrait pour un remplacement.
@@ -1080,6 +1131,7 @@ export const FINAL_GATE_POLICY_LOT_4: Readonly<
   cell_bounds_off: "count",
   day_energy_off: "count",
   protein_floor_short: "count",
+  protein_ceiling_over: "count",
   // ════════════════════════════════════════════════════════════════════════
   // ⟳ 2026-09-12 · LOT 2 — LES DEUX CAUSES D'ACHAT PASSENT EN `count`,
   // ET ELLES RESTENT COMPTÉES
@@ -1361,6 +1413,10 @@ const CAUSE_DENOMINATOR: Readonly<
   cell_bounds_off: "measured_cells",
   day_energy_off: "measured_days",
   protein_floor_short: "protein_days",
+  // ⚠️ LE MÊME DÉNOMINATEUR QUE LE PLANCHER: une journée dont la protéine est
+  // lisible est mesurée contre les deux bornes. Lui en donner un autre ferait
+  // lire son zéro autrement.
+  protein_ceiling_over: "protein_days",
 });
 
 /**
@@ -1601,6 +1657,7 @@ export function finalPlanGate(
     drop_dangling_box_item: 0,
     drop_dangling_session_id: 0,
     strip_title_promise: 0,
+    drop_house_rule_side_course: 0,
   };
 
   const severityOf = (cause: FinalGateCause): GateSeverity =>
@@ -1919,6 +1976,10 @@ export function finalPlanGate(
         preparationById: exclusionPrepById,
         terms: tableTerms,
         surface: "ingredients",
+        // ⟳ 2026-09-21 — LA GARDE FINALE JUGE CASE PAR CASE, donc elle sait
+        // le moment. Une exclusion écrite pour le matin ne doit pas refuser un
+        // plan entier à cause d'un dîner.
+        slot: dish?.slot ?? null,
       });
       if (bite.matched) {
         refuse("table_exclusion_served", {
@@ -1939,6 +2000,7 @@ export function finalPlanGate(
           preparationById: exclusionPrepById,
           terms: tableTerms,
           surface: "ingredients",
+          slot: dish?.slot ?? null,
         });
         if (bite.matched) {
           refuse("table_exclusion_served", {
@@ -1965,6 +2027,7 @@ export function finalPlanGate(
           preparationById: exclusionPrepById,
           terms,
           surface: "ingredients",
+          slot: dish?.slot ?? null,
         });
         if (!bite.matched) continue;
         refuse("member_exclusion_served", {
@@ -1989,6 +2052,7 @@ export function finalPlanGate(
           preparationById: exclusionPrepById,
           terms: tableTerms,
           surface: "ingredients",
+          slot: dish?.slot ?? null,
         });
         // Une exclusion de TABLE mord toutes les bouches à la fois.
         if (tableBite.matched) {
@@ -2004,6 +2068,7 @@ export function finalPlanGate(
           preparationById: exclusionPrepById,
           terms,
           surface: "ingredients",
+          slot: dish?.slot ?? null,
         });
         if (bite.matched) bitten.push(m.memberId);
       }
@@ -2116,17 +2181,38 @@ export function finalPlanGate(
   // JAMAIS par le verrou du générateur. Sans ce rappel, un plan adopté peut
   // servir ce que le foyer a exclu, et rien ne le dit.
   if ((ctx.houseRuleLabels ?? []).length > 0) {
-    const lock = applyHouseRuleLock(
-      dishes.map((d) => ({
-        title: d?.title ?? "",
-        why: d?.why ?? null,
-        method: d?.method ?? "",
-        ingredients: (d?.ingredients ?? []).map((i) => ({
-          term: i?.term ?? "",
-        })),
+    // ⟳ 2026-09-23 — LES À-CÔTÉS PASSENT AU VERROU AUSSI (note 7 du flux G).
+    // Sans eux, un dessert au nutella adopté passait la garde: le verrou du
+    // générateur les lit, celui-ci ne les recevait pas.
+    const lockInput = dishes.map((d) => ({
+      title: d?.title ?? "",
+      why: d?.why ?? null,
+      method: d?.method ?? "",
+      ingredients: (d?.ingredients ?? []).map((i) => ({
+        term: i?.term ?? "",
       })),
-      ctx.houseRuleLabels,
-    );
+      side_courses: Array.isArray(d?.side_courses) ? [...d.side_courses] : [],
+    }));
+    const lock = applyHouseRuleLock(lockInput, ctx.houseRuleLabels);
+    // ⛔ UN À-CÔTÉ MORDU EST RETIRÉ ET COMPTÉ, JAMAIS REFUSÉ — le même geste que
+    // le générateur. Le verrou garde les entrées PAR IDENTITÉ: celles qui
+    // manquent dans sa sortie sont celles qu'il a fait tomber. Aucun second
+    // jugement ici: c'est le verrou qui décide, la garde ne fait que l'écrire
+    // en réparation (`applyFinalGateRepairs`).
+    lock.dishes.forEach((locked, dishIndex) => {
+      const before = lockInput[dishIndex].side_courses;
+      const after = Array.isArray(locked.side_courses) ? locked.side_courses : before;
+      if (after.length === before.length) return;
+      before.forEach((entry, item) => {
+        if (after.includes(entry)) return;
+        repair({
+          kind: "drop_house_rule_side_course",
+          at: { dish: dishIndex, item },
+          from: String(entry?.term ?? ""),
+          to: null,
+        });
+      });
+    });
     for (const violation of lock.violations) {
       const cut = violation.lastIndexOf(":");
       const dishTitle = cut > 0 ? violation.slice(0, cut) : violation;
@@ -2821,6 +2907,25 @@ export function finalPlanGate(
         continue;
       }
       proteinDays++;
+      // ⟳ 2026-09-21 — LE PLAFOND, SUR LA MÊME JOURNÉE ET LE MÊME
+      // DÉNOMINATEUR. La borne est le plafond couvert × (1 + tolérance).
+      const ceiling = day.protein.coveredCeilingG;
+      if (
+        ceiling !== null && ceiling > 0 &&
+        day.proteinG > ceiling * (1 + PROTEIN_CEILING_TOLERANCE)
+      ) {
+        refuse("protein_ceiling_over", {
+          day: day.date,
+          member_id: day.memberId,
+          detail: `${day.date} : ${
+            Math.round(day.proteinG * 10) / 10
+          } g de protéine pour un plafond couvert de ${
+            Math.round(ceiling * 10) / 10
+          } g (+${
+            Math.round(((day.proteinG - ceiling) / ceiling) * 100)
+          } %, tolérance ${Math.round(PROTEIN_CEILING_TOLERANCE * 100)} %)`,
+        });
+      }
       if (day.proteinG >= floor) continue;
       // ⟳ 2026-09-15 · BÊTA — LA BORNE D'ARRONDI, CALCULÉE PAR L'AUDIT. Une
       // journée sous le plancher de moins que ce que l'écriture en grammes
@@ -2919,6 +3024,7 @@ export function applyFinalGateRepairs(
   const dropBoxItems = new Map<string, Set<number>>();
   const dropSessionIds = new Map<number, Set<number>>();
   const stripSentences = new Map<number, string[]>();
+  const dropSideCourses = new Map<number, Set<number>>();
 
   for (const r of repairs ?? []) {
     if (r.kind === "drop_dangling_use") {
@@ -2952,6 +3058,13 @@ export function applyFinalGateRepairs(
       const list = stripSentences.get(d) ?? [];
       list.push(r.from);
       stripSentences.set(d, list);
+    } else if (r.kind === "drop_house_rule_side_course") {
+      const d = r.at?.dish;
+      const i = r.at?.item;
+      if (typeof d !== "number" || typeof i !== "number") continue;
+      const set = dropSideCourses.get(d) ?? new Set<number>();
+      set.add(i);
+      dropSideCourses.set(d, set);
     }
   }
 
@@ -2975,12 +3088,18 @@ export function applyFinalGateRepairs(
         items: (box.items ?? []).filter((_, i) => !dropped.has(i)),
       };
     });
+    const droppedSides = dropSideCourses.get(dishIndex);
     const next: GateDish = {
       ...dish,
       uses: droppedUses
         ? (dish.uses ?? []).filter((_, i) => !droppedUses.has(i))
         : (dish.uses ?? []),
       boxes,
+      // La clé n'est posée que si un à-côté tombe: un plat d'avant le
+      // 2026-09-23 ressort sans `side_courses`, comme il est entré.
+      ...(droppedSides && Array.isArray(dish.side_courses)
+        ? { side_courses: dish.side_courses.filter((_, i) => !droppedSides.has(i)) }
+        : {}),
     };
     if (!sentences || sentences.length === 0) return next;
     return {

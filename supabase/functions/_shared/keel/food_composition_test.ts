@@ -24,6 +24,8 @@ import {
   gramsRawOf,
   isFriedMethod,
   looksEnergyDense,
+  millilitresOf,
+  millilitresOfSlug,
   normalizeTerm,
   nutrientsOf,
   resolveIngredient,
@@ -952,4 +954,48 @@ Deno.test("normalisation: l'apostrophe TYPOGRAPHIQUE est la même apostrophe", (
   // rester UN mot, sans quoi le retrait des modificateurs et la réduction du
   // pluriel travailleraient sur un autre découpage que les 2 587 alias écrits.
   assert(!normalizeTerm("huile d’olive").includes("d olive"));
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-22 — UN LIQUIDE SE VERSE: LES MÊMES GRAMMES, EN MILLILITRES.
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Ce que ces cas tiennent, et c'est la moitié qui compte: la conversion sort du
+// RÉFÉRENTIEL et de nulle part ailleurs. Aucun libellé n'est lu, aucune densité
+// n'est devinée, et l'abstention est le repli — jamais une valeur de secours.
+
+Deno.test("millilitresOf — la densité de la fiche, et rien d'autre", () => {
+  // 6 g d'huile: le cas exact vu à l'écran le 2026-09-22.
+  assertEquals(millilitresOf(ref({ slug: "rapeseed_oil", gramsPerMl: 0.92 }), 6), 7);
+  // Une boisson végétale: un verre, pas une cuillère.
+  assertEquals(millilitresOf(ref({ slug: "soy_milk", gramsPerMl: 1.03 }), 200), 194);
+  // Le miel est plus lourd que l'eau: 30 g n'en font que 21 ml.
+  assertEquals(millilitresOf(ref({ slug: "honey", gramsPerMl: 1.42 }), 30), 21);
+});
+
+Deno.test("millilitresOf — sans densité, on s'abstient (le cas de 915 lignes)", () => {
+  // ⛔ LE CAS QUI DOIT RESTER MUET. Un blanc de poulet n'a pas de volume, et
+  // lui en inventer un ferait apparaître « ≈ 2 c. à soupe de poulet ».
+  assertEquals(millilitresOf(ref({ slug: "chicken_breast" }), 140), null);
+  // Une densité illisible ou absurde ne se rattrape pas par un défaut.
+  assertEquals(millilitresOf(ref({ slug: "x", gramsPerMl: 0 }), 10), null);
+  assertEquals(millilitresOf(ref({ slug: "x", gramsPerMl: null }), 10), null);
+  // Zéro gramme n'a pas de volume à dire.
+  assertEquals(millilitresOf(ref({ slug: "rapeseed_oil", gramsPerMl: 0.92 }), 0), null);
+});
+
+Deno.test("millilitresOfSlug — par IDENTIFIANT, jamais par libellé ni par alias", () => {
+  const index = buildCompositionIndex(
+    [ref({ slug: "rapeseed_oil", gramsPerMl: 0.92 }), ref({ slug: "chicken_breast" })],
+    // Un alias qui pointe vers l'huile: il ne doit PAS ouvrir la conversion.
+    // L'identifiant arrive ici DÉJÀ résolu; une seconde résolution par une
+    // table de formes est exactement le matcher maison que ce dépôt refuse.
+    [{ alias: "huile", slug: "rapeseed_oil" }],
+  );
+  assertEquals(millilitresOfSlug(index, "rapeseed_oil", 6), 7);
+  assertEquals(millilitresOfSlug(index, "huile", 6), null);
+  assertEquals(millilitresOfSlug(index, "chicken_breast", 140), null);
+  // Sans référentiel (chargement en panne) et sans identifiant: muet.
+  assertEquals(millilitresOfSlug(null, "rapeseed_oil", 6), null);
+  assertEquals(millilitresOfSlug(index, null, 6), null);
 });

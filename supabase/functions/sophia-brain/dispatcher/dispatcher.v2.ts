@@ -10,6 +10,7 @@ import type {
   DispatcherPlanFeedbackSignal,
   DispatcherProfileStatementSignal,
   DispatcherRuleQuestionSignal,
+  DispatcherAppHelpSignal,
   DispatcherResearchSignal,
   Explicitness,
   PlanQuestionKind,
@@ -22,6 +23,7 @@ import {
   DOMAIN_PREFIXES_V1,
 } from "../../_shared/memory/domain_keys.ts";
 import { getGlobalAiModel } from "../../_shared/gemini.ts";
+import { selectAppHelpTopics } from "../../_shared/keel/app_help/block.ts";
 import { ENTITY_TYPES } from "../../_shared/memory/types.v1.ts";
 import type { SafetySignalContext } from "../safety/safety_context.ts";
 import {
@@ -692,6 +694,27 @@ function sanitizeRuleQuestionSignal(
   return { detected: true, food: food || null };
 }
 
+/**
+ * FF-066 — LE PARSEUR DE `app_help`. Il ne garde que des identifiants de fiches
+ * connus, trois au plus; un signal détecté sans identifiant connu devient
+ * `unknown_feature` (voir `selectAppHelpTopics`).
+ */
+function sanitizeAppHelpSignal(
+  raw: unknown,
+): DispatcherAppHelpSignal | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const signal = raw as Record<string, unknown>;
+  if (signal.detected !== true) return null;
+  const selection = selectAppHelpTopics(signal.topics ?? signal.topic);
+  return {
+    detected: true,
+    topics: selection.topics,
+    ...(selection.dropped.length > 0
+      ? { dropped_topics: selection.dropped }
+      : {}),
+  };
+}
+
 function sanitizeSkillSignal(
   raw: unknown,
   kind?:
@@ -786,6 +809,12 @@ function sanitizeSkillSignals(
     sanitizeRuleQuestionSignal(entryRoot.rule_question);
   if (ruleQuestion) {
     signals.rule_question = ruleQuestion;
+  }
+  // FF-066 — même lecture, même tolérance `entry`.
+  const appHelp = sanitizeAppHelpSignal(root.app_help) ??
+    sanitizeAppHelpSignal(entryRoot.app_help);
+  if (appHelp) {
+    signals.app_help = appHelp;
   }
   // W2.A: un signal `feature_opportunity` émis par le LLM est désormais DROPPÉ
   // ici (le sanitizer ne le lit plus) — la lane n'existe plus.

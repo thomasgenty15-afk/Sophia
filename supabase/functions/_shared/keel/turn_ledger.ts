@@ -493,6 +493,13 @@ export type TurnLedgerBeltInput = {
   isMinor: boolean;
   /** Le message de l'élève, VERBATIM. Désarme la règle photo (voir plus bas). */
   userMessage: string;
+  /**
+   * FF-066 — `true` quand une fiche d'aide de ce tour explique un geste photo.
+   * Désarme la règle photo, pour la même raison que `userMessage`: expliquer où
+   * est le bouton photo à quelqu'un qui demande comment noter un repas est une
+   * réponse, pas une sollicitation. Absent ⇒ `false` ⇒ règle armée.
+   */
+  photoExplainedByAppHelp?: boolean;
   /** La locale de la réponse, pour la langue du repli. */
   locale: string;
 };
@@ -573,7 +580,8 @@ export function enforceTurnLedger(
   // une sollicitation — c'est la distinction que R6 de FF-025 pose entre
   // l'utilité et le contrôle.
   const studentRaisedPhoto = PHOTO_WORD.test(fold(input.userMessage));
-  const photoRuleArmed = !invitationArmed && !studentRaisedPhoto;
+  const photoRuleArmed = !invitationArmed && !studentRaisedPhoto &&
+    input.photoExplainedByAppHelp !== true;
   /** R6 — ce tour parle-t-il de la mesure corporelle de l'élève ? */
   const turnIsAboutBodyMeasure = mentionsBodyMeasure(input.userMessage);
 

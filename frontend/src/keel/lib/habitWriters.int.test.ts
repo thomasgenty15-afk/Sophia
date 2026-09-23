@@ -156,3 +156,209 @@ describe("le « + repas léger » traverse CHAQUE écrivain", () => {
     expect(total).toBeGreaterThan(0);
   });
 });
+
+// ===========================================================================
+// ⟳ 2026-09-23 — LES À-CÔTÉS TRAVERSENT CHAQUE ÉCRIVAIN
+//
+// ⛔ LE PIÈGE EST CONNU ET IL A DÉJÀ MORDU. `keel_household_set_member_habits`
+// REMPLACE la liste entière: un écrivain qui n'apporte pas `side_courses` les
+// EFFACE, en silence, à chaque enregistrement d'une habitude. L'ancienne clé
+// `extras` a été perdue exactement comme ça.
+//
+// Le typecheck attrape l'oubli dans un appel à `habitEntriesToWrite` et à
+// `habitPayload` (le champ est requis dans les deux). Il n'attrape PAS les
+// formes que ce bloc garde:
+//   · une SEMENCE oubliée — `{ ...emptyMouthDraft(), light: … }` compile très
+//     bien sans `sideCourses`, et rouvre la fiche sur `{}`;
+//   · un appel qui passe `sideCourses: {}` EN DUR — il compile, et il efface;
+//   · un appel écrit dans un fichier de test, que le typecheck ne compile pas.
+// ===========================================================================
+
+describe("les à-côtés traversent CHAQUE écrivain", () => {
+  const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+  const files = globSync("**/*.{ts,tsx}", { cwd: root })
+    .filter((f) => !f.endsWith(".int.test.ts") && !f.endsWith(".test.ts"))
+    .map((f) => resolve(root, f));
+  /** Commentaires retirés: ce dépôt PARLE de ces formes dans ses notes. */
+  const strip = (src: string): string =>
+    src
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .split("\n")
+      .filter((l) => !l.trim().startsWith("//") && !l.trim().startsWith("*"))
+      .join("\n");
+  const rel = (f: string) => f.replace(root + "/", "");
+
+  /** Chaque bloc d'arguments `habitEntriesToWrite({ … })`, commentaires retirés. */
+  function callBlocks(): Array<{ file: string; block: string }> {
+    const out: Array<{ file: string; block: string }> = [];
+    for (const file of files) {
+      const src = strip(readFileSync(file, "utf8"));
+      let i = src.indexOf("habitEntriesToWrite({");
+      while (i !== -1) {
+        const fin = src.indexOf("})", i);
+        out.push({ file: rel(file), block: src.slice(i, fin === -1 ? src.length : fin) });
+        i = src.indexOf("habitEntriesToWrite({", i + 1);
+      }
+    }
+    return out;
+  }
+
+  it("LA PRÉMISSE — le balayage voit les six appels du sérialiseur", () => {
+    // Deux dans `HouseholdPage`, deux dans `SetupPage`, un dans `mouthForm`
+    // (`mouthToPersist`), un dans `householdHabits` (`habitPayload`). Un compte
+    // qui baisse est un écrivain perdu de vue; un compte qui monte, un
+    // écrivain à relire. ⟳ 2026-09-23 — `carrySideCourses` (`mealExtras`),
+    // sans appelant de production, a été retiré.
+    const byFile = new Map<string, number>();
+    for (const c of callBlocks()) byFile.set(c.file, (byFile.get(c.file) ?? 0) + 1);
+    expect(Object.fromEntries([...byFile].sort())).toEqual({
+      "api/householdHabits.ts": 1,
+      "lib/mouthForm.ts": 1,
+      "pages/HouseholdPage.tsx": 2,
+      "pages/SetupPage.tsx": 2,
+    });
+  });
+
+  it("⛔ aucun appel à `habitEntriesToWrite` n'oublie `sideCourses`", () => {
+    const coupables = callBlocks()
+      .filter((c) => !/\bsideCourses\s*:/.test(c.block))
+      .map((c) => c.file);
+    expect(coupables).toEqual([]);
+  });
+
+  it("⛔ aucun appel au sérialiseur n'écrit `sideCourses: {}` EN DUR", () => {
+    // ⟳ 2026-09-23 — `{}` passé au sérialiseur veut dire « ce chemin n'a pas
+    // les à-côtés », donc qu'il les EFFACE. `habitPayload` a été le dernier à
+    // le dire; il transmet désormais `carried.sideCourses`.
+    const empties = callBlocks()
+      .filter((c) => /\bsideCourses\s*:\s*\{\s*\}/.test(c.block))
+      .map((c) => c.file);
+    expect(empties).toEqual([]);
+    const src = strip(readFileSync(resolve(root, "api/householdHabits.ts"), "utf8"));
+    const payload = src.slice(src.indexOf("export function habitPayload"));
+    expect(payload.slice(0, payload.indexOf("\n}\n")))
+      .toMatch(/sideCourses\s*:\s*carried\.sideCourses\b/);
+  });
+
+  /**
+   * Les arguments d'un appel `habitPayload(…)`, parenthèses équilibrées, dans
+   * le code SANS commentaires. ⚠️ L'argument porte `?? {}`: couper au premier
+   * `}` ou au premier `)` rendrait un bloc tronqué.
+   */
+  function payloadCalls(scanned: readonly string[]): Array<{ file: string; args: string }> {
+    const out: Array<{ file: string; args: string }> = [];
+    for (const file of scanned) {
+      const src = strip(readFileSync(file, "utf8"));
+      let i = src.indexOf("habitPayload(");
+      while (i !== -1) {
+        // La déclaration n'est pas un appel, ni le nom cité dans une chaîne
+        // (ce fichier cherche « habitPayload( » dans des sources).
+        const isDeclaration = src.slice(Math.max(0, i - 9), i) === "function " ||
+          ["\"", "'", "`"].includes(src[i - 1] ?? "");
+        const open = i + "habitPayload".length;
+        let depth = 0;
+        let end = open;
+        for (; end < src.length; end++) {
+          if (src[end] === "(") depth++;
+          else if (src[end] === ")") {
+            depth--;
+            if (depth === 0) break;
+          }
+        }
+        if (!isDeclaration) out.push({ file: rel(file), args: src.slice(open + 1, end) });
+        i = src.indexOf("habitPayload(", i + 1);
+      }
+    }
+    return out;
+  }
+
+  it("⛔ chaque appel à `habitPayload` porte les à-côtés, et jamais un `{}` en dur", () => {
+    // ⟳ 2026-09-23 — la carte d'un membre (`HouseholdHabitsCard`) passe le
+    // réglage LU dans `carried`; le report au montage a disparu. Un appel qui
+    // l'oublie efface le « jamais de dessert » d'une personne qui corrige sa
+    // prose. Les fichiers de test sont balayés AUSSI: le typecheck ne les
+    // compile pas.
+    const every = globSync("**/*.{ts,tsx}", { cwd: root }).map((f) => resolve(root, f));
+    const calls = payloadCalls(every);
+    // LA PRÉMISSE: l'appel de production est vu, et les appels des tests aussi.
+    expect(calls.filter((c) => !c.file.includes(".test.")).map((c) => c.file))
+      .toEqual(["components/HouseholdHabitsCard.tsx"]);
+    expect(calls.length).toBeGreaterThan(1);
+    const coupables = calls
+      .filter((c) => !/\bsideCourses\s*:/.test(c.args))
+      .map((c) => `${c.file}: ${c.args.replace(/\s+/g, " ").slice(0, 80)}`);
+    expect(coupables).toEqual([]);
+    // Et la production passe la LECTURE, pas un vide.
+    const card = calls.find((c) => c.file === "components/HouseholdHabitsCard.tsx")!;
+    expect(card.args).toMatch(/\bsideCourses\s*:\s*habits\?\.sideCourses\b/);
+  });
+
+  it("⛔ `HouseholdHabitsCard` est monté SANS report: la carte porte elle-même les à-côtés", () => {
+    // Un report au montage EN PLUS de `carried` serait un second écrivain du
+    // même réglage — et c'est celui qu'on relit le moins qui finirait par
+    // décider. ⟳ 2026-09-23 — la fonction de report (`carrySideCourses`) a
+    // été retirée: la carte monte sans aucun attribut d'à-côtés.
+    const mounts: string[] = [];
+    for (const file of files) {
+      const src = strip(readFileSync(file, "utf8"));
+      let i = src.indexOf("<HouseholdHabitsCard");
+      while (i !== -1) {
+        const fin = src.indexOf("/>", i);
+        const tag = src.slice(i, fin === -1 ? src.length : fin);
+        mounts.push(rel(file));
+        expect(tag).not.toMatch(/\bsideCourses\b/);
+        i = src.indexOf("<HouseholdHabitsCard", i + 1);
+      }
+    }
+    expect(mounts).toEqual(["pages/HouseholdPage.tsx"]);
+  });
+
+  it("⛔ PARTOUT OÙ LE LÉGER EST SEMÉ OU REPORTÉ, LES À-CÔTÉS LE SONT AUSSI", () => {
+    // ⚠️ C'EST LA FORME QUE LE TYPECHECK NE VOIT PAS: une semence
+    // `{ ...emptyMouthDraft(), light: … }` compile sans `sideCourses` — elle
+    // reçoit le `{}` du brouillon vide, et la fiche s'ouvre sur « Selon
+    // l'objectif » alors que la base porte « Non », puis l'efface au Save.
+    //
+    // La règle: toute clé `light:` qui porte une VALEUR (pas une annotation de
+    // type, qui finit par `;`) a une voisine `sideCourses:` à quelques lignes.
+    //
+    // ⛔ UNE EXEMPTION, NOMMÉE: `toggleLight(` — le clic sur la bulle du léger,
+    // qui n'écrit que le léger dans un brouillon qui porte déjà tout le reste.
+    // ⟳ 2026-09-23 — l'exemption de `components/HouseholdHabitsCard.tsx` est
+    // RETIRÉE: la carte passe désormais `sideCourses` avec `light`.
+    const seeds: string[] = [];
+    const coupables: string[] = [];
+    for (const file of files) {
+      const lines = strip(readFileSync(file, "utf8")).split("\n");
+      lines.forEach((line, at) => {
+        const m = /\blight\s*:\s*(.+)$/.exec(line);
+        if (!m) return;
+        const value = m[1].trim();
+        if (value.endsWith(";")) return;
+        if (value.startsWith("toggleLight(")) return;
+        seeds.push(`${rel(file)}:${at}`);
+        const window = lines.slice(Math.max(0, at - 6), at + 7).join("\n");
+        if (!/\bsideCourses\s*:/.test(window)) coupables.push(`${rel(file)}: ${value}`);
+      });
+    }
+    // LA PRÉMISSE, ARMÉE: les semences connues sont bien vues (emptyMouthDraft,
+    // knownMouthForOwner, draftFromKnown, mouthToPersist, loadMemberHabits,
+    // habitPayload, quatre dans HouseholdPage, six dans SetupPage, et
+    // ⟳ 2026-09-23 la carte `HouseholdHabitsCard`; `carrySideCourses`, retiré
+    // le même jour, n'en est plus). Une liste vide rendrait la règle verte
+    // pour rien.
+    expect(seeds.length, seeds.join("\n")).toBe(17);
+    expect(coupables).toEqual([]);
+  });
+
+  it("⛔ la fiche remonte `sideCourses` dans le brouillon du titulaire", () => {
+    // `set({ sideCourses })` dans la fenêtre, et le nom dans
+    // `SELF_SHEET_FIELDS`: sans lui, le brouillon DÉRIVÉ du titulaire
+    // rallumerait « Selon l'objectif » dans la même image.
+    const dialog = strip(readFileSync(resolve(root, "components/MouthFormDialog.tsx"), "utf8"));
+    expect(dialog).toMatch(/<SideCoursesField[\s\S]*?set\(\{\s*sideCourses:\s*next\s*\}\)/);
+    const form = strip(readFileSync(resolve(root, "lib/mouthForm.ts"), "utf8"));
+    const list = form.slice(form.indexOf("export const SELF_SHEET_FIELDS"));
+    expect(list.slice(0, list.indexOf("] as const"))).toContain('"sideCourses"');
+  });
+});

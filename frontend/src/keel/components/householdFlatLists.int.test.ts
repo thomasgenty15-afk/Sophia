@@ -130,8 +130,6 @@ function shareText(args: {
     userId: null,
     householdMealId: null,
     planStartsOn: null,
-    onApprove: async () => {},
-    busy: false,
   }))).replace(/<[^>]*>/g, "");
 }
 

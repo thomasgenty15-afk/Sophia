@@ -5,6 +5,7 @@ import { type GeneratedDish } from "../api/mealGeneration";
 import { isReportable } from "../api/mealStretch";
 import {
   BARE_UNTICK_REASON,
+  declareNotEaten,
   loadMealTicks,
   type MealUntickReason,
   mealTickKey,
@@ -52,6 +53,14 @@ import { type DayToken } from "../api/types";
 //
 // La fenêtre de rattrapage est donc bornée par la composition elle-même — six
 // jours au plus, puisqu'elle en couvre sept.
+//
+// ── ⟳ 2026-09-23: LA CASE DIT « PAS MANGÉ » ────────────────────────────────
+// Décision du propriétaire: un repas prévu est PRÉSUMÉ mangé, et le geste qui
+// compte est « je n'ai pas mangé ce repas ». La case d'un plat rapportable part
+// donc VIDE sans qu'aucune ligne n'existe; la cocher ÉCRIT la ligne avec son
+// motif (`declareNotEaten`), et la décocher la réarme (`tickMeal`). Le
+// journal (`tracking_v2.ts`) applique la même présomption au total mangé: les
+// deux ne peuvent pas diverger, puisque seul le « pas mangé » est écrit.
 
 /**
  * FF-057 §3.A — LE FORMULAIRE ACCIDENT, OUVERT PAR LA DÉCOCHE QU'ON VIENT DE
@@ -83,7 +92,11 @@ export interface UntickPrompt {
 
 /** Ce qu'un `DishCard` reçoit pour rendre sa case. */
 export interface DishTick {
-  checked: boolean;
+  /**
+   * ⟳ 2026-09-23 — LA CASE DIT « PAS MANGÉ ». Cochée = la personne a déclaré ne
+   * pas avoir mangé ce repas; vide = présumé mangé (le cas par défaut).
+   */
+  missed: boolean;
   busy: boolean;
   onToggle: () => void;
   /**
@@ -221,7 +234,11 @@ export function useMealTicks(args: {
   const { userId, mealId } = args;
   const dishes = args.dishes.length > 0 ? args.dishes : NO_DISHES;
 
-  const [ticked, setTicked] = React.useState<Set<string>>(new Set());
+  /**
+   * ⟳ 2026-09-23 — LES CLÉS QUI PORTENT UN « PAS MANGÉ ». Une clé absente est
+   * cochée: c'est la présomption, et c'est le cas de loin le plus fréquent.
+   */
+  const [notEaten, setNotEaten] = React.useState<Set<string>>(new Set());
   const [busyKey, setBusyKey] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [ready, setReady] = React.useState(false);
@@ -248,11 +265,15 @@ export function useMealTicks(args: {
       setPromptKey(null);
       try {
         const ticks = await loadMealTicks(userId);
-        if (!cancelled) setTicked(new Set(ticks.keys()));
+        if (!cancelled) {
+          setNotEaten(
+            new Set([...ticks.values()].filter((t) => !t.eaten).map((t) => t.key)),
+          );
+        }
       } catch {
-        // Des coches illisibles laissent l'écran utilisable: on affiche tout
-        // décoché plutôt que de refuser le plan. Le pire cas est une case à
-        // recocher, pas un dîner invisible.
+        // Des coches illisibles laissent l'écran utilisable: on affiche la
+        // présomption (tout coché) plutôt que de refuser le plan. Décocher
+        // reste sûr: `declareNotEaten` retombe sur la ligne si elle existe.
       }
       if (!cancelled) setReady(true);
     })();
@@ -270,22 +291,26 @@ export function useMealTicks(args: {
       setBusyKey(key);
       setError(null);
       try {
-        if (ticked.has(key)) {
+        if (!notEaten.has(key)) {
           // LA DÉCOCHE NUE PART D'ABORD, ET LE FORMULAIRE S'OUVRE APRÈS. Voir
           // `UntickPrompt`: l'ordre est la règle. Si la personne ferme l'écran
           // là, le fait « ce repas prévu n'a pas eu lieu » est écrit et rien ne
           // l'attend.
-          await untickMeal({
+          //
+          // ⟳ `declareNotEaten`, PAS `untickMeal`: la case cochée d'office n'a
+          // en général AUCUNE ligne derrière elle, et `untickMeal` ne sait que
+          // modifier une ligne existante.
+          await declareNotEaten({
             userId,
             generatedMealId: mealId,
             dishIndex: index,
+            localDate: onDate,
+            slotKey: dish.slot,
+            title: dish.title,
+            contentLocale: "en-GB",
             reason: BARE_UNTICK_REASON,
           });
-          setTicked((prev) => {
-            const next = new Set(prev);
-            next.delete(key);
-            return next;
-          });
+          setNotEaten((prev) => new Set(prev).add(key));
           setPromptKey(promptIdFor(key, onDate));
         } else {
           await tickMeal({
@@ -302,7 +327,11 @@ export function useMealTicks(args: {
             title: dish.title,
             contentLocale: "en-GB",
           });
-          setTicked((prev) => new Set(prev).add(key));
+          setNotEaten((prev) => {
+            const next = new Set(prev);
+            next.delete(key);
+            return next;
+          });
           // Recocher referme le formulaire: la question ne porte plus sur rien,
           // et le motif qu'elle aurait précisé vient d'être effacé (`null`).
           setPromptKey((open) => (open === promptIdFor(key, onDate) ? null : open));
@@ -316,7 +345,7 @@ export function useMealTicks(args: {
         setBusyKey(null);
       }
     },
-    [mealId, ticked, userId],
+    [mealId, notEaten, userId],
   );
 
   /**
@@ -381,7 +410,7 @@ export function useMealTicks(args: {
       // ne le dit pas, et un `!` de plus serait un `as` de plus.
       const promptId = onDate ? promptIdFor(key, onDate) : null;
       return {
-        checked: ticked.has(key),
+        missed: notEaten.has(key),
         busy: busyKey === key,
         onToggle: () => void toggle(index, key, dish, onDate!),
         untickPrompt: promptId !== null && promptKey === promptId
@@ -396,7 +425,7 @@ export function useMealTicks(args: {
           : null,
       };
     },
-    [busyKey, mealId, pickReason, promptKey, ticked, toggle, userId],
+    [busyKey, mealId, notEaten, pickReason, promptKey, toggle, userId],
   );
 
   const bind = React.useCallback(

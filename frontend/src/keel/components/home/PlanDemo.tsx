@@ -3,11 +3,13 @@ import React from "react";
 import { aisleLabel, dishDayLabel, dishSlotLabel, mealCopy } from "../../api/mealLabels";
 import { SHOPPING_AISLE_ORDER } from "../../api/mealLabels";
 import { plural } from "../../i18n/plural";
-import { t } from "../../i18n/t";
+import { t, type MessageKey } from "../../i18n/t";
 import { Card } from "../ui/Card";
+import PlanStoryStage from "./PlanStoryStage";
 import {
   boxLinesForDish,
   boxLinesForSession,
+  boxPartsFor,
   DEMO_DAYS,
   DEMO_DISHES,
   DEMO_GROCERIES,
@@ -16,6 +18,7 @@ import {
   DEMO_SILENCES,
   DEMO_SLOTS,
   type DemoBoxLine,
+  type DemoBoxPart,
   type DemoDay,
   type DemoDish,
   type DemoGoal,
@@ -83,56 +86,133 @@ function useChain() {
 
 type Chain = ReturnType<typeof useChain>;
 
-/** A readable meal preview in the hero; quantities come from the shared fixture. */
+/**
+ * Les repères de la session de dimanche, en minutes depuis le début. Ils
+ * tiennent dans ses 50 minutes: le poulet entre au four à 5 min pour 45, le
+ * boulgour démarre à 30 pour 20 — tout est prêt à 50.
+ */
+const COOK_STEPS = [
+  { at: 0, text: "home.flow.cook.step_1" },
+  { at: 5, text: "home.flow.cook.step_2" },
+  { at: 30, text: "home.flow.cook.step_3" },
+  { at: 50, text: "home.flow.cook.step_4" },
+] as const satisfies ReadonlyArray<{ at: number; text: MessageKey }>;
+
+/** Libellé court d'une ligne de boîte, par le rôle de sa casserole. */
+const PART_LABEL = {
+  main: "home.demo.box.main",
+  separable_side: "home.demo.box.side",
+} as const satisfies Record<DemoBoxPart["role"], MessageKey>;
+
+/**
+ * « Exemple de repas » — LA BOÎTE, LIGNE PAR CASSEROLE (2026-09-23).
+ *
+ * Deux lignes, comme le produit les rendra (chantier « féculent à côté »,
+ * lot C): la casserole principale avec sa répartition exacte, puis le
+ * féculent cuit à part. Les grammes viennent de la fixture partagée.
+ */
 export function MealPreview({ goal }: PlanDemoProps) {
   const dish = DEMO_DISHES[0];
-  return <div className="w-full rounded-fiche border border-line bg-paper-2 p-5 sm:p-6">
+  const parts = boxPartsFor(dish, goal);
+  return <div className="w-full rounded-fiche border border-line bg-paper p-5 sm:p-6">
     <p className="text-xs font-semibold uppercase tracking-wide text-fig-700">{t("home.preview.label")}</p>
     <p className="mt-3 font-display text-[1.35rem] leading-snug text-ink">{t(dish.titleKey)}</p>
     <ul className="mt-4 divide-y divide-line">
-      {dish.boxItems.map((item) => <li key={item.termKey} className="flex items-baseline justify-between gap-3 py-2 text-sm">
-        <span className="text-ink-soft">{t(item.termKey)}</span>
-        <strong className="shrink-0 font-medium tabular-nums text-ink">{item.grams[goal]} g</strong>
+      {parts.map((part) => <li key={part.prepId} className="py-2.5">
+        <p className="flex items-baseline justify-between gap-3 text-sm">
+          <span className="font-medium text-ink">{t(PART_LABEL[part.role])}</span>
+          <strong className="shrink-0 font-semibold tabular-nums text-ink">{part.grams} g</strong>
+        </p>
+        {part.items.length > 1 && <p className="mt-0.5 text-[13px] tabular-nums text-ink-soft">
+          {part.items.map((item) => `${item.term} ${item.grams} g`).join(" · ")}
+        </p>}
       </li>)}
     </ul>
     <p className="mt-3 text-xs leading-5 text-ink-soft">{t("home.preview.note")}</p>
   </div>;
 }
 
-/** One continuous shopping → cooking → meals example; details stay optional. */
+/**
+ * LES QUATRE ÉTAPES — courses, cuisine, boîtes, repas (2026-09-23).
+ *
+ * ⚠️ « TES BOÎTES » EST NÉE CE JOUR-LÀ: la page ne disait nulle part ce
+ * qu'est une boîte ni pourquoi on pèse à ce moment-là, alors que c'est le
+ * cœur du protocole (`BoxTable`: « on pèse UNE fois, au moment de la mise en
+ * boîtes »). La numérotation est légitime ici: c'est un ordre vécu.
+ *
+ * La scène 3D (`PlanStoryStage`) se colle à côté de la liste et avance avec
+ * elle. La liste porte TOUT le contenu; la scène n'en ajoute aucun.
+ */
 export default function PlanDemo({ goal }: PlanDemoProps) {
   const [open, setOpen] = React.useState(false);
   const panelId = React.useId();
+  const stepRefs = React.useRef<Array<HTMLElement | null>>([]);
+  const [active, setActive] = React.useState(0);
+  // ⚠️ OPTIMISTE: la liste prend ses hauteurs de récit DÈS LE PREMIER RENDU.
+  // Les appliquer quand la 3D a fini de charger faisait sauter la page sous
+  // les yeux de qui était déjà dans la section. Elles ne tombent que si WebGL
+  // échoue; l'estompe des étapes inactives, elle, attend la scène.
+  const [story, setStory] = React.useState<"pending" | "ready" | "failed">("pending");
+  const onStoryStatus = React.useCallback((ready: boolean) => setStory(ready ? "ready" : "failed"), []);
+  const tall = story !== "failed";
   const dinner = DEMO_DISHES.find((dish) => dish.id === "sun_dinner")!;
   const nextDish = DEMO_DISHES.find((dish) => dish.id === "mon_lunch")!;
   const groceries = DEMO_GROCERIES.filter((item) => ["chicken_thighs", "bulgur", "carrots"].includes(item.id));
-  return <div>
-    <p className="text-sm text-ink-soft">{t("home.plan.window")}</p>
-    <ol className="mt-4 grid divide-y divide-line overflow-hidden rounded-fiche border border-line bg-paper md:grid-cols-3 md:divide-x md:divide-y-0">
-      <li className="p-5 sm:p-6">
-        <h3 className="font-display text-xl text-ink">{t("home.how.shop.title")}</h3>
-        <p className="mt-1 text-xs text-fig-700">{t("home.flow.sunday")}</p>
+
+  const steps: ReadonlyArray<{ key: string; title: MessageKey; when: MessageKey | null; body: React.ReactNode }> = [
+    {
+      key: "shop",
+      title: "home.how.shop.title",
+      when: "home.flow.sunday",
+      body: <>
         <ul className="mt-4 space-y-2">
           {groceries.map((item) => <li key={item.id} className="flex items-baseline justify-between gap-3 text-sm">
-            <span className="text-ink-soft">{t(item.termKey)}</span><span className="shrink-0 tabular-nums text-ink">{item.quantity}</span>
+            <span className="text-ink-soft">{t(item.termKey)}</span><span className="shrink-0 tabular-nums text-ink">{item.quantity[goal]}</span>
           </li>)}
         </ul>
         <p className="mt-3 text-xs text-ink-soft">{t("home.flow.more", { count: DEMO_GROCERIES.length - groceries.length })}</p>
-      </li>
-      <li className="p-5 sm:p-6">
-        <h3 className="font-display text-xl text-ink">{t("home.how.cook.title")}</h3>
-        <p className="mt-1 text-xs text-fig-700">{t("home.flow.sunday")}</p>
-        <ul className="mt-4 space-y-2 text-sm text-ink-soft">{DEMO_PREPS.map((prep) => <li key={prep.id}>{t(prep.titleKey)}</li>)}</ul>
-        <p className="mt-4 text-sm font-medium text-ink">{t("home.flow.cooking_time", { minutes: DEMO_SESSIONS[0].totalMinutes })}</p>
-      </li>
-      <li className="p-5 sm:p-6">
-        <h3 className="font-display text-xl text-ink">{t("home.how.eat.title")}</h3>
-        {/* ⚠️ LE KCAL EST LE CHIFFRE QUE LA COLONNE VEND, DONC IL EST LU AVANT LA
-            phrase: il vient des grammes de la fixture (`DemoDish.kcal`), et il
-            se déplace avec l'objectif comme les grammes. Sa BASE est la ligne du
-            bas (`home.plan.summary.energy`) — les deux sont dans ce même bloc, et
-            un chiffre d'énergie sans sa base est exactement ce que
-            `energyBasis.int.test.ts` existe pour empêcher. */}
+      </>,
+    },
+    {
+      key: "cook",
+      title: "home.how.cook.title",
+      when: "home.flow.sunday",
+      // ⟳ 2026-09-23 — LA RECETTE, ÉTOFFÉE: le déroulé de la session, repère
+      // par repère, au lieu de deux noms de plats. C'est ce qu'on a sous les
+      // yeux en cuisinant.
+      body: <>
+        <p className="mt-3 text-sm font-medium text-ink">{DEMO_PREPS.map((prep) => t(prep.titleKey)).join(" · ")}</p>
+        <ol className="mt-4 space-y-3 border-l border-line pl-4">
+          {COOK_STEPS.map((step) => <li key={step.text} className="relative text-sm leading-6 text-ink-soft">
+            <span aria-hidden="true" className="absolute -left-[1.3rem] top-2 size-2 rounded-full bg-fig-700" />
+            <span className="mr-2 font-semibold tabular-nums text-ink">{t("home.flow.step_at", { minutes: step.at })}</span>
+            {t(step.text)}
+          </li>)}
+        </ol>
+        <p className="mt-4 border-t border-line pt-3 text-sm font-medium text-ink">{t("home.flow.cooking_time", { minutes: DEMO_SESSIONS[0].totalMinutes })}</p>
+      </>,
+    },
+    {
+      key: "box",
+      title: "home.how.box.title",
+      when: "home.flow.boxing",
+      body: <>
+        <p className="mt-4 text-sm font-medium text-ink">{t("home.flow.box_count")}</p>
+        <p className="mt-2 text-sm leading-6 text-ink-soft">{t("home.flow.box_side")}</p>
+        <p className="mt-3 border-t border-line pt-3 text-sm leading-6 text-ink-soft">{t("home.flow.box_weigh")}</p>
+      </>,
+    },
+    {
+      key: "eat",
+      title: "home.how.eat.title",
+      when: null,
+      // ⚠️ LE KCAL EST LE CHIFFRE QUE L'ÉTAPE VEND, DONC IL EST LU AVANT LA
+      // phrase: il vient des grammes de la fixture (`DemoDish.kcal`), et il se
+      // déplace avec l'objectif comme les grammes. Sa BASE est la ligne du bas
+      // (`home.plan.summary.energy`) — les deux sont dans ce même bloc, et un
+      // chiffre d'énergie sans sa base est exactement ce que
+      // `energyBasis.int.test.ts` existe pour empêcher.
+      body: <>
         <dl className="mt-4 space-y-4 text-sm">
           <div>
             <dt className="flex items-baseline justify-between gap-3">
@@ -154,8 +234,33 @@ export default function PlanDemo({ goal }: PlanDemoProps) {
           </div>
         </dl>
         <p className="mt-4 border-t border-line pt-3 text-xs leading-5 text-ink-soft">{t("home.plan.summary.energy")}</p>
-      </li>
-    </ol>
+      </>,
+    },
+  ];
+
+  return <div>
+    <p className="text-sm text-ink-soft">{t("home.plan.window")}</p>
+    <div className="mt-4 grid items-start lg:mt-2 lg:grid-cols-[1.1fr_0.9fr] lg:gap-12">
+      <PlanStoryStage goal={goal} stepRefs={stepRefs} onActive={setActive} onStatus={onStoryStatus} />
+      {/* ⚠️ LES HAUTEURS MINIMALES donnent au défilement le temps de raconter.
+          Sans 3D, la liste redevient compacte. */}
+      <ol className={tall ? "lg:py-[18svh]" : "mt-2 space-y-4"}>
+        {steps.map((step, i) => <li
+          key={step.key}
+          ref={(el) => { stepRefs.current[i] = el; }}
+          className={`transition-opacity duration-500 motion-reduce:transition-none ${tall ? "flex min-h-[48svh] flex-col pt-6 lg:min-h-[58svh] lg:justify-center lg:pt-0" : ""} ${story === "ready" && active !== i ? "lg:opacity-40" : ""}`}
+        >
+          <div className="rounded-fiche border border-line bg-paper p-5 sm:p-6">
+            <div className="flex items-baseline gap-3">
+              <span aria-hidden="true" className="font-display text-lg tabular-nums text-fig-700">{i + 1}</span>
+              <h3 className="font-display text-xl text-ink">{t(step.title)}</h3>
+            </div>
+            {step.when && <p className="mt-1 text-xs text-fig-700">{t(step.when)}</p>}
+            {step.body}
+          </div>
+        </li>)}
+      </ol>
+    </div>
     <button type="button" aria-expanded={open} aria-controls={panelId} onClick={() => setOpen((value) => !value)}
       className="mt-3 inline-flex min-h-11 items-center text-sm font-medium text-fig-700 underline underline-offset-4 hover:text-fig-800">
       {t(open ? "home.plan.close" : "home.plan.open")}
@@ -197,7 +302,7 @@ function DayBlock({ day, goal, chain }: { day: DemoDay; goal: DemoGoal; chain: C
     <div>
       <h3 className="mb-2 text-sm font-semibold text-ink">{dishDayLabel(day)}</h3>
       <div className="space-y-3">
-        {wave && <DayGroceriesCard wave={wave} chain={chain} />}
+        {wave && <DayGroceriesCard wave={wave} goal={goal} chain={chain} />}
         {session && <DaySessionCard session={session} goal={goal} chain={chain} />}
         {DEMO_SLOTS.map((slot) => {
           const here = dishes.filter((d) => d.slot === slot);
@@ -230,7 +335,7 @@ function DayBlock({ day, goal, chain }: { day: DemoDay; goal: DemoGoal; chain: C
 }
 
 /** Les courses du jour — le compte en tête, la liste par rayons dépliable (repliée, comme le produit). */
-function DayGroceriesCard({ wave, chain }: { wave: DemoWave; chain: Chain }) {
+function DayGroceriesCard({ wave, goal, chain }: { wave: DemoWave; goal: DemoGoal; chain: Chain }) {
   const [open, setOpen] = React.useState(false);
   const panelId = React.useId();
   const items = groceriesOf(wave);
@@ -266,7 +371,7 @@ function DayGroceriesCard({ wave, chain }: { wave: DemoWave; chain: Chain }) {
             <div key={group.aisle}>
               <p className="text-label font-semibold uppercase tracking-wide text-ink-soft">{aisleLabel(group.aisle)}</p>
               <ul className="mt-1 flex flex-col gap-0.5">
-                {group.items.map((g) => <GroceryLine key={g.id} item={g} chain={chain} />)}
+                {group.items.map((g) => <GroceryLine key={g.id} item={g} goal={goal} chain={chain} />)}
               </ul>
             </div>
           ))}
@@ -276,7 +381,7 @@ function DayGroceriesCard({ wave, chain }: { wave: DemoWave; chain: Chain }) {
   );
 }
 
-function GroceryLine({ item, chain }: { item: DemoGrocery; chain: Chain }) {
+function GroceryLine({ item, goal, chain }: { item: DemoGrocery; goal: DemoGoal; chain: Chain }) {
   const node: DemoNode = { kind: "grocery", id: item.id };
   return (
     <li
@@ -284,7 +389,7 @@ function GroceryLine({ item, chain }: { item: DemoGrocery; chain: Chain }) {
       className={`flex items-baseline gap-2 rounded-part px-1 text-sm text-ink transition-all ${chain.classFor(node)}`}
     >
       <span>{t(item.termKey)}</span>
-      <span className="tabular-nums text-ink-soft">{item.quantity}</span>
+      <span className="tabular-nums text-ink-soft">{item.quantity[goal]}</span>
     </li>
   );
 }
@@ -315,13 +420,13 @@ function DaySessionCard({ session, goal, chain }: { session: DemoSession; goal: 
       {open && (
         <p id={panelId} className="mt-2 text-sm leading-6 text-ink">{t(session.runThroughKey)}</p>
       )}
-      {preps.map((prep) => <PrepBlock key={prep.id} prep={prep} chain={chain} />)}
+      {preps.map((prep) => <PrepBlock key={prep.id} prep={prep} goal={goal} chain={chain} />)}
       <BoxingTable lines={boxes} />
     </Card>
   );
 }
 
-function PrepBlock({ prep, chain }: { prep: DemoPrep; chain: Chain }) {
+function PrepBlock({ prep, goal, chain }: { prep: DemoPrep; goal: DemoGoal; chain: Chain }) {
   const node: DemoNode = { kind: "prep", id: prep.id };
   const feeds = daysFedByPrep(prep.id).map((d) => dishDayLabel(d) ?? d);
   return (
@@ -345,7 +450,7 @@ function PrepBlock({ prep, chain }: { prep: DemoPrep; chain: Chain }) {
         {prep.ingredients.map((ing) => (
           <li key={ing.termKey} className="flex items-baseline gap-1.5 text-sm text-ink">
             <span>{t(ing.termKey)}</span>
-            <span className="tabular-nums text-ink-soft">{ing.quantity}</span>
+            <span className="tabular-nums text-ink-soft">{ing.quantity[goal]}</span>
           </li>
         ))}
       </ul>
@@ -373,10 +478,18 @@ function BoxingTable({ lines }: { lines: readonly DemoBoxLine[] }) {
         {lines.map((line) => (
           <li key={line.id} className="border-t border-line py-2 first:border-t-0 first:pt-1">
             <p className="text-sm font-medium text-ink">{line.lid}</p>
-            <p className="mt-0.5 flex flex-wrap gap-x-2 text-xs tabular-nums text-ink-soft">
-              {line.items.map((it) => (
-                <span key={it.term}>{it.term} {mealCopy("meals.boxes.grams", { n: it.grams })}</span>
+            {/* Une ligne par casserole (lot C): la principale et sa répartition,
+                puis le féculent à côté. Le total et le kcal ferment la boîte. */}
+            <ul className="mt-0.5 flex flex-col gap-0.5 text-xs tabular-nums text-ink-soft">
+              {line.parts.map((part) => (
+                <li key={part.prepId}>
+                  <span className="text-ink">{part.title}</span>{" "}
+                  {mealCopy("meals.boxes.grams", { n: part.grams })}
+                  {part.items.length > 1 && <span> ({part.items.map((it) => `${it.term} ${mealCopy("meals.boxes.grams", { n: it.grams })}`).join(" · ")})</span>}
+                </li>
               ))}
+            </ul>
+            <p className="mt-0.5 flex flex-wrap gap-x-2 text-xs tabular-nums text-ink-soft">
               <span className="font-medium text-ink">{mealCopy("meals.boxes.grams", { n: line.total })}</span>
               {line.kcal !== null && <span>{mealCopy("meals.boxes.energy", { n: line.kcal })}</span>}
             </p>

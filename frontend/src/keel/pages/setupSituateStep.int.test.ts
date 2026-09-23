@@ -198,12 +198,6 @@ function mouths(patch: {
       onTarget: () => {},
       confirmRemove: null,
       onConfirmRemove: () => {},
-      inviteFor: null,
-      onInviteFor: () => {},
-      inviteEmail: "",
-      onInviteEmail: () => {},
-      onInvite: () => {},
-      invite: null,
       busy: false,
     }),
   );
@@ -409,12 +403,6 @@ function withMouth(patch: {
       onTarget: () => {},
       confirmRemove: null,
       onConfirmRemove: () => {},
-      inviteFor: null,
-      onInviteFor: () => {},
-      inviteEmail: "",
-      onInviteEmail: () => {},
-      onInvite: () => {},
-      invite: null,
       busy: false,
     }),
   );
@@ -427,24 +415,77 @@ describe("une carte inscrite ne s'édite qu'au bouton « Modifier »", () => {
     expect(html).not.toContain('id="setup-mouth-name"');
   });
 
-  it("au repos: aucun contrôle armé, mais la porte des préférences reste", () => {
+  /**
+   * ⟳ 2026-09-20 — L'EXCEPTION DE LA PORTE DES PRÉFÉRENCES EST TOMBÉE.
+   *
+   * Elle restait montée au repos, et la raison écrite était juste: la fenêtre
+   * a son propre enregistrement, donc elle ne peut rien écrire par mégarde.
+   * Mais cette raison répondait au RISQUE, pas à la PLACE — sous un résumé
+   * replié, elle ajoutait un bouton et deux lignes de récapitulatif par
+   * personne, sur un écran replié exactement pour tenir. Demandé à l'écran:
+   * « on peut enlever la partie préférences alimentaires qui s'affiche
+   * toujours, il faut que ce soit hyper simple et clair ».
+   */
+  it("au repos: aucun contrôle armé, et plus de porte des préférences", () => {
     const html = withMouth({});
     expect(html).toContain(en["setup.mouths.edit"]);
     // Les contrôles qui écrivent en base ne sont PAS montés.
     expect(html).not.toContain('id="setup-mouth-g-m-1"');
     expect(html).not.toContain('id="setup-mouth-date-m-1"');
-    // ⚠️ L'EXCEPTION EST NOMMÉE, PAS SUBIE: la fenêtre des préférences a son
-    // propre bouton d'enregistrement, donc elle ne peut rien écrire par
-    // mégarde. C'est la seule chose qui reste atteignable au repos.
-    expect(html).toContain(en["household.mouth.preferences_open"].replace(/\{who\}/g, en["household.mouth.who_fallback"]));
-    // Et « Retirer » aussi — c'est la sortie, pas une modification.
+    expect(html).not.toContain(
+      en["household.mouth.preferences_open"].replace(/\{who\}/g, en["household.mouth.who_fallback"]),
+    );
+    // Et « Retirer » reste — c'est la sortie, pas une modification.
     expect(html).toContain(en["setup.mouths.remove"]);
+    // ⛔ ET PLUS DE PASTILLE « Un adulte »: retirée le 2026-09-20.
+    expect(html).not.toContain(en["setup.mouths.kind_adult"]);
   });
 
-  it("en édition: les contrôles reviennent, et le libellé change", () => {
+  /**
+   * ⟳ 2026-09-20 — « Terminé » EN TÊTE DEVIENT « Enregistrer » EN BAS.
+   *
+   * Rapporté à l'écran: « pour les personnes en plus, je n'ai pas de bouton
+   * enregistrer comme je l'ai avec le compte maître ». Le geste de sortie
+   * existait, mais il était en tête de carte et sous un nom qui ne promet
+   * rien. Les deux moitiés se prouvent: le nouveau nom EST là, l'ancien N'EST
+   * PLUS là — sinon un libellé ajouté à côté de l'autre passerait pour un
+   * remplacement.
+   */
+  it("en édition: les contrôles reviennent, et la sortie s'appelle Enregistrer", () => {
     const html = withMouth({ editing: true });
-    expect(html).toContain(en["setup.mouths.edit_done"]);
+    expect(html).toContain(en["household.member.save"]);
+    expect(html).not.toContain(en["setup.mouths.edit_done"]);
+    // « Modifier » disparaît pendant l'édition: la carte est déjà ouverte.
+    expect(html).not.toContain(en["setup.mouths.edit"]);
     expect(html).toContain('id="setup-mouth-g-m-1"');
+  });
+
+  /** LA PORTE DES PRÉFÉRENCES N'EST PAS PERDUE — « Modifier » la rouvre. */
+  it("en édition: la porte des préférences revient", () => {
+    expect(withMouth({ editing: true })).toContain(
+      en["household.mouth.preferences_open"].replace(/\{who\}/g, en["household.mouth.who_fallback"]),
+    );
+  });
+
+  /**
+   * ── ⛔ « Lui donner son propre accès ? » A QUITTÉ L'ENTONNOIR ────────────
+   *
+   * Quatre-vingts lignes par personne — bouton, panneau, trois phrases, champ
+   * e-mail, bouton d'envoi, lien à recopier — au milieu d'un couloir dont le
+   * seul travail est d'obtenir un premier plan. Décision de l'utilisateur le
+   * 2026-09-20: « on peut l'oublier » à cette étape.
+   *
+   * ⚠️ LES DEUX ÉTATS SONT MESURÉS. Un test qui ne regarderait que la carte
+   * repliée resterait vert sur un panneau simplement déplacé derrière
+   * « Modifier » — ce qui n'est pas ce qui a été demandé.
+   */
+  it("ne propose plus de donner son accès, dans aucun des deux états", () => {
+    for (const editing of [false, true]) {
+      const html = withMouth({ editing });
+      expect(html).not.toContain(en["setup.access.title"]);
+      expect(html).not.toContain(en["setup.access.email"]);
+      expect(html).not.toContain(en["setup.access.submit"]);
+    }
   });
 
   it("⛔ en édition ET direction qui bouge: la CIBLE est enfin là", () => {
@@ -614,18 +655,32 @@ function baseMouthsProps() {
     onTarget: () => {},
     confirmRemove: null,
     onConfirmRemove: () => {},
-    inviteFor: null,
-    onInviteFor: () => {},
-    inviteEmail: "",
-    onInviteEmail: () => {},
-    onInvite: () => {},
-    invite: null,
     busy: false,
   };
 }
 
-describe("le récapitulatif des préférences dit ce que la base porte", () => {
-  it("une bouche dont la fenêtre est FERMÉE montre quand même ce qu'on sait", () => {
+// ═══════════════════════════════════════════════════════════════════════════
+// ⛔ ICI VIVAIT « LE RÉCAPITULATIF DES PRÉFÉRENCES » — RETIRÉ LE 2026-09-20
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Deux cas, et ils gardaient un vrai défaut: le récapitulatif se calculait sur
+// le brouillon de la fenêtre OUVERTE, donc il rendait `emptyMouthDraft()` pour
+// toute bouche dont la fenêtre était fermée. « Toutes les préférences
+// alimentaires de tout le monde ont sauté » — elles n'avaient pas sauté,
+// l'écran n'en montrait rien.
+//
+// La ligne entière a été retirée sur demande, avec sa lecture (`knownPrefs`).
+// Il n'y a donc plus de récapitulatif à garder SUR CETTE PAGE, et les deux cas
+// ne mesureraient plus qu'une absence — ce que le cas d'à côté fait déjà, en
+// une ligne, dans `la carte inscrite ne s'édite qu'au bouton « Modifier »`.
+//
+// ⚠️ LE DÉFAUT, LUI, N'EST PAS MORT: `/app/household` porte trois cadres
+// repliables qui rendent le MÊME récapitulatif avec les mêmes clés, et leur
+// lecture est le même genre de semence. Si ce fichier était le seul garde,
+// c'est là-bas qu'il faut aller — pas ici, où il n'y a plus de surface.
+
+describe("la porte des préférences ne récapitule plus", () => {
+  it("ne dit ni ce qui manque ni ce qui est là", () => {
     const html = renderToStaticMarkup(
       createElement(MouthsStep, {
         ...baseMouthsProps(),
@@ -645,44 +700,17 @@ describe("le récapitulatif des préférences dit ce que la base porte", () => {
           gender: "female" as const,
           activityLevel: null,
         }],
-        // AUCUNE fenêtre ouverte — c'est le cas qui rendait vide.
         mouthPrefs: null,
-        knownPrefs: () => ({
-          ...emptyMouthDraft(),
-          diet: "vegetarian",
-          allergiesNone: true,
-        }),
+        // Carte OUVERTE: c'est le seul état où la porte est rendue, donc le
+        // seul où un récapitulatif pourrait revenir sans qu'on le voie.
+        editingMemberId: "m-1",
       } as never),
     );
     expect(html).not.toContain(en["household.mouth.preferences_empty"]);
-  });
-
-  it("⛔ et sans rien en base, il dit qu'il n'y a rien", () => {
-    // Le cas qui passe: sans lui, un récapitulatif qui annoncerait TOUJOURS du
-    // contenu laisserait l'assertion d'à côté verte pour la mauvaise raison.
-    const html = renderToStaticMarkup(
-      createElement(MouthsStep, {
-        ...baseMouthsProps(),
-        mouths: [{
-          memberId: "m-1",
-          claimed: false,
-          eatingSlots: null,
-          away: [],
-          firstName: "Christèle",
-          kind: "adult" as const,
-          birthDate: null,
-          goal: null,
-          allergiesReviewed: false,
-          diet: null,
-          heightCm: 165,
-          weightKg: 70,
-          gender: "female" as const,
-          activityLevel: null,
-        }],
-        mouthPrefs: null,
-        knownPrefs: () => emptyMouthDraft(),
-      } as never),
+    expect(html).not.toContain(en["household.mouth.block_allergies"]);
+    // ⚠️ MAIS LA PORTE EST LÀ — sinon ce cas passerait sur une carte vide.
+    expect(html).toContain(
+      en["household.mouth.preferences_open"].replace(/\{who\}/g, en["household.mouth.who_fallback"]),
     );
-    expect(html).toContain(en["household.mouth.preferences_empty"]);
   });
 });

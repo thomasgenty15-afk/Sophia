@@ -339,6 +339,15 @@ export const TRANSLATED_NAMESPACES = [
   // lot 6 a payée en renommant `household.envy.*` en `plan.envy.*`: une clé
   // dont le nom désigne un écran qui ne l'affiche pas.
   "known",
+
+  // ══ `/account` ET `/installer-app` (2026-09-23) ═════════════════════════
+  // `account`: le panneau du compte (`components/UserProfile.tsx`), l'export
+  // et la suppression (`components/account/DataPrivacySection.tsx`) et l'écran
+  // « compte en cours de suppression » (`DeletionPendingScreen.tsx`). Les trois
+  // étaient en anglais en dur. `install_app`: le guide d'installation, qui
+  // était en français en dur.
+  "account",
+  "install_app",
 ] as const;
 
 // ⚠️ `landing` A DISPARU DE CETTE LISTE, ET CE N'EST PAS UN OUBLI.
@@ -452,7 +461,7 @@ export function isPendingTranslationNamespace(namespace: string): boolean {
  *
  * ── CE QUI N'EST PAS ICI, ET POURQUOI ──────────────────────────────────────
  * Tout le reste de l'app connectée (`/app/today`, `/app/chat`, `/app/plan`,
- * `/coach/*`, `/account`, `/reset-password`, les trois écrans admin). Un
+ * `/coach/*`, `/reset-password`, les trois écrans admin). Un
  * chemin absent de cette table se rend en ANGLAIS, ce qui est la vérité: rien
  * n'y est traduit, et la moitié de ces écrans porte encore ses phrases en dur.
  */
@@ -648,7 +657,12 @@ export const PAGE_NAMESPACES: Readonly<
   // chrome (`app`, `shell`, `chat`) est écrit à la main comme sur les autres
   // pages d'app, parce que `app.*` entre par la GARDE DE ROUTE —
   // `KeelHouseholdRoute` rend `app.guard.checking` avant que la page n'existe.
-  "/app/about-you": ["known", "slot", "day", "app", "shell", "chat"],
+  //
+  // ⟳ 2026-09-23 · FF-066 LOT 4 — `plan` ET `meals` ENTRENT AVEC LES DEUX
+  // INTERRUPTEURS DE CALORIES (`PlanNumbersSection`): le fronton
+  // `plan.section.numbers.*` et la rangée `meals.energy.*` d'`EnergyReadout`.
+  // Leur ancienne adresse, la fenêtre de `/app/plan`, n'avait plus d'ouvreur.
+  "/app/about-you": ["known", "slot", "day", "app", "shell", "chat", "plan", "meals"],
   // `/app/billing` — L'ABONNEMENT DU FOYER (FF-064).
   //
   // ⚠️ `offer` N'EST PAS DU DÉCOR: la page monte `<OfferLines />`, qui est le
@@ -717,6 +731,12 @@ export const PAGE_NAMESPACES: Readonly<
     "amount",
     "sentence",
     "question",
+    // ⟳ 2026-09-23 — LA FENÊTRE « SUIVI DES REPAS » VIT ICI (`MealsTrackingDialog`):
+    // `meals` porte ses clés et la case « Pas mangé »; `household` vient de
+    // `api/household.ts`, qui lit le plan du foyer d'un profil réclamé. Les deux
+    // sont traduits en entier (`/app/plan` les déclare déjà).
+    "meals",
+    "household",
   ],
   // `/app/today` — la journée. La liste la plus longue de la table, et c'est
   // la nature de cet écran: il fait la jonction entre le plan de repas
@@ -933,6 +953,18 @@ export const PAGE_NAMESPACES: Readonly<
     "chat",
   ],
 
+  // ── LE COMPTE ET LE GUIDE D'INSTALLATION (2026-09-23) ────────────────────
+  // `/account` — le panneau du compte, gardé par `RequireAppAccess`, qui peut
+  // rendre `DeletionPendingScreen` à sa place: les deux sont sous `account.*`.
+  // ⚠️ `household` N'EST PAS DU DÉCOR: `DataPrivacySection` lit la place de la
+  // personne dans son foyer par `api/household.ts`, qui tire les phrases de
+  // `api/householdPlanTrace.ts` (`household.plan.*`). La page ne monte PAS
+  // `KeelAppShell`: ni `app`, ni `shell`, ni `chat`.
+  "/account": ["account", "household"],
+  // `/installer-app` — page de support publique. Son pied de page est
+  // `PublicFooter` (chrome `public`/`brand`, implicite).
+  "/installer-app": ["install_app"],
+
   // ── CE QUI N'EST PAS DANS CETTE TABLE, ET CE QUI LE BLOQUE ───────────────
   //
   // ⚠️ LES QUATRE ÉCRANS COACH CI-DESSOUS ONT LEUR PACK FRANÇAIS ÉCRIT. Ce
@@ -1007,8 +1039,9 @@ export const PAGE_NAMESPACES: Readonly<
   // rapatriés et `i18n/format.ts` posé — voir l'en-tête du fichier.
   //
   // Ce qui reste dehors: les quatre écrans coach ci-dessus (leur corps n'est
-  // pas à nous), `/account` et les trois écrans admin. `/legal` en est sortie
-  // le 2026-09-09 — c'était la dernière page PUBLIQUE hors de la table.
+  // pas à nous) et les trois écrans admin. `/legal` en est sortie le
+  // 2026-09-09 — c'était la dernière page PUBLIQUE hors de la table —, et
+  // `/account` le 2026-09-23.
 };
 
 // ── LES PAGES DONT L'URL DÉCIDE LA LANGUE ──────────────────────────────────

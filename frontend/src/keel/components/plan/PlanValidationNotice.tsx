@@ -171,6 +171,7 @@ const CAUSE_KEYS: Record<string, MessageKey> = {
   // comme ayant atteint l'objectif ». La fondre dans « la cible d'énergie »
   // ferait lire « à quelques calories près » un plan qui manque sa protéine.
   protein_floor_short: "plan.validation.cause.protein_short",
+  protein_ceiling_over: "plan.validation.cause.protein_over",
   cell_energy_unmeasurable: "plan.validation.cause.unmeasurable",
   // ── les courses ─────────────────────────────────────────────────────────
   ingredient_not_bought: "plan.validation.cause.shopping_missing",

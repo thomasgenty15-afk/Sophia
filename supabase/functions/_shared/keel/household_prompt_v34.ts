@@ -87,6 +87,14 @@ import {
   HABIT_CONSEQUENCE,
 } from "./household_habits.ts";
 import type { HouseholdCell } from "./household_cells.ts";
+// ⟳ 2026-09-23 — LES À-CÔTÉS: la ligne de case et le bloc viennent de leur
+// module, jamais rédigés ici.
+import type { SideCourseAsk } from "./side_courses_types.ts";
+import {
+  sideCoursesBlock,
+  sideCoursesCell,
+  sideCoursesGiven,
+} from "./side_courses_prompt.ts";
 
 /**
  * ⛔ SON PROPRE JETON, ET UN NOM DIFFÉRENT DE `HOUSEHOLD_PROMPT_VERSION`.
@@ -96,9 +104,39 @@ import type { HouseholdCell } from "./household_cells.ts";
  * v33. Un second nom ne la voit pas, donc v33 garde sa version, ses six
  * épingles ne bougent pas, et la ligne écrite en base dit laquelle des deux
  * structures a réellement été servie.
+ *
+ * ⟳ 2026-09-23 — `v34_one_card_per_person_the_engine_weighs` →
+ * `v34_the_plate_is_not_the_meal`. Le texte servi change: la recette de
+ * référence (la part du milieu), les phrases qui poussaient au féculent
+ * retirées, l'étape 3 de la méthode (« denser is not better »), les à-côtés
+ * sur les lignes du calendrier et leur bloc, le « sens du plan » par personne.
+ * ⚠️ LA DÉCLARATION TIENT SUR UNE LIGNE: `precedence_binding.ts`
+ * (`readHouseholdPromptV34Version`) la lit dans la source, ancrée au début de
+ * ligne, et jette si elle n'en trouve pas exactement une.
+ *
+ * ⟳ 2026-09-23 — `v34_the_plate_is_not_the_meal` →
+ * `v34_every_plate_splits_its_starch`, le même jour que
+ * `HOUSEHOLD_PROMPT_VERSION` (v38) et pour la même raison: la recette servie ici
+ * (`standardRecipeBlock`) demande le féculent à part pour TOUT déjeuner et tout
+ * dîner, plus seulement pour une case partagée.
+ *
+ * ⟳ 2026-09-23 — `v34_every_plate_splits_its_starch` →
+ * `v34_side_courses_come_in_families`, le même jour que
+ * `HOUSEHOLD_PROMPT_VERSION` (v39) et pour la même raison: le bloc des
+ * à-côtés servi ici (`sideCoursesBlock`) dit la règle de la table, son
+ * exception, la règle des deux jours et le dessert d'un seul aliment.
+ *
+ * ⟳ 2026-09-23 — `v34_side_courses_come_in_families` →
+ * `v34_the_table_shares_its_sides`, le même jour que
+ * `HOUSEHOLD_PROMPT_VERSION` (v40) et pour la même raison: le bloc des
+ * à-côtés servi ici retire le dessert dense de la prise, fait nommer
+ * l'aliment exact, et sort le pain de la règle des deux jours.
+ *
+ * ⟳ 2026-09-23 — `v34_the_table_shares_its_sides` →
+ * `v34_what_came_back_is_named`, le même jour que `HOUSEHOLD_PROMPT_VERSION`
+ * (v41) et pour la même raison: la ligne « à éviter » suit l'envie.
  */
-export const HOUSEHOLD_PROMPT_V34_VERSION =
-  "v34_one_card_per_person_the_engine_weighs";
+export const HOUSEHOLD_PROMPT_V34_VERSION = "v34_what_came_back_is_named";
 
 /**
  * LE PLANCHER DE BOUCHES À PARTIR DUQUEL v34 EST SERVI.
@@ -203,6 +241,47 @@ function ageWordOf(ageState: string): string | null {
   return ageState === "minor" ? "a child or teenager" : null;
 }
 
+/** L'objectif en mots, jamais le jeton : le modèle lit une fiche, pas une base. */
+export function goalWordOf(goal: string | null | undefined): string {
+  switch (goal) {
+    case "fat_loss":
+      return "fat loss — they want to lose weight";
+    case "muscle_gain":
+      return "muscle gain — they want to build muscle";
+    case "maintenance":
+      return "maintenance — keep their weight where it is";
+    default:
+      return "no stated goal — feed them as usual";
+  }
+}
+
+/**
+ * ⟳ 2026-09-21 — CE QUE L'OBJECTIF CHANGE À CE QU'ON MET DANS L'ASSIETTE.
+ *
+ * ⛔ MESURÉ SUR LE PLAN `3e121b21`: la seule chose que l'objectif changeait
+ * était l'ÉNERGIE de la part. L'homme en perte mangeait la même recette que
+ * l'homme en prise de masse, à 2,1 kcal/g, avec 184 g de légumes par jour et
+ * de la saucisse à quatre repas; l'homme en prise de masse prenait son
+ * énergie en thon. La densité de la table est fixée ailleurs (le couloir);
+ * ici on dit AVEC QUOI la remplir. Jamais un nombre de corps.
+ */
+export function directionFoodsOf(goal: string | null | undefined): string | null {
+  switch (goal) {
+    case "fat_loss":
+      return "builds the plate LOW: vegetables first (half the plate, 150 g or " +
+        "more before cooking at lunch and dinner), lean protein, whole grains, " +
+        "water-rich dishes (soups, stews, big salads with a starch). Where a " +
+        "line gives two density figures, the LOWER one is theirs.";
+    case "muscle_gain":
+      return "takes the extra energy in their OWN dishes and snacks, as " +
+        "energy-dense whole foods: oats, nuts and nut butter, dried fruit, " +
+        "olive oil, full-fat dairy, bread, rice -- never as a second main dish " +
+        "or a tin of fish. The shared dish stays as the table needs it.";
+    default:
+      return null;
+  }
+}
+
 function cardFor(
   m: HouseholdPromptInput["members"][number],
   extras: {
@@ -243,6 +322,15 @@ function cardFor(
   if (extras.diet) out.push(`  diet: ${extras.diet}`);
   const age = ageWordOf(String(m.ageState));
   if (age) out.push(`  who: ${age}`);
+  // ⟳ 2026-09-20 — L'OBJECTIF EST ÉCRIT SUR CHAQUE FICHE. Il ne l'était que
+  // pour le titulaire (`-- WHAT THEY ARE AFTER --`) ; les autres bouches
+  // n'avaient que leurs densités et leurs planchers de protéines, c'est-à-dire
+  // la CONSÉQUENCE de l'objectif sans son nom. Un mineur n'a pas d'objectif
+  // (`goal` = null) et la fiche le dit tel quel.
+  out.push(`  after: ${goalWordOf(m.goal)}`);
+  // ⟳ 2026-09-21 — et avec quoi remplir l'assiette, selon la direction.
+  const foods = directionFoodsOf(m.goal);
+  if (foods !== null) out.push(`  ${foods}`);
   // Les moments, avec leur caractère. ⛔ JAMAIS `size` (small/medium/large):
   // le produit l'a écarté, et deux vocabulaires de taille dans la même ligne
   // se contrediraient.
@@ -307,10 +395,23 @@ function calendarBlock(
    * plancher COMMUN du bloc de recette, où elle se confond avec les autres.
    */
   corridorsOf: ReadonlyMap<string, readonly SlotDensity[]>,
-): string {
-  if (cells.length === 0) return "";
+  /**
+   * ⟳ 2026-09-23 — LES À-CÔTÉS DEMANDÉS PAR LE MOTEUR, toutes cases confondues.
+   *
+   * ⛔ REQUIS, `[]` pour « aucun ». Le calendrier est le seul endroit de v34 où
+   * la répartition s'écrit: une case la porte en fin de ligne (« Side courses:
+   * Thomas cheese + dessert; Christèle dessert. »), pour les MANGEURS de cette
+   * case seulement. Une demande qui ne tombe sur aucun mangeur n'est pas
+   * écrite, et elle n'est pas rendue dans `placed`.
+   */
+  sideAsks: readonly SideCourseAsk[],
+): { text: string; placed: SideCourseAsk[]; named: number; sideCells: number } {
+  if (cells.length === 0) return { text: "", placed: [], named: 0, sideCells: 0 };
   const who = (id: string) => nameOf.get(id) ?? id;
   const rows: string[] = [];
+  const placed: SideCourseAsk[] = [];
+  let named = 0;
+  let sideCells = 0;
   // ⚠️ L'EN-TÊTE SUIT LES LIGNES, IL NE LES DEVINE PAS. Il n'est écrit que si
   // au moins une case a REÇU des chiffres — une phrase qui annonce des figures
   // au-dessus d'un calendrier qui n'en porte aucune est du bruit, et le bruit
@@ -328,6 +429,16 @@ function calendarBlock(
       line += ` A dish of their own is ordered for ${
         c.dedicated.map((d) => `${who(d.memberId)} (${d.memberId})`).join(", ")
       }.`;
+      // ⟳ 2026-09-20 — QUAND CHAQUE MANGEUR A SON PLAT, LA TABLE EST VIDE.
+      // Mesuré en local : une bouche seule en milieu de matinée, avec son plat
+      // à elle, recevait AUSSI un plat de table — sans boîte, pour personne —
+      // parce que l'étape 3 dit « le plat commun d'abord » et que rien ne
+      // l'exceptait. L'écran l'affichait « Pour la table », et toute la
+      // famille se retrouvait avec une collation. La phrase est sur la ligne
+      // de la case, comme « write NO dish » l'est sur une case vide.
+      if (c.dedicated.length === c.eaters.length) {
+        line += " Every eater here has their own dish: write NO shared dish for this cell.";
+      }
     }
     // ── LE COULOIR DE LA CASSEROLE COMMUNE ────────────────────────────────
     // ⛔ LES BOUCHES QUI ONT LEUR PROPRE PLAT SORTENT DE L'INTERSECTION: elles
@@ -352,13 +463,31 @@ function calendarBlock(
       line += cellDensitySentence(density);
       anyCorridor = true;
     }
+    // ── ⟳ 2026-09-23 · LES À-CÔTÉS DE LA CASE, EN FIN DE LIGNE ────────────
+    // Dans l'ordre des MANGEURS de la case: une demande pour quelqu'un qui ne
+    // mange pas ici n'a pas de ligne où s'écrire, et elle n'est pas écrite.
+    const here: SideCourseAsk[] = [];
+    for (const id of c.eaters) {
+      for (const a of sideAsks) {
+        if (a.memberId === id && a.dayToken === String(c.day) && a.slot === String(c.slot)) {
+          here.push(a);
+        }
+      }
+    }
+    const side = sideCoursesCell(here, nameOf);
+    if (side.text !== "") {
+      line += side.text;
+      named += side.named;
+      sideCells++;
+      placed.push(...here);
+    }
     rows.push(line);
   }
   // ⚠️ L'UNITÉ EST DITE ICI, UNE FOIS. Vingt et une cases × « kcal per 100 g »
   // feraient une ligne qu'on saute — la propriété que `densityFragment` tient
   // déjà sur ses moments (`one(d, i === 0)`). La garde du brief (« aucun kcal
   // nu ») reste satisfaite: le seul `kcal` de ce bloc est suivi de `per 100 g`.
-  return [
+  const text = [
     "== THE CALENDAR — WHO EATS, CELL BY CELL ==",
     "The engine worked this out from what each person declared. Do not re-decide",
     "it, and do not fill a cell it leaves empty.",
@@ -373,6 +502,7 @@ function calendarBlock(
     "",
     ...rows,
   ].join("\n");
+  return { text, placed, named, sideCells };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -399,11 +529,37 @@ function methodBlock(anyDedicated: boolean): string {
     "2. LAY OUT THE COOKING SESSIONS. Which days you cook, which preparations,",
     "   and which cells each preparation feeds. A preparation must be cooked",
     "   before the first meal that draws on it.",
+    // ⟳ 2026-09-21 — LA SESSION EST LE SOIR. Mesuré sur le plan `c1ce4658`:
+    // les deux sessions tombaient mardi et jeudi et le PREMIER plat qui
+    // puisait dans chaque casserole était le déjeuner du même jour — courses
+    // puis 55 min de cuisine avant midi, un jour de semaine, chez trois
+    // personnes de bureau. « Cuit avant le premier repas » était vrai jour
+    // contre jour ; il manquait l'heure.
+    "   A session happens in the EVENING: the first meal that draws on a",
+    "   preparation cooked on day D is D's dinner. A lunch draws on a",
+    "   preparation cooked on an EARLIER day, or is a no-cook dish assembled on",
+    "   the spot (a salad with a starch, a sandwich, a bowl). The only",
+    "   exception is a plan that starts today with the shop in the morning.",
     "",
     "3. COMPOSE EACH CELL, IN CALENDAR ORDER. The shared dish first, then any",
     "   dish of someone's own the calendar orders" +
     (anyDedicated ? " (see A DISH OF THEIR OWN)." : "."),
+    ...(anyDedicated
+      ? [
+        "   A cell where EVERY eater has a dish of their own gets NO shared dish:",
+        "   the calendar says so on that line, and a shared dish there feeds nobody.",
+      ]
+      : []),
     "   The shared dish of a cell must suit EVERY one of its eaters at once.",
+    // ⟳ 2026-09-21 — LA CASE VIDE N'EST PAS UNE RÉPONSE. Mesuré sur le plan
+    // `d65f57e2`: mardi midi, premier déjeuner du plan, sans casserole
+    // disponible (la session est le soir), le modèle n'a rien écrit; la
+    // réparation a échoué deux fois (`no_improvement`). Une case listée par
+    // le calendrier reçoit un plat, et sans casserole c'est un plat sans
+    // cuisson.
+    "   Every cell the calendar lists gets a dish. An EMPTY cell is never an",
+    "   answer: when no preparation can serve a lunch, write a no-cook dish",
+    "   (tinned fish or legumes, bread, raw vegetables, cheese, a dressing).",
     // ══════════════════════════════════════════════════════════════════════
     // ⛔ LE MAXIMUM, PAS LA MOYENNE — MESURÉ AU TIR `DENSITE` (2026-09-08)
     // ══════════════════════════════════════════════════════════════════════
@@ -423,10 +579,26 @@ function methodBlock(anyDedicated: boolean): string {
     // atteindre le PLUS HAUT de ces chiffres. Une exigence de densité n'est pas
     // une préférence qu'on moyenne: en dessous, l'assiette de cette personne-là
     // devient énorme, et elle est la seule à le subir.
-    "   A shared dish has to reach the HIGHEST density asked by any of its",
-    "   eaters at that moment, not the average of them: read their cards, take",
-    "   the largest figure, write the recipe at least that dense. Below it, that",
-    "   one person ends up with an enormous plate and nobody else notices.",
+    // ⟳ 2026-09-21 — ET LA VISÉE EST LA PLUS BASSE QUI TIENNE LE PLANCHER DE
+    // CHACUN. « Le plus haut » visait la carte de l'homme en prise de masse et
+    // rétrécissait l'assiette de l'homme en perte (570 g au lieu de 626 pour
+    // les mêmes calories). Le plancher de chaque carte est ce qui garde chaque
+    // assiette sous sa borne; au-dessus de tous les planchers, plus bas est
+    // mieux pour tout le monde: plus de légumes, plus de volume, la même
+    // énergie. La ligne « Shared dish A-B, aim C » du calendrier porte déjà ce
+    // calcul; la méthode dit comment le lire.
+    // ⟳ 2026-09-23 — LA VISÉE EST L'ASSIETTE ORDINAIRE, PLUS LA PLUS GROSSE.
+    // « the largest plate each person's bounds allow » faisait lire la visée
+    // comme une invitation à remplir l'assiette jusqu'à sa borne: sur les plans
+    // de l'audit du 2026-09-23, 700 g pour Thomas par construction. La visée
+    // de case est maintenant la densité de la personne du MILIEU
+    // (`cellDensityOf`), c'est-à-dire celle de THE TEMPLATE; plus dense n'est
+    // pas mieux, et l'énergie en plus passe par les à-côtés.
+    "   A shared dish has to reach the HIGHEST density FLOOR asked by any of",
+    "   its eaters at that moment, never the average: below someone's floor,",
+    "   that one person ends up with an enormous plate and nobody else notices.",
+    "   Above every floor, write it at the calendar's aim for that cell: the",
+    "   density of an ordinary plate (the template); denser is not better.",
     "",
     "4. WRITE EACH DISH AS A RECIPE, NEVER AS A SERVING, and give it the shape",
     "   the next block asks for: see WRITE ONE STANDARD RECIPE PER DISH. It",
@@ -467,6 +639,8 @@ export function buildHouseholdPromptBlocksV34(
   const dishOwner = dishOwnerSchemaBlock(input.dishBearers);
   const whyRuleSchema = whyRuleSchemaBlock(input.ruleHolders);
   const envy = buildEnvyBlock(input.envyLine);
+  // ⟳ 2026-09-23 — la ligne « à éviter », telle que `avoidLineOf` l'a écrite.
+  const avoid = (input.avoidLine ?? "").trim();
   const kitchen = kitchenBlock(input.kitchenEquipment);
   const workLunch = workLunchBlock(input.members, input.workLunch ?? []);
   const traditions = traditionBlock(input.traditions, input.daysInWindow);
@@ -560,9 +734,30 @@ export function buildHouseholdPromptBlocksV34(
 
   const anyDedicated = input.cells.some((c) => c.dedicated.length > 0);
 
+  // ── ⟳ 2026-09-23 · LES À-CÔTÉS: LE CALENDRIER LES ÉCRIT, LE BLOC LES EXPLIQUE
+  // `?? []` = champ non passé ⇒ aucune ligne, aucun bloc, et `given: 0` le dit.
+  // Le bloc ne reçoit QUE les demandes que le calendrier a écrites: il promet
+  // « the calendar marks "Side courses:" », et une demande sans case ferait
+  // lister l'id de quelqu'un que rien ne marque.
+  const sideAsks = input.sideCourses ?? [];
+  const calendar = calendarBlock(input.cells, nameOf, corridorsOf, sideAsks);
+  const sides = sideCoursesBlock({ asks: calendar.placed, nameOf, perDay: false });
+  const sidesGiven = sideCoursesGiven(sideAsks);
+  const recipe = standardRecipeBlock(
+    densityFloorsOf(
+      // ⚠️ `densityFloorsOf` ne lit QUE `requiredDensity` — le cast dit ce
+      // qu'on lui donne, et le test d'empreinte tient le reste.
+      input.members.map((m) => ({
+        requiredDensity: input.cardFacts[m.memberId]?.requiredDensity ?? null,
+      })) as unknown as Parameters<typeof densityFloorsOf>[0],
+      { normal: NORMAL_DISH_MIN_KCAL_PER_100G, light: LIGHT_DISH_MIN_KCAL_PER_100G },
+    ),
+    { served: sides.block !== "" },
+  ).join("\n");
+
   const parts = [
     cards.join("\n"),
-    calendarBlock(input.cells, nameOf, corridorsOf),
+    calendar.text,
     methodBlock(anyDedicated),
     // ── L'ÉTAPE 4, COLLÉE À LA MÉTHODE QUI LA NOMME ─────────────────────
     // « La promesse et la clé de schéma doivent se toucher »: l'étape 4 dit
@@ -574,21 +769,21 @@ export function buildHouseholdPromptBlocksV34(
     // son exigence passe donc par le plancher COMMUN, où elle se confond avec
     // celle de tout le monde. Le foyer servait `STANDARD_RECIPE_BLOCK` nu,
     // c'est-à-dire les deux planchers génériques et rien d'autre.
-    standardRecipeBlock(
-      densityFloorsOf(
-        // ⚠️ `densityFloorsOf` ne lit QUE `requiredDensity` — le cast dit ce
-        // qu'on lui donne, et le test d'empreinte tient le reste.
-        input.members.map((m) => ({
-          requiredDensity: input.cardFacts[m.memberId]?.requiredDensity ?? null,
-        })) as unknown as Parameters<typeof densityFloorsOf>[0],
-        { normal: NORMAL_DISH_MIN_KCAL_PER_100G, light: LIGHT_DISH_MIN_KCAL_PER_100G },
-      ),
-    ).join("\n"),
+    // ⟳ 2026-09-23 — calculé une fois plus haut (`recipe`): il part aussi dans
+    // `repairContext.standardRecipe`.
+    recipe,
+    // ── ⟳ 2026-09-23 · LES À-CÔTÉS, JUSTE SOUS LA RECETTE ──────────────────
+    // La recette renvoie à « (SIDE COURSES) »; ce bloc est le renvoi et porte
+    // la clé `side_courses`. `""` sans demande écrite: filtré en fin de tableau.
+    sides.block,
     dedicatedDishBlock(input.dishBearers, input.dedicatedDishesAsked),
     workLunch.block,
     traditions.block,
     notes.block,
     envy,
+    // ⟳ 2026-09-23 — juste après l'envie, qu'elle cite (« above »): même place
+    // qu'en v33.
+    avoid,
     decidedBeforeYouBlock(input.decided ?? null),
     kitchen.block,
     // ── LA QUEUE: LES VERROUS, DANS L'ORDRE DE v33 ──────────────────────
@@ -614,6 +809,7 @@ export function buildHouseholdPromptBlocksV34(
       ].join("\n")
     }`,
     envyLineUsed: envy.trim().length > 0,
+    avoidLineUsed: avoid.length > 0,
     voiceIssues: voices.issues,
     voiceCounts: voices.counts,
     voicesHeard: voices.heard.length,
@@ -628,5 +824,24 @@ export function buildHouseholdPromptBlocksV34(
     workLunch: { mouths: workLunch.mouths, cold: workLunch.cold },
     whyRuleHolders: input.ruleHolders.length,
     crossContact,
+    // ⟳ 2026-09-23 — compté sur les lignes du CALENDRIER, là où la
+    // répartition s'écrit en v34.
+    sideCourses: {
+      given: sidesGiven,
+      prompt_asked: calendar.named,
+      cells: calendar.sideCells,
+      unplaced: Math.max(0, sidesGiven - calendar.named),
+    },
+    // ⟳ 2026-09-23 — les TEXTES servis. ⚠️ La répartition des à-côtés est
+    // rendue UNE LIGNE PAR JOUR (`perDay: true`) sur les MÊMES demandes que le
+    // calendrier a écrites: la réparation n'a pas le calendrier sous les yeux,
+    // et un bloc qui renverrait à « the calendar marks » y pointerait dans le
+    // vide.
+    repairContext: {
+      cards: cards.join("\n"),
+      notes: notes.block,
+      standardRecipe: recipe,
+      sideCourses: sideCoursesBlock({ asks: calendar.placed, nameOf, perDay: true }).block,
+    },
   };
 }

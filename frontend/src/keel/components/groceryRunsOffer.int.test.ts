@@ -41,6 +41,7 @@ const html = (over: {
   style?: CookingStyle | null;
   oneCookingSession?: boolean;
   daysToEat?: number;
+  freezer?: boolean | null;
 } = {}) =>
   renderToStaticMarkup(
     React.createElement(GroceryRunsField, {
@@ -51,6 +52,8 @@ const html = (over: {
       style: over.style ?? null,
       oneCookingSession: over.oneCookingSession ?? false,
       daysToEat: over.daysToEat ?? 7,
+      // ⟳ 2026-09-21 — le congélateur entre dans l'offre; `null` = jamais demandé.
+      freezer: over.freezer ?? null,
     }),
   );
 
@@ -92,7 +95,10 @@ describe("l'écran ne propose que ce que le plan fera", () => {
   it("« le moins possible » retire la troisième, ET DIT POURQUOI", () => {
     // Sur SEPT jours: la conservation autoriserait trois sessions, c'est donc
     // bien le style qui plafonne — et le motif le nomme.
-    const markup = html({ style: "minimal", daysToEat: 7 });
+    // ⟳ 2026-09-21 — sept jours SANS congélateur font trois sessions, donc
+    // trois courses; AVEC, deux — et c'est le style qui retire la troisième.
+    expect(offered(html({ style: "minimal", daysToEat: 7 }))).toEqual([1, 2, 3]);
+    const markup = html({ style: "minimal", daysToEat: 7, freezer: true });
     expect(offered(markup)).toEqual([1, 2]);
     // ⛔ LA PHRASE EST LA MOITIÉ QUI COMPTE. Une option qui s'évapore sans
     // motif se lit comme une panne, et envoie chercher le réglage manquant
@@ -133,7 +139,7 @@ describe("l'écran ne propose que ce que le plan fera", () => {
     expect(html({ style: "minimal", daysToEat: 5 })).not.toContain(
       say(en["plan.cooking.runs_capped_style"]),
     );
-    expect(html({ style: "minimal", daysToEat: 7 })).toContain(
+    expect(html({ style: "minimal", daysToEat: 7, freezer: true })).toContain(
       say(en["plan.cooking.runs_capped_style"]),
     );
   });
@@ -184,7 +190,7 @@ describe("⛔ UNE RÉPONSE DÉJÀ DONNÉE N'EST JAMAIS ÉCRASÉE", () => {
   // « la coche automatique écrit des faits faux indémentables ».
 
   it("une valeur hors offre reste VISIBLE et sélectionnée, désactivée", () => {
-    const markup = html({ value: 3, style: "minimal", daysToEat: 7 });
+    const markup = html({ value: 3, style: "minimal", daysToEat: 7, freezer: true });
     expect(offered(markup), "trois est redevenu proposable").toEqual([1, 2]);
     expect(markup, "la réponse enregistrée a disparu du contrôle").toMatch(
       /<option value="3"[^>]*disabled/,
@@ -316,11 +322,22 @@ describe("les mots existent dans les deux langues", () => {
             daysToEat,
             // Littéral: voir `keeping` ci-dessus.
             maxFridgeDays: 3,
+            freezer: null,
           });
           if (limit !== null) seen.add(limit);
         }
       }
     }
+    // ⟳ 2026-09-21 — « style » ne borne plus seul qu'avec un congélateur:
+    // sept jours en « le moins possible » tiennent alors en deux sessions.
+    const froid = offerableGroceryRuns({
+      style: "minimal",
+      oneCookingSession: false,
+      daysToEat: 7,
+      maxFridgeDays: 3,
+      freezer: true,
+    });
+    if (froid.limit !== null) seen.add(froid.limit);
     expect([...seen].sort()).toEqual(["days", "one_session", "style"]);
     for (const limit of seen) {
       expect(FIELD, `motif sans phrase: ${limit}`).toContain(`${limit}:`);
@@ -440,6 +457,7 @@ describe("« peu importe » vaut le HAUT DE L'OFFRE, fenêtre comprise", () => {
         oneCookingSession: false,
         daysToEat,
         maxFridgeDays: 3,
+        freezer: null,
       }),
     );
 
@@ -463,6 +481,7 @@ describe("« peu importe » vaut le HAUT DE L'OFFRE, fenêtre comprise", () => {
         oneCookingSession: false,
         daysToEat,
         maxFridgeDays: 3,
+        freezer: null,
       });
       expect(top(daysToEat), `${daysToEat} jours`).toBe(
         offer.values[offer.values.length - 1],
@@ -481,6 +500,7 @@ describe("« peu importe » vaut le HAUT DE L'OFFRE, fenêtre comprise", () => {
           oneCookingSession: true,
           daysToEat: 7,
           maxFridgeDays: 3,
+          freezer: null,
         }),
       ),
     ).toBe(1);
@@ -494,6 +514,7 @@ describe("« peu importe » vaut le HAUT DE L'OFFRE, fenêtre comprise", () => {
       oneCookingSession: false,
       daysToEat: 2,
       maxFridgeDays: 3,
+      freezer: null,
     });
     expect(resolveGroceryRunsAnswer(3, offer)).toBe(3);
   });

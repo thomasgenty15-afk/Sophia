@@ -213,17 +213,43 @@ describe("les deux cadres de la fiche, et ce qui reste dehors", () => {
   });
 
   /**
-   * LE RÉCAPITULATIF PASSE PAR LE COMPTEUR DE LA FICHE, pas par un compte
-   * maison: `filledPreferenceBlocks` porte les deux cicatrices (« une bulle
-   * éteinte compte si son moment a été RÉPONDU », « `allergiesNone` est une
-   * réponse »), et les DEUX phrases sont celles du bouton de la fiche d'ajout.
+   * ⟳ 2026-09-21 — LE RÉCAPITULATIF DE LA LIGNE N'EXISTE PLUS.
+   *
+   * Il disait, une fois par bouche: « Rien de renseigné — le plan se compose
+   * sans. Ça se remplit plus tard. » ou « Déjà renseigné : ses dégoûts et son
+   * régime. » Retiré sur demande, avec celui de la carte du titulaire.
+   *
+   * ⛔ CE CAS TENAIT « il réutilise le compteur de la fiche, pas un compte
+   * maison ». Il ne peut plus le tenir, mais la propriété SOUS-JACENTE reste à
+   * garder: le compteur et ses deux phrases vivent encore, et c'est le cadre
+   * repliable du FORMULAIRE qui les emploie — là où le résumé est vraiment la
+   * contrepartie d'un repli. Ce qui est mesuré ici est donc devenu: la ligne
+   * n'en a plus, et personne n'a recopié un compte à la main pour compenser.
    */
-  it("le récapitulatif réutilise le compteur ET les phrases de la fiche", () => {
-    expect(src).toContain("filledPreferenceBlocks({");
-    expect(src).toContain('t("household.mouth.preferences_empty")');
-    expect(src).toContain('t("household.mouth.preferences_filled"');
-    expect(src, "la grammaire de liste a été recopiée au lieu d'être partagée")
-      .toContain("blocks: blockList(");
+  it("⛔ la ligne n'a plus de récapitulatif, et n'en a pas refait un à la main", () => {
+    expect(src).not.toContain('t("household.mouth.preferences_empty")');
+    expect(src).not.toContain('t("household.mouth.preferences_filled"');
+    // ⛔ ET SURTOUT PAS UN COMPTE MAISON À LA PLACE. `filledPreferenceBlocks`
+    // porte deux cicatrices (« une bulle éteinte compte si son moment a été
+    // RÉPONDU », « `allergiesNone` EST une réponse »); un second compteur
+    // écrit ici les perdrait toutes les deux en silence.
+    expect(src).not.toContain("filledPreferenceBlocks({");
+  });
+
+  /**
+   * ⚠️ ET LE COMPTEUR N'EST PAS MORT POUR AUTANT. Le retirer « puisque la
+   * ligne ne s'en sert plus » casserait le cadre repliable du formulaire, où
+   * le résumé EST la contrepartie du repli — on y referme un bloc qu'on vient
+   * de remplir.
+   */
+  it("le compteur et ses deux phrases vivent encore, dans le CADRE", () => {
+    // ⚠️ `filledPreferenceBlocks(draft)` ET PAS `({`: le cadre le nourrit du
+    // brouillon NU, là où les cartes lui passaient un objet recomposé
+    // (`{...draft, allergies, allergiesNone}`). C'est la forme d'appel qui a
+    // disparu avec elles, pas la fonction.
+    expect(whole).toContain("filledPreferenceBlocks(draft)");
+    expect(whole).toContain('t("household.mouth.preferences_empty")');
+    expect(whole).toContain("blocks: blockList(");
   });
 
   /**

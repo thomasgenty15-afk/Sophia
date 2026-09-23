@@ -23,7 +23,65 @@ import { supabase } from "../../lib/supabase";
 import KeelAppShell from "../components/KeelAppShell";
 import KnownAboutYouCard from "../components/KnownAboutYouCard";
 import { Card } from "../components/ui/Card";
+import SetupSection from "../components/ui/SetupSection";
+import { EnergySwitches } from "../components/plan/EnergyReadout";
+import { loadMealPlans } from "../api/mealGeneration";
+import { useMealEnergy } from "../lib/useMealEnergy";
+import { browserLocalDate } from "../lib/useMealTicks";
 import { t } from "../i18n/t";
+
+/**
+ * ⟳ 2026-09-23 · FF-066 LOT 4 — « CE QUE TON PLAN AFFICHE », SA SEULE ADRESSE.
+ *
+ * Les deux interrupteurs (voir les calories, voir la fourchette quotidienne)
+ * ont quitté le dessous des plats le 2026-09-20 et l'écran du jour le
+ * 2026-09-23, sur demande: « on ne règle pas pendant qu'on compose ». Il leur
+ * restait la fenêtre « À propos de toi » de `/app/plan` — que plus rien
+ * n'ouvrait depuis le 2026-09-21. Un chiffre qu'on ne peut plus faire taire
+ * est un tracker (FF-059 R7). Ils vivent donc ici, sur l'écran où l'on vient
+ * régler ce que Sophia sait et affiche.
+ *
+ * ⛔ CE COMPOSANT NE DÉCIDE RIEN. `switchOfferable` vient du SERVEUR
+ * (`meal-energy-v1`) et ne vaut vrai que quand le seul refus est
+ * l'interrupteur lui-même. Sous le plancher TCA, pour un mineur, ou sans plan,
+ * la section ENTIÈRE disparaît: un fronton au-dessus du vide dirait à la
+ * personne protégée qu'un réglage de calories existe et lui est refusé.
+ *
+ * Le plan lu est le plan en cours, sinon le suivant: c'est lui qui porte les
+ * chiffres qu'on éteint ou qu'on rallume.
+ */
+function PlanNumbersSection({ userId }: { userId: string }) {
+  const [planId, setPlanId] = React.useState<string | null>(null);
+  React.useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const loaded = await loadMealPlans(userId, browserLocalDate());
+        if (!cancelled) {
+          setPlanId(loaded.current?.mealId ?? loaded.next?.mealId ?? null);
+        }
+      } catch {
+        if (!cancelled) setPlanId(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+  const energy = useMealEnergy({ planId, draftId: null, dishes: [] });
+  if (!energy.ready || !energy.switchOfferable) return null;
+  return (
+    <div className="mt-6">
+      <SetupSection
+        title={t("plan.section.numbers.title")}
+        intro={t("plan.section.numbers.intro")}
+      >
+        <EnergySwitches energy={energy} />
+      </SetupSection>
+    </div>
+  );
+}
 
 // KEEL — `/app/about-you` : « CE QUE SOPHIA SAIT DE TOI ».
 //
@@ -247,6 +305,7 @@ export default function StudentKnownPage() {
           await refresh();
         }}
       />
+      <PlanNumbersSection userId={userId} />
     </>,
   );
 }

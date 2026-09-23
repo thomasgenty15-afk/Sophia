@@ -322,7 +322,10 @@ Deno.test("BÊTA 2B — l'aperçu et l'activation ont la MÊME borne client", ()
     !foyer.includes('functions.invoke("generate-household-meal-v1"'),
     "la lane du foyer a retrouvé un transport à elle",
   );
-  assert(foyer.includes("await composeDraft(input, { onProgress: args.onProgress })"));
+  // ⟳ 2026-09-21 — l'appel porte aussi `replaces` (« Composer un autre plan »
+  // remplace vraiment) ; ce qui compte ici est le transport, pas la forme.
+  assert(foyer.includes("await composeDraft(input, {"));
+  assert(foyer.includes("onProgress: args.onProgress,"));
   assert(foyer.includes("await writeFromDraft(input, draftId, intent, args.replaces ?? null)"));
   assert(
     !src.includes('intent === "draft" ? {} : { timeout'),

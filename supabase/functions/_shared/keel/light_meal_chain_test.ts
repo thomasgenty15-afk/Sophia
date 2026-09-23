@@ -30,9 +30,13 @@ import { parseMemberLight, parseMemberHabits } from "./household_habits.ts";
 // ⛔ LA RÉPONSE, POSÉE UNE FOIS. Tout le fichier la suit; aucune étape n'a le
 // droit de la réécrire pour s'arranger.
 const OCCASIONS = ["breakfast", "lunch", "dinner"] as const;
+// ⟳ 2026-09-23 — `habitEntriesToWrite` exige le réglage des à-côtés
+// (`sideCourses`, requis depuis le chantier « assiettes normales »). `{}` =
+// aucun type réglé : ce fichier ne suit que le léger.
 const REPONSE_ECRAN = {
   habits: {} as Record<string, string>,
   light: { dinner: true },
+  sideCourses: {},
   occasions: OCCASIONS,
 };
 
@@ -64,6 +68,7 @@ Deno.test("③bis la dérivation du handler ne garde que les moments COCHÉS", (
   const mixte = habitEntriesToWrite({
     habits: { lunch: "je mange au bureau" },
     light: { dinner: true, lunch: false },
+    sideCourses: {},
     occasions: OCCASIONS,
   });
   const light = parseMemberLight(mixte);

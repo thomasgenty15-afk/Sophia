@@ -134,6 +134,10 @@ function soloBand(over: {
       ? null
       : { mouth: { memberId: "m-1", ageState: "adult" }, items: over.items },
     directionFor(over.appetite ?? null),
+    // ⟳ 2026-09-23 — l'âge exact (11e paramètre). La lane foyer le lit sur la
+    // fiche (`dayTargetFor` → 37 ans) ; la même personne le passe ici. 37 est
+    // aussi le milieu de 30_44 : aucun nombre de ce fichier ne bouge.
+    PERSON.ageYears,
   );
   assert(env.mode === "per_kg" && env.energy !== null);
   return env.energy!;
@@ -207,7 +211,7 @@ Deno.test("① la cible lit LES DEUX AXES quand ils sont là, et le cran sinon",
 // d'une équation entièrement cassée: une fiche SANS taille garde une cible, par
 // le repli nommé — celui-là même que l'écran applique.
 Deno.test("① sans taille, le repli au poids gouverne — et il se NOMME", () => {
-  const primitives = { ...PERSON, ageBand: "30_44" as const, appetite: null };
+  const primitives = { ...PERSON, ageBand: "30_44" as const, appetite: null, sessionsEdge: "mid" as const };
   const equation = adultMaintenanceKcal(primitives);
   assertEquals(equation.basis, "body_equation");
   const repli = adultMaintenanceKcal({ ...primitives, heightCm: null });
@@ -233,7 +237,7 @@ Deno.test("② la même personne rend la même cible sur les deux lanes, à ±1 
   // `goalGapKcalOf` est le geste que la lane foyer applique. Les deux doivent
   // rendre le même nombre — c'est ÇA, « une seule cible par personne ».
   const solo = dayTargetKcalOf(
-    adultMaintenanceKcal({ ...PERSON, ageBand: "30_44", appetite: null }).kcal,
+    adultMaintenanceKcal({ sessionsEdge: "mid", ...PERSON, ageBand: "30_44", appetite: null }).kcal,
     directionFor(null),
   );
   assert(solo !== null);
@@ -255,12 +259,12 @@ Deno.test("② la même personne rend la même cible sur les deux lanes, à ±1 
 // la CEINTURE qui déforme la bande, et un test qui comparerait des milieux
 // prendrait cette ceinture pour un désaccord.
 Deno.test("② quand A1 mord, la bande est asymétrique — et la CIBLE reste la même", () => {
-  const vite = { direction: "down" as const, paceKgPerWeek: 0.5 };
+  const vite = { direction: "down" as const, paceKgPerWeek: 0.8 };
   const foyer = dayTargetFor(mouth({ ...vite }), "no_position");
   assert(foyer.kcal !== null);
-  const M = adultMaintenanceKcal({ ...PERSON, ageBand: "30_44", appetite: null }).kcal!;
-  // 0,5 kg/sem = 550 kcal/j, ÉCRÊTÉ à 500: la cible est `M − 500`.
-  assertAlmostEquals(foyer.kcal!, M - 500, 1);
+  const M = adultMaintenanceKcal({ sessionsEdge: "mid", ...PERSON, ageBand: "30_44", appetite: null }).kcal!;
+  // ⟳ 2026-09-22 — 0,8 kg/sem = 880 kcal/j = A1 exactement : la cible est `M − 880`.
+  assertAlmostEquals(foyer.kcal!, M - 880, 1);
 
   const env = envelopeFor(
     "fat_loss",
@@ -279,11 +283,13 @@ Deno.test("② quand A1 mord, la bande est asymétrique — et la CIBLE reste la
       // décors décrivent. Le cas qui MORD est éprouvé à part.
       deficitCancelled: false,
       subject: { body: mouthBody(), isMinor: false },
-      paceKgPerWeek: 0.5,
+      paceKgPerWeek: 0.8,
     }),
+    // ⟳ 2026-09-23 — l'âge exact, le même que la fiche (voir `soloBand`).
+    PERSON.ageYears,
   );
   assert(env.mode === "per_kg" && env.energy !== null);
-  assertEquals(env.energy!.low, Math.round(M - 500), "le bas de bande EST A1");
+  assertEquals(env.energy!.low, Math.round(M - 880), "le bas de bande EST A1");
   assert(midOf(env.energy!) > foyer.kcal!, "la bande n'est plus symétrique");
 });
 
@@ -373,13 +379,15 @@ Deno.test("④ la bande de grammes suit la part — et la table dit QUAND elle r
 
   // ── ⛔ LÀ OÙ L'ESTOMAC GOUVERNE, ET IL FAUT LE DIRE ────────────────────
   // Le déjeuner d'un adulte pèse ~950 kcal: à la densité plancher, ça ferait
-  // 950 g d'assiette. La table (700 g) rabat, et c'est JUSTE — c'est une
+  // 950 g d'assiette. La table (550 g) rabat, et c'est JUSTE — c'est une
   // capacité d'estomac, pas une opinion sur l'énergie. Ce que le lot change,
   // c'est qu'on SAIT désormais laquelle des deux a décidé.
+  // ⟳ 2026-09-23 — la table d'un plat d'adulte passe de 700 à 550 g ; le
+  // reste du repas part dans un à-côté, hors de cette borne.
   const dejeuner = bandeDe(mouth(), "lunch");
-  assert(dejeuner.part > 700, `prémisse: ${dejeuner.part} kcal au déjeuner`);
+  assert(dejeuner.part > 550, `prémisse: ${dejeuner.part} kcal au déjeuner`);
   assertEquals(dejeuner.boundSource, "table");
-  assertEquals(dejeuner.max, 700);
+  assertEquals(dejeuner.max, 550);
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -391,7 +399,7 @@ Deno.test("④ la bande de grammes suit la part — et la table dit QUAND elle r
  * La cible du jour et le plafond de grammes d'un MOMENT OÙ LA PART GOUVERNE.
  *
  * ⛔ LE GOÛTER, ET PAS LE DÉJEUNER — c'est une prémisse, pas un confort. Le
- * déjeuner d'un adulte est déjà rabattu par la capacité d'estomac (700 g, voir
+ * déjeuner d'un adulte est déjà rabattu par la capacité d'estomac (550 g, voir
  * le test ④): un plafond qui ne bouge pas y prouverait seulement que la table
  * est plate, pas que le cran est désarmé. On mesure donc là où la borne dérivée
  * décide, et le test ④ garde l'autre moitié.

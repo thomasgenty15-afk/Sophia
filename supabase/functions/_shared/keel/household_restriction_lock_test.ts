@@ -117,3 +117,56 @@ Deno.test("un plat sans champ texte ne fait pas tomber le verrou", () => {
   assertEquals(got.violations, []);
   assertEquals(got.scrubbed, []);
 });
+
+// ⟳ 2026-09-23 — LES À-CÔTÉS (`side_courses[].term`), rangés hors des ingrédients.
+
+Deno.test("⛔ MORD — un à-côté qui sert l'exclu TOMBE, le plat reste et le plan s'écrit", () => {
+  const dish: LockableDish = {
+    title: "Gratin de pâtes",
+    why: "Le dimanche.",
+    method: "Cuire, gratiner.",
+    ingredients: [{ term: "pâtes", quantity: "200 g" }],
+    side_courses: [
+      { member_id: "m_lea", kind: "dessert", term: "crêpe au nutella", ref: null, grams: 90, unit_count: null, preparation_id: null, source: "model" },
+      { member_id: "m_max", kind: "dessert", term: "pomme", ref: "apple", grams: 150, unit_count: 1, preparation_id: null, source: "model" },
+    ],
+  };
+  const got = applyHouseRuleLock([dish], ["nutella"]);
+  // ⛔ PAS UNE VIOLATION DU PLAT: le plat ne sert pas de nutella.
+  assertEquals(got.violations, []);
+  assertEquals(got.sideCoursesDropped, ["Gratin de pâtes:dessert:nutella"]);
+  const sides = got.dishes[0].side_courses as { term: string }[];
+  assertEquals(sides.map((s) => s.term), ["pomme"]);
+  // Le plat lui-même est intact.
+  assertEquals(got.dishes[0].title, "Gratin de pâtes");
+  assertEquals(got.dishes[0].ingredients, dish.ingredients);
+  assertEquals(got.dishes[0].why, "Le dimanche.");
+});
+
+Deno.test("PASSE — des à-côtés propres ressortent tels quels, même objet", () => {
+  const dish: LockableDish = {
+    title: "Riz sauté",
+    why: "Rapide.",
+    method: "Sauter.",
+    ingredients: [{ term: "riz" }],
+    side_courses: [{ member_id: "m_max", kind: "cheese", term: "cheddar", ref: "cheddar" }],
+  };
+  const got = applyHouseRuleLock([dish], ["nutella"]);
+  assertEquals(got.sideCoursesDropped, []);
+  assert(got.dishes[0] === dish, "un plat sans morsure a été recopié");
+});
+
+Deno.test("un à-côté retiré ET un pourquoi qui commente : les deux gestes tiennent", () => {
+  const dish: LockableDish = {
+    title: "Pâtes",
+    why: "Sans nutella cette fois.",
+    method: "Cuire.",
+    ingredients: [{ term: "pâtes" }],
+    side_courses: [{ member_id: "m_lea", kind: "dessert", term: "nutella", ref: null }],
+  };
+  const got = applyHouseRuleLock([dish], ["nutella"]);
+  assertEquals(got.dishes[0].why, null);
+  assertEquals(got.dishes[0].side_courses, []);
+  assertEquals(got.scrubbed, ["Pâtes:nutella"]);
+  assertEquals(got.sideCoursesDropped, ["Pâtes:dessert:nutella"]);
+});

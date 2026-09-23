@@ -36,7 +36,11 @@ import type { MouthBody } from "./meal_envelope.ts";
 /**
  * LE CORPS DE LA MESURE DU 2026-08-22 À 03:19:55 CEST. Femme, 31 ans, 165 cm,
  * 68 kg, sédentaire — entretien estimé 1 980 kcal/j, facteur de boîte mesuré
- * **0,7475** au cran 0,5 kg/semaine. C'est ce nombre-là que le lot annule.
+ * **0,7222** au cran 0,5 kg/semaine. C'est ce nombre-là que le lot annule.
+ *
+ * ⟳ 2026-09-23 — à l'âge exact (31 ans au lieu du milieu de 30_44, 37),
+ * l'entretien vaut 2 023 et le facteur (2 023 − 550)/2 023 = 0,7281. Le
+ * nombre de la mesure reste écrit ci-dessus ; le test épingle celui du moteur.
  */
 const HER: MouthBody = {
   appetite: null,
@@ -83,8 +87,8 @@ Deno.test("⛔ LE CAS QUI MORD — enceinte + fat_loss ⇒ noSizing(\"pregnancy\
   assertEquals(ouvert.reason, "sized", "prémisse: le déficit doit être OUVERT");
   assertEquals(
     Math.round(ouvert.factor * 10000) / 10000,
-    0.7475,
-    "prémisse: le facteur mesuré le 2026-08-22",
+    0.7281,
+    "prémisse: le facteur du 2026-08-22, à l'âge exact (0,7222 au milieu de tranche)",
   );
 
   for (const ref of DEFICIT_CANCELLING_CONDITION_REFS) {

@@ -21,8 +21,7 @@ import { daysFedBy } from "../lib/planGridModel";
 import { Card } from "./ui/Card";
 import Modal from "./ui/Modal";
 import type { BoxEnergyView } from "../api/mealEnergy";
-import { BoxTable } from "./plan/BoxTable";
-import { EnergyBasisNote } from "./plan/EnergyReadout";
+import FoldSection, { BoxingFold } from "./plan/FoldSection";
 
 // LES SESSIONS DE CUISINE — quand on cuisine, et dans quel ordre.
 //
@@ -163,6 +162,19 @@ export default function CookingSessions(
       else next.add(id);
       return next;
     });
+  // ⟳ 2026-09-23 — TOUT EST REPLIÉ PAR DÉFAUT, sur demande du propriétaire
+  // (« sinon c'est interminable »): chaque session, et dans une session ouverte
+  // chaque recette, le déroulé global et le boxing. Clés = index de session:
+  // deux sessions peuvent tomber le même jour, donc le jour seul ne les
+  // distingue pas.
+  const [openSessions, setOpenSessions] = React.useState<Set<number>>(new Set());
+  const flip = (setter: React.Dispatch<React.SetStateAction<Set<number>>>, i: number) =>
+    setter((prev) => {
+      const next = new Set(prev);
+      if (next.has(i)) next.delete(i);
+      else next.add(i);
+      return next;
+    });
 
   if (sessions.length === 0) return null;
   const byId = new Map(preparations.map((p) => [p.id, p]));
@@ -186,24 +198,72 @@ export default function CookingSessions(
           const preps = session.preparation_ids
             .map((id) => byId.get(id))
             .filter((p): p is MealPreparation => p !== undefined);
+          const sessionOpen = openSessions.has(index);
+          const boxLines = boxLinesForSession(
+            session.preparation_ids,
+            dishes,
+            portions,
+            preparations,
+          );
           return (
             <Card key={`${session.day}-${index}`}>
-              <h3 className="flex flex-wrap items-baseline gap-2 text-sm font-semibold text-ink">
-                {dishDayLabel(session.day) ?? session.day}
-                {/* LA DURÉE DE LA SESSION, au mur — c'est ce qu'on regarde pour
-                    savoir si on cale ça ce soir. Elle vient du modèle et n'est
-                    PAS la somme des préparations: les cuissons se chevauchent,
-                    et additionner transformerait un dimanche confortable en une
-                    corvée de quatre heures que personne ne commence. */}
-                {session.total_minutes !== null && (
-                  <span className="text-xs font-normal tabular-nums text-ink-soft">
-                    {mealCopy("meals.sessions.session_time").replace(
-                      "{n}",
-                      String(session.total_minutes),
+              {/* ⟳ 2026-09-23 — L'EN-TÊTE EST LE BOUTON QUI DÉPLIE. Replié, il
+                  dit le jour, la durée et ce qu'on prépare: de quoi choisir
+                  quelle session ouvrir sans tout lire. */}
+              <h3>
+                <button
+                  type="button"
+                  onClick={() => {
+                    // ⟳ 2026-09-23 — OUVRIR UNE SESSION OUVRE SES RECETTES: on
+                    // les vient chercher, un second clic par recette était de
+                    // trop. Chacune garde son « Masquer la recette ».
+                    if (!sessionOpen) {
+                      setOpenPreps((prev) =>
+                        new Set([...prev, ...session.preparation_ids])
+                      );
+                    }
+                    flip(setOpenSessions, index);
+                  }}
+                  aria-expanded={sessionOpen}
+                  className="flex w-full items-start justify-between gap-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-fig-600"
+                >
+                  <span className="min-w-0">
+                    <span className="flex flex-wrap items-baseline gap-2 text-sm font-semibold text-ink">
+                      {dishDayLabel(session.day) ?? session.day}
+                      {/* LA DURÉE DE LA SESSION, au mur — c'est ce qu'on regarde
+                          pour savoir si on cale ça ce soir. Elle vient du modèle
+                          et n'est PAS la somme des préparations: les cuissons se
+                          chevauchent, et additionner transformerait un dimanche
+                          confortable en une corvée de quatre heures que personne
+                          ne commence. */}
+                      {session.total_minutes !== null && (
+                        <span className="text-xs font-normal tabular-nums text-ink-soft">
+                          {mealCopy("meals.sessions.session_time").replace(
+                            "{n}",
+                            String(session.total_minutes),
+                          )}
+                        </span>
+                      )}
+                    </span>
+                    {preps.length > 0 && (
+                      <span className="mt-0.5 block break-words text-xs font-normal text-ink-soft">
+                        {preps.map((p) => p.title).join(", ")}
+                      </span>
                     )}
                   </span>
-                )}
+                  <span
+                    aria-hidden
+                    className={`mt-0.5 shrink-0 text-ink-soft transition-transform ${
+                      sessionOpen ? "rotate-180" : ""
+                    }`}
+                  >
+                    ▾
+                  </span>
+                </button>
               </h3>
+
+              {sessionOpen && (
+              <>
 
               {/* ⟳ 2026-09-09 — le geste de la veille, AVANT le déroulé du
                   modèle: il est déterministe et le contredit au besoin. */}
@@ -218,12 +278,6 @@ export default function CookingSessions(
                   : null;
               })()}
 
-              {session.run_through && (
-                <p className="mt-2 text-sm leading-6 text-ink">
-                  {session.run_through}
-                </p>
-              )}
-
               {preps.map((prep) => (
                 <SessionPreparation
                   key={prep.id}
@@ -233,6 +287,20 @@ export default function CookingSessions(
                   onToggle={() => togglePrep(prep.id)}
                 />
               ))}
+
+              {/* ⟳ 2026-09-23 — LE DÉROULÉ GLOBAL, APRÈS LES PRÉPARATIONS, dans
+                  une zone teintée et repliée — la même que sur `/app/plan`. */}
+              {/* Une seule recette ⇒ pas de déroulé global: il redirait sa
+                  méthode. */}
+              {session.run_through && preps.length !== 1 && (
+                <FoldSection
+                  title={mealCopy("meals.sessions.overview_title")}
+                  meta={null}
+                  tone="tinted"
+                >
+                  <p className="text-sm leading-6 text-ink">{session.run_through}</p>
+                </FoldSection>
+              )}
 
               {/* ══════════════════════════════════════════════════════════
                   LES CONTENANTS QUE CETTE SESSION DOIT REMPLIR.
@@ -251,20 +319,19 @@ export default function CookingSessions(
                   contenant en MOINS par repas, et c'est voulu.
 
                   ⚠️ DEHORS DES RECETTES DÉPLIÉES: c'est une INSTRUCTION DE
-                  SESSION, et on la lit en décidant de se mettre à cuisiner. La
-                  replier obligerait à ouvrir un panneau pour savoir combien
-                  peser. */}
-              <BoxTable
-                lines={boxLinesForSession(session.preparation_ids, dishes, portions)}
-                context="session"
-                boxEnergy={boxEnergy}
-              />
+                  SESSION, pas une recette.
+
+                  ⟳ 2026-09-23 — ET REPLIÉE PAR DÉFAUT, sur demande du
+                  propriétaire: sur un foyer, la table compte un contenant par
+                  repas et par bouche, et dépliée d'office elle rendait la
+                  fenêtre interminable. Le bouton porte le compte, donc on sait
+                  combien de bacs sortir sans l'ouvrir. */}
+              <BoxingFold lines={boxLines} boxEnergy={boxEnergy} />
+              </>
+              )}
             </Card>
           );
         })}
-        {/* ⟳ 2026-09-04 — UN KCAL DE BOÎTE NE S'AFFICHE JAMAIS SANS SA BASE.
-            L'appelant ne passe `boxEnergy` que s'il y a au moins un chiffre. */}
-        {boxEnergy && <EnergyBasisNote />}
       </div>
     </Modal>
   );

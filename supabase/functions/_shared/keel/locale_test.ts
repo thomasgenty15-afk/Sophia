@@ -311,3 +311,22 @@ Deno.test("R3 — le gel SURFACE_FORM se lit sur un seul predicat", () => {
   // "fr" rearmerait des detecteurs francais sur un locuteur anglophone.
   assertEquals(isFrenchLocale(""), false);
 });
+
+import { countryFromLocale } from "./locale.ts";
+
+/**
+ * ⟳ 2026-09-20 — le pays de cuisine déduit de la langue, quand le profil ne
+ * le dit pas : la région de la locale d'abord, sinon le pays par défaut de la
+ * langue. Jamais une devinette sur une langue inconnue.
+ */
+Deno.test("countryFromLocale — la région gagne, la langue est le repli, l'inconnu rend null", () => {
+  assertEquals(countryFromLocale("fr-FR"), "FR");
+  assertEquals(countryFromLocale("fr-CA"), "CA");
+  assertEquals(countryFromLocale("fr_CA"), "CA");
+  assertEquals(countryFromLocale("en-US"), "US");
+  assertEquals(countryFromLocale("fr"), "FR");
+  assertEquals(countryFromLocale("en"), "GB");
+  assertEquals(countryFromLocale("xx"), null);
+  assertEquals(countryFromLocale(""), null);
+  assertEquals(countryFromLocale(null), null);
+});

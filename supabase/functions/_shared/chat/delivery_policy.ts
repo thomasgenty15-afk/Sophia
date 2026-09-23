@@ -120,6 +120,13 @@ export const GUARANTEED_PURPOSES = new Set<string>([
   // au-dessus: il répond à un fait que la personne a produit — sa fenêtre de
   // plan vient de se fermer. Une fois par plan, jamais deux.
   "keel_plan_feedback",
+  // ⟳ 2026-09-23 — LA QUESTION DU SOIR SUR LES REPAS PRÉVUS (`day_meals_io.ts`).
+  //
+  // Elle REMPLACE les questions par repas prévu que `keel_slot_meal` portait:
+  // une par jour au lieu de trois ou quatre. Elle répond à un fait que la
+  // personne a produit — le plan qu'elle a composé pour cette journée — et
+  // elle part au plus une fois par jour.
+  "keel_day_meals",
 ]);
 
 /** Envois programmés que l'élève a acceptés en acceptant le plan de son coach. */

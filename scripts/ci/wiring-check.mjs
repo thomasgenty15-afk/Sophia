@@ -80,6 +80,12 @@ const EXEMPT = new Map([
   // Owner: W7 (evening review). Remove this line when the evening review reads
   // day_targets — the check must go red if W7 ships without it.
   ["day_targets.ts", "W7-PENDING: written in W4.3, still unwired; its intended reader (W7 evening review) does not exist yet."],
+  // ⟳ 2026-09-21 — UNE FIXTURE, ET C'EST TOUT CE QU'ELLE SERA. Le corpus des
+  // 47 notes n'a que des lecteurs de TEST, par construction: le mettre dans un
+  // fichier `_test.ts` ferait enregistrer ses cas deux fois (deux tests
+  // l'importent), et l'inliner dans l'un des deux le rendrait invisible à
+  // l'autre. Même patron que `final_plan_gate_fixtures.ts`.
+  ["draft_note_corpus.ts", "Fixture module: the 47-note corpus, read by the classifier and routing corpus tests only — by design."],
 ]);
 
 // ---------------------------------------------------------------------------

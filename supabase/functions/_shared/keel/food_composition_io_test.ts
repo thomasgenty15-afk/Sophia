@@ -1,5 +1,6 @@
 import { assert, assertEquals } from "jsr:@std/assert@^1.0.0";
 import { loadCompositionIndex } from "./food_composition_io.ts";
+import { isComposable } from "./food_reference_manifest.ts";
 
 // ===========================================================================
 // LA PAGINATION — le défaut le plus cher de la journée du 2026-08-12
@@ -226,5 +227,141 @@ Deno.test("LOT A — les faux amis sont filtrés par LANGUE, et `fr` est le déf
     assertEquals(en.falseFriends?.size, 1);
     assertEquals(en.falseFriends?.get("grapes"), "raisin");
     assertEquals(en.falseFriends?.has("raisin"), false);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-23 — LA PROVENANCE « ciqual2025 » (migration 20260923110000)
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// La migration du référentiel des à-côtés écrit ses lignes sur l'édition 2025
+// de CIQUAL: `source = 'ciqual'`, le CODE 2025 dans `ciqual_code`, et la
+// famille `ciqual2025:<code>` dans `micronutrient_source` — colonne que le
+// chargeur NE LIT PAS. L'état de composition vient donc de `source` (règle par
+// provenance), de `validation_state` (exception nommée) et du doublon de code.
+//
+// ⚠️ LE RISQUE PROPRE AU MÉLANGE DES DEUX ÉDITIONS: les codes ont changé entre
+// 2020 et 2025 (la pomme 13050 de 2020 n'existe plus). Un code 2025 peut donc
+// retomber sur le code 2020 d'un AUTRE aliment déjà en base; la règle du
+// doublon rend alors les deux lignes suspectes. Lu en base locale le
+// 2026-09-23: aucun des 16 codes de la migration n'est porté par une ligne
+// existante.
+
+/** La ligne `comte` telle que la migration 20260923110000 l'insère. */
+const COMTE_2025 = {
+  slug: "comte",
+  food_group_ref: "dairy_cheese",
+  label: "Comté cheese",
+  source: "ciqual",
+  ciqual_code: "12110",
+  ciqual_name: "Comté",
+  energy_kcal: 413,
+  protein_g: 27.8,
+  carbs_g: null,
+  fat_g: 33.8,
+  yield_class: "neutral",
+  atwater_discount: 1,
+  energy_dense: true,
+  micronutrient_source: "ciqual2025:12110",
+};
+
+/** La ligne `pear` telle que la migration 20260923110000 la corrige. */
+const PEAR_2025 = {
+  ...ROW,
+  slug: "pear",
+  energy_kcal: 56.6,
+  ciqual_code: "13037",
+  ciqual_name: "Poire, chair et peau, crue",
+  micronutrient_source: "ciqual2025:13037",
+  validation_state: "verifie",
+  validation_reason: "CIQUAL 2025 13037 relu le 2026-09-23",
+  validation_decided_on: "2026-09-23",
+};
+
+Deno.test("ciqual2025 — une ligne de l'édition 2025 est `verifie`, donc composable", () => {
+  const db = fixedDb({
+    food_composition_refs: [
+      COMTE_2025,
+      PEAR_2025,
+      // Une ligne CIQUAL 2020 codée, voisine: elle ne gêne personne.
+      { ...ROW, slug: "feta", food_group_ref: "dairy_cheese", ciqual_code: "12066" },
+    ],
+    food_composition_aliases: [],
+    food_composition_false_friends: [],
+  });
+  return loadCompositionIndex(db as never).then((index) => {
+    const comte = index.bySlug.get("comte");
+    assert(comte !== undefined, "la ligne 2025 n'est pas chargée");
+    assertEquals(comte.source, "ciqual");
+    assertEquals(comte.ciqualCode, "12110");
+    assertEquals(comte.validation, "verifie");
+    assertEquals(isComposable(comte), true);
+    const pear = index.bySlug.get("pear");
+    assert(pear !== undefined);
+    assertEquals(pear.validation, "verifie");
+    assertEquals(isComposable(pear), true);
+    assertEquals(index.bySlug.get("feta")?.validation, "verifie");
+  });
+});
+
+Deno.test("ciqual2025 — un code 2025 qui retombe sur le code 2020 d'un autre aliment rend les deux suspects (mord)", () => {
+  // Hypothétique: un aliment 2020 porterait le code 12110 du comté 2025.
+  const db = fixedDb({
+    food_composition_refs: [
+      COMTE_2025,
+      { ...ROW, slug: "autre_aliment_2020", ciqual_code: "12110" },
+    ],
+    food_composition_aliases: [],
+    food_composition_false_friends: [],
+  });
+  return loadCompositionIndex(db as never).then((index) => {
+    assertEquals(index.bySlug.get("comte")?.validation, "a_verifier");
+    assertEquals(isComposable(index.bySlug.get("comte")!), false);
+    assertEquals(index.bySlug.get("autre_aliment_2020")?.validation, "a_verifier");
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-23 — LA FAMILLE (« le même aliment »), LUE PAR LE CHARGEUR
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("family — la colonne est lue, et son absence rend `null`", () => {
+  const db = fixedDb({
+    food_composition_refs: [
+      { ...ROW, slug: "chicken_leg_meat", food_group_ref: "poultry", family: "chicken" },
+      { ...ROW, slug: "filets_de_colin", food_group_ref: "white_fish", source: "sas" },
+      { ...ROW, slug: "blank", family: "   " },
+    ],
+    food_composition_aliases: [],
+    food_composition_false_friends: [],
+  });
+  return loadCompositionIndex(db as never).then((index) => {
+    assertEquals(index.bySlug.get("chicken_leg_meat")?.family, "chicken");
+    assertEquals(index.bySlug.get("filets_de_colin")?.family, null);
+    assertEquals(index.bySlug.get("blank")?.family, null);
+  });
+});
+
+Deno.test("family — la colonne est DEMANDÉE à la base (sinon `null` partout, en silence)", () => {
+  // ⛔ Le faux client ci-dessus ignore la liste de colonnes: une ligne de test
+  // porte `family` même si le chargeur ne la demande pas. En vrai, PostgREST ne
+  // rend que ce qu'on nomme — la famille manquerait sur les 958 lignes et la
+  // liste « à éviter » compterait par slug sans que rien ne rougisse.
+  const asked: Record<string, string> = {};
+  const db = {
+    from(table: string) {
+      return {
+        select(columns: string) {
+          asked[table] = columns;
+          return {
+            range: () => Promise.resolve({ data: [], error: null }),
+          };
+        },
+      };
+    },
+  };
+  return loadCompositionIndex(db as never).then(() => {
+    const columns = (asked["food_composition_refs"] ?? "").split(",").map((c) => c.trim());
+    assert(columns.includes("family"), `colonnes demandées: ${asked["food_composition_refs"]}`);
   });
 });

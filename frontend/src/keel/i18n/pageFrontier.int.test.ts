@@ -273,8 +273,10 @@ describe("la frontière de langue passe au bord des pages, jamais au milieu", ()
     // milieu d'un écran anglais, sans qu'aucun test ne bouge. L'anglais par
     // défaut est le seul repli qui ne peut pas coudre — il reste dans la langue
     // source.
+    // ⟳ 2026-09-23 — `/account` a quitté cette liste: la page est déclarée et
+    // traduite (`account.*`). `/upgrade`, toujours non déclarée, tient sa place.
     setChosenUiLocaleForTest("fr");
-    for (const path of ["/coach/import", "/coach/weekly", "/account", "/nimporte"]) {
+    for (const path of ["/coach/import", "/coach/weekly", "/upgrade", "/nimporte"]) {
       expect(uiLocaleForPath(path), path).toBe("en");
     }
   });
@@ -301,7 +303,18 @@ describe("la frontière de langue passe au bord des pages, jamais au milieu", ()
     // La direction que la règle ci-dessus ne doit pas emporter avec elle: ce
     // qui est déclaré ET traduit se rend bien en français.
     setChosenUiLocaleForTest("fr");
-    for (const path of ["/auth", "/start", "/join", "/join-household", "/app/setup"]) {
+    for (
+      const path of [
+        "/auth",
+        "/start",
+        "/join",
+        "/join-household",
+        "/app/setup",
+        // ⟳ 2026-09-23 — le compte et le guide d'installation.
+        "/account",
+        "/installer-app",
+      ]
+    ) {
       expect(uiLocaleForPath(path), path).toBe("fr");
     }
   });

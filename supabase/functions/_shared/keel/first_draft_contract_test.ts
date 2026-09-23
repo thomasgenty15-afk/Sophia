@@ -19,7 +19,9 @@ import {
   ANCHOR_DIVERGENCE_RATIO,
   cellDensityOf,
   cellDensitySentence,
+  DENSITY_CONSEQUENCE,
   densityFragment,
+  middlePreferredOf,
   type SlotDensityWithAnchor,
 } from "./household_portions.ts";
 import {
@@ -42,7 +44,11 @@ Deno.test("⛔ C5 — AUCUN POIDS D'ASSIETTE GÉNÉRIQUE DANS LE PROMPT SYSTÈME
   // l'assiette moyenne du moteur et son plafond AU-DESSUS de son maximum — et
   // sur un plan de foyer, elle annonçait 600 g minimum pour la portion d'un
   // enfant que le moteur borne à 450.
-  assertEquals(PLATE_MASS_BOUNDS_G.adult.meal.max, 700);
+  // ⟳ 2026-09-23 — 700 → 550 (flux B du chantier « assiettes normales »: le
+  // plat adulte n'est plus tout le repas, l'à-côté porte le reste). La phrase
+  // générique retirée ici l'était déjà à 700; à 550, elle serait au-dessus du
+  // maximum du moteur sur toute sa fourchette.
+  assertEquals(PLATE_MASS_BOUNDS_G.adult.meal.max, 550);
   assertEquals(PLATE_MASS_BOUNDS_G.child.meal.max, 450);
   for (const gone of [
     "600 to 750 g",
@@ -194,11 +200,14 @@ Deno.test("⛔ C3 — LE COULOIR D'UNE CASSEROLE PARTAGÉE EST L'INTERSECTION, P
   ], "lunch", "mon")!;
   assertEquals(cell.minPer100G, 167, "le plancher est le PLUS HAUT des deux");
   assertEquals(cell.maxPer100G, 180, "le plafond est le PLUS BAS des deux");
-  assertEquals(cell.aimPer100G, 175);
+  // ⟳ 2026-09-23 — LA VISÉE EST CELLE DU MILIEU; à deux mangeurs, la plus
+  // basse des deux (115), RAMENÉE SUR LE PLANCHER COMMUN (167). Le cas à trois
+  // mangeurs, où le milieu se distingue du minimum, est plus bas.
+  assertEquals(cell.aimPer100G, 167);
   assertEquals(cell.empty, false);
   assertEquals(cell.floorFrom, "Léa");
   assertEquals(cell.eatersWithCorridor, 2);
-  assertEquals(cellDensitySentence(cell), " Shared dish 167-180, aim 175.");
+  assertEquals(cellDensitySentence(cell), " Shared dish 167-180, aim 167.");
 });
 
 Deno.test("⛔ C3 — UNE INTERSECTION VIDE EST DITE, ET ELLE NOMME LES DEUX PERSONNES", () => {
@@ -247,62 +256,118 @@ Deno.test("aucun mangeur avec couloir ⇒ AUCUNE phrase, jamais un nombre invent
 });
 
 // ---------------------------------------------------------------------------
+// ⟳ 2026-09-23 — LA VISÉE D'UNE CASE EST CELLE DE LA PERSONNE DU MILIEU
+// ---------------------------------------------------------------------------
+//
+// ⛔ L'AUDIT DU 2026-09-23 (`docs/keel/AUDIT-DOSAGES-2026-09-23.md`): la visée
+// la plus BASSE demandait à toute la table « l'assiette la plus grande que la
+// borne autorise », la recette commune se lisait comme celle du plus gros
+// mangeur, et Thomas arrivait à 700 g d'assiette par construction. Décision du
+// propriétaire n° 4: on vise l'assiette ordinaire de la personne du MILIEU —
+// la même règle que `tableReferenceFactor` (`starch_side.ts`).
+
+Deno.test("⛔ 2026-09-23 — trois mangeurs, planchers 110/112/115: la visée est celle du MILIEU (125)", () => {
+  const cell = cellDensityOf([
+    { name: "Thomas", slots: [slot({ slot: "lunch", minPer100G: 110, maxPer100G: 200, preferredPer100G: 140 })] },
+    { name: "Christèle", slots: [slot({ slot: "lunch", minPer100G: 112, maxPer100G: 200, preferredPer100G: 125 })] },
+    { name: "Fabrice", slots: [slot({ slot: "lunch", minPer100G: 115, maxPer100G: 200, preferredPer100G: 120 })] },
+  ], "lunch", "mon")!;
+  assertEquals(cell.minPer100G, 115, "le plancher reste le PLUS HAUT");
+  // ── LE CAS QUI MORD: ni le plus haut (140), ni le plus bas (120) ────────
+  assertEquals(cell.aimPer100G, 125);
+  assertEquals(cellDensitySentence(cell), " Shared dish 115-200, aim 125.");
+});
+
+Deno.test("2026-09-23 — à nombre PAIR, la plus basse des deux du milieu; seul, sa propre visée", () => {
+  const quatre = cellDensityOf([
+    { name: "A", slots: [slot({ slot: "dinner", minPer100G: 100, maxPer100G: 200, preferredPer100G: 140 })] },
+    { name: "B", slots: [slot({ slot: "dinner", minPer100G: 100, maxPer100G: 200, preferredPer100G: 118 })] },
+    { name: "C", slots: [slot({ slot: "dinner", minPer100G: 100, maxPer100G: 200, preferredPer100G: 131 })] },
+    { name: "D", slots: [slot({ slot: "dinner", minPer100G: 100, maxPer100G: 200, preferredPer100G: 125 })] },
+  ], "dinner", "mon")!;
+  assertEquals(quatre.aimPer100G, 125, "118 · 125 · 131 · 140: la plus basse des deux du milieu");
+  const seul = cellDensityOf([
+    { name: "A", slots: [slot({ slot: "dinner", minPer100G: 100, maxPer100G: 200, preferredPer100G: 133 })] },
+  ], "dinner", "mon")!;
+  assertEquals(seul.aimPer100G, 133);
+  // Le milieu reste RAMENÉ dans la bande: sous le plancher commun, le plancher.
+  const sous = cellDensityOf([
+    { name: "A", slots: [slot({ slot: "dinner", minPer100G: 100, maxPer100G: 200, preferredPer100G: 105 })] },
+    { name: "B", slots: [slot({ slot: "dinner", minPer100G: 100, maxPer100G: 200, preferredPer100G: 110 })] },
+    { name: "C", slots: [slot({ slot: "dinner", minPer100G: 150, maxPer100G: 200, preferredPer100G: 160 })] },
+  ], "dinner", "mon")!;
+  assertEquals(sous.aimPer100G, 150);
+  // Et au-dessus du plafond commun, le plafond.
+  const dessus = cellDensityOf([
+    { name: "A", slots: [slot({ slot: "dinner", minPer100G: 100, maxPer100G: 120, preferredPer100G: 110 })] },
+    { name: "B", slots: [slot({ slot: "dinner", minPer100G: 100, maxPer100G: 200, preferredPer100G: 150 })] },
+    { name: "C", slots: [slot({ slot: "dinner", minPer100G: 100, maxPer100G: 200, preferredPer100G: 160 })] },
+  ], "dinner", "mon")!;
+  assertEquals(dessus.aimPer100G, 120);
+});
+
+Deno.test("2026-09-23 — `middlePreferredOf`: la règle nue", () => {
+  assertEquals(middlePreferredOf([140, 120, 125]), 125);
+  assertEquals(middlePreferredOf([140, 118, 131, 125]), 125);
+  assertEquals(middlePreferredOf([133]), 133);
+  assertEquals(middlePreferredOf([120, 140]), 120);
+  // Rien de lisible ⇒ `Infinity`, que `cellDensityOf` rabat sur le plafond:
+  // le comportement d'avant pour une visée absente.
+  assertEquals(middlePreferredOf([]), Infinity);
+  assertEquals(middlePreferredOf([Number.NaN, 130]), 130);
+});
+
+Deno.test("⛔ 2026-09-23 — `DENSITY_CONSEQUENCE` ne dit plus « more of the starch »", () => {
+  // La quatrième phrase qui envoyait le modèle au féculent, servie sur toute
+  // carte qui porte une densité (v33 et v34). Le geste est maintenant celui du
+  // remède « trop bas » de la recette, et il nomme ce qu'on refuse.
+  const texte = DENSITY_CONSEQUENCE.join("\n");
+  // ── ce qui MORD ─────────────────────────────────────────────────────────
+  for (const gone of ["more of the starch", "the protein or\nthe fat it already carries", "less watery vegetable"]) {
+    assert(!texte.includes(gone), `« ${gone} » est revenu`);
+  }
+  // ── ce qui PASSE ────────────────────────────────────────────────────────
+  assert(texte.includes("Reach it by what the dish is MADE OF — less cooking water, legumes in the\nmain pot or 10 g more cheese; never more starch than the template, never\nfewer vegetables."), texte);
+  assert(texte.includes("Do not reach it by serving a smaller plate: the plate stays a plate."), texte);
+  assertEquals(texte.match(/\d+\s*kcal(?!\s*per\s*100\s*g)/gi), null);
+});
+
+// ---------------------------------------------------------------------------
 // C4 — LES DEUX NOMBRES, QUAND ILS DIVERGENT
 // ---------------------------------------------------------------------------
 
-Deno.test("⛔ C4 — LA CONSIGNE NOMME LES DEUX NOMBRES QUAND ILS DIVERGENT", () => {
-  // ⛔ LE CHANTIER DEMANDAIT `Dpréf = 100 × cible / grammage préféré`. Ce dépôt
-  // a tranché l'INVERSE avec des mesures, sous le nom A15: cette formule rend
-  // 236 kcal/100 g sur un déjeuner de 1 120 kcal, quand les plats réels vivent
-  // entre 113 et 156 — et on a mesuré 389 demandés au dîner, 126,7 rendus.
-  //
-  // ⛔ CE QU'ON RETIENT DE LA DEMANDE, C'EST LE MOT « SILENCIEUSEMENT ». La
-  // visée ne vient pas de la cible; la présenter seule la fait lire comme si
-  // elle en venait. Quand les deux divergent, la ligne dit LES DEUX.
+Deno.test("⛔ 2026-09-23 — LA LIGNE NE NOMME PLUS QUE LA VISÉE: « not N » et sa note sont retirés", () => {
+  // ⟳ 2026-09-23 — CE CAS TENAIT L'INVERSE DEPUIS LE 2026-09-11 (« LA CONSIGNE
+  // NOMME LES DEUX NOMBRES QUAND ILS DIVERGENT »). La clause sortait sur 4
+  // moments sur 4 (l'écart vaut ~1,34 partout) et sa note disait au modèle
+  // « we ask for the bigger plate, so aim for the first number » — la grosse
+  // assiette, exactement ce que l'audit du 2026-09-23 a mesuré (700 g pour
+  // Thomas). La visée ne change pas de source (arbitrage A15 tenu: jamais
+  // `100 × E / Gpréf`); seule la phrase qui la justifiait par « la grosse
+  // assiette » part.
   const avec: SlotDensityWithAnchor[] = [
     { ...slot({ slot: "lunch", minPer100G: 123, maxPer100G: 160, preferredPer100G: 135 }), targetAnchoredPer100G: 236 },
   ];
-  const ligne = densityFragment(avec);
-  assert(ligne.includes("aim 135, not 236"), ligne);
-  assert(ligne.includes("over an average plate"), ligne);
-  // ══════════════════════════════════════════════════════════════════════
-  // ⟳ 2026-09-11 (fin de chantier) — L'EXPLICATION A QUITTÉ LE MOMENT
-  // ══════════════════════════════════════════════════════════════════════
-  //
-  // ⛔ MESURÉ EN BRANCHANT LE TÉMOIN DU LOT B. L'écart entre la visée et
-  // `100 × E / Gpréf` vaut à peu près `(Gmax / Gpréf) / 1,10`, donc ~1,34
-  // PARTOUT: la clause est sortie sur **4 moments sur 4** au premier tir
-  // branché. L'explication, identique, se répétait 4 fois dans une phrase — 16
-  // fois sur une table de quatre bouches.
-  //
-  // La donnée (`not 236`) reste sur son moment; l'explication se dit **une
-  // seule fois**, en queue de phrase. C'est l'objection déjà retenue au lot 4
-  // pour la borne basse redondante: un brief qui répète cesse d'être lu.
+  // ⚠️ LE CAS MORDAIT AU SEUIL D'AVANT: c'est bien la clause retirée qu'on éprouve.
+  assert(236 / 135 >= ANCHOR_DIVERGENCE_RATIO, "le témoin doit diverger au-delà de l'ancien seuil");
+  assertEquals(
+    densityFragment(avec),
+    " — dishes served here: 123 to 160 kcal per 100 g at lunch (aim 135)",
+  );
   const deux: SlotDensityWithAnchor[] = [
     { ...slot({ slot: "lunch", minPer100G: 123, maxPer100G: 160, preferredPer100G: 135 }), targetAnchoredPer100G: 236 },
     { ...slot({ slot: "dinner", minPer100G: 130, maxPer100G: 170, preferredPer100G: 140 }), targetAnchoredPer100G: 240 },
   ];
   const deuxLigne = densityFragment(deux);
-  assert(deuxLigne.includes("aim 135, not 236"), deuxLigne);
-  assert(deuxLigne.includes("aim 140, not 240"), deuxLigne);
-  assertEquals(
-    (deuxLigne.match(/over an average plate/g) ?? []).length,
-    1,
-    `l'explication doit se dire UNE fois, pas une par moment: ${deuxLigne}`,
-  );
-  // ⚠️ ET LA CONTRE-ÉPREUVE: sous le seuil, rien ne s'ajoute — ni le nombre, ni
-  // l'explication. Une clause servie à chaque moment de chaque carte coûterait
-  // douze fois sur une table de quatre, pour une distinction que personne ne
-  // peut agir.
-  const proche: SlotDensityWithAnchor[] = [
-    { ...slot({ slot: "lunch", minPer100G: 123, maxPer100G: 160, preferredPer100G: 135 }), targetAnchoredPer100G: 140 },
-  ];
-  assert(!densityFragment(proche).includes("not "), densityFragment(proche));
-  assert(
-    !densityFragment(proche).includes("over an average plate"),
-    "sans divergence, l'explication n'a pas d'objet",
-  );
-  assert(140 / 135 < ANCHOR_DIVERGENCE_RATIO, "le cas proche doit être SOUS le seuil");
+  for (const gone of ["not 236", "not 240", ", not ", "over an average plate", "bigger plate", "first number"]) {
+    assert(!deuxLigne.includes(gone), `« ${gone} » est revenu: ${deuxLigne}`);
+  }
+  assert(deuxLigne.includes("at lunch (aim 135)"), deuxLigne);
+  assert(deuxLigne.includes("at dinner (aim 140)"), deuxLigne);
+  // ⚠️ ET LA LIGNE AVEC TÉMOIN EST CELLE SANS TÉMOIN, au caractère près: le
+  // témoin reste dans le contrat (mesuré, journalisé), il n'est plus imprimé.
+  const sans = deux.map((d) => ({ ...d, targetAnchoredPer100G: null }));
+  assertEquals(deuxLigne, densityFragment(sans));
 });
 
 Deno.test("⚠️ C4 — SANS LE CHAMP DU LOT B, ON S'ABSTIENT — jamais un nombre supposé", () => {
@@ -402,7 +467,7 @@ Deno.test("⛔ C3 CÂBLAGE — la ligne de case porte la bande commune, dans le 
   } as any);
 
   assert(
-    userSuffix.includes("Shared dish 167-180, aim 175."),
+    userSuffix.includes("Shared dish 167-180, aim 167."),
     `la bande commune n'atteint pas le calendrier:\n${userSuffix.slice(0, 2000)}`,
   );
   // ⚠️ L'UNITÉ EST DITE UNE FOIS, EN TÊTE DU CALENDRIER, PAS SUR CHAQUE CASE.

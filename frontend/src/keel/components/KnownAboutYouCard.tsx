@@ -27,12 +27,27 @@ import {
 } from "../api/retainedItems";
 import type { FieldChange } from "../api/fieldChanges";
 import { isFocusedLine } from "../api/memoryView";
-import { MEMO_MAX_LINES, type MemoLine } from "../api/retainedItems";
+import { MEMO_MAX_LINES, type MemoLine, type RhythmOccasion } from "../api/retainedItems";
 import { formatWeekday } from "../i18n/format";
 import { type MessageKey, t } from "../i18n/t";
 import { Button } from "./ui/Button";
 import { Card, SectionLabel } from "./ui/Card";
 import { inputClass } from "./ui/Field";
+
+/**
+ * ⟳ 2026-09-22 — LE LIBELLÉ D'UN MOMENT, dans le namespace `slot` que cette
+ * page déclare (`i18n/catalog.ts`). Passer par `api/labels` ou `mealLabels`
+ * ferait atteindre `common.*`, `when.*` ou `meals.*` à la page — la couture
+ * des namespaces le refuse, et elle a raison : un libellé, pas un module.
+ */
+const SLOT_KEY: Readonly<Record<RhythmOccasion, MessageKey>> = {
+  breakfast: "slot.breakfast",
+  snack_am: "slot.snack_am",
+  lunch: "slot.lunch",
+  snack_pm: "slot.snack_pm",
+  dinner: "slot.dinner",
+  before_bed: "slot.before_bed",
+};
 
 /**
  * LA PHRASE D'UN INDICE DE PORTION, ou `null` au milieu.
@@ -252,6 +267,10 @@ const MOVABLE_KINDS: readonly RetainedKind[] = [
  */
 const REFUSAL_KEY: Readonly<Record<KnownWriteRefusal, MessageKey>> = {
   no_user: "known.error.no_user",
+  // ⟳ 2026-09-22 · LOT D — un membre SECONDAIRE ne restreint pas le menu.
+  // ⚠️ LA TABLE ÉTANT EXHAUSTIVE PAR LE TYPE, ajouter le refus au socle SANS
+  // cette ligne ne compile plus — c'est ce qui empêche un refus muet.
+  not_owner: "known.error.not_owner",
   no_goal_row: "known.error.no_goal_row",
   bad_items: "known.error.bad_items",
   bad_next_plan: "known.error.bad_items",
@@ -760,7 +779,30 @@ export default function KnownAboutYouCard(props: KnownAboutYouCardProps) {
                 sans dire ce qui a changé, et la personne doit chercher la
                 ligne dans six sections pour comprendre. Sous une section, ce
                 serait redondant: le titre est juste au-dessus. */}
-            <p className="text-sm text-ink">{item.text}</p>
+            <p className="text-sm text-ink">
+              {item.text}
+              {/* ⟳ 2026-09-22 — LE MOMENT, S'IL Y EN A UN : « petit suisse ·
+                  Petit-déjeuner seulement ». Sans lui, une règle du matin se
+                  lisait comme une règle de toute la journée. */}
+              {"occasion" in item && item.occasion !== null && (
+                <span className="ml-1 text-xs text-ink-soft">
+                  {t("known.occasion", { slot: t(SLOT_KEY[item.occasion]) })}
+                </span>
+              )}
+              {/* ⟳ 2026-09-22 · LOT C — LA FORCE, quand ce n'est pas une
+                  interdiction. Sous le titre « Ce que tu ne veux plus », une
+                  réduction (« pas AUTANT de petit suisse ») se lisait
+                  exactement comme un bannissement — et la seule façon de
+                  s'en apercevoir était de remarquer une absence.
+                  ⛔ RIEN N'EST AFFICHÉ POUR `never`: c'est ce que le titre de
+                  la section dit déjà, et le répéter sur chaque ligne ferait
+                  du cas normal du bruit. */}
+              {"force" in item && item.force === "less" && (
+                <span className="ml-1 text-xs text-ink-soft">
+                  {t("known.force.less")}
+                </span>
+              )}
+            </p>
             {detail && <p className="mt-0.5 text-xs text-ink">{detail}</p>}
             {excluded && (
               <p className="mt-0.5 text-xs text-amber-700">{excluded}</p>
@@ -1301,7 +1343,14 @@ export default function KnownAboutYouCard(props: KnownAboutYouCardProps) {
                   focusRing(entry.item.at, entry.item.text)
                 }`}
               >
-                <p className="text-sm text-ink">{entry.item.text}</p>
+                <p className="text-sm text-ink">
+                  {entry.item.text}
+                  {"occasion" in entry.item && entry.item.occasion !== null && (
+                    <span className="ml-1 text-xs text-ink-soft">
+                      {t("known.occasion", { slot: t(SLOT_KEY[entry.item.occasion]) })}
+                    </span>
+                  )}
+                </p>
                 <p className="mt-0.5 text-xs text-ink-soft">
                   {sourceLine(entry.item)}
                 </p>

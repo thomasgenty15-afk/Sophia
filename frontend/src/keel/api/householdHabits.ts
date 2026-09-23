@@ -24,7 +24,13 @@
 
 import { supabase } from "../../lib/supabase";
 import { EATING_OCCASIONS, type EatingOccasion } from "./mealGeneration";
-import { habitEntriesToWrite, parseHabitLight } from "../lib/mealExtras";
+import {
+  habitEntriesToWrite,
+  parseHabitLight,
+  parseHabitSideCourses,
+  type SideCourseKind,
+  type SideCoursesDraft,
+} from "../lib/mealExtras";
 // ⚠️ LE PLAFOND DE TEXTE EST CELUI DU SERVEUR, IMPORTÉ TEL QUEL — même geste
 // que `household.ts` avec `student_age.ts`, et `groceryWaves.ts` avec son
 // module partagé. `usual` et `note` passent tous deux par
@@ -79,6 +85,13 @@ export interface HabitSlotWrite {
    * trois repas.
    */
   light?: boolean;
+  /**
+   * ⟳ 2026-09-23 — les à-côtés voulus ou refusés, type par type. FACULTATIF au
+   * sens du protocole, comme `light`: la clé ABSENTE veut dire « rien de réglé
+   * à ce moment », et `habitEntriesToWrite` ne la pose jamais vide. La
+   * contrainte SQL la refuse hors du déjeuner et du dîner.
+   */
+  side_courses?: Partial<Record<SideCourseKind, boolean>>;
 }
 
 /**
@@ -108,6 +121,17 @@ export interface MemberHabitsView {
    * question à quelqu'un qui a déjà répondu.
    */
   light: Record<string, boolean>;
+  /**
+   * ⟳ 2026-09-23 — LES À-CÔTÉS (entrée, fromage, dessert, pain), LUS SUR LA
+   * MÊME COLONNE, par moment (`lunch`, `dinner`).
+   *
+   * ⛔ À CÔTÉ DE `slots`, PAS DEDANS, pour la raison de `light`: une entrée qui
+   * ne porte que ce réglage n'a pas de prose, et `parseHabitSlots` la jette.
+   *
+   * ⚠️ REQUIS: chaque écrivain de cette colonne doit le REPORTER, sinon la
+   * porte, qui remplace la liste, l'efface. `{}` = rien de réglé.
+   */
+  sideCourses: SideCoursesDraft;
   /** La ligne libre durable, ou `null`. */
   note: string | null;
 }
@@ -195,6 +219,9 @@ export async function loadMemberHabits(): Promise<Map<string, MemberHabitsView>>
       // deux questions n'ont ni les mêmes moments ni les mêmes états. Les
       // fondre perdrait la plus fréquente des deux.
       light: parseHabitLight(r.slots),
+      // ⟳ 2026-09-23 — ET UNE TROISIÈME LECTURE: les à-côtés n'ont ni les
+      // mêmes moments (déjeuner et dîner seulement) ni la même forme.
+      sideCourses: parseHabitSideCourses(r.slots),
       note: parseHabitNote(r.note),
     });
   }
@@ -295,6 +322,10 @@ export function habitDraft(
  * qui se traverse sans un mot. `{}` est une valeur qu'on peut lire — et c'est
  * la bonne quand la lecture n'a rien rendu. Cicatrice
  * `optional-gate-params-are-disarmed-gates`.
+ *
+ * ⟳ 2026-09-23 — LES À-CÔTÉS SONT DANS `carried`, REQUIS COMME LE LÉGER. Ils
+ * vivent sur la même colonne; une carte qui ne les reporterait pas effacerait
+ * le « jamais de dessert » d'une personne qui corrige sa prose.
  */
 export function habitPayload(
   draft: readonly HabitDraftSlot[],
@@ -308,6 +339,11 @@ export function habitPayload(
    */
   carried: {
     light: Readonly<Record<string, boolean>>;
+    /**
+     * ⟳ 2026-09-23 — le réglage des à-côtés LU (`MemberHabitsView.sideCourses`).
+     * `{}` = rien de réglé, jamais « l'appelant n'a pas lu ».
+     */
+    sideCourses: SideCoursesDraft;
   },
 ): HabitSlotWrite[] {
   // ⛔ LE MÊME SÉRIALISEUR QUE LES TROIS AUTRES ÉCRIVAINS. Il sait produire
@@ -320,6 +356,10 @@ export function habitPayload(
         .map((d) => [d.slot, d.usual]),
     ),
     light: carried.light,
+    // ⟳ 2026-09-23 — le report est ICI, plus au montage: `carried` porte le
+    // réglage lu, et `habitWriters.int.test.ts` vérifie que chaque appel le
+    // passe.
+    sideCourses: carried.sideCourses,
     occasions: EATING_OCCASIONS,
   });
 }

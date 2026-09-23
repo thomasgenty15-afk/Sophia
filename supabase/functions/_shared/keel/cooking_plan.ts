@@ -78,8 +78,15 @@ export type GroceryRuns = typeof GROCERY_RUNS[number];
 export const GROCERY_RUNS_ANY = "any" as const;
 export type GroceryRunsAnswer = GroceryRuns | typeof GROCERY_RUNS_ANY;
 
-/** Le plafond dur du nombre de sessions, quel que soit ce qu'on demande. */
-export const MAX_COOKING_SESSIONS = 3;
+/**
+ * Le plafond dur du nombre de sessions, quel que soit ce qu'on demande.
+ *
+ * ⟳ 2026-09-21 — 3 → 4: « j'aime cuisiner » sur six ou sept jours cuisine
+ * quatre fois (voir `sessionsForStyle`). Les COURSES, elles, restent à trois
+ * au plus (`GROCERY_RUNS`): une quatrième session se nourrit de la troisième
+ * course.
+ */
+export const MAX_COOKING_SESSIONS = 4;
 
 /**
  * CE QUE CHAQUE STYLE VEUT DIRE, EN VALEURS QUE LE MOTEUR LIT DÉJÀ.
@@ -105,10 +112,80 @@ export const COOKING_STYLE_PROFILE: Readonly<
     readonly sessionCap: number;
   }>
 > = Object.freeze({
-  minimal: { minutes: 30, difficulty: "simple", variety: "repeat", sessionCap: 2 },
+  // ⟳ 2026-09-21 — `sessionCap` EST DEVENU UN PLAFOND, PLUS UN NOMBRE VOULU.
+  // Le nombre de sessions suit la longueur du plan (`sessionsForStyle`); le
+  // plafond ne fait que le borner. « Le moins possible » monte à 3 parce que
+  // sept jours sans congélateur ne tiennent pas en deux sessions au frigo.
+  minimal: { minutes: 30, difficulty: "simple", variety: "repeat", sessionCap: 3 },
   balanced: { minutes: 60, difficulty: "normal", variety: "some", sessionCap: 3 },
-  keen: { minutes: 120, difficulty: "keen", variety: "varied", sessionCap: 3 },
+  keen: { minutes: 120, difficulty: "keen", variety: "varied", sessionCap: 4 },
 });
+
+/**
+ * ⟳ 2026-09-21 — COMBIEN DE FOIS ON CUISINE, SELON LE STYLE ET LA LONGUEUR
+ * DU PLAN. Décidé avec le propriétaire le 2026-09-21.
+ *
+ * ⛔ LE DÉFAUT, VU À L'ÉCRAN: « un juste milieu » valait 3 sessions quel que
+ * soit le plan, rabattu seulement au nombre de jours à manger. Sur un plan de
+ * 3 jours, ça faisait cuisiner lundi, mercredi ET jeudi — tous les jours —
+ * pour six déjeuners et dîners. Et « j'aime cuisiner » ne donnait jamais plus
+ * que le juste milieu.
+ *
+ * LA TABLE (jours à manger → sessions):
+ *
+ *   jours              1  2  3  4  5  6  7
+ *   le moins possible  1  1  1  2  2  2  3   (2 à sept jours avec congélateur)
+ *   un juste milieu    1  1  2  2  3  3  3
+ *   j'aime cuisiner    1  2  3  3  3  4  4
+ *
+ *   · « le moins possible » cuisine ce que le frigo impose, et rien de plus:
+ *     un plat cuit se mange dans les `MAX_FRIDGE_DAYS` (3) jours, donc une
+ *     session pour trois jours. Le congélateur permet d'en garder deux sur
+ *     sept jours.
+ *   · « un juste milieu » cuisine un jour sur deux, trois fois au plus.
+ *   · « j'aime cuisiner » cuisine chaque jour jusqu'à trois jours, puis un
+ *     jour sur deux, quatre fois au plus.
+ *
+ * ⚠️ CE QUE CETTE TABLE NE DÉCIDE PAS: les jours déclarés gagnent toujours
+ * (`declaredCookDays`), « tout cuisiner en une seule fois » force 1, et il n'y
+ * a jamais plus de sessions que de jours à manger. Les COURSES ont leur propre
+ * plafond (`GROCERY_RUNS`, trois au plus) et ne dépassent jamais les sessions.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function sessionsForStyle(
+  style: CookingStyle,
+  daysToEat: number,
+  freezer: boolean | null,
+  /**
+   * `MAX_FRIDGE_DAYS`, passé par l'appelant. ⚠️ Il vit dans
+   * `meal_generation.ts`, que le navigateur ne doit pas embarquer
+   * (`frontend/src/keel/api/cookingPlan.ts` réexporte CE module).
+   */
+  maxFridgeDays: number,
+): number {
+  const profile = COOKING_STYLE_PROFILE[style];
+  if (!profile) {
+    throw new Error(`[keel/cooking_plan] style inconnu: ${JSON.stringify(style)}`);
+  }
+  if (!Number.isFinite(maxFridgeDays) || maxFridgeDays < 1) {
+    throw new Error(
+      "[keel/cooking_plan] `maxFridgeDays` est REQUIS et >= 1: " +
+        JSON.stringify(maxFridgeDays),
+    );
+  }
+  const d = Math.max(1, Math.round(Number.isFinite(daysToEat) ? daysToEat : 1));
+  let wanted: number;
+  if (style === "minimal") {
+    const fridge = Math.ceil(d / maxFridgeDays);
+    wanted = freezer === true ? Math.min(2, fridge) : fridge;
+  } else if (style === "balanced") {
+    wanted = Math.ceil(d / 2);
+  } else {
+    wanted = Math.min(d, 3) + (d >= 6 ? 1 : 0);
+  }
+  return Math.max(1, Math.min(wanted, profile.sessionCap, MAX_COOKING_SESSIONS, d));
+}
 
 /**
  * LE RANG D'UN STYLE — 0 pour « le moins possible », 2 pour « j'aime cuisiner ».
@@ -391,6 +468,8 @@ export function deriveCookingPlan(input: {
    * suggestion : il place la session, et tout écart est nommé.
    */
   declaredCookDays?: readonly string[];
+  /** ⟳ 2026-09-21 — `MAX_FRIDGE_DAYS`, pour `sessionsForStyle`. REQUIS. */
+  maxFridgeDays: number;
 }): CookingPlan {
   const profile = COOKING_STYLE_PROFILE[input.style];
   if (!profile) {
@@ -417,8 +496,20 @@ export function deriveCookingPlan(input: {
   // `sessionCap` est la cadence que le style porte; c'est la seule réponse de
   // la personne qui parle de CUISINE, donc la seule qui a le droit de dire
   // combien de fois on cuisine.
-  let wanted: number = profile.sessionCap;
+  // ⟳ 2026-09-21 — LE NOMBRE SUIT LA LONGUEUR DU PLAN (`sessionsForStyle`),
+  // le plafond du style ne fait plus que le borner.
+  const styleSessions = sessionsForStyle(
+    input.style,
+    eaten,
+    input.freezer,
+    input.maxFridgeDays,
+  );
+  let wanted: number = styleSessions;
   if (wanted > MAX_COOKING_SESSIONS) wanted = MAX_COOKING_SESSIONS;
+  // La fenêtre est plus courte que le plafond du style: la table le dit.
+  if (profile.sessionCap > eaten && !notes.includes("days_cap_sessions")) {
+    notes.push("days_cap_sessions");
+  }
 
   // ── ② LA FENÊTRE PLAFONNE ───────────────────────────────────────────────
   // Deux sessions sur deux jours mangés est déjà limite; trois est impossible.
@@ -471,7 +562,9 @@ export function deriveCookingPlan(input: {
   }
   // Le style est la CAUSE quand c'est lui qui borne, et la rationale a déjà sa
   // phrase pour ça — on la garde armée sur le fait qui la justifie.
-  if (input.runs > profile.sessionCap) notes.push("style_caps_sessions");
+  // ⟳ 2026-09-21 — le style borne par les sessions qu'il DONNE sur cette
+  // fenêtre, plus par son plafond figé.
+  if (input.runs > styleSessions) notes.push("style_caps_sessions");
   if (runs > sessions) {
     runs = sessions;
     notes.push("runs_capped_by_sessions");
@@ -653,7 +746,21 @@ export function offerableGroceryRuns(input: {
   oneCookingSession: boolean;
   daysToEat: number;
   maxFridgeDays: number;
+  /**
+   * ⟳ 2026-09-21 — LE CONGÉLATEUR, REQUIS: `true`, `false`, ou `null` (jamais
+   * demandé). « Le moins possible » sur sept jours cuisine deux fois avec un
+   * congélateur et trois fois sans; l'offre de courses doit voir la même
+   * chose que la dérivation, sinon elle propose une course que le plan ne
+   * fera pas (`cooking_plan_test`, « le MIROIR de la dérivation »).
+   */
+  freezer: boolean | null;
 }): GroceryRunsOffer {
+  if (input.freezer !== true && input.freezer !== false && input.freezer !== null) {
+    throw new Error(
+      "[keel/cooking_plan] `freezer` est REQUIS: true, false, ou null (jamais demandé) — " +
+        "un `?` en ferait une garde désarmée",
+    );
+  }
   if (!Number.isFinite(input.daysToEat)) {
     throw new Error(
       `[keel/cooking_plan] daysToEat non fini: ${JSON.stringify(input.daysToEat)}`,
@@ -672,7 +779,10 @@ export function offerableGroceryRuns(input: {
     );
   }
 
-  let max: number = MAX_COOKING_SESSIONS;
+  // ⟳ 2026-09-21 — le plafond de l'OFFRE est celui des courses (trois), pas
+  // celui des sessions (quatre): une quatrième session mange la troisième
+  // course.
+  let max: number = GROCERY_RUNS[GROCERY_RUNS.length - 1];
   let limit: GroceryRunsLimit | null = null;
 
   // ── ① LE STYLE PLAFONNE, quand il a été déclaré ─────────────────────────
@@ -683,8 +793,18 @@ export function offerableGroceryRuns(input: {
         `[keel/cooking_plan] style inconnu: ${JSON.stringify(input.style)}`,
       );
     }
-    if (profile.sessionCap < max) {
-      max = profile.sessionCap;
+    // ⟳ 2026-09-21 — le style borne l'offre par les sessions qu'il DONNE sur
+    // cette fenêtre (`sessionsForStyle`), plus par un plafond figé. Le
+    // congélateur n'est pas connu ici: on prend le cas sans, qui offre le
+    // plus de courses — l'offre ne doit jamais cacher une course tenable.
+    const styleSessions = sessionsForStyle(
+      input.style,
+      input.daysToEat,
+      input.freezer,
+      input.maxFridgeDays,
+    );
+    if (styleSessions < max) {
+      max = styleSessions;
       limit = "style";
     }
   }
@@ -702,7 +822,7 @@ export function offerableGroceryRuns(input: {
   // envoie corriger la mauvaise réponse.
   const days = Math.max(1, Math.floor(input.daysToEat));
   const needed = Math.ceil(days / input.maxFridgeDays);
-  if (needed < MAX_COOKING_SESSIONS && needed <= max) {
+  if (needed < GROCERY_RUNS[GROCERY_RUNS.length - 1] && needed <= max) {
     max = needed;
     limit = "days";
   }
@@ -867,6 +987,7 @@ export function resolveCookingCapacity(input: {
       oneCookingSession: input.oneCookingSession,
       daysToEat: input.daysToEat,
       maxFridgeDays: input.maxFridgeDays,
+      freezer: input.freezer,
     }),
   );
   // ⛔ LES DEUX RÉPONSES, OU AUCUNE. Un style sans cadence de courses ne dit
@@ -886,6 +1007,7 @@ export function resolveCookingCapacity(input: {
     windowDays: input.windowDays,
     leadDay: input.leadDay,
     daysToEat: input.daysToEat,
+    maxFridgeDays: input.maxFridgeDays,
   });
   return {
     ...input.declared,

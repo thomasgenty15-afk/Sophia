@@ -228,6 +228,20 @@ export interface CatalogCounters {
    * savoir. Il sort avec le catalogue, pas dans un commentaire.
    */
   chars: number;
+  /**
+   * ⟳ 2026-09-22 — LES ALIMENTS ÉPINGLÉS. Un aliment que quelqu'un a DEMANDÉ
+   * (`food.prefer`, une préférence gardée) entre dans le catalogue même
+   * au-delà du plafond de son groupe : mesuré, « lait d'avoine » voulu et
+   * servi en lait de soja parce que `oat_milk` (0 alias, groupe plafonné à
+   * 8 sur 27) n'y entrait jamais. La sécurité passe avant l'épingle : un
+   * épinglé exclu par régime, allergène, interdit ou non composable reste
+   * dehors, et c'est compté.
+   */
+  pinned_asked: number;
+  pinned_kept: number;
+  pinned_over_cap: number;
+  pinned_unknown: number;
+  pinned_refused: number;
 }
 
 export interface CompositionCatalog {
@@ -368,6 +382,8 @@ export interface CatalogInput {
   forbidden: readonly ForbiddenTerm[];
   /** Le plafond total. Explicite à l'appel: voir `CATALOG_TOTAL_CAP`. */
   totalCap: number;
+  /** Slugs demandés par quelqu'un à table. ⛔ REQUIS : `[]` s'écrit, il ne se devine pas. */
+  pinned: readonly string[];
 }
 
 export function buildCompositionCatalog(input: CatalogInput): CompositionCatalog {
@@ -379,6 +395,11 @@ export function buildCompositionCatalog(input: CatalogInput): CompositionCatalog
     term_excluded: 0,
     over_group_cap: 0,
     over_total_cap: 0,
+    pinned_asked: 0,
+    pinned_kept: 0,
+    pinned_over_cap: 0,
+    pinned_unknown: 0,
+    pinned_refused: 0,
     kept: 0,
     chars: 0,
   };
@@ -387,10 +408,17 @@ export function buildCompositionCatalog(input: CatalogInput): CompositionCatalog
 
   // ── LE TRI, PAR GROUPE ────────────────────────────────────────────────
   const byGroup = new Map<FoodGroupRef, CompositionRef[]>();
+  const pinned = new Set<string>(input.pinned);
+  counters.pinned_asked = pinned.size;
+  for (const slug of pinned) {
+    if (!input.index.bySlug.has(slug)) counters.pinned_unknown++;
+  }
   for (const ref of input.index.bySlug.values()) {
     counters.considered++;
+    const isPinned = pinned.has(ref.slug);
     if (!input.isComposable(ref)) {
       counters.not_composable++;
+      if (isPinned) counters.pinned_refused++;
       continue;
     }
     const group = ref.foodGroupRef;
@@ -400,10 +428,12 @@ export function buildCompositionCatalog(input: CatalogInput): CompositionCatalog
     // serait un repli silencieux.
     if (cap === undefined || cap === 0) {
       counters.group_never_composed++;
+      if (isPinned) counters.pinned_refused++;
       continue;
     }
     if (excluded.has(group)) {
       counters.group_excluded++;
+      if (isPinned) counters.pinned_refused++;
       continue;
     }
     // ⛔ LE NOM ENTIER EST DONNÉ AU MATCHER, slug déplié ET libellé. Un slug
@@ -415,6 +445,7 @@ export function buildCompositionCatalog(input: CatalogInput): CompositionCatalog
       findForbiddenMatches(haystack, input.forbidden).length > 0
     ) {
       counters.term_excluded++;
+      if (isPinned) counters.pinned_refused++;
       continue;
     }
     const bucket = byGroup.get(group);
@@ -436,14 +467,22 @@ export function buildCompositionCatalog(input: CatalogInput): CompositionCatalog
     });
     const cap = CATALOG_GROUP_CAPS[group];
     for (const [rank, ref] of bucket.entries()) {
+      // ⟳ 2026-09-22 — un épinglé passe au-delà du plafond de son groupe et
+      // du plafond total : la personne l'a demandé, le modèle doit pouvoir
+      // le citer. Il reste compté quand il déborde.
+      const pinnedHere = pinned.has(ref.slug);
       if (rank >= cap) {
-        counters.over_group_cap++;
-        continue;
+        if (!pinnedHere) {
+          counters.over_group_cap++;
+          continue;
+        }
+        counters.pinned_over_cap++;
       }
-      if (entries.length >= input.totalCap) {
+      if (entries.length >= input.totalCap && !pinnedHere) {
         counters.over_total_cap++;
         continue;
       }
+      if (pinnedHere) counters.pinned_kept++;
       entries.push({
         slug: ref.slug,
         group,

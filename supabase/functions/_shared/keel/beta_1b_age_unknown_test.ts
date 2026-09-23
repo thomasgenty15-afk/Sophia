@@ -40,12 +40,12 @@ Deno.test("BÊTA 1B ② — FAIT ① : sans bande d'âge, `envelopeFor` applique
   const sansAge = envelopeFor(
     "fat_loss", CORPS, null, false, null, null,
     { day: null, sport: null, asked: false }, null, null,
-    MAINTENANCE_ENVELOPE_DIRECTION,
+    MAINTENANCE_ENVELOPE_DIRECTION, null,
   );
   const entretien = envelopeFor(
     "maintenance", CORPS, null, false, null, null,
     { day: null, sport: null, asked: false }, null, null,
-    MAINTENANCE_ENVELOPE_DIRECTION,
+    MAINTENANCE_ENVELOPE_DIRECTION, null,
   );
   // ⚠️ CE TEST NE DIT PAS QUE C'EST UN BUG: `envelopeFor` fait ce qu'on lui
   // demande, et c'est juste. Il dit que la porte d'âge n'est PAS ici, donc
@@ -64,19 +64,25 @@ Deno.test("BÊTA 1B ② — FAIT ② : `mouthEnvelope` rend l'enveloppe de compt
   const compte = envelopeFor(
     "fat_loss", CORPS, null, false, null, null,
     { day: null, sport: null, asked: false }, null, null,
-    MAINTENANCE_ENVELOPE_DIRECTION,
+    MAINTENANCE_ENVELOPE_DIRECTION, null,
   );
   assertEquals(
     mouthEnvelope({
       ageState: "unknown",
       accountEnvelope: compte,
       lineBody: null,
+      lineProteinGoal: null,
     }),
     compte,
   );
   // ⚠️ ET LE CAS QUI PASSE: sans compte, sa porte d'âge tient.
   assertEquals(
-    mouthEnvelope({ ageState: "unknown", accountEnvelope: null, lineBody: null }),
+    mouthEnvelope({
+      ageState: "unknown",
+      accountEnvelope: null,
+      lineBody: null,
+      lineProteinGoal: null,
+    }),
     null,
   );
 });

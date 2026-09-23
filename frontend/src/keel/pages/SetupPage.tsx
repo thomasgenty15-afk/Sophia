@@ -3,7 +3,6 @@ import React from "react";
 // ⚠️ `ChevronDown` EST PARTI AVEC LE `<details>` « qui est là, jour par jour »
 // (2026-09-08): c'était son seul lecteur. `noUnusedLocals` est à `false` dans
 // `tsconfig.app.json`, donc rien n'aurait signalé l'import orphelin.
-import { Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { useAuth } from "../../context/AuthContext";
@@ -12,7 +11,6 @@ import { setupMissKey } from "../copy/setupMisses";
 import { LocaleSwitch } from "../components/LocaleSwitch";
 import { BrandMark } from "../components/BrandMark";
 import { Button } from "../components/ui/Button";
-import { Badge } from "../components/ui/Badge";
 import { Card, SectionLabel } from "../components/ui/Card";
 import { Field, inputClass } from "../components/ui/Field";
 // ⚠️ `tokens.ts`, PAS `activity_floor.ts`. Le dépôt porte deux listes
@@ -31,7 +29,6 @@ import {
   createHousehold,
   dissolveHousehold,
   loadMemberBirthDates,
-  inviteToHousehold,
   MEMBER_GENDERS,
   type MemberGender,
   goalForAge,
@@ -49,19 +46,23 @@ import {
   answerNote,
   type ComposeDraftInput,
   composeDraft,
+  discardDraft,
   editCells,
   type PlanDraft,
   readNote,
+  DRAFT_ORIGIN_PATH,
   recoverLatestDraft,
   waitForDraft,
   writeFromDraft,
   type DraftProgress,
 } from "../api/planDraft";
-import { draftProgressLabel } from "../lib/draftProgressLabel";
+import ComposingLabel from "../components/plan/ComposingLabel";
+import { PlanComposingCard } from "../components/plan/PlanComposingCard";
 import CookingStyleField from "../components/CookingStyleField";
 import GroceryRunsField from "../components/GroceryRunsField";
 import GoalTiles from "../components/GoalTiles";
 import ActivityAxesTiles from "../components/ActivityAxesTiles";
+import { DAY_ACTIVITY_KEYS, SPORT_KEYS } from "../lib/activityAxisLabels";
 import PlanDraftDialog from "../components/plan/PlanDraftDialog";
 import {
   EATING_OCCASIONS,
@@ -82,6 +83,7 @@ import {
   type FunnelFacts,
   type FunnelMissId,
   type FunnelMouth,
+  type FunnelPerson,
   type FunnelPlanAnswers,
   type FunnelState,
   funnelSteps,
@@ -89,6 +91,7 @@ import {
   maximumOthers,
   missesForStep,
   peopleStepBlockers,
+  selfSheetIsHeld,
   type StepBlocker,
   mouthsStillNeeded,
   nextIncomplete,
@@ -116,7 +119,11 @@ import {
 // Le composant, la décision et l'écrivain viennent tous les trois d'ailleurs:
 // cet écran n'en refait aucun. Une seconde lecture de `paceControlFor` ici
 // divergerait de celle de `/app/household` au premier correctif.
-import { habitEntriesToWrite, type LightDraft } from "../lib/mealExtras";
+import {
+  habitEntriesToWrite,
+  type LightDraft,
+  type SideCoursesDraft,
+} from "../lib/mealExtras";
 // ── LE BROUILLON GARDÉ SUR CE NAVIGATEUR ───────────────────────────────────
 // ⚠️ IL NE DEVIENT PAS UNE SECONDE SOURCE DE VÉRITÉ. Tout ce qu'il rend passe
 // par `reconcileDraft`, qui laisse le serveur gagner dès qu'il a quelque chose
@@ -142,7 +149,6 @@ import {
   ageStateOfTypedDate,
   emptyMouthDraft as emptyMouthFormDraft,
   foldMinorGoal,
-  type MouthAgeState,
   type MouthFormDraft,
   type ShakerDraft,
   shakerCanBeSaved,
@@ -162,6 +168,11 @@ import {
   writtenDislikeWriter,
 } from "../api/mouthProfile";
 import { mayCompose } from "../api/planRouting";
+import {
+  funnelMouthAgeState,
+  mouthCardTargetPayload,
+} from "../lib/mouthCardTarget";
+import type { MouthVoice } from "../lib/mouthVoice";
 import {
   hasFreezerDeclared,
   readKitchenEquipment,
@@ -315,6 +326,13 @@ interface SelfDraft {
    * Trois états, cf. `LightDraft`.
    */
   light: LightDraft;
+  /**
+   * ⟳ 2026-09-23 — SES À-CÔTÉS (entrée, fromage, dessert, pain), par moment.
+   * SEMÉS par `load`, pour la raison de `light` juste au-dessus: la porte
+   * REMPLACE la liste, et un brouillon non semé effacerait « jamais de
+   * dessert » au premier « Continuer ». Trois états par type.
+   */
+  sideCourses: SideCoursesDraft;
   /** Ses dégoûts. JAMAIS une allergie — deux tables, deux natures (FF-046). */
   dislikes: string[];
   /** Son apport fixe déclaré, ou `null`. Clé sur `user_id` (`fixed_intakes`). */
@@ -459,29 +477,10 @@ function goalLabel(goal: MemberGoal): string {
   return t(GOAL_KEYS[goal]);
 }
 
-/**
- * L'ÉTAT D'ÂGE D'UNE BOUCHE INSCRITE, VU DE SA LIGNE — trois valeurs, jamais
- * deux (chantier P3, 2026-09-03).
- *
- * `kind` n'en porte que deux, et `unknown` y devient `adult` DÉLIBÉRÉMENT
- * (voir `api/onboarding.ts`: ne pas savoir n'est pas savoir que c'est un
- * enfant). `birthDate`, lui, dit si une date EXISTE (`null` = âge inconnu).
- * Les deux ensemble rendent l'état à trois valeurs que `goalsForAge` réclame
- * — et une date TAPÉE dans la carte gagne sur les deux, parce que c'est elle
- * que le prochain blur va écrire.
- */
-function funnelMouthAgeState(
-  m: FunnelMouth,
-  typedDate: string,
-  todayLocalIso: string,
-): MouthAgeState {
-  const fromRoster: MouthAgeState = m.kind === "child"
-    ? "minor"
-    : m.birthDate === null
-    ? "unknown"
-    : "adult";
-  return ageStateOfTypedDate(typedDate, fromRoster, todayLocalIso);
-}
+/* ⟳ 2026-09-20 — `funnelMouthAgeState` EST PARTIE DANS
+   `lib/mouthCardTarget.ts`, avec la décision qu'elle sert: c'est l'âge qui
+   décide de la direction, et la direction qui décide si une cible a le droit
+   d'exister. Elle reste importée ici — deux appelants la lisent encore. */
 
 /**
  * Les deux suivants gardent le repli sur le JETON BRUT qu'avait le `??` des
@@ -566,6 +565,10 @@ function seedSelfFrom(
     ),
     // LA MÊME COLONNE, L'AUTRE MOITIÉ — et la même raison de la semer.
     light: { ...(habitsMap.get(read.ownMemberId ?? "")?.light ?? {}) },
+    // ⟳ 2026-09-23 — ET SES À-CÔTÉS, TROISIÈME LECTURE DE LA MÊME COLONNE.
+    sideCourses: {
+      ...(habitsMap.get(read.ownMemberId ?? "")?.sideCourses ?? {}),
+    },
     // ⛔ NI LES DÉGOÛTS NI LE SHAKER NE SE SÈMENT DEPUIS LA BASE, et ce n'est
     // pas un oubli: les dégoûts s'AJOUTENT (`add_*`, il n'existe pas de
     // « poser la liste »), donc les semer les rejouerait à chaque
@@ -623,6 +626,12 @@ export default function SetupPage() {
   const [busy, setBusy] = React.useState(false);
   /** ⟳ 2026-09-15 · LOT B — le stade réel de la composition, lu dans la ligne. */
   const [progress, setProgress] = React.useState<DraftProgress | null>(null);
+  /**
+   * ⟳ 2026-09-23 — UNE COMPOSITION EN VOL, RETROUVÉE AU MONTAGE ET SUIVIE.
+   * `busy` seul ne la montrait que dans le libellé du bouton de fin, en bas de
+   * la dernière étape : revenu sur l'entonnoir, on ne voyait plus l'attente.
+   */
+  const [resumingDraft, setResumingDraft] = React.useState(false);
   const [failure, setFailure] = React.useState<string | null>(null);
   /** Le refus des gestes de la carte des bouches — rendu SUR la carte. */
   const [mouthFailure, setMouthFailure] = React.useState<string | null>(null);
@@ -680,6 +689,30 @@ export default function SetupPage() {
    * « Modifier » ferme. Ouvrir la seconde referme la première.
    */
   const [editingMouth, setEditingMouth] = React.useState<string | null>(null);
+  /**
+   * LA CARTE DU TITULAIRE EST-ELLE OUVERTE — 2026-09-20.
+   *
+   * ── DEUX MOMENTS LA FERMENT, ET UN SEUL EST UN GESTE ─────────────────────
+   *
+   *   · LE BOUTON « Enregistrer » de la carte, après une écriture RÉUSSIE;
+   *   · L'ARRIVÉE SUR LA PAGE, quand les faits disent que sa fiche est faite
+   *     (`selfSheetIsHeld`, posé dans `load` à la semence).
+   *
+   * ⟳ LE SECOND A ÉTÉ AJOUTÉ APRÈS COUP, ET C'ÉTAIT UN OUBLI. Cet état
+   * naissait à `true` et le redevenait à chaque montage: un rechargement, ou
+   * un « Retour » depuis l'étape 3, rouvrait la fiche du maître en grand
+   * pendant que les lignes des autres bouches, elles, restaient repliées —
+   * parce que `editingMouth` naît à `null`. « Ça le fait pour les personnes en
+   * plus, mais pas pour le compte maître. »
+   *
+   * ⛔ AUCUN AUTRE MOMENT NE REPLIE. La fenêtre des préférences enregistre en
+   * se fermant (`onClose` appelle `saveSelf`), et replier là serait replier
+   * sous les doigts de quelqu'un qui est en train de remplir sa fiche. Le
+   * « Continuer » de l'étape enregistre lui aussi, mais il change d'écran:
+   * replier n'y veut rien dire. Et `load(false)` — qui tourne après CHAQUE
+   * écriture — ne touche à rien: seule la semence décide.
+   */
+  const [selfEditing, setSelfEditing] = React.useState(true);
   /**
    * LA CIBLE ET LE RYTHME DE CHAQUE BOUCHE — `null` = LA LECTURE N'A PAS EU
    * LIEU, et c'est une garde, pas un état d'affichage. Voir `loadMemberTargets`:
@@ -850,11 +883,10 @@ export default function SetupPage() {
     },
     [],
   );
-  const [invite, setInvite] = React.useState<
-    { memberId: string; token: string; firstName: string } | null
-  >(null);
-  const [inviteEmail, setInviteEmail] = React.useState("");
-  const [inviteFor, setInviteFor] = React.useState<string | null>(null);
+  // ⛔ ICI SE TENAIENT `invite`, `inviteEmail` ET `inviteFor` — les trois états
+  // du panneau « Lui donner son propre accès ? », retiré de l'entonnoir le
+  // 2026-09-20 avec son écrivain (`sendInvite`). L'invitation vit sur
+  // `/app/household`. Voir la pierre tombale dans la ligne d'une bouche.
 
   /**
    * ══════════════════════════════════════════════════════════════════════════
@@ -889,23 +921,45 @@ export default function SetupPage() {
    * phrase fait son effet à la reprise, depuis le dialogue (`readNote`), et
    * l'adoption relit le magasin, qui porte déjà le plan final.
    */
-  const [draftOpen, setDraftOpen] = React.useState(false);
+  /**
+   * ⟳ 2026-09-21 — PAS D'ÉTAT D'OUVERTURE: LA FENÊTRE EST OUVERTE TANT QUE LE
+   * BROUILLON EXISTE. Même geste et même motif que sur `/app/plan`, où le
+   * défaut a été signalé: « quand on a un plan en attente d'être validé ou
+   * annulé, il faut que l'écran revienne à la pop-up du draft, sinon ça se
+   * perd et on peut plus jamais y accéder ».
+   *
+   * « Laisser tomber » jette donc le brouillon au lieu de refermer une
+   * fenêtre en le laissant derrière — un aperçu payé qu'aucun geste ne peut
+   * plus atteindre.
+   *
+   * ⟳ 2026-09-23 — ET LA RÉPONSE EST RANGÉE EN BASE (`discardDraft`, ligne
+   * `discarded`) : la ligne restait `done` et `recoverLatestDraft()` la
+   * rouvrait au prochain passage. Même motif que sur `/app/plan`.
+   */
   const recoveredDraftFor = React.useRef<string | null>(null);
   React.useEffect(() => {
     if (!userId || recoveredDraftFor.current === userId) return;
-    recoveredDraftFor.current = userId;
+    // ⛔ LA GARDE SE POSE À L'ATTERRISSAGE, PAS AU DÉPART — même leçon que
+    // `/app/plan` : `StrictMode` monte l'effet deux fois, et une garde posée
+    // avant l'`await` laissait le premier passage annulé et le second refusé.
     let cancelled = false;
     void (async () => {
       try {
         const recoverable = await recoverLatestDraft();
         if (cancelled || recoverable === null) return;
+        // ⟳ 2026-09-21 — demandé depuis la plateforme, l'aperçu se rouvre
+        // sur la plateforme ; « Laisser tomber » y ramène là où on était.
+        if (recoverable.origin === "plan") {
+          navigate(DRAFT_ORIGIN_PATH.plan, { replace: true });
+          return;
+        }
         setBusy(true);
+        if (recoverable.state === "in_flight") setResumingDraft(true);
         const recovered = recoverable.state === "done"
           ? recoverable.draft
           : await waitForDraft(recoverable.draftId, { onProgress: setProgress });
         if (cancelled) return;
         setDraft(recovered);
-        setDraftOpen(true);
         setComposeFailure(null);
       } catch (error) {
         if (!cancelled) {
@@ -913,7 +967,9 @@ export default function SetupPage() {
         }
       } finally {
         if (!cancelled) {
+          recoveredDraftFor.current = userId;
           setBusy(false);
+          setResumingDraft(false);
           setProgress(null);
         }
       }
@@ -921,7 +977,14 @@ export default function SetupPage() {
     return () => {
       cancelled = true;
     };
-  }, [userId]);
+  }, [userId, navigate]);
+  // ⟳ 2026-09-23 — LA COMPOSITION REPRISE SE SUIT DEPUIS LA DERNIÈRE ÉTAPE,
+  // celle de son bouton : c'est là qu'elle a été lancée, et c'est là que son
+  // issue (la fenêtre, ou le refus à côté du bouton) se lit.
+  React.useEffect(() => {
+    if (!resumingDraft || state.kind !== "ready" || !facts) return;
+    setStepIndex(funnelSteps(facts.branch ?? "solo").length - 1);
+  }, [resumingDraft, state.kind, facts]);
   /**
    * LOT B — COMMENT ON CUISINE CETTE SEMAINE. `null` = « laisse décider », et
    * c'est le DÉFAUT: le calcul du moteur gouverne alors seul, exactement comme
@@ -1259,6 +1322,36 @@ export default function SetupPage() {
                 : Math.max(0, steps.length - 1),
             );
           }
+          // ══════════════════════════════════════════════════════════════
+          // LA CARTE DU TITULAIRE S'OUVRE REPLIÉE QUAND ELLE EST FAITE
+          // ══════════════════════════════════════════════════════════════
+          //
+          // Signalé à l'écran: « une fois qu'il y a eu un clic sur
+          // enregistrer, ça le fait pour les personnes en plus, mais pas pour
+          // le compte maître ». Vrai, et l'asymétrie était dans l'état: une
+          // ligne de bouche se replie parce que `editingMouth` naît à `null`,
+          // alors que `selfEditing` naissait à `true` et le redevenait à
+          // chaque montage.
+          //
+          // ⛔ ET ON NE POSE PAS DE DRAPEAU « déjà enregistré ». La question
+          // est déjà répondue par les FAITS: `peopleStepBlockers` dit, par
+          // personne, ce qui retient l'étape, et `who: null` est le
+          // titulaire. Rien ne le retient ⇒ sa fiche est faite ⇒ elle
+          // s'affiche en résumé. C'est la même posture que `nextIncomplete`,
+          // qui refuse `profiles.onboarding_completed` parce qu'un drapeau
+          // ment dans les deux sens — ici il mentirait en repliant une fiche
+          // que quelqu'un vient de vider depuis un autre écran.
+          //
+          // ⚠️ SEULEMENT À LA SEMENCE. `load(false)` tourne après CHAQUE
+          // écriture, y compris celle de la fenêtre des préférences: replier
+          // là serait replier sous les doigts de quelqu'un en train de
+          // remplir sa fiche.
+          //
+          // ⚠️ ET EN SOLO ÇA NE CHANGE RIEN: `SelfStep` force l'édition quand
+          // `onSave` vaut `null`, ce qui est le cas de cette branche-là.
+          if (branch !== null) {
+            setSelfEditing(selfSheetIsHeld(read.state, branch));
+          }
         }
         setState({ kind: "ready" });
       } catch (error) {
@@ -1363,6 +1456,10 @@ export default function SetupPage() {
       allergiesNone: self.allergiesNone,
       habits: self.habits,
       light: self.light,
+      // ⟳ 2026-09-23 — sans elle, la fenêtre recevrait le `{}` de
+      // `emptyMouthFormDraft()` à chaque rendu: le bouton cliqué se rallumerait
+      // sur « Selon l'objectif » dans la même image.
+      sideCourses: self.sideCourses,
       dislikes: self.dislikes,
       shaker: self.shaker,
       diet: self.diet,
@@ -1560,6 +1657,8 @@ export default function SetupPage() {
         allergiesNone: applied.allergiesNone,
         habits: { ...applied.habits },
         light: { ...applied.light },
+        // ⟳ 2026-09-23 — NOMMÉ DANS `SELF_SHEET_FIELDS`, et c'est la garde.
+        sideCourses: { ...applied.sideCourses },
         dislikes: [...applied.dislikes],
         shaker: applied.shaker,
         rhythm: applied.rhythm,
@@ -2105,11 +2204,14 @@ export default function SetupPage() {
         // prose — c'est-à-dire exactement celle qui porte la bulle. Un
         // troisième vit dans `mouthToPersist`; les trois appellent désormais
         // la même fonction, et un test refuse qu'un quatrième réapparaisse.
+        // ⟳ 2026-09-23 — ET SES À-CÔTÉS, DANS LA MÊME LISTE: omis, la porte
+        // qui remplace les effacerait à chaque « Continuer ».
         await setMemberHabits(
           memberId,
           habitEntriesToWrite({
             habits: draft.habits,
             light: draft.light,
+            sideCourses: draft.sideCourses,
             occasions: EATING_OCCASIONS,
           }),
           habits?.get(memberId)?.note ?? null,
@@ -2402,6 +2504,8 @@ export default function SetupPage() {
     const slots = habitEntriesToWrite({
       habits: draft.habits,
       light: draft.light,
+      // ⟳ 2026-09-23 — les à-côtés, pour la même raison que le léger.
+      sideCourses: draft.sideCourses,
       occasions: EATING_OCCASIONS,
     });
     const written = await setMemberHabits(
@@ -2864,19 +2968,18 @@ export default function SetupPage() {
           activityLevel: fields.activityLevel,
         });
       }
-      const payload = targetPayloadOf(
-        {
-          ...emptyMouthFormDraft(),
-          // PLIÉE À L'ÂGE DE LA LIGNE, date tapée comprise: une cible ne part
-          // jamais sur une direction que les tuiles viennent de replier
-          // (`target_not_for_minor` sinon, loin du geste).
-          goal: goalForAge(
-            target.goal ?? "",
-            funnelMouthAgeState(target, fields.birthDate, browserLocalDate()),
-          ),
-          targetWeightKg: fields.targetWeightKg,
-          paceKgPerWeek: fields.paceKgPerWeek,
-        },
+      // ── ⛔ LE CORPS ET LA DATE TRAVERSENT — CORRIGÉ LE 2026-09-20 ───────
+      // Ce bloc construisait son brouillon sur `emptyMouthFormDraft()` PLUS
+      // les deux nombres, en laissant `fields.heightCm`, `fields.weightKg`,
+      // `fields.gender` et `fields.birthDate` de côté — ils sont pourtant
+      // juste là. `targetPayloadOf` s'abstient sans corps ni bande d'âge, donc
+      // la paire valait `{ null, null }` À TOUS LES COUPS, et la porte
+      // REMPLACE: chaque enregistrement de carte effaçait la cible.
+      // « J'ai bien mis le poids visé mais il ne remonte pas. » La décision
+      // vit maintenant dans `lib/mouthCardTarget.ts`, avec ses trois mesures.
+      const payload = mouthCardTargetPayload(
+        target,
+        fields,
         browserLocalDate(),
       );
       const aimed = await setMemberTarget(
@@ -3023,28 +3126,18 @@ export default function SetupPage() {
   }
 
   /**
-   * L'INVITATION NE BLOQUE JAMAIS LA GÉNÉRATION (R1). Un plan se compose avec
-   * les bouches saisies, invitation envoyée ou non, acceptée ou non.
+   * ⛔ ICI SE TENAIT `sendInvite` — RETIRÉ DE L'ENTONNOIR LE 2026-09-20.
    *
-   * ⚠️ EN LOCAL, AUCUN E-MAIL NE PART, et c'est voulu: `EMAIL_DELIVERY_ENABLED`
-   * est un pistolet chargé sur un poste de dev. L'écran REND le lien, et son
-   * `{name}` est load-bearing — le maître émet plusieurs liens dans la même
-   * minute, et un lien anonyme part à la mauvaise personne.
+   * Il appelait `inviteToHousehold` depuis le panneau « Lui donner son propre
+   * accès ? », retiré le même jour. `/app/household` porte le même appel avec
+   * son propre écrivain; cette page n'a plus d'appelant, et un écrivain sans
+   * geste qui l'atteint est du code mort qui a l'air vivant.
+   *
+   * Ce que sa note disait et qui reste vrai là-bas: l'invitation NE BLOQUE
+   * JAMAIS la génération (R1), et en local aucun e-mail ne part — l'écran rend
+   * le lien, dont le `{name}` est load-bearing (plusieurs liens dans la même
+   * minute, un lien anonyme part à la mauvaise personne).
    */
-  function sendInvite(target: FunnelMouth): Promise<void> {
-    return (async () => {
-      const email = inviteEmail.trim();
-      if (!email) throw new Error(t("household.invite.error.bad_email"));
-      const result = await inviteToHousehold(email, target.memberId!);
-      if (!result.ok) throw new Error(result.reason);
-      setInvite({
-        memberId: target.memberId!,
-        token: String(result.token ?? ""),
-        firstName: String(result.first_name ?? target.firstName),
-      });
-      setInviteEmail("");
-    })();
-  }
 
   // ── ÉTAPE 3 — LA SORTIE ──────────────────────────────────────────────────
 
@@ -3080,6 +3173,7 @@ export default function SetupPage() {
   // et le garder rendrait un paramètre que personne n'honore.
   function draftInput(): ComposeDraftInput {
     return {
+      origin: "setup",
       // LA FENÊTRE DEMANDÉE, et plus « d'ici dimanche » codé en dur. Un compte
       // créé un samedi recevait un plan d'un jour et demi sans avoir rien
       // choisi.
@@ -3224,7 +3318,6 @@ export default function SetupPage() {
         throw new Error(refusalMessage(error));
       }
       setDraft(composed);
-      setDraftOpen(true);
     })();
   }
 
@@ -3274,6 +3367,12 @@ export default function SetupPage() {
         ) : null}
         {flash ? <p className="text-xs text-ink-soft">{flash}</p> : null}
 
+        {/* ⟳ 2026-09-23 — L'ÉCRAN D'ATTENTE D'UNE COMPOSITION REPRISE, EN TÊTE.
+            Le bouton de fin dit aussi qu'il compose, mais tout en bas d'une
+            étape de plusieurs écrans : au retour, rien de visible ne disait
+            qu'un plan était en route. Même carte que `/app/plan`. */}
+        {resumingDraft ? <PlanComposingCard progress={progress} replacing={false} /> : null}
+
         {step.id === "situate" ? (
           <SituateStep
             current={facts.state.mouths}
@@ -3304,7 +3403,15 @@ export default function SetupPage() {
               // DANS LA MÊME ÉTAPE. En solo, « Continue » enregistre et avance:
               // un second bouton qui fait la moitié du premier ne se distingue
               // de lui que par ce qu'il ne fait pas.
-              onSave={branch === "solo" ? null : () => guard(saveSelf)}
+              // ⚠️ LE REPLI EST **APRÈS** L'`await`, DONC APRÈS LE SUCCÈS.
+              // `guard` avale le refus et l'affiche en haut de page; si
+              // `saveSelf` lève, cette ligne n'est jamais atteinte et la carte
+              // reste ouverte sur les champs que le refus concerne.
+              onSave={branch === "solo" ? null : () =>
+                guard(async () => {
+                  await saveSelf();
+                  setSelfEditing(false);
+                })}
               busy={busy}
               // ⚠️ ON NE REMONTE QUE LES DEUX CHAMPS QUI SONT À LUI. La carte
               // reçoit un brouillon COMPLET (il lui faut le corps et l'âge pour
@@ -3321,6 +3428,23 @@ export default function SetupPage() {
               // l'écrirait au Save.
               onOpenPreferences={selfMouthDraft === null ? null : () => {
                 setPrefsFor({ kind: "self" });
+              }}
+              editing={selfEditing}
+              onToggleEdit={() => setSelfEditing(true)}
+              // LES FAITS RELUS, JAMAIS LE BROUILLON — voir la prop `saved`.
+              // `selfTarget` porte des CHAÎNES (c'est un brouillon de saisie);
+              // le résumé attend des nombres, et `""` doit rester « rien »
+              // plutôt que devenir `0` par `Number("")`.
+              saved={{
+                person: facts.state.self,
+                target: selfTarget === null ? null : {
+                  targetWeightKg: selfTarget.targetWeightKg.trim() === ""
+                    ? null
+                    : Number(selfTarget.targetWeightKg),
+                  paceKgPerWeek: selfTarget.paceKgPerWeek.trim() === ""
+                    ? null
+                    : Number(selfTarget.paceKgPerWeek),
+                },
               }}
             />
             {/*
@@ -3439,6 +3563,10 @@ export default function SetupPage() {
                       // la porte REMPLACE la liste d'entrées. Ouvrir puis
                       // refermer sans cette ligne effacerait sa bulle.
                       light: { ...(known?.light ?? {}) },
+                      // ⟳ 2026-09-23 — SES À-CÔTÉS, SEMÉS POUR LA MÊME
+                      // RAISON: `emptyMouthFormDraft()` les met à `{}`, et
+                      // refermer la fenêtre écrit la liste entière.
+                      sideCourses: { ...(known?.sideCourses ?? {}) },
                       // ── ⑤ SEMÉ DEPUIS SA LIGNE DE CORPS ──────────────────
                       // Il s'ÉCRIT à la fermeture (voir
                       // `saveMouthPreferences`), et `appetiteAsked` vaut
@@ -3454,27 +3582,6 @@ export default function SetupPage() {
                   setPrefsFor({ kind: "member", memberId: m.memberId ?? "" });
                 }}
                 mouthPrefs={memberPrefs}
-                // ── CE QUE LA BASE SAIT DÉJÀ D'ELLE ────────────────────────
-                // ⚠️ ON NE SÈME PAS LES DÉGOÛTS: ils ne sont pas relus par cet
-                // écran (leur porte n'a qu'`add`/`remove`), donc les compter
-                // ici dirait « renseignés » sur une lecture qui n'a pas eu
-                // lieu. Un récapitulatif qui invente est pire qu'un
-                // récapitulatif court.
-                knownPrefs={(m) => ({
-                  ...emptyMouthFormDraft(),
-                  firstName: m.firstName,
-                  goal: m.goal ?? "",
-                  diet: m.diet ?? "",
-                  rhythm: m.eatingSlots,
-                  allergiesNone: m.allergiesReviewed,
-                  habits: Object.fromEntries(
-                    (habits?.get(m.memberId ?? "")?.slots ?? []).map((h) => [
-                      h.slot,
-                      h.usual,
-                    ]),
-                  ),
-                  light: { ...(habits?.get(m.memberId ?? "")?.light ?? {}) },
-                })}
                 onSaveMouthPreferences={(m) => {
                   const d = memberPrefs?.draft;
                   if (d) guardMouth(() => saveMouthPreferences(m, d));
@@ -3495,15 +3602,6 @@ export default function SetupPage() {
                 onRemove={(m) => guardMouth(() => removeMouth(m))}
                 confirmRemove={confirmRemove}
                 onConfirmRemove={setConfirmRemove}
-                inviteFor={inviteFor}
-                onInviteFor={(id) => {
-                  setInviteFor(id);
-                  setInvite(null);
-                }}
-                inviteEmail={inviteEmail}
-                onInviteEmail={setInviteEmail}
-                onInvite={(m) => guard(() => sendInvite(m))}
-                invite={invite}
                 busy={busy}
               />
             ) : null}
@@ -3818,6 +3916,18 @@ export default function SetupPage() {
                 {busy ? <ComposingLabel progress={progress} /> : t("setup.plan.compose")}
               </Button>
             ) : null}
+            {/* ⟳ 2026-09-21 — CE QUE ÇA COÛTE EN TEMPS, dit sous le geste,
+                comme sous les deux boutons du composeur. */}
+            {isLast && canCompose ? (
+              /* ⟳ 2026-09-21 — PLUS PETITE, SUR DEMANDE, ET AUX TROIS SITES.
+                 `text-label` (11 px) avec `tracking-normal`: son interlettrage
+                 est dessiné pour des capitales. Laisser ce site en `text-xs`
+                 aurait fait deux tailles pour la même phrase, à deux écrans
+                 d'intervalle. */
+              <p className="text-label leading-5 tracking-normal text-ink-soft">
+                {t("meals.eta")}
+              </p>
+            ) : null}
             {isLast && !canCompose ? (
               <p className="text-sm leading-6 text-ink-soft">
                 {t("plan.draft.owner_composes")}
@@ -3973,8 +4083,13 @@ export default function SetupPage() {
             montrer: y envoyer quelqu'un serait le poser devant un écran vide
             en lui ayant fait croire qu'il venait de finir. */}
         <PlanDraftDialog
-          open={draftOpen}
-          onClose={() => setDraftOpen(false)}
+          open={draft !== null}
+          /* ⛔ « LAISSER TOMBER » JETTE LE BROUILLON. Fermer en le gardant en
+             mémoire le rendait inatteignable jusqu'au rechargement. */
+          onClose={() => {
+            void discardDraft(draft?.envelope.draftId ?? null);
+            setDraft(null);
+          }}
           draft={draft?.plan ?? null}
           // LES PHRASES DU SERVEUR, TELLES QU'IL LES REND. Assemblées côté
           // serveur, dans la langue du contenu: cet écran les affiche, il ne
@@ -4013,11 +4128,18 @@ export default function SetupPage() {
               throw new Error(refusalMessage(e));
             }
           }}
+          /* ⟳ 2026-09-21 — LE STADE RÉEL REMONTE AU BOUTON QUI TRAVAILLE.
+             `progress` et `onProgress` vont ensemble: sans le second, le
+             premier resterait `null` et « Ajuster le plan » retomberait sur
+             les seules phrases minutées pendant deux minutes. */
+          progress={progress}
           onCompose={async () => {
             try {
-              setDraft(await composeDraft(draftInput()));
+              setDraft(await composeDraft(draftInput(), { onProgress: setProgress }));
             } catch (e) {
               throw new Error(refusalMessage(e));
+            } finally {
+              setProgress(null);
             }
           }}
           // ⟳ 2026-09-09 — LA REPRISE LOCALE : la case seule, sur le brouillon
@@ -4065,7 +4187,6 @@ export default function SetupPage() {
             // au prochain passage par `/app/setup` — au-dessus d'une base qui
             // les a déjà toutes. Voir `lib/setupDraftCache.ts`.
             clearSetupDraft(userId);
-            setDraftOpen(false);
             setDraft(null);
             // L'ATTERRISSAGE EST LE PLAN, jamais `/app/today`.
             navigate("/app/plan", { replace: true });
@@ -4509,8 +4630,58 @@ export function SelfStep(props: {
    * réclame la réponse, et l'écran n'offrirait aucun champ pour la donner.
    */
   onOpenPreferences: (() => void) | null;
+  /**
+   * ── ⟳ 2026-09-20 · LA CARTE SE REPLIE UNE FOIS ENREGISTRÉE ──────────────
+   *
+   * Demandé à l'écran: la fiche du titulaire restait dépliée pour toujours,
+   * et sur une famille elle poussait les autres bouches — celles qu'il reste
+   * à saisir — sous la ligne de flottaison.
+   *
+   * ⚠️ LE REPLI SE DÉCLENCHE SUR L'ENREGISTREMENT RÉUSSI, JAMAIS SUR LE CLIC.
+   * Une ligne de bouche déjà inscrite écrit champ par champ, donc la replier
+   * ne peut rien perdre; cette carte-ci est un BROUILLON qu'un seul geste
+   * écrit. Replier au clic replierait aussi un enregistrement qui a échoué —
+   * c'est-à-dire cacher les champs fautifs pendant qu'un refus s'affiche en
+   * haut de la page.
+   *
+   * ⛔ ET ELLE NE SE REPLIE PAS EN SOLO. `onSave` y vaut `null` (« Continuer »
+   * enregistre et avance), donc il n'existe aucun moment où le repli aurait un
+   * sens — et une carte repliée sans geste pour l'avoir repliée se lit comme
+   * un écran qui a perdu son formulaire. La garde est prise ici plutôt que
+   * chez l'appelant: c'est cette carte qui sait que ses deux états dépendent
+   * de `onSave`.
+   */
+  editing: boolean;
+  onToggleEdit: () => void;
+  /**
+   * CE QU'ON SAIT DE LUI **EN BASE** — et surtout pas le brouillon.
+   *
+   * `null` = la lecture n'a pas rendu. Le résumé d'une carte repliée doit se
+   * lire sur les faits relus par `load`: nourri du brouillon, il afficherait
+   * comme enregistré exactement ce qui ne l'est pas, et le repli deviendrait
+   * la preuve visuelle d'une écriture qui n'a pas eu lieu.
+   */
+  saved: { person: FunnelPerson; target: MemberTargetView | null } | null;
 }) {
   const { draft, onChange, branch, onSave, busy, target } = props;
+  // Voir `editing` ci-dessus: sans `onSave`, il n'y a pas de geste qui replie.
+  const editing = onSave === null ? true : props.editing;
+  /**
+   * LE GESTE DE SORTIE DE LA CARTE — en bas, et seulement en édition.
+   *
+   * Repliée, il n'y a rien à enregistrer et « Modifier » l'a remplacé en tête
+   * de carte. Il voyage jusqu'à la barre de fin par le `action` de la porte
+   * des préférences: les deux y sont sur une ligne, la porte à gauche et lui
+   * à droite — l'avance est à droite sur cette page, voir la note du
+   * 2026-08-19 sur la barre de bas d'écran.
+   */
+  const saveButton = onSave !== null && editing
+    ? (
+      <Button variant="secondary" disabled={busy} onClick={onSave}>
+        {t("household.member.save")}
+      </Button>
+    )
+    : null;
   // ⚠️ MISE À JOUR FONCTIONNELLE, ET CE N'EST PAS UN TIC DE STYLE. Un
   // `onChange({ ...draft, ...patch })` fusionne depuis le `draft` de LA
   // FERMETURE, c'est-à-dire l'état du dernier rendu. React groupe les mises à
@@ -4522,7 +4693,27 @@ export function SelfStep(props: {
     onChange((prev) => (prev === null ? prev : { ...prev, ...patch }));
   return (
     <Card>
-      <SectionLabel>{t("setup.people.title")}</SectionLabel>
+      {/* ── ⟳ 2026-09-20 · « MODIFIER » EN HAUT À DROITE ───────────────────
+          Demandé à l'écran: « la carte du compte maître en étant rétractée
+          doit avoir "modifier" en haut à droite comme la carte des gens qui
+          mangent dans la famille ». Les deux cartes de cet écran portent donc
+          le même gabarit — titre à gauche, gestes à droite — et le geste de
+          SORTIE, lui, est en bas des deux (« Enregistrer »). Un seul bouton
+          qui changerait de nom au milieu de la carte faisait chercher
+          « Modifier » là où « Enregistrer » venait d'être. */}
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <SectionLabel>{t("setup.people.title")}</SectionLabel>
+        {onSave !== null && !editing ? (
+          <Button
+            variant="secondary"
+            size="sm"
+            disabled={busy}
+            onClick={props.onToggleEdit}
+          >
+            {t("setup.mouths.edit")}
+          </Button>
+        ) : null}
+      </div>
       {/* ⛔ « Toi aussi, tu manges ici. Tu es la première place à table, pas
           la personne qui la tient. » RETIRÉ LE 2026-08-19. Elle expliquait
           le MODÈLE (le titulaire est une bouche comme les autres) à
@@ -4532,6 +4723,13 @@ export function SelfStep(props: {
           page dit déjà est du bruit. */}
 
       <div className="mt-4 space-y-4">
+        {/* ═══ CE QUI SUIT NE SE VOIT QU'EN ÉDITION ══════════════════════════
+            Repliée, la carte rend le MÊME résumé qu'une ligne de bouche — et
+            c'est pour ça qu'il est partagé. L'indentation du bloc n'a pas
+            bougé avec l'ajout de cette porte: la réindenter aurait noyé le
+            geste dans deux cents lignes de diff blanc. */}
+        {editing ? (
+        <>
         {/* LE PRÉNOM N'EST DEMANDÉ QUE S'IL Y A UN FOYER — rien, dans le chemin
             individuel, ne lit le prénom du mangeur. Voir `FUNNEL_QUESTIONS`. */}
         {branch !== "solo" ? (
@@ -4731,6 +4929,20 @@ export function SelfStep(props: {
           busy={busy}
           idPrefix="setup-self"
         />
+        </>
+        ) : props.saved !== null ? (
+          <MouthRowSummary
+            mouth={props.saved.person}
+            target={props.saved.target}
+            // ⚠️ LA DATE VIENT D'ICI, PAS D'UNE SECONDE LECTURE. Une bouche a
+            // besoin de `loadMemberBirthDates` parce que le roster ne rend
+            // jamais sa date; celle du titulaire est dans ses faits. `""` et
+            // pas `null`: le contrat de ce résumé réserve `null` à « la
+            // lecture n'a pas rendu », et elle a rendu.
+            birthDate={props.saved.person.birthDate ?? ""}
+            voice="self"
+          />
+        ) : null}
 
         {/* ⚠️ LE RÉGIME A DÉMÉNAGÉ À L'ÉTAPE 3 (« comment on mange »), et
             l'ordre d'origine EST CASSÉ PAR CE DÉPLACEMENT. Le commentaire
@@ -4760,21 +4972,37 @@ export function SelfStep(props: {
             derrière le bouton. Une allergie affine: elle écarte des aliments
             d'un plan dont la FORME est déjà décidée par le corps, la direction
             et le rythme — tous au-dessus, sans clic. */}
-        {props.onOpenPreferences !== null && target !== null ? (
-          <MouthPreferencesButton
-            draft={target.draft}
-            busy={busy}
-            onOpen={props.onOpenPreferences}
-            voice="self"
-            who=""
-          />
-        ) : null}
+        {/* ── ⟳ 2026-09-20 · ELLE DISPARAÎT AVEC LES CHAMPS ────────────────
+            Elle restait rendue sous le résumé d'une carte repliée, avec son
+            récapitulatif — donc trois lignes de plus par personne sur un écran
+            replié EXPRÈS pour tenir. Demandé à l'écran: « on peut enlever la
+            partie préférences alimentaires qui s'affiche toujours, il faut que
+            ce soit hyper simple et clair ».
 
-        {onSave ? (
-          <Button variant="secondary" disabled={busy} onClick={onSave}>
-            {t("household.member.save")}
-          </Button>
-        ) : null}
+            ⚠️ CE QUI RENDAIT L'EXCEPTION LÉGITIME A DISPARU AVEC ELLE. La
+            porte restait ouverte hors édition parce qu'elle « ne peut rien
+            écrire par mégarde »; c'était vrai, mais ça répondait à la question
+            du RISQUE, pas à celle de la PLACE. Elle reste la seule porte vers
+            les allergies, et « Modifier » la rouvre en un clic. */}
+        {/* ⛔ LE GESTE EST RENDU MÊME QUAND LA PORTE NE PEUT PAS L'ÊTRE, et
+            c'est pour ça qu'il est dans une variable plutôt que seulement
+            dans le `action` ci-dessous. La porte demande une lecture faite
+            (`target`); « Enregistrer », lui, ne demande rien. Le plier dans la
+            porte le ferait disparaître pendant la fenêtre où la lecture n'a
+            pas rendu — un formulaire rempli sans bouton pour l'écrire. */}
+        {editing && props.onOpenPreferences !== null && target !== null
+          ? (
+            <MouthPreferencesButton
+              busy={busy}
+              onOpen={props.onOpenPreferences}
+              voice="self"
+              who=""
+              action={saveButton}
+            />
+          )
+          : saveButton}
+
+
       </div>
     </Card>
   );
@@ -4841,13 +5069,15 @@ export function MouthsStep(props: {
    * ou `null`. C'est lui que le récapitulatif de sa ligne rend.
    */
   mouthPrefs: { memberId: string; draft: MouthFormDraft } | null;
-  /**
-   * CE QUE LA BASE PORTE POUR CETTE BOUCHE, en vocabulaire de brouillon.
-   *
-   * ⚠️ REQUISE: sans elle, le récapitulatif retombe sur un brouillon vide et
-   * annonce « rien de renseigné » à quelqu'un qui vient de tout remplir.
-   */
-  knownPrefs: (mouth: FunnelMouth) => MouthFormDraft;
+  /* ⛔ ICI VIVAIT `knownPrefs` — ce que la base porte pour une bouche, en
+     vocabulaire de brouillon. Elle n'existait que pour nourrir le
+     récapitulatif sous la porte des préférences, retiré le 2026-09-20.
+
+     ⚠️ ELLE PORTAIT UNE DÉCISION QU'IL FAUDRA REPRENDRE SI LE RÉCAPITULATIF
+     REVIENT: elle ne semait PAS les dégoûts, parce que leur porte n'a
+     qu'`add`/`remove` — les compter aurait dit « renseignés » sur une lecture
+     qui n'a pas eu lieu. Un récapitulatif qui invente est pire qu'un
+     récapitulatif court. */
   /** Enregistre ce brouillon-là. REQUIS: sans lui la fenêtre ne promet rien. */
   onSaveMouthPreferences: (mouth: FunnelMouth) => void;
   onBody: (
@@ -4900,12 +5130,6 @@ export function MouthsStep(props: {
   ) => void;
   confirmRemove: string | null;
   onConfirmRemove: (memberId: string | null) => void;
-  inviteFor: string | null;
-  onInviteFor: (memberId: string | null) => void;
-  inviteEmail: string;
-  onInviteEmail: (value: string) => void;
-  onInvite: (mouth: FunnelMouth) => void;
-  invite: { memberId: string; token: string; firstName: string } | null;
   busy: boolean;
 }) {
   const draft = props.draft;
@@ -5003,9 +5227,6 @@ export function MouthsStep(props: {
                 //
                 // Le brouillon ouvert gagne quand il existe: c'est ce qu'on est
                 // en train de taper, et il est plus frais que la lecture.
-                prefsDraft={props.mouthPrefs?.memberId === m.memberId
-                  ? props.mouthPrefs.draft
-                  : props.knownPrefs(m)}
                 onOpenPreferences={() => props.onOpenMouthPreferences(m)}
                 onSavePreferences={() => props.onSaveMouthPreferences(m)}
                 onBody={(h, w, g, a, day, sport) =>
@@ -5027,13 +5248,6 @@ export function MouthsStep(props: {
                   props.onConfirmRemove(
                     props.confirmRemove === m.memberId ? null : m.memberId ?? null,
                   )}
-                inviteOpen={props.inviteFor === m.memberId}
-                onInviteOpen={() =>
-                  props.onInviteFor(props.inviteFor === m.memberId ? null : m.memberId)}
-                inviteEmail={props.inviteEmail}
-                onInviteEmail={props.onInviteEmail}
-                onInvite={() => props.onInvite(m)}
-                invite={props.invite?.memberId === m.memberId ? props.invite : null}
                 busy={props.busy}
               />
             </li>
@@ -5051,6 +5265,32 @@ export function MouthsStep(props: {
         // cadre, il se lisait comme la suite de la dernière carte — donc comme
         // des champs vides SUR une personne existante.
         <div className="mt-4 space-y-4 rounded-card border border-dashed border-line-strong p-4">
+          {/* ── ⟳ 2026-09-20 · LE CADRE DIT DE QUI IL PARLE ────────────────
+              Il s'ouvrait directement sur « Qui c'est » — le titre du premier
+              bloc de la fiche —, et rien au-dessus ne disait que ce bloc
+              concerne quelqu'un qui n'existe pas encore. Signalé à l'écran:
+              « le "qui c'est", on ne comprend pas facilement que c'est pour
+              une nouvelle personne ».
+
+              Le pointillé portait déjà ce sens, et il ne suffit pas: il le dit
+              à qui connaît la convention, et cette convention s'apprend en
+              comparant deux cadres — donc seulement une fois qu'une personne
+              est déjà inscrite juste au-dessus. Le premier ajout, celui qui
+              compte, n'a rien à comparer.
+
+              ⛔ UN TITRE, ET RIEN SOUS LUI. Il y a eu une seconde ligne —
+              « Elle n'est pas encore à table. » — retirée le jour même sur
+              demande. Le titre porte déjà le fait; une phrase qui le répète en
+              dessous est du remplissage sur l'écran qu'on vient d'alléger.
+
+              ⛔ LE TITRE NE PREND PAS LE PRÉNOM TAPÉ, contrairement aux cartes
+              au-dessus. Un prénom en gras ferait de cette fiche une carte de
+              plus, c'est-à-dire quelqu'un qui est DÉJÀ à table — l'exact
+              contraire de ce qu'on cherche à dire. */}
+          <p className="text-base font-semibold text-ink">
+            {t("setup.mouths.new_title")}
+          </p>
+
           {/* ══════════════════════════════════════════════════════════════
               UN SEUL FORMULAIRE DE PERSONNE DANS LE DÉPÔT — A5, 2026-09-03
               ══════════════════════════════════════════════════════════════
@@ -5205,12 +5445,29 @@ export function MouthsStep(props: {
  * ligne absente porte donc son « — », et le bouton « Modifier » est à trois
  * centimètres au-dessus.
  */
+/**
+ * ── ⟳ 2026-09-20 · `FunnelPerson` ET PLUS `FunnelMouth`, PLUS UNE VOIX ─────
+ *
+ * Ce résumé ne lisait déjà que des champs de `FunnelPerson` — prénom mis à
+ * part, qu'il ne rend pas: date, direction, corps, activité, cible. Le type
+ * plus étroit n'achetait donc rien, et il fermait la porte au seul autre
+ * sujet de cet écran qui a exactement les mêmes faits: LE TITULAIRE
+ * (`FunnelSelf = FunnelPerson`). Sa carte se replie depuis aujourd'hui, et
+ * une seconde copie de ces cinq lignes aurait divergé au premier champ
+ * ajouté — c'est ce qui est arrivé aux trois sérialiseurs d'habitudes.
+ *
+ * ⚠️ LA VOIX EST UNE PROP, PAS UNE DEVINETTE. Deux des cinq libellés sont à
+ * la troisième personne (« Ce qu'il ou elle vise », « Ses journées »), et les
+ * lire sur sa propre fiche est le défaut que `lib/mouthVoice.ts` existe pour
+ * empêcher. Les trois autres sont déjà neutres, et n'ont donc pas de paire.
+ */
 function MouthRowSummary(
-  { mouth, target, birthDate }: {
-    mouth: FunnelMouth;
+  { mouth, target, birthDate, voice }: {
+    mouth: FunnelPerson;
     target: MemberTargetView | null;
     /** `""` = pas de date, `null` = lecture pas faite. */
     birthDate: string | null;
+    voice: MouthVoice;
   },
 ) {
   const dash = "—";
@@ -5229,7 +5486,9 @@ function MouthRowSummary(
         : dash,
     },
     {
-      label: t("setup.mouths.goal"),
+      label: voice === "self"
+        ? t("setup.people.goal")
+        : t("setup.mouths.goal"),
       // « — » ET PLUS « Aucune direction particulière » (2026-09-03): un
       // résumé qui nomme une quatrième direction en fabrique une.
       value: mouth.goal ? goalLabel(mouth.goal) : dash,
@@ -5242,13 +5501,52 @@ function MouthRowSummary(
         ? `${mouth.heightCm} cm · ${mouth.weightKg} kg`
         : dash,
     },
-    {
-      label: t("setup.activity.member_label"),
+  ];
+  /**
+   * ── ⟳ 2026-09-20 · LES DEUX AXES, ET PLUS LE CRAN UNIQUE ────────────────
+   *
+   * Cette ligne lisait `activityLevel` et rendait « — » sur TOUTE personne
+   * passée par l'entonnoir. Ce n'était pas une donnée manquante: l'entonnoir
+   * ne demande plus ce cran depuis le 2026-08-20 (`ActivityAxesTiles` pose
+   * `day_activity` et `sport_frequency`), et `own_activity_level` a même
+   * quitté les refus. Le résumé interrogeait donc une colonne que l'écran
+   * au-dessus de lui n'écrit plus. Signalé à l'écran: « quand c'est rétracté
+   * "vos journées elles sont comment ?" ne remonte pas sur la carte ».
+   *
+   * ⛔ LE CRAN N'EST PAS SUPPRIMÉ POUR AUTANT, IL DEVIENT LE REPLI NOMMÉ. Un
+   * compte ouvert avant le 2026-08-20 porte `profiles.activity_level` et RIEN
+   * sur les deux axes; c'est cette valeur-là que `meal_envelope.ts` applique
+   * pour lui. Rendre deux tirets pendant que le moteur utilise un vrai cran
+   * serait la même faute dans l'autre sens — un résumé qui tait ce que la
+   * base sait.
+   */
+  if (mouth.dayActivity !== null || mouth.sportFrequency !== null) {
+    rows.push({
+      label: voice === "self"
+        ? t("setup.day_activity.label")
+        : t("setup.day_activity.member_label"),
+      value: mouth.dayActivity
+        ? t(DAY_ACTIVITY_KEYS[mouth.dayActivity].label)
+        : dash,
+    });
+    rows.push({
+      label: voice === "self"
+        ? t("setup.sport.label")
+        : t("setup.sport.member_label"),
+      value: mouth.sportFrequency
+        ? t(SPORT_KEYS[mouth.sportFrequency].label)
+        : dash,
+    });
+  } else {
+    rows.push({
+      label: voice === "self"
+        ? t("setup.activity.label")
+        : t("setup.activity.member_label"),
       value: mouth.activityLevel
         ? t(ACTIVITY_KEYS[mouth.activityLevel].label)
         : dash,
-    },
-  ];
+    });
+  }
   // LA CIBLE N'APPARAÎT QUE SOUS UNE DIRECTION QUI BOUGE — même règle que les
   // champs qu'elle résume: sur `maintenance`, elle n'a pas de sens et la base
   // la refuse (`target_needs_direction_check`).
@@ -5316,9 +5614,11 @@ function MouthRow(props: {
   onGoal: (goal: MemberGoal) => void;
   onBirthDate: (date: string) => void;
   onAllergyAnswer: (labels: string[]) => void;
-  /** Le brouillon de préférences de CETTE ligne — vide si elle n'est pas celle
-   * qui est ouverte. REQUIS: c'est ce que le récapitulatif rend. */
-  prefsDraft: MouthFormDraft;
+  /* ⛔ ICI VIVAIT `prefsDraft` — le brouillon de préférences de cette ligne.
+     Son SEUL lecteur était le récapitulatif sous la porte, retiré le
+     2026-09-20. Une prop qu'on calcule pour personne est la première qu'on
+     oublie de mettre à jour, et elle traînait derrière elle toute une
+     lecture (`knownPrefs`). Les deux partent ensemble. */
   onOpenPreferences: () => void;
   onSavePreferences: () => void;
   onBody: (
@@ -5382,12 +5682,8 @@ function MouthRow(props: {
    */
   birthDate: string | null;
   onTarget: (targetWeightKg: string, paceKgPerWeek: string) => void;
-  inviteOpen: boolean;
-  onInviteOpen: () => void;
-  inviteEmail: string;
-  onInviteEmail: (value: string) => void;
-  onInvite: () => void;
-  invite: { token: string; firstName: string } | null;
+  // ⛔ LES SIX PROPS D'INVITATION SONT PARTIES AVEC LEUR PANNEAU (2026-09-20).
+  // Voir la pierre tombale en bas de ce composant.
   busy: boolean;
 }) {
   const m = props.mouth;
@@ -5579,19 +5875,19 @@ function MouthRow(props: {
         <span className="min-w-0 text-base font-semibold text-ink">
           {m.firstName || "—"}
         </span>
-        {/* LA NATURE DE LA BOUCHE PASSE DANS UNE PASTILLE `neutral`, ET C'EST
-            LE KIT QUI LE DEMANDE: `Badge` a un ton pour « tout ce qui n'est
-            qu'une étiquette », et « adulte / enfant » en est une — pas un état
-            du système, donc ni émeraude, ni ambre, ni rouge, ni bleu, et
-            surtout pas la figue (elle n'entre jamais dans une pastille).
-            Elle paie aussi une lisibilité mesurée: en `text-xs text-gray-500`
-            au bout d'une ligne, la nature se confondait avec les phrases
-            d'aide en dessous, et trois lignes de bouches se lisaient comme un
-            seul formulaire. La pastille rend le début de chaque ligne. */}
+        {/* ── ⛔ ICI SE TENAIT LA PASTILLE « Un adulte / Un enfant » ────────
+            Retirée le 2026-09-20, sur la décision de l'utilisateur: « le
+            toggle adulte, en vrai on s'en fout, faut le virer, ça pollue le
+            regard ». Elle avait été mise là pour rendre le début de chaque
+            ligne lisible; ce travail est fait depuis par le PRÉNOM en gras et
+            par le cadre de la carte, et elle ne restait qu'en doublon d'un
+            fait que la date de naissance dit déjà.
+
+            ⚠️ `m.kind` N'EST PAS MORT POUR AUTANT: il décide encore quelles
+            directions cette bouche peut porter (`goalsForAge`) et quel motif
+            la retient (`adult_without_birth_date`). C'est son AFFICHAGE qui
+            part, pas la donnée. */}
         <div className="flex flex-wrap items-center gap-2">
-          <Badge>
-            {m.kind === "child" ? t("setup.mouths.kind_child") : t("setup.mouths.kind_adult")}
-          </Badge>
           {/* ── RETIRER, EN DEUX CLICS ────────────────────────────────────
               Un clic arme, le second exécute — et le libellé CHANGE entre les
               deux, donc on ne confirme pas en cliquant deux fois au même
@@ -5631,21 +5927,40 @@ function MouthRow(props: {
               a déjà fait perdre.
 
               CHAQUE CHAMP ÉCRIT DONC TOUT SEUL — à la sortie du champ pour ce
-              qui se tape, au clic pour ce qui se choisit. « Terminé » ne fait
-              plus que REFERMER la carte, et il le dit.
+              qui se tape, au clic pour ce qui se choisit.
 
               ⚠️ SEUL LE SHAKER GARDE SON BOUTON: il n'est pas un champ de la
-              personne mais un OBJET qu'on ajoute, et il ne part qu'entier. */}
-          <Button
-            variant={props.editing ? "primary" : "secondary"}
-            size="sm"
-            disabled={props.busy}
-            onClick={props.onToggleEdit}
-          >
-            {props.editing
-              ? t("setup.mouths.edit_done")
-              : t("setup.mouths.edit")}
-          </Button>
+              personne mais un OBJET qu'on ajoute, et il ne part qu'entier.
+
+              ── ⟳ 2026-09-20 · « Terminé » EN HAUT DEVIENT « Enregistrer » EN
+                 BAS, ET CE N'EST PAS UN RENOMMAGE ─────────────────────────
+              Rapporté à l'écran: « pour les personnes en plus, je n'ai pas de
+              bouton enregistrer comme je l'ai avec le compte maître ». Vrai
+              au pied de la lettre — le seul geste de sortie était un
+              « Terminé » en TÊTE de carte, à l'opposé du dernier champ rempli
+              et sous un nom qui ne promet rien.
+
+              Le nouveau bouton appelle `saveNow()` AVANT de refermer, et c'est
+              ce qui rend le nom exact: sans lui, le dernier champ quitté par
+              un clic sur le bouton lui-même partirait bien (le `blur` précède
+              le `click`), mais un contrôle choisi sans jamais rendre le focus
+              ne serait couvert par rien de nommé. Le mot « Enregistrer » ne
+              décrit donc plus l'écriture au fil de l'eau, il décrit CE
+              bouton-là.
+
+              ⚠️ IL N'EST PAS DANS L'EN-TÊTE, et « Modifier » si. Les deux
+              cartes de cet écran suivent le même gabarit depuis ce jour: on
+              OUVRE par le haut, on SORT par le bas. */}
+          {props.editing ? null : (
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={props.busy}
+              onClick={props.onToggleEdit}
+            >
+              {t("setup.mouths.edit")}
+            </Button>
+          )}
           {props.confirmRemove ? (
             <Button
               variant="danger"
@@ -5771,7 +6086,14 @@ function MouthRow(props: {
           Ce qui reste vrai de l'intention est porté par la SEMENCE: les champs
           arrivent remplis, donc on ne redemande rien — on montre, et on laisse
           corriger. */}
-              <Field label={t("setup.mouths.body")} hint={t("setup.mouths.body_hint")}>
+              {/* ⛔ L'AIDE (« Les trois ensemble, ou aucun des trois. »,
+                  `setup.mouths.body_hint`) EST PARTIE LE 2026-09-20, sur
+                  demande. La RÈGLE, elle, n'a pas bougé: `isUsableMouthHeight`
+                  et `isUsableMouthWeight` retiennent toujours l'étape, et les
+                  motifs `member_height_cm` / `member_weight_kg` nomment le champ
+                  qui manque, sur la carte de la bonne personne. Ce qui est
+                  retiré est l'annonce, pas la garde. */}
+              <Field label={t("setup.mouths.body")}>
           <div className="space-y-2">
             <div className="grid gap-2 sm:grid-cols-3">
               <input
@@ -5897,6 +6219,7 @@ function MouthRow(props: {
           mouth={m}
           target={props.target}
           birthDate={props.birthDate}
+          voice="other"
         />
       )}
 
@@ -5912,106 +6235,62 @@ function MouthRow(props: {
           `allergiesReviewed` rendrait ces trois blocs-là inatteignables pour
           toute bouche dont on a déjà déclaré les allergies.
 
-          ⚠️ SA FENÊTRE A UN BOUTON D'ENREGISTREMENT, ET LES DEUX AUTRES NON.
-          Ce n'est pas une incohérence: la fiche du titulaire et le formulaire
-          d'ajout ont chacun leur geste d'enregistrement en bas (« Continuer »,
-          « Ajouter »), qui emporte le brouillon entier. Une ligne déjà
-          inscrite, elle, écrit champ par champ — chaque contrôle de cette
-          rangée a le sien. Sans ce bouton, la fenêtre serait la seule surface
-          de l'écran à ne rien promettre. */}
-      <div className="space-y-2">
+          ── ⟳ 2026-09-20 · MAIS PLUS HORS ÉDITION ─────────────────────────
+          Même geste que sur la carte du titulaire, même raison: sous un résumé
+          replié, ce cadre ajoutait un bouton et deux lignes de récapitulatif
+          par personne — sur un écran replié exactement pour tenir. Elle reste
+          la seule porte vers les allergies, et « Modifier » la rouvre. */}
+      {/* LA BARRE DE FIN DE CARTE — la porte à gauche, le geste de sortie à
+          droite. Voir la note longue sur « Modifier » en tête de carte, et
+          celle de `action` dans `MouthPreferencesButton` pour l'ordre.
+
+          ⛔ ET LE QUATRIÈME « Enregistrer » S'EN VA AUSSI. Il y en avait un
+          sous le bouton des préférences, qui n'écrivait que ce que la fenêtre
+          avait collecté — donc un de plus à côté d'un autre. Celui-ci le
+          couvre: `saveNow()` emporte toute la carte. */}
+      {props.editing ? (
         <MouthPreferencesButton
-          draft={props.prefsDraft}
           busy={props.busy}
           onOpen={props.onOpenPreferences}
           voice="other"
           who={m.firstName.trim() || t("household.mouth.who_fallback")}
+          action={
+            <Button
+              variant="secondary"
+              disabled={props.busy}
+              onClick={() => {
+                saveNow();
+                props.onToggleEdit();
+              }}
+            >
+              {t("household.member.save")}
+            </Button>
+          }
         />
-        {/* ⛔ ET LE QUATRIÈME S'EN VA AUSSI. Il enregistrait ce qui avait été
-            saisi derrière le bouton des préférences — donc encore un
-            « Enregistrer » de plus, à côté d'un autre. « Terminé » le couvre. */}
-      </div>
-
-      {/* L'ACCÈS — UN AJOUT PAR-DESSUS, JAMAIS UNE ALTERNATIVE. On a déjà
-          ajouté la bouche; ceci ne fait que permettre à quelqu'un de la
-          reprendre. D'où l'absence totale de fourche à la saisie. */}
-      {!m.claimed ? (
-        <div>
-          {/* ── `secondary` ET PLUS `ghost`, ET C'EST UN DÉFAUT MESURÉ ────────
-              `ghost` ne rend que du texte `ink-soft` sans contour. Ce bouton
-              vit au milieu de trois phrases d'aide qui sont, elles aussi, en
-              `ink-soft`: vu au navigateur le 2026-08-13, il ne se distinguait
-              pas d'une ligne de prose, sur la seule ligne de cette liste qui
-              OUVRE quelque chose. Le geste reste facultatif — c'est le rôle de
-              `ghost` — mais un geste facultatif doit rester reconnaissable
-              comme geste. */}
-          <Button variant="secondary" size="sm" onClick={props.onInviteOpen}>
-            {t("setup.access.title")}
-          </Button>
-          {props.inviteOpen ? (
-            // LE PANNEAU IMBRIQUÉ SE DIT PAR `paper-2` + UN TRAIT, pas par un
-            // gris froid: c'est l'idiome du fronton de `ui/SetupSection.tsx`,
-            // et c'est le seul remplissage disponible sous une carte `paper`
-            // (`ink-soft` sur `paper-2` = 5,67:1).
-            <div className="mt-2 space-y-2 rounded-card border border-line bg-paper-2 p-3">
-              <p className="text-xs leading-5 text-ink-soft">
-                {t("setup.access.waiting")}
-              </p>
-              <p className="text-xs leading-5 text-ink-soft">
-                {t("setup.access.grants")}
-              </p>
-              <p className="text-xs leading-5 text-ink-soft">
-                {t("setup.access.goal_carries")}
-              </p>
-              {/* ── UNE COLONNE SOUS `sm`, ET C'EST UN DÉFAUT MESURÉ ─────────
-                  C'était `flex flex-wrap items-center gap-2` avec le champ en
-                  `flex-1`. `flex-wrap` ne sauve rien ici: le champ, étant
-                  élastique, se laisse comprimer plutôt que de pousser le bouton
-                  à la ligne. Mesuré à 320 px le 2026-08-13: le champ tombait à
-                  **84 px** à côté d'un bouton dont le libellé fait toute la
-                  largeur — on ne saisit pas une adresse e-mail dans 84 px.
-                  `items-start` empêche le bouton de s'étirer sur toute la
-                  largeur en colonne (`align-items` vaut `stretch` par défaut,
-                  et `Button` est un `inline-flex`). */}
-              <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center">
-                <input
-                  type="email"
-                  placeholder={t("setup.access.email")}
-                  value={props.inviteEmail}
-                  onChange={(e) => props.onInviteEmail(e.target.value)}
-                  className={`${inputClass} min-w-0 sm:flex-1`}
-                />
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  disabled={props.busy}
-                  onClick={props.onInvite}
-                >
-                  {t("setup.access.submit")}
-                </Button>
-              </div>
-              {props.invite ? (
-                <div className="space-y-1">
-                  <p className="text-xs text-ink-soft">
-                    {t("household.invite.link_ready", { name: props.invite.firstName })}
-                  </p>
-                  {/* LE LIEN EST RENDU, PAS ENVOYÉ. En local, aucun e-mail ne
-                      part — et l'écran doit donc donner de quoi le
-                      transmettre à la main. */}
-                  {/* `text-xs` remplace un `text-[0.6875rem]` hors échelle. Le
-                      cran de la charte à cette taille est `text-label`, mais il
-                      met en CAPITALES et ouvre l'approche à +0,1em: un jeton
-                      d'invitation à recopier ne survit ni à l'un ni à l'autre.
-                      12 px sur l'échelle valent mieux que 11 px hors d'elle. */}
-                  <code className="block break-all rounded-card border border-line bg-paper p-2 text-xs text-ink">
-                    {`${window.location.origin}/join-household?token=${props.invite.token}`}
-                  </code>
-                </div>
-              ) : null}
-            </div>
-          ) : null}
-        </div>
       ) : null}
+
+      {/* ══════════════════════════════════════════════════════════════════
+          ⛔ ICI SE TENAIT « Lui donner son propre accès ? » — RETIRÉ 2026-09-20
+          ══════════════════════════════════════════════════════════════════
+
+          Quatre-vingts lignes: un bouton, un panneau dépliant, trois phrases
+          d'explication, un champ e-mail, un bouton d'envoi et le lien à
+          recopier — sur CHAQUE personne d'une liste qui peut en porter huit,
+          au milieu d'un couloir dont le seul travail est d'obtenir un premier
+          plan. Décision de l'utilisateur: « lui donner son propre accès aussi,
+          à cette étape de l'onboarding, on peut l'oublier ».
+
+          ⚠️ LA FONCTIONNALITÉ N'EST PAS SUPPRIMÉE, ELLE A UN AUTRE DOMICILE.
+          `/app/household` porte la même invitation, avec ses propres libellés
+          (`household.invite.*`) et la même porte en base
+          (`keel_household_invite`, FF-048 R2). C'est la SURFACE D'ENTONNOIR
+          qui part, pas le droit d'inviter — et le retirer d'ici ne laisse donc
+          personne sans chemin.
+
+          ⚠️ LES CLÉS `setup.access.*` SURVIVENT AU CATALOGUE, désarmées. Les
+          effacer obligerait à trancher la même question dans `en.ts`, et
+          l'étape peut vouloir les reprendre; ce qui compte est qu'aucun
+          composant ne les rende plus. */}
     </div>
   );
 }
@@ -6610,6 +6889,39 @@ function NoteEditor({
  * composition. La plateforme pose les mêmes trois questions au même moment
  * (`MealBuilder`, la carte de composition du foyer).
  */
+/**
+ * COMBIEN DE MOMENTS SONT ÉCARTÉS **DANS CETTE FENÊTRE** — le compte d'une
+ * pastille, et celui du lien du solo. Un seul corps pour les deux.
+ *
+ * ⚠️ IL SE CALCULE SUR LES JOURS DEMANDÉS, PAS SUR TOUTE LA COLONNE. Une
+ * absence posée pour la semaine prochaine ne se voit pas dans un plan qui
+ * s'arrête dimanche: l'annoncer ferait lire « · 3 » au-dessus d'une grille où
+ * rien n'est coché. Même formule que `MealBuilder#awayInWindow`, au jeton près
+ * — deux comptes écrits séparément finiraient par afficher deux nombres pour
+ * la même semaine.
+ *
+ * ⚠️ `slots: []` VEUT DIRE « TOUTE LA JOURNÉE », pas « rien »: c'est la
+ * convention de la colonne, et cette journée-là compte donc pour autant de
+ * moments que la personne en déclare.
+ *
+ * ⛔ `slotCount` EST REQUIS, jamais déduit d'un défaut. Une bouche et la maison
+ * n'ont pas forcément le même nombre de moments: un compteur qui prendrait
+ * toujours celui de la maison dirait « · 5 » sous une pastille dont la grille
+ * n'a que trois lignes.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+function awayMomentsIn(
+  marks: readonly AwayDay[],
+  days: readonly string[],
+  slotCount: number,
+): number {
+  const inWindow = new Set<string>(days);
+  return marks
+    .filter((a) => inWindow.has(a.day))
+    .reduce((n, a) => n + (a.slots.length === 0 ? slotCount : a.slots.length), 0);
+}
+
 function RequestStep({
   draft,
   onChange,
@@ -6623,6 +6935,12 @@ function RequestStep({
   planWindow,
   budgetMarket,
   selfMemberId,
+  // ⟳ 2026-09-20 — CES TROIS-LÀ ÉTAIENT PASSÉES ET JAMAIS LUES depuis le
+  // retrait du bloc par bouche (2026-09-08). Le montage ne change pas d'une
+  // ligne: la rangée de pastilles ci-dessous les consomme enfin.
+  awayFor,
+  onAwayFor,
+  onAwaySaved,
   awayBusy,
   rhythm,
   selfAway,
@@ -6798,21 +7116,29 @@ function RequestStep({
    * convention de la colonne, et elle compte donc pour autant de moments que
    * la maison en a.
    */
-  const selfAwayInWindow = React.useMemo(() => {
-    const inWindow = new Set<string>(planWindow.tokens);
-    return selfAway
-      .filter((a) => inWindow.has(a.day))
-      .reduce(
-        (n, a) => n + (a.slots.length === 0 ? rhythm.length : a.slots.length),
-        0,
-      );
-  }, [planWindow.tokens, rhythm.length, selfAway]);
+  /**
+   * LE TITULAIRE A-T-IL SA PASTILLE ? — la question que le lien du bas pose.
+   *
+   * ⚠️ `memberId !== null` D'ABORD: une bouche pas encore inscrite en porte un
+   * `null`, et `null === null` ferait d'elle le titulaire — donc deux grilles
+   * qui écrivent la même colonne, sur deux personnes différentes.
+   */
+  const selfHasTab = mouths.length > 1 &&
+    mouths.some((m) => m.memberId !== null && m.memberId === selfMemberId);
+
+  const selfAwayInWindow = React.useMemo(
+    () => awayMomentsIn(selfAway, planWindow.tokens, rhythm.length),
+    [planWindow.tokens, rhythm.length, selfAway],
+  );
 
   return (
     <>
       <Card>
         <SectionLabel>{t("setup.request.title")}</SectionLabel>
-        <p className="mt-2 text-sm text-ink-soft">{t("setup.request.intro")}</p>
+        {/* ⛔ L'INTRO (« Redemandé à chaque fois que vous en construisez un :
+            cette semaine n'est pas la précédente. ») EST PARTIE LE 2026-09-20,
+            sur demande. Elle justifiait que les dates soient reposées à chaque
+            plan; les champs, eux, sont toujours là et se lisent seuls. */}
 
         <div className="mt-4 space-y-4">
           {/* ── LES DATES, ET C'EST LA QUESTION QUI MANQUAIT ────────────────
@@ -6947,19 +7273,132 @@ function RequestStep({
               que la grille est DIMENSIONNÉE par elles. */}
           {rhythm.length > 0 && (
             <div>
-              <button
-                type="button"
-                onClick={() => onSelfPicker(true)}
-                // UN LIEN, DONC LA MARQUE (charte §2). `fig-700`/`paper` = 9,98:1.
-                className="text-xs font-medium text-fig-700 underline underline-offset-2 hover:text-fig-800"
-              >
-                {t("meals.picker.open")}
-                {selfAwayInWindow > 0 && (
-                  <span className="ml-1 font-normal text-ink-soft">
-                    · {selfAwayInWindow}
-                  </span>
-                )}
-              </button>
+              {/* ══════════════════════════════════════════════════════════
+                  ⟳ 2026-09-20 — UNE ENTRÉE PAR BOUCHE, ET LE LIEN SOLO RESTE
+                  ══════════════════════════════════════════════════════════
+
+                  Signalé à l'écran: « j'ai renseigné 3 personnes, et quand je
+                  clique sur "Qui est là ?" je ne vois que le planning du
+                  compte maître ». C'était exact — ce lien n'a jamais ouvert
+                  que la grille du titulaire.
+
+                  ── CE QUI AVAIT ÉTÉ RETIRÉ, ET POURQUOI ÇA REVIENT AUTREMENT
+                  Un `<details>` portant une ligne par bouche vivait ici; il a
+                  été retiré le 2026-09-08 parce que SUR UN FOYER D'UNE SEULE
+                  BOUCHE il rendait une ligne unique, ouvrant la même grille
+                  que le lien juste au-dessus — deux entrées pour un geste. Ce
+                  motif ne vaut QUE pour le solo, et c'est exactement la
+                  condition écrite ci-dessous: à une bouche, le lien d'avant,
+                  au jeton près; à plusieurs, une pastille par personne.
+
+                  ⛔ DEUX SOURCES, ET ELLES NE FUSIONNENT PAS (D14). Le
+                  titulaire ouvre `practical_constraints.away_days` — ce qu'il
+                  dit de LUI-MÊME —, une autre bouche ouvre
+                  `household_members.away_days` — ce que le maître déclare POUR
+                  elle. Nourrir une grille de l'union recopierait la
+                  déclaration de quelqu'un dans la colonne de l'autre, où elle
+                  survivrait à sa rétractation. C'est pour ça que le compteur
+                  et la grille du titulaire lisent `selfAway`, et jamais sa
+                  ligne du roster.
+
+                  ⚠️ LE ROSTER PORTE DÉJÀ LE TITULAIRE, EN PREMIER
+                  (`presenceRoster`): il n'y a pas de cas « moi » à ajouter à
+                  la main, juste un `memberId` à reconnaître. */}
+              {mouths.length > 1 && (
+                <>
+                  <p className="text-xs font-medium text-ink">
+                    {t("meals.picker.open")}
+                  </p>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    {mouths.map((m) => {
+                      const isSelf = m.memberId !== null &&
+                        m.memberId === selfMemberId;
+                      // ⚠️ SES MOMENTS À ELLE, SINON CEUX DE LA MAISON.
+                      // `eatingSlots === null` veut dire « aux moments de la
+                      // maison », jamais « ne mange pas »: passer `[]` rendrait
+                      // une grille SANS LIGNE, c'est-à-dire un contrôle qu'on
+                      // ne peut pas utiliser.
+                      const slots = m.eatingSlots ?? rhythm;
+                      const marks = isSelf ? selfAway : m.away;
+                      const n = awayMomentsIn(
+                        marks,
+                        planWindow.tokens,
+                        slots.length,
+                      );
+                      const name = m.firstName.trim() ||
+                        t("household.mouth.who_fallback");
+                      const open = isSelf
+                        ? selfPickerOpen
+                        : awayFor === m.memberId;
+                      return (
+                        <React.Fragment key={m.memberId ?? name}>
+                          <Button
+                            variant={open ? "primary" : "secondary"}
+                            size="sm"
+                            disabled={awayBusy}
+                            onClick={() =>
+                              isSelf
+                                ? onSelfPicker(true)
+                                : onAwayFor(
+                                  awayFor === m.memberId ? null : m.memberId,
+                                )}
+                          >
+                            {name}
+                            {n > 0 && (
+                              <span className="ml-1 font-normal text-ink-soft">
+                                · {n}
+                              </span>
+                            )}
+                          </Button>
+                          {/* MONTÉE MÊME FERMÉE — `Modal` rend `null` sans
+                              démonter —, donc une grille modifiée survit à une
+                              fermeture accidentelle. Pas pour le titulaire: la
+                              sienne est montée une seule fois, sous la rangée,
+                              parce que c'est elle que le cas solo rend aussi. */}
+                          {!isSelf && (
+                            <MealPickerGrid
+                              open={awayFor === m.memberId}
+                              onClose={() => onAwayFor(null)}
+                              days={planWindow.tokens}
+                              dates={planWindow.dates}
+                              rhythm={slots}
+                              away={m.away}
+                              busy={awayBusy}
+                              onSave={(next) => onAwaySaved(m, next)}
+                            />
+                          )}
+                        </React.Fragment>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+              {/* ⛔ LE LIEN N'EST PAS « L'AUTRE BRANCHE », ET CE N'EST PAS UN
+                  DÉTAIL DE TERNAIRE. Il se rend chaque fois que le titulaire
+                  N'A PAS de pastille — c'est-à-dire en solo, mais AUSSI quand
+                  le roster ne le porte pas: `presenceRoster` ne l'ajoute que si
+                  `ownMemberId` est lu, et il ne l'est pas tant que la lecture
+                  du foyer n'a pas rendu. Écrit en ternaire, ce cas-là laissait
+                  une rangée de pastilles où la personne qui remplit le
+                  formulaire était la seule absente — et sans aucun geste pour
+                  ouvrir sa propre semaine. */}
+              {selfHasTab ? null : (
+                <button
+                  type="button"
+                  onClick={() => onSelfPicker(true)}
+                  // UN LIEN, DONC LA MARQUE (charte §2). `fig-700`/`paper` = 9,98:1.
+                  className={`text-xs font-medium text-fig-700 underline underline-offset-2 hover:text-fig-800${
+                    mouths.length > 1 ? " mt-2 block" : ""
+                  }`}
+                >
+                  {t("meals.picker.open")}
+                  {selfAwayInWindow > 0 && (
+                    <span className="ml-1 font-normal text-ink-soft">
+                      · {selfAwayInWindow}
+                    </span>
+                  )}
+                </button>
+              )}
               {/* MONTÉE MÊME FERMÉE — `Modal` rend `null` sans démonter — donc
                   une grille modifiée survit à une fermeture accidentelle. Même
                   posture que les trois autres écrans qui la montent.
@@ -7158,6 +7597,7 @@ function RequestStep({
             // rendues: c'est la même borne que le serveur reçoit, et elle est
             // déjà écrêtée à `MAX_WINDOW_DAYS`.
             daysToEat={planWindow.durationDays}
+            freezer={hasFreezer}
           />
 
           {/* ── UN CHIFFRE, ET PLUS TROIS PASTILLES ────────────────────────
@@ -7310,75 +7750,12 @@ function RequestStep({
   );
 }
 
-/**
- * L'ATTENTE DE LA COMPOSITION, DITE PENDANT QU'ELLE DURE.
- *
- * ── POURQUOI HUIT PHRASES ET PAS UN SABLIER ────────────────────────────────
- * Composer une semaine prend des dizaines de secondes: le modèle écrit, le
- * serveur vérifie, la liste de courses se construit. Un libellé figé
- * (« Construction en cours… ») pendant deux minutes se lit comme un écran
- * planté — la personne appuie une deuxième fois, ou quitte. Ce qui distingue
- * « ça travaille » de « c'est mort » n'est pas une animation, c'est du TEXTE
- * QUI CHANGE: il prouve que quelque chose avance encore.
- *
- * ⚠️ CE QUE CES PHRASES NE FONT PAS: elles ne prétendent PAS lire l'avancement
- * réel. La fonction edge ne rend rien avant d'avoir fini, donc une barre à
- * pourcentage serait inventée de bout en bout — un fait indémentable de plus.
- * Elles disent ce que la composition FAIT, dans l'ordre où elle le fait, et
- * c'est vrai sans être mesuré.
- *
- * ── LA CADENCE ────────────────────────────────────────────────────────────
- * Huit messages, quinze secondes chacun: deux minutes, la durée demandée. Au
- * bout, le dernier RESTE affiché — on ne reboucle pas sur « on démarre », qui
- * ferait croire que tout recommence, ni sur une phrase de fin, qui promettrait
- * une réponse qui n'est pas arrivée.
- *
- * Le composant est monté par `busy` et démonté avec lui: chaque composition
- * repart donc du premier message, sans qu'aucun `useEffect` de remise à zéro
- * ait à exister.
- */
-const COMPOSING_MESSAGES = 8;
-const COMPOSING_TICK_MS = 15_000;
+/* ⛔ `ComposingLabel` A DÉMÉNAGÉ — ⟳ 2026-09-21, dans
+   `components/plan/ComposingLabel.tsx`. L'aperçu de brouillon en a besoin
+   aussi: son bouton « Ajuster le plan » tourne deux minutes, et il tournait
+   sans rien dire. Une seconde copie aurait donné deux vocabulaires d'attente
+   pour la même composition. */
 
-/**
- * ⟳ 2026-09-15 · LOT B — LE STADE RÉEL D'ABORD, LA MINUTERIE EN REPLI.
- *
- * ⛔ LES HUIT PHRASES NE PRÉTENDAIENT PAS LIRE L'AVANCEMENT, ET ÇA SE VOYAIT :
- * 8 × 15 s = deux minutes, puis la huitième restait figée pendant les quatre
- * minutes suivantes (mesuré le 2026-09-15 sur une composition de 6 min 20).
- * Depuis que le serveur écrit `stage` dans la ligne et que le navigateur la
- * relit toutes les 2 s, la première ligne est ce qui se passe VRAIMENT, avec le
- * temps écoulé ; les phrases minutées ne servent plus qu'avant le premier
- * stade (la ligne vient d'être ouverte) — quelques secondes.
- */
-function ComposingLabel({ progress }: { progress: DraftProgress | null }) {
-  const [index, setIndex] = React.useState(0);
-
-  React.useEffect(() => {
-    if (index >= COMPOSING_MESSAGES - 1) return;
-    const id = globalThis.setTimeout(
-      () => setIndex((n) => n + 1),
-      COMPOSING_TICK_MS,
-    );
-    return () => globalThis.clearTimeout(id);
-  }, [index]);
-
-  const live = draftProgressLabel(progress);
-  return (
-    <>
-      <Loader2 aria-hidden className="h-4 w-4 shrink-0 animate-spin" />
-      {/* `aria-live` et pas seulement du texte: le bouton est désactivé
-          pendant l'attente, donc son libellé n'est plus annoncé au focus. Sans
-          région vivante, un lecteur d'écran n'apprendrait jamais que ça
-          avance. */}
-      <span aria-live="polite">
-        {live ?? t(
-          `setup.plan.composing_${index + 1}` as "setup.plan.composing_1",
-        )}
-      </span>
-    </>
-  );
-}
 
 /**
  * CE QUI MANQUE, DIT PAR SON MOTIF.

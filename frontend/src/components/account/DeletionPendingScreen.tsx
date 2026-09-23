@@ -9,15 +9,17 @@ import { formatDateLong } from "../../keel/i18n/format";
 // recopiés à la main (`bg-stone-950`, `rounded-2xl`), donc hors du registre de
 // ce à quoi ressemble un bouton dans ce produit.
 import { Button } from "../../keel/components/ui/Button";
+// Le texte vit sous `account.*` (2026-09-23): l'écran est rendu à la place de
+// `/account` par `RequireAppAccess`, donc il partage sa déclaration de page.
+import { t } from "../../keel/i18n/t";
 
 /**
- * ⚠️ LEGACY. Le NOM disait déjà le défaut — « frenchDate » sur un écran dont
- * toutes les phrases sont anglaises. Seul le formatage est repris ici; le
- * texte de ce reliquat n'est pas dans ce lot.
+ * La fin de phrase en gras: « définitivement supprimées le {date} », ou « …
+ * dans 7 jours » quand la date manque. Même règle que `DataPrivacySection`.
  */
-function formatDeletionDate(iso: string | null): string {
-  if (!iso) return "in 7 days";
-  return formatDateLong(iso) || "in 7 days";
+function purgePhrase(iso: string | null): string {
+  const date = iso ? formatDateLong(iso) : "";
+  return date ? t("account.purge.on", { date }) : t("account.purge.soon");
 }
 
 /**
@@ -55,7 +57,7 @@ export default function DeletionPendingScreen() {
       });
       if (fnError) throw fnError;
       if (!(data as { ok?: boolean } | null)?.ok) {
-        throw new Error("The restore failed. Try again, or contact sophia@sophia-coach.ai.");
+        throw new Error(t("account.pending.error"));
       }
       await refreshAccountStatus();
       // `/` plutôt que `/dashboard`, supprimée: la landing route le compte
@@ -65,7 +67,7 @@ export default function DeletionPendingScreen() {
       setError(
         err instanceof Error && err.message
           ? err.message
-          : "The restore failed. Try again, or contact sophia@sophia-coach.ai.",
+          : t("account.pending.error"),
       );
     } finally {
       setRestoring(false);
@@ -103,16 +105,14 @@ export default function DeletionPendingScreen() {
               jamais. C'est le même cran que le `h1` de `/auth` et de
               `ui/Page.PageHeader`. */}
           <h1 className="mt-6 text-balance font-display text-title text-ink">
-            Your account is being deleted
+            {t("account.pending.title")}
           </h1>
           <p className="mt-4 max-w-[62ch] text-base leading-relaxed text-ink-soft">
-            All your data will be <strong>permanently deleted on {formatDeletionDate(purgeAt)}</strong>.
-            Until then, you can restore your account in one click: everything is put back
-            (plans, conversations, souvenirs, rappels).
+            {t("account.purge.lead")} <strong>{purgePhrase(purgeAt)}</strong>.{" "}
+            {t("account.pending.restore_body")}
           </p>
           <p className="mt-3 max-w-[62ch] text-base leading-relaxed text-ink-soft">
-            If you had a subscription, it has been cancelled and will not be reactivated
-            automatically: you can take out a new one from the Subscription page.
+            {t("account.pending.subscription")}
           </p>
 
           {/* ⛔ ROUGE = ÉCHEC, ET C'EST UN FAIT: il reste. Seules les valeurs
@@ -138,7 +138,7 @@ export default function DeletionPendingScreen() {
               className="min-h-11 w-full"
             >
               <RotateCcw className="h-4 w-4 shrink-0" />
-              {restoring ? "Restoring…" : "Restore my account"}
+              {restoring ? t("account.pending.restoring") : t("account.pending.restore")}
             </Button>
             {/* ⚠️ « Sign out » N'EST PAS ROUGE, et `UserProfile` a tranché la
                 même chose au même moment: se déconnecter ne détruit rien et se
@@ -150,7 +150,7 @@ export default function DeletionPendingScreen() {
               className="min-h-11 w-full"
             >
               <LogOut className="h-4 w-4 shrink-0" />
-              Sign out
+              {t("account.sign_out")}
             </Button>
           </div>
         </section>

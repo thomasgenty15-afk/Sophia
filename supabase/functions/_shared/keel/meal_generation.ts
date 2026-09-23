@@ -88,6 +88,7 @@ import {
   type CompositionState,
   type CompositionUnit,
   gramsRawOf,
+  millilitresOfSlug,
   resolveCompositionLine,
   yieldFactorOf,
 } from "./food_composition.ts";
@@ -1401,6 +1402,22 @@ export interface BoxItem {
   ref: string | null;
   /** Voir `CompositionInput.refRefused`: le refus doit survivre à l'écriture. */
   refRefused: boolean;
+  /**
+   * ⟳ 2026-09-22 — CES GRAMMES-LÀ, DITS EN MILLILITRES, quand cet aliment se
+   * VERSE (`millilitresOf`). `null` partout ailleurs, et c'est le cas de la
+   * quasi-totalité des items: un item de poulet n'a pas de volume, un item qui
+   * cite une casserole n'a pas de fiche, et un item écrit par le MODÈLE n'a pas
+   * d'identifiant.
+   *
+   * ⛔ CALCULÉ ICI, LÀ OÙ L'IDENTIFIANT VIENT D'ÊTRE LU — jamais retrouvé plus
+   * tard par le libellé. C'est la même discipline que `ref` juste au-dessus:
+   * « ne plus retrouver son aliment par son nom ».
+   *
+   * ⛔ ET IL NE REMPLACE AUCUN GRAMME. `grams` reste la grandeur du calcul, de
+   * la pesée et des courses; celui-ci ne sert qu'à dire la dose dans l'unité du
+   * geste, sur l'écran du repas.
+   */
+  ml: number | null;
 }
 
 /**
@@ -3637,7 +3654,16 @@ ninety-minute Sunday into a scary four-hour one nobody starts.
 
 Round to the nearest five. These are estimates a cook recognises, not
 measurements — but they are the numbers somebody uses to decide whether tonight
-is possible, so a wrong one costs a skipped meal.`,
+is possible, so a wrong one costs a skipped meal.
+
+Every step that applies heat says the HEAT and the TIME, in "method" and in
+"run_through" alike: the oven temperature as a number, in the unit ovens use
+in their country (°C in France and most of the world, °F in the United States);
+the hob level as a word (low, medium, high); and the minutes that step takes.
+"Roast 25 min at 200 °C", "simmer 15 min on low, lid on", "sear 3 min a side on
+high". "Cook until done" is a plate somebody burns or undercooks. The same goes
+for the day-of gesture of a "cook_fresh" or "reheat_only" dish: "reheat 8 min in
+a covered pan on low" tells them what to do; "reheat" alone does not.`,
   },
   {
     key: "same_day",
@@ -4317,6 +4343,8 @@ export function buildMealPrompt(args: {
    * l'été », qui serait notre déduction et qu'on aurait tort d'imposer.
    */
   country?: string | null;
+  /** ⟳ 2026-09-20 — vrai quand `country` est DÉDUIT de la langue, faute de `profiles.country`. */
+  countryAssumed?: boolean;
   /**
    * CE QUE L'ÉLÈVE PEUT VRAIMENT FAIRE — `practical_constraints`.
    *
@@ -5485,9 +5513,24 @@ export function buildMealPrompt(args: {
     "== WHAT IS IN SEASON WHERE THEY ARE ==",
     args.today ? `today's date: ${args.today}` : "today's date: not known.",
     args.country
-      ? `they shop in: ${args.country} (ISO-3166 country code)`
+      ? (args.countryAssumed === true
+        ? `they shop in: ${args.country} (ISO-3166 country code — assumed from ` +
+          "the language they write in, not confirmed by them)"
+        : `they shop in: ${args.country} (ISO-3166 country code)`)
       : "where they shop: not known — reason about season only if their " +
         "situation says where they are.",
+    // ⟳ 2026-09-20 — LE PAYS N'EST PAS QUE LA SAISON. Le même code dit dans
+    // quelle unité leur four parle, comment leurs boucheries nomment un morceau
+    // et dans quels formats leurs magasins vendent. Sans cette phrase, « FR »
+    // ne servait qu'aux fruits et légumes.
+    ...(args.country
+      ? [
+        "That country also sets the cooking conventions: the unit their oven " +
+        "reads (°C or °F), the names cuts and products go by in their shops, " +
+        "and the sizes those shops sell in. Write the recipes the way a cook " +
+        "there would read them.",
+      ]
+      : []),
     "PREFER fruit and vegetables in season there at that date, and produce " +
     "that grows in that country over what has to be flown in. Let the season " +
     "set the WEIGHT of a dish too: a long-braised winter stew in midsummer is " +
@@ -8924,6 +8967,10 @@ export function parseGeneratedMeal(
               preparationById,
               terms: exclusions,
               surface: "ingredients",
+              // ⟳ 2026-09-21 — LE MOMENT DE CE PLAT. Une exclusion écrite pour
+              // le petit-déjeuner ne juge pas un dîner: sans ce filtre, le
+              // moment n'était qu'un mot dans le texte, invisible ici.
+              slot,
             })
             : dishBitesExclusion({
               // ⚠️ TITRE ET MÉTHODE VIDES, ET C'EST LE POINT. `surface:
@@ -8940,6 +8987,7 @@ export function parseGeneratedMeal(
               preparationById,
               terms: exclusions,
               surface: "ingredients",
+              slot,
             });
           exclusionBelt.checked++;
           if (surface !== null) exclusionBelt.box_scoped++;
@@ -9110,6 +9158,12 @@ export function parseGeneratedMeal(
             grams,
             ref: itemRef,
             refRefused: itemRefRefused,
+            // ⟳ 2026-09-22 — LE VOLUME SUIT L'IDENTIFIANT, ET SEULEMENT LUI.
+            // `itemRef` n'est posé que sur le chemin où le référentiel a servi
+            // à PESER cet item; sur le chemin `grams` déclaré, rien n'a été lu
+            // et il n'y a donc aucune fiche à interroger. Pas de rattrapage par
+            // le libellé, pour la raison écrite juste au-dessus.
+            ml: millilitresOfSlug(args.composition, itemRef, grams),
           });
         }
       }
@@ -9243,6 +9297,7 @@ export function parseGeneratedMeal(
         preparationById,
         terms,
         surface: "ingredients",
+        slot,
       });
       if (bite.matched === null) continue;
       // ⟳ 2026-09-06 — enregistré AVANT la garde `declaredABox` : un plat sans
@@ -10688,6 +10743,8 @@ export function parseGeneratedMeal(
             preparationById,
             terms: avoided,
             surface: "ingredients",
+            // ⚠️ LE PLAT PORTE SON MOMENT ICI: on relit un plan déjà écrit.
+            slot: dish.slot ?? null,
           });
           if (bite.matched !== null) {
             lines.add(`avoid:${bite.because ?? bite.matched}`);
@@ -11163,6 +11220,11 @@ export function mealDishesPayload(meal: GeneratedMeal): Array<Record<string, unk
         // ne se distingue pas d'un lot débranché.
         ref: it.ref,
         ref_refused: it.refRefused,
+        // ⟳ 2026-09-22 — LE VOLUME SURVIT À L'ÉCRITURE, sinon il n'aurait servi
+        // qu'à l'intérieur d'une fonction — le défaut exact que `ref` a payé au
+        // LOT A. Écrit MÊME À `null`: une clé absente ne se distingue pas d'un
+        // lot débranché.
+        ml: it.ml,
       })),
       legacy_total_grams: box.legacyTotalGrams,
     })),

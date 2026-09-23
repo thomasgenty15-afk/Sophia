@@ -52,6 +52,7 @@ import {
   draftNoteBeltItems,
   DRAFT_NOTE_CLASSIFY_SOURCE,
   DRAFT_NOTE_CLASSIFY_TIMEOUT_MS,
+  answerDraftNoteWho,
 } from "./draft_note_classify_io.ts";
 import type { DraftNoteVerdict } from "./plan_draft_note.ts";
 import {
@@ -60,6 +61,16 @@ import {
   HOUSEHOLD_SUBJECT,
 } from "./retained_item.ts";
 import { KEEL_GENERATION_MODEL_DEFAULT } from "./generation_model.ts";
+import {
+  CORPUS_MEMBER_IDS,
+  CORPUS_MEMBERS,
+  CORPUS_PLAN_FOODS,
+  CORPUS_TARGET_WEEK,
+  CORPUS_TODAY,
+  type CorpusMouth,
+  DRAFT_NOTE_CORPUS,
+  SIDE_COURSE_NOTE_CORPUS,
+} from "./draft_note_corpus.ts";
 
 // ---------------------------------------------------------------------------
 // LE DÉCOR
@@ -80,8 +91,8 @@ const ANCHOR = "2026-08-17";
 const NOW = "2026-08-18T14:03:00.000Z";
 
 const MEMBERS: DraftNoteMember[] = [
-  { memberId: ZOE, label: "Zoé", ageState: "minor", sex: "female" },
-  { memberId: MARC, label: "Marc", ageState: "adult", sex: "male" },
+  { memberId: ZOE, label: "Zoé", ageState: "minor", sex: "female", writes: false },
+  { memberId: MARC, label: "Marc", ageState: "adult", sex: "male", writes: true },
 ];
 
 const NOTE = "Plus de poisson cette semaine. J'aimerais des fajitas.";
@@ -202,10 +213,21 @@ Deno.test("⛔ PORTE ① — « NEVER craving / NEVER portion.adjust… » SUR l
   }
 });
 
-Deno.test("⛔ L'ENCART — « ONLY what the note itself dates » SUR la ligne du titre", () => {
-  const d = distance('2. "next_plan"', "ONLY what the note itself dates");
+Deno.test("⛔ L'ENCART — « ce que la note DATE ELLE-MÊME » SUR la ligne du titre", () => {
+  // ⟳ 2026-09-22 · LOT C — LA FORMULATION A CHANGÉ, LA PROMESSE NON.
+  //
+  // C'était « ONLY what the note itself dates to this plan or this week », ce
+  // qui n'accueillait que les phrases NOMMANT la fenêtre. « On est que début
+  // septembre » retombait donc en durable, et la tartiflette était bannie pour
+  // toujours — la personne ne le découvrant jamais, parce que le seul signe
+  // est un plat qui cesse d'apparaître.
+  const d = distance('2. "next_plan"', "DATES ITSELF");
   assert(d >= 0 && d < 300, `promesse à ${d} caractères de la clé`);
-  assert(PROMPT.includes("it is a preference (1), not a next_plan"));
+  // ⛔ LES DEUX VOIES SONT NOMMÉES: la fenêtre, ET la raison qui expire.
+  assert(PROMPT.includes("REASON THAT WILL STOP BEING TRUE"));
+  // ⛔ ET LE RETOUR VERS ① EXISTE TOUJOURS, sans quoi tout se daterait et la
+  // personne réécrirait chaque semaine ce qu'elle a dit une fois.
+  assert(PROMPT.includes("A TASTE IS NOT A MOOD"));
 });
 
 Deno.test("⛔ PORTE ③ — « NEVER a food… NEVER a degree » SUR la ligne du titre, et `when` juste après", () => {
@@ -233,14 +255,14 @@ Deno.test("⛔ PORTE ③ — « NEVER a food… NEVER a degree » SUR la ligne d
 Deno.test("⛔ RIEN N'EST TU: ce qui n'est pas rangé DOIT apparaître dans `skipped`", () => {
   // Mesuré: un modèle qui ne range rien et ne le dit pas rend un `nothing_to_file`
   // indiscernable d'un prompt cassé. La promesse est SUR la ligne de `skipped`.
-  const d = distance('6. "skipped"', "MUST appear here");
+  const d = distance('7. "skipped"', "MUST appear here");
   assert(d >= 0 && d < 300, `promesse à ${d} caractères de la clé`);
 });
 
 Deno.test("⛔ UN DEGRÉ N'EST RANGÉ NULLE PART — et le prompt l'apprend au modèle, sous `skipped`", () => {
   // La PROMESSE de cette porte (« MUST appear here ») est SUR la ligne de la clé
   // (test suivant); la description des motifs vient juste après, sous 600.
-  const d = distance('6. "skipped"', "- degree —");
+  const d = distance('7. "skipped"', "- degree —");
   assert(d >= 0 && d < 600, `description à ${d} caractères de la clé`);
   const degree = PROMPT.split("\n").find((l) => l.startsWith("- degree —"))!;
   // ⟳ 2026-09-08 — LE DEGRÉ N'A PRESQUE PLUS RIEN: la part a le tiroir 4, le
@@ -301,7 +323,10 @@ Deno.test("⛔ LE REPLI SUR LE FOYER EST NOMMÉ COMME INTERDIT, et l'abstention 
 
 Deno.test("le prompt ne demande NI `scope`, NI `source`, NI `confidence`, NI l'ancienne clé `items`", () => {
   const schema = PROMPT.split("\n").find((l) => l.startsWith('{ "preferences"'))!;
-  assert(!schema.includes('"safety"'), "la liste de sécurité est encore demandée");
+  // ⟳ 2026-09-23 — la liste `safety` est de NOUVEAU demandée (décision du
+  // propriétaire, qui renverse celle du 2026-09-09). Ce qui reste interdit:
+  // l'ancienne forme `items`, et les clés que le code pose lui-même.
+  assert(schema.includes('"safety": [ ... ]'), "la liste de sécurité n'est plus demandée");
   assert(!schema.includes('"items"'), "l'ancienne forme `items` est encore demandée");
   for (const key of ['"scope"', '"source"', '"confidence"', '"at"']) {
     assert(!PROMPT.includes(`  ${key}:`), `${key} est demandé au modèle`);
@@ -315,11 +340,13 @@ Deno.test("⛔ LA RÈGLE DE DIRECTION est dans le prompt, collée à `food.prefe
   assert(next - i > 0 && next - i < 200);
 });
 
-Deno.test("aucun bloc de SÉCURITÉ dans le prompt, et aucune famille de sécurité parmi les huit", () => {
-  // ⟳ 2026-09-09 — le second canal est retiré: une allergie dite sur une note
-  // est au plus une `food.exclude`, et les préférences alimentaires la portent.
-  assert(!PROMPT.includes('"safety": [ ... ]'));
-  assert(!PROMPT.includes("SAFETY — a SIXTH list"));
+Deno.test("⟳ 2026-09-23 — la sécurité a SA liste (⑩), jamais une famille de souvenir, et l'ancien bloc ne revient pas", () => {
+  // Le 2026-09-09 le canal avait été retiré; le propriétaire le rouvre le
+  // 2026-09-23, SOUS CONDITION: le mot dans la phrase, et une preuve citée.
+  // Ce qui ne change pas: aucune des huit familles de souvenir n'est une
+  // famille de sécurité — une allergie n'est pas une préférence qu'on range.
+  assert(PROMPT.includes('"safety": [ ... ]'), "la liste ⑩ n'est plus dans le schéma");
+  assert(!PROMPT.includes("SAFETY — a SIXTH list"), "l'ancien bloc (sans preuve, avec `scope`) est revenu");
   for (const kind of [...DRAFT_NOTE_KINDS, ...DRAFT_NOTE_FORBIDDEN_KINDS]) {
     assert(!/allerg|intoleran|medical|diet/i.test(kind), kind);
   }
@@ -532,7 +559,11 @@ Deno.test("CE QUE LE MODÈLE A LU ET N'A PAS RANGÉ — compté par motif, et un
   assertEquals(out.classification.kept, 0);
 });
 
-Deno.test("les HUIT listes vides sont une réponse correcte; une liste ABSENTE est comptée", () => {
+Deno.test("les DIX listes vides sont une réponse correcte; une liste ABSENTE est comptée", () => {
+  // ⟳ 2026-09-21 — NEUF: `slots`, la TAILLE d'un moment. Même raison, et le
+  // besoin est mesuré: « le matin c'est plutôt quelque chose de très léger »
+  // n'avait aucune destination, alors que la case « repas léger » de la fiche
+  // existe et que le moteur la lit (`LIGHT_SLOT_WEIGHT`).
   // ⟳ 2026-09-09 — HUIT: `cells`, la case de ce plan-ci, même raison.
   // ⟳ 2026-09-08 — SEPT: `portions` puis `settings` sont des listes comme les
   // autres, et pour la même raison exactement que `clarify` ci-dessous.
@@ -547,9 +578,14 @@ Deno.test("les HUIT listes vides sont une réponse correcte; une liste ABSENTE e
     next_plan: [],
     portions: [],
     settings: [],
+    slots: [],
     cells: [],
     skipped: [],
     clarify: [],
+    // ⟳ 2026-09-23 — DIX: `safety`, même raison que `clarify` ci-dessus.
+    safety: [],
+    // ⟳ 2026-09-23 — ONZE: `side_courses`, les à-côtés. Même raison.
+    side_courses: [],
   });
   assert(empty.ok);
   assertEquals(empty.classification.listsMissing, []);
@@ -561,9 +597,12 @@ Deno.test("les HUIT listes vides sont une réponse correcte; une liste ABSENTE e
     "next_plan",
     "portions",
     "settings",
+    "slots",
     "cells",
     "skipped",
     "clarify",
+    "safety",
+    "side_courses",
   ]);
 });
 
@@ -611,9 +650,12 @@ Deno.test("LE COMPTEUR PAR PORTE se lit d'un bloc, et les agrégats sont des som
     next_plan: [{ kind: "craving", text: "", member_id: null }],
     portions: [{ direction: "down", text: "maman mange moins", member_id: ZOE }],
     settings: [{ about: "time", direction: "down" }],
+    slots: [],
     cells: [{ day: "fri", slot: "dinner", text: "plutôt du poulet" }, { day: "fri", slot: "soir", text: "x" }],
     skipped: [{ why: "degree" }],
     clarify: [],
+    safety: [],
+    side_courses: [],
   });
   const t = draftNoteClassifyTrace(out.classification);
   // ⑧ — la case de ce plan-ci: une gardée, une refusée (moment illisible).
@@ -774,7 +816,7 @@ Deno.test("PORTE ⑤ — « THE DIRECTION AND NOTHING ELSE » SUR la ligne de `\
   assert(d >= 0 && d < 700, `promesse à ${d} caractères de la clé`);
   assert(PROMPT.includes('"about": exactly one of time | difficulty | variety'));
   // Le tiroir vient AVANT `skipped`: « file it in the FIRST one that fits ».
-  assert(PROMPT.indexOf('5. "settings"') < PROMPT.indexOf('6. "skipped"'));
+  assert(PROMPT.indexOf('5. "settings"') < PROMPT.indexOf('7. "skipped"'));
 });
 
 Deno.test("⛔ UNE BOUCHE HORS RÔLE EST UN REFUS, jamais un repli sur la table", () => {
@@ -835,6 +877,11 @@ Deno.test("⛔ `keelGenerationModel()` est RÉELLEMENT APPELÉ — la sentinelle
   try {
     const trace: Trace = { rpcs: [], models: [] };
     const res = await classifyAndPersistDraftNote({
+      // ⟳ 2026-09-22 · LOT A — `null` = pas de référentiel ici. Ce fichier teste
+      // le CLASSEMENT, pas la résolution: elle a son propre test
+      // (`retained_resolve_test.ts`), sur un index construit à la main.
+      composition: null,
+
       admin: fakeAdmin(trace),
       userId: USER,
       note: usable(),
@@ -861,6 +908,11 @@ Deno.test("sans surcharge, c'est le modèle de COMPOSITION, pas celui du chat", 
   try {
     const trace: Trace = { rpcs: [], models: [] };
     const res = await classifyAndPersistDraftNote({
+      // ⟳ 2026-09-22 · LOT A — `null` = pas de référentiel ici. Ce fichier teste
+      // le CLASSEMENT, pas la résolution: elle a son propre test
+      // (`retained_resolve_test.ts`), sur un index construit à la main.
+      composition: null,
+
       admin: fakeAdmin(trace),
       userId: USER,
       note: usable(),
@@ -881,6 +933,11 @@ Deno.test("sans surcharge, c'est le modèle de COMPOSITION, pas celui du chat", 
 Deno.test("⛔ la porte est appelée UNE fois, avec `producer: draft_note` et LES TROIS LISTES", async () => {
   const trace: Trace = { rpcs: [], models: [] };
   const res = await classifyAndPersistDraftNote({
+      // ⟳ 2026-09-22 · LOT A — `null` = pas de référentiel ici. Ce fichier teste
+      // le CLASSEMENT, pas la résolution: elle a son propre test
+      // (`retained_resolve_test.ts`), sur un index construit à la main.
+      composition: null,
+
     admin: fakeAdmin(trace, {}),
     userId: USER,
     note: usable(),
@@ -924,6 +981,11 @@ Deno.test("⛔ la porte est appelée UNE fois, avec `producer: draft_note` et LE
 Deno.test("⛔ ce que la matrice refuse N'ATTEINT PAS la porte — et un `nothing_to_file` porte ses `skipped_*`", async () => {
   const trace: Trace = { rpcs: [], models: [] };
   const res = await classifyAndPersistDraftNote({
+      // ⟳ 2026-09-22 · LOT A — `null` = pas de référentiel ici. Ce fichier teste
+      // le CLASSEMENT, pas la résolution: elle a son propre test
+      // (`retained_resolve_test.ts`), sur un index construit à la main.
+      composition: null,
+
     admin: fakeAdmin(trace, {}),
     userId: USER,
     note: usable("Les parts sont beaucoup trop grosses"),
@@ -950,6 +1012,11 @@ Deno.test("⛔ ce que la matrice refuse N'ATTEINT PAS la porte — et un `nothin
 Deno.test("une note refusée par la garde d'entrée ne déclenche AUCUN appel", async () => {
   const trace: Trace = { rpcs: [], models: [] };
   const res = await classifyAndPersistDraftNote({
+      // ⟳ 2026-09-22 · LOT A — `null` = pas de référentiel ici. Ce fichier teste
+      // le CLASSEMENT, pas la résolution: elle a son propre test
+      // (`retained_resolve_test.ts`), sur un index construit à la main.
+      composition: null,
+
     admin: fakeAdmin(trace),
     userId: USER,
     note: { usable: null, refusal: "forbidden", dropped: [] } as unknown as DraftNoteVerdict,
@@ -969,6 +1036,11 @@ Deno.test("une note refusée par la garde d'entrée ne déclenche AUCUN appel", 
 Deno.test("⛔ un appel modèle en panne est NOMMÉ et COMPTÉ, jamais avalé", async () => {
   const trace: Trace = { rpcs: [], models: [] };
   const res = await classifyAndPersistDraftNote({
+      // ⟳ 2026-09-22 · LOT A — `null` = pas de référentiel ici. Ce fichier teste
+      // le CLASSEMENT, pas la résolution: elle a son propre test
+      // (`retained_resolve_test.ts`), sur un index construit à la main.
+      composition: null,
+
     admin: fakeAdmin(trace),
     userId: USER,
     note: usable(),
@@ -988,6 +1060,11 @@ Deno.test("⛔ un appel modèle en panne est NOMMÉ et COMPTÉ, jamais avalé", 
 Deno.test("l'ancienne forme `{ items }` rendue par un modèle est `unreadable_payload`, pas un produit calme", async () => {
   const trace: Trace = { rpcs: [], models: [] };
   const res = await classifyAndPersistDraftNote({
+      // ⟳ 2026-09-22 · LOT A — `null` = pas de référentiel ici. Ce fichier teste
+      // le CLASSEMENT, pas la résolution: elle a son propre test
+      // (`retained_resolve_test.ts`), sur un index construit à la main.
+      composition: null,
+
     admin: fakeAdmin(trace),
     userId: USER,
     note: usable(),
@@ -1006,6 +1083,11 @@ Deno.test("l'ancienne forme `{ items }` rendue par un modèle est `unreadable_pa
 Deno.test("`members` absent est un `bad_args`, pas un foyer vide", async () => {
   const trace: Trace = { rpcs: [], models: [] };
   const res = await classifyAndPersistDraftNote({
+      // ⟳ 2026-09-22 · LOT A — `null` = pas de référentiel ici. Ce fichier teste
+      // le CLASSEMENT, pas la résolution: elle a son propre test
+      // (`retained_resolve_test.ts`), sur un index construit à la main.
+      composition: null,
+
     admin: fakeAdmin(trace),
     userId: USER,
     note: usable(),
@@ -1036,10 +1118,41 @@ function wiringVerdict(src: string): string[] {
   if (!/const model = keelGenerationModel\(\);/.test(code)) missing.push("keelGenerationModel_appele");
   if (!/await persistRetainedItemsFor\(\{/.test(code)) missing.push("porte_appelee");
   if (!/producer: DRAFT_NOTE_PRODUCER,/.test(code)) missing.push("producteur_draft_note");
-  if (!/durable: classification\.preferences\.items,/.test(code)) {
+  // ⟳ 2026-09-22 · LOT A — LES DEUX PORTES REÇOIVENT LES ITEMS **RÉSOLUS**.
+  //
+  // ⛔ ET ON ÉPINGLE LES DEUX MOITIÉS, pas seulement le nom de la variable:
+  // `durable: durableResolved.items` seul resterait vert si la résolution
+  // tournait sur une liste vide. Ce qu'on exige est qu'elle parte DE la
+  // classification et ARRIVE à la porte d'écriture — « une mention n'est pas
+  // un câblage », mesuré dans ce dépôt.
+  if (!/durable: durableResolved\.items,/.test(code)) {
     missing.push("preferences_passees");
   }
-  if (!/nextPlan: classification\.nextPlan\.entries,/.test(code)) missing.push("next_plan_passe");
+  if (!/items: classification\.preferences\.items,/.test(code)) {
+    missing.push("preferences_resolues");
+  }
+  if (!/nextPlan: nextPlanEntries,/.test(code)) missing.push("next_plan_passe");
+  if (!/items: classification\.nextPlan\.entries\.map\(\(e\) => e\.item\),/.test(code)) {
+    missing.push("next_plan_resolu");
+  }
+  // ⛔ LE RÉFÉRENTIEL VIENT DE L'APPELANT, jamais d'un chargement ici: deux
+  // index chargés au même instant finiraient par diverger d'une version, et
+  // celui qu'on relit le moins déciderait.
+  //
+  // ⚠️ ET LES **DEUX** MAGASINS LE REÇOIVENT. Un seul suffirait à passer une
+  // assertion de présence, et l'encart repartirait sans clé — c'est-à-dire
+  // qu'une envie ou une exclusion « cette semaine » redeviendrait un souvenir
+  // décoratif, sans que rien ne le dise.
+  if ((code.match(/index: args\.composition,/g) ?? []).length !== 2) {
+    missing.push("referentiel_de_l_appelant");
+  }
+  // ⛔ ET LA RÉSOLUTION SE COMPTE, avec son dénominateur: `ref_resolved` seul
+  // rend le même zéro pour « aucun aliment » et « rien n'a résolu ».
+  for (const counter of ["askable", "resolved"]) {
+    if (!new RegExp(`ref_${counter}: refCounts\\.${counter},`).test(code)) {
+      missing.push(`ref_${counter}_compte`);
+    }
+  }
   if (!/memo: classification\.notes\.lines,/.test(code)) missing.push("notes_passees");
   // ⛔ ET L'ABSTENTION CONNAÎT LA QUATRIÈME PORTE. Sans cette ligne, une note
   // qui ne dit QUE « maman ne mange pas autant » ressort en `nothing_to_file`,
@@ -1125,7 +1238,20 @@ Deno.test("CÂBLAGE ② — chaque moitié retirée fait ROUGIR l'assertion", as
     ["keelGenerationModel_appele", "const model = keelGenerationModel();", 'const model = "gpt-5.6-sol";'],
     ["porte_appelee", "await persistRetainedItemsFor({", "await Promise.resolve({ ok: true } as any) && ({"],
     ["producteur_draft_note", "producer: DRAFT_NOTE_PRODUCER,", 'producer: "written" as any,'],
-    ["preferences_passees", "durable: classification.preferences.items,", "durable: [],"],
+    ["preferences_passees", "durable: durableResolved.items,", "durable: [],"],
+    [
+      "preferences_resolues",
+      "items: classification.preferences.items,",
+      "items: [] as never,",
+    ],
+    // ⚠️ UNE SEULE DES DEUX OCCURRENCES: c'est exactement le défaut que
+    // l'assertion par COMPTE attrape, et qu'une assertion de présence
+    // laisserait passer.
+    [
+      "referentiel_de_l_appelant",
+      "index: args.composition,",
+      "index: null,",
+    ],
     [
       "portions_comptees_dans_abstention",
       "classification.portions.moves.length === 0",
@@ -1142,7 +1268,12 @@ Deno.test("CÂBLAGE ② — chaque moitié retirée fait ROUGIR l'assertion", as
       'reason === "at_floor" || reason === "at_ceiling"',
       "false",
     ],
-    ["next_plan_passe", "nextPlan: classification.nextPlan.entries,", "nextPlan: [],"],
+    ["next_plan_passe", "nextPlan: nextPlanEntries,", "nextPlan: [],"],
+    [
+      "next_plan_resolu",
+      "items: classification.nextPlan.entries.map((e) => e.item),",
+      "items: [] as never,",
+    ],
     ["notes_passees", "memo: classification.notes.lines,", "memo: [],"],
   ];
   for (const [name, from, to] of mutations) {
@@ -1167,7 +1298,7 @@ Deno.test("CÂBLAGE ③ — un commentaire ne câble rien", async () => {
 // ===========================================================================
 
 function mouth(over: Partial<DraftNoteMember> = {}): DraftNoteMember {
-  return { memberId: "11111111-2222-4333-8444-555555555555", label: "Tom", ageState: "minor", sex: "male", ...over };
+  return { memberId: "11111111-2222-4333-8444-555555555555", label: "Tom", ageState: "minor", sex: "male", writes: false, ...over };
 }
 
 Deno.test("⛔ LE ROSTER PORTE L'ÂGE ET LE SEXE — sans eux, aucune parenté n'est résoluble", () => {
@@ -1599,6 +1730,11 @@ Deno.test("PRÉCOCE ① — la réponse obtenue AVANT le plan est écrite APRÈS
   assert(early.ok, "l'appel précoce a échoué");
   assertEquals(trace.models.length, 1, "un appel, pour le précoce");
   const res = await classifyAndPersistDraftNote({
+      // ⟳ 2026-09-22 · LOT A — `null` = pas de référentiel ici. Ce fichier teste
+      // le CLASSEMENT, pas la résolution: elle a son propre test
+      // (`retained_resolve_test.ts`), sur un index construit à la main.
+      composition: null,
+
     admin: fakeAdmin(trace),
     userId: USER,
     note: usable(),
@@ -1653,6 +1789,11 @@ Deno.test("PRÉCOCE ③ — un modèle indisponible est PORTÉ: ceinture vide, r
   assertEquals(belt.items, []);
   assertEquals(belt.refusal, "model_unavailable");
   const res = await classifyAndPersistDraftNote({
+      // ⟳ 2026-09-22 · LOT A — `null` = pas de référentiel ici. Ce fichier teste
+      // le CLASSEMENT, pas la résolution: elle a son propre test
+      // (`retained_resolve_test.ts`), sur un index construit à la main.
+      composition: null,
+
     admin: fakeAdmin(trace),
     userId: USER,
     note: usable(),
@@ -1688,6 +1829,11 @@ Deno.test("PRÉCOCE ④ — une réponse illisible laisse la ceinture vide, et l
 Deno.test("PRÉCOCE ⑤ — sans `classified`, la persistance appelle elle-même, une fois (le chemin d'avant)", async () => {
   const trace: Trace = { rpcs: [], models: [] };
   const res = await classifyAndPersistDraftNote({
+      // ⟳ 2026-09-22 · LOT A — `null` = pas de référentiel ici. Ce fichier teste
+      // le CLASSEMENT, pas la résolution: elle a son propre test
+      // (`retained_resolve_test.ts`), sur un index construit à la main.
+      composition: null,
+
     admin: fakeAdmin(trace),
     userId: USER,
     note: usable(),
@@ -1731,6 +1877,11 @@ async function persistWith(
 ) {
   const trace: Trace = { rpcs: [], models: [] };
   const res = await classifyAndPersistDraftNote({
+      // ⟳ 2026-09-22 · LOT A — `null` = pas de référentiel ici. Ce fichier teste
+      // le CLASSEMENT, pas la résolution: elle a son propre test
+      // (`retained_resolve_test.ts`), sur un index construit à la main.
+      composition: null,
+
     admin: fakeAdmin(trace, constraints),
     userId: USER,
     note: usable(note),
@@ -1898,6 +2049,11 @@ Deno.test("⑦ le prompt nomme `\"gate\": \"portions\"` À CÔTÉ du cas du tiro
 Deno.test("⑦ io — une note qui ne fait QUE demander rend `questions` AVEC les prénoms, et n'écrit rien", async () => {
   const trace: Trace = { rpcs: [], models: [] };
   const res = await classifyAndPersistDraftNote({
+      // ⟳ 2026-09-22 · LOT A — `null` = pas de référentiel ici. Ce fichier teste
+      // le CLASSEMENT, pas la résolution: elle a son propre test
+      // (`retained_resolve_test.ts`), sur un index construit à la main.
+      composition: null,
+
     admin: fakeAdmin(trace, {}),
     userId: USER,
     note: usable("ma mère ne mange pas autant"),
@@ -1922,12 +2078,17 @@ Deno.test("⑦ io — une note qui ne fait QUE demander rend `questions` AVEC le
   // Une bouche candidate sans prénom dans le rôle TOMBE — un bouton sans mot
   // n'est pas un bouton — et la question avec elle si elle était seule.
   const res2 = await classifyAndPersistDraftNote({
+      // ⟳ 2026-09-22 · LOT A — `null` = pas de référentiel ici. Ce fichier teste
+      // le CLASSEMENT, pas la résolution: elle a son propre test
+      // (`retained_resolve_test.ts`), sur un index construit à la main.
+      composition: null,
+
     admin: fakeAdmin(trace, {}),
     userId: USER,
     note: usable("ma mère ne mange pas autant"),
     today: TODAY,
     targetWeek: PLAN_STARTS_ON,
-    members: [{ memberId: ZOE, label: "", ageState: "minor", sex: "female" }],
+    members: [{ memberId: ZOE, label: "", ageState: "minor", sex: "female", writes: false }],
     contentLocale: "fr-FR",
     planFoods: PLAN_FOODS,
     source: "draft_note",
@@ -2035,22 +2196,32 @@ Deno.test("⑧ `cells` — sans moment, sans jour, texte vide, doublon: refusés
   assertEquals(c.refused.total, 5);
 });
 
-Deno.test("⑧ le prompt: « BOTH » est SUR la ligne du tiroir 8, le repli est nommé à côté, la forme JSON et `skipped` le connaissent", () => {
+Deno.test("⑧ le prompt: « BOTH » est SUR la ligne du tiroir des cases, le repli est nommé à côté, la forme JSON et `skipped` le connaissent", () => {
   const p = DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT;
-  const title = p.indexOf('8. "cells"');
-  assert(title >= 0, "le tiroir 8 a disparu");
+  // ⟳ 2026-09-21 — LE NUMÉRO A BOUGÉ (8 → 9) quand le tiroir `slots` s'est
+  // inséré en 6. Le numéro n'est pas le sujet du test: ce qui est épinglé,
+  // c'est que « BOTH » touche le titre et que les renvois se répondent.
+  const title = p.indexOf('9. "cells"');
+  assert(title >= 0, "le tiroir des cases a disparu");
   assert(p.slice(title, title + 300).includes("BOTH its day AND its moment"));
   const both = p.indexOf("BOTH or nothing", title);
   assert(both >= 0 && both - title < 1400, "le repli n'est pas à côté du tiroir");
   assert(p.includes('"cells": [ ... ]'));
-  assert(p.includes("did not file in 1, 2, 3, 4, 5 or 8"));
+  // ⟳ 2026-09-23 — ⑩ et ⑪ rejoignent la liste: une allergie rangée en ⑩ ou un
+  // à-côté réglé en ⑪ n'a pas à être redit dans `skipped`.
+  assert(p.includes("did not file in 1, 2, 3, 4, 5, 6, 9, 10 or 11"));
   // La note renvoie vers la case, comme la case renvoie vers la note.
-  assert(p.includes('(that is "cells", 8)'));
+  assert(p.includes('(that is "cells", 9)'));
 });
 
 Deno.test("⑧ io — les cases sont RENDUES (même quand rien d'autre n'est rangé) et jamais écrites", async () => {
   const trace: Trace = { rpcs: [], models: [] };
   const res = await classifyAndPersistDraftNote({
+      // ⟳ 2026-09-22 · LOT A — `null` = pas de référentiel ici. Ce fichier teste
+      // le CLASSEMENT, pas la résolution: elle a son propre test
+      // (`retained_resolve_test.ts`), sur un index construit à la main.
+      composition: null,
+
     admin: fakeAdmin(trace, {}),
     userId: USER,
     note: usable("Vendredi soir, plutôt du poulet"),
@@ -2070,4 +2241,871 @@ Deno.test("⑧ io — les cases sont RENDUES (même quand rien d'autre n'est ran
   assertEquals(res.cells, [{ day: "fri", slot: "dinner", text: "plutôt du poulet" }]);
   assertEquals(res.announced, []);
   assertEquals(trace.rpcs.filter((r) => r.name === "keel_write_retained_items_for"), []);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⑥ LA TAILLE D'UN MOMENT — 2026-09-21
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// ── CE QUE CES CAS TIENNENT, ET POURQUOI ILS EXISTENT ────────────────────
+// Mesuré sur un foyer réel le 2026-09-20: « le matin c'est plutôt quelque chose
+// de très léger pour Christèle… ». Ce qui a été retenu: deux `food.prefer` et
+// un `food.exclude`. La TAILLE du moment n'avait aucune destination — alors que
+// la case existait sur la fiche depuis le 2026-09-07 et que le moteur la pèse
+// (`LIGHT_SLOT_WEIGHT`: 0,15 · 0,25 · 0,20). Son petit-déjeuner est resté à
+// 500 kcal.
+//
+// ⛔ ET CE N'EST PAS UN ITEM RETENU: c'est la raison du lot M5, une fois de
+// plus. Un souvenir serait une COPIE du réglage, relue au moment de composer,
+// pendant que la case dirait autre chose.
+
+Deno.test("⑥ une phrase sur la TAILLE d'un moment coche la case de la fiche", async () => {
+  const trace: Trace = { rpcs: [], models: [] };
+  const res = await classifyAndPersistDraftNote({
+      // ⟳ 2026-09-22 · LOT A — `null` = pas de référentiel ici. Ce fichier teste
+      // le CLASSEMENT, pas la résolution: elle a son propre test
+      // (`retained_resolve_test.ts`), sur un index construit à la main.
+      composition: null,
+
+    admin: fakeAdmin(trace),
+    userId: USER,
+    note: usable("le matin c'est plutôt quelque chose de très léger pour Zoé"),
+    today: TODAY,
+    targetWeek: PLAN_STARTS_ON,
+    members: MEMBERS,
+    contentLocale: "fr-FR",
+    planFoods: PLAN_FOODS,
+    source: "draft_note",
+    now: NOW,
+    run: runnerReturning({
+      preferences: [], notes: [], next_plan: [], portions: [], settings: [],
+      slots: [{ slot: "breakfast", light: true, member_id: ZOE }],
+      cells: [], skipped: [], clarify: [],
+    }, trace),
+  });
+  const calls = trace.rpcs.filter((r) => r.name === "keel_household_set_slot_light_for");
+  assertEquals(calls.length, 1, "la case n'est jamais cochée: le tiroir est inerte");
+  assertEquals(calls[0].params, {
+    p_user: USER,
+    p_member: ZOE,
+    p_slot: "breakfast",
+    p_light: true,
+  });
+  // ⛔ ET LA PERSONNE L'APPREND. Une case cochée sans un mot est un réglage
+  // changé dans son dos — la même règle que l'appétit et les réglages de
+  // cuisine, qui passent tous par `settingRecapLine`.
+  assertEquals(res.announced.length, 1);
+  assertEquals(res.announced[0].who, "Zoé");
+  assertEquals(res.announced[0].kind, "setting");
+  assert(
+    res.announced[0].text.includes("léger"),
+    `l'accusé ne dit pas ce qui a bougé: ${res.announced[0].text}`,
+  );
+  // ⚠️ UNE ÉCRITURE EST UNE ÉCRITURE. Sans ce verdict, une note qui ne dit QUE
+  // la taille d'un moment ressortait `not_written` — un échec annoncé sur un
+  // effet réel.
+  assertEquals(res.ok, true);
+  assertEquals(res.reason, "written");
+});
+
+Deno.test("⑥ « le midi on mange léger » se déplie sur TOUT le roster", async () => {
+  // ⚠️ LE FOYER SE DÉPLIE CÔTÉ CODE, PAS EN SQL. La case vit par bouche;
+  // demander à la base ce qu'est « tout le monde à table » serait une seconde
+  // définition du roster à côté de celle du code.
+  const trace: Trace = { rpcs: [], models: [] };
+  await classifyAndPersistDraftNote({
+      // ⟳ 2026-09-22 · LOT A — `null` = pas de référentiel ici. Ce fichier teste
+      // le CLASSEMENT, pas la résolution: elle a son propre test
+      // (`retained_resolve_test.ts`), sur un index construit à la main.
+      composition: null,
+
+    admin: fakeAdmin(trace),
+    userId: USER,
+    note: usable("le midi on mange léger à la maison"),
+    today: TODAY,
+    targetWeek: PLAN_STARTS_ON,
+    members: MEMBERS,
+    contentLocale: "fr-FR",
+    planFoods: PLAN_FOODS,
+    source: "draft_note",
+    now: NOW,
+    run: runnerReturning({
+      preferences: [], notes: [], next_plan: [], portions: [], settings: [],
+      slots: [{ slot: "lunch", light: true, member_id: null }],
+      cells: [], skipped: [], clarify: [],
+    }, trace),
+  });
+  const calls = trace.rpcs.filter((r) => r.name === "keel_household_set_slot_light_for");
+  assertEquals(calls.map((c) => c.params.p_member).sort(), [ZOE, MARC].sort());
+  for (const c of calls) {
+    assertEquals(c.params.p_slot, "lunch");
+    assertEquals(c.params.p_light, true);
+  }
+});
+
+Deno.test("⑥ ⛔ UN MOMENT QUE L'ÉCRIVAIN NE SAIT PAS POSER EST REFUSÉ, pas gardé", async () => {
+  // `parseMemberLight` ne garde `light` que sur breakfast / lunch / dinner
+  // (`LIGHT_BEARING_SLOTS`). Accepter « goûter léger » ici ferait une écriture
+  // qui réussit et ne fait rien: la RPC répondrait `bad_slot`, et le compteur
+  // dirait `failed` sans que personne sache pourquoi.
+  const trace: Trace = { rpcs: [], models: [] };
+  await classifyAndPersistDraftNote({
+      // ⟳ 2026-09-22 · LOT A — `null` = pas de référentiel ici. Ce fichier teste
+      // le CLASSEMENT, pas la résolution: elle a son propre test
+      // (`retained_resolve_test.ts`), sur un index construit à la main.
+      composition: null,
+
+    admin: fakeAdmin(trace),
+    userId: USER,
+    note: usable("Zoé prend un goûter très léger"),
+    today: TODAY,
+    targetWeek: PLAN_STARTS_ON,
+    members: MEMBERS,
+    contentLocale: "fr-FR",
+    planFoods: PLAN_FOODS,
+    source: "draft_note",
+    now: NOW,
+    run: runnerReturning({
+      preferences: [], notes: [], next_plan: [], portions: [], settings: [],
+      slots: [{ slot: "snack_pm", light: true, member_id: ZOE }],
+      cells: [], skipped: [], clarify: [],
+    }, trace),
+  });
+  assertEquals(
+    trace.rpcs.filter((r) => r.name === "keel_household_set_slot_light_for"),
+    [],
+    "un moment que la fiche ne porte pas est parti en base quand même",
+  );
+});
+
+Deno.test("⑥ ⛔ AUCUNE AMPLITUDE: le lecteur refuse tout ce qui n'est pas un booléen", () => {
+  for (const light of ["true", 1, "oui", 0.5, null]) {
+    const out = read({ slots: [{ slot: "breakfast", light, member_id: null }] });
+    assertEquals(
+      out.classification.slots.kept,
+      0,
+      `\`light: ${JSON.stringify(light)}\` a été gardé: une part retirée par ` +
+        "une coërcition de chaîne",
+    );
+  }
+  const ok = read({ slots: [{ slot: "breakfast", light: true, member_id: null }] });
+  assertEquals(ok.classification.slots.kept, 1, "la garde bloque TOUT: elle est cassée");
+});
+
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-23 — « POUR QUI ? » SUR UN GOÛT, UNE ENVIE OU UN MÉMO, RÉARMÉE
+// PAR LE CANAL SOUS LE CHAMP
+//
+// Désarmée le 2026-09-07 (le chat n'arme que la dernière bulle), la question
+// `who` était NOMMÉE par le classifieur et perdue: « ma fille ne veut plus de
+// yaourt » avec deux filles n'écrivait rien et ne demandait rien. Le canal de
+// la part (2026-09-08) la porte maintenant: la question rend le morceau à
+// écrire, le tap le renvoie avec la bouche, et le serveur le RELIT par le
+// lecteur de la note avant d'écrire par la même porte.
+// ═══════════════════════════════════════════════════════════════════════════
+
+const WHO_ENTRY = {
+  about: "who",
+  gate: "preferences",
+  entry: { kind: "food.exclude", text: "yaourt", member_id: null, occasion: "breakfast", force: "never" },
+  options: [ZOE, MARC],
+} as const;
+
+Deno.test("⑤ le lecteur GARDE le moment et la force d'une entrée `who`, et fait tomber un jeton hors liste", () => {
+  const out = readDraftNoteClassification({
+    raw: {
+      preferences: [], next_plan: [], notes: [], portions: [], settings: [], slots: [], cells: [], skipped: [],
+      clarify: [
+        WHO_ENTRY,
+        { ...WHO_ENTRY, entry: { ...WHO_ENTRY.entry, occasion: "brunch" } },
+        { about: "who", gate: "notes", entry: { text: "mange tard le vendredi", member_id: null, when: { weekday: "fri", slot: "dinner" } }, options: [ZOE] },
+      ],
+    },
+    today: TODAY,
+    targetWeek: PLAN_STARTS_ON,
+    members: MEMBERS,
+    // ⚠️ La borne de `text` est DÉRIVÉE de la note (jamais plus long que ce
+    // qu'elle a écrit): une note d'un caractère ferait tomber les trois en
+    // `badText` — mesuré en écrivant ce test.
+    note: "ma fille ne veut plus de yaourt, et elle mange tard le vendredi",
+    writtenAt: null,
+    planFoods: PLAN_FOODS,
+  });
+  assertEquals(out.ok, true);
+  const entries = out.classification.clarify.entries;
+  assertEquals(entries.length, 2, "le jeton « brunch » fait tomber l'entrée — jamais un repli sur null");
+  assertEquals(out.classification.clarify.refused.malformed, 1);
+  assertEquals(entries[0].occasion, "breakfast");
+  assertEquals(entries[0].force, "never");
+  assertEquals(entries[0].kind, "food.exclude");
+  // Un mémo n'a ni moment de repas ni force: les deux à null, jamais absents.
+  assertEquals(entries[1].gate, "notes");
+  assertEquals(entries[1].occasion, null);
+  assertEquals(entries[1].force, null);
+  assertEquals(entries[1].when, { weekday: "fri", slot: "dinner" });
+});
+
+Deno.test("⑤ io — une entrée `who` sur un goût rend une question AVEC les prénoms et son morceau, et n'écrit rien", async () => {
+  const trace: Trace = { rpcs: [], models: [] };
+  const res = await classifyAndPersistDraftNote({
+    composition: null,
+    admin: fakeAdmin(trace, {}),
+    userId: USER,
+    note: usable("ma fille ne veut plus de yaourt"),
+    today: TODAY,
+    targetWeek: PLAN_STARTS_ON,
+    members: MEMBERS,
+    contentLocale: "fr-FR",
+    planFoods: PLAN_FOODS,
+    source: "draft_note",
+    now: NOW,
+    run: runnerReturning({ preferences: [], notes: [], next_plan: [], skipped: [], clarify: [WHO_ENTRY] }, trace),
+  });
+  assertEquals(res.reason, "nothing_to_file");
+  assertEquals(res.questions, [{
+    kind: "who",
+    text: "yaourt",
+    entry: {
+      gate: "preferences", kind: "food.exclude", text: "yaourt",
+      note: "ma fille ne veut plus de yaourt", occasion: "breakfast", force: "never", when: null,
+    },
+    options: [{ memberId: ZOE, label: "Zoé" }, { memberId: MARC, label: "Marc" }],
+  }]);
+  assertEquals(res.announced, []);
+  assertEquals(trace.rpcs.filter((r) => r.name === "keel_write_retained_items_for"), [], "rien n'est écrit avant la réponse");
+
+  // Une option sans prénom tombe; sans aucune option lisible, pas de question.
+  const res2 = await classifyAndPersistDraftNote({
+    composition: null,
+    admin: fakeAdmin(trace, {}),
+    userId: USER,
+    note: usable("ma fille ne veut plus de yaourt"),
+    today: TODAY,
+    targetWeek: PLAN_STARTS_ON,
+    members: [{ memberId: ZOE, label: "", ageState: "minor", sex: "female", writes: false }],
+    contentLocale: "fr-FR",
+    planFoods: PLAN_FOODS,
+    source: "draft_note",
+    now: NOW,
+    run: runnerReturning({ preferences: [], notes: [], next_plan: [], skipped: [], clarify: [{ ...WHO_ENTRY, options: [ZOE] }] }, trace),
+  });
+  assertEquals(res2.questions, []);
+
+  // ⛔ `what` ne devient JAMAIS une question sur ce canal.
+  const res3 = await classifyAndPersistDraftNote({
+    composition: null,
+    admin: fakeAdmin(trace, {}),
+    userId: USER,
+    note: usable("j'ai pas aimé la viande"),
+    today: TODAY,
+    targetWeek: PLAN_STARTS_ON,
+    members: MEMBERS,
+    contentLocale: "fr-FR",
+    planFoods: PLAN_FOODS,
+    source: "draft_note",
+    now: NOW,
+    run: runnerReturning({
+      preferences: [], notes: [], next_plan: [], skipped: [],
+      clarify: [{ about: "what", gate: "preferences", entry: { kind: "food.exclude", text: "la viande", member_id: null }, options: ["poulet rôti", "steak haché"] }],
+    }, trace),
+  });
+  assertEquals(res3.questions, []);
+  assertEquals(res3.classification.clarify.what, 1, "nommée, comptée — et pas transformée en bouton");
+});
+
+Deno.test("⑤ io — la RÉPONSE écrit UNE entrée avec la bouche choisie, par la porte de la note, sans rappeler le modèle", async () => {
+  const trace: Trace = { rpcs: [], models: [] };
+  const res = await answerDraftNoteWho({
+    admin: fakeAdmin(trace, {}),
+    userId: USER,
+    members: MEMBERS,
+    contentLocale: "fr-FR",
+    composition: null,
+    today: TODAY,
+    targetWeek: PLAN_STARTS_ON,
+    memberId: ZOE,
+    entry: { gate: "preferences", kind: "food.exclude", text: "yaourt", note: "ma fille ne veut plus de yaourt le matin", occasion: "breakfast", force: "never", when: null },
+    now: NOW,
+  });
+  assertEquals(res.ok, true);
+  assertEquals(res.reason, "written");
+  assertEquals(trace.models, [], "aucun appel modèle: la phrase a déjà été lue");
+  const writes = trace.rpcs.filter((r) => r.name === "keel_write_retained_items_for");
+  assertEquals(writes.length, 1, "UNE écriture, par la même RPC que la note");
+  const written = JSON.stringify(writes[0].params);
+  assert(written.includes(`member:${ZOE}`), written);
+  assert(written.includes('"occasion":"breakfast"'), "le moment a survécu à la question: " + written);
+  assert(written.includes('"force":"never"'), "la force a survécu à la question: " + written);
+  assert(written.includes('"source":"draft_note"'), written);
+  // ⟳ La citation est SA phrase, pas le morceau: mesuré sur la pile locale, la
+  // ligne écrite après le tap citait « yaourt » — ses mots perdus en route.
+  assert(written.includes('"quote":"ma fille ne veut plus de yaourt le matin"'), "la citation n'est pas la phrase entière: " + written);
+  assertEquals(res.announced.length, 1);
+  assertEquals(res.announced[0].who, "Zoé");
+  assertEquals(res.announced[0].kind, "preference");
+  assertEquals(res.announced[0].text, "yaourt");
+});
+
+Deno.test("⑤ io — la RÉPONSE ne croit rien de ce qui revient: bouche hors rôle, famille interdite, moment inventé ⇒ rien d'écrit", async () => {
+  const trace: Trace = { rpcs: [], models: [] };
+  const base = {
+    admin: fakeAdmin(trace, {}),
+    userId: USER,
+    members: MEMBERS,
+    contentLocale: "fr-FR",
+    composition: null,
+    today: TODAY,
+    targetWeek: PLAN_STARTS_ON,
+    now: NOW,
+  } as const;
+  const entry = { gate: "preferences", kind: "food.exclude", text: "yaourt", note: "ma fille ne veut plus de yaourt le matin", occasion: "breakfast", force: "never", when: null } as const;
+
+  const stranger = await answerDraftNoteWho({ ...base, memberId: STRANGER, entry });
+  assertEquals(stranger.ok, false);
+  assertEquals(stranger.reason, "unknown_member");
+
+  const forbidden = await answerDraftNoteWho({ ...base, memberId: ZOE, entry: { ...entry, kind: "portion.adjust" as never } });
+  assertEquals(forbidden.ok, false);
+  assertEquals(forbidden.reason, "refused");
+
+  const invented = await answerDraftNoteWho({ ...base, memberId: ZOE, entry: { ...entry, occasion: "brunch" as never } });
+  assertEquals(invented.ok, false);
+  assertEquals(invented.reason, "refused");
+
+  const badGate = await answerDraftNoteWho({ ...base, memberId: ZOE, entry: { ...entry, gate: "portions" as never } });
+  assertEquals(badGate.ok, false);
+  assertEquals(badGate.reason, "refused");
+
+  assertEquals(trace.rpcs.filter((r) => r.name === "keel_write_retained_items_for"), [], "quatre refus, zéro écriture");
+});
+
+Deno.test("⑤ io — la RÉPONSE sur un MÉMO écrit la ligne avec son `when`, et sur l'ENCART une envie", async () => {
+  const trace: Trace = { rpcs: [], models: [] };
+  const memo = await answerDraftNoteWho({
+    admin: fakeAdmin(trace, {}),
+    userId: USER,
+    members: MEMBERS,
+    contentLocale: "fr-FR",
+    composition: null,
+    today: TODAY,
+    targetWeek: PLAN_STARTS_ON,
+    memberId: MARC,
+    entry: { gate: "notes", kind: null, text: "mange tard le vendredi", note: "Marc mange tard le vendredi", occasion: null, force: null, when: { weekday: "fri", slot: "dinner" } },
+    now: NOW,
+  });
+  assertEquals(memo.reason, "written");
+  assertEquals(memo.announced.map((a) => [a.kind, a.who]), [["note", "Marc"]]);
+
+  const craving = await answerDraftNoteWho({
+    admin: fakeAdmin(trace, {}),
+    userId: USER,
+    members: MEMBERS,
+    contentLocale: "fr-FR",
+    composition: null,
+    today: TODAY,
+    targetWeek: PLAN_STARTS_ON,
+    memberId: ZOE,
+    entry: { gate: "next_plan", kind: "craving", text: "des pâtes", note: "elle voudrait des pâtes cette semaine", occasion: null, force: null, when: null },
+    now: NOW,
+  });
+  assertEquals(craving.reason, "written");
+  assertEquals(craving.announced.map((a) => [a.kind, a.who]), [["next_plan", "Zoé"]]);
+  assertEquals(trace.rpcs.filter((r) => r.name === "keel_write_retained_items_for").length, 2);
+});
+
+Deno.test("⑤ câblage — `keel-read-note-v1` accepte `kind: who` et le passe à `answerDraftNoteWho`, morceau non cru", async () => {
+  const src = await Deno.readTextFile(new URL("../../keel-read-note-v1/index.ts", import.meta.url));
+  assert(/const isWho = kind === "who" && entry !== null && typeof entry\.text === "string";/.test(src));
+  assert(/answerDraftNoteWho\(\{/.test(src), "la fonction ne branche pas la réponse `who`");
+  assert(/if \(\(!isPortion && !isWho\) \|\| !memberId\) \{/.test(src), "une réponse d'un autre genre doit rester `bad_answer`");
+  // Le morceau est PORTÉ, pas interprété: la fonction ne lit ni `kind` ni `occasion` pour décider.
+  const branch = src.slice(src.indexOf("if (isWho && entry !== null) {"), src.indexOf("const out = await answerDraftNotePortion({"));
+  assert(!/if \(entry\.kind ===|switch \(entry\.kind\)/.test(branch), "la fonction interprète le morceau au lieu de le porter");
+  assert(/composition,/.test(branch), "la réponse écrit sans le référentiel: `ref` resterait null");
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-23 — ⑩ LA SÉCURITÉ DITE DANS UNE NOTE, ROUVERTE SOUS CONDITION
+//
+// Décision du propriétaire, qui renverse celle du 2026-09-09: une note peut
+// poser une allergie, une intolérance ou un régime — seulement quand la
+// phrase le DIT, avec la preuve citée et vérifiée. Ces tests tiennent le
+// chemin de bout en bout: lecture, porte, lignes sous le champ, bulle.
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("⑩ io — une note qui ne dit QU'UNE allergie atteint l'écriture (jamais `nothing_to_file`), par la RPC `_for`", async () => {
+  const trace: Trace = { rpcs: [], models: [] };
+  const res = await classifyAndPersistDraftNote({
+    composition: null,
+    admin: fakeAdmin(trace, {}),
+    userId: USER,
+    note: usable("Zoé est allergique aux arachides"),
+    today: TODAY,
+    targetWeek: PLAN_STARTS_ON,
+    members: MEMBERS,
+    contentLocale: "fr-FR",
+    planFoods: PLAN_FOODS,
+    source: "draft_note",
+    now: NOW,
+    run: runnerReturning({
+      preferences: [], notes: [], next_plan: [], skipped: [], clarify: [],
+      safety: [{ kind: "allergy", member_id: ZOE, text: "arachides", diet: null, because: "allergique aux arachides" }],
+    }, trace),
+  });
+  assertEquals(res.reason, "written");
+  assertEquals(res.ok, true);
+  const rpc = trace.rpcs.filter((r) => r.name === "keel_household_add_allergy_for");
+  assertEquals(rpc.length, 1);
+  assertEquals(rpc[0].params, { p_user: USER, p_member: ZOE, p_label: "arachides" });
+  assertEquals(res.safetyAnnounced, [{ text: "allergie : arachides", who: "Zoé" }]);
+  assertEquals(res.safetyNotWritten, []);
+  assertEquals(trace.rpcs.filter((r) => r.name === "keel_write_retained_items_for").length, 0, "rien dans la carte des souvenirs: la fiche, pas un souvenir");
+});
+
+Deno.test("⑩ io — un refus de la base est RENDU (`safetyNotWritten`) et la note ne se dit pas écrite", async () => {
+  const trace: Trace = { rpcs: [], models: [] };
+  const admin = {
+    ...fakeAdmin(trace, {}),
+    rpc: (name: string, params: Record<string, unknown>) => {
+      trace.rpcs.push({ name, params });
+      return Promise.resolve({ data: { ok: false, reason: "has_account" }, error: null });
+    },
+  };
+  const res = await classifyAndPersistDraftNote({
+    composition: null,
+    admin,
+    userId: USER,
+    note: usable("Zoé est devenue végétarienne"),
+    today: TODAY,
+    targetWeek: PLAN_STARTS_ON,
+    members: MEMBERS,
+    contentLocale: "fr-FR",
+    planFoods: PLAN_FOODS,
+    source: "draft_note",
+    now: NOW,
+    run: runnerReturning({
+      preferences: [], notes: [], next_plan: [], skipped: [], clarify: [],
+      safety: [{ kind: "diet", member_id: ZOE, text: null, diet: "vegetarian", because: "est devenue végétarienne" }],
+    }, trace),
+  });
+  assertEquals(res.ok, false);
+  assertEquals(res.safetyAnnounced, []);
+  assertEquals(res.safetyNotWritten, [{ text: "régime : végétarien", who: "Zoé", reason: "has_account" }]);
+});
+
+Deno.test("⑩ io — sans la preuve dans la note, RIEN n'est écrit en sécurité", async () => {
+  const trace: Trace = { rpcs: [], models: [] };
+  const res = await classifyAndPersistDraftNote({
+    composition: null,
+    admin: fakeAdmin(trace, {}),
+    userId: USER,
+    note: usable("plus d'arachides pour Zoé, ça la rend malade"),
+    today: TODAY,
+    targetWeek: PLAN_STARTS_ON,
+    members: MEMBERS,
+    contentLocale: "fr-FR",
+    planFoods: PLAN_FOODS,
+    source: "draft_note",
+    now: NOW,
+    run: runnerReturning({
+      preferences: [], notes: [], next_plan: [], skipped: [], clarify: [],
+      safety: [{ kind: "allergy", member_id: ZOE, text: "arachides", diet: null, because: "allergique aux arachides" }],
+    }, trace),
+  });
+  assertEquals(trace.rpcs.filter((r) => r.name.startsWith("keel_household_add_allergy")), []);
+  assertEquals(res.classification.safety.refused.noEvidence, 1);
+  assertEquals(draftNoteClassifyTrace(res.classification).safety_refused_no_evidence, 1);
+});
+
+Deno.test("⑩ câblage — `keel-read-note-v1` rend les lignes de sécurité ET ce qui n'a pas pu s'écrire", async () => {
+  const src = await Deno.readTextFile(new URL("../../keel-read-note-v1/index.ts", import.meta.url));
+  assert(/\.\.\.out\.safetyAnnounced\.map\(\(a\) => \(\{ text: a\.text, who: a\.who, kind: "safety" \}\)\)/.test(src), "les lignes de sécurité ne sont plus sous le champ");
+  assert(/safety_not_written: out\.safetyNotWritten\.map\(/.test(src), "ce qui n'a pas pu s'écrire n'est plus rendu au front");
+});
+
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⑪ LES À-CÔTÉS — 2026-09-23
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// ── CE QUE CES CAS TIENNENT ──────────────────────────────────────────────
+// Le moteur sert désormais un petit à-côté au déjeuner et au dîner (entrée,
+// fromage, dessert, pain). Une phrase comme « il ne prend jamais de dessert »
+// doit déplacer le RÉGLAGE de la fiche (`household_member_habits.slots[].
+// side_courses`), par `keel_household_set_slot_side_courses_for` — jamais un
+// souvenir, et jamais une exclusion de l'aliment « dessert ».
+//
+// ⛔ ET LE PIÈGE INVERSE: « pas de fromage le soir » reste une exclusion
+// d'aliment (①). Voir `pas-de-fromage-le-soir` dans le corpus.
+
+/** Le prompt, découpé en lignes. */
+const LINES = DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT.split("\n");
+
+/** Les lignes du tiroir ⑪, de son titre à la fin du prompt. */
+function sideCourseBlock(): string[] {
+  const start = LINES.findIndex((l) => l.startsWith('11. "side_courses"'));
+  if (start < 0) return [];
+  const rest = LINES.slice(start + 1);
+  const end = rest.findIndex((l) => /^\d+\. "/.test(l));
+  return [LINES[start], ...(end < 0 ? rest : rest.slice(0, end))];
+}
+
+Deno.test("⑪ prompt — le tiroir existe, et la forme JSON le nomme", () => {
+  assert(sideCourseBlock().length > 0, "le tiroir ⑪ n'existe pas");
+  assert(
+    DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT.includes('"safety": [ ... ], "side_courses": [ ... ] }'),
+    "la forme JSON du haut ne nomme pas `side_courses`: le modèle ne sait pas où la mettre",
+  );
+});
+
+Deno.test("⑪ prompt — les vocabulaires sont épinglés à leurs littéraux, SUR leur clé", () => {
+  const block = sideCourseBlock();
+  const kind = block.find((l) => l.includes('"kind": exactly one of'));
+  assert(kind, "pas de ligne `kind` dans ⑪");
+  assert(kind!.includes("exactly one of starter | cheese | dessert | bread"), kind!);
+  const slot = block.find((l) => l.includes('"slot": exactly one of'));
+  assert(slot, "pas de ligne `slot` dans ⑪");
+  assert(slot!.includes("exactly one of lunch | dinner "), slot!);
+  // ⛔ LA PROMESSE TOUCHE LA CLÉ: « jamais le matin » est SUR la ligne du moment.
+  assert(slot!.includes("NEVER breakfast or a snack"), slot!);
+  assert(slot!.includes("null means BOTH lunch and dinner"), slot!);
+  // ⛔ ET « vrai ou faux et rien d'autre » SUR la ligne de `takes`.
+  const takes = block.find((l) => l.includes('"takes":'));
+  assert(takes, "pas de ligne `takes` dans ⑪");
+  assert(takes!.includes("TRUE OR FALSE AND NOTHING ELSE"), takes!);
+});
+
+Deno.test("⑪ prompt — ⛔ UN ALIMENT N'EST PAS UN À-CÔTÉ, dit dans LES DEUX tiroirs", () => {
+  // Côté ⑪: « pas de fromage le soir » est nommé comme un ALIMENT.
+  const block = sideCourseBlock().join("\n");
+  assert(block.includes("A FOOD IS NOT A COURSE"), "⑪ ne dit pas qu'un aliment n'est pas un plat");
+  assert(block.includes('"no cheese in the evening"'), "⑪ ne nomme pas le piège du fromage");
+  // Côté ①: la ligne `kind` renvoie vers ⑪ ET garde le fromage chez elle.
+  const kindLine = LINES.find((l) =>
+    l.includes('"kind": exactly one of') && l.includes("NEVER craving here")
+  )!;
+  assert(kindLine.includes('"side_courses" (11)'), "① ne renvoie pas les à-côtés vers ⑪");
+  assert(
+    kindLine.includes('"no cheese in the evening" names a FOOD, and stays here'),
+    "① ne garde pas « pas de fromage le soir » chez lui",
+  );
+});
+
+Deno.test("⑪ prompt — une bouche indécidable n'est ni `null` ni une question: `skipped`", () => {
+  const member = sideCourseBlock().find((l) => l.includes('"member_id":'));
+  assert(member, "pas de ligne `member_id` dans ⑪");
+  assert(member!.includes('do NOT file it here and do NOT use null'), member!);
+  assert(member!.includes('"skipped" (7) with "other"'), member!);
+});
+
+Deno.test("⑪ lecteur — LE CAS QUI PASSE: un type refusé, un type voulu, la table entière", () => {
+  const out = read({
+    side_courses: [
+      { kind: "dessert", slot: null, takes: false, member_id: ZOE },
+      { kind: "cheese", slot: "dinner", takes: true, member_id: MARC },
+      { kind: "starter", slot: "lunch", takes: false, member_id: null },
+    ],
+  });
+  assert(out.ok);
+  assertEquals(out.classification.sideCourses.proposed, 3);
+  assertEquals(out.classification.sideCourses.kept, 3);
+  assertEquals(out.classification.sideCourses.refused.total, 0);
+  assertEquals(out.classification.sideCourses.moves, [
+    { kind: "dessert", slot: null, takes: false, memberId: ZOE },
+    { kind: "cheese", slot: "dinner", takes: true, memberId: MARC },
+    { kind: "starter", slot: "lunch", takes: false, memberId: null },
+  ]);
+  // ⛔ ET AUCUN SOUVENIR N'EST PRODUIT: c'est un réglage de fiche.
+  assertEquals(out.classification.preferences.kept, 0);
+  // Les agrégats sont des sommes: ⑪ y entre.
+  assertEquals(out.classification.proposed, 3);
+  assertEquals(out.classification.kept, 3);
+});
+
+Deno.test("⑪ lecteur — un type INCONNU est refusé, jamais deviné", () => {
+  for (const kind of ["soup", "soupe", "yaourt", "Dessert ", "", null]) {
+    const out = read({ side_courses: [{ kind, slot: null, takes: false, member_id: ZOE }] });
+    if (kind === "Dessert ") {
+      // La casse et les blancs sont lus comme partout ailleurs dans ce lecteur.
+      assertEquals(out.classification.sideCourses.kept, 1);
+      continue;
+    }
+    assertEquals(out.classification.sideCourses.kept, 0, `type « ${kind} » gardé`);
+    assertEquals(out.classification.sideCourses.refused.unknownKind, 1, `type « ${kind} » mal compté`);
+  }
+});
+
+Deno.test("⑪ lecteur — une bouche HORS RÔLE est refusée, jamais repliée sur la table", () => {
+  const out = read({ side_courses: [{ kind: "dessert", slot: null, takes: false, member_id: STRANGER }] });
+  assertEquals(out.classification.sideCourses.kept, 0);
+  assertEquals(out.classification.sideCourses.refused.unknownMember, 1);
+  // Le voisin qui passe: la même entrée, sur une bouche du rôle.
+  const ok = read({ side_courses: [{ kind: "dessert", slot: null, takes: false, member_id: ZOE }] });
+  assertEquals(ok.classification.sideCourses.kept, 1);
+});
+
+Deno.test("⑪ lecteur — le moment: déjeuner, dîner, ou `null`; la clé oubliée n'est pas `null`", () => {
+  for (const slot of ["breakfast", "snack_pm", "soir", "before_bed"]) {
+    const out = read({ side_courses: [{ kind: "bread", slot, takes: false, member_id: null }] });
+    assertEquals(out.classification.sideCourses.kept, 0, `moment « ${slot} » gardé`);
+    assertEquals(out.classification.sideCourses.refused.badWhen, 1);
+  }
+  // ⛔ UNE CLÉ `slot` ABSENTE N'EST PAS « les deux repas ».
+  const missing = read({ side_courses: [{ kind: "bread", takes: false, member_id: null }] });
+  assertEquals(missing.classification.sideCourses.kept, 0);
+  assertEquals(missing.classification.sideCourses.refused.badWhen, 1);
+});
+
+Deno.test("⑪ lecteur — ⛔ BOOLÉEN STRICT: « false », 0, « non » sont refusés", () => {
+  for (const takes of ["false", 0, "non", null, 1]) {
+    const out = read({ side_courses: [{ kind: "dessert", slot: "dinner", takes, member_id: ZOE }] });
+    assertEquals(out.classification.sideCourses.kept, 0, `takes ${JSON.stringify(takes)} gardé`);
+    assertEquals(out.classification.sideCourses.refused.malformed, 1);
+  }
+});
+
+Deno.test("⑪ lecteur — deux verdicts sur la même case: le second tombe, `null` couvre les deux repas", () => {
+  const out = read({
+    side_courses: [
+      { kind: "dessert", slot: null, takes: false, member_id: ZOE },
+      { kind: "dessert", slot: "lunch", takes: true, member_id: ZOE },
+      // Un autre type sur le même moment n'est PAS un doublon.
+      { kind: "cheese", slot: "lunch", takes: true, member_id: ZOE },
+      // La même case pour une autre bouche non plus.
+      { kind: "dessert", slot: "lunch", takes: true, member_id: MARC },
+    ],
+  });
+  assertEquals(out.classification.sideCourses.kept, 3);
+  assertEquals(out.classification.sideCourses.refused.malformed, 1);
+});
+
+Deno.test("⑪ trace — les nombres de la porte, et les deux sens séparés", () => {
+  const out = read({
+    preferences: [], notes: [], next_plan: [], portions: [], settings: [], slots: [], cells: [],
+    skipped: [], clarify: [], safety: [],
+    side_courses: [
+      { kind: "dessert", slot: null, takes: false, member_id: ZOE },
+      { kind: "cheese", slot: null, takes: true, member_id: ZOE },
+      { kind: "wine", slot: null, takes: true, member_id: ZOE },
+      { kind: "bread", slot: "breakfast", takes: false, member_id: ZOE },
+    ],
+  });
+  const t = draftNoteClassifyTrace(out.classification);
+  assertEquals(t.side_courses_proposed, 4);
+  assertEquals(t.side_courses_kept, 2);
+  assertEquals(t.side_courses_refused, 2);
+  assertEquals(t.side_courses_refused_unknown_kind, 1);
+  assertEquals(t.side_courses_refused_bad_when, 1);
+  assertEquals(t.side_courses_takes, 1);
+  assertEquals(t.side_courses_skips, 1);
+  assertEquals(t.lists_missing, []);
+});
+
+// ── LE CORPUS DES À-CÔTÉS, REJOUÉ ─────────────────────────────────────────
+
+const CORPUS_MOUTH_OF: ReadonlyMap<string, CorpusMouth> = new Map(
+  (Object.entries(CORPUS_MEMBER_IDS) as [CorpusMouth, string][]).map(([m, u]) => [u, m] as const),
+);
+
+function readCorpus(model: Record<string, unknown>, note: string) {
+  return readDraftNoteClassification({
+    raw: model,
+    today: CORPUS_TODAY,
+    targetWeek: CORPUS_TARGET_WEEK,
+    members: CORPUS_MEMBERS,
+    note,
+    writtenAt: null,
+    planFoods: CORPUS_PLAN_FOODS,
+  });
+}
+
+Deno.test("⑪ corpus — la taille et les cas obligatoires", () => {
+  // ⚠️ LE NOMBRE ÉCRIT EN DUR, ET LES CAS NOMMÉS: un corpus vidé resterait vert
+  // sans l'un, un corpus qui a perdu le cas du propriétaire sans l'autre.
+  assertEquals(SIDE_COURSE_NOTE_CORPUS.length, 7);
+  const ids = new Set(SIDE_COURSE_NOTE_CORPUS.map((e) => e.id));
+  for (const id of [
+    "jamais-de-dessert",
+    "pas-d-entree-le-soir",
+    "finir-par-un-fromage",
+    "pas-de-pain-a-table",
+    "le-soir-pas-de-dessert",
+  ]) {
+    assert(ids.has(id), `cas obligatoire manquant: ${id}`);
+  }
+  assert(
+    DRAFT_NOTE_CORPUS.some((e) => e.id === "pas-de-fromage-le-soir"),
+    "le piège du fromage a quitté le corpus principal",
+  );
+});
+
+for (const entry of SIDE_COURSE_NOTE_CORPUS) {
+  Deno.test(`⑪ corpus — ${entry.id}`, () => {
+    const out = readCorpus(entry.model, entry.note);
+    assert(out.ok, `${entry.id}: la charge n'a pas été lue (${out.refusal})`);
+    const c = out.classification;
+    const sides = c.sideCourses.moves.map((m) =>
+      JSON.stringify([m.kind, m.slot, m.takes, m.memberId === null ? null : CORPUS_MOUTH_OF.get(m.memberId)])
+    ).sort();
+    const expectedSides = entry.sides.map((e) => JSON.stringify([e.kind, e.slot, e.takes, e.who])).sort();
+    assertEquals(sides, expectedSides, `${entry.id} — ${entry.why}`);
+    const foods = c.preferences.items.map((i) => {
+      const subject = String(i.subject);
+      const who = subject === "household" ? null : CORPUS_MOUTH_OF.get(subject.slice("member:".length)) ?? "?";
+      return JSON.stringify([i.kind, i.text, (i as { occasion?: unknown }).occasion ?? null, who]);
+    }).sort();
+    const expectedFoods = entry.foods.map((f) => JSON.stringify(["food.exclude", f.text, f.occasion, f.who])).sort();
+    assertEquals(foods, expectedFoods, `${entry.id} — les aliments`);
+    assertEquals(c.skipped.other, entry.skippedOther, `${entry.id} — skipped`);
+  });
+}
+
+Deno.test("⑪ corpus — ⛔ « pas de fromage le soir » ne règle AUCUN à-côté", () => {
+  const entry = DRAFT_NOTE_CORPUS.find((e) => e.id === "pas-de-fromage-le-soir")!;
+  const out = readCorpus(entry.model, entry.note);
+  assertEquals(out.classification.sideCourses.moves, []);
+  assertEquals(out.classification.preferences.items.length, 1);
+  assertEquals(out.classification.preferences.items[0].kind, "food.exclude");
+  // Et aucune note du corpus principal ne règle d'à-côté par accident.
+  for (const e of DRAFT_NOTE_CORPUS) {
+    assertEquals(readCorpus(e.model, e.note).classification.sideCourses.moves, [], e.id);
+  }
+});
+
+// ── L'ÉCRITURE — la RPC `_for`, dépliée, comptée, annoncée ─────────────────
+
+function sideAdmin(
+  trace: Trace,
+  answer: (params: Record<string, unknown>) => Record<string, unknown>,
+) {
+  return {
+    ...fakeAdmin(trace, {}),
+    rpc: (name: string, params: Record<string, unknown>) => {
+      trace.rpcs.push({ name, params });
+      return Promise.resolve({
+        data: name === "keel_household_set_slot_side_courses_for" ? answer(params) : { ok: true },
+        error: null,
+      });
+    },
+  };
+}
+
+async function classifySide(
+  lists: Record<string, unknown>,
+  trace: Trace,
+  answer: (params: Record<string, unknown>) => Record<string, unknown> = () => ({ ok: true }),
+) {
+  return await classifyAndPersistDraftNote({
+    composition: null,
+    admin: sideAdmin(trace, answer),
+    userId: USER,
+    note: usable("Zoé ne prend jamais de dessert"),
+    today: TODAY,
+    targetWeek: PLAN_STARTS_ON,
+    members: MEMBERS,
+    contentLocale: "fr-FR",
+    planFoods: PLAN_FOODS,
+    source: "draft_note",
+    now: NOW,
+    run: runnerReturning({
+      preferences: [], notes: [], next_plan: [], portions: [], settings: [], slots: [],
+      cells: [], skipped: [], clarify: [], safety: [],
+      ...lists,
+    }, trace),
+  });
+}
+
+const sideCalls = (trace: Trace) =>
+  trace.rpcs.filter((r) => r.name === "keel_household_set_slot_side_courses_for");
+
+Deno.test("⑪ io — une phrase qui ne dit QU'UN à-côté atteint l'écriture, sur les deux repas", async () => {
+  const trace: Trace = { rpcs: [], models: [] };
+  const res = await classifySide({
+    side_courses: [{ kind: "dessert", slot: null, takes: false, member_id: ZOE }],
+  }, trace);
+  // ⛔ SANS LA LIGNE D'ABSTENTION, CETTE NOTE RESSORTAIT `nothing_to_file`.
+  assertEquals(sideCalls(trace).map((c) => c.params), [
+    { p_user: USER, p_member: ZOE, p_slot: "lunch", p_kind: "dessert", p_takes: false },
+    { p_user: USER, p_member: ZOE, p_slot: "dinner", p_kind: "dessert", p_takes: false },
+  ]);
+  assertEquals(res.ok, true);
+  assertEquals(res.reason, "written");
+  // Les deux repas ont bougé dans le même sens: UNE ligne, pas deux.
+  assertEquals(res.announced, [
+    { text: "Dessert : non", until: null, kind: "setting", who: "Zoé" },
+  ]);
+  // ⛔ ET AUCUN SOUVENIR: la porte des items n'est pas appelée pour rien.
+  assertEquals(trace.rpcs.filter((r) => r.name === "keel_write_retained_items_for"), []);
+});
+
+Deno.test("⑪ io — « le soir on ne prend pas de dessert » se déplie sur TOUT le rôle, au dîner seulement", async () => {
+  const trace: Trace = { rpcs: [], models: [] };
+  const res = await classifySide({
+    side_courses: [{ kind: "dessert", slot: "dinner", takes: false, member_id: null }],
+  }, trace);
+  const calls = sideCalls(trace);
+  assertEquals(calls.map((c) => c.params.p_member).sort(), [ZOE, MARC].sort());
+  for (const c of calls) {
+    assertEquals(c.params.p_slot, "dinner");
+    assertEquals(c.params.p_kind, "dessert");
+    assertEquals(c.params.p_takes, false);
+  }
+  // Un seul repas a bougé: la ligne NOMME le repas.
+  assertEquals(res.announced.map((a) => a.text), ["Dessert au dîner : non", "Dessert au dîner : non"]);
+});
+
+Deno.test("⑪ io — `unchanged` se compte, ne s'annonce pas, et ne fait pas un échec", async () => {
+  const trace: Trace = { rpcs: [], models: [] };
+  const res = await classifySide(
+    { side_courses: [{ kind: "cheese", slot: null, takes: true, member_id: MARC }] },
+    trace,
+    (params) => params.p_slot === "lunch" ? { ok: false, reason: "unchanged" } : { ok: true },
+  );
+  assertEquals(sideCalls(trace).length, 2);
+  // Seul le dîner a bougé: une ligne, qui nomme le dîner.
+  assertEquals(res.announced.map((a) => a.text), ["Fromage au dîner : oui"]);
+  assertEquals(res.ok, true);
+});
+
+Deno.test("⑪ io — une porte qui refuse tout: rien d'annoncé, `not_written`", async () => {
+  const trace: Trace = { rpcs: [], models: [] };
+  const res = await classifySide(
+    { side_courses: [{ kind: "bread", slot: "lunch", takes: false, member_id: ZOE }] },
+    trace,
+    () => ({ ok: false, reason: "not_your_line" }),
+  );
+  assertEquals(sideCalls(trace).length, 1);
+  assertEquals(res.announced, []);
+  assertEquals(res.ok, false);
+});
+
+/** LE CÂBLAGE DE ⑪ DANS L'IO — lu sans les commentaires. */
+function sideWiringVerdict(src: string): string[] {
+  const code = stripComments(src);
+  const missing: string[] = [];
+  if (!/"keel_household_set_slot_side_courses_for",/.test(code)) missing.push("rpc_nommee");
+  if (!/classification\.sideCourses\.moves\.length === 0 &&/.test(code)) missing.push("abstention");
+  if (!/classification\.sideCourses\.moves,\s*args\.members,/.test(code)) missing.push("mouvements_passes");
+  if (!/slotLight\.moved > 0 \|\| sideCourse\.moved > 0 \|\|/.test(code)) missing.push("ecriture_comptee");
+  if (!/side_courses_moved: sideCourse\.moved,/.test(code)) missing.push("compteur_moved");
+  return missing;
+}
+
+Deno.test("⑪ câblage — le VRAI fichier est câblé, et chaque moitié retirée fait ROUGIR", async () => {
+  const real = await ioSource();
+  assertEquals(sideWiringVerdict(real), []);
+  const mutations: Array<[string, string, string]> = [
+    ["rpc_nommee", '"keel_household_set_slot_side_courses_for",', '"keel_household_set_slot_light_for",'],
+    ["abstention", "classification.sideCourses.moves.length === 0 &&", "true &&"],
+    ["mouvements_passes", "classification.sideCourses.moves,\n    args.members,", "[],\n    args.members,"],
+    ["ecriture_comptee", "slotLight.moved > 0 || sideCourse.moved > 0 ||", "slotLight.moved > 0 ||"],
+    ["compteur_moved", "side_courses_moved: sideCourse.moved,", "side_courses_moved: 0,"],
+  ];
+  for (const [name, from, to] of mutations) {
+    assert(real.includes(from), `la chaîne « ${from} » n'existe plus: l'assertion ne cherche plus rien.`);
+    const mutated = real.replace(from, to);
+    assertNotEquals(mutated, real);
+    assertEquals(sideWiringVerdict(mutated), [name], `la mutation « ${name} » n'a PAS fait rougir l'assertion.`);
+  }
 });

@@ -101,6 +101,7 @@ import {
   type RetainedItem,
   type RetainedKind,
   type RetainedSource,
+  type RetainedSubject,
   retainedItemFromLegacyNote,
   retainedItemToJson,
   retainedItemsFrom,
@@ -109,6 +110,8 @@ import {
   RHYTHM_OCCASIONS,
   VARIETY_LEVELS,
   withRetainedItems,
+  writtenFoodLine,
+  EXCLUSION_FORCES,
 } from "./retainedItems";
 import { WRITABLE_FIELDS } from "./fieldChanges";
 import {
@@ -1136,7 +1139,10 @@ describe("l'exception du sujet non précisé — et LE CONSTAT LE DIT", () => {
     { memberId: ADULT, ageState: "adult" as const },
     { memberId: NODATE, ageState: "unknown" as const },
   ];
-  const adjust = (direction: "down" | "up", subject = HOUSEHOLD_SUBJECT) =>
+  const adjust = (
+    direction: "down" | "up",
+    subject: RetainedSubject = HOUSEHOLD_SUBJECT,
+  ) =>
     itemOf(
       memory("portion.adjust", {
         source: "questionnaire",
@@ -1957,5 +1963,289 @@ describe("prochain plan — servie, et written_at qui survit à l'écran", () =>
     expect(api).toMatch(/lastValidatedAt: isoInstantOf\(lastValidatedAt\)/);
     const card = readFileSync(resolve(__dirname, "../components/KnownAboutYouCard.tsx"), "utf8");
     expect(card).toMatch(/liveNextPlanEntries\(store\.nextPlan, today, store\.lastValidatedAt\)/);
+  });
+});
+
+/**
+ * ⟳ 2026-09-22 — LE MOMENT D'UNE PRÉFÉRENCE TRAVERSE LE LECTEUR FRONT.
+ * Mesuré sur « Ce que Sophia sait » : « petit suisse » (exclu au
+ * petit-déjeuner) s'affichait sans son moment, et une édition depuis la page
+ * aurait réécrit le magasin sans lui.
+ */
+describe("le moment (`occasion`) d'une préférence traverse le lecteur et l'écriture", () => {
+  const base = { kind: "food.exclude", scope: "durable", source: "draft_note", subject: HOUSEHOLD_SUBJECT, text: "petit suisse", value: null, item: "", confidence: null, quote: "Pas autant de petit suisse le matin" };
+  it("lu, gardé, réécrit", () => {
+    const item = parseRetainedItem(memory("food.exclude", { ...base, occasion: "breakfast" }));
+    expect(item && "occasion" in item ? item.occasion : "absent").toBe("breakfast");
+    expect(retainedItemToJson(item!).occasion).toBe("breakfast");
+    const reread = parseRetainedItem(retainedItemToJson(item!));
+    expect(reread && "occasion" in reread ? reread.occasion : "absent").toBe("breakfast");
+  });
+  it("absent ⇒ `null`, et rien n'est écrit ; un jeton hors vocabulaire ⇒ `null`", () => {
+    const none = parseRetainedItem(memory("food.exclude", base));
+    expect(none && "occasion" in none ? none.occasion : "absent").toBe(null);
+    expect("occasion" in retainedItemToJson(none!)).toBe(false);
+    const bad = parseRetainedItem(memory("food.exclude", { ...base, occasion: "brunch" }));
+    expect(bad && "occasion" in bad ? bad.occasion : "absent").toBe(null);
+  });
+  it("la carte rend le moment à côté du texte, par le libellé du créneau", () => {
+    const card = readFileSync(resolve(__dirname, "../components/KnownAboutYouCard.tsx"), "utf8");
+    expect(card).toContain('t("known.occasion", { slot: t(SLOT_KEY[item.occasion]) })');
+    expect(card).toContain('t("known.occasion", { slot: t(SLOT_KEY[entry.item.occasion]) })');
+  });
+});
+
+describe("la force (`force`) d'un refus traverse le lecteur, l'écriture et la réécriture", () => {
+  // ── LE DÉFAUT QUE CE BLOC FERME, MESURÉ SUR LE SEUL COMPTE RÉEL ──────────
+  // « Pas AUTANT de petit suisse le matin » était rangée en interdiction
+  // totale : la ceinture retirait l'aliment de toutes les boîtes, pour
+  // toujours, sur une phrase qui demandait MOINS.
+  //
+  // ⛔ ET LE FRONT POUVAIT LE REFAIRE TOUT SEUL. Ce fichier a sa propre copie
+  // du socle ; sans `force`, une ligne « moins » réécrite depuis la carte
+  // repartait en base SANS la clé, et le socle relit une force absente comme
+  // `"never"`. La personne aurait vu l'aliment disparaître de ses plans pour
+  // avoir corrigé une faute d'orthographe.
+  const base = {
+    kind: "food.exclude",
+    scope: "durable",
+    source: "draft_note",
+    subject: HOUSEHOLD_SUBJECT,
+    text: "petit suisse",
+    value: null,
+    item: "",
+    confidence: null,
+    quote: "Pas autant de petit suisse le matin",
+  };
+
+  it("le vocabulaire est celui du socle, à l'identique", () => {
+    expect([...EXCLUSION_FORCES]).toEqual(backendArray("EXCLUSION_FORCES"));
+  });
+
+  it("« moins » est lu, écrit, et relu « moins »", () => {
+    const item = parseRetainedItem(memory("food.exclude", { ...base, force: "less" }));
+    expect(item && "force" in item ? item.force : "absent").toBe("less");
+    expect(retainedItemToJson(item!).force).toBe("less");
+    const reread = parseRetainedItem(retainedItemToJson(item!));
+    expect(reread && "force" in reread ? reread.force : "absent").toBe("less");
+  });
+
+  it("⛔ ABSENT ⇒ `never`, et non l'inverse — toute la base d'avant le lot", () => {
+    // Le repli va vers la règle FORTE. L'imprécision coûte un plat évité de
+    // trop ; l'inverse servirait à quelqu'un ce qu'il vient de refuser.
+    const none = parseRetainedItem(memory("food.exclude", base));
+    expect(none && "force" in none ? none.force : "absent").toBe("never");
+  });
+
+  it("⛔ UN JETON HORS VOCABULAIRE FAIT TOMBER L'ITEM — pas de repli", () => {
+    // Ni vers `never` (on bannirait sur une valeur illisible), ni vers `less`
+    // (on désarmerait). « Je n'ai pas su lire » n'est ni l'un ni l'autre.
+    expect(parseRetainedItem(memory("food.exclude", { ...base, force: "parfois" }))).toBe(null);
+  });
+
+  it("⛔ UNE FAMILLE QUI VEUT N'EN PORTE PAS", () => {
+    const prefer = parseRetainedItem(
+      memory("food.prefer", { ...base, kind: "food.prefer", force: undefined }),
+    );
+    expect(prefer && "force" in prefer ? prefer.force : "absent").toBe(null);
+    expect("force" in retainedItemToJson(prefer!)).toBe(false);
+    expect(
+      parseRetainedItem(memory("food.prefer", { ...base, kind: "food.prefer", force: "less" })),
+    ).toBe(null);
+  });
+
+  it("⛔ UNE RÉÉCRITURE DEPUIS LA CARTE GARDE LA NUANCE", () => {
+    // C'est le chemin exact de la perte silencieuse : la personne corrige son
+    // texte, et « moins » devient « jamais » sans qu'elle l'ait demandé.
+    const item = parseRetainedItem(memory("food.exclude", { ...base, force: "less" }))!;
+    const rewritten = rewriteRetainedItem(
+      item,
+      { text: "petits suisses", kind: "food.exclude", subject: HOUSEHOLD_SUBJECT, value: null },
+      "2026-09-22",
+    );
+    expect(rewritten && "force" in rewritten ? rewritten.force : "absent").toBe("less");
+  });
+
+  it("un « Garder » sur un aliment refusé écrit une règle FERME", () => {
+    // La personne a tapé sur un bouton, pas écrit une nuance. `less` ne naît
+    // que d'une phrase qui dit une quantité.
+    const line = writtenFoodLine({
+      text: "coriandre",
+      kind: "food.exclude",
+      subject: HOUSEHOLD_SUBJECT,
+      todayLocalIso: "2026-09-22",
+    });
+    expect(line && "force" in line ? line.force : "absent").toBe("never");
+  });
+});
+
+describe("la clé (`ref`) traverse le lecteur, l'écriture et la réécriture", () => {
+  // ── LE DÉFAUT QUE CE BLOC FERME ─────────────────────────────────────────
+  // Le front a sa propre copie du socle. Sans `ref`, une ligne réécrite depuis
+  // la carte repartait en base SANS clé — et le souvenir redevenait décoratif
+  // parce que la personne avait corrigé son texte. C'est le troisième champ à
+  // suivre ce chemin, après `occasion` et `force`, et pour la même raison :
+  // deux runtimes, une copie, et rien qui oblige la seconde à suivre.
+  const base = {
+    kind: "food.exclude",
+    scope: "durable",
+    source: "draft_note",
+    subject: HOUSEHOLD_SUBJECT,
+    text: "flocons d'avoines",
+    value: null,
+    item: "",
+    confidence: null,
+    quote: "mets des bols de flocons d'avoines",
+  };
+
+  it("lu, écrit, relu", () => {
+    const item = parseRetainedItem(memory("food.exclude", { ...base, ref: "oats" }));
+    expect(item && "ref" in item ? item.ref : "absent").toBe("oats");
+    expect(retainedItemToJson(item!).ref).toBe("oats");
+    const reread = parseRetainedItem(retainedItemToJson(item!));
+    expect(reread && "ref" in reread ? reread.ref : "absent").toBe("oats");
+  });
+
+  it("absent ⇒ `null`, et rien n'est écrit", () => {
+    // 4 souvenirs sur 9 n'ont pas de clé en base. Leur absence se relit `null`
+    // des deux côtés — contrairement à `force`, dont l'absence VEUT dire
+    // `never` et qui doit donc s'écrire même à sa valeur par défaut.
+    const none = parseRetainedItem(memory("food.exclude", base));
+    expect(none && "ref" in none ? none.ref : "absent").toBe(null);
+    expect("ref" in retainedItemToJson(none!)).toBe(false);
+  });
+
+  it("⛔ UNE FORME QUI N'EST PAS UN SLUG FAIT TOMBER L'ITEM", () => {
+    // Un `ref` qui porterait des espaces ou des accents serait du TEXTE
+    // déguisé en identifiant — le rapprochement approximatif que le lot A
+    // existe pour retirer.
+    for (const bad of ["petit suisse", "Œufs", "oats!"]) {
+      expect(parseRetainedItem(memory("food.exclude", { ...base, ref: bad }))).toBe(null);
+    }
+  });
+
+  it("⛔ LA CLÉ SURVIT À UNE RÉÉCRITURE DEPUIS LA CARTE", () => {
+    // C'est le chemin exact de la perte : la personne corrige son texte, et le
+    // souvenir redevient décoratif. Le front ne sait pas résoudre — il
+    // TRANSPORTE ; c'est la résolution serveur qui corrigera la clé à la
+    // prochaine phrase, jamais un rapprochement fait ici.
+    const item = parseRetainedItem(memory("food.exclude", { ...base, ref: "oats" }))!;
+    const rewritten = rewriteRetainedItem(
+      item,
+      { text: "flocons d'avoine", kind: "food.exclude", subject: HOUSEHOLD_SUBJECT, value: null },
+      "2026-09-22",
+    );
+    expect(rewritten && "ref" in rewritten ? rewritten.ref : "absent").toBe("oats");
+  });
+
+  it("un « Garder » depuis l'écran n'a pas de clé, et c'est un trou NOMMÉ", () => {
+    // Ce chemin ne passe par aucune résolution. Le souvenir s'affichera sans
+    // clé tant qu'une phrase ne le redéclare pas — et ça se voit.
+    const line = writtenFoodLine({
+      text: "coriandre",
+      kind: "food.exclude",
+      subject: HOUSEHOLD_SUBJECT,
+      todayLocalIso: "2026-09-22",
+    });
+    expect(line && "ref" in line ? line.ref : "absent").toBe(null);
+  });
+});
+
+describe("⟳ LOT C — la carte dit « moins souvent », elle ne l'affiche plus comme une interdiction", () => {
+  // ── LE DÉFAUT ──────────────────────────────────────────────────────────
+  // Sous le titre « Ce que tu ne veux plus », une réduction (« pas AUTANT de
+  // petit suisse ») se lisait EXACTEMENT comme un bannissement. La seule façon
+  // de s'en apercevoir était de remarquer une absence — le même mode d'échec
+  // que le défaut qu'on venait de réparer côté moteur.
+  const card = readFileSync(
+    resolve(__dirname, "../components/KnownAboutYouCard.tsx"),
+    "utf8",
+  );
+
+  it("la carte rend la force quand c'est « moins »", () => {
+    expect(card).toContain('"force" in item && item.force === "less"');
+    expect(card).toContain('t("known.force.less")');
+  });
+
+  it("⛔ ET ELLE NE DIT RIEN POUR « jamais » — le titre de la section le dit déjà", () => {
+    // Le répéter sur chaque ligne ferait du cas normal du bruit, et noierait
+    // la ligne qui, elle, porte une nuance.
+    expect(card).not.toContain('known.force.never');
+  });
+
+  it("la clé existe dans LES DEUX langues", () => {
+    const fr = readFileSync(resolve(__dirname, "../i18n/fr.ts"), "utf8");
+    const en = readFileSync(resolve(__dirname, "../i18n/en.ts"), "utf8");
+    expect(fr).toContain('"known.force.less"');
+    expect(en).toContain('"known.force.less"');
+  });
+});
+
+describe("⟳ LOT D — une bouche ne pèse pas sur le menu", () => {
+  // ── L'AUTORITÉ PRODUIT, MOT POUR MOT ────────────────────────────────────
+  // `docs/fonctionnalites/le-foyer/README.md` : « Réclamer son profil … donne
+  // la lecture du plan, son propre objectif, et une part qui tient compte de
+  // son corps. Ça ne donne JAMAIS le droit de composer, d'ajouter, de retirer
+  // ou de restreindre. »
+  //
+  // ⛔ ET LE REFUS REMPLACE PIRE QUE LUI. Avant, l'écriture RÉUSSISSAIT et
+  // n'atteignait aucun plan : seul le titulaire compose, et il lit SON
+  // magasin. La personne voyait sa ligne sur sa carte, sous la promesse
+  // « rien ici n'est caché », et croyait avoir changé le menu.
+  const MIGRATION_D = readFileSync(
+    resolve(
+      __dirname,
+      "../../../../supabase/migrations/20260922180000_une_bouche_ne_pese_pas_sur_le_menu.sql",
+    ),
+    "utf8",
+  );
+
+  it("le motif existe dans le vocabulaire fermé du front", () => {
+    expect([...KNOWN_WRITE_REFUSALS]).toContain("not_owner");
+  });
+
+  it("la RPC le rend, et AVANT toute lecture du magasin", () => {
+    // Même ordre que `resolveGenerationAdmission` : un membre secondaire lit
+    // `not_owner` avant d'apprendre quoi que ce soit du foyer.
+    const gate = MIGRATION_D.indexOf("'not_owner'");
+    const shape = MIGRATION_D.indexOf("'bad_items'");
+    expect(gate).toBeGreaterThan(0);
+    expect(shape).toBeGreaterThan(gate);
+  });
+
+  it("⛔ ET LA GARDE NE MORD QUE SI LE RÔLE EXISTE", () => {
+    // 1 437 comptes n'ont AUCUNE ligne de foyer (coachs, comptes d'avant le
+    // foyer, fixtures). Gater sur `role = 'owner'` les refuserait tous — une
+    // régression massive sur un chemin qui marche aujourd'hui.
+    expect(MIGRATION_D).toContain("v_role is not null and v_role <> 'owner'");
+  });
+
+  it("⛔ LA LECTURE N'EST PAS TOUCHÉE", () => {
+    // On ferme l'écriture qui RESTREINT, pas la lecture qui informe : voir sa
+    // carte est précisément ce que la réclamation donne.
+    const reader = readFileSync(resolve(__dirname, "./retainedItems.ts"), "utf8");
+    const load = reader.slice(reader.indexOf("export async function loadKnownStore"));
+    expect(load.slice(0, 2000)).not.toContain("not_owner");
+  });
+
+  it("chaque refus a SA phrase, dans les DEUX langues", () => {
+    const card = readFileSync(
+      resolve(__dirname, "../components/KnownAboutYouCard.tsx"),
+      "utf8",
+    );
+    expect(card).toContain('not_owner: "known.error.not_owner"');
+    const fr = readFileSync(resolve(__dirname, "../i18n/fr.ts"), "utf8");
+    const en = readFileSync(resolve(__dirname, "../i18n/en.ts"), "utf8");
+    expect(fr).toContain('"known.error.not_owner"');
+    expect(en).toContain('"known.error.not_owner"');
+  });
+
+  it("la phrase DIT où le geste se fait, elle ne dit pas seulement non", () => {
+    // Un refus qui ne dit pas où aller est un mur. Celui-ci nomme le compte
+    // qui tient la maison, et promet que ça remontera ici.
+    const fr = readFileSync(resolve(__dirname, "../i18n/fr.ts"), "utf8");
+    const line = fr.split("\n").find((l) => l.includes('"known.error.not_owner"'))!;
+    expect(line).toMatch(/compte qui tient la maison/);
+    expect(line).toMatch(/Rien n'a été écrit/);
   });
 });

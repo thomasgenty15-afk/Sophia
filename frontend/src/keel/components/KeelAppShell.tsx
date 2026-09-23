@@ -620,6 +620,9 @@ export function KeelShellBar({ variant = "student" }: { variant?: ShellVariant }
               {variant === "student" && (
                 <MenuLink to="/app/billing" label={t("shell.nav.billing")} />
               )}
+              {/* Le guide « ajouter Sophia à l'écran d'accueil ». Pour les deux
+                  variantes: un coach aussi ouvre l'app sur son téléphone. */}
+              <MenuLink to="/installer-app" label={t("shell.nav.install_app")} />
               <MenuLink to="/legal" label={t("shell.nav.legal")} muted />
               <button
                 type="button"
@@ -764,6 +767,14 @@ function ShellBottomBar({
               {!slotPicker
                 ? (
                   <>
+                    {/* ⟳ 2026-09-23 — « SUIVI DES REPAS »: on y coche ce qu'on
+                        n'a pas mangé. La fenêtre vit sur `/app/chat`, comme les
+                        trois autres gestes du tiroir. */}
+                    <QuickAddItem
+                      testId="shell-quick-add-week"
+                      label={t("chat.compose.add.week")}
+                      onSelect={() => armAndGo({ kind: "meals" })}
+                    />
                     <QuickAddItem
                       testId="shell-quick-add-photo"
                       label={t("chat.compose.add.photo")}

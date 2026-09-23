@@ -76,6 +76,7 @@ function catalog(
     excludedGroups: [],
     forbidden: [],
     totalCap: CATALOG_TOTAL_CAP,
+    pinned: [],
     ...over,
   });
 }
@@ -141,6 +142,51 @@ Deno.test("les GROUPES suivent l'ordre de `FOOD_GROUP_REFS`, jamais celui de la 
   for (let i = 1; i < groups.length; i++) {
     assert(rank(groups[i - 1]) <= rank(groups[i]), `${groups} n'est pas trié`);
   }
+});
+
+/**
+ * ⟳ 2026-09-22 — L'ÉPINGLE. Mesuré : « lait d'avoine » voulu, servi en lait
+ * de soja, parce que `oat_milk` (0 alias, groupe `whole_grain` plafonné à 8
+ * sur 27) n'entrait jamais dans le catalogue. Un aliment demandé passe
+ * au-delà du plafond ; la sécurité passe avant l'épingle.
+ */
+Deno.test("⛔ UN ALIMENT ÉPINGLÉ PASSE AU-DELÀ DU PLAFOND DE SON GROUPE, et c'est compté", () => {
+  const refs = Array.from({ length: CATALOG_GROUP_CAPS.poultry + 3 }, (_, i) =>
+    ref({ slug: `bird_${String(i).padStart(2, "0")}` }));
+  const aliases = refs.map((r, i) => ({ alias: `oiseau ${i}`, slug: r.slug }));
+  const last = refs[refs.length - 1].slug;
+  const without = catalog(refs, {}, aliases);
+  assert(!without.entries.some((e) => e.slug === last), "sans épingle, le dernier est coupé");
+  const withPin = catalog(refs, { pinned: [last] }, aliases);
+  assert(withPin.entries.some((e) => e.slug === last), "épinglé, il entre");
+  assertEquals(withPin.counters.pinned_asked, 1);
+  assertEquals(withPin.counters.pinned_kept, 1);
+  assertEquals(withPin.counters.pinned_over_cap, 1);
+  assertEquals(withPin.counters.pinned_unknown, 0);
+  assertEquals(withPin.counters.pinned_refused, 0);
+  assertEquals(withPin.counters.over_group_cap, without.counters.over_group_cap - 1);
+});
+
+Deno.test("⛔ LA SÉCURITÉ PASSE AVANT L'ÉPINGLE : exclu, interdit ou non composable, un épinglé reste dehors", () => {
+  const refs = [ref({ slug: "chicken_breast" }), ref({ slug: "salmon", foodGroupRef: "fatty_fish" })];
+  const byGroup = catalog(refs, { pinned: ["salmon"], excludedGroups: ["fatty_fish"] });
+  assert(!byGroup.entries.some((e) => e.slug === "salmon"));
+  assertEquals(byGroup.counters.pinned_refused, 1);
+  assertEquals(byGroup.counters.pinned_kept, 0);
+  const byTerm = catalog(refs, { pinned: ["salmon"], forbidden: [{ ruleId: "c1", token: "salmon", surfaceForms: ["saumon"] }] });
+  assert(!byTerm.entries.some((e) => e.slug === "salmon"));
+  assertEquals(byTerm.counters.pinned_refused, 1);
+  const byGate = catalog(refs, { pinned: ["salmon"], isComposable: (r) => r.slug !== "salmon" });
+  assert(!byGate.entries.some((e) => e.slug === "salmon"));
+  assertEquals(byGate.counters.pinned_refused, 1);
+});
+
+Deno.test("un épinglé que le référentiel ne connaît pas est compté, jamais inventé", () => {
+  const cat = catalog([ref({ slug: "chicken_breast" })], { pinned: ["oat_milk", "chicken_breast"] });
+  assertEquals(cat.counters.pinned_asked, 2);
+  assertEquals(cat.counters.pinned_unknown, 1);
+  assertEquals(cat.counters.pinned_kept, 1);
+  assertEquals(cat.entries.map((e) => e.slug), ["chicken_breast"]);
 });
 
 Deno.test("⛔ LE PLAFOND PAR GROUPE MORD, ET CE QU'IL COUPE EST COMPTÉ", () => {

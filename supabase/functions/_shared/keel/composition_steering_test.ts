@@ -30,6 +30,10 @@ import {
   envelopeFor,
   MAINTENANCE_ENVELOPE_DIRECTION,
 } from "./meal_envelope.ts";
+// ⟳ 2026-09-23 — `envelopeFor` prend un onzième paramètre, l'âge exact
+// (`exactAgeYears`). Ce fichier passe `null` à chaque appel : l'équation du
+// corps garde le milieu de la tranche d'âge, et aucun nombre ci-dessous ne
+// bouge.
 import {
   compileAllDoctrineVariants,
   compileDoctrineBlock,
@@ -94,9 +98,9 @@ Deno.test("A1: un `aggressive` posé dans le jsonb est lu `standard` ET compté"
 
 Deno.test("A1: aucun pilotage ne peut creuser le déficit", () => {
   const b = body({ heightCm: 200, latestWeight: { weekStart: "w", value: 140 } });
-  const plain = envelopeFor("fat_loss", b, "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION);
+  const plain = envelopeFor("fat_loss", b, "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION, null);
   for (const style of ["gentle", "standard"] as const) {
-    const piloted = envelopeFor("fat_loss", b, "30_44", false, entry({ deficit_style: style }), null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION);
+    const piloted = envelopeFor("fat_loss", b, "30_44", false, entry({ deficit_style: style }), null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION, null);
     assert(plain.mode === "per_kg" && piloted.mode === "per_kg");
     assert(
       piloted.energy!.low >= plain.energy!.low,
@@ -194,8 +198,8 @@ Deno.test("sous flag, un coach qui pilote produit l'enveloppe DÉGRADÉE, à l'i
   // d'un élève au corps inconnu chez un coach muet — sinon le statut de
   // restriction devient lisible.
   const piloting = entry({ priorities: ["energy"], protein_range: "very_high" });
-  const flagged = envelopeFor("fat_loss", body({ restrictionFlag: true }), "30_44", true, piloting, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION);
-  const unknownBody = envelopeFor("fat_loss", null, null, false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION);
+  const flagged = envelopeFor("fat_loss", body({ restrictionFlag: true }), "30_44", true, piloting, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION, null);
+  const unknownBody = envelopeFor("fat_loss", null, null, false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION, null);
   assertEquals(envelopeFingerprint(flagged), envelopeFingerprint(unknownBody));
 });
 
@@ -204,7 +208,7 @@ Deno.test("l'indiscernabilité tient pour TOUTES les dynamiques ET tous les pilo
   for (const goal of GOAL_TOKENS) {
     for (const steering of [null, entry({ priorities: ["energy"] }), entry({ off: ["energy"] })]) {
       prints.add(envelopeFingerprint(
-        envelopeFor(goal, body({ restrictionFlag: true }), "30_44", true, steering, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION),
+        envelopeFor(goal, body({ restrictionFlag: true }), "30_44", true, steering, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION, null),
       ));
     }
   }
@@ -224,8 +228,8 @@ Deno.test("`applyPiloting` sur une enveloppe per_portion la rend TELLE QUELLE", 
 // ---------------------------------------------------------------------------
 
 Deno.test("`off: [energy]` retire la bande, pas le plancher protéique", () => {
-  const off = envelopeFor("fat_loss", body(), "30_44", false, entry({ off: ["energy"] }), null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION);
-  const on = envelopeFor("fat_loss", body(), "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION);
+  const off = envelopeFor("fat_loss", body(), "30_44", false, entry({ off: ["energy"] }), null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION, null);
+  const on = envelopeFor("fat_loss", body(), "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION, null);
   assert(off.mode === "per_kg" && on.mode === "per_kg");
   assertEquals(off.energy, null);
   // Les ceintures produit survivent: le plancher protéique est le rang 2 du
@@ -234,8 +238,8 @@ Deno.test("`off: [energy]` retire la bande, pas le plancher protéique", () => {
 });
 
 Deno.test("`protein_range` HAUSSE le plancher, jamais ne le baisse", () => {
-  const base = envelopeFor("maintenance", body(), "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION);
-  const high = envelopeFor("maintenance", body(), "30_44", false, entry({ protein_range: "very_high" }), null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION);
+  const base = envelopeFor("maintenance", body(), "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION, null);
+  const high = envelopeFor("maintenance", body(), "30_44", false, entry({ protein_range: "very_high" }), null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION, null);
   assert(base.mode === "per_kg" && high.mode === "per_kg");
   assert(high.proteinFloorG > base.proteinFloorG);
 });

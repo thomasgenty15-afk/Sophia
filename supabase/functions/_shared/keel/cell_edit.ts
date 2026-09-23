@@ -144,6 +144,7 @@ export function cellEditInstruction(args: {
     "The person asked for a change on ONLY these cells (rewrite the dishes of these cells and nothing else):",
     ...lines,
     "Rewrite the dishes of those cells — same day, same slot, same people served — so that what they wrote is satisfied, with the same effort and the same rules as the rest of the plan.",
+    "A listed cell that has NO dish in THE PLAN below is an EMPTY cell the calendar still serves: WRITE its dish there, for the people the calendar names on that cell — a no-cook dish when no preparation can serve it. An empty cell is never an answer.",
     "Every other dish, preparation, cooking session and shopping line must come back EXACTLY as below: same titles, same ingredients, same quantities, same ids. If the change needs a new preparation, add it; never rename, resize or drop an existing one that another dish still uses.",
     "Return the FULL plan, in the same JSON shape as below.",
     "",
@@ -155,11 +156,20 @@ export function cellEditInstruction(args: {
 export interface CellEditOutcome {
   /** Le plan de départ, avec SEULEMENT les cases prises remplacées. */
   readonly meal: GeneratedMeal;
-  /** Les cases demandées ET rendues ET existantes au départ — remplacées. */
+  /** Les cases demandées ET rendues ET connues (au plan ou au calendrier) — remplacées ou remplies. */
   readonly taken: readonly string[];
-  /** Demandées, existantes, mais absentes de la réponse du modèle. */
+  /**
+   * ⟳ 2026-09-21 — LES CASES PRISES QUI N'AVAIENT AUCUN PLAT AU DÉPART, un
+   * sous-ensemble de `taken`. Mesuré sur `d65f57e2` : « il manque le repas
+   * du mardi midi » visait une case que le calendrier sert et que le plan
+   * laissait vide ; le modèle l'a écrite (20 plats contre 19) et la fusion
+   * la refusait comme `unknown`. Une case que le calendrier liste est
+   * connue, avec ou sans plat.
+   */
+  readonly filled: readonly string[];
+  /** Demandées, connues, mais absentes de la réponse du modèle. */
   readonly notRendered: readonly string[];
-  /** Demandées, mais aucun plat à cette case dans le plan de départ. */
+  /** Demandées, mais ni au plan de départ ni au calendrier du foyer. */
   readonly unknown: readonly string[];
   /** Les plats du départ qui ne bougent pas — à recompter à l'arrivée. */
   readonly untouched: number;
@@ -171,14 +181,24 @@ export interface CellEditOutcome {
  * qui existent dans `base` ; `mergeRetryCells` importe leurs casseroles,
  * sessions et courses et élague ce que la case remplacée laissait orphelin.
  *
- * ⛔ UNE CASE INCONNUE AU DÉPART N'EST PAS PRISE, même si le modèle l'a rendue :
- * « refais le jeudi soir » sur un plan qui n'a pas de jeudi soir n'ajoute pas
- * un repas — la personne demandait un changement, pas une case de plus.
+ * ⛔ UNE CASE INCONNUE N'EST PAS PRISE, même si le modèle l'a rendue :
+ * « refais le jeudi soir » sur un foyer où personne ne mange le jeudi soir
+ * n'ajoute pas un repas — la personne demandait un changement, pas une case
+ * de plus. ⟳ 2026-09-21 — « inconnue » se mesure au CALENDRIER, pas au plan :
+ * une case que la grille sert et que le plan a laissée vide est un défaut du
+ * plan, et « il manque le repas du mardi midi » est exactement la demande de
+ * la remplir.
  */
 export function mergeCellEdit(args: {
   readonly base: GeneratedMeal;
   readonly retry: GeneratedMeal;
   readonly cells: readonly CellEdit[];
+  /**
+   * ⟳ 2026-09-21 — LES CASES QUE LE CALENDRIER DU FOYER SERT sur cette
+   * fenêtre (au moins un mangeur). ⛔ REQUIS : optionnel, une case vide
+   * redeviendrait « inconnue » et le refus reprendrait en silence.
+   */
+  readonly calendar: readonly { readonly day: string; readonly slot: string }[];
   /**
    * ⟳ 2026-09-12 · C3 — LE RÉFÉRENTIEL, TRAVERSÉ JUSQU'À LA FUSION.
    *
@@ -191,10 +211,11 @@ export function mergeCellEdit(args: {
   readonly index: CompositionIndex | null;
 }): CellEditOutcome {
   const baseCells = new Set(args.base.dishes.map(cellEditKey));
+  const calendarCells = new Set(args.calendar.map(cellEditKey));
   const retryCells = new Set(args.retry.dishes.map(cellEditKey));
   const requested = [...new Set(args.cells.map(cellEditKey))];
-  const unknown = requested.filter((k) => !baseCells.has(k));
-  const known = requested.filter((k) => baseCells.has(k));
+  const unknown = requested.filter((k) => !baseCells.has(k) && !calendarCells.has(k));
+  const known = requested.filter((k) => baseCells.has(k) || calendarCells.has(k));
   const notRendered = known.filter((k) => !retryCells.has(k));
   const taken = known.filter((k) => retryCells.has(k));
   const merge = mergeRetryCells({
@@ -205,5 +226,6 @@ export function mergeCellEdit(args: {
   });
   const takenSet = new Set(merge.cells);
   const untouched = args.base.dishes.filter((d) => !takenSet.has(cellEditKey(d))).length;
-  return { meal: merge.meal, taken: merge.cells, notRendered, unknown, untouched, merge };
+  const filled = merge.cells.filter((k) => !baseCells.has(k));
+  return { meal: merge.meal, taken: merge.cells, filled, notRendered, unknown, untouched, merge };
 }

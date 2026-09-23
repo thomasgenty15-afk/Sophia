@@ -20,7 +20,9 @@ import {
   LIGHT_DISH_MIN_KCAL_PER_100G,
   NORMAL_DISH_MIN_KCAL_PER_100G,
   STANDARD_RECIPE_BLOCK,
+  standardRecipeBlock,
 } from "./household_meal_generation.ts";
+import type { SideCourseAsk } from "./side_courses_types.ts";
 import {
   buildPortionBrief,
   densityFloorsOf,
@@ -293,7 +295,13 @@ Deno.test("IDENTITÉ — `legacy_measure` est le DÉFAUT de forme, à toute tail
 });
 
 Deno.test("la version dit le lot, et l'arbitrage l'a suivie", () => {
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v36_the_goal_outranks_the_habit");
+  // ⟳ 2026-09-23 — v37: la recette de référence et le plat qui n'est plus tout
+  // le repas (voir le ④ en fin de fichier).
+  // ⟳ 2026-09-23 — v38: le féculent à part pour tout déjeuner et tout dîner,
+  // seul ou partagé (voir le ⑥ en fin de fichier).
+  // ⟳ 2026-09-23 — v39: les à-côtés en familles (`side_courses_prompt.ts`).
+  // ⟳ 2026-09-23 — v40: la table partage ses à-côtés (`side_courses_prompt.ts`).
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v41_what_came_back_is_named");
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -498,4 +506,251 @@ Deno.test("⛔ LA MÉTHODE DE CALCUL EST DITE, ET LA TABLE AVEC — 2026-09-10",
   // interdite ici, et l'exemple du riz sec ne la porte pas.
   assertEquals(bloc.match(/\d+\s*kcal(?!\s*per\s*100\s*g)/gi), null);
   assertEquals(bloc.match(/\bkg\b/gi), null);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ④ ⟳ 2026-09-23 — LA RECETTE DE RÉFÉRENCE, ET LE PLAT QUI N'EST PLUS TOUT LE
+//    REPAS (audit `docs/keel/AUDIT-DOSAGES-2026-09-23.md`)
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// ⛔ CE QUE CES CAS PROUVENT, ET CE QU'ILS NE PROUVENT PAS. Aucun appel modèle:
+// ils tiennent que la consigne CONTIENT la part de référence et ne contient
+// PLUS les phrases qui envoyaient au féculent. L'effet sur une assiette rendue
+// se mesure à la campagne (vague 4), pas ici.
+
+/** L'index de la LIGNE qui contient `needle`, ou −1. */
+function lineOf(lines: readonly string[], needle: string): number {
+  return lines.findIndex((l) => l.includes(needle));
+}
+
+Deno.test("④ LA PART DE RÉFÉRENCE est écrite en grammes, pour la personne du MILIEU", () => {
+  const bloc = STANDARD_RECIPE_BLOCK.join("\n");
+  assert(bloc.includes("THE TEMPLATE: one serving is the ordinary plate of the person in the MIDDLE"));
+  assert(bloc.includes("never the biggest eater's"), "l'échappatoire est nommée");
+  // La casserole principale.
+  assert(bloc.includes("110 to 130 g of lean protein, raw (tofu 100 to\n    150 g)"), bloc);
+  assert(bloc.includes("180 to 200 g of vegetables, 10 ml of oil, at most 15 g of cheese"), bloc);
+  // Le petit-déjeuner, et la protéine là où elle est vraiment.
+  assert(bloc.includes("50 to 60 g of oat flakes or muesli; 125 g of skyr"), bloc);
+  assert(bloc.includes("or fromage blanc, or 200 ml of milk; one fruit of 100 to 120 g; 15 to 20 g"));
+  assert(bloc.includes("at most 2 eggs"));
+  assert(bloc.includes("Skyr and fromage blanc carry the protein;"));
+  assert(bloc.includes("greek yogurt does not"), "le « greek yogurt » du référentiel est entier");
+  assert(bloc.includes("A frittata with 300 g\n    of tomato per serving is not a breakfast."));
+  // ⛔ LA GARDE DE FUITE: des grammes, jamais un kcal qui ne soit une densité.
+  assertEquals(bloc.match(/\d+\s*kcal(?!\s*per\s*100\s*g)/gi), null);
+});
+
+Deno.test("④ ⛔ LE FÉCULENT DE RÉFÉRENCE EST DANS LA PHRASE DE `separable_side` (4 lignes au plus)", () => {
+  // « La promesse et la clé de schéma doivent se toucher »: la part de féculent
+  // dite loin de la clé qui la porte serait suivie à 0 %.
+  const lines = STANDARD_RECIPE_BLOCK;
+  const key = lineOf(lines, 'role "separable_side"');
+  const grain = lineOf(lines, "60 to 70 g of dry");
+  const potato = lineOf(lines, "220 to 250 g of potatoes");
+  const bread = lineOf(lines, "80 to 90 g of bread -- never more");
+  assert(key >= 0 && grain >= 0 && potato >= 0 && bread >= 0, lines.join("\n"));
+  for (const [nom, at] of [["céréale", grain], ["pomme de terre", potato], ["pain", bread]] as const) {
+    assert(at >= key && at - key <= 3, `${nom} à ${at - key} lignes de la clé`);
+  }
+  const bloc = lines.join("\n");
+  assert(bloc.includes("(never at a table where a card says muscle\ngain)"), "la pomme de terre a sa garde");
+  // ⚠️ LE MODÈLE VÉRIFIE PAR LA DIVISION QU'IL FAIT DÉJÀ À L'ÉTAPE 1.
+  assert(bloc.includes('divide each pot by its\n"servings_made"; one serving must land in THE TEMPLATE.'));
+});
+
+Deno.test("④ ⛔ LES PHRASES QUI POUSSAIENT AU FÉCULENT SONT PARTIES — et leurs remplaçantes sont là", () => {
+  for (const served of [true, false]) {
+    const bloc = standardRecipeBlock({ normal: 100, light: 60 }, { served }).join("\n");
+    // ── ce qui MORD: chacune a été servie jusqu'au 2026-09-22 ──────────────
+    for (
+      const gone of [
+        "Reach the density with the starch",
+        "energy of a plate comes from the starch",
+        "SMALLEST serving",
+        "aim 200 g per serving",
+        "There is no starter: the dish is the unit",
+        "more starch, protein",
+      ]
+    ) {
+      assert(!bloc.replace(/\n/g, " ").includes(gone), `« ${gone} » est revenu (served=${served})`);
+    }
+    // ── ce qui PASSE: les gestes de remplacement ────────────────────────────
+    assert(bloc.includes("Reach the density with what THE\nTEMPLATE gives"), bloc);
+    assert(bloc.includes("never a bigger piece to reach a density"), bloc);
+    assert(
+      bloc.includes(
+        "less cooking water, legumes in the main pot or 10 g\n    more cheese; never more starch than THE TEMPLATE, never fewer vegetables;",
+      ),
+      bloc,
+    );
+    assert(bloc.includes("Never add a dessert, bread or a starter to a dish"), bloc);
+  }
+});
+
+Deno.test("④ LE RENVOI « (SIDE COURSES) » N'EST ÉCRIT QUE SI LE BLOC L'EST", () => {
+  // ⛔ Cicatrice du « ci-dessus » qui ne pointe nulle part: la phrase renvoie à
+  // un bloc; servie sans lui, elle renverrait dans le vide.
+  const avec = standardRecipeBlock({ normal: 100, light: 60 }, { served: true }).join("\n");
+  const sans = standardRecipeBlock({ normal: 100, light: 60 }, { served: false }).join("\n");
+  assert(avec.includes(
+    "The dish is not the whole meal: the app serves a side course beside it (SIDE COURSES). Never add a dessert, bread or a starter to a dish.",
+  ));
+  assert(!sans.includes("SIDE COURSES"), sans);
+  assert(!sans.includes("side course"), sans);
+  // La forme canonique est celle qui sert les à-côtés.
+  assertEquals(STANDARD_RECIPE_BLOCK.join("\n"), avec);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⑤ ⟳ 2026-09-23 — v33 (PERSONNE SEULE): LES À-CÔTÉS, UNE LIGNE PAR JOUR
+// ═══════════════════════════════════════════════════════════════════════════
+
+function ask(over: Partial<SideCourseAsk> & { dayToken: string; slot: "lunch" | "dinner" }): SideCourseAsk {
+  return {
+    memberId: "m-solo",
+    dayIndex: over.dayToken === "mon" ? 0 : 1,
+    goal: "fat_loss",
+    courses: [{ kind: "starter", kcal: 60, proteinEstG: 1.5 }, { kind: "dessert", kcal: 80, proteinEstG: 0.8 }],
+    ...over,
+  };
+}
+
+Deno.test("⑤ v33 — la répartition est dans le bloc, UNE LIGNE PAR JOUR, et elle est comptée", () => {
+  const asks = [
+    ask({ dayToken: "tue", slot: "dinner", courses: [{ kind: "dessert", kcal: 80, proteinEstG: 0.8 }] }),
+    ask({ dayToken: "mon", slot: "dinner", courses: [{ kind: "starter", kcal: 60, proteinEstG: 1.5 }] }),
+    ask({ dayToken: "mon", slot: "lunch" }),
+    ask({ dayToken: "tue", slot: "lunch" }),
+  ];
+  const b = blocks({ sizingPath: "portion_v1", sideCourses: asks });
+  const u = b.userSuffix;
+  assert(u.includes("== SIDE COURSES (household): ONE FOOD BESIDE THE DISH =="), u);
+  // L'ordre de la fenêtre, puis déjeuner avant dîner — jamais l'ordre d'arrivée.
+  assert(u.includes("- mon: lunch — Alex starter + dessert; dinner — Alex starter."), u);
+  assert(u.includes("- tue: lunch — Alex starter + dessert; dinner — Alex dessert."), u);
+  assert(u.indexOf("- mon:") < u.indexOf("- tue:"));
+  // ⛔ LE COMPTEUR COMPENSE LE CHAMP OPTIONNEL — tous présents.
+  assertEquals(b.sideCourses, { given: 6, prompt_asked: 6, cells: 4, unplaced: 0 });
+  // La recette renvoie au bloc, et le bloc la suit.
+  assert(u.includes("(SIDE COURSES). Never add a dessert"), "le renvoi est servi");
+  assert(u.indexOf("WRITE ONE STANDARD RECIPE PER DISH") < u.indexOf("== SIDE COURSES"));
+  // ⚠️ LA RÉPARATION REÇOIT LES MÊMES TEXTES, pas une seconde rédaction.
+  assert(b.repairContext.sideCourses.includes("- mon: lunch — Alex starter + dessert"));
+  assert(u.includes(b.repairContext.sideCourses));
+  assert(u.includes(b.repairContext.standardRecipe));
+  assert(b.repairContext.standardRecipe.startsWith("== WRITE ONE STANDARD RECIPE PER DISH =="));
+  assert(u.includes(b.repairContext.cards));
+  // ⛔ ET TOUJOURS AUCUN kcal nu: les calories d'un à-côté restent au moteur.
+  assertEquals(u.match(/\d+\s*kcal(?!\s*per\s*100\s*g)/gi), null);
+});
+
+Deno.test("⑤ v33 — SANS à-côté, aucun bloc, aucun renvoi, et le compteur le dit", () => {
+  const sans = blocks({ sizingPath: "portion_v1" });
+  const vide = blocks({ sizingPath: "portion_v1", sideCourses: [] });
+  assertEquals(sans.userSuffix, vide.userSuffix, "`[]` et champ absent se lisent pareil");
+  assert(!sans.userSuffix.includes("SIDE COURSES"), sans.userSuffix);
+  assert(sans.userSuffix.includes("Never add a dessert, bread or a starter to a dish: the dish is what you write"));
+  assertEquals(sans.sideCourses, { given: 0, prompt_asked: 0, cells: 0, unplaced: 0 });
+  assertEquals(sans.repairContext.sideCourses, "");
+});
+
+Deno.test("⑤ v33 — une demande pour quelqu'un hors du prompt n'est PAS écrite, et elle est comptée", () => {
+  const b = blocks({
+    sizingPath: "portion_v1",
+    sideCourses: [ask({ dayToken: "mon", slot: "lunch" }), ask({ memberId: "m-inconnu", dayToken: "mon", slot: "dinner" })],
+  });
+  assert(!b.userSuffix.includes("m-inconnu"), "un id que rien ne présente est écrit");
+  assertEquals(b.sideCourses, { given: 4, prompt_asked: 2, cells: 1, unplaced: 2 });
+});
+
+Deno.test("⑤ `legacy_measure` — le bloc sort aussi, mais sans recette, donc sans renvoi", () => {
+  const b = blocks({ sideCourses: [ask({ dayToken: "mon", slot: "lunch" })] });
+  assert(b.userSuffix.includes("== SIDE COURSES"), "les à-côtés ne dépendent pas du chemin de mesure");
+  assert(!b.userSuffix.includes("(SIDE COURSES)"), "aucune recette, donc aucun renvoi");
+  assertEquals(b.repairContext.standardRecipe, "");
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⑥ ⟳ 2026-09-23 — v38: UNE SEULE RÈGLE DU FÉCULENT, SEUL OU À PLUSIEURS
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// ⛔ LE DÉFAUT, MESURÉ SUR LE BROUILLON `1461270e` (une personne seule, en
+// perte de poids): aucun plat n'avait son féculent à part, céréale sèche
+// médiane 69 g, part d'énergie du féculent 0,35 contre 0,30 visé. La consigne
+// disait « A lunch or dinner eaten by ONE person is a complete plate in ONE
+// dish »; seul un repas PARTAGÉ recevait l'ordre `separable_side`.
+
+/** Ce qui manque ou ce qui reste de l'ancienne règle à deux branches. */
+function regleDuFeculent(texte: string): string[] {
+  const plat = texte.replace(/\n/g, " ");
+  const ecarts: string[] = [];
+  if (!plat.includes("Every lunch and dinner, eaten alone or shared, is ONE main preparation")) {
+    ecarts.push("la règle unique manque");
+  }
+  for (
+    const branche of [
+      "is a complete plate in ONE dish",
+      "eaten by ONE person",
+      "SHARED by two people or more",
+      "the starch pot of a shared dish",
+    ]
+  ) {
+    if (plat.includes(branche)) ecarts.push(branche);
+  }
+  return ecarts;
+}
+
+Deno.test("⑥ v38 — PASSE: la recette servie porte UNE règle, sans branche", () => {
+  for (const served of [true, false]) {
+    const bloc = standardRecipeBlock({ normal: 100, light: 60 }, { served }).join("\n");
+    assertEquals(regleDuFeculent(bloc), [], `served=${served}`);
+    // La même phrase porte la préparation principale, THE TEMPLATE et la clé.
+    assert(
+      bloc.includes(
+        "Every lunch and dinner, eaten alone or shared, is ONE main preparation (the\n" +
+          "protein, the vegetables, the sauce, in the amounts of THE TEMPLATE's main pot)\n" +
+          "AND its starch as a SEPARATE preparation, cooked in its own pot: rice, pasta,\n" +
+          "semolina, bulgur, quinoa or potatoes. The\n" +
+          'starch preparation has one component, role "separable_side", and the dish\n' +
+          '"uses" BOTH preparations;',
+      ),
+      bloc,
+    );
+    // La casserole-féculent de TOUT plat est exemptée des 150 g de légumes.
+    assert(bloc.includes("serving (the starch pot excepted: its vegetables are in\nthe main pot);"), bloc);
+  }
+});
+
+Deno.test("⑥ v38 — MORD: l'ancienne règle à deux branches est refusée", () => {
+  // ÉCRITE EN DUR, telle qu'elle était servie jusqu'à v37.
+  const ancienne = [
+    "A lunch or dinner eaten by ONE person is a complete plate in ONE dish: a",
+    "starch, a protein, a fat, in the amounts of THE TEMPLATE.",
+    "A lunch or dinner SHARED by two people or more is ONE main preparation (the",
+    "protein, the vegetables, the sauce) AND its starch as a SEPARATE preparation,",
+  ].join("\n");
+  assertEquals(regleDuFeculent(ancienne), [
+    "la règle unique manque",
+    "is a complete plate in ONE dish",
+    "eaten by ONE person",
+    "SHARED by two people or more",
+  ]);
+  // Et la vieille phrase remise à côté de la nouvelle mord aussi.
+  const bloc = STANDARD_RECIPE_BLOCK.join("\n");
+  assertEquals(regleDuFeculent(`${ancienne.split("\n").slice(0, 2).join("\n")}\n${bloc}`), [
+    "is a complete plate in ONE dish",
+    "eaten by ONE person",
+  ]);
+});
+
+Deno.test("⑥ v38 — v33 (personne seule, `portion_v1`) reçoit la règle unique", () => {
+  const { userSuffix, repairContext } = blocks({ sizingPath: "portion_v1" });
+  assertEquals(regleDuFeculent(userSuffix), [], userSuffix);
+  assertEquals(userSuffix.split("Every lunch and dinner, eaten alone or shared").length - 1, 1);
+  // La réparation reçoit le même texte.
+  assertEquals(regleDuFeculent(repairContext.standardRecipe), []);
+  // ⚠️ Sous `legacy_measure` la recette n'est pas servie: la règle non plus.
+  const legacy = blocks({});
+  assert(!legacy.userSuffix.includes("eaten alone or shared"), "la recette fuit vers legacy_measure");
 });

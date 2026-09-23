@@ -150,7 +150,9 @@ describe("le câblage — l'envie part quand le maître compose pour le foyer", 
     // générateur relit la table côté serveur, donc écrire après composerait le
     // plan sans ce qu'on vient de saisir.
     const write = src.indexOf("await submitEnvy(envyWeek, line)");
-    const compose = src.indexOf("await generateHouseholdMeal(");
+    // ⟳ 2026-09-21 — le composeur remet le brouillon à la page (aperçu
+    // d'abord); c'est ce geste-là qui doit venir APRÈS l'envie.
+    const compose = src.indexOf("await props.onPreviewPlan(");
     expect(write, "l'écrivain de la ligne de la semaine a disparu")
       .toBeGreaterThan(-1);
     expect(compose, "la composition est introuvable").toBeGreaterThan(-1);

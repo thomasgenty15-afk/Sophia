@@ -169,7 +169,7 @@ describe("une mère morte dont la relance peut venir", () => {
       },
     });
     try {
-      expect(await recoverLatestDraft()).toEqual({ state: "in_flight", draftId: MOTHER });
+      expect(await recoverLatestDraft()).toEqual({ state: "in_flight", draftId: MOTHER, origin: null, replaces: null, input: null });
     } finally {
       (supabase as { from: unknown }).from = orig;
     }

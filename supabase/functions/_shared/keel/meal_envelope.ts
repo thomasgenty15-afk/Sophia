@@ -131,7 +131,17 @@ export type Envelope =
  * pas exprimer sa méthode. Il garde sa conviction citable dans le chat; le
  * moteur ne l'exécute pas.
  */
-export const MAX_DAILY_DEFICIT_KCAL = 500;
+/**
+ * ⟳ 2026-09-22 — A1 RÉVISÉ PAR LE PRODUIT : 880 kcal/j, soit 0,8 kg/sem
+ * (880 × 7 / 7 700). Décision du propriétaire, mesurée sur Fabrice (93 kg,
+ * perte) : à 500 kcal/j le curseur s'arrêtait à 0,45 kg/sem, et le plan le
+ * servait à 2 200 kcal quand sa dépense réelle est de 2 400 à 2 600 — une
+ * perte de 0,2 à 0,4 kg/sem. Les deux autres bornes tiennent toujours : le
+ * plancher d'énergie (`ENERGY_FLOOR_KCAL`, 1 500 pour un homme) et la
+ * fraction du corps (1 %/sem). Le paragraphe au-dessus garde son
+ * raisonnement ; c'est le chiffre qui change, pas la nature de la garde.
+ */
+export const MAX_DAILY_DEFICIT_KCAL = 880;
 
 /**
  * Mifflin-St Jeor, puis × 1,5 quand l'activité est INCONNUE.
@@ -283,6 +293,45 @@ export const SPORT_SESSIONS_PER_WEEK: Readonly<Record<SportFrequency, number>> =
   });
 
 /**
+ * ⟳ 2026-09-21 — LE BAS DE CHAQUE BANDE, POUR LE MAINTIEN.
+ *
+ * ⛔ MESURÉ SUR LE PLAN `3e121b21`: une femme de 55 ans, 58 kg, assise, « 3-4
+ * séances », recevait 1 981 kcal de maintien (facteur 1,63) — plausible
+ * seulement si les séances sont de vraies heures. Un maintien surestimé de
+ * 100 à 150 kcal/jour, c'est un demi-kilo par mois pour quelqu'un qui a
+ * demandé à ne pas bouger. Une perte ou une prise porte un ÉCART que la
+ * balance corrige; un maintien ne porte rien, et la dérive la plus courante
+ * est vers le haut. Le maintien prend donc le bas de la bande; les deux
+ * autres directions gardent le milieu (`SPORT_SESSIONS_PER_WEEK`).
+ *
+ * `5_plus` VAUT 5, le bas d'une bande ouverte — même raison qu'au-dessus.
+ */
+export const SPORT_SESSIONS_PER_WEEK_LOW: Readonly<
+  Record<SportFrequency, number>
+> = Object.freeze({
+  none: 0,
+  "1_2": 1,
+  "3_4": 3,
+  "5_plus": 5,
+});
+
+/** Quel bord de la bande de séances gouverne. Fermé, deux valeurs. */
+export const SESSIONS_EDGES = ["mid", "low"] as const;
+export type SessionsEdge = (typeof SESSIONS_EDGES)[number];
+
+/**
+ * LE BORD DE BANDE D'UN OBJECTIF — `low` pour le maintien, `mid` sinon.
+ *
+ * ⚠️ `null` (aucun objectif déclaré: « feed them as usual ») VAUT MAINTIEN,
+ * parce que c'est l'enveloppe qu'il reçoit (`maintenanceEnvelopeFromBody`).
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function sessionsEdgeFor(goal: GoalToken | null): SessionsEdge {
+  return goal === null || goal === "maintenance" ? "low" : "mid";
+}
+
+/**
  * LE CROISEMENT JOURNÉE x SPORT, EN PAL.
  *
  *                  aucun    1-2      3-4      5+
@@ -303,9 +352,17 @@ export const SPORT_SESSIONS_PER_WEEK: Readonly<Record<SportFrequency, number>> =
 export function crossedActivityFactor(
   day: DayActivityLevel,
   sport: SportFrequency,
+  /**
+   * ⟳ 2026-09-21 — REQUIS, jamais `?`: le bord de bande est une décision
+   * par objectif (`sessionsEdgeFor`), et un défaut silencieux ici referait
+   * servir le milieu à un maintien sans qu'aucun appelant ne l'ait choisi.
+   */
+  edge: SessionsEdge,
 ): number {
-  const raw = DAY_ACTIVITY_BASE[day] +
-    SPORT_PAL_PER_WEEKLY_SESSION * SPORT_SESSIONS_PER_WEEK[sport];
+  const sessions = edge === "low"
+    ? SPORT_SESSIONS_PER_WEEK_LOW[sport]
+    : SPORT_SESSIONS_PER_WEEK[sport];
+  const raw = DAY_ACTIVITY_BASE[day] + SPORT_PAL_PER_WEEKLY_SESSION * sessions;
   return Math.round(raw * 100) / 100;
 }
 
@@ -386,9 +443,14 @@ export type ActivityFactorSource = (typeof ACTIVITY_FACTOR_SOURCES)[number];
 export function activityFactorOf(
   axes: ActivityAxes,
   legacyLevel: ActivityLevel | null,
+  /** ⟳ 2026-09-21 — voir `crossedActivityFactor`: requis, jamais `?`. */
+  edge: SessionsEdge,
 ): { factor: number; source: ActivityFactorSource } {
   if (axes.day !== null && axes.sport !== null) {
-    return { factor: crossedActivityFactor(axes.day, axes.sport), source: "crossed" };
+    return {
+      factor: crossedActivityFactor(axes.day, axes.sport, edge),
+      source: "crossed",
+    };
   }
   if (legacyLevel !== null) {
     return { factor: ACTIVITY_FACTORS[legacyLevel], source: "legacy" };
@@ -582,10 +644,18 @@ export function adultMaintenanceKcal(args: {
   weightKg: number | null;
   heightCm: number | null;
   ageBand: AgeBand | null;
+  /**
+   * ⟳ 2026-09-23 — L'ÂGE EXACT, transmis tel quel à `estimatedMaintenanceKcal`
+   * (voir son paramètre homonyme). ⛔ REQUIS, jamais `?`. Il ne touche PAS le
+   * repli au poids: `maintenanceMidKcal` ne lit aucun âge.
+   */
+  ageYears: number | null;
   gender: "male" | "female" | "other" | null;
   activityLevel: ActivityLevel | null;
   activityAxes: ActivityAxes;
   appetite: AppetiteLevel | null;
+  /** ⟳ 2026-09-21 — `sessionsEdgeFor(goal)`. Requis, jamais `?`. */
+  sessionsEdge: SessionsEdge;
 }): { kcal: number | null; basis: MaintenanceBasis } {
   const equation = estimatedMaintenanceKcal(args);
   if (equation !== null && equation > 0) {
@@ -672,23 +742,48 @@ export function bandAroundDayTarget(args: {
 }
 
 /**
- * LE PLANCHER PROTÉIQUE, en g/kg de poids corporel et par jour.
+ * LE PLANCHER PROTÉIQUE, en g/kg de poids de référence et par jour.
  *
- * Morton 2018 (intervalle de confiance), borne haute rationale Helms 2014 pour
- * `fat_loss`; Barakat 2020 pour `recomposition`.
+ * ⟳ 2026-09-20 — RAMENÉ À DES VALEURS DE POPULATION GÉNÉRALE. Les 1,6 et 2,0
+ * d'avant (Morton 2018, Helms 2014) sont des bornes HAUTES de nutrition
+ * sportive, et elles s'appliquaient à tout le monde. Mesuré sur le plan
+ * `911994f7` (3 bouches, 6 jours): une femme de 58 kg en maintien recevait
+ * 134 g/jour (2,3 g/kg), un homme de 93 kg en perte 148 g, et la table
+ * achetait 375 g de viande ou de poisson par personne et par jour. Le
+ * mécanisme est écrit dans `sharedProteinCaps` (`plan_protein_brief.ts`): le
+ * plancher de la bouche la plus exigeante écrit la recette partagée, et
+ * chaque autre bouche l'hérite à sa propre énergie.
+ *
+ *   · `maintenance` 1,2 — la référence des adultes actifs; PROT-AGE reprend
+ *     le même 1,2 pour les seniors, l'ANSES pose 0,83 en apport de sécurité.
+ *   · `fat_loss` 1,2 — le bas de la fourchette clinique de la perte de poids
+ *     (1,2 à 1,5), sur un poids de référence déjà plafonné à l'IMC 30.
+ *   · `muscle_gain` 1,6 — inchangé: la borne au-delà de laquelle Morton 2018
+ *     ne mesure plus de gain.
+ *
+ * ⟳ 2026-09-23 — `fat_loss` 1,4 → 1,2, DÉCISION DU PROPRIÉTAIRE (« 1,2 g/kg
+ * en perte »). L'audit du jour (`docs/keel/AUDIT-DOSAGES-2026-09-23.md` C9)
+ * a trouvé le plancher de la perte à 126 g pour un homme de 93 kg (1,4 × 89,8,
+ * poids plafonné à l'IMC 30), alors que le plancher le plus exigeant d'une
+ * table écrit la recette partagée de tous (`sharedProteinCaps`). À 1,2 il
+ * vaut 108 g. ⚠️ La perte rejoint donc la maintenance: les deux lignes valent
+ * 1,2 et restent deux lignes, parce que ce sont deux décisions — la prochaine
+ * qui bouge l'une ne doit pas emporter l'autre.
+ *
+ * ⛔ UN PLANCHER SEUL NE BORNE RIEN VERS LE HAUT: voir
+ * `PROTEIN_CEILING_G_PER_KG`, juste en dessous.
  */
-const PROTEIN_FLOOR_G_PER_KG: Record<GoalToken, number> = {
-  fat_loss: 2.0,
-  // `recomposition` valait 2,0 (Barakat 2020) et se replie ici, où le plancher
-  // est 1,6. C'est le seul endroit du repli qui RETIRE quelque chose, et il
-  // faut le dire: un élève « recomp » reçoit désormais le plancher protéique
-  // de la maintenance. La contrepartie est qu'il ne reçoit plus non plus la
-  // répartition par repas (voir plus bas) — les deux venaient de la même
-  // hypothèse, « il s'entraîne », que le jeton n'a jamais vérifiée. Celui qui
-  // s'entraîne pour prendre coche `muscle_gain` et garde les deux.
-  maintenance: 1.6,
-  muscle_gain: 1.6,
-};
+export const PROTEIN_FLOOR_G_PER_KG: Readonly<Record<GoalToken, number>> = Object
+  .freeze({
+    fat_loss: 1.2,
+    // `recomposition` se replie ici et reçoit le plancher de la maintenance;
+    // il ne reçoit pas non plus la répartition par repas (voir plus bas) —
+    // les deux venaient de la même hypothèse, « il s'entraîne », que le jeton
+    // n'a jamais vérifiée. Celui qui s'entraîne pour prendre coche
+    // `muscle_gain` et garde les deux.
+    maintenance: 1.2,
+    muscle_gain: 1.6,
+  });
 
 /**
  * LE PLANCHER SPÉCIFIQUE DES 60 ANS ET PLUS.
@@ -699,6 +794,49 @@ const PROTEIN_FLOOR_G_PER_KG: Record<GoalToken, number> = {
  */
 const SENIOR_PROTEIN_FLOOR_G_PER_KG = 1.2;
 const SENIOR_PROTEIN_PER_MEAL_G_PER_KG = 0.4;
+
+/**
+ * LE PLAFOND PROTÉIQUE, en g/kg de poids de référence et par jour — 2026-09-20.
+ *
+ * Jusqu'ici le dépôt ne connaissait qu'un plancher, et la garde finale ne
+ * comptait que `protein_floor_short`: le système ne savait pousser la
+ * protéine que vers le haut. 2,0 g/kg est la borne haute de la littérature
+ * du muscle (Morton 2018: aucun gain mesuré au-delà de 1,6; Helms 2014 monte
+ * à 2,0 sur la masse maigre, en sèche). Au-dessus, chaque gramme prend la
+ * place d'autre chose dans une assiette que le moteur dimensionne à
+ * l'énergie.
+ *
+ * ⚠️ MÊME POIDS DE RÉFÉRENCE QUE LE PLANCHER (`proteinReferenceWeightKg`,
+ * plafonné à l'IMC 30) — sinon un corps corpulent recevrait un plafond hors
+ * de proportion avec son plancher.
+ *
+ * ⛔ CE N'EST PAS UNE GARDE QUI REFUSE. Il sert à deux choses: borner ce que
+ * la carte d'une bouche réclame quand le plat est partagé
+ * (`sharedProteinCaps`), et compter après coup les journées qui le dépassent
+ * (`generated_from.protein_ceiling`). Un plan au-dessus est livré, et compté.
+ */
+export const PROTEIN_CEILING_G_PER_KG = 2.0;
+
+/** Le plafond d'une bouche adulte, ou `null` sans poids ni âge lisibles. */
+export function proteinCeilingGFor(args: {
+  weightKg: number | null;
+  heightCm: number | null;
+  ageYears: number | null;
+}): number | null {
+  const weightKg = args.weightKg;
+  if (weightKg === null || !Number.isFinite(weightKg) || weightKg <= 0) {
+    return null;
+  }
+  const ageBand = ageBandOf(args.ageYears);
+  if (ageBand === null) return null;
+  const reference = proteinReferenceWeightKg({
+    weightKg,
+    heightCm: args.heightCm,
+    ageBand,
+    suspended: false,
+  }).referenceWeightKg;
+  return Math.round(reference * PROTEIN_CEILING_G_PER_KG);
+}
 
 /**
  * LES TROIS CAS — ET SEULEMENT TROIS — OÙ LA DISTRIBUTION PAR REPAS EXISTE.
@@ -1041,11 +1179,37 @@ function applyPortionAdjust(
  * aucun appelant. `null` veut dire « personne n'a répondu » et rend
  * EXACTEMENT le nombre d'avant ce lot: le facteur 1,5, pour toute la base
  * existante.
+ *
+ * ── ⟳ 2026-09-23 · `ageYears` EST REQUIS, ET IL REMPLACE LE MILIEU DE BANDE ─
+ * Décision du propriétaire: l'âge exact plutôt que le milieu de la tranche. Le
+ * défaut qu'il ferme, calculé par l'audit du jour (Q8): un homme de 59 ans
+ * était compté 52 ans, et il aurait perdu d'un coup ~115 kcal/jour le jour de
+ * ses 60 ans, en sautant au milieu de la bande suivante (67). À l'âge exact,
+ * chaque anniversaire retire 5 kcal de métabolisme de base, et rien ne saute.
  */
 export function estimatedMaintenanceKcal(args: {
   weightKg: number | null;
   heightCm: number | null;
   ageBand: AgeBand | null;
+  /**
+   * ⟳ 2026-09-23 — L'ÂGE EN ANNÉES RÉVOLUES, quand on le connaît.
+   *
+   * ⛔ REQUIS, jamais `?`: c'est la casse de compilation qui recense les
+   * appelants, et un défaut `undefined` aurait laissé chaque chemin sur le
+   * milieu de bande sans qu'aucun ne soit nommé. `null` ⇒ le milieu de la
+   * bande, c'est-à-dire EXACTEMENT le nombre d'avant ce lot.
+   *
+   * ⚠️ LA BANDE RESTE LA PORTE. `ageBand === null` rend toujours `null`, âge
+   * exact ou pas: c'est elle qui dit « adulte », et un mineur n'a pas de bande.
+   * Un âge qui CONTREDIT la bande (`ageBandOf(ageYears) !== ageBand`: deux
+   * sources en désaccord, ou un âge de mineur à côté d'une bande d'adulte)
+   * n'est pas cru — on garde le milieu de la bande, le nombre d'avant.
+   *
+   * ⛔ CE NOMBRE NE SORT PAS D'ICI. Il ne sert qu'à l'équation; les consignes
+   * n'impriment que la bande (`MEAL_AGE_BAND_PROSE`, `meal_body.ts`), et
+   * `MealBodyContext` ne porte aucun âge exact.
+   */
+  ageYears: number | null;
   gender: "male" | "female" | "other" | null;
   activityLevel: ActivityLevel | null;
   /**
@@ -1062,21 +1226,41 @@ export function estimatedMaintenanceKcal(args: {
    * `APPETITE_FACTORS`.
    */
   appetite: AppetiteLevel | null;
+  /**
+   * ⟳ 2026-09-21 — LE BORD DE LA BANDE DE SÉANCES (`sessionsEdgeFor`). ⛔
+   * REQUIS, jamais `?`: c'est le compilateur qui recense les appelants, et
+   * le seul qui doive lire `low` est l'enveloppe d'un maintien.
+   */
+  sessionsEdge: SessionsEdge;
 }): number | null {
   const { weightKg, heightCm, ageBand, gender, activityLevel } = args;
   if (!weightKg || !heightCm || !ageBand) return null;
-  // L'ÂGE EST UNE BANDE, PAS UN NOMBRE (FF-030 R8). On prend le MILIEU de la
-  // bande: la formule demande des années, et une bande de quinze ans pèse ~150
-  // kcal sur le résultat — largement à l'intérieur de l'incertitude du facteur
-  // d'activité. Redemander l'âge exact au seul profit de cette formule serait
-  // rouvrir une décision déjà prise ailleurs.
+  // L'ÂGE, DANS LA FORMULE. La BANDE (FF-030 R8) reste ce que le dépôt montre
+  // et ce que les consignes impriment; elle reste aussi la porte, juste
+  // au-dessus.
+  //
+  // ⟳ 2026-09-23 — L'ÂGE EXACT GOUVERNE QUAND ON LE CONNAÎT. Jusqu'ici la
+  // formule prenait le MILIEU de la bande, au motif qu'une bande de quinze ans
+  // « pèse ~150 kcal, à l'intérieur de l'incertitude du facteur d'activité ».
+  // L'incertitude est vraie; le saut ne l'est pas: il tombe le jour d'un
+  // anniversaire, sur une personne dont rien d'autre n'a changé. L'âge est
+  // déjà là (`MouthBody.ageYears`, dérivé de la date de naissance à la
+  // lecture): on ne le redemande à personne, on cesse de le jeter.
+  //
+  // Le milieu de bande reste le repli NOMMÉ: `ageYears === null`, ou un âge
+  // qui contredit la bande (voir le paramètre).
   const midAge: Record<AgeBand, number> = {
     "18_29": 24,
     "30_44": 37,
     "45_59": 52,
     "60_plus": 67,
   };
-  const base = 10 * weightKg + 6.25 * heightCm - 5 * midAge[ageBand];
+  const exactAge = args.ageYears;
+  const ageForFormula = exactAge !== null && Number.isFinite(exactAge) &&
+      ageBandOf(exactAge) === ageBand
+    ? exactAge
+    : midAge[ageBand];
+  const base = 10 * weightKg + 6.25 * heightCm - 5 * ageForFormula;
   const offsetMale = 5;
   const offsetFemale = -161;
   const offset = gender === "male"
@@ -1090,7 +1274,11 @@ export function estimatedMaintenanceKcal(args: {
   // `activityFactorOf` sont la compatibilité ascendante du lot; les rejouer ici
   // ferait deux points de décision, et c'est le second qu'on oublierait de
   // corriger.
-  const { factor } = activityFactorOf(args.activityAxes, activityLevel);
+  const { factor } = activityFactorOf(
+    args.activityAxes,
+    activityLevel,
+    args.sessionsEdge,
+  );
   // ══════════════════════════════════════════════════════════════════════
   // ⟳ 2026-09-10 — L'APPÉTIT SORT DE L'ENTRETIEN ADULTE. IL NE DÉPENSE RIEN.
   // ══════════════════════════════════════════════════════════════════════
@@ -1317,6 +1505,20 @@ export function envelopeFor(
    * n'atteignait pas cette fonction avant ce lot.
    */
   directed: EnvelopeDirection,
+  /**
+   * ── ⟳ 2026-09-23 · L'ÂGE EXACT, À CÔTÉ DE LA BANDE ─────────────────────
+   * En années révolues, ou `null`. Il remplace le milieu de `ageBand` dans
+   * l'équation du corps (`estimatedMaintenanceKcal`), et nulle part ailleurs:
+   * la bande reste la porte (sans elle, pas de bande d'énergie), le plancher
+   * senior et le poids de référence protéique continuent de lire la BANDE.
+   *
+   * ⛔ PARAMÈTRE À PART, pour la raison de `restrictionFlag` et
+   * `activityLevel`: `MealBodyContext` ne porte qu'une BANDE d'âge, et c'est
+   * voulu — ce type nourrit aussi les consignes (`mealBodyBlocks`), où un âge
+   * exact ne doit jamais entrer. Requis et positionnel: `null` rend
+   * l'enveloppe d'avant ce lot, au caractère près.
+   */
+  exactAgeYears: number | null,
 ): Envelope {
   // ── LA BRANCHE UNIQUE ───────────────────────────────────────────────────
   // Sous flag OU corps absent OU poids inconnu. Trois causes, une seule
@@ -1335,9 +1537,13 @@ export function envelopeFor(
 
   return envelopeCore({
     goal,
+    // Un COMPTE porte son objectif, et le plancher de protéines le suit: la
+    // série de pesées et le plancher TCA sont derrière lui.
+    proteinGoal: goal,
     weightKg,
     heightCm: body.heightCm,
     ageBand,
+    exactAgeYears,
     gender: body.gender,
     steering,
     restrictionFlag,
@@ -1367,10 +1573,35 @@ export function envelopeFor(
  * bouge bouge pour les deux.
  */
 function envelopeCore(args: {
+  /**
+   * L'objectif qui gouverne l'ÉNERGIE: la bande, le bord de la bande de
+   * séances (`sessionsEdgeFor`) et le plafond de densité.
+   */
   goal: GoalToken;
+  /**
+   * ⟳ 2026-09-23 — L'OBJECTIF QUI GOUVERNE LA PROTÉINE, ET ELLE SEULE: le
+   * plancher du jour (`PROTEIN_FLOOR_G_PER_KG`) et la part par repas d'une
+   * prise. ⛔ REQUIS, jamais `?`: c'est la casse de compilation qui recense
+   * les deux portes de ce module.
+   *
+   * POURQUOI DEUX OBJECTIFS. Une bouche SANS compte n'achète qu'une
+   * maintenance d'énergie (voir `maintenanceEnvelopeFromBody`): sans série de
+   * pesées, aucun plancher TCA ne surveille un déficit. Mais un plancher de
+   * protéines ne restreint rien — il ne peut que faire servir PLUS de
+   * protéines. L'audit du 2026-09-23 (C9) a trouvé une bouche sans compte en
+   * perte dont « l'énergie suit la perte, les protéines suivent le
+   * maintien »: le plancher de SON objectif ne l'atteignait jamais, parce que
+   * `maintenance` était écrit en dur pour les deux.
+   *
+   * `envelopeFor` (un compte) passe le même jeton aux deux: rien ne change
+   * pour lui.
+   */
+  proteinGoal: GoalToken;
   weightKg: number;
   heightCm: number | null;
   ageBand: AgeBand | null;
+  /** ⟳ 2026-09-23 — voir le paramètre homonyme d'`envelopeFor`. */
+  exactAgeYears: number | null;
   gender: "male" | "female" | "other" | null;
   steering: SteeringEntry | null;
   restrictionFlag: boolean;
@@ -1390,9 +1621,11 @@ function envelopeCore(args: {
 }): Envelope {
   const {
     goal,
+    proteinGoal,
     weightKg,
     heightCm,
     ageBand,
+    exactAgeYears,
     gender,
     steering,
     restrictionFlag,
@@ -1496,10 +1729,16 @@ function envelopeCore(args: {
       weightKg,
       heightCm,
       ageBand,
+      // ⟳ 2026-09-23 — l'âge exact remplace le milieu de la bande, ici
+      // seulement. La bande reste la porte (le `if` au-dessus).
+      ageYears: exactAgeYears,
       gender,
       activityLevel,
       activityAxes,
       appetite,
+      // ⟳ 2026-09-21 — un maintien prend le bas de sa bande de séances.
+      // ⚠️ `goal`, PAS `proteinGoal`: c'est une question d'énergie.
+      sessionsEdge: sessionsEdgeFor(goal),
     }).kcal;
     // ⟳ 2026-09-10 — LE MÊME RÉSULTAT QUE L'ÉCRAN, PAR LA MÊME FONCTION.
     // Voir `dayEnergyFor`: la bande, A1 et le plancher d'énergie y vivent
@@ -1509,8 +1748,10 @@ function envelopeCore(args: {
     energyFloorKcal = day.energyFloorKcal;
   }
 
+  // ⟳ 2026-09-23 — `proteinGoal`, PAS `goal`. Voir son paramètre: c'est ici,
+  // et dans la part par repas ci-dessous, que les deux objectifs se séparent.
   const floorPerKg = Math.max(
-    PROTEIN_FLOOR_G_PER_KG[goal],
+    PROTEIN_FLOOR_G_PER_KG[proteinGoal],
     ageBand === "60_plus" ? SENIOR_PROTEIN_FLOOR_G_PER_KG : 0,
   );
   /**
@@ -1544,7 +1785,7 @@ function envelopeCore(args: {
   let proteinPerMealG: number | null = null;
   if (ageBand === "60_plus") {
     proteinPerMealG = Math.round(weightKg * SENIOR_PROTEIN_PER_MEAL_G_PER_KG);
-  } else if (goal === "muscle_gain") {
+  } else if (proteinGoal === "muscle_gain") {
     proteinPerMealG = Math.round(proteinFloorG / TRAINING_PROTEIN_MEALS);
   }
 
@@ -1553,6 +1794,8 @@ function envelopeCore(args: {
     energy,
     proteinFloorG,
     proteinPerMealG,
+    // ⚠️ `goal`, PAS `proteinGoal`: un plafond de densité est une pression
+    // vers MOINS d'énergie, et une bouche sans compte n'en reçoit aucune.
     densityCeiling: goal === "fat_loss"
       ? DENSITY_CEILING_FAT_LOSS
       : DENSITY_CEILING_DEFAULT,
@@ -1647,9 +1890,11 @@ export const MAINTENANCE_ENVELOPE_DIRECTION: EnvelopeDirection = Object.freeze({
 /**
  * L'ENVELOPPE DE MAINTENANCE D'UN ADULTE, DEPUIS UN CORPS DE FICHE.
  *
- * ── ELLE NE PREND PAS D'OBJECTIF, ET C'EST LA GARDE ──────────────────────
+ * ── ELLE NE PREND PAS D'OBJECTIF D'ÉNERGIE, ET C'EST LA GARDE ────────────
  * Pas un paramètre `goal` qu'un appelant pourrait remplir: `maintenance` est
- * écrit dans le corps de la fonction. Un corps sans série de pesées n'a pas de
+ * écrit dans le corps de la fonction (⟳ 2026-09-23: seul le plancher de
+ * protéines suit l'objectif de la bouche — voir plus bas). Un corps sans
+ * série de pesées n'a pas de
  * plancher TCA derrière lui; lui laisser exécuter un `fat_loss` serait faire
  * exécuter une restriction à un moteur qui n'a aucun moyen de savoir qu'il ne
  * devrait pas. Une maintenance, elle, ne peut ni creuser un déficit ni poser un
@@ -1669,16 +1914,36 @@ export const MAINTENANCE_ENVELOPE_DIRECTION: EnvelopeDirection = Object.freeze({
  * compte garde sa maintenance pleine. Direction d'erreur sûre — une part
  * standard, jamais réduite, exactement le repli du reste de ce module — mais
  * c'est une moitié à câbler, pas un état final.
+ *
+ * ── ⟳ 2026-09-23 · LA PROTÉINE SUIT SON OBJECTIF, L'ÉNERGIE NON ──────────
+ * `proteinGoal` est l'objectif de CETTE bouche (l'intégrateur passe l'objectif
+ * gaté de la lane foyer), et il ne gouverne QUE le plancher de protéines et la
+ * part par repas d'une prise. L'énergie, le bord de la bande de séances et le
+ * plafond de densité gardent `maintenance`, écrit en dur plus bas: la garde de
+ * l'en-tête ne bouge pas d'une ligne. Un plancher de protéines ne restreint
+ * rien, il fait servir plus; c'est pour ça qu'il peut suivre un objectif que
+ * l'énergie ne suit pas.
+ *
+ * ⛔ REQUIS, jamais `?`. `null` = aucun objectif lisible (aucun déclaré, âge
+ * inconnu, condition qui l'annule) ⇒ le plancher de la maintenance, le nombre
+ * d'avant ce lot.
  */
-export function maintenanceEnvelopeFromBody(body: MouthBody): Envelope | null {
+export function maintenanceEnvelopeFromBody(
+  body: MouthBody,
+  proteinGoal: GoalToken | null,
+): Envelope | null {
   if (!body.weightKg) return null;
   const ageBand = ageBandOf(body.ageYears);
   if (ageBand === null) return null;
   return envelopeCore({
     goal: "maintenance",
+    proteinGoal: proteinGoal ?? "maintenance",
     weightKg: body.weightKg,
     heightCm: body.heightCm,
     ageBand,
+    // ⟳ 2026-09-23 — la fiche porte l'âge exact; `ageBand` en descend, donc
+    // les deux ne peuvent pas se contredire sur ce chemin.
+    exactAgeYears: body.ageYears,
     gender: body.gender,
     steering: null,
     restrictionFlag: false,
@@ -1710,7 +1975,10 @@ export function maintenanceEnvelopeFromBody(body: MouthBody): Envelope | null {
  *   2. `estimatedMaintenanceKcal` indexe `midAge: Record<AgeBand, number>`:
  *      une valeur pédiatrique de plus y ferait passer un enfant par
  *      Mifflin-St Jeor, c'est-à-dire lui servir une restriction en croyant lui
- *      servir un besoin.
+ *      servir un besoin. ⟳ 2026-09-23 — l'âge exact qu'elle lit désormais ne
+ *      rouvre pas ce chemin: il n'est cru que si `ageBandOf(ageYears)` rend la
+ *      MÊME bande d'adulte que `ageBand`, et `ageBandOf` rend `null` sous 18
+ *      ans.
  *
  * Un type distinct rend les deux impossibles au compilateur plutôt qu'à la
  * relecture. Ce qu'on perd: `PediatricBand` et `AgeBand` ne se comparent pas —
@@ -1869,7 +2137,9 @@ export function childActivityFactor(
    */
   axes: ActivityAxes,
 ): number {
-  const { factor, source } = activityFactorOf(axes, level);
+  // ⚠️ `mid` POUR UN ENFANT: l'équation pédiatrique n'a pas de direction,
+  // et son plancher 1,60 fait le reste.
+  const { factor, source } = activityFactorOf(axes, level, "mid");
   // `assumed` = personne n'a répondu: le défaut de l'enfant, pas celui de
   // l'adulte. `activityFactorOf` rendrait 1,5, qui est SOUS le plancher — le
   // `Math.max` le rattraperait, mais s'en remettre à lui ferait dépendre le

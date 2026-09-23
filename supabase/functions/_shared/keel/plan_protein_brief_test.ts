@@ -32,6 +32,7 @@ const JOURNEE = {
   dayTargetKcal: 2454,
   coveredBudgetGrossKcal: 2454,
   fixedProteinG: null,
+  sideProteinG: 0,
   slots: [
     { slot: "breakfast", composeKcal: 614 },
     { slot: "lunch", composeKcal: 980 },
@@ -69,7 +70,7 @@ Deno.test("C4 ① bis — AUCUN NOUVEAU BARÈME: la part couverte vient de la ga
   // gouverne. Si un barème apparaissait dans `plan_protein_brief.ts`, les deux
   // nombres divergeraient.
   const jourPartiel = { ...JOURNEE, coveredBudgetGrossKcal: 1227 };
-  const attendu = proteinFloorAllocation({
+  const attendu = proteinFloorAllocation({ dayCeilingG: null,
     dayFloorG: 176,
     perMealFloorG: null,
     abstention: "none",
@@ -168,6 +169,59 @@ Deno.test("C4 ① sexies — les apports fixes sont retranchés UNE fois, pas de
   );
 });
 
+Deno.test("⟳ 2026-09-23 — les protéines des à-côtés se retranchent UNE fois, du plancher couvert", () => {
+  // Paul, 176 g couverts, et ses à-côtés en portent 20 g estimés: les plats
+  // n'ont plus à en porter que 156, répartis au prorata comme avant.
+  // 156 × 614/2454 = 39,0 · 156 × 980/2454 = 62,3 · 156 × 860/2454 = 54,7
+  const brief = proteinBriefFor({
+    memberId: "paul",
+    dayFloorG: 176,
+    perMealFloorG: null,
+    abstention: "none",
+    days: [{ ...JOURNEE, sideProteinG: 20 }],
+  });
+  assertEquals(brief.slots.map((s) => [s.slot, s.gramsPerServing]), [
+    ["breakfast", 39],
+    ["lunch", 62],
+    ["dinner", 55],
+  ]);
+  assertEquals(brief.slots.reduce((n, s) => n + s.gramsPerServing, 0), 156);
+  // ⛔ LA GARDE FINALE GARDE SON NOMBRE: le plancher couvert reste 176, ce
+  // sont les plats qui en portent moins. Les à-côtés servis sont comptés par
+  // la garde, pas une seconde fois ici.
+  assertEquals(brief.byDate[0].coveredFloorG, 176);
+});
+
+Deno.test("⟳ 2026-09-23 — à-côtés + apports fixes: deux retraits distincts, jamais le même deux fois", () => {
+  // Shaker 24 g (retiré par l'allocation: 152 couverts) puis à-côtés 20 g:
+  // 132 pour les plats. Mettre les à-côtés dans `fixedProteinG` rendrait 132
+  // aussi — mais la garde lirait 132 couverts au lieu de 152.
+  const brief = proteinBriefFor({
+    memberId: "paul",
+    dayFloorG: 176,
+    perMealFloorG: null,
+    abstention: "none",
+    days: [{ ...JOURNEE, fixedProteinG: 24, sideProteinG: 20 }],
+  });
+  assertEquals(brief.byDate[0].coveredFloorG, 152);
+  assertEquals(brief.slots.reduce((n, s) => n + s.gramsPerServing, 0), 132);
+});
+
+Deno.test("⟳ 2026-09-23 — des à-côtés qui couvrent tout ne font rien demander aux plats, sans négatif", () => {
+  const brief = proteinBriefFor({
+    memberId: "paul",
+    dayFloorG: 176,
+    perMealFloorG: null,
+    abstention: "none",
+    days: [{ ...JOURNEE, sideProteinG: 200 }],
+  });
+  assertEquals(brief.slots, []);
+  // Le motif d'une journée sans rien à demander, le même qu'une case déjà
+  // couverte par un apport fixe — jamais un plancher négatif réparti.
+  assertEquals(brief.silence, "no_covered_slot");
+  assertEquals(brief.perMealFloorG, null);
+});
+
 Deno.test("C4 ② — la phrase porte des NOMBRES, jamais « une protéine dans chaque repas »", () => {
   const brief = proteinBriefFor({
     memberId: "paul",
@@ -179,8 +233,11 @@ Deno.test("C4 ② — la phrase porte des NOMBRES, jamais « une protéine dans 
   const phrase = proteinFragment(brief);
   assertEquals(
     phrase,
-    " — one serving here carries at least 44 g of protein in the breakfast dish, " +
-      "70 g in the lunch dish, 62 g in the dinner dish, and no main dish under 44 g",
+    // ⟳ 2026-09-21 — l'énergie de la part est écrite à côté des grammes
+    // (614 → 615, arrondi à 5).
+    " — one serving here carries at least 44 g of protein per 615 kcal in the breakfast dish, " +
+      "70 g per 980 kcal in the lunch dish, 62 g per 860 kcal in the dinner dish, " +
+      "and no main dish under 44 g",
   );
   // ⛔ L'UNITÉ EST ÉCRITE UNE FOIS, SUR LA PREMIÈRE ENTRÉE — la même règle que
   // `densityFragment`, parce qu'un brief qui répète cesse d'être lu.
@@ -248,6 +305,8 @@ Deno.test("C4 ② quinquies — LE CAS QUI PASSE: un brief muet ne rend aucune p
       perMealFloorG: null,
       silence: "no_body",
       byDate: [],
+      capped: { slots: 0, gramsRemoved: 0 },
+      ceilingYielded: { slots: 0, grams: 0 },
     }),
     "",
   );

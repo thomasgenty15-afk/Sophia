@@ -94,6 +94,14 @@ import {
   type RawMemberVoice,
   type VoiceLineCounts,
 } from "./household_voices.ts";
+// ⟳ 2026-09-23 — LES À-CÔTÉS: le texte vit dans son module (`side_courses_prompt.ts`),
+// les formes dans le socle (`side_courses_types.ts`). Rien n'est rédigé ici.
+import type { RepairHouseholdContext, SideCourseAsk } from "./side_courses_types.ts";
+import {
+  sideCoursesBlock,
+  sideCoursesGiven,
+  type SideCoursesPromptCounts,
+} from "./side_courses_prompt.ts";
 
 /**
  * LA VERSION DE LA LANE FOYER — le second axe, et il manquait.
@@ -671,7 +679,45 @@ import {
 // ⟳ 2026-09-19 — v36 : L'OBJECTIF PRIME SUR L'HABITUDE. Le bloc « A DISH OF
 // THEIR OWN » nomme désormais les jours d'un porteur plafonné (perte de poids :
 // deux jours par semaine), donc le texte servi change ; le millésime aussi.
-export const HOUSEHOLD_PROMPT_VERSION = "v36_the_goal_outranks_the_habit";
+// ⟳ 2026-09-23 — v37 : L'ASSIETTE N'EST PAS TOUT LE REPAS. Audit
+// `docs/keel/AUDIT-DOSAGES-2026-09-23.md`: la consigne poussait vers le
+// féculent (« Reach the density with the starch », « energy comes from the
+// starch », « more starch »), le modèle écrivait 150 g de céréale sèche par
+// part (médiane) et la recette commune était celle du plus gros mangeur. Le
+// texte servi change sur quatre points: la recette de référence (l'assiette de
+// la personne du MILIEU) dans `standardRecipeBlock`, les phrases qui poussaient
+// au féculent retirées, le bloc `SIDE COURSES` (`side_courses_prompt.ts`) dès
+// qu'un à-côté est demandé, et le « sens du plan » dit PAR PERSONNE dans
+// `DECIDED BEFORE YOU`. Le bloc d'arbitrage ne bouge pas.
+// ⟳ 2026-09-23 — v38 : CHAQUE ASSIETTE SÉPARE SON FÉCULENT. `standardRecipeBlock`
+// ne dit plus « A lunch or dinner eaten by ONE person is a complete plate in
+// ONE dish »: tout déjeuner et tout dîner, seul ou partagé, est une casserole
+// principale ET son féculent à part (`separable_side`). Mesuré sur le brouillon
+// `1461270e` (personne seule en perte): aucun féculent à part, céréale sèche
+// médiane 69 g, part d'énergie du féculent 0,35 contre 0,30 visé. Le texte
+// servi change (v33 sous `portion_v1` et v34), donc le millésime bouge. Le
+// bloc d'arbitrage ne bouge pas.
+// ⟳ 2026-09-23 — v39 : LES À-CÔTÉS VIENNENT EN FAMILLES. Le bloc `SIDE
+// COURSES` (`side_courses_prompt.ts`) dit la règle de la TABLE (un aliment par
+// type pour tous ceux qui en ont un, au même repas), son exception (qui ne peut
+// pas le manger en reçoit un autre du même type), la règle des DEUX JOURS (un
+// aliment deux jours de suite au plus, peu d'aliments sur le plan), et un
+// dessert fait d'UN aliment — dense pour la prise. Mesuré sur la campagne du
+// 2026-09-23: « emmental + 2 pommes » à 10 repas sur 10 pour Thomas. Le bloc
+// d'arbitrage ne bouge pas.
+// ⟳ 2026-09-23 — v40 : LA TABLE PARTAGE SES À-CÔTÉS. Le bloc `SIDE COURSES`
+// retire le dessert DENSE de la prise (il contredisait la table: 9 % de repas
+// partagés dans la famille E, et « dried figs » servies comme figue fraîche),
+// nomme la personne en prise qui partage un repas à dessert pour qu'elle suive
+// la table, fait nommer l'aliment exact et jamais une catégorie, et sort le
+// pain de la règle des deux jours. Mesuré sur cinq générations v39. Le bloc
+// d'arbitrage ne bouge pas.
+// ⟳ 2026-09-23 — v41 : CE QUI EST BEAUCOUP REVENU EST NOMMÉ. Une ligne suit
+// l'envie: les aliments principaux qui ont occupé le plus de déjeuners et de
+// dîners dans les deux derniers plans (3 protéines + 2 féculents,
+// `plan_avoid_list.ts`), « à éviter si possible ». Absente quand la liste est
+// vide. Le bloc d'arbitrage ne bouge pas.
+export const HOUSEHOLD_PROMPT_VERSION = "v41_what_came_back_is_named";
 
 export interface HouseholdRestriction {
   memberId: string;
@@ -710,13 +756,27 @@ export interface DecidedBeforeYou {
   /** La ligne alimentaire la plus stricte de la table, ou `null`. */
   readonly strictestRegime: string | null;
   /**
-   * LE SENS DU PLAN: `down` | `up` | `null` (rien de visé).
+   * LE SENS DU PLAN, PAR PERSONNE: `down` | `up` | `null` (rien de visé).
    *
    * ⛔ UNE DIRECTION, JAMAIS UN OBJECTIF. « fat_loss » est un fait sur la
    * personne, et la garde du bloc interdit au modèle d'en écrire un. Lui donner
    * le mot qu'il ne doit pas répéter serait le lui faire répéter.
+   *
+   * ⟳ 2026-09-23 — UNE LIGNE PAR PERSONNE, ET PLUS CELLE DU SEUL TITULAIRE.
+   * Le champ portait `direction`, la direction de la personne qui compose. Sur
+   * le foyer de l'audit (Thomas en prise, Christèle en maintien, Fabrice en
+   * perte), le bloc disait « this plan leans: bigger » pour les trois — et le
+   * modèle composait la table entière comme celle de Thomas. Chacun porte
+   * maintenant sa ligne.
+   *
+   * ⚠️ REQUIS, et `direction` a disparu du type: un appelant qui passait
+   * l'ancien champ casse à la compilation au lieu de servir une ligne muette.
+   * `[]` n'écrit aucune ligne de sens.
    */
-  readonly direction: string | null;
+  readonly directions: readonly {
+    readonly name: string;
+    readonly direction: string | null;
+  }[];
   /** Une envie a-t-elle été servie au modèle pour cette semaine ? */
   readonly wishServed: boolean;
 }
@@ -751,13 +811,12 @@ export function decidedBeforeYouBlock(decided: DecidedBeforeYou | null): string 
     decided.strictestRegime === null
       ? "- No declared diet at this table."
       : `- The shared dish follows the ${decided.strictestRegime} line.`,
-    `- Which way this plan leans: ${
-      decided.direction === "down"
-        ? "lighter"
-        : decided.direction === "up"
-        ? "bigger"
-        : "steady"
-    }.`,
+    // ⟳ 2026-09-23 — UNE LIGNE PAR PERSONNE (voir `DecidedBeforeYou.directions`).
+    ...(decided.directions ?? []).map((d) =>
+      `- Which way this plan leans for ${d.name}: ${
+        d.direction === "down" ? "lighter" : d.direction === "up" ? "bigger" : "steady"
+      }.`
+    ),
     `- A wish for this week was given to you: ${decided.wishServed ? "yes" : "no"}.`,
     "",
     'Explain only what YOU chose among what these leave open, in "explanation".',
@@ -826,8 +885,43 @@ export const LIGHT_DISH_MIN_KCAL_PER_100G = 60;
  * `STANDARD_RECIPE_BLOCK` reste, avec les planchers de base: c'est ce que
  * `household_prompt_v34.ts` joint, et ce que les tests du prompt v33 lisent.
  */
+/**
+ * ⟳ 2026-09-23 — LA RECETTE DE RÉFÉRENCE, ET LE PLAT QUI N'EST PLUS TOUT LE
+ * REPAS (audit `docs/keel/AUDIT-DOSAGES-2026-09-23.md`).
+ *
+ * ⛔ CE QUE LE BLOC POUSSAIT, MESURÉ. Trois phrases disaient au modèle
+ * d'atteindre la densité PAR LE FÉCULENT (« Reach the density with the
+ * starch », « the energy of a plate comes from the starch », « more starch »),
+ * une quatrième visait l'assiette la plus petite (« aim 200 g »), et rien ne
+ * disait ce qu'est UNE part. Résultat sur les plans de l'audit: 150 g de
+ * céréale sèche par part (médiane), et une recette commune écrite pour le plus
+ * gros mangeur — Thomas à 700 g d'assiette par construction.
+ *
+ * ⛔ LA PART EST CELLE DE LA PERSONNE DU MILIEU (décision du propriétaire,
+ * point 4). Le moteur multiplie ensuite: une recette écrite pour le plus gros
+ * mangeur donne au plus petit une assiette trop dense, et l'inverse une
+ * assiette trop grosse. La référence est écrite en GRAMMES — jamais en kcal
+ * (garde de fuite `first_draft_contract_test.ts`).
+ *
+ * ⚠️ LE FÉCULENT DE RÉFÉRENCE EST DANS LA PHRASE QUI NOMME `separable_side`:
+ * la promesse et la clé de schéma doivent se toucher (`starch_side_wiring_test`
+ * ⑤ mesure l'écart en caractères).
+ *
+ * ⟳ 2026-09-23 — v38: CETTE PHRASE VAUT POUR TOUT DÉJEUNER ET TOUT DÎNER,
+ * mangé seul ou partagé. Il n'y a plus de branche « ONE person … ONE dish ».
+ * À table, une case mangée par une seule bouche d'un foyer reste hors du
+ * partage (`starchAsideCellsOf` exige deux mangeurs): ses deux casseroles sont
+ * servies au même facteur (`partFactorOf` avec `starchSide: null`).
+ *
+ * ⚠️ `sides.served` EST REQUIS. La phrase « the app serves a side course
+ * beside it (SIDE COURSES) » renvoie au bloc `side_courses_prompt.ts`; servie
+ * sans lui, elle renverrait à un bloc absent — la cicatrice du « ci-dessus »
+ * qui ne pointe nulle part. Sans à-côté, la phrase dit seulement qu'on n'en
+ * ajoute pas au plat.
+ */
 export function standardRecipeBlock(
   floors: { normal: number; light: number },
+  sides: { served: boolean },
 ): readonly string[] {
   return Object.freeze([
     "== WRITE ONE STANDARD RECIPE PER DISH ==",
@@ -851,14 +945,130 @@ export function standardRecipeBlock(
     "ingredients are only what is added fresh on top of it.",
     "Never write a portion for a named person, never a box, never a per-person",
     "figure. Those are computed, not written.",
-    "Every lunch and dinner is a complete plate in ONE dish: a starch, a protein, a",
-    `fat. A normal dish carries at least ${floors.normal} kcal per 100 g as served. A soup is`,
+    // ⟳ 2026-09-23 — LA RECETTE DE RÉFÉRENCE. Une part = l'assiette ordinaire
+    // de la personne du MILIEU de la table; le moteur la multiplie pour les
+    // autres. Écrite en grammes crus, jamais en kcal.
+    "THE TEMPLATE: one serving is the ordinary plate of the person in the MIDDLE",
+    "of the table, never the biggest eater's; the app scales it for everyone.",
+    "  · main pot, per serving: 110 to 130 g of lean protein, raw (tofu 100 to",
+    "    150 g), 180 to 200 g of vegetables, 10 ml of oil, at most 15 g of cheese;",
+    "  · breakfast, per serving: 50 to 60 g of oat flakes or muesli; 125 g of skyr",
+    "    or fromage blanc, or 200 ml of milk; one fruit of 100 to 120 g; 15 to 20 g",
+    "    of nuts or seeds; at most 2 eggs. Skyr and fromage blanc carry the protein;",
+    "    greek yogurt does not (whole milk, little protein). A frittata with 300 g",
+    "    of tomato per serving is not a breakfast.",
+    // ⟳ 2026-09-22 · LOT C — LE FÉCULENT À CÔTÉ SUR UNE CASE PARTAGÉE.
+    // ⛔ LA RÈGLE « ONE dish » FAISAIT MÉLANGER le féculent, cuit à part, dans
+    // la casserole du poulet: une seule composition, donc une seule densité
+    // protéique pour toute la table — celle du plancher le plus exigeant. Mesuré
+    // sur `6e4e5548`: `protein_ceiling.over` 9 jours-bouche sur 15, pire +46 %.
+    // Deux casseroles se servent en deux proportions (`starch_side.ts`).
+    // ⚠️ LES CLÉS DU SCHÉMA SONT DANS LA PHRASE (`uses`, `components`,
+    // `separable_side`): une promesse loin de sa clé est suivie à 0 %.
+    // ⟳ 2026-09-23 — ET LE FÉCULENT DE RÉFÉRENCE AUSSI, dans la même phrase.
+    // ⟳ 2026-09-23 — v38: UNE SEULE RÈGLE, SEUL OU À PLUSIEURS. La phrase
+    // « A lunch or dinner eaten by ONE person is a complete plate in ONE dish »
+    // est retirée. Mesuré sur le brouillon `1461270e` (une personne seule, en
+    // perte de poids): aucun plat n'avait son féculent dans une casserole à
+    // part, céréale sèche médiane 69 g, part d'énergie du féculent 0,35 alors
+    // que la forme d'assiette de la perte vise 0,30 au plus. Le moteur sait
+    // servir cette forme à une personne seule (`soloStarchSideOf`), mais
+    // seulement sur un plat écrit en deux casseroles.
+    "Every lunch and dinner, eaten alone or shared, is ONE main preparation (the",
+    "protein, the vegetables, the sauce, in the amounts of THE TEMPLATE's main pot)",
+    "AND its starch as a SEPARATE preparation, cooked in its own pot: rice, pasta,",
+    "semolina, bulgur, quinoa or potatoes. The",
+    "starch preparation has one component, role \"separable_side\", and the dish",
+    "\"uses\" BOTH preparations; one serving of that starch is 60 to 70 g of dry",
+    "grain, OR 220 to 250 g of potatoes (never at a table where a card says muscle",
+    "gain), OR 80 to 90 g of bread -- never more. Check it: divide each pot by its",
+    "\"servings_made\"; one serving must land in THE TEMPLATE. Never stir the starch",
+    "into the main pot: the app serves each person more or less starch beside the",
+    "same main. The session \"run_through\" says so: cook the starch on its own,",
+    "then put the main and the starch side by side in each box.",
+    `A normal dish carries at least ${floors.normal} kcal per 100 g as served. A soup is`,
     "possible but it comes complete (croutons, grated cheese, a poached egg, or",
     "bread and cheese beside it).",
+    // ⟳ 2026-09-20 — LA GRAISSE EST UN FILET, PAS UN LEVIER DE DENSITÉ. Mesuré
+    // sur le plan `836afa60`: 30 ml d'huile et 85 g de parmesan PAR PART pour
+    // atteindre la densité demandée — 1,4 litre d'huile sur la liste de trois
+    // personnes. Le chiffre est ici parce qu'une consigne sans chiffre se fait
+    // satisfaire par son échappatoire.
+    // ⟳ 2026-09-23 — « with the starch » RETIRÉ: c'était l'une des trois
+    // phrases qui envoyaient le modèle au féculent (audit du 2026-09-23).
+    "The fat of a plate is a drizzle: 5 to 15 ml of oil, or 15 to 30 g of cheese,",
+    "per serving -- never both at full size. Reach the density with what THE",
+    "TEMPLATE gives, not by pouring oil or grating cheese until the figure is met.",
+    // ⟳ 2026-09-21 — CE QU'UN NUTRITIONNISTE A REFUSÉ SUR LE PLAN `3e121b21`,
+    // ET LES CHIFFRES QUI L'INTERDISENT. Deux légumes sur toute la semaine
+    // (oignon, poivron), 170 à 220 g de légumes par jour et par bouche, de la
+    // saucisse à quatre repas sur huit pour l'homme en perte, aucun poisson
+    // sauf dans les goûters solo, la même casserole midi et soir. Aucune de
+    // ces choses n'était bornée; chaque phrase ci-dessous porte son nombre,
+    // et `generated_from.food_quality` mesure chacune sur le plan livré.
+    "Every lunch and dinner serving carries at least 150 g of vegetables (raw",
+    "weight, before cooking: leaves, cabbages, roots, peppers, tomatoes,",
+    "courgettes, green beans, mushrooms). Across the plan, use at least four",
+    "different vegetables. Onion is a seasoning, not the vegetable of a dish.",
+    "Cured and processed meat (sausages, ham, bacon, pate, salami, chorizo,",
+    "merguez) is a FAT, not the protein of a dish: at most ONE dish in seven",
+    "days carries it. Red meat (beef, pork, lamb, veal) is the protein of at",
+    "most three lunches or dinners in seven days, two in five. The rest is",
+    "poultry, fish, eggs, dairy and legumes.",
+    "At least one shared lunch or dinner in any five days is a fish dish, and a",
+    "seven-day plan carries one fatty fish (salmon, sardines, mackerel, trout,",
+    "herring). Tuna, tinned or fresh, is served to the same person at most twice",
+    "in seven days.",
+    "The same preparation is never served twice in one day to the same person.",
+    "Breakfast alternates at least two different bases across the plan -- not",
+    "the same bowl with a different fruit.",
+    // ⟳ 2026-09-21 — RELU SUR LE PLAN `c1ce4658`: 1,8 kg de maquereau pour six
+    // parts (300 g chacune, deux jours de suite), 1 265 g de dinde pour 925 g
+    // de couscous SANS légume dans la casserole, 5,3 kg de petits-suisses dans
+    // 12 plats sur 20 (350 g dans un bol du matin, 235 g dans un goûter). La
+    // protéine dépassait le plafond de 56 % et les légumes tenaient dans des
+    // garnitures de 28 g. Chaque phrase porte son nombre et
+    // `generated_from.food_quality` le mesure.
+    // ⟳ 2026-09-23 — « the energy of a plate comes from the starch » RETIRÉ
+    // (audit du 2026-09-23). La borne de la viande reste; sa justification
+    // renvoyait au féculent.
+    "A serving of meat, poultry or fish is 100 to 150 g raw, never more, and",
+    "never a bigger piece to reach a density. A preparation that feeds lunches or",
+    "dinners carries its vegetables INSIDE the pot, at least 150 g raw per",
+    // ⟳ 2026-09-22 · LOT C — la casserole-féculent d'un plat partagé n'en
+    // porte pas: ses légumes sont dans la casserole principale.
+    // ⟳ 2026-09-23 — v38: « of a shared dish » retiré. Tout déjeuner et tout
+    // dîner a maintenant sa casserole-féculent; garder « shared » aurait exigé
+    // 150 g de légumes dans le riz d'une personne seule.
+    "serving (the starch pot excepted: its vegetables are in",
+    "the main pot); a fresh topping of 20 or 30 g is a garnish, not the vegetable of",
+    "a dish. Fresh dairy (yogurt, petit-suisse, fromage blanc, skyr, cottage) is",
+    "at most 250 g per person per day across all meals, and at most 150 g in a",
+    "snack. No single ingredient appears in more than half of the plan's dishes.",
+    // ⟳ 2026-09-21 — RELU SUR LE PLAN `94c93ca9`, décision du propriétaire:
+    // du thon au petit-déjeuner, 195 g de tofu au réveil, quatre plats de
+    // poisson gras en quatre jours, un pot de bœuf servi trois fois, et des
+    // légumes à 150 g pile qui tombent à 120 sur la plus petite assiette.
+    "Fish belongs to lunch and dinner: no fish at breakfast, in the morning or",
+    "in the afternoon, unless a person's card or a note asks for it. Breakfast",
+    "and snacks carry no meat either; their protein comes from dairy, eggs (unless",
+    "excluded), nuts or a little tofu, and they respect the figure on the card.",
+    "Fatty fish (salmon, mackerel, sardines, herring, trout) appears in at most",
+    "two dishes in seven days; the other fish is lean (cod, hake, pollock) or",
+    "shellfish. A red-meat preparation is drawn on by at most two dishes.",
+    // ⟳ 2026-09-23 — « the SMALLEST serving … aim 200 g » RETIRÉ: il faisait
+    // écrire la casserole pour la plus PETITE assiette, donc la recette entière
+    // pour le rapport le plus grand. THE TEMPLATE dit 180 à 200 g de légumes
+    // pour la part du milieu.
     `A slot marked (light) calls for a light recipe: still nourishing, at least ${floors.light} kcal`,
     "per 100 g as served (a potato, a drizzle of oil, a spoon of cream). Below that",
     "the amount to eat becomes enormous.",
-      "There is no starter: the dish is the unit.",
+    // ⟳ 2026-09-23 — « There is no starter: the dish is the unit » RETIRÉ. Le
+    // plat n'est plus tout le repas: le moteur sert un à-côté à part
+    // (`side_courses_prompt.ts`). Le renvoi n'est écrit que si le bloc l'est.
+    sides.served
+      ? "The dish is not the whole meal: the app serves a side course beside it (SIDE COURSES). Never add a dessert, bread or a starter to a dish."
+      : "Never add a dessert, bread or a starter to a dish: the dish is what you write for a meal.",
     // ══════════════════════════════════════════════════════════════════════
     // ⟳ 2026-09-10 — LA MÉTHODE DE CALCUL, ET LA TABLE SUR LAQUELLE LA POSER
     // ══════════════════════════════════════════════════════════════════════
@@ -938,20 +1148,27 @@ export function standardRecipeBlock(
     // légume et de l'eau; monter se fait en retirant de l'eau. Dire « ajuste »
     // sans dire le geste laisse le modèle servir moins — ce qui rabote
     // l'assiette par l'autre bout au lieu de changer la recette.
+    // ⟳ 2026-09-23 — « more starch » RETIRÉ du remède « trop bas » (audit du
+    // 2026-09-23). Le geste dit maintenant ce qui densifie SANS toucher la
+    // forme de l'assiette, et nomme les deux échappatoires qu'on refuse.
     "If your number is OUTSIDE the range the line above asks for, fix the recipe",
     "BEFORE you answer, and fix the RECIPE, not the amount served:",
-    "  · below the range: less water and watery vegetable, more starch, protein",
-    "    or fat;",
+    "  · below the range: less cooking water, legumes in the main pot or 10 g",
+    "    more cheese; never more starch than THE TEMPLATE, never fewer vegetables;",
     "  · above the range: more vegetable and more water-rich food, less oil and",
     "    less dense starch.",
     "Do not answer with a dish you already know is outside its range.",
   ]);
 }
 
+/**
+ * ⟳ 2026-09-23 — LA FORME CANONIQUE SERT LES À-CÔTÉS (`served: true`): c'est
+ * le cas de tout plan qui en demande, donc celui que les gardes de texte lisent.
+ */
 export const STANDARD_RECIPE_BLOCK: readonly string[] = standardRecipeBlock({
   normal: NORMAL_DISH_MIN_KCAL_PER_100G,
   light: LIGHT_DISH_MIN_KCAL_PER_100G,
-});
+}, { served: true });
 
 export interface HouseholdPromptInput {
   members: readonly PortionMember[];
@@ -986,6 +1203,27 @@ export interface HouseholdPromptInput {
    *     passe bien ce champ (`household_meal_generation_test.ts`).
    * Omis ⇒ aucun bloc, et le prompt est celui de v22 au caractère près.
    */
+  /**
+   * ⟳ 2026-09-23 — LES À-CÔTÉS QUE LE MOTEUR DEMANDE AU MODÈLE (flux A,
+   * `planSideCourses`): une ligne par personne, jour et moment qui porte au
+   * moins un à-côté.
+   *
+   * ⚠️ OPTIONNEL, ET C'EST LE PRÉCÉDENT DE CE FICHIER, PAS UN CONFORT. Ce type
+   * est construit par des dizaines de littéraux de fixture — dont
+   * `meal_boxes_test.ts`, typé sans `as any`, qu'un champ requis casserait hors
+   * du périmètre de ce lot. `decided`, `workLunch` et `preferenceSplits` ont
+   * fait le même choix pour la même raison.
+   *
+   * ⛔ ET LA CICATRICE « paramètre de garde optionnel = garde désarmée » EST
+   * COMPENSÉE PAR SON COMPTEUR: `HouseholdPromptBlocks.sideCourses` rend
+   * `given` (reçus), `prompt_asked` (écrits), `cells` et `unplaced`, TOUS même à
+   * zéro. Un appelant qui oublie le champ produit `given: 0` sur un plan qui
+   * aurait dû porter des à-côtés, et le test de câblage de la lane
+   * (`side_courses_wiring_test.ts`, vague 2) lit la source.
+   *
+   * Omis ou `[]` ⇒ aucun bloc, et le prompt ne porte aucun à-côté.
+   */
+  readonly sideCourses?: readonly SideCourseAsk[];
   /**
    * ⟳ 2026-09-06 — LES PAIRES « X VEUT CE QUE Y REFUSE ». Mesuré (rapport 0f
    * §10) : « Léa n'aime pas les asperges, Marc adore » → au plan suivant le
@@ -1162,6 +1400,13 @@ export interface HouseholdPromptInput {
    * ancrage: une ligne d'une semaine passée ne doit jamais arriver ici.
    */
   envyLine: string | null;
+  /**
+   * ⟳ 2026-09-23 — LA LIGNE « À ÉVITER »: les aliments beaucoup revenus dans
+   * les deux derniers plans (`avoidLineOf`, `plan_avoid_list.ts`). Écrite
+   * JUSTE APRÈS l'envie, qu'elle cite (« above »). Absente, `null` ou vide ⇒
+   * la consigne est identique à l'octet près à celle d'avant ce lot.
+   */
+  avoidLine?: string | null;
   restrictions: readonly HouseholdRestriction[];
   /**
    * LOT C ② — LES BOUCHES QUI PORTENT UNE RÈGLE, ET ELLES SEULES.
@@ -2300,6 +2545,8 @@ export interface HouseholdPromptBlocks {
    * décompte de silencieux se lit « il en reste 3 à relancer ».)
    */
   envyLineUsed: boolean;
+  /** ⟳ 2026-09-23 — la ligne « à éviter » est-elle entrée dans le prompt ? */
+  avoidLineUsed: boolean;
   /**
    * D4 — CE QUI A ÉTÉ COUPÉ DANS LES VOIX, nommément: une ligne retenue par la
    * garde de non-divulgation (`voice_line_withheld:<membre>:<motif>`), des
@@ -2395,6 +2642,31 @@ export interface HouseholdPromptBlocks {
    * rincé, et ce champ ne prétend pas le contraire.
    */
   crossContact: CrossContactOutcome;
+  /**
+   * ⟳ 2026-09-23 — CE QUE LA CONSIGNE A ÉCRIT DES À-CÔTÉS, compté là où c'est
+   * écrit (la ligne du calendrier en v34, la ligne du jour en v33).
+   *
+   * ⛔ C'EST LE COMPTEUR QUI COMPENSE `HouseholdPromptInput.sideCourses?`. À
+   * recopier tel quel dans `generated_from.household.side_courses` (clés en
+   * snake_case, prêtes à écrire). `prompt_asked` est le dénominateur de
+   * `declared` côté modèle: sans lui, « le modèle n'a rien rendu » et « on ne
+   * lui a rien demandé » se relisent pareil.
+   */
+  sideCourses: SideCoursesPromptCounts;
+  /**
+   * ⟳ 2026-09-23 — CE QUE LA RÉPARATION D'UN PLAN REÇOIT DU FOYER (flux G,
+   * `planRepairMessage`): les fiches, les notes, la recette de référence et la
+   * répartition des à-côtés, TELLES QUE CE CONSTRUCTEUR LES A ÉCRITES.
+   *
+   * ⛔ RENDU PAR LE CONSTRUCTEUR, JAMAIS REFAIT PAR LA LANE. La réparation
+   * parlait au modèle sans les fiches ni la recette (lot 4 de l'audit): elle
+   * corrigeait une densité sans savoir pour qui. Une seconde rédaction de ces
+   * blocs côté réparation divergerait au premier ajustement de la consigne.
+   *
+   * `""` pour un bloc que ce constructeur n'a pas servi (pas de note, chemin
+   * `legacy_measure` sans recette, aucun à-côté).
+   */
+  repairContext: RepairHouseholdContext;
 }
 
 // ===========================================================================
@@ -2474,6 +2746,8 @@ export function buildHouseholdPromptBlocks(
   input: HouseholdPromptInput,
 ): HouseholdPromptBlocks {
   const envyBlock = buildEnvyBlock(input.envyLine);
+  // ⟳ 2026-09-23 — la ligne « à éviter », telle que `avoidLineOf` l'a écrite.
+  const avoidBlock = (input.avoidLine ?? "").trim();
   const voices = buildHouseholdVoices(input.voices);
   // LOT A — les notes par bouche, déjà rendues par `memo.ts`. Sa trace
   // (`served`) sort par le même objet que son texte.
@@ -2535,6 +2809,35 @@ export function buildHouseholdPromptBlocks(
 
   const idLines = input.members.map((m) => `- ${m.displayName} = ${m.memberId}`);
 
+  // ── ⟳ 2026-09-23 · LES À-CÔTÉS, UNE LIGNE PAR JOUR ─────────────────────
+  // Ce constructeur n'a pas de calendrier: la répartition vit dans le bloc
+  // lui-même (`perDay: true`). Seules les personnes de CE prompt sont nommées;
+  // une demande pour quelqu'un d'autre compte dans `unplaced`.
+  // `?? []` = champ non passé ⇒ aucun bloc, et `given: 0` le dit.
+  const sideAsks = input.sideCourses ?? [];
+  const sides = sideCoursesBlock({
+    asks: sideAsks,
+    nameOf: new Map(input.members.map((m) => [m.memberId, m.displayName])),
+    perDay: true,
+  });
+  const sidesGiven = sideCoursesGiven(sideAsks);
+  // ── LE BRIEF ET LA RECETTE, CALCULÉS UNE FOIS ──────────────────────────
+  // Ils partent au modèle ET dans `repairContext`: deux appels feraient deux
+  // textes le jour où l'un des deux reçoit un argument de plus.
+  const portionBrief = buildPortionBrief(
+    input.members,
+    input.cooking,
+    input.divergingCount,
+    input.weightGroups,
+    input.sizingPath,
+  );
+  const recipe = input.sizingPath === "portion_v1"
+    ? standardRecipeBlock(densityFloorsOf(input.members, {
+      normal: NORMAL_DISH_MIN_KCAL_PER_100G,
+      light: LIGHT_DISH_MIN_KCAL_PER_100G,
+    }), { served: sides.block !== "" })
+    : [];
+
   const parts = [
     "== THE HOUSEHOLD ==",
     // ⚠️ LA PHRASE NOMME MAINTENANT LES DEUX DESTINATIONS DES IDS. Elle disait
@@ -2551,13 +2854,9 @@ export function buildHouseholdPromptBlocks(
     // LA FORME DE CUISINE VIENT DE L'APPELANT, ET DE LUI SEUL (G5). Elle
     // valait `input.merge?.shape ?? "one_dish"`, et cette ligne-là clouait
     // toute composition ordinaire au barreau ① sans que rien ne le dise.
-    buildPortionBrief(
-      input.members,
-      input.cooking,
-      input.divergingCount,
-      input.weightGroups,
-      input.sizingPath,
-    ),
+    // ⟳ 2026-09-23 — calculé une fois plus haut (`portionBrief`), mêmes
+    // arguments: il part aussi dans `repairContext.cards`.
+    portionBrief,
     // ── v33 · COLLÉ AU BRIEF, ET LA POSITION EST LA MOITIÉ DU LOT ──────────
     // Le brief ci-dessus promet « how much of which component goes on their
     // plate »; ce bloc-ci dit sous quelle FORME l'écrire. Les séparer par la
@@ -2568,12 +2867,21 @@ export function buildHouseholdPromptBlocks(
     // relève la base avec les densités qu'aucune ligne ne peut nommer (plancher
     // TCA). Sans bouche concernée, il rend la base au bit près — et le test
     // d'empreinte du prompt le vérifie.
-    ...(input.sizingPath === "portion_v1"
-      ? ["", ...standardRecipeBlock(densityFloorsOf(input.members, {
-        normal: NORMAL_DISH_MIN_KCAL_PER_100G,
-        light: LIGHT_DISH_MIN_KCAL_PER_100G,
-      }))]
-      : []),
+    // ⟳ 2026-09-23 — calculé une fois plus haut (`recipe`): il part aussi dans
+    // `repairContext.standardRecipe`.
+    // ⚠️ ET IL PART EN UN SEUL MORCEAU. Il était étalé ligne par ligne dans
+    // `parts`, que la fin de fonction joint par « \n\n »: chaque ligne du bloc
+    // partait séparée par une ligne vide, une phrase coupée en deux paragraphes
+    // à chaque retour. v34 le joignait déjà par « \n ». Joint ici de même, le
+    // texte servi est celui que `repairContext.standardRecipe` recopie, et la
+    // part de féculent reste à deux lignes de `separable_side`.
+    ...(recipe.length > 0 ? [recipe.join("\n")] : []),
+    // ── ⟳ 2026-09-23 · LES À-CÔTÉS, JUSTE SOUS LA RECETTE ──────────────────
+    // La recette dit « the app serves a side course beside it (SIDE COURSES) »;
+    // ce bloc EST le renvoi, et il porte la clé `side_courses`. Collés, pour la
+    // même raison que la recette est collée au brief. `""` sans demande: le
+    // filtre de fin de tableau le retire et le prompt est celui d'avant.
+    sides.block,
     // ── LOT 3C · COLLÉ AU BRIEF, ET LA POSITION EST LA MOITIÉ DU LOT ────────
     // La ligne de forme PROMET un plat dédié à l'intérieur du brief ci-dessus;
     // ce bloc-ci le COMMANDE, nomme les bouches et dit quelle clé le porte. Les
@@ -2654,6 +2962,12 @@ export function buildHouseholdPromptBlocks(
     // elle qui l'emporte sur ce point-là.
     notes.block,
     envyBlock,
+    // ── ⟳ 2026-09-23 · CE QUI EST BEAUCOUP REVENU, JUSTE APRÈS L'ENVIE ─────
+    // La ligne dit « if the household asked for one of them above »: elle
+    // renvoie à l'envie, donc elle la suit immédiatement. Et elle reste loin
+    // devant les règles de maison: « si possible » ne doit jamais se lire plus
+    // contraignant qu'une allergie.
+    avoidBlock,
     // ── ⟳ 2026-09-04 · CE QUI EST DÉJÀ TRANCHÉ, ET LA CLÉ QUI LE COMPLÈTE ──
     // Juste après l'envie, parce que la première tension que le modèle doit
     // savoir nommer est « ce qu'ils veulent CETTE FOIS contre la direction du
@@ -2798,6 +3112,7 @@ export function buildHouseholdPromptBlocks(
       ].join("\n")
     }`,
     envyLineUsed: envyBlock.length > 0,
+    avoidLineUsed: avoidBlock.length > 0,
     voiceIssues: voices.issues,
     voicesHeard: voices.heard.length,
     voiceCounts: voices.counts,
@@ -2809,6 +3124,21 @@ export function buildHouseholdPromptBlocks(
     // C1 — LA TRACE SORT PAR LE MÊME OBJET QUE LE TEXTE. Voir `crossContact`
     // dans `HouseholdPromptBlocks`: `emitted` compte une phrase envoyée.
     crossContact,
+    // ⟳ 2026-09-23 — compté sur les lignes du jour que le bloc a écrites.
+    sideCourses: {
+      given: sidesGiven,
+      prompt_asked: sides.named,
+      cells: sides.cells,
+      unplaced: Math.max(0, sidesGiven - sides.named),
+    },
+    // ⟳ 2026-09-23 — les TEXTES servis, pas une seconde rédaction. v33 n'a pas
+    // de cartes: la fiche de chacun est sa ligne du brief de portions.
+    repairContext: {
+      cards: portionBrief,
+      notes: notes.block,
+      standardRecipe: recipe.join("\n"),
+      sideCourses: sides.block,
+    },
   };
 }
 

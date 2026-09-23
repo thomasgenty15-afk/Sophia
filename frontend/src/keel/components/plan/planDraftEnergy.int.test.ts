@@ -85,12 +85,24 @@ function draftProps(over: Record<string, unknown> = {}) {
 }
 
 describe("l'aperçu porte ses chiffres", () => {
-  it("le kcal est devant le repas, et sur la boîte à UN nom", () => {
+  it("⛔ PLUSIEURS MANGEURS : aucun chiffre global sous le titre, le kcal est sur la boîte à UN nom", () => {
+    // ⟳ 2026-09-21 — `energy` est la recette divisée par le foyer (893 kcal
+    // sous un déjeuner à trois où personne ne mange 893). À plusieurs, chacun
+    // sa ligne, et rien sous le titre.
     const html = markup(
       createElement(PlanResult, draftProps({ energy: dishEnergy, boxEnergy }) as never),
     );
-    expect(html).toContain(en["meals.energy.dish"].replace("{n}", "780"));
+    expect(html).not.toContain("780");
     expect(html).toContain(en["meals.boxes.energy"].replace("{n}", "612"));
+  });
+  it("UNE SEULE PERSONNE : son chiffre sous le titre, et la ligne ne le répète pas", () => {
+    const solo = [{ ...DISHES[0], boxes: [DISHES[0].boxes[0]] }] as unknown as GeneratedDish[];
+    const html = markup(
+      createElement(PlanResult, draftProps({ dishes: solo, energy: dishEnergy, boxEnergy }) as never),
+    );
+    expect(html).toContain(en["meals.energy.dish"].replace("{n}", "612"));
+    expect(html).not.toContain("780");
+    expect(html.split("612").length - 1).toBe(1);
   });
 
   it("⛔ JAMAIS sur le bac partagé, aperçu compris", () => {

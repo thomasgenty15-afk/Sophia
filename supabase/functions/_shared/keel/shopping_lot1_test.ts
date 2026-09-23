@@ -55,6 +55,12 @@ import {
 } from "./shopping_rebuild.ts";
 import { planGroceryWaves } from "./grocery_waves.ts";
 import { fitPortionsToBounds } from "./portion_boundary.ts";
+// ⟳ 2026-09-23 — `fitPortionsToBounds` exige `goalOf` (l'objectif de la
+// bouche, qui choisit l'ordre du rabotage) et chaque item porte `kcalPerG`
+// et `starch` (audit des dosages, lot 5). Ce fichier passe `goalOf: () =>
+// null`, c'est-à-dire `largest_first`, la règle d'avant ce lot, et des items
+// sans densité (`kcalPerG: null`) : les grammes attendus ne bougent pas.
+// `starch` dit la vérité du groupe même si cet ordre ne le lit pas.
 
 // ---------------------------------------------------------------------------
 // LE DÉCOR — les aliments des deux tirs, avec les VALEURS DE LA BASE LOCALE
@@ -757,9 +763,9 @@ Deno.test("LOT 1 ⑪ — la portion à 631 g rentre à 630, et rien d'autre ne b
     slot: "breakfast",
     memberIds: ["m1"],
     items: [
-      { preparationId: "prep_eggs", grams: 401, group: null },
-      { preparationId: null, grams: 150, group: null },
-      { preparationId: null, grams: 80, group: null },
+      { preparationId: "prep_eggs", grams: 401, group: null, kcalPerG: null, starch: false },
+      { preparationId: null, grams: 150, group: null, kcalPerG: null, starch: false },
+      { preparationId: null, grams: 80, group: null, kcalPerG: null, starch: false },
     ],
   };
   const counts = fitPortionsToBounds({
@@ -767,6 +773,7 @@ Deno.test("LOT 1 ⑪ — la portion à 631 g rentre à 630, et rien d'autre ne b
     boundsFor: () => ({ min: 350, max: 630 }),
     potReadyGrams: new Map([["prep_eggs", 800]]),
     potMarginPercent: 1,
+    goalOf: () => null,
   });
   assertEquals(box.items.map((i) => i.grams), [400, 150, 80], "le rabotage n'a pas pris le plus gros");
   assertEquals(box.items.reduce((s, i) => s + i.grams, 0), 630);
@@ -781,13 +788,14 @@ Deno.test("LOT 1 ⑪ — LE CAS QUI PASSE : une portion DANS ses bornes n'est pa
     day: "sun",
     slot: "lunch",
     memberIds: ["m1"],
-    items: [{ preparationId: null, grams: 300, group: null }, { preparationId: null, grams: 250, group: null }],
+    items: [{ preparationId: null, grams: 300, group: null, kcalPerG: null, starch: false }, { preparationId: null, grams: 250, group: null, kcalPerG: null, starch: false }],
   };
   const counts = fitPortionsToBounds({
     boxes: [box],
     boundsFor: () => ({ min: 350, max: 630 }),
     potReadyGrams: new Map(),
     potMarginPercent: 1,
+    goalOf: () => null,
   });
   assertEquals(box.items.map((i) => i.grams), [300, 250]);
   assertEquals(counts.already_in_bounds, 1);
@@ -806,14 +814,14 @@ Deno.test("LOT 1 ⑪ — une remontée NE DÉPASSE JAMAIS le lot disponible", ()
       day: "sat",
       slot: "dinner",
       memberIds: ["m1"],
-      items: [{ preparationId: "p1", grams: 149, group: null }],
+      items: [{ preparationId: "p1", grams: 149, group: null, kcalPerG: null, starch: false }],
     },
     {
       boxId: "b2",
       day: "sat",
       slot: "dinner",
       memberIds: ["m2"],
-      items: [{ preparationId: "p1", grams: 149, group: null }],
+      items: [{ preparationId: "p1", grams: 149, group: null, kcalPerG: null, starch: false }],
     },
   ];
   const counts = fitPortionsToBounds({
@@ -823,6 +831,7 @@ Deno.test("LOT 1 ⑪ — une remontée NE DÉPASSE JAMAIS le lot disponible", ()
     boundsFor: (m) => (m.memberId === "m1" ? { min: 169, max: 400 } : null),
     potReadyGrams: new Map([["p1", 300]]),
     potMarginPercent: 1,
+    goalOf: () => null,
   });
   assertEquals(boxes[0].items[0].grams, 149, "le lot a été dépassé");
   assertEquals(counts.still_under_min, 1);
@@ -836,13 +845,14 @@ Deno.test("LOT 1 ⑪ — LE CAS QUI PASSE : une remontée que le lot autorise es
     day: "sat",
     slot: "dinner",
     memberIds: ["m1"],
-    items: [{ preparationId: "p1", grams: 149, group: null }],
+    items: [{ preparationId: "p1", grams: 149, group: null, kcalPerG: null, starch: false }],
   }];
   const counts = fitPortionsToBounds({
     boxes,
     boundsFor: () => ({ min: 169, max: 400 }),
     potReadyGrams: new Map([["p1", 300]]),
     potMarginPercent: 1,
+    goalOf: () => null,
   });
   assertEquals(boxes[0].items[0].grams, 169);
   assertEquals(counts.raised, 1);
@@ -855,13 +865,14 @@ Deno.test("LOT 1 ⑪ — le FRAIS d'un plat ne se remonte pas : on n'invente pas
     day: "sat",
     slot: "dinner",
     memberIds: ["m1"],
-    items: [{ preparationId: null, grams: 100, group: null }],
+    items: [{ preparationId: null, grams: 100, group: null, kcalPerG: null, starch: false }],
   }];
   const counts = fitPortionsToBounds({
     boxes,
     boundsFor: () => ({ min: 300, max: 600 }),
     potReadyGrams: new Map(),
     potMarginPercent: 1,
+    goalOf: () => null,
   });
   assertEquals(boxes[0].items[0].grams, 100);
   assertEquals(counts.still_under_min, 1);
@@ -876,13 +887,14 @@ Deno.test("LOT 1 ⑪ — un rabotage IMPOSSIBLE laisse la portion intacte, et se
     day: "sat",
     slot: "dinner",
     memberIds: ["m1"],
-    items: [{ preparationId: null, grams: 1, group: null }, { preparationId: null, grams: 1, group: null }],
+    items: [{ preparationId: null, grams: 1, group: null, kcalPerG: null, starch: false }, { preparationId: null, grams: 1, group: null, kcalPerG: null, starch: false }],
   }];
   const counts = fitPortionsToBounds({
     boxes,
     boundsFor: () => ({ min: 0, max: 1 }),
     potReadyGrams: new Map(),
     potMarginPercent: 1,
+    goalOf: () => null,
   });
   assertEquals(boxes[0].items.map((i) => i.grams), [1, 1]);
   assertEquals(counts.still_over_max, 1);
@@ -895,13 +907,14 @@ Deno.test("LOT 1 ⑪ — IDEMPOTENT : un second passage ne bouge plus rien", () 
     day: "sun",
     slot: "breakfast",
     memberIds: ["m1"],
-    items: [{ preparationId: "p1", grams: 401, group: null }, { preparationId: null, grams: 230, group: null }],
+    items: [{ preparationId: "p1", grams: 401, group: null, kcalPerG: null, starch: false }, { preparationId: null, grams: 230, group: null, kcalPerG: null, starch: false }],
   }];
   const args = {
     boxes,
     boundsFor: () => ({ min: 350, max: 630 }),
     potReadyGrams: new Map([["p1", 800]]),
     potMarginPercent: 1,
+    goalOf: () => null,
   };
   const un = fitPortionsToBounds(args);
   const apres = boxes[0].items.map((i) => i.grams);

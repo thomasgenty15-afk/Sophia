@@ -451,8 +451,10 @@ export async function generateWithGemini(
   const isOpenAiModel = (m: string) => /^\s*gpt-/i.test(String(m ?? "").trim());
   const isGeminiModel = (m: string) =>
     /^\s*gemini-/i.test(String(m ?? "").trim());
+  // `gpt-6-*` suit les mêmes règles que `gpt-5-*` : pas de `temperature`,
+  // effort de raisonnement transmis.
   const isOpenAiGpt5Family = (m: string) =>
-    /^\s*gpt-5/i.test(String(m ?? "").trim());
+    /^\s*gpt-[56]/i.test(String(m ?? "").trim());
 
   // Gemini tools in this codebase often use an uppercase "schema-ish" format:
   //   { type: "OBJECT", properties: { title: { type: "STRING" } } }

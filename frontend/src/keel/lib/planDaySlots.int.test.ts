@@ -54,7 +54,7 @@ const KID = person({ memberId: "mem-kid", displayName: "Kid" });
 
 describe("LOT 3 · la séparation d'un moment", () => {
   it("un seul plat commun ⇒ AUCUNE séparation, et le moment ne paie rien", () => {
-    const [group] = groupDayBySlot({ preparations: [], dishes: [dish()], portions: [ZOE, KID] });
+    const [group] = groupDayBySlot({ dishes: [dish()], portions: [ZOE, KID] });
     expect(group.separated).toBe(false);
     expect(group.table).toHaveLength(1);
     expect(group.people).toHaveLength(0);
@@ -185,9 +185,9 @@ describe("2026-08-19 · les marqueurs de bouche sous un plat", () => {
     // « Pour Zoé » sur le plan d'une personne seule serait une évidence
     // répétée vingt fois par semaine. ⚠️ Le test compte des bouches
     // LITTÉRALES: monter `SHARES_MIN_MOUTHS` à 3 le fait tomber.
-    const alone = groupDayBySlot({ preparations: [], dishes: [dish()], portions: [ZOE] });
+    const alone = groupDayBySlot({ dishes: [dish()], portions: [ZOE] });
     expect(alone[0].table[0].eaters).toEqual([]);
-    const pair = groupDayBySlot({ preparations: [], dishes: [dish()], portions: [ZOE, KID] });
+    const pair = groupDayBySlot({ dishes: [dish()], portions: [ZOE, KID] });
     expect(pair[0].table[0].eaters).toHaveLength(2);
   });
 
@@ -459,7 +459,7 @@ describe("LOT 3 · les parts, sous le plat qu'elles servent", () => {
         boxes: [{
           id: "box_fri_dinner_zoe",
           member_ids: ["mem-zoe"],
-          items: [{ preparation_id: "prep_chicken", term: "poulet rôti", grams: 140 }],
+          items: [{ preparation_id: "prep_chicken", term: "poulet rôti", grams: 140, ml: null }],
           legacy_total_grams: null,
         }],
       }],
@@ -511,10 +511,10 @@ describe("LOT 3 · les parts, sous le plat qu'elles servent", () => {
    * littérales (1, puis 2). Monter `SHARES_MIN_MOUTHS` à 3 le fait tomber.
    */
   it("⛔ à une seule bouche, aucune part — et à deux, elles reviennent", () => {
-    const alone = groupDayBySlot({ preparations: [], dishes: [bowls], portions: [zoeShare] });
+    const alone = groupDayBySlot({ dishes: [bowls], portions: [zoeShare] });
     expect(alone[0].table[0].shares, "une part récitée à une seule bouche")
       .toEqual([]);
-    const pair = groupDayBySlot({ preparations: [], dishes: [bowls], portions: [zoeShare, kidShare] });
+    const pair = groupDayBySlot({ dishes: [bowls], portions: [zoeShare, kidShare] });
     expect(pair[0].table[0].shares.length, "le plancher bloque tout").toBe(2);
     // Le plancher est bien celui que le module publie, et il vaut deux.
     expect(SHARES_MIN_MOUTHS).toBe(2);

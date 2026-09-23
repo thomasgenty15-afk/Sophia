@@ -73,47 +73,51 @@ export interface MealTick {
   key: string;
   eventId: string;
   localDate: string;
+  /**
+   * ⟳ 2026-09-23 — `false` = la ligne porte un motif: la personne a dit « pas
+   * mangé ». Depuis que le repas prévu est PRÉSUMÉ mangé, l'absence de ligne
+   * vaut « mangé » aussi: c'est la ligne décochée qui porte l'information.
+   */
+  eaten: boolean;
 }
 
 /**
- * Les coches ACTIVES de cet élève. Une ligne décochée porte
- * `disqualified_reason` et n'est pas rendue — elle existe encore, elle ne compte
- * simplement plus.
+ * TOUTES les lignes de coche de cet élève — cochées ET décochées.
+ *
+ * ⟳ 2026-09-23 — elle ne rendait que les coches actives. Depuis que la case est
+ * cochée d'office, c'est l'inverse qui compte: l'écran doit savoir quels repas
+ * portent un « pas mangé » pour les montrer décochés.
  */
 export async function loadMealTicks(userId: string): Promise<Map<string, MealTick>> {
   const res = await supabase
     .from(TABLE)
-    .select("id, local_date, source_message_id")
+    .select("id, local_date, source_message_id, disqualified_reason")
     .eq("user_id", userId)
     .eq("source", "quick_tap")
-    .is("disqualified_reason", null)
     .like("source_message_id", "meal_tick:%");
   if (res.error) {
     throw new Error(`[keel/mealTicks] load failed: ${res.error.message}`);
   }
   const out = new Map<string, MealTick>();
   for (const raw of (res.data ?? []) as unknown as Array<
-    { id: string; local_date: string; source_message_id: string }
+    {
+      id: string;
+      local_date: string;
+      source_message_id: string;
+      disqualified_reason: string | null;
+    }
   >) {
     out.set(raw.source_message_id, {
       key: raw.source_message_id,
       eventId: raw.id,
       localDate: raw.local_date,
+      eaten: raw.disqualified_reason === null,
     });
   }
   return out;
 }
 
-/**
- * Coche un repas. Idempotent PAR LE SCHÉMA: l'index unique partiel
- * `(user_id, source_message_id)` arbitre un double tap, pas un booléen côté
- * navigateur qui court contre lui-même.
- *
- * Une ligne déjà présente mais DÉCOCHÉE est ré-armée (on efface le motif) au
- * lieu d'être réinsérée — sinon la seconde coche échouerait sur l'index et
- * l'élève verrait une erreur pour un geste parfaitement légitime.
- */
-export async function tickMeal(args: {
+interface TickArgs {
   userId: string;
   generatedMealId: string;
   dishIndex: number;
@@ -121,9 +125,15 @@ export async function tickMeal(args: {
   slotKey: string | null;
   title: string;
   contentLocale: string;
-}): Promise<void> {
-  const key = mealTickKey(args.generatedMealId, args.dishIndex);
-  const inserted = await supabase.from(TABLE).insert({
+}
+
+/** La ligne d'une coche, cochée (`null`) ou portant déjà un motif. */
+function tickRow(
+  args: TickArgs,
+  key: string,
+  disqualified: MealUntickReason | null,
+) {
+  return {
     user_id: args.userId,
     occurred_at: new Date().toISOString(),
     local_date: args.localDate,
@@ -149,7 +159,22 @@ export async function tickMeal(args: {
     // Le chat n'écrit que `off_plan`, quand un marqueur déterministe a mordu.
     plan_relation: "as_planned",
     source_message_id: key,
-  });
+    disqualified_reason: disqualified,
+  };
+}
+
+/**
+ * Coche un repas. Idempotent PAR LE SCHÉMA: l'index unique partiel
+ * `(user_id, source_message_id)` arbitre un double tap, pas un booléen côté
+ * navigateur qui court contre lui-même.
+ *
+ * Une ligne déjà présente mais DÉCOCHÉE est ré-armée (on efface le motif) au
+ * lieu d'être réinsérée — sinon la seconde coche échouerait sur l'index et
+ * l'élève verrait une erreur pour un geste parfaitement légitime.
+ */
+export async function tickMeal(args: TickArgs): Promise<void> {
+  const key = mealTickKey(args.generatedMealId, args.dishIndex);
+  const inserted = await supabase.from(TABLE).insert(tickRow(args, key, null));
   if (!inserted.error) return;
   // 23505: la ligne existe déjà — donc elle avait été décochée. On la ré-arme.
   if ((inserted.error as { code?: string }).code === "23505") {
@@ -215,4 +240,37 @@ export async function untickMeal(args: {
   if ((res.data ?? []).length === 0) {
     throw new Error("[keel/mealTicks] untick touched 0 rows");
   }
+}
+
+/**
+ * ⟳ 2026-09-23 — « JE N'AI PAS MANGÉ CE REPAS », SUR UN REPAS JAMAIS COCHÉ.
+ *
+ * Le repas prévu est présumé mangé: la case s'affiche cochée sans qu'aucune
+ * ligne n'existe. `untickMeal` ne sait que MODIFIER une ligne (« untick touched
+ * 0 rows » sinon), donc la décocher échouait. Celle-ci INSÈRE la ligne avec son
+ * motif déjà posé; si la ligne existe (le repas avait été coché), elle retombe
+ * sur `untickMeal`.
+ *
+ * La base l'accepte: la policy INSERT ne vérifie que `user_id`, la CHECK
+ * accepte les quatre motifs, et le trigger de `20260818170000` ne garde que les
+ * UPDATE.
+ */
+export async function declareNotEaten(
+  args: TickArgs & { reason: MealUntickReason },
+): Promise<void> {
+  const key = mealTickKey(args.generatedMealId, args.dishIndex);
+  const inserted = await supabase
+    .from(TABLE)
+    .insert(tickRow(args, key, args.reason));
+  if (!inserted.error) return;
+  if ((inserted.error as { code?: string }).code === "23505") {
+    await untickMeal({
+      userId: args.userId,
+      generatedMealId: args.generatedMealId,
+      dishIndex: args.dishIndex,
+      reason: args.reason,
+    });
+    return;
+  }
+  throw new Error(`[keel/mealTicks] not-eaten failed: ${inserted.error.message}`);
 }

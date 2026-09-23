@@ -85,25 +85,24 @@ describe("la phrase de timing appartient à un jour", () => {
     expect(text.indexOf(sentence)).toBeGreaterThan(text.indexOf(FIRST_DAY));
   });
 
-  it("⛔ « la journée est entamée » RESTE en tête: elle parle de la fenêtre, pas d'un jour", () => {
-    // Elle dit « ce plan commence demain, et il couvre un jour de moins que
-    // demandé ». Ce fait n'appartient à aucun jour du plan — le ranger sous le
-    // premier le ferait lire comme une consigne du lundi.
+  it("⟳ 2026-09-20 — « la journée est entamée » NE SORT PLUS DE L'APERÇU", () => {
+    // Elle disait « ce plan commence demain, et il couvre un jour de moins que
+    // demandé », en tête de l'aperçu. Retirée sur demande: l'aperçu ne s'ouvre
+    // plus sur ce que le plan ne couvre pas.
+    //
+    // ⟳ 2026-09-23 — ET LA CLÉ EST MORTE: `KitchenToday`, son dernier lecteur,
+    // ne rend plus aucune phrase de timing (demandé: elles « polluent »
+    // l'écran du jour). Elle est retirée des deux packs.
     const text = textOf({ kind: "starts_tomorrow", reason: "today_already_spent", leadDay: null });
-    const sentence = en["meals.timing.starts_tomorrow"];
-    expect(text).toContain(sentence);
-    expect(text.indexOf(sentence)).toBeLessThan(text.indexOf(FIRST_DAY));
+    expect("meals.timing.starts_tomorrow" in en).toBe(false);
+    // ⛔ ET SURTOUT PAS RETOMBÉE SUR « dès le matin ». Un cas muet et un cas
+    // qui dit autre chose se relisent pareil dans un test de présence; celui-ci
+    // nomme le fait FAUX que le `else` avait déjà produit une fois.
+    expect(text).not.toContain(en["meals.timing.same_morning"]);
   });
 
-  it("sans timing, aucune des trois phrases ne sort", () => {
+  it("sans timing, « dès le matin » ne sort pas", () => {
     const text = textOf(null);
-    for (
-      const key of [
-        "meals.timing.same_morning",
-        "meals.timing.starts_tomorrow",
-      ] as const
-    ) {
-      expect(text, key).not.toContain(en[key]);
-    }
+    expect(text).not.toContain(en["meals.timing.same_morning"]);
   });
 });

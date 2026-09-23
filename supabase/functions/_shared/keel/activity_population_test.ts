@@ -175,7 +175,7 @@ Deno.test("⛔ AUCUNE quatrième source n'existe: tout le produit cartésien des
     for (const sport of sports) {
       for (const legacyLevel of legacies) {
         for (const asked of [false, true]) {
-          const { source } = activityFactorOf({ day, sport, asked }, legacyLevel);
+          const { source } = activityFactorOf({ day, sport, asked }, legacyLevel, "mid");
           combinaisons += 1;
           if (!isNamedActivitySource(source)) {
             throw new Error(`source hors vocabulaire: ${source}`);
@@ -192,7 +192,7 @@ Deno.test("⛔ AUCUNE quatrième source n'existe: tout le produit cartésien des
   for (const day of days) {
     for (const sport of sports) {
       for (const legacyLevel of legacies) {
-        atteints.add(activityFactorOf({ day, sport, asked: false }, legacyLevel).source);
+        atteints.add(activityFactorOf({ day, sport, asked: false }, legacyLevel, "mid").source);
       }
     }
   }

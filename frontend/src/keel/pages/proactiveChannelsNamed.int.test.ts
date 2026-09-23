@@ -96,7 +96,8 @@ describe("② le point du soir n'a toujours pas d'écrivain", () => {
   it("la phrase ne le promet donc pas, dans les deux packs", () => {
     // ⚠️ ON TESTE L'ABSENCE DU MOT, pas la présence d'une formulation: une
     // phrase se réécrit, une promesse morte ne doit pas revenir.
-    expect(fr["chat.settings.checkins.help"]).not.toContain("point du soir");
-    expect(en["chat.settings.checkins.help"]).not.toContain("evening check-in");
+    // ⟳ 2026-09-23 — la phrase est celle de l'interrupteur unique.
+    expect(fr["chat.settings.all.help"]).not.toContain("point du soir");
+    expect(en["chat.settings.all.help"]).not.toContain("evening check-in");
   });
 });

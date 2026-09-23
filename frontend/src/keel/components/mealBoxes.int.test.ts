@@ -94,23 +94,36 @@ function dish(over: Partial<GeneratedDish> = {}): GeneratedDish {
     ingredients: [],
     uses: [],
     boxes: [],
+    // ⟳ 2026-09-23 — aucun à-côté: ce fichier juge les contenants. Les
+    // à-côtés ont leur fichier (`sideCoursesDisplay.int.test.ts`).
+    side_courses: [],
     same_day: null,
     member_id: null,
     ...over,
   } as GeneratedDish;
 }
 
+/** Une session qui cuit le poulet ET le riz de `twoBoxDish`. */
+const BOTH_POTS = ["prep_chicken", "prep_rice"];
+
 /** LE CAS DE RÉFÉRENCE: un repas, deux groupes, deux contenants. */
 function twoBoxDish(over: Partial<GeneratedDish> = {}): GeneratedDish {
   return dish({
-    uses: [{ preparation_id: "prep_chicken", servings: 4, kept: "fridge" as const }],
+    // ⟳ 2026-09-23 — LE RIZ EST UNE CASSEROLE, ET LE PLAT LA DÉCLARE. Les
+    // tests qui pèsent riz ET poulet dans la session passent les DEUX
+    // casseroles (`BOTH_POTS`): une session ne pèse que ce qu'elle cuit
+    // (`sessionBoxesOwnPots.int.test.ts`).
+    uses: [
+      { preparation_id: "prep_chicken", servings: 4, kept: "fridge" as const },
+      { preparation_id: "prep_rice", servings: 4, kept: "fridge" as const },
+    ],
     boxes: [
       {
         id: "box_thu_dinner_peregrine",
         member_ids: [PEREGRINE_ID],
         items: [
-          { preparation_id: "prep_chicken", term: "roast chicken", grams: 140 },
-          { preparation_id: "prep_rice", term: "rice", grams: 100 },
+          { preparation_id: "prep_chicken", term: "roast chicken", grams: 140, ml: null },
+          { preparation_id: "prep_rice", term: "rice", grams: 100, ml: null },
         ],
         legacy_total_grams: null,
       },
@@ -118,8 +131,8 @@ function twoBoxDish(over: Partial<GeneratedDish> = {}): GeneratedDish {
         id: "box_thu_dinner_rest",
         member_ids: [CASIMIR_ID, ODALRIC_ID, WILFRID_ID],
         items: [
-          { preparation_id: "prep_chicken", term: "roast chicken", grams: 400 },
-          { preparation_id: "prep_rice", term: "rice", grams: 330 },
+          { preparation_id: "prep_chicken", term: "roast chicken", grams: 400, ml: null },
+          { preparation_id: "prep_rice", term: "rice", grams: 330, ml: null },
         ],
         legacy_total_grams: null,
       },
@@ -202,12 +215,12 @@ describe("readDishes lit les contenants du repas", () => {
         {
           id: "box_thu_dinner_peregrine",
           member_ids: [PEREGRINE_ID],
-          items: [{ preparation_id: "prep_chicken", term: "roast chicken", grams: 140 }],
+          items: [{ preparation_id: "prep_chicken", term: "roast chicken", grams: 140, ml: null }],
         },
         {
           id: "box_thu_dinner_rest",
           member_ids: [CASIMIR_ID, ODALRIC_ID, WILFRID_ID],
-          items: [{ preparation_id: "prep_chicken", term: "roast chicken", grams: 400 }],
+          items: [{ preparation_id: "prep_chicken", term: "roast chicken", grams: 400, ml: null }],
         },
       ],
     }]);
@@ -215,13 +228,17 @@ describe("readDishes lit les contenants du repas", () => {
       {
         id: "box_thu_dinner_peregrine",
         member_ids: [PEREGRINE_ID],
-        items: [{ preparation_id: "prep_chicken", term: "roast chicken", grams: 140 }],
+        // ⟳ 2026-09-22 — `ml` SORT DU LECTEUR, MÊME À `null`. Un contenant
+        // de poulet rôti n'a aucun volume: l'écran n'affiche alors aucune
+        // cuillère. La clé est là pour que son absence se distingue d'un
+        // lecteur débranché.
+        items: [{ preparation_id: "prep_chicken", term: "roast chicken", grams: 140, ml: null }],
         legacy_total_grams: null,
       },
       {
         id: "box_thu_dinner_rest",
         member_ids: [CASIMIR_ID, ODALRIC_ID, WILFRID_ID],
-        items: [{ preparation_id: "prep_chicken", term: "roast chicken", grams: 400 }],
+        items: [{ preparation_id: "prep_chicken", term: "roast chicken", grams: 400, ml: null }],
         legacy_total_grams: null,
       },
     ]);
@@ -284,7 +301,7 @@ describe("readDishes lit les contenants du repas", () => {
       boxes: [{
         id: "box_thu_dinner",
         member_ids: [CASIMIR_ID],
-        items: [{ preparation_id: "prep_chicken", term: "roast chicken", grams: 140 }],
+        items: [{ preparation_id: "prep_chicken", term: "roast chicken", grams: 140, ml: null }],
         legacy_total_grams: 9999,
       }],
     }]);
@@ -327,14 +344,14 @@ describe("readDishes lit les contenants du repas", () => {
           { term: "rice", grams: 0 },
           { term: "chicken", grams: "beaucoup" },
           { term: "", grams: 100 },
-          { preparation_id: "prep_rice", term: "rice", grams: 150 },
+          { preparation_id: "prep_rice", term: "rice", grams: 150, ml: null },
         ],
       }],
     }]);
     expect(d.boxes).toEqual([{
       id: "box_thu_dinner",
       member_ids: [CASIMIR_ID],
-      items: [{ preparation_id: "prep_rice", term: "rice", grams: 150 }],
+      items: [{ preparation_id: "prep_rice", term: "rice", grams: 150, ml: null }],
       legacy_total_grams: null,
     }]);
     expect(d.title).toBe("T");
@@ -425,7 +442,7 @@ describe("boxLinesForDish rend UN contenant par groupe", () => {
       boxes: [{
         id: "box_thu_dinner_rest",
         member_ids: [WILFRID_ID, CASIMIR_ID, ODALRIC_ID],
-        items: [{ preparation_id: null, term: "rice", grams: 300 }],
+        items: [{ preparation_id: null, term: "rice", grams: 300, ml: null }],
         legacy_total_grams: null,
       }],
     });
@@ -440,7 +457,7 @@ describe("boxLinesForDish rend UN contenant par groupe", () => {
       boxes: [{
         id: "box_thu_dinner_rest",
         member_ids: [CASIMIR_ID, ODALRIC_ID],
-        items: [{ preparation_id: null, term: "rice", grams: 220 }],
+        items: [{ preparation_id: null, term: "rice", grams: 220, ml: null }],
         legacy_total_grams: null,
       }],
     });
@@ -459,7 +476,7 @@ describe("boxLinesForDish rend UN contenant par groupe", () => {
       boxes: [{
         id: "box_big",
         member_ids: crowd.map((p) => p.memberId),
-        items: [{ preparation_id: null, term: "rice", grams: 900 }],
+        items: [{ preparation_id: null, term: "rice", grams: 900, ml: null }],
         legacy_total_grams: null,
       }],
     });
@@ -479,7 +496,7 @@ describe("boxLinesForDish rend UN contenant par groupe", () => {
       boxes: [{
         id: "box_four",
         member_ids: four.map((p) => p.memberId),
-        items: [{ preparation_id: null, term: "rice", grams: 700 }],
+        items: [{ preparation_id: null, term: "rice", grams: 700, ml: null }],
         legacy_total_grams: null,
       }],
     });
@@ -527,7 +544,7 @@ describe("boxLinesForSession liste les CONTENANTS d'une session", () => {
       day: "fri",
       boxes: twoBoxDish().boxes.map((b) => ({ ...b, id: `${b.id}_fri` })),
     });
-    const lines = boxLinesForSession(["prep_chicken"], [thursday, friday], ROSTER);
+    const lines = boxLinesForSession(["prep_chicken"], [thursday, friday], ROSTER, []);
     expect(lines).toHaveLength(4);
     expect(lines.map((l) => l.id)).toEqual([
       "box_thu_dinner_peregrine",
@@ -539,13 +556,13 @@ describe("boxLinesForSession liste les CONTENANTS d'une session", () => {
 
   it("la jointure est `uses[].preparation_id`, jamais un titre", () => {
     const thursday = twoBoxDish({ day: "thu" });
-    expect(boxLinesForSession(["prep_soup"], [thursday], ROSTER)).toEqual([]);
-    expect(boxLinesForSession(["prep_chicken"], [thursday], ROSTER)).toHaveLength(2);
+    expect(boxLinesForSession(["prep_soup"], [thursday], ROSTER, [])).toEqual([]);
+    expect(boxLinesForSession(["prep_chicken"], [thursday], ROSTER, [])).toHaveLength(2);
   });
 
   it("un repas sans contenant n'ajoute aucune ligne", () => {
     const bare = dish({ uses: [{ preparation_id: "prep_chicken", servings: 1, kept: "fridge" as const }] });
-    expect(boxLinesForSession(["prep_chicken"], [bare], ROSTER)).toEqual([]);
+    expect(boxLinesForSession(["prep_chicken"], [bare], ROSTER, [])).toEqual([]);
   });
 });
 
@@ -554,7 +571,7 @@ describe("boxLinesForSession liste les CONTENANTS d'une session", () => {
 // ---------------------------------------------------------------------------
 
 describe("le Boxing rend ce qu'il faut mettre dans chaque bac", () => {
-  const lines = boxLinesForSession(["prep_chicken"], [twoBoxDish()], ROSTER);
+  const lines = boxLinesForSession(BOTH_POTS, [twoBoxDish()], ROSTER, []);
 
   it("compte les contenants en tête — on sort ses bacs avant de commencer", () => {
     const text = textOf(createElement(BoxTable, { lines, context: "session" }));
@@ -625,6 +642,133 @@ describe("le Boxing rend ce qu'il faut mettre dans chaque bac", () => {
     const html = markup(createElement(BoxTable, { lines, context: "session" }));
     expect(html).toContain('data-box-id="box_thu_dinner_peregrine"');
     expect(html).toContain('data-box-id="box_thu_dinner_rest"');
+  });
+});
+
+/**
+ * ⟳ 2026-09-21 — UN PLAT SANS CUISSON N'A PAS DE BOÎTE À SORTIR. Il ne tire
+ * sur aucune préparation, il n'est dans aucune session : ce que la carte
+ * montre entre les personnes, c'est la DOSE (les grammes de chaque
+ * ingrédient), et le kcal pour qui a un objectif — celui-là est décidé par
+ * le back (`meal-energy-v1`, refus `no_direction`), la carte ne fait que le
+ * rendre. Demandé sur l'écran réel : « il n'y a pas de boîtes à faire pour
+ * les choses qui ne nécessitent pas de cuisson ».
+ */
+describe("un plat SANS cuisson montre les doses par personne, pas des boîtes", () => {
+  const noCook = () => dish({
+    title: "Petit-suisse, flocons d’avoine, pêche et amandes",
+    slot: "breakfast",
+    day: "tue",
+    uses: [],
+    same_day: { kind: "assemble", minutes: 3 } as never,
+    boxes: [
+      {
+        id: "box_tue_breakfast_casimir",
+        member_ids: [CASIMIR_ID],
+        items: [
+          { preparation_id: null, term: "petit-suisse nature", grams: 298, ml: null },
+          { preparation_id: null, term: "flocons d’avoine", grams: 66, ml: null },
+        ],
+        legacy_total_grams: null,
+      },
+      {
+        id: "box_tue_breakfast_odalric",
+        member_ids: [ODALRIC_ID],
+        items: [
+          { preparation_id: null, term: "petit-suisse nature", grams: 212, ml: null },
+          { preparation_id: null, term: "flocons d’avoine", grams: 47, ml: null },
+        ],
+        legacy_total_grams: null,
+      },
+    ],
+  });
+  const lines = boxLinesForDish(noCook(), ROSTER);
+  it("le bloc s'intitule « doses », et chaque personne lit ses grammes", () => {
+    const text = textOf(createElement(BoxTable, { lines, context: "doses" }));
+    expect(text).toContain(en["meals.doses.title"]);
+    expect(text).not.toContain(en["meals.boxes.title_dish"]);
+    for (const grams of [298, 66, 212, 47]) expect(text, text).toContain(`${grams} g`);
+    expect(text).toContain("Casimir");
+    expect(text).toContain("Odalric");
+  });
+  it("le couvercle n'est pas répété : jour, moment et titre sont déjà sur la carte", () => {
+    const text = textOf(createElement(BoxTable, { lines, context: "doses" }));
+    for (const line of lines) {
+      expect(line.lid).not.toBe("");
+      expect(text, text).not.toContain(line.lid);
+    }
+  });
+  it("le kcal d'une dose se rend quand le back l'a émis, et pas autrement", () => {
+    const withEnergy = textOf(createElement(BoxTable, {
+      lines,
+      context: "doses",
+      boxEnergy: (id: string) => id === "box_tue_breakfast_casimir"
+        ? { boxId: id, memberId: CASIMIR_ID, kcal: 683, basis: "plan_quantities" }
+        : null,
+    }));
+    expect(withEnergy).toContain("683");
+    expect(withEnergy).not.toContain("kcal kcal");
+    const silent = textOf(createElement(BoxTable, { lines, context: "doses" }));
+    expect(silent).not.toContain("kcal");
+  });
+  it("⛔ LA CARTE CHOISIT : `uses` vide ⇒ doses ; une casserole tirée ⇒ boîtes à sortir", () => {
+    const doses = textOf(createElement(DishCard, { slotBadge: false, dish: noCook(), boxes: lines }));
+    expect(doses).toContain(en["meals.doses.title"]);
+    expect(doses).not.toContain(en["meals.boxes.title_dish"]);
+    expect(doses).toContain("298 g");
+    const boxed = boxLinesForDish(twoBoxDish(), ROSTER);
+    const boxes = textOf(createElement(DishCard, { slotBadge: false, dish: twoBoxDish(), boxes: boxed }));
+    expect(boxes).toContain(en["meals.boxes.title_dish"]);
+    expect(boxes).not.toContain(en["meals.doses.title"]);
+    expect(boxes, boxes).not.toMatch(/\d+\s*g\b/);
+  });
+});
+
+describe("le chiffre sous le titre : une personne ⇒ le sien ; plusieurs ⇒ aucun", () => {
+  const solo = () => dish({
+    title: "Yaourt, avoine, amandes et pomme",
+    slot: "snack_pm",
+    day: "tue",
+    uses: [],
+    boxes: [{
+      id: "box_tue_snack_pm_casimir",
+      member_ids: [CASIMIR_ID],
+      items: [{ preparation_id: null, term: "yaourt", grams: 118, ml: null }, { preparation_id: null, term: "pomme", grams: 94, ml: null }],
+      legacy_total_grams: null,
+    }],
+  });
+  const serverAverage = { kcal: 110, basis: "plan_quantities", complete: true, gaps: [] };
+  const boxEnergy = (id: string) =>
+    id === "box_tue_snack_pm_casimir" ? { boxId: id, memberId: CASIMIR_ID, kcal: 330, basis: "plan_quantities" } : null;
+  it("seul à table : le chiffre du contenant remplace la moyenne du serveur, une seule fois", () => {
+    const text = textOf(createElement(DishCard, {
+      slotBadge: false, dish: solo(), boxes: boxLinesForDish(solo(), ROSTER), energy: serverAverage, boxEnergy,
+    }));
+    expect(text).toContain("330");
+    expect(text, text).not.toContain("110 kcal");
+    expect(text.split("330").length - 1).toBe(1);
+  });
+  it("seul à table, sans kcal émis pour lui : rien sous le titre — jamais la moyenne", () => {
+    const text = textOf(createElement(DishCard, {
+      slotBadge: false, dish: solo(), boxes: boxLinesForDish(solo(), ROSTER), energy: serverAverage, boxEnergy: () => null,
+    }));
+    expect(text, text).not.toContain("kcal");
+  });
+  it("plusieurs à table : aucun chiffre sous le titre, chacun sa ligne", () => {
+    const shared = twoBoxDish();
+    const lines = boxLinesForDish(shared, ROSTER);
+    const text = textOf(createElement(DishCard, {
+      slotBadge: false, dish: shared, boxes: lines, energy: { ...serverAverage, kcal: 893 },
+      boxEnergy: (id: string) => id === lines[0].id ? { boxId: id, memberId: PEREGRINE_ID, kcal: 996, basis: "plan_quantities" } : null,
+    }));
+    expect(text, text).not.toContain("893");
+    expect(text).toContain("996");
+  });
+  it("sans contenant : la moyenne du serveur ne se dit qu'à une personne au plus", () => {
+    const one = textOf(createElement(DishCard, { slotBadge: false, dish: dish(), energy: serverAverage, eaters: [{ memberId: CASIMIR_ID, name: "Casimir" }] }));
+    expect(one).toContain("110");
+    const two = textOf(createElement(DishCard, { slotBadge: false, dish: dish(), energy: serverAverage, eaters: [{ memberId: CASIMIR_ID, name: "Casimir" }, { memberId: ODALRIC_ID, name: "Odalric" }] }));
+    expect(two, two).not.toContain("110");
   });
 });
 
@@ -860,7 +1004,6 @@ describe("le jour suit l'ordre des gestes", () => {
         purchasable: true,
       },
     ],
-    moments: [],
     // ⟳ 2026-09-09 — la phrase de timing du jour: aucune ici.
     timingLine: null,
     portions: ROSTER,
@@ -925,15 +1068,18 @@ describe("le jour suit l'ordre des gestes", () => {
     expect(card, "le scanner ne trouve plus la carte").not.toBe("");
     const fold = card.indexOf("{open && hasBody && (");
     const preps = card.indexOf("{preps.map((prep) => (");
-    const boxes = card.indexOf("<BoxTable");
-    const run = card.indexOf("{session.run_through && (");
+    const boxes = card.indexOf("<BoxingFold");
+    // ⟳ 2026-09-23 — une seule recette ⇒ pas de déroulé global (il redirait sa
+    // méthode): la garde porte aussi le nombre de préparations.
+    const run = card.indexOf("{session.run_through && preps.length !== 1 && (");
     expect(fold, "le pli a disparu").toBeGreaterThan(-1);
-    // Les trois morceaux sont DANS le pli, et dans cet ordre: ce qu'il y a dans
-    // la casserole, comment on la cuit, PUIS dans quoi on la répartit.
-    // L'inverse ferait peser avant d'avoir cuit.
+    // Les trois morceaux sont DANS le pli, et dans cet ordre: les casseroles,
+    // puis le DÉROULÉ GLOBAL qui ordonne les gestes entre elles, PUIS dans quoi
+    // on répartit. ⟳ 2026-09-23 — le déroulé passait APRÈS le boxing; demandé:
+    // « en bas des plats et leurs recettes », avant la pesée.
     expect(preps).toBeGreaterThan(fold);
-    expect(boxes).toBeGreaterThan(preps);
-    expect(run).toBeGreaterThan(boxes);
+    expect(run).toBeGreaterThan(preps);
+    expect(boxes).toBeGreaterThan(run);
     // La pesée lit la valeur DÉJÀ calculée pour `hasBody`: deux appels à
     // `boxLinesForSession` divergeraient le jour où l'un des deux change.
     expect(card).toContain("lines={boxLines}");
@@ -973,7 +1119,7 @@ describe("le jour suit l'ordre des gestes", () => {
 describe("les ingrédients du jour disent qu'ils s'ajoutent au lot", () => {
   const withExtras = twoBoxDish({
     ingredients: [
-      { term: "feta", quantity: "60 g", aisle: "dairy", in_pantry: false },
+      { term: "feta", quantity: "60 g", in_pantry: false },
     ] as GeneratedDish["ingredients"],
   });
 
@@ -1053,13 +1199,13 @@ describe("le Boxing dit ce qui part au congélateur", () => {
           {
             id: "box_thu_dinner_peregrine",
             member_ids: [PEREGRINE_ID],
-            items: [{ preparation_id: "prep_chicken", term: "roast chicken", grams: 140 }],
+            items: [{ preparation_id: "prep_chicken", term: "roast chicken", grams: 140, ml: null }],
             legacy_total_grams: null,
           },
           {
             id: "box_thu_dinner_rest",
             member_ids: [CASIMIR_ID, ODALRIC_ID],
-            items: [{ preparation_id: "prep_rice", term: "rice", grams: 330 }],
+            items: [{ preparation_id: "prep_rice", term: "rice", grams: 330, ml: null }],
             legacy_total_grams: null,
           },
         ],
@@ -1078,7 +1224,7 @@ describe("le Boxing dit ce qui part au congélateur", () => {
         boxes: [{
           id: "box_thu_dinner_bread",
           member_ids: [PEREGRINE_ID],
-          items: [{ preparation_id: null, term: "pain complet", grams: 60 }],
+          items: [{ preparation_id: null, term: "pain complet", grams: 60, ml: null }],
           legacy_total_grams: null,
         }],
       }),
@@ -1153,8 +1299,8 @@ describe("le Boxing dit ce qui part au congélateur", () => {
 // ⟳ LOT F (2026-09-04) — LE KCAL SUR LE COUVERCLE À UN NOM, ET NULLE PART AILLEURS.
 describe("BoxTable — le kcal d'un contenant à un nom", () => {
   const lines: BoxLine[] = [
-    { id: "box_marc", eaters: ["Marc"], eatersLabel: "Marc", eaterCount: 1, shared: false, lid: "Marc", meal: "sam. midi", dish: "Poulet", items: [], total: 350, frozen: false } as unknown as BoxLine,
-    { id: "box_table", eaters: ["Julie", "Tom"], eatersLabel: "Julie, Tom", eaterCount: 2, shared: true, lid: "La table", meal: "sam. midi", dish: "Poulet", items: [], total: 700, frozen: false } as unknown as BoxLine,
+    { id: "box_marc", eaters: ["Marc"], eatersLabel: "Marc", eaterCount: 1, shared: false, lid: "Marc", meal: "sam. midi", dish: "Poulet", items: [], sides: [], total: 350, frozen: false, partial: false, restOnTheDay: false, fromOtherSessions: [] },
+    { id: "box_table", eaters: ["Julie", "Tom"], eatersLabel: "Julie, Tom", eaterCount: 2, shared: true, lid: "La table", meal: "sam. midi", dish: "Poulet", items: [], sides: [], total: 700, frozen: false, partial: false, restOnTheDay: false, fromOtherSessions: [] },
   ];
   const energy = (id: string) =>
     id === "box_marc" || id === "box_table"
@@ -1201,10 +1347,10 @@ describe("⟳ 2026-09-16 — le contenant d'une session ne tient que les parts d
           id: "box_thu_lunch_peregrine",
           member_ids: [PEREGRINE_ID],
           items: [
-            { preparation_id: "prep_lunch_wed", term: "dinde à l'orge", grams: 588 },
-            { preparation_id: null, term: "tortilla complète", grams: 43 },
-            { preparation_id: null, term: "laitue", grams: 29 },
-            { preparation_id: null, term: "tomate", grams: 36 },
+            { preparation_id: "prep_lunch_wed", term: "dinde à l'orge", grams: 588, ml: null },
+            { preparation_id: null, term: "tortilla complète", grams: 43, ml: null },
+            { preparation_id: null, term: "laitue", grams: 29, ml: null },
+            { preparation_id: null, term: "tomate", grams: 36, ml: null },
           ],
           legacy_total_grams: null,
         },
@@ -1213,7 +1359,7 @@ describe("⟳ 2026-09-16 — le contenant d'une session ne tient que les parts d
   }
 
   it("dans la session : la part de marmite seule, le total recomptée, et le contenant dit qu'il est partiel", () => {
-    const [line] = boxLinesForSession(["prep_lunch_wed"], [assembledLunch()], ROSTER);
+    const [line] = boxLinesForSession(["prep_lunch_wed"], [assembledLunch()], ROSTER, []);
     expect(line.items.map((i) => i.term)).toEqual(["dinde à l'orge"]);
     expect(line.total).toBe(588);
     expect(line.partial).toBe(true);
@@ -1227,7 +1373,7 @@ describe("⟳ 2026-09-16 — le contenant d'une session ne tient que les parts d
   });
 
   it("deux marmites d'une même session restent ensemble dans le contenant (toutes casseroles confondues)", () => {
-    const [line] = boxLinesForSession(["prep_chicken"], [twoBoxDish()], ROSTER);
+    const [line] = boxLinesForSession(BOTH_POTS, [twoBoxDish()], ROSTER, []);
     expect(line.items.map((i) => i.term)).toEqual(["roast chicken", "rice"]);
     expect(line.partial).toBe(false);
   });
@@ -1238,15 +1384,15 @@ describe("⟳ 2026-09-16 — le contenant d'une session ne tient que les parts d
       boxes: [{
         id: "box_fresh",
         member_ids: [PEREGRINE_ID],
-        items: [{ preparation_id: null, term: "salade", grams: 120 }],
+        items: [{ preparation_id: null, term: "salade", grams: 120, ml: null }],
         legacy_total_grams: null,
       }],
     });
-    expect(boxLinesForSession(["prep_lunch_wed"], [freshOnly], ROSTER)).toEqual([]);
+    expect(boxLinesForSession(["prep_lunch_wed"], [freshOnly], ROSTER, [])).toEqual([]);
   });
 
   it("à l'écran : un contenant partiel dit que le reste se fait le jour même, et ne porte PAS les kcal du repas", () => {
-    const lines = boxLinesForSession(["prep_lunch_wed"], [assembledLunch()], ROSTER);
+    const lines = boxLinesForSession(["prep_lunch_wed"], [assembledLunch()], ROSTER, []);
     const energy = (id: string) => (id === "box_thu_lunch_peregrine" ? { kcal: 1213 } : null);
     const text = decode(textOf(createElement(BoxTable, {
       lines,

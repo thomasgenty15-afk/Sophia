@@ -6,6 +6,8 @@ import { ensureInternalRequest } from "../_shared/internal-auth.ts";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import { runSlotMealStep } from "../_shared/keel/slot_meal_io.ts";
+// ⟳ 2026-09-23 — la question du soir: « tu as mangé tous tes repas ? »
+import { runDayMealsStep } from "../_shared/keel/day_meals_io.ts";
 import { runWeighInStep } from "../_shared/keel/weigh_in_io.ts";
 // FF-054 §3.2 / FF-062 — le retour de fin de plan, sorti du message du soir.
 import { runPlanFeedbackStep } from "../_shared/keel/plan_feedback_chat_io.ts";
@@ -161,24 +163,54 @@ async function runAskChannels(
   common: AskCommon,
   ctx: {
     doSlotMeal: boolean;
+    doDayMeals: boolean;
     doWeighIn: boolean;
     slotMeal: ChannelTally;
+    dayMeals: ChannelTally;
     weighIn: ChannelTally;
     failures: string[];
   },
 ): Promise<void> {
+  let slotMealSentNow = false;
   if (ctx.doSlotMeal) {
     try {
       const out = await runSlotMealStep(admin, common);
       if (!isWindowSkip(out.verdict)) ctx.slotMeal.examined++;
       if (out.verdict.ask) {
-        if (out.delivered) ctx.slotMeal.sent++;
-        else bump(ctx.slotMeal.blocked, out.deliveryReason ?? "unknown");
+        if (out.delivered) {
+          ctx.slotMeal.sent++;
+          slotMealSentNow = true;
+        } else bump(ctx.slotMeal.blocked, out.deliveryReason ?? "unknown");
       } else {
         bump(ctx.slotMeal.skipped, out.verdict.reason);
       }
     } catch (error) {
       ctx.failures.push(`slot_meal ${common.userId}: ${flattenError(error)}`);
+    }
+  }
+
+  // ── ⟳ 2026-09-23 · LA QUESTION DU SOIR SUR LES REPAS PRÉVUS ───────────
+  //
+  // Elle tombe à la même heure que la question du dîner NON COUVERT (21 h par
+  // défaut). Si celle-là vient de partir dans ce tick, celle-ci attend le
+  // suivant — sa fenêtre dure deux heures — plutôt que de poser deux bulles
+  // d'un coup. Compté `deferred`, pour que l'attente ne ressemble pas à un refus.
+  if (ctx.doDayMeals) {
+    if (slotMealSentNow) {
+      bump(ctx.dayMeals.skipped, "deferred");
+    } else {
+      try {
+        const out = await runDayMealsStep(admin, common);
+        if (!isWindowSkip(out.verdict)) ctx.dayMeals.examined++;
+        if (out.verdict.ask) {
+          if (out.delivered) ctx.dayMeals.sent++;
+          else bump(ctx.dayMeals.blocked, out.deliveryReason ?? "unknown");
+        } else {
+          bump(ctx.dayMeals.skipped, out.verdict.reason);
+        }
+      } catch (error) {
+        ctx.failures.push(`day_meals ${common.userId}: ${flattenError(error)}`);
+      }
     }
   }
 
@@ -246,7 +278,8 @@ Deno.serve(async (req) => {
     const only = cleanText(body.only);
     if (
       only && only !== "slot_meal" && only !== "weigh_in" &&
-      only !== "plan_feedback" && only !== "thaw_reminder"
+      only !== "plan_feedback" && only !== "thaw_reminder" &&
+      only !== "day_meals"
     ) {
       return jsonResponse(req, {
         ok: false,
@@ -255,6 +288,7 @@ Deno.serve(async (req) => {
       }, { status: 400, includeCors: false });
     }
     const doSlotMeal = !only || only === "slot_meal";
+    const doDayMeals = !only || only === "day_meals";
     const doWeighIn = !only || only === "weigh_in";
     const doPlanFeedback = !only || only === "plan_feedback";
     const doThawReminder = !only || only === "thaw_reminder";
@@ -286,6 +320,7 @@ Deno.serve(async (req) => {
     let cursor = cleanText(body.after_user_id);
     let scanned = 0;
     const slotMeal = emptyTally();
+    const dayMeals = emptyTally();
     const weighIn = emptyTally();
     const planFeedback = emptyTally();
     const thawReminder = emptyTally();
@@ -342,8 +377,10 @@ Deno.serve(async (req) => {
         // ── C1 ET C2 — LES DEUX CANAUX QUE LES DEUX AUDIENCES PARTAGENT ──
         await runAskChannels(admin, common, {
           doSlotMeal,
+          doDayMeals,
           doWeighIn,
           slotMeal,
+          dayMeals,
           weighIn,
           failures,
         });
@@ -439,6 +476,7 @@ Deno.serve(async (req) => {
     // distingue « aucun membre servi » de « aucun membre à servir », qui
     // rendraient sinon le même zéro.
     const memberSlotMeal = emptyTally();
+    const memberDayMeals = emptyTally();
     const memberWeighIn = emptyTally();
     let memberCursor = cleanText(body.after_member_user_id);
     let membersScanned = 0;
@@ -514,8 +552,10 @@ Deno.serve(async (req) => {
           requestId,
         }, {
           doSlotMeal,
+          doDayMeals,
           doWeighIn,
           slotMeal: memberSlotMeal,
+          dayMeals: memberDayMeals,
           weighIn: memberWeighIn,
           failures,
         });
@@ -536,6 +576,7 @@ Deno.serve(async (req) => {
       // (les deux canaux sont rares par construction); `examined: 0` est une
       // panne. Les fondre rendrait la panne indiscernable du succès.
       slot_meal: slotMeal,
+      day_meals: dayMeals,
       weigh_in: weighIn,
       plan_feedback: planFeedback,
       thaw_reminder: thawReminder,
@@ -564,6 +605,7 @@ Deno.serve(async (req) => {
         exhausted: membersExhausted,
         next_after_user_id: membersExhausted ? null : memberCursor || null,
         slot_meal: memberSlotMeal,
+        day_meals: memberDayMeals,
         weigh_in: memberWeighIn,
       },
       // ⚠️ 🔴 LE COMPTE AVANT L'ÉCHANTILLON — MESURÉ LE 2026-09-02. Ce

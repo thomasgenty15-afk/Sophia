@@ -1,6 +1,7 @@
 import { mealCopy } from "../../api/mealLabels";
+import { householdMeasureOf } from "../../lib/householdMeasure";
 import type { BoxEnergyView } from "../../api/mealEnergy";
-import type { BoxLine } from "../../lib/mealBoxes";
+import type { BoxLine, BoxSideLine } from "../../lib/mealBoxes";
 
 // LE BOXING — UNE LIGNE PAR CONTENANT, C'EST-À-DIRE PAR REPAS **ET** PAR GROUPE.
 //
@@ -61,8 +62,14 @@ import type { BoxLine } from "../../lib/mealBoxes";
 // diverger, et ici la divergence se paierait sur des grammes.
 
 export function BoxTable(
-  { lines, context, boxEnergy }: {
+  { lines, context, boxEnergy, headless }: {
     lines: readonly BoxLine[];
+    /**
+     * ⟳ 2026-09-23 — SANS SA LIGNE DE TITRE (« Boxing · 15 contenants… »),
+     * parce que la section repliable qui la contient (`FoldSection`) la porte
+     * déjà. `undefined` = la table dit son titre, comme partout ailleurs.
+     */
+    headless?: boolean;
     /**
      * ⟳ 2026-09-04 — le kcal d'un contenant à UN nom, quand sa bouche y a
      * droit. `undefined` = aucune énergie n'a voyagé (porte fermée ou écran qui
@@ -88,7 +95,7 @@ export function BoxTable(
      * `dish` viderait le Boxing — aucun des deux n'est sûr, donc il n'y en a
      * pas.
      */
-    context: "session" | "dish";
+    context: "session" | "dish" | "doses";
   },
 ) {
   // MUETTE QUAND IL N'Y A RIEN À METTRE EN BOÎTE, et c'est le cas majoritaire:
@@ -102,10 +109,15 @@ export function BoxTable(
   const frozenCount = lines.filter((l) => l.frozen).length;
   return (
     <div className="mt-3 rounded-card border border-line bg-paper-2 px-3 py-2">
+      {!headless && (
       <div className="flex flex-wrap items-baseline gap-x-2">
         <p className="text-label font-semibold uppercase tracking-wide text-ink-soft">
           {mealCopy(
-            context === "dish" ? "meals.boxes.title_dish" : "meals.boxes.title",
+            context === "doses"
+              ? "meals.doses.title"
+              : context === "dish"
+              ? "meals.boxes.title_dish"
+              : "meals.boxes.title",
           )}
         </p>
         {/* ── LE COMPTE, EN TÊTE ET NULLE PART AILLEURS ────────────────────
@@ -144,6 +156,7 @@ export function BoxTable(
           </span>
         )}
       </div>
+      )}
       {/* ══════════════════════════════════════════════════════════════════
           DE QUEL GRAMME ON PARLE — UNE FOIS, EN TÊTE DU BOXING.
           ══════════════════════════════════════════════════════════════════
@@ -208,7 +221,7 @@ export function BoxTable(
 function BoxRow(
   { line, context, energy }: {
     line: BoxLine;
-    context: "session" | "dish";
+    context: "session" | "dish" | "doses";
     energy: BoxEnergyView | null;
   },
 ) {
@@ -222,7 +235,15 @@ function BoxRow(
     >
       <span className="flex flex-wrap items-baseline gap-x-2 break-words">
         <span className="font-medium">
-          {line.lid !== "" ? line.lid : mealCopy("meals.boxes.lid_unnamed")}
+          {/* ⟳ 2026-09-21 — LES DOSES D'UN PLAT SANS CUISSON : le prénom
+              suffit. Le couvercle (« Thomas — Mardi Petit-déjeuner — Petit-
+              suisse… ») répète le jour, le moment et le titre qui sont trois
+              lignes plus haut ; il n'y a aucune boîte à étiqueter. */}
+          {context === "doses" && line.eatersLabel !== ""
+            ? line.eatersLabel
+            : line.lid !== ""
+            ? line.lid
+            : mealCopy("meals.boxes.lid_unnamed")}
         </span>
         {/* ── CE QUI DIT QUE LE NOMBRE DÉCRIT UN BAC ───────────────────────
             Le seul geste qui distingue les deux lectures du gramme, et il est
@@ -242,11 +263,22 @@ function BoxRow(
             {mealCopy("meals.boxes.energy", { n: energy.kcal })}
           </span>
         )}
-        {context === "session" && line.partial && (
+        {context === "session" && line.restOnTheDay && (
           <span className="text-label text-ink-soft">
             {mealCopy("meals.boxes.rest_on_the_day")}
           </span>
         )}
+        {/* ⟳ 2026-09-23 — CE QUI COMPLÈTE LA BOÎTE DANS UNE AUTRE SESSION,
+            nommé et daté, jamais pesé ici. Mesuré sur le plan `404d64b5`: le
+            mercredi faisait peser le saumon cuit le vendredi. Voir
+            `fromOtherSessions` (`mealBoxes.ts`). */}
+        {context === "session" && line.fromOtherSessions.map((part) => (
+          <span key={`${part.term}|${part.dayLabel ?? ""}`} className="text-label text-ink-soft">
+            {part.dayLabel === null
+              ? mealCopy("meals.boxes.with_other_session_undated", { what: part.term })
+              : mealCopy("meals.boxes.with_other_session", { what: part.term, day: part.dayLabel })}
+          </span>
+        ))}
         {line.shared && (
           <span className="text-label tabular-nums text-ink-soft">
             {mealCopy("meals.boxes.for_n", { n: line.eaterCount })}
@@ -285,19 +317,78 @@ function BoxRow(
           ⚠️ MUET SUR UN PLAN v2 RELU (aucun `item`): on montre alors le total,
           qui est la seule chose vraie qu'on puisse en tirer. Pas de « ? », pas
           de ligne inventée. */}
-      {context === "session" && line.items.length > 0 && (
+      {/* ⟳ 2026-09-21 — ET LES DOSES: un plat sans cuisson n'a pas de boîte à
+          sortir ; ce qu'il faut lire entre les personnes, c'est le dosage —
+          et le kcal pour celles qui ont un objectif (le back ne l'émet que
+          pour une direction, `keel.meal_energy.box_gate`). */}
+      {(context === "session" || context === "doses") && line.items.length > 0 && (
         <ul className="flex flex-col gap-0.5">
-          {line.items.map((item, i) => (
-            <li
-              key={`${item.term}-${i}`}
-              className="flex items-baseline justify-between gap-3"
-            >
+          {line.items.map((item, i) => {
+            // La mesure de cuisine de CETTE ligne. `null` = rien à dire.
+            const measure = householdMeasureOf(item.ml);
+            // ⟳ 2026-09-22 — ce que cette part de casserole contient, s'il y a à dire.
+            const parts = item.parts ?? null;
+            return (
+            <li key={`${item.term}-${i}`} className="flex flex-col">
+            <span className="flex items-baseline justify-between gap-3">
               <span className="min-w-0 break-words text-ink-soft">{item.term}</span>
-              <span className="shrink-0 tabular-nums text-ink-soft">
-                {mealCopy("meals.boxes.grams", { n: item.grams })}
+              {/* ══════════════════════════════════════════════════════════
+                  ⟳ 2026-09-22 · UN LIQUIDE SE VERSE, IL NE SE PÈSE PAS.
+                  ══════════════════════════════════════════════════════════
+                  « huile de colza — 6 g » est juste et inexécutable: personne
+                  ne pèse 6 g d'huile. La cuillère vient du VOLUME calculé par
+                  le moteur depuis la fiche de l'aliment (`BoxItem.ml`), jamais
+                  d'une devinette sur le libellé.
+
+                  ⛔ ELLE S'AJOUTE AU GRAMME, ELLE NE LE REMPLACE PAS. Le
+                  gramme est la grandeur du plan — celle qui a servi au calcul
+                  d'énergie et qui se vérifie; la cuillère est le geste. Garder
+                  les deux est ce qui empêche un arrondi de cuisine de devenir
+                  le chiffre du plan.
+                  ⚠️ MUETTE SUR TOUT CE QUI NE SE VERSE PAS, et c'est la
+                  quasi-totalité des lignes: un blanc de poulet n'a pas de
+                  volume, et un plan d'avant ce lot n'en porte aucun. */}
+              <span className="flex shrink-0 items-baseline gap-2">
+                {measure !== null && (
+                  <span className="text-label tabular-nums text-ink-soft">
+                    {mealCopy(measure.key, { n: measure.n })}
+                  </span>
+                )}
+                <span className="tabular-nums text-ink-soft">
+                  {mealCopy("meals.boxes.grams", { n: item.grams })}
+                </span>
               </span>
+            </span>
+            {/* ══════════════════════════════════════════════════════════
+                ⟳ 2026-09-22 · CE QUE CETTE PART DE CASSEROLE CONTIENT.
+                ══════════════════════════════════════════════════════════
+                « dont poulet ~110 g, légumes ~140 g ». Demande du
+                propriétaire: la ligne « Poulet rôti aux légumes — 261 g » ne
+                disait pas combien de poulet et combien de légumes on met dans
+                la boîte. Les fractions viennent du moteur; ici, une
+                multiplication et un arrondi (`lib/mealBoxes.ts`).
+                ⛔ UNE INFORMATION, PAS UNE PESÉE: le tilde et le gris le disent,
+                et le gramme à droite reste la seule quantité qu'on pèse. */}
+            {parts !== null && (
+              <span
+                data-box-parts
+                className="flex flex-wrap gap-x-1 text-label text-ink-soft"
+              >
+                <span>{mealCopy("meals.boxes.parts")}</span>
+                {parts.map((part, k) => (
+                  <span key={`${part.kind}-${part.term ?? ""}`} className="tabular-nums">
+                    {mealCopy("meals.boxes.part", {
+                      term: part.term ?? mealCopy("meals.boxes.part_vegetables"),
+                      n: part.grams,
+                    })}
+                    {k < parts.length - 1 ? "," : ""}
+                  </span>
+                ))}
+              </span>
+            )}
             </li>
-          ))}
+            );
+          })}
         </ul>
       )}
       {context === "session" && line.items.length === 0 && line.total > 0 && (
@@ -305,6 +396,92 @@ function BoxRow(
           {mealCopy("meals.boxes.grams", { n: line.total })}
         </span>
       )}
+      {/* ⟳ 2026-09-23 — LES À-CÔTÉS, APRÈS CE QU'ON MET DANS LE PLAT. */}
+      <SideCourseBlock
+        // ⚠️ `?? []` POUR LES MONTAGES DE TEST SEULEMENT: `oneLine` pose
+        // toujours `sides`, mais des `BoxLine` fabriquées par `as` dans des
+        // tests hors `tsc` n'ont pas la clé. Voir `sidesOfDish`.
+        sides={line.sides ?? []}
+        context={context}
+      />
     </li>
+  );
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ 2026-09-23 — LA LIGNE « À CÔTÉ » D'UN CONTENANT.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * Entrée, fromage, dessert, pain: ce qui se mange avec le plat sans être dans
+ * le plat. Une ligne par personne — « 1 × pomme, comté ~30 g » sous sa boîte à
+ * elle, « Christèle : 1 × yaourt nature » sous un bac commun.
+ *
+ * ⛔ SUR LES TROIS SURFACES, ET C'EST UN ARBITRAGE. La carte du repas ne montre
+ * aucun gramme de contenant (le contenant EST la portion); mais l'à-côté n'est
+ * pas dans le contenant — c'est le jour même, devant la carte, qu'on prend la
+ * pomme ou qu'on coupe les 30 g de fromage. Le taire là, c'était ne le dire
+ * nulle part où il se mange.
+ *
+ * ⚠️ AU BOXING (`session`), ce sont des parts de CASSEROLE (une soupe), et
+ * elles se pèsent comme les autres: le terme à gauche, le gramme exact aligné à
+ * droite. `oneLine` n'y laisse arriver que celles-là.
+ *
+ * ⛔ AUCUNE PROVENANCE, AUCUNE COULEUR D'ÉTAT: `BoxSideLine` n'a aucun champ
+ * qui dise d'où vient l'aliment, et le gris est celui des autres précisions.
+ *
+ * MUETTE SUR `[]`: un plan d'avant ce lot rend exactement le HTML d'avant.
+ */
+function SideCourseBlock(
+  { sides, context }: {
+    sides: readonly BoxSideLine[];
+    context: "session" | "dish" | "doses";
+  },
+) {
+  if (sides.length === 0) return null;
+  return (
+    <div data-box-sides className="flex flex-col gap-0.5">
+      <span className="text-label font-semibold uppercase tracking-wide text-ink-soft">
+        {mealCopy("meals.boxes.side_courses")}
+      </span>
+      <ul className="flex flex-col gap-0.5">
+        {sides.map((side) => (
+          <li
+            key={side.memberId}
+            // Même jointure auditable que les contenants: par identifiant,
+            // jamais par prénom rendu.
+            data-side-member-id={side.memberId}
+            className="flex flex-col text-ink-soft"
+          >
+            {context === "session"
+              ? (
+                <>
+                  {side.name !== null && (
+                    <span className="break-words font-medium text-ink">{side.name}</span>
+                  )}
+                  {side.items.map((item, i) => (
+                    <span
+                      key={`${item.term}-${i}`}
+                      className="flex items-baseline justify-between gap-3"
+                    >
+                      {item.unitCount === null
+                        ? (
+                          <>
+                            <span className="min-w-0 break-words">{item.term}</span>
+                            <span className="shrink-0 tabular-nums">
+                              {mealCopy("meals.boxes.grams", { n: item.grams })}
+                            </span>
+                          </>
+                        )
+                        : <span className="min-w-0 break-words">{item.label}</span>}
+                    </span>
+                  ))}
+                </>
+              )
+              : <span className="break-words">{side.text}</span>}
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

@@ -43,6 +43,8 @@ const READERS = [
   // (run adversarial H2). `resolvePlanScope` est la résolution unique.
   "supabase/functions/_shared/keel/planned_dish_io.ts",
   "supabase/functions/_shared/keel/evening_strip_io.ts",
+  // 2026-09-23 — les deux derniers plans du foyer, pour la liste « à éviter ».
+  "supabase/functions/_shared/keel/plan_avoid_list_io.ts",
 ] as const;
 
 Deno.test("tout lecteur qui filtre par foyer filtre AUSSI par plan_kind", async () => {

@@ -153,6 +153,29 @@ export const REPAIR_OPENING_LINES: readonly string[] = [
   "the whole answer away, and the household keeps the plan it has.",
 ];
 
+/**
+ * ⟳ 2026-09-23 — LE PLAT N'EST PAS TOUT LE REPAS (audit des dosages).
+ *
+ * ⛔ CE QU'IL FERME, MESURÉ. Sur cc012345, la réparation finale a réécrit 12
+ * boîtes : sardines et 3 tranches de pain, 200 g de yaourt pour tout le monde.
+ * Depuis le 2026-09-23 l'app sert elle-même un à-côté (entrée, fromage,
+ * dessert, pain) au déjeuner et au dîner, compté dans l'énergie du repas. Une
+ * réparation qui en ajoute un DANS le plat le compterait deux fois.
+ *
+ * ⚠️ SANS CONDITION, ET C'EST VOULU. La phrase reste vraie quand une personne a
+ * refusé tous les à-côtés (« or none ») : son plat est dimensionné par l'app,
+ * pas complété par le modèle. Le petit-déjeuner n'est pas visé : son yaourt et
+ * son fruit font partie de la recette de référence.
+ */
+export const REPAIR_SIDE_COURSE_LINES: readonly string[] = [
+  "== THE DISH IS NOT THE WHOLE MEAL ==",
+  "At lunch and dinner the app serves each person's side course itself, beside",
+  "the dish: a starter, a piece of cheese, a dessert or bread — or none, for",
+  "someone who declined them. ⛔ Never add a dessert, a bread, a cheese course or",
+  "a starter to a lunch or dinner dish or to its preparations: that energy is",
+  "already counted beside the plate.",
+];
+
 export interface RepairSystemPrompt {
   readonly text: string;
   readonly counts: {
@@ -195,6 +218,9 @@ export function repairSystemPrompt(args: {
   const text = [
     REPAIR_OPENING_LINES.join("\n"),
     ...sections,
+    // ⟳ 2026-09-23 — APRÈS LES RÈGLES DE CUISINE, AVANT LES LIMITES DURES : elle
+    // borne ce qu'une assiette de déjeuner ou de dîner peut contenir.
+    REPAIR_SIDE_COURSE_LINES.join("\n"),
     // ⛔ LES LIMITES DURES APRÈS LA MÉTHODE, AVANT LE SCHÉMA. Elles bornent ce
     // qu'on a le droit d'écrire ; le schéma dit sous quelle forme l'écrire.
     ...durs,

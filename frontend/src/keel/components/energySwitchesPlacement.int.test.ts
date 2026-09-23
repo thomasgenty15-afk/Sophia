@@ -34,6 +34,8 @@ const read = (rel: string) =>
 const READOUT = read("./plan/EnergyReadout.tsx");
 const BUILDER = read("./MealBuilder.tsx");
 const PLAN_PAGE = read("../pages/StudentWeekPlanPage.tsx");
+// ⟳ 2026-09-23 · FF-066 lot 4 — la seule adresse des interrupteurs.
+const KNOWN_PAGE = read("../pages/StudentKnownPage.tsx");
 
 describe("FF-059 lot 5 — la rangée d'interrupteurs n'est écrite qu'une fois", () => {
   it("les quatre libellés de bascule ne vivent QUE dans EnergyReadout", () => {
@@ -55,15 +57,35 @@ describe("FF-059 lot 5 — la rangée d'interrupteurs n'est écrite qu'une fois"
       expect(BUILDER.includes(label), `${label} recopié dans MealBuilder`).toBe(false);
       expect(PLAN_PAGE.includes(label), `${label} recopié dans la page du plan`)
         .toBe(false);
+      expect(KNOWN_PAGE.includes(label), `${label} recopié dans « Ce que Sophia sait »`)
+        .toBe(false);
     }
   });
 
-  it("les DEUX écrans montent le même composant", () => {
-    // Sans ce test, le précédent resterait vert si un écran avait simplement
-    // PERDU sa rangée — « une seule écriture » et « une seule adresse » ne sont
-    // pas la même propriété, et c'est la seconde adresse qui est le lot.
-    expect(BUILDER).toContain("<EnergySwitches energy={energy} />");
-    expect(PLAN_PAGE).toContain("<EnergySwitches energy={energySwitches} />");
+  it("⟳ 2026-09-20 — UNE SEULE ADRESSE: LA SECTION « LES CHIFFRES »", () => {
+    // Ce cas exigeait les DEUX montages. Celui de `MealBuilder` — la rangée
+    // sous les plats, juste au-dessus du bouton qui compose l'aperçu — a été
+    // retiré sur demande: on ne règle pas pendant qu'on compose.
+    //
+    // ⛔ ET C'EST L'AUTRE QUI RESTE, PAS L'INVERSE. Le lot 5 (2026-09-01) avait
+    // ajouté la section justement parce qu'une extinction à un clic ne doit pas
+    // demander une fouille pour être défaite. Garder `MealBuilder` et perdre la
+    // section aurait rendu le produit d'avant ce lot-là.
+    //
+    // ⟳ 2026-09-23 · FF-066 LOT 4 — CETTE SECTION A DÉMÉNAGÉ. Elle vivait dans
+    // la fenêtre « À propos de toi » de `/app/plan`, que plus rien n'ouvrait
+    // depuis le 2026-09-21: le cas restait vert sur un réglage injoignable.
+    // L'adresse unique est maintenant `/app/about-you`, où l'on vient régler.
+    expect(BUILDER).not.toContain("<EnergySwitches");
+    expect(PLAN_PAGE).not.toContain("<EnergySwitches");
+    expect(KNOWN_PAGE).toContain("<EnergySwitches energy={energy} />");
+    // ⚠️ ET LA CAPACITÉ EXISTE ENCORE: sans cette ligne, un retrait des DEUX
+    // montages laisserait ce cas vert sur sa première moitié, et un chiffre
+    // qu'on ne peut plus faire taire est un tracker.
+    expect(KNOWN_PAGE.split("<EnergySwitches").length - 1).toBe(1);
+    // ⚠️ ET ELLE EST MONTÉE: un composant défini mais jamais rendu serait la
+    // même fenêtre sans ouvreur, une page plus loin.
+    expect(KNOWN_PAGE).toContain("<PlanNumbersSection userId={userId} />");
   });
 
   it("le fronton « Les chiffres » ne se rend pas sans la bascule qu'il annonce", () => {
@@ -71,10 +93,10 @@ describe("FF-059 lot 5 — la rangée d'interrupteurs n'est écrite qu'une fois"
     // rend `null` laisserait un fronton vide chez quelqu'un que le plancher
     // TCA, son âge ou son coach protègent — c'est-à-dire lui dire qu'un réglage
     // de calories existe et lui est refusé.
-    const i = PLAN_PAGE.indexOf('t("plan.section.numbers.title")');
+    const i = KNOWN_PAGE.indexOf('t("plan.section.numbers.title")');
     expect(i, "la section des chiffres a disparu").toBeGreaterThan(0);
-    const before = PLAN_PAGE.slice(Math.max(0, i - 400), i);
-    expect(before).toContain("energySwitches.ready && energySwitches.switchOfferable");
+    const before = KNOWN_PAGE.slice(Math.max(0, i - 400), i);
+    expect(before).toContain("if (!energy.ready || !energy.switchOfferable) return null;");
   });
 
   it("la section des chiffres a sa copie dans les deux langues", () => {

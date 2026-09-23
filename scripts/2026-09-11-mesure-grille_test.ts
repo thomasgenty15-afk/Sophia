@@ -1046,6 +1046,7 @@ Deno.test("§2.3 — le banc et le prompt archivé disent le MÊME plancher à L
       dayTargetKcal: contracts[0].dayTargetKcal,
       coveredBudgetGrossKcal: contracts[0].coveredBudgetGrossKcal,
       fixedProteinG: null,
+      sideProteinG: 0,
       slots: contracts.map((c) => ({ slot: c.slot, composeKcal: c.composeKcal })),
     })),
   });

@@ -373,15 +373,11 @@ describe("le câblage de la vue jour", () => {
     ).toEqual([]);
   });
 
-  it("le motif d'un moment vide vient de la grille, en vue jour", () => {
-    const result = code(RESULT);
-    expect(result, "les moments ne sont plus lus dans la grille").toContain(
-      'moments={shown === "all" ? [] : dayMoments(grid, group.day)}',
-    );
-    const block = code(BLOCK);
-    expect(block, "les silences du jour ne sont plus rendus").toContain(
-      'props.moments.filter((m) => m.cell.kind !== "dish")',
-    );
+  it("⛔ 2026-09-23 — les moments sans plat ne sont plus rendus", () => {
+    // « Petit-déjeuner — rien ici » : retiré sur demande, avec la grille de
+    // `PlanResult` qui ne servait qu'à ça.
+    expect(code(RESULT)).not.toContain("dayMoments(");
+    expect(code(BLOCK)).not.toContain("props.moments");
   });
 
   it("⛔ aucune règle de vague recodée côté écran", () => {

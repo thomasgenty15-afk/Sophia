@@ -1203,70 +1203,39 @@ export type SlotDensityWithAnchor = SlotDensity & {
  * c'est exactement le cas mesuré sous le nom A15: un déjeuner de 1 120 kcal
  * dont la cible seule demanderait **236 kcal/100 g** quand les plats réels de
  * ce dépôt vivent entre **113 et 156**.
+ *
+ * ⟳ 2026-09-23 — PLUS AUCUN LECTEUR DANS LA CONSIGNE: la clause « not N » est
+ * retirée (voir le pavé juste en dessous). La constante reste parce que
+ * `constant_pins_test.ts` l'épingle; la retirer est un geste du flux T.
  */
 export const ANCHOR_DIVERGENCE_RATIO = 1.15;
 
 /**
  * ══════════════════════════════════════════════════════════════════════════
- * ⛔ POURQUOI ON NOMME LES DEUX, ET POURQUOI ON NE SUBSTITUE PAS
+ * ⟳ 2026-09-23 — LE SECOND NOMBRE (« not N ») ET SA NOTE SONT RETIRÉS
  * ══════════════════════════════════════════════════════════════════════════
  *
- * Le chantier demande `Dpréf = 100 × cible / grammage préféré` (lot C.4). Ce
- * dépôt a tranché l'INVERSE, avec des mesures, sous le nom **A15**
- * (`docs/keel/CHANTIER-DENSITE-PORTIONS-ET-FAST.md:573`): cette formule rend
- * 236 kcal/100 g sur un déjeuner de 1 120 kcal, et on a mesuré **389 demandés
- * au dîner, 126,7 rendus** — consigne ignorée. Y revenir réintroduirait un
- * défaut mesuré.
+ * ⛔ CE QU'ILS DISAIENT, ET POURQUOI C'ÉTAIT FAUX APRÈS L'AUDIT DU 2026-09-23.
+ * Depuis le 2026-09-11, quand la visée et `100 × E / Gpréf` divergeaient de
+ * plus de `ANCHOR_DIVERGENCE_RATIO`, la ligne écrivait « aim 135, not 236 »
+ * puis une note: « we ask for the bigger plate, so aim for the first number ».
+ * La clause sortait sur 4 moments sur 4 (l'écart vaut ~1,34 partout), et la
+ * note disait en toutes lettres au modèle de viser la GROSSE assiette — c'est
+ * exactement ce que l'audit a mesuré: la recette commune écrite pour le plus
+ * gros mangeur, 700 g d'assiette pour Thomas par construction.
  *
- * ⛔ CE QU'ON RETIENT DE LA DEMANDE, C'EST LE MOT « SILENCIEUSEMENT ». La visée
- * ne vient PAS de la cible, elle vient du bas du couloir (l'assiette la plus
- * grande, la plus facile à composer). Présenter ce nombre seul le fait lire
- * comme s'il venait de la cible. Quand les deux divergent, la ligne dit les
- * deux et dit lequel vise: rien n'est substitué en silence, et la mesure qui a
- * fondé A15 n'est pas jetée.
- */
-function anchorClause(d: SlotDensityWithAnchor, aim: number): string {
-  const anchored = d.targetAnchoredPer100G;
-  if (typeof anchored !== "number" || !Number.isFinite(anchored)) return "";
-  if (anchored <= 0 || aim <= 0) return "";
-  const ratio = anchored > aim ? anchored / aim : aim / anchored;
-  if (ratio < ANCHOR_DIVERGENCE_RATIO) return "";
-  // ══════════════════════════════════════════════════════════════════════
-  // ⟳ 2026-09-11 (fin de chantier) — LE NOMBRE PAR MOMENT, L'EXPLICATION UNE
-  // SEULE FOIS
-  // ══════════════════════════════════════════════════════════════════════
-  //
-  // ⛔ MESURÉ EN BRANCHANT LE TÉMOIN. L'écart entre la visée et
-  // `100 × E / Gpréf` n'est PAS un cas rare: il vaut à peu près
-  // `(Gmax / Gpréf) / 1,10`, donc ~1,34 partout. Sur le premier tir réel
-  // branché, la clause est sortie sur **4 moments sur 4** — et l'explication,
-  // identique, 4 fois dans la même phrase. Sur une table de quatre bouches,
-  // c'est 16 fois le même membre de phrase dans un prompt déjà à sa limite.
-  //
-  // ⚠️ UN BRIEF QUI RÉPÈTE CESSE D'ÊTRE LU: c'est l'objection déjà retenue au
-  // lot 4 pour la borne basse redondante, et elle vaut ici mot pour mot. On
-  // sépare donc les deux moitiés — le NOMBRE est une donnée du moment et il
-  // reste sur le moment; l'EXPLICATION est la même partout et se dit une fois,
-  // en queue de phrase (`anchorNote`). Même propriété que l'unité, écrite sur
-  // la première entrée seulement.
-  return `, not ${Math.round(anchored)}`;
-}
-
-/**
- * L'EXPLICATION DES DEUX NOMBRES — UNE FOIS PAR PHRASE, JAMAIS PAR MOMENT.
+ * ⚠️ LA VISÉE NE CHANGE PAS DE SOURCE (arbitrage A15 tenu: jamais
+ * `100 × E / Gpréf`, mesuré 389 demandés pour 126,7 rendus). Ce qui part, c'est
+ * la phrase qui l'expliquait par « la grosse assiette »: la visée de case est
+ * désormais l'assiette ORDINAIRE de la personne du milieu (`cellDensityOf`), et
+ * l'énergie en plus passe par les à-côtés (`side_courses_prompt.ts`), pas par
+ * l'assiette.
  *
- * Vide quand aucun moment n'a divergé: une note qui explique un « not N » qui
- * n'existe pas serait une consigne sans objet.
+ * ⚠️ `ANCHOR_DIVERGENCE_RATIO` RESTE EXPORTÉ, sans lecteur de consigne: il est
+ * épinglé par `constant_pins_test.ts` (flux T, hors de ce lot). Le témoin
+ * `targetAnchoredPer100G` reste lui aussi dans le contrat — il est mesuré et
+ * journalisé, il n'est simplement plus imprimé.
  */
-function anchorNote(slots: readonly SlotDensityWithAnchor[]): string {
-  const diverges = slots.some((d) =>
-    anchorClause(d, d.preferredPer100G) !== ""
-  );
-  if (!diverges) return "";
-  return ` (the "not N" numbers are the target spread over an average plate; ` +
-    `we ask for the bigger plate, so aim for the first number)`;
-}
-
 export function densityFragment(slots: readonly SlotDensityWithAnchor[]): string {
   if (slots.length === 0) return "";
   // ══════════════════════════════════════════════════════════════════════
@@ -1341,17 +1310,13 @@ export function densityFragment(slots: readonly SlotDensityWithAnchor[]): string
       // ⚠️ « up to N », ET LA VISÉE AVEC. Sans la visée, « au plus 135 » fait
       // partir le modèle vers le bas — l'erreur miroir de « au moins N », et
       // elle a été mesurée (tir SPLICE3, un bouillon à 57,8).
-      return `up to ${d.maxPer100G}${suffix} at ${d.slot} (aim ${d.preferredPer100G}${
-        anchorClause(d, d.preferredPer100G)
-      })`;
+      return `up to ${d.maxPer100G}${suffix} at ${d.slot} (aim ${d.preferredPer100G})`;
     }
     const range = d.maxPer100G > d.minPer100G
       ? `${d.minPer100G} to ${d.maxPer100G}`
       : `${d.minPer100G}`;
     const head = `${range}${suffix}`;
-    return `${head} at ${d.slot} (aim ${d.preferredPer100G}${
-      anchorClause(d, d.preferredPer100G)
-    })`;
+    return `${head} at ${d.slot} (aim ${d.preferredPer100G})`;
   };
   // ══════════════════════════════════════════════════════════════════════
   // ⟳ 2026-09-11 · LOT B — QUAND UN MOMENT PORTE DEUX BANDES, ON DIT LES JOURS
@@ -1385,7 +1350,7 @@ export function densityFragment(slots: readonly SlotDensityWithAnchor[]): string
       ` at ${d.slot} on ${[...jours].join("/")}`,
     );
   });
-  return ` — dishes served here: ${all.join(", ")}${anchorNote(slots)}`;
+  return ` — dishes served here: ${all.join(", ")}`;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1421,7 +1386,10 @@ export function densityFragment(slots: readonly SlotDensityWithAnchor[]): string
 export interface CellDensity {
   minPer100G: number;
   maxPer100G: number;
-  /** La visée: le plus haut `preferred` des mangeurs, ramené dans la bande. */
+  /**
+   * La visée: le `preferred` de la personne du MILIEU (`middlePreferredOf`),
+   * ramené dans la bande. ⟳ 2026-09-23 — c'était le plus BAS `preferred`.
+   */
   aimPer100G: number;
   /** Vrai quand le plancher commun dépasse le plafond commun. */
   empty: boolean;
@@ -1430,6 +1398,26 @@ export interface CellDensity {
   ceilingFrom: string;
   /** Combien de mangeurs de la case portent un couloir NOMMÉ. */
   eatersWithCorridor: number;
+}
+
+/**
+ * LA VISÉE DE LA PERSONNE DU MILIEU D'UNE CASE.
+ *
+ * ⛔ LA MÊME RÈGLE QUE `tableReferenceFactor` (`starch_side.ts`): la médiane;
+ * à nombre pair, la plus BASSE des deux du milieu. Deux règles de « milieu »
+ * dans le même moteur feraient viser à la consigne une autre personne que celle
+ * dont le partage du féculent garde la part. ⚠️ À UN SEUL MANGEUR, sa visée
+ * (là où `tableReferenceFactor` rend `null`: ici la case existe quand même).
+ *
+ * ⚠️ PAS LE MINIMUM, PAS LE MAXIMUM. Le minimum faisait écrire la recette pour
+ * la plus grande assiette de la table; le maximum pour la plus petite.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function middlePreferredOf(preferred: readonly number[]): number {
+  const ok = preferred.filter((p) => Number.isFinite(p)).sort((a, b) => a - b);
+  if (ok.length === 0) return Infinity;
+  return ok[Math.floor((ok.length - 1) / 2)];
 }
 
 export function cellDensityOf(
@@ -1451,7 +1439,9 @@ export function cellDensityOf(
 ): CellDensity | null {
   let floor = -Infinity;
   let ceiling = Infinity;
-  let aim = -Infinity;
+  // ⟳ 2026-09-23 — LES VISÉES DE TOUS LES MANGEURS, pour en prendre celle du
+  // MILIEU (voir `middlePreferredOf`), et plus la plus basse.
+  const preferred: number[] = [];
   let floorFrom = "";
   let ceilingFrom = "";
   let counted = 0;
@@ -1473,18 +1463,28 @@ export function cellDensityOf(
       ceiling = corridor.maxPer100G;
       ceilingFrom = e.name;
     }
-    if (corridor.preferredPer100G > aim) aim = corridor.preferredPer100G;
+    preferred.push(corridor.preferredPer100G);
   }
   if (counted === 0) return null;
   const empty = floor > ceiling;
+  const aim = middlePreferredOf(preferred);
   return {
     minPer100G: floor,
     maxPer100G: ceiling,
-    // ⚠️ LA VISÉE EST LE PLUS HAUT `preferred`, RAMENÉ DANS LA BANDE — et pas
-    // la moyenne. C'est la règle que l'étape 3 de la méthode énonce en toutes
-    // lettres depuis le 2026-09-08, et la raison y est écrite: en dessous, une
-    // seule personne se retrouve avec une assiette énorme et personne d'autre
-    // ne le remarque.
+    // ⟳ 2026-09-21 — la visée était le plus BAS `preferred` (elle était le
+    // plus haut avant: sur le plan `3e121b21`, la table visait 154 kcal/100 g,
+    // la visée de l'homme en prise, et l'homme en perte recevait 877 kcal dans
+    // 570 g au lieu de 626).
+    // ⟳ 2026-09-23 — LA VISÉE EST CELLE DE LA PERSONNE DU MILIEU, RAMENÉE
+    // DANS LA BANDE (décision du propriétaire n° 4, audit
+    // `docs/keel/AUDIT-DOSAGES-2026-09-23.md`). La visée la plus basse
+    // demandait « l'assiette la plus grande que la borne autorise » à toute la
+    // table: la recette commune se lisait comme celle du plus gros mangeur, et
+    // Thomas arrivait à 700 g par construction. La visée du milieu est celle de
+    // THE TEMPLATE (`standardRecipeBlock`); l'énergie en plus passe par les
+    // à-côtés, pas par l'assiette. Le plancher commun (`Math.max(floor, …)`)
+    // garde la propriété d'avant: personne ne reçoit une assiette au-dessus de
+    // sa borne de masse, puisque chaque plancher est `cible / assiette maximale`.
     aimPer100G: empty ? floor : Math.min(ceiling, Math.max(floor, aim)),
     empty,
     floorFrom,
@@ -1567,9 +1567,16 @@ export function densityFloorsOf(
 export const DENSITY_CONSEQUENCE = [
   "A density on someone's line is a fact about the DISH served at that moment,",
   "as served, not a fact about them: write that recipe at least that dense.",
-  "Reach it by what the dish is MADE OF — more of the starch, the protein or",
-  "the fat it already carries, less water and less watery vegetable. Do not",
-  "reach it by serving a smaller plate: the plate stays a plate.",
+  // ⟳ 2026-09-23 — « more of the starch, the protein or the fat » RETIRÉ
+  // (audit `docs/keel/AUDIT-DOSAGES-2026-09-23.md`): c'était la quatrième
+  // phrase qui envoyait le modèle au féculent. Le geste est celui du remède
+  // « trop bas » de `standardRecipeBlock`, mot pour mot, et il nomme les deux
+  // échappatoires qu'on refuse. « the template » est en minuscules: cette
+  // phrase part aussi là où la recette de référence n'est pas servie.
+  "Reach it by what the dish is MADE OF — less cooking water, legumes in the",
+  "main pot or 10 g more cheese; never more starch than the template, never",
+  "fewer vegetables.",
+  "Do not reach it by serving a smaller plate: the plate stays a plate.",
   // ══════════════════════════════════════════════════════════════════════
   // ⟳ 2026-09-12 · ÉTAPE C4 — LA PRÉSÉANCE, PARCE QUE DEUX NOMBRES SE
   // CONTREDISAIENT DANS LE MÊME PROMPT
@@ -2475,7 +2482,16 @@ export type BoxSizingReason = (typeof BOX_SIZING_REASONS)[number];
  * précisément à la personne qui a poussé le curseur le plus loin, et sans un
  * mot. `target_grams_test.ts` rejoue ce balayage contre CETTE constante.
  */
-export const BOX_FACTOR_MIN = 0.70;
+/**
+ * ⟳ 2026-09-22 — 0,55 depuis que A1 vaut 880 kcal/j (0,8 kg/sem). À ce
+ * rythme, une assiette au plancher d'énergie descend à 58 % de l'entretien
+ * (femme : 1 200 sur 2 080). À 0,70, la ceinture mordait sur des corps réels
+ * — Fabrice, 93 kg, 2 890 d'entretien, 0,8 kg/sem ⇒ 0,695 ⇒ « implausible »
+ * et plus aucune boîte dimensionnée. Le plancher d'énergie et A1 bornent
+ * l'écart ; cette ceinture ne garde que l'absurde (un facteur de 0,2 sorti
+ * d'un bug), pas un rythme choisi.
+ */
+export const BOX_FACTOR_MIN = 0.55;
 export const BOX_FACTOR_MAX = 1.50;
 
 // ⟳ 2026-09-09 — `DEFAULT_PACE_KG_PER_WEEK` A DÉMÉNAGÉ CHEZ `weight_pace.ts`,

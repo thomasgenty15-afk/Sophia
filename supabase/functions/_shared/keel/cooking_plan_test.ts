@@ -9,6 +9,7 @@ import {
   GROCERY_RUNS,
   longestFridgeStretch,
   MAX_COOKING_SESSIONS,
+  sessionsForStyle,
   oneStyleLower,
   offerableGroceryRuns,
   readCookingStyle,
@@ -76,6 +77,8 @@ function plan(over: Partial<Parameters<typeof deriveCookingPlan>[0]> = {}) {
     windowDays: WITH_LEAD,
     leadDay: true,
     daysToEat: 7,
+    // ⟳ 2026-09-21 — le frigo, en dur: c'est `MAX_FRIDGE_DAYS` (3).
+    maxFridgeDays: 3,
     ...over,
   });
 }
@@ -87,11 +90,14 @@ function plan(over: Partial<Parameters<typeof deriveCookingPlan>[0]> = {}) {
 Deno.test("A2 — la table des styles est épinglée EN ENTIER", () => {
   assertEquals(COOKING_STYLES, ["minimal", "balanced", "keen"]);
   assertEquals(GROCERY_RUNS, [1, 2, 3]);
-  assertEquals(MAX_COOKING_SESSIONS, 3);
+  // ⟳ 2026-09-21 — 4 sessions au plus (« j'aime cuisiner » sur 6-7 jours),
+  // et `sessionCap` est un PLAFOND: le nombre suit la longueur du plan
+  // (`sessionsForStyle`, épinglé plus bas, case par case).
+  assertEquals(MAX_COOKING_SESSIONS, 4);
   assertEquals(COOKING_STYLE_PROFILE, {
-    minimal: { minutes: 30, difficulty: "simple", variety: "repeat", sessionCap: 2 },
+    minimal: { minutes: 30, difficulty: "simple", variety: "repeat", sessionCap: 3 },
     balanced: { minutes: 60, difficulty: "normal", variety: "some", sessionCap: 3 },
-    keen: { minutes: 120, difficulty: "keen", variety: "varied", sessionCap: 3 },
+    keen: { minutes: 120, difficulty: "keen", variety: "varied", sessionCap: 4 },
   });
 });
 
@@ -235,7 +241,8 @@ Deno.test("A2 — « le moins possible » PLAFONNE les sessions à deux, jamais 
   assertEquals(unusedGroceryRuns(3, out), 1);
   // Un style qui ne plafonne pas ne note rien, et ne laisse rien d'inutilisé.
   const keen = plan({ style: "keen", runs: 3 });
-  assertEquals(keen.sessions, 3);
+  // ⟳ 2026-09-21 — sept jours en « j'aime cuisiner »: quatre sessions.
+  assertEquals(keen.sessions, 4);
   assertEquals(keen.notes, []);
   assertEquals(unusedGroceryRuns(3, keen), 0);
 });
@@ -288,6 +295,7 @@ Deno.test("⛔ LOT C — L'INVARIANT `runs <= sessions`, par ÉNUMÉRATION", () 
             windowDays: window,
             leadDay: false,
             daysToEat: days,
+            maxFridgeDays: 3,
           });
           const où = `${style}/${days}j/${runs}c/freezer=${freezer}`;
           assert(out.runs <= out.sessions, `${où}: ${out.runs} courses > ${out.sessions} sessions`);
@@ -364,9 +372,11 @@ Deno.test("A2 — les sessions suivantes découpent les jours MANGÉS", () => {
   // mangés: la seconde session tombe au rang 1 + floor(7/2) = 4, soit jeudi.
   assertEquals(two.cookDays, ["sun", "thu"]);
   const three = plan({ style: "keen" });
-  assertEquals(three.sessions, 3);
-  // Rangs 0, 1 + floor(7/3) = 3, 1 + floor(14/3) = 5 → dimanche, mercredi, vendredi.
-  assertEquals(three.cookDays, ["sun", "wed", "fri"]);
+  // ⟳ 2026-09-21 — quatre sessions sur sept jours mangés. Rangs 0,
+  // 1 + floor(7/4) = 2, 1 + floor(14/4) = 4, 1 + floor(21/4) = 6 →
+  // dimanche, mardi, jeudi, samedi.
+  assertEquals(three.sessions, 4);
+  assertEquals(three.cookDays, ["sun", "tue", "thu", "sat"]);
 });
 
 Deno.test("A2 — un jour de cuisine ne sort JAMAIS deux fois", () => {
@@ -384,6 +394,7 @@ Deno.test("A2 — un jour de cuisine ne sort JAMAIS deux fois", () => {
           windowDays: window,
           leadDay: false,
           daysToEat: days,
+          maxFridgeDays: 3,
         });
         assertEquals(
           new Set(out.cookDays).size,
@@ -410,6 +421,7 @@ Deno.test("A2 — une fenêtre trop courte plafonne les sessions, et le DIT", ()
     windowDays: ["mon", "tue"],
     leadDay: false,
     daysToEat: 2,
+    maxFridgeDays: 3,
   });
   assertEquals(out.sessions, 2);
   assert(out.notes.includes("days_cap_sessions"));
@@ -492,8 +504,10 @@ const offer = (over: Partial<Parameters<typeof offerableGroceryRuns>[0]> = {}) =
     oneCookingSession: false,
     daysToEat: 7,
     maxFridgeDays: 3,
+    freezer: null,
+    // ⟳ 2026-09-21 — sans congélateur par défaut: le cas qui offre le plus.
     ...over,
-  });
+  } as Parameters<typeof offerableGroceryRuns>[0]);
 
 Deno.test("l'offre — sans contrainte, LES TROIS, et aucun motif", () => {
   const out = offer();
@@ -512,14 +526,20 @@ Deno.test("l'offre — un style JAMAIS DEMANDÉ ne plafonne pas", () => {
   assertEquals(offer({ style: null }).limit, null);
 });
 
-Deno.test("l'offre — « le moins possible » retire la troisième course", () => {
-  const out = offer({ style: "minimal" });
-  assertEquals(out.values, [1, 2]);
-  assertEquals(out.forced, null);
-  assertEquals(out.limit, "style");
-  // ⛔ ET LE PLAFOND EST LU, PAS RECOPIÉ. Si quelqu'un change `sessionCap`
-  // là-haut, c'est cette ligne qui dit que l'offre a suivi.
-  assertEquals(out.values.length, COOKING_STYLE_PROFILE.minimal.sessionCap);
+Deno.test("l'offre — « le moins possible » retire la troisième course jusqu'à six jours, et la rend à sept", () => {
+  // ⟳ 2026-09-21 — « le moins possible » cuisine ce que le frigo impose: une
+  // session pour trois jours. Six jours → 2 sessions → 2 courses; sept jours
+  // sans congélateur → 3 sessions → les trois courses reviennent.
+  const six = offer({ style: "minimal", daysToEat: 6 });
+  assertEquals(six.values, [1, 2]);
+  assertEquals(six.forced, null);
+  assertEquals(six.limit, "days");
+  assertEquals(offer({ style: "minimal", daysToEat: 7 }).values, [1, 2, 3]);
+  // Avec congélateur, sept jours tiennent en deux sessions: la troisième
+  // course disparaît, et c'est le STYLE qui le dit.
+  const froid = offer({ style: "minimal", daysToEat: 7, freezer: true });
+  assertEquals(froid.values, [1, 2]);
+  assertEquals(froid.limit, "style");
   for (const style of ["balanced", "keen"] as const) {
     assertEquals(offer({ style }).values, [1, 2, 3]);
   }
@@ -585,9 +605,11 @@ Deno.test("l'offre — à égalité de plafond, c'est la FENÊTRE qu'on nomme", 
   const out = offer({ style: "minimal", daysToEat: 5 });
   assertEquals(out.values, [1, 2]);
   assertEquals(out.limit, "days");
-  // ⚠️ ET L'INVERSE TIENT AUSSI: sur sept jours, la conservation ne plafonne
-  // plus (elle en autorise trois) et c'est le STYLE qui est nommé.
-  assertEquals(offer({ style: "minimal", daysToEat: 7 }).limit, "style");
+  // ⟳ 2026-09-21 — le style ne borne seul que là où la fenêtre ne borne pas:
+  // sept jours avec congélateur. Sans, sept jours font trois sessions et les
+  // trois courses restent offertes.
+  assertEquals(offer({ style: "minimal", daysToEat: 7, freezer: true }).limit, "style");
+  assertEquals(offer({ style: "minimal", daysToEat: 7 }).limit, null);
 });
 
 Deno.test("l'offre — elle n'est JAMAIS vide, et jamais au-dessus du plafond dur", () => {
@@ -600,9 +622,11 @@ Deno.test("l'offre — elle n'est JAMAIS vide, et jamais au-dessus du plafond du
         assertEquals(out.values[0], 1, "« une course » sort toujours de l'offre");
         // ⛔ UN MOTIF DÈS QUE LA LISTE EST COURTE — la moitié qui se lit à
         // l'écran. Une option qui s'évapore sans phrase se lit comme une panne.
+        // ⟳ 2026-09-21 — le plafond de l'OFFRE est celui des courses (trois),
+        // pas celui des sessions (quatre).
         assertEquals(
           out.limit === null,
-          out.values.length === MAX_COOKING_SESSIONS,
+          out.values.length === GROCERY_RUNS.length,
           `motif et longueur désaccordés: ${JSON.stringify(out)}`,
         );
         assertEquals(out.forced, out.values.length === 1 ? 1 : null);
@@ -633,6 +657,8 @@ Deno.test("l'offre — MUTATION: elle est le MIROIR de la dérivation, pas une s
         oneCookingSession: false,
         daysToEat,
         maxFridgeDays: 3,
+        freezer: true,
+        // ⟳ 2026-09-21 — le même congélateur des deux côtés du miroir.
       });
       for (const runs of out.values) {
         const derived = deriveCookingPlan({
@@ -642,6 +668,7 @@ Deno.test("l'offre — MUTATION: elle est le MIROIR de la dérivation, pas une s
           windowDays: windowDays.slice(0, daysToEat),
           leadDay: false,
           daysToEat,
+          maxFridgeDays: 3,
         });
         assertEquals(
           derived.runs,
@@ -680,6 +707,7 @@ Deno.test("l'offre — REFUSE une entrée qui désarmerait la garde", () => {
         oneCookingSession: undefined as unknown as boolean,
         daysToEat: 7,
         maxFridgeDays: 3,
+        freezer: null,
       }),
     Error,
     "`oneCookingSession` est REQUIS",
@@ -827,12 +855,14 @@ Deno.test("l'offre — INVARIANT VOISIN: les jours MANGÉS ne dépassent jamais 
         oneCookingSession: false,
         daysToEat: requested,
         maxFridgeDays: 3,
+        freezer: null,
       });
       const real = offerableGroceryRuns({
         style: null,
         oneCookingSession: false,
         daysToEat: served,
         maxFridgeDays: 3,
+        freezer: null,
       });
       assert(
         asked.values.length >= real.values.length,
@@ -872,10 +902,11 @@ Deno.test("LOT 3 — deux jours déclarés = deux sessions, dans l'ordre de la F
   assert(!out.notes.includes("runs_capped_by_sessions"));
 });
 
-Deno.test("LOT 3 — quatre jours déclarés sont bornés au maximum de sessions, et c'est dit", () => {
-  const out = plan({ declaredCookDays: ["mon", "wed", "fri", "sat"] });
-  assertEquals(out.sessions, 3);
-  assertEquals(out.cookDays, ["mon", "wed", "fri"]);
+Deno.test("LOT 3 — cinq jours déclarés sont bornés au maximum de sessions, et c'est dit", () => {
+  // ⟳ 2026-09-21 — le maximum est passé à quatre.
+  const out = plan({ declaredCookDays: ["mon", "tue", "wed", "fri", "sat"] });
+  assertEquals(out.sessions, 4);
+  assertEquals(out.cookDays, ["mon", "tue", "wed", "fri"]);
   assert(out.notes.includes("cook_days_declared"));
 });
 
@@ -911,4 +942,70 @@ Deno.test("LOT 3 — `resolveCookingCapacity` fait ENTRER les jours déclarés d
   assertEquals(out.cookDays, ["sun"]);
   assertEquals(out.plan?.sessions, 1);
   assert(out.plan?.notes.includes("cook_days_declared"));
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-21 — LA MATRICE: SESSIONS PAR STYLE ET PAR LONGUEUR DE PLAN
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// ⛔ LE DÉFAUT, VU À L'ÉCRAN: « un juste milieu » valait 3 sessions quel que
+// soit le plan; sur 3 jours, ça faisait cuisiner lundi, mercredi ET jeudi pour
+// six déjeuners et dîners. Décidé avec le propriétaire le 2026-09-21. Écrit en
+// dur, case par case: recalculer avec la fonction rendrait l'épreuve vraie
+// quelle que soit la règle.
+Deno.test("MATRICE — sessions par style et par jours à manger, écrite en dur", () => {
+  const table: Record<CookingStyle, readonly number[]> = {
+    minimal: [1, 1, 1, 2, 2, 2, 3],
+    balanced: [1, 1, 2, 2, 3, 3, 3],
+    keen: [1, 2, 3, 3, 3, 4, 4],
+  };
+  for (const style of COOKING_STYLES) {
+    for (let d = 1; d <= 7; d++) {
+      assertEquals(sessionsForStyle(style, d, false, 3), table[style][d - 1], `${style}/${d}j`);
+      assertEquals(
+        sessionsForStyle(style, d, null, 3),
+        table[style][d - 1],
+        `${style}/${d}j, congélateur jamais demandé`,
+      );
+    }
+  }
+  // Le congélateur ne change qu'une case: « le moins possible » à sept jours.
+  assertEquals(sessionsForStyle("minimal", 7, true, 3), 2);
+  assertEquals(sessionsForStyle("balanced", 7, true, 3), 3);
+  assertEquals(sessionsForStyle("keen", 7, true, 3), 4);
+  // Jamais plus de sessions que de jours, jamais plus que le plafond dur.
+  assertEquals(sessionsForStyle("keen", 1, false, 3), 1);
+  assertEquals(sessionsForStyle("keen", 40, false, 3), 4);
+  // Et la dérivation sert la table telle quelle, un jour de cuisine par session.
+  for (let d = 1; d <= 7; d++) {
+    for (const style of COOKING_STYLES) {
+      const out = deriveCookingPlan({
+        style,
+        runs: 2,
+        freezer: false,
+        windowDays: NO_LEAD.slice(0, d),
+        leadDay: false,
+        daysToEat: d,
+        maxFridgeDays: 3,
+      });
+      assertEquals(out.sessions, table[style][d - 1], `dérivation ${style}/${d}j`);
+      assertEquals(out.cookDays.length, out.sessions, `jours de cuisine ${style}/${d}j`);
+    }
+  }
+});
+
+Deno.test("MATRICE — le cas vu à l'écran: « un juste milieu » sur trois jours cuisine DEUX fois", () => {
+  const out = deriveCookingPlan({
+    style: "balanced",
+    runs: 1,
+    freezer: true,
+    windowDays: ["mon", "tue", "wed", "thu"],
+    leadDay: true,
+    daysToEat: 3,
+    maxFridgeDays: 3,
+  });
+  assertEquals(out.sessions, 2);
+  // Rangs 0 et 1 + ⌊3/2⌋ = 2: lundi nourrit mardi et mercredi, mercredi
+  // nourrit jeudi. Plus rien à cuisiner le jeudi.
+  assertEquals(out.cookDays, ["mon", "wed"]);
 });

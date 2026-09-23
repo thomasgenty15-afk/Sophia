@@ -455,6 +455,8 @@ export function planGroceryWaves<T extends WaveItem>(args: {
     string,
     { items: T[]; serves: string | null; all: Set<string> }
   >();
+  /** Par article périssable à cuisson connue: sa fenêtre d'achat. */
+  const fresh = new Map<T, { lo: string; hi: string; cook: string }>();
 
   for (const item of shoppingList) {
     const cookDate = earliestCook.get(normalize(item.term)) ?? null;
@@ -491,6 +493,10 @@ export function planGroceryWaves<T extends WaveItem>(args: {
     let buyOn = startsOn;
     let serves: string | null = null;
     if (perishable && cookDate) {
+      // ⟳ 2026-09-21 — LA FENÊTRE D'ACHAT DE L'ARTICLE, pour le repli: de sa
+      // date la plus tôt (bornée au début du plan) à son jour de cuisson.
+      const lo = addDays(cookDate, -window);
+      fresh.set(item, { lo: lo > startsOn ? lo : startsOn, hi: cookDate, cook: cookDate });
       // ⟳ LOT `L0-a` — LA FENÊTRE EST CELLE DU GROUPE, plus celle de tout le
       // monde. Au plus tôt `cuisson - fenêtre crue`, et jamais avant le début
       // du plan: on n'envoie personne faire des courses la semaine d'avant.
@@ -551,73 +557,116 @@ export function planGroceryWaves<T extends WaveItem>(args: {
   // la seconde est plus petite, c'est elle qui gagne — MAIS SEULEMENT SI un
   // congélateur peut absorber la différence.
   //
-  // ⛔ ON GARDE LES PREMIÈRES DATES, ET ON REVERSE SUR LA DERNIÈRE GARDÉE.
-  // Reverser sur la PREMIÈRE ferait acheter tout le frais le dimanche pour le
-  // samedi suivant; la dernière gardée est la date la plus TARDIVE que la
-  // cadence autorise, donc celle qui congèle le moins de choses.
+  // ⟳ 2026-09-21 — ON CHOISIT LES DATES QUI CONGÈLENT LE MOINS, ON NE GARDE
+  // PLUS « LES PREMIÈRES ». Mesuré sur le plan `64abd449` (5 jours, deux
+  // courses, congélateur): la conservation datait lundi (la grosse course),
+  // mardi (les sardines de mercredi, fenêtre d'un jour) et mercredi (le
+  // jambon de vendredi, fenêtre de deux jours). L'ancien repli gardait lundi
+  // et mardi, reversait mercredi sur mardi et congelait le jambon — alors que
+  // lundi et mercredi tenaient TOUT au frais: un article s'achète n'importe
+  // quand entre sa date la plus tôt et son jour de cuisson, et le repli ne
+  // savait qu'AVANCER un achat, jamais RETARDER une course.
+  //
+  // La règle: la première date reste (c'est la grosse course, celle des
+  // cuissons du début). Les `runs − 1` autres sont choisies parmi les jours de
+  // la fenêtre pour couvrir au frais le plus d'articles possible; à égalité,
+  // celles qui laissent le moins d'incongelables sur une vague à part; puis
+  // les plus tôt. Ce qu'aucune date gardée ne couvre au frais est acheté à la
+  // dernière date gardée AVANT sa fenêtre et congelé — la propriété
+  // « déplacé ⇒ hors de portée » tient donc par construction, comme avant.
+  // Un article couvert par deux dates gardées rejoint la plus TARDIVE: la plus
+  // fraîche. À `runs = 1`, rien ne change: tout se reverse sur la première.
   const freezeOnPurchase = new Set<T>();
   // Ce que le repli n'a PAS pu absorber, par date d'origine: ces vagues-là
   // survivent, et le plan porte alors plus de vagues que de courses demandées.
   const keptFresh = new Map<string, T[]>();
   if (args.freezer && args.runs !== null && sortedDates.length > args.runs) {
-    const kept = sortedDates.slice(0, args.runs);
-    const dropped = sortedDates.slice(args.runs);
-    const target = kept[kept.length - 1]!;
-    const targetBucket = byDate.get(target)!;
-    const survivors: string[] = [];
-    for (const date of dropped) {
-      const bucket = byDate.get(date)!;
-      const keptBack: T[] = [];
-      for (const item of bucket.items) {
+    const first = sortedDates[0]!;
+    // Les articles des vagues suivantes: tous périssables avec une cuisson
+    // connue (sans ça ils seraient tombés sur la première date).
+    const movable = sortedDates.slice(1).flatMap((date) =>
+      byDate.get(date)!.items
+        .map((item) => ({ item, from: date, span: fresh.get(item) ?? null }))
+        .filter((m): m is { item: T; from: string; span: { lo: string; hi: string; cook: string } } =>
+          m.span !== null
+        )
+    );
+    const extra = Math.max(0, args.runs - 1);
+    const candidates = Object.values(dates).filter((d) => d > first).sort();
+    const size = Math.min(extra, candidates.length);
+    const combos: string[][] = [];
+    const walk = (start: number, acc: string[]) => {
+      if (acc.length === size) {
+        combos.push([...acc]);
+        return;
+      }
+      for (let i = start; i < candidates.length; i++) {
+        acc.push(candidates[i]!);
+        walk(i + 1, acc);
+        acc.pop();
+      }
+    };
+    walk(0, []);
+    const coveredBy = (kept: readonly string[], span: { lo: string; hi: string }) =>
+      kept.filter((d) => d >= span.lo && d <= span.hi);
+    let best: { kept: string[]; covered: number; stranded: number } | null = null;
+    for (const combo of combos) {
+      const kept = [first, ...combo];
+      let covered = 0;
+      let stranded = 0;
+      for (const m of movable) {
+        if (coveredBy(kept, m.span).length > 0) covered += 1;
+        else if (NOT_FREEZABLE.has(String(m.item.food_group ?? ""))) stranded += 1;
+      }
+      if (
+        best === null || covered > best.covered ||
+        (covered === best.covered && stranded < best.stranded)
+      ) {
+        best = { kept, covered, stranded };
+      }
+    }
+    const kept = (best?.kept ?? [first]).sort();
+    const bucketAt = (date: string) => {
+      const found = byDate.get(date);
+      if (found) return found;
+      const made = { items: [] as T[], serves: null as string | null, all: new Set<string>() };
+      byDate.set(date, made);
+      return made;
+    };
+    for (const m of movable) {
+      const origin = byDate.get(m.from)!;
+      origin.items = origin.items.filter((it) => it !== m.item);
+      const within = coveredBy(kept, m.span);
+      let target: string;
+      if (within.length > 0) {
+        // Couvert au frais: la date gardée la plus tardive de sa fenêtre.
+        target = within[within.length - 1]!;
+      } else if (NOT_FREEZABLE.has(String(m.item.food_group ?? ""))) {
         // ⛔ CE QUI NE SE CONGÈLE PAS N'EST PAS ABSORBÉ. Il reste sur SA vague:
         // la personne devra y retourner, et c'est la vérité — mieux vaut une
         // course de plus qu'une salade congelée.
-        if (NOT_FREEZABLE.has(String(item.food_group ?? ""))) {
-          keptBack.push(item);
-          continue;
-        }
-        targetBucket.items.push(item);
-        // ⛔ TOUT CE QUE LE REPLI DÉPLACE EST MARQUÉ, ET C'EST UNE PROPRIÉTÉ
-        // DÉMONTRÉE, PAS UN RACCOURCI.
-        //
-        // J'avais d'abord écrit ici un contrôle de conservation
-        // (`target + fenêtre < cuisson ?`), pour ne pas marquer un article qui
-        // tiendrait quand même. **Ce contrôle est toujours vrai**, et une
-        // mutation qui le retirait est restée VERTE — c'est comme ça qu'il a
-        // été trouvé. La démonstration:
-        //
-        //   · un article dont la fenêtre couvre déjà tout est acheté à
-        //     `startsOn` (`buyOn = max(earliest, startsOn)`), qui est la
-        //     PREMIÈRE date — toujours gardée, jamais déplacée;
-        //   · un article déplacé vient donc d'une vague dont la date vaut
-        //     exactement son `earliest`, et cette date trie APRÈS toutes les
-        //     dates gardées;
-        //   · donc `target < earliest = cuisson − fenêtre`, c'est-à-dire
-        //     `target + fenêtre < cuisson`.
-        //
-        // Un contrôle qui ne peut pas être faux est une garde qui ressemble à
-        // une garde. On garde la propriété, écrite, et son test.
-        freezeOnPurchase.add(item);
-      }
-      // La vague absorbée cède aussi ses cuissons à celle qui la reprend: sans
-      // ça, la phrase de la vague gardée ne nommerait pas ce qu'elle sert.
-      for (const cook of bucket.all) targetBucket.all.add(cook);
-      if (bucket.serves && (!targetBucket.serves || bucket.serves < targetBucket.serves)) {
-        targetBucket.serves = bucket.serves;
-      }
-      // ⛔ LA VAGUE SURVIT quand elle porte quelque chose d'incongelable.
-      if (keptBack.length > 0) {
-        bucket.items = keptBack;
-        survivors.push(date);
-        keptFresh.set(date, keptBack);
+        origin.items.push(m.item);
+        keptFresh.set(m.from, [...(keptFresh.get(m.from) ?? []), m.item]);
+        continue;
       } else {
-        byDate.delete(date);
+        // Hors de portée de toute date gardée: acheté à la dernière date gardée
+        // AVANT sa fenêtre, et congelé. `first < lo` par construction (l'article
+        // vient d'une vague postérieure à la première), donc elle existe.
+        const before = kept.filter((d) => d < m.span.lo);
+        target = before[before.length - 1] ?? first;
+        freezeOnPurchase.add(m.item);
       }
+      const bucket = bucketAt(target);
+      bucket.items.push(m.item);
+      bucket.all.add(m.span.cook);
+      if (!bucket.serves || m.span.cook < bucket.serves) bucket.serves = m.span.cook;
     }
-    sortedDates = [...kept, ...survivors].sort();
+    for (const date of sortedDates.slice(1)) {
+      const bucket = byDate.get(date);
+      if (bucket && bucket.items.length === 0) byDate.delete(date);
+    }
+    sortedDates = [...byDate.keys()].sort();
   }
-
-
   const firstBuyOn = sortedDates[0] ?? null;
 
   return sortedDates

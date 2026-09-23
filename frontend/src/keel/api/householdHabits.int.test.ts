@@ -125,7 +125,7 @@ describe("habitDraft — le piège n°1 de la spec, en code", () => {
     // gouverner la composition. Ce dépôt appelle ça un fait indémentable.
     // Ce qui est à l'écran est ce qui sera écrit.
     expect(habitDraft(["lunch"], APPLE).map((d) => d.slot)).toEqual(["lunch"]);
-    expect(habitPayload(habitDraft(["lunch"], APPLE), { light: {} })).toEqual([]);
+    expect(habitPayload(habitDraft(["lunch"], APPLE), { light: {}, sideCourses: {} })).toEqual([]);
   });
 });
 
@@ -135,7 +135,7 @@ describe("habitPayload", () => {
       { slot: "breakfast", choice: "own_usual", usual: "une pomme" },
       { slot: "lunch", choice: "household_dish", usual: "" },
       { slot: "dinner", choice: "household_dish", usual: "" },
-    ], { light: {} })).toEqual([{ slot: "breakfast", kind: "own_usual", usual: "une pomme" }]);
+    ], { light: {}, sideCourses: {} })).toEqual([{ slot: "breakfast", kind: "own_usual", usual: "une pomme" }]);
   });
 
   it("un moment sans réponse n'écrit RIEN", () => {
@@ -144,19 +144,19 @@ describe("habitPayload", () => {
     expect(habitPayload([
       { slot: "breakfast", choice: null, usual: "" },
       { slot: "lunch", choice: null, usual: "" },
-    ], { light: {} })).toEqual([]);
+    ], { light: {}, sideCourses: {} })).toEqual([]);
   });
 
   it("un `usual` resté vide ne part pas — la base le refuserait", () => {
     expect(habitPayload([
       { slot: "breakfast", choice: "own_usual", usual: "   " },
-    ], { light: {} })).toEqual([]);
+    ], { light: {}, sideCourses: {} })).toEqual([]);
   });
 
   it("le texte part sans ses bords", () => {
     expect(habitPayload([
       { slot: "breakfast", choice: "own_usual", usual: "  une pomme  " },
-    ], { light: {} })[0].usual).toBe("une pomme");
+    ], { light: {}, sideCourses: {} })[0].usual).toBe("une pomme");
   });
 
   it("⛔ LE « + REPAS LÉGER » DÉJÀ ÉCRIT SURVIT À UN ENREGISTREMENT D'ICI", () => {
@@ -169,7 +169,7 @@ describe("habitPayload", () => {
     // sur la seule réponse qui reste.
     expect(habitPayload(
       [{ slot: "breakfast", choice: "own_usual", usual: "une pomme" }],
-      { light: { lunch: true, dinner: false } },
+      { light: { lunch: true, dinner: false }, sideCourses: {} },
     )).toEqual([
       { slot: "breakfast", kind: "own_usual", usual: "une pomme" },
       // Aucune prose au déjeuner ⇒ `household_dish`, la seule forme que la
@@ -186,7 +186,7 @@ describe("habitPayload", () => {
     // et c'est le CHOIX qui décide de ce qui s'écrit.
     expect(habitPayload([
       { slot: "breakfast", choice: "household_dish", usual: "une pomme" },
-    ], { light: {} })).toEqual([]);
+    ], { light: {}, sideCourses: {} })).toEqual([]);
   });
 });
 

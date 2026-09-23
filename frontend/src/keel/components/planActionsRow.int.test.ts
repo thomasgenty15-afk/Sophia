@@ -60,6 +60,11 @@ const RESULT = code("keel/components/plan/PlanResult.tsx");
  * par sa propre constante, sur quatre lignes d'assertion.
  */
 const HEADER_ROW = (() => {
+  // ⟳ 2026-09-21 — L'ANCRE EST REVENUE À LA RANGÉE UNIQUE. Le bloc a passé une
+  // heure en DEUX rangées (les gestes sous le titre); ils sont remis au bout de
+  // la ligne le jour même, sur demande. Ce que le test tient n'a bougé dans
+  // aucun des deux états: le titre ouvre, le sélecteur suit, les deux gestes de
+  // PLAN sont dans ce bloc, et les deux OUTILS n'y sont pas.
   const from = BUILDER.indexOf(
     'className="mb-3 flex flex-wrap items-center justify-between gap-3"',
   );
@@ -97,6 +102,18 @@ describe("① la rangée du haut ne porte que le plan", () => {
     expect(at("meals.rebuild.button")).toBeGreaterThan(
       at("meals.result.plan_switch"),
     );
+  });
+
+  it("⛔ ET LA PHRASE DE DURÉE N'Y EST PAS — ⟳ 2026-09-21", () => {
+    // « En moyenne 2 à 3 minutes pour composer un plan » s'intercalait entre
+    // les gestes et le rail des jours: elle faisait d'un bloc de deux rangées
+    // un bloc de trois, et c'est ELLE que « d'un point de vue UI c'est
+    // horrible » visait. La disposition, elle, est revenue où elle était.
+    //
+    // ⚠️ LA CLÉ RESTE VIVANTE: le formulaire de composition la dit sous le
+    // bouton qui déclenche vraiment l'attente, et l'entonnoir aussi. C'est sa
+    // présence DANS CETTE RANGÉE qui est mesurée ici.
+    expect(HEADER_ROW).not.toContain('"meals.eta"');
   });
 
   it("⛔ les deux OUTILS l'ont quittée", () => {

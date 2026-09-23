@@ -9,8 +9,7 @@ import {
   CreditCard,
   Settings,
   LogOut,
-  Shield,
-  Zap
+  Shield
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -24,7 +23,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { DEFAULT_TIMEZONE, detectBrowserTimezone, getAllSupportedTimezones } from '../lib/localization';
 import { parseUiLocale } from '../keel/i18n/catalog';
 import { chosenUiLocale } from '../keel/i18n/runtime';
-import { formatDate } from '../keel/i18n/format';
+import { plural } from '../keel/i18n/plural';
 import { chooseUiLanguage } from '../keel/api/uiLanguage';
 import DataPrivacySection from './account/DataPrivacySection';
 // ── LE KIT, ET C'EST NOUVEAU ICI ──────────────────────────────────────────────
@@ -33,13 +32,12 @@ import DataPrivacySection from './account/DataPrivacySection';
 // son bouton, sa carte, son champ et sa pastille étaient recopiés à la main.
 // Les cinq entrées ci-dessous sont la charte « la fiche » telle qu'elle est
 // construite (`docs/keel/CHARTE-VITRINE.md`).
-import { Badge } from '../keel/components/ui/Badge';
-import { Button } from '../keel/components/ui/Button';
+import { Button, buttonClass } from '../keel/components/ui/Button';
 import { Card, SectionLabel } from '../keel/components/ui/Card';
 import { Field, inputClass } from '../keel/components/ui/Field';
-// `t` pour UNE clé et une seule, `public.footer.legal` — celle qui existe déjà
-// dans les deux paquets et que le pied de `/auth` emploie. Ce fichier n'est pas
-// traduit (chaînes anglaises en dur): SIGNALÉ, PAS FAIT.
+// Tout le texte passe par `t()` sous `account.*` (2026-09-23): `/account` est
+// une page DÉCLARÉE dans `keel/i18n/catalog.ts`, donc une clé hors périmètre
+// lève en DEV sur un écran français.
 import { t } from '../keel/i18n/t';
 
 interface UserProfileProps {
@@ -56,6 +54,9 @@ type Profile = {
   timezone?: string | null;
   locale?: string | null;
   tz_follow_device?: boolean | null;
+  // Décide où mène l'onglet « Abonnement »: `/coach/billing` pour un coach,
+  // `/app/billing` pour tout le reste.
+  keel_role?: string | null;
 };
 
 
@@ -66,14 +67,12 @@ function getErrorMessage(err: unknown, fallback: string) {
 }
 
 const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initialTab }) => {
-  const { user, signOut, subscription, trialEnd, accessTier } = useAuth();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const shouldRender = isOpen;
 
   const [activeTab, setActiveTab] = useState<TabType>(initialTab ?? 'general');
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [billingLoading, setBillingLoading] = useState<boolean>(false);
-  const [billingError, setBillingError] = useState<string | null>(null);
   const [saveLoading, setSaveLoading] = useState<boolean>(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
@@ -85,6 +84,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
   const [emailLoading, setEmailLoading] = useState<boolean>(false);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [emailSuccess, setEmailSuccess] = useState<string | null>(null);
+
+  const [passwordLoading, setPasswordLoading] = useState<boolean>(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
 
   const [prefsLoading, setPrefsLoading] = useState<boolean>(false);
   const [prefsError, setPrefsError] = useState<string | null>(null);
@@ -106,7 +109,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
       const fetchProfile = async () => {
         const { data } = await supabase
           .from('profiles')
-          .select('full_name, timezone, locale, tz_follow_device')
+          .select('full_name, timezone, locale, tz_follow_device, keel_role')
           .eq('id', user.id)
           .single();
         
@@ -134,6 +137,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
     setEmailSuccess(null);
     setEmailDraft(displayEmail);
     setEmailEditOpen(false);
+    setPasswordError(null);
+    setPasswordSuccess(null);
     setPrefsError(null);
     setPrefsSuccess(null);
   }, [shouldRender, initialTab, displayEmail]);
@@ -147,7 +152,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
   // Get display values
   const displayName = useMemo(() => {
     const n = (profile?.full_name || user?.user_metadata?.full_name || "").trim();
-    return n || "User";
+    return n || t("account.fallback_name");
   }, [profile?.full_name, user?.user_metadata?.full_name]);
   const initials = displayName
     .split(' ')
@@ -217,9 +222,9 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
         setFullNameDraft(data.full_name ?? "");
       }
 
-      setSaveSuccess("Details saved.");
+      setSaveSuccess(t("account.general.saved"));
     } catch (err: unknown) {
-      setSaveError(getErrorMessage(err, "Could not save."));
+      setSaveError(getErrorMessage(err, t("account.general.error.save")));
     } finally {
       setSaveLoading(false);
     }
@@ -232,9 +237,9 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
     setEmailSuccess(null);
     try {
       const nextEmail = (emailDraft ?? "").trim().toLowerCase();
-      if (!nextEmail) throw new Error("Email is required.");
+      if (!nextEmail) throw new Error(t("account.email.error.required"));
       if (nextEmail === (displayEmail || "").toLowerCase()) {
-        setEmailSuccess("Email unchanged.");
+        setEmailSuccess(t("account.email.unchanged"));
         setEmailEditOpen(false);
         return;
       }
@@ -257,12 +262,34 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
       } catch (e) {
         console.warn('Email change notify failed (non-blocking):', e);
       }
-      setEmailSuccess("Request sent. Check your email to confirm the change.");
+      setEmailSuccess(t("account.email.sent"));
       setEmailEditOpen(false);
     } catch (err: unknown) {
-      setEmailError(getErrorMessage(err, "Could not change the email."));
+      setEmailError(getErrorMessage(err, t("account.email.error.failed")));
     } finally {
       setEmailLoading(false);
+    }
+  };
+
+  // Le lien de changement de mot de passe part vers l'adresse DU COMPTE, et
+  // vers elle seule — le même appel que « Mot de passe oublié » de `/auth`
+  // (`pages/Auth.tsx`, `handleResetPassword`), qui atterrit sur
+  // `/reset-password`.
+  const handlePasswordReset = async () => {
+    if (!displayEmail) return;
+    setPasswordLoading(true);
+    setPasswordError(null);
+    setPasswordSuccess(null);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(displayEmail, {
+        redirectTo: window.location.origin + '/reset-password',
+      });
+      if (error) throw error;
+      setPasswordSuccess(t("account.password.sent", { email: displayEmail }));
+    } catch (err: unknown) {
+      setPasswordError(getErrorMessage(err, t("account.password.error")));
+    } finally {
+      setPasswordLoading(false);
     }
   };
 
@@ -306,65 +333,22 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
         setTimezoneDraft((prefsProfile.timezone ?? "") || nextTimezone);
         setTzFollowDeviceDraft(Boolean(prefsProfile.tz_follow_device));
       }
-      setPrefsSuccess("Preferences saved.");
+      setPrefsSuccess(t("account.settings.saved"));
     } catch (err: unknown) {
-      setPrefsError(getErrorMessage(err, "Could not save preferences."));
+      setPrefsError(getErrorMessage(err, t("account.settings.error.save")));
     } finally {
       setPrefsLoading(false);
     }
   };
 
-  const accessTierToPlanLabel = (t: string): string => {
-    if (t === "architecte") return "The Architect";
-    if (t === "alliance") return "The Alliance";
-    if (t === "system") return "The System";
-    if (t === "trial") return "Trial";
-    return "Read-only";
-  };
-
-  const intervalLabel = (i: unknown): string | null => {
-    const v = String(i ?? "").trim().toLowerCase();
-    if (v === "monthly") return "Monthly";
-    if (v === "yearly") return "Yearly";
-    return null;
-  };
-
   if (!shouldRender) return null;
 
-  const now = Date.now();
-  const trialActive = accessTier === "trial";
-  const subActive = accessTier === "system" || accessTier === "alliance" || accessTier === "architecte";
-  const isMaxTier = accessTier === 'architecte';
-  const subInterval = subscription?.interval ?? null;
-  const canSwitchArchitecteInterval = isMaxTier && subInterval === "monthly";
-
-  const trialDaysLeft = trialEnd
-    ? Math.max(0, Math.ceil((new Date(trialEnd).getTime() - now) / (1000 * 60 * 60 * 24)))
-    : null;
-
-  const openPortal = async () => {
-    setBillingError(null);
-    setBillingLoading(true);
-    try {
-      const { data: sessData } = await supabase.auth.getSession();
-      if (!sessData?.session?.access_token) {
-        throw new Error("Session expired. Reload the page and sign in again.");
-      }
-      const reqId = newRequestId();
-      const { data, error } = await supabase.functions.invoke('stripe-create-portal-session', {
-        body: {},
-        headers: requestHeaders(reqId),
-      });
-      if (error) throw error;
-      const url = (data as { url?: string } | null)?.url;
-      if (!url) throw new Error("Missing portal URL");
-      window.location.href = url;
-    } catch (err: unknown) {
-      setBillingError(getErrorMessage(err, "Billing portal error"));
-    } finally {
-      setBillingLoading(false);
-    }
-  };
+  // ── L'ONGLET « ABONNEMENT » RENVOIE À LA PAGE QUI GÈRE L'ABONNEMENT ────────
+  // Il rendait une carte de palier du produit grand public supprimé (« The
+  // Architect », « Move up a tier » vers `/upgrade`, portail Stripe). Le foyer
+  // a sa page (`/app/billing`, FF-064) et le coach la sienne
+  // (`/coach/billing`): l'onglet n'y mène plus que par un lien.
+  const billingPath = profile?.keel_role === 'coach' ? '/coach/billing' : '/app/billing';
 
   // ── LE CHÂSSIS DU PANNEAU — UN SEUL HABILLAGE, CELUI DE LA CHARTE ─────────
   // Aucune valeur n'est choisie ici: elles viennent de
@@ -441,7 +425,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
           </div>
           {/* `aria-label`: ce bouton n'a pas de texte, et il n'en avait pas non
               plus pour un lecteur d'écran — il s'annonçait « bouton ». */}
-          <button type="button" onClick={onClose} aria-label="Close" className={styles.closeBtn}>
+          <button type="button" onClick={onClose} aria-label={t("account.close")} className={styles.closeBtn}>
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -456,13 +440,13 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                 information annoncée: la marque seule ne dit rien à qui ne la
                 voit pas. */}
             <button type="button" onClick={() => setActiveTab('general')} aria-current={activeTab === 'general' ? 'page' : undefined} className={`${styles.sidebarItem(activeTab === 'general')} justify-center min-[350px]:justify-start`}>
-              <User className="h-4 w-4 shrink-0" /> Account
+              <User className="h-4 w-4 shrink-0" /> {t("account.tab.general")}
             </button>
             <button type="button" onClick={() => setActiveTab('subscription')} aria-current={activeTab === 'subscription' ? 'page' : undefined} className={`${styles.sidebarItem(activeTab === 'subscription')} justify-center min-[350px]:justify-start`}>
-              <CreditCard className="h-4 w-4 shrink-0" /> Plan
+              <CreditCard className="h-4 w-4 shrink-0" /> {t("account.tab.subscription")}
             </button>
             <button type="button" onClick={() => setActiveTab('settings')} aria-current={activeTab === 'settings' ? 'page' : undefined} className={`${styles.sidebarItem(activeTab === 'settings')} justify-center min-[350px]:justify-start`}>
-              <Settings className="h-4 w-4 shrink-0" /> Options
+              <Settings className="h-4 w-4 shrink-0" /> {t("account.tab.settings")}
             </button>
             {/* L'ONGLET « REFERRAL » A ÉTÉ RETIRÉ ICI (2026-08-05).
                 Il appelait `navigate('/parrainage')`, une route DÉMONTÉE avec le
@@ -486,7 +470,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                     spécifié » (charte §4). Elle remplace un `text-xs font-bold
                     uppercase tracking-widest text-slate-400` recopié trois fois
                     dans ce fichier. Il y a toujours un mot à sa droite. */}
-                <SectionLabel>Personal details</SectionLabel>
+                <SectionLabel>{t("account.general.section")}</SectionLabel>
 
                 <div className="space-y-4">
                   {/* `Field` du kit: l'étiquette passe au cran `text-label` de la
@@ -494,14 +478,14 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                       `htmlFor`/`id` — les cinq `<label>` de cet écran n'en
                       avaient aucun, donc cliquer l'étiquette ne donnait pas le
                       focus et un lecteur d'écran annonçait un champ sans nom. */}
-                  <Field label="Full name" htmlFor="account-full-name">
+                  <Field label={t("account.general.full_name")} htmlFor="account-full-name">
                     <input
                       id="account-full-name"
                       type="text"
                       value={fullNameDraft}
                       onChange={(e) => setFullNameDraft(e.target.value)}
                       className={styles.input}
-                      placeholder="Your name"
+                      placeholder={t("account.general.full_name_placeholder")}
                     />
                   </Field>
                   <div>
@@ -520,7 +504,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                         ⚠️ SI CETTE INFORMATION EST VOULUE, elle se rend en
                         `Badge tone="positive"` À CÔTÉ du champ, branchée sur
                         `email_confirmed_at`. Ce n'est pas un lot de style. */}
-                    <Field label="Email" htmlFor="account-email">
+                    <Field label={t("account.general.email")} htmlFor="account-email">
                       <input id="account-email" type="email" defaultValue={displayEmail} className={styles.input} readOnly />
                     </Field>
                     <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
@@ -537,7 +521,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                         aria-expanded={emailEditOpen}
                         className="text-sm font-medium text-fig-700 underline transition-colors hover:text-fig-800"
                       >
-                        Change my email
+                        {t("account.email.change")}
                       </button>
                       {emailSuccess && <div className={`text-sm ${successColor}`}>{emailSuccess}</div>}
                       {emailError && <div className={`text-sm ${errorColor}`}>{emailError}</div>}
@@ -550,13 +534,13 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                             value={emailDraft}
                             onChange={(e) => setEmailDraft(e.target.value)}
                             className={styles.input}
-                            placeholder="nouvel-email@example.com"
-                            aria-label="New email address"
+                            placeholder={t("account.email.new_placeholder")}
+                            aria-label={t("account.email.new_aria")}
                           />
                           <div className="flex flex-wrap items-center justify-end gap-2">
                             {/* `ghost` = le geste qu'on peut ignorer. */}
                             <Button variant="ghost" onClick={() => setEmailEditOpen(false)} disabled={emailLoading}>
-                              Cancel
+                              {t("account.cancel")}
                             </Button>
                             {/* ⚠️ `secondary` ET NON `primary`, ET C'EST LA
                                 CONTRAINTE « UNE SEULE ACTION MARQUÉE PAR VUE ».
@@ -567,15 +551,33 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                                 de l'onglet; celui-ci est contextuel et vit dans
                                 une carte, sa place suffit à le désigner. */}
                             <Button variant="secondary" onClick={handleUpdateEmail} disabled={emailLoading}>
-                              {emailLoading ? "Sending…" : "Confirm"}
+                              {emailLoading ? t("account.email.sending") : t("account.email.confirm")}
                             </Button>
                           </div>
                           <p className="text-sm leading-6 text-ink-soft">
-                            If email confirmation is enabled, Sophia will ask you to confirm through a link sent to your inbox.
+                            {t("account.email.hint")}
                           </p>
                         </div>
                       </Card>
                     )}
+                  </div>
+                  {/* ── LE MOT DE PASSE ────────────────────────────────────────
+                      Même forme que « Changer mon e-mail » juste au-dessus: un
+                      lien d'action, pas un aplat — la seule action marquée de
+                      l'onglet reste « Enregistrer ». Le lien part vers l'adresse
+                      du compte; le message dit laquelle. L'erreur s'affiche à
+                      côté du geste, pas ailleurs dans l'onglet. */}
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <button
+                      type="button"
+                      onClick={() => void handlePasswordReset()}
+                      disabled={passwordLoading || !displayEmail}
+                      className="text-sm font-medium text-fig-700 underline transition-colors hover:text-fig-800 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {passwordLoading ? t("account.password.sending") : t("account.password.change")}
+                    </button>
+                    {passwordSuccess && <div className={`text-sm ${successColor}`}>{passwordSuccess}</div>}
+                    {passwordError && <div className={`text-sm ${errorColor}`}>{passwordError}</div>}
                   </div>
                   {/* ── LE NUMÉRO DE TÉLÉPHONE A ÉTÉ RETIRÉ D'ICI (2026-08-05) ────
                       Ce bloc laissait l'utilisateur SAISIR et ÉCRIRE
@@ -623,7 +625,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                       désormais la marque — `paper` sur `fig-700` = 9,98:1, sur
                       `fig-800` au survol = 12,79:1. */}
                   <Button variant="primary" onClick={handleSaveProfile} disabled={saveLoading || !user} className="w-full">
-                    {saveLoading ? "Saving…" : "Save"}
+                    {saveLoading ? t("account.saving") : t("account.save")}
                   </Button>
                 </div>
 
@@ -635,12 +637,16 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                     pas un avertissement, et il n'est pas non plus un état du
                     système — la distinction passe donc à une FORME: la pastille
                     neutre pour le palier, l'encre secondaire pour le fait.
-                    ⚠️ SIGNALÉ, PAS RÉPARÉ — deux défauts qui ne sont pas de la
-                    couleur: (1) l'échelle « Initiate » jusqu'à « Master Builder » est le
-                    vocabulaire de gamification du produit grand public supprimé,
-                    et « Architect » y désigne un palier d'abonnement mort;
-                    (2) `day{n > 1 ? 's' : ''}` rend « Member for 0 day » le jour
-                    de l'inscription — mesuré sur un compte de QA. */}
+                    ⟳ 2026-09-23 (FF-066 lot 4) — deux défauts qui n'étaient pas
+                    de la couleur: (1) l'échelle « Initiate » jusqu'à « Master
+                    Builder », vocabulaire de jeu du produit grand public
+                    supprimé (« Architect » y désignait un palier d'abonnement
+                    mort) — RETIRÉE: aucun score, aucune série
+                    (`docs/fonctionnalites/conversation/README.md`);
+                    (2) `day{n > 1 ? 's' : ''}` rendait « Member for 0 day » le
+                    jour de l'inscription — réparé le 2026-09-23 en passant par
+                    `plural()`, qui porte la règle de chaque langue (« 0 days »,
+                    « 0 jour »). */}
                 <Card className="mt-8">
                   <div className="flex items-center gap-4">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-line text-ink-soft">
@@ -651,20 +657,16 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                         const createdAt = user?.created_at ? new Date(user.created_at) : new Date();
                         const daysSinceCreation = Math.floor((Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
 
-                        let level = "Initiate";
-                        if (daysSinceCreation >= 365) level = "Master Builder";
-                        else if (daysSinceCreation >= 180) level = "Architect";
-                        else if (daysSinceCreation >= 90) level = "Builder";
-                        else if (daysSinceCreation >= 30) level = "Journeyman";
-                        else if (daysSinceCreation >= 15) level = "Apprentice";
+                        const days = plural(
+                          daysSinceCreation,
+                          t("account.member_days_one", { count: daysSinceCreation }),
+                          t("account.member_days_many", { count: daysSinceCreation }),
+                        );
 
                         return (
-                          <>
-                            <Badge tone="neutral">Level: {level}</Badge>
-                            <p className="mt-2 text-sm text-ink-soft">
-                              Member for {daysSinceCreation} day{daysSinceCreation > 1 ? 's' : ''}
-                            </p>
-                          </>
+                          <p className="text-sm text-ink-soft">
+                            {t("account.member_for", { days })}
+                          </p>
                         );
                       })()}
                     </div>
@@ -674,173 +676,27 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
             )}
 
             {/* --- TAB: SUBSCRIPTION --- */}
+            {/* UNE CARTE, UNE PHRASE, UN LIEN. L'abonnement se gère sur sa page
+                (`billingPath`, calculé plus haut). Le bouton est un `Link` à la
+                forme d'un bouton du kit (`buttonClass`), et il porte la seule
+                action marquée de l'onglet. */}
             {activeTab === 'subscription' && (
               <div className="animate-fade-in">
-                <SectionLabel>Plan &amp; access</SectionLabel>
-
-                {/* ── LA CARTE DE PALIER — LE SEUL BLOC SOMBRE DU PANNEAU ─────
-                    `bg-fig-950` (#24101E) remplace un DÉGRADÉ `from-slate-900 to
-                    -slate-800`: la charte ne nomme qu'un fond sombre, « un seul
-                    par page » (§2), et elle n'a aucun dégradé. Le secondaire est
-                    `fig-300` (8,06:1 sur ce fond), la valeur documentée pour le
-                    texte secondaire du bloc sombre.
-                    ⛔ LE HALO AMBRE FLOUTÉ A ÉTÉ RETIRÉ (« Background Decor »,
-                    `bg-amber-500/20 blur-[50px]`): une saturée en pur décor, dans
-                    la teinte qui veut dire « attention » — et posée derrière un
-                    verdict d'abonnement, c'est-à-dire à l'endroit exact où une
-                    couleur d'état est lue comme un signal. */}
-                <div className="rounded-card border border-fig-800 bg-fig-950 p-4 text-paper">
-                  <div>
-                    <div className="mb-4 flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        {/* ⚠️ C'ÉTAIT UNE PASTILLE MAISON, et c'est le geste que
-                            le kit demande: `Badge` porte les quatre familles
-                            d'état. « Active » = ok, « Trial » = en cours,
-                            « Read-only » = accès dégradé (le ton `caution`, pas
-                            `critical`: rien n'est refusé, tout est en lecture).
-                            Le verre dépoli `bg-white/10 backdrop-blur-md` ne
-                            disait aucun des trois. */}
-                        <Badge tone={subActive ? "positive" : trialActive ? "info" : "caution"}>
-                          {subActive ? "Active" : trialActive ? "Trial" : "Read-only"}
-                        </Badge>
-                        {/* ⚠️ `font-serif` N'EST PAS LA DISPLAY DU DÉPÔT: c'est la
-                            pile serif générique du navigateur, donc ce titre ne
-                            rendait PAS en Young Serif. `font-display` le corrige,
-                            et le `font-bold` part — Young Serif n'a qu'une
-                            graisse (charte §3). 24 px, au-dessus du plancher de
-                            20 px de la display. */}
-                        <h3 className="mt-2 font-display text-2xl leading-tight text-paper">
-                          {accessTierToPlanLabel(accessTier)}
-                        </h3>
-                      </div>
-                      {/* La pièce chaude du bloc sombre: `fig-300`, la valeur que
-                          la charte réserve à un trait sur fond sombre (8,06:1).
-                          En ambre, cet éclair empruntait la couleur de
-                          « attention » pour décorer. */}
-                      <Zap className="h-7 w-7 shrink-0 text-fig-300" />
-                    </div>
-                    {subActive && (
-                      <div className="mb-2 text-sm text-fig-300">
-                        {accessTierToPlanLabel(accessTier)}
-                        {intervalLabel(subscription?.interval) ? (
-                          <span> · {intervalLabel(subscription?.interval)}</span>
-                        ) : null}
-                      </div>
-                    )}
-
-                    {subActive ? (
-                      <p className="mb-6 text-sm text-fig-300">
-                        Your subscription is active{subscription?.cancel_at_period_end ? " (cancels at the end of the period)." : "."}
-                      </p>
-                    ) : trialActive ? (
-                      <p className="mb-6 text-sm text-fig-300">
-                        Free trial running{trialDaysLeft !== null ? ` · ${trialDaysLeft} days left` : ""}.
-                      </p>
-                    ) : (
-                      <p className="mb-6 text-sm text-fig-300">
-                        Your trial has ended. The app is read-only until you subscribe.
-                      </p>
-                    )}
-
-                    {/* `font-mono` retiré: la charte n'a que DEUX familles, et
-                        aucune n'est monospace — cette ligne partait donc en repli
-                        système au milieu d'un panneau. Public Sans a des chiffres
-                        faits pour ça. */}
-                    {subscription?.current_period_end && (
-                      <div className="flex items-center gap-2 text-sm text-fig-300">
-                        <CreditCard className="h-4 w-4 shrink-0" />
-                        Renews until {formatDate(subscription.current_period_end)}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="mt-6 flex flex-col gap-3">
-                  {billingError && (
-                    <div className="rounded-card border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-                      {billingError}
-                    </div>
-                  )}
-
-                  {subActive ? (
-                    <div className="space-y-3">
-                      {/* ⚠️ TROIS CLASSES VIOLETTES SONT PARTIES ICI, ET ELLES
-                          MARQUAIENT BIEN UNE ACTION — `bg-violet-600`,
-                          `hover:bg-violet-500`, `shadow-violet-200`. C'est
-                          exactement le cas où la marque est légitime: c'est
-                          l'action principale de l'onglet. Elle passe donc à la
-                          figue par `variant="primary"`, pas aux neutres.
-                          L'ombre teintée ne suit pas: elle ne portait rien. */}
-                      {(!isMaxTier || canSwitchArchitecteInterval) && (
-                        <Button
-                          variant="primary"
-                          onClick={() => {
-                            onClose();
-                            navigate('/upgrade');
-                          }}
-                          className="w-full"
-                        >
-                          {canSwitchArchitecteInterval ? "Switch to annual" : "Move up a tier"}
-                        </Button>
-                      )}
-
-                      <Button variant="secondary" onClick={openPortal} disabled={billingLoading} className="w-full">
-                        {billingLoading ? "Opening…" : "Manage billing"}
-                      </Button>
-
-                      {/* ── BOUTON SE DÉSABONNER ─────────────────────────────
-                          ⚠️ LE ROUGE AU SURVOL EST PARTI, ET C'EST DÉLIBÉRÉ. Ce
-                          bouton n'annule rien: il appelle `openPortal`, comme
-                          celui du dessus — il OUVRE le portail Stripe. Un rouge
-                          promettrait une destruction que le geste ne fait pas.
-                          Et le seul geste vraiment destructeur de cet écran
-                          (« Delete my account », dans `DataPrivacySection`) a
-                          besoin que le rouge lui reste réservé: deux rouges
-                          empilés, et l'irréversible ne se distingue plus. */}
-                      <button
-                        type="button"
-                        onClick={openPortal}
-                        disabled={billingLoading}
-                        className="w-full text-center text-sm text-ink-soft underline decoration-line-strong transition-colors hover:text-ink disabled:opacity-60"
-                      >
-                        Cancel my subscription
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      <SectionLabel>Choose a plan</SectionLabel>
-
-                      <div className="py-6 text-center">
-                        <p className="mb-4 text-sm text-ink-soft">
-                          Unlock everything Sophia can do.
-                        </p>
-                        <Button
-                          variant="primary"
-                          onClick={() => {
-                            onClose();
-                            navigate('/upgrade');
-                          }}
-                          className="w-full"
-                        >
-                          Move up a tier
-                        </Button>
-                      </div>
-
-                      {billingLoading && (
-                        <div className="text-sm text-ink-soft">
-                          Redirecting…
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
+                <Card>
+                  <p className="text-sm leading-6 text-ink">
+                    {t("account.subscription.body")}
+                  </p>
+                  <Link to={billingPath} className={buttonClass("primary", "md", "mt-4 w-full")}>
+                    <CreditCard className="h-4 w-4 shrink-0" /> {t("account.subscription.cta")}
+                  </Link>
+                </Card>
               </div>
             )}
 
             {/* --- TAB: SETTINGS --- */}
             {activeTab === 'settings' && (
               <div className="animate-fade-in">
-                <SectionLabel>Preferences</SectionLabel>
+                <SectionLabel>{t("account.settings.section")}</SectionLabel>
 
                 {/* `Card` du kit remplace la carte maison (`p-4 rounded-xl border
                     bg-slate-50 border-slate-200`): même géométrie, mais le rayon
@@ -852,7 +708,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                   <div className="space-y-4">
                     <div>
                       <label htmlFor="account-language" className="mb-2 block text-label font-semibold uppercase text-ink-soft">
-                        Language
+                        {t("account.settings.language")}
                       </label>
                       {/*
                         Chaque langue est nommée DANS sa langue, et chaque
@@ -875,21 +731,24 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                         }}
                         className={styles.input}
                       >
-                        <option value="en" lang="en">English</option>
-                        <option value="fr" lang="fr">Français</option>
+                        {/* Les noms de langue du champ d'inscription, déjà
+                            écrits pareil dans les deux packs (`public.*`). */}
+                        <option value="en" lang="en">{t("public.language.en")}</option>
+                        <option value="fr" lang="fr">{t("public.language.fr")}</option>
                       </select>
                       {/* `text-sm` et non `text-[11px]`: 11 px n'est dans aucun
                           cran de l'échelle de la charte, et une ligne d'aide se
-                          lit — c'est la même valeur que le `hint` de `ui/Field`. */}
+                          lit — c'est la même valeur que le `hint` de `ui/Field`.
+                          ⚠️ Plus de « coach » ici (2026-09-23): c'est Sophia qui
+                          répond, dans cette langue. */}
                       <p className="mt-2 text-sm leading-6 text-ink-soft">
-                        Applies immediately, and reloads. This is also the
-                        language your coach answers in.
+                        {t("account.settings.language_hint")}
                       </p>
                     </div>
 
                     <div>
                       <label htmlFor="account-timezone" className="mb-2 block text-label font-semibold uppercase text-ink-soft">
-                        Time zone (IANA)
+                        {t("account.settings.timezone")}
                       </label>
                       <select
                         id="account-timezone"
@@ -904,10 +763,13 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                         ))}
                       </select>
                       <div className="mt-2 text-sm leading-6 text-ink-soft">
-                        Current:{" "}
                         {tzFollowDeviceDraft
-                          ? (detectBrowserTimezone() || timezoneDraft || DEFAULT_TIMEZONE) + " (device)"
-                          : (timezoneDraft || DEFAULT_TIMEZONE) + " (profile)"}
+                          ? t("account.settings.timezone_current_device", {
+                            tz: detectBrowserTimezone() || timezoneDraft || DEFAULT_TIMEZONE,
+                          })
+                          : t("account.settings.timezone_current_profile", {
+                            tz: timezoneDraft || DEFAULT_TIMEZONE,
+                          })}
                       </div>
                     </div>
 
@@ -917,9 +779,9 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                         `line-strong` (3,84:1) et pas `line` (1,30:1). */}
                     <div className="flex items-center justify-between gap-3 rounded-card border border-line-strong p-3">
                       <div className="min-w-0">
-                        <div className="text-sm font-medium text-ink">Roaming</div>
+                        <div className="text-sm font-medium text-ink">{t("account.settings.roaming")}</div>
                         <div className="mt-0.5 text-sm leading-6 text-ink-soft">
-                          Follow the device time zone automatically.
+                          {t("account.settings.roaming_hint")}
                         </div>
                       </div>
                       {/* ⚠️ L'INTERRUPTEUR ÉTAIT EN `bg-blue-600` À L'ACTIF, ET
@@ -946,7 +808,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                           tzFollowDeviceDraft ? "bg-fig-700" : "bg-line-strong"
                         }`}
                         aria-pressed={tzFollowDeviceDraft}
-                        aria-label="Enable roaming"
+                        aria-label={t("account.settings.roaming_aria")}
                       >
                         <div className={`h-3 w-3 rounded-full bg-paper transition-transform ${tzFollowDeviceDraft ? "translate-x-5" : ""}`} />
                       </button>
@@ -964,7 +826,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
 
                     {/* L'action marquée de CET onglet, et la seule. */}
                     <Button variant="primary" onClick={handleSavePreferences} disabled={prefsLoading || !user} className="w-full">
-                      {prefsLoading ? "Saving…" : "Save"}
+                      {prefsLoading ? t("account.saving") : t("account.save")}
                     </Button>
                   </div>
                 </Card>
@@ -1002,7 +864,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                     Le `ChevronRight` part avec: il annonçait un écran suivant, or
                     ce bouton agit sur place. */}
                 <Button variant="secondary" onClick={handleSignOut} className="w-full">
-                  <LogOut className="h-4 w-4 shrink-0" /> Sign out
+                  <LogOut className="h-4 w-4 shrink-0" /> {t("account.sign_out")}
                 </Button>
 
                 <DataPrivacySection isArchitect={isArchitect} />

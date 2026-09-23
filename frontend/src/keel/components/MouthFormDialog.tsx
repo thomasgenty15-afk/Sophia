@@ -4,7 +4,7 @@ import Modal from "./ui/Modal";
 import { Button } from "./ui/Button";
 import { Field, inputClass } from "./ui/Field";
 import { SectionLabel } from "./ui/Card";
-import { allergenLabel, ALLERGEN_OPTIONS } from "../copy/allergens";
+import { extractFoodTerms, type FoodTermsKind } from "../api/foodTermsExtract";
 import { type MessageKey, t } from "../i18n/t";
 import { uiLocale } from "../i18n/runtime";
 import { MEMBER_GENDERS } from "../api/household";
@@ -23,7 +23,7 @@ import { arrivalHorizonCopy } from "../lib/arrivalHorizon";
 import {
   ageStateOfDraft,
   blockList,
-  filledPreferenceBlocks,
+  executedPaceNoticeFor,
   type MouthFormDraft,
   missingRequiredBlocks,
   paceControlFor,
@@ -38,6 +38,7 @@ import {
 import type { EatingStructure } from "../api/eatingStructure";
 import { rhythmPrefillFor, rhythmPrefillLatches } from "../lib/rhythmPrefill";
 import { slotBearsLight, toggleLight } from "../lib/mealExtras";
+import SideCoursesField from "./SideCoursesField";
 import { APPETITE_LEVELS } from "../../../../supabase/functions/_shared/keel/tokens.ts";
 import type {
   AppetiteLevel,
@@ -74,9 +75,11 @@ import { PACE_WARNING_LABELS } from "../../../../supabase/functions/_shared/keel
 // ligne, et c'est le Save de la fiche qui écrit. Deux boutons d'enregistrement
 // sur un même brouillon, c'est la garantie qu'un jour l'un des deux cessera
 // d'écrire ce que l'autre écrit — le dépôt l'a déjà mesuré sur `MeCard`.
-// La contrepartie est nommée à l'écran: ce qui a été renseigné derrière le
-// bouton est RÉCAPITULÉ sous lui (`filledPreferenceBlocks`), sinon fermer la
-// fenêtre se lirait comme perdre ce qu'on vient de taper.
+// La contrepartie était nommée à l'écran — ce qui avait été renseigné derrière
+// le bouton était RÉCAPITULÉ sous lui —, et cette ligne a été retirée le
+// 2026-09-20 sur demande. Refermer la fenêtre ne laisse donc plus de trace
+// visible de ce qu'on vient d'y taper: la donnée part, la PREUVE non. Voir
+// `MouthPreferencesButton`.
 //
 // ── IL S'OUVRE POUR TOUT LE MONDE, MAÎTRE COMPRIS ────────────────────────
 // « sans quoi celui qui tient la maison serait le seul dont on ne sait rien ».
@@ -420,7 +423,21 @@ const HABIT_PLACEHOLDERS: Record<EatingOccasion, MessageKey> = {
 function Section(
   { title, hint, children }: {
     title: string;
-    hint: string;
+    /**
+     * ⟳ 2026-09-20 — FACULTATIF, ET PAS « CHAÎNE VIDE ACCEPTÉE ».
+     *
+     * Trois sections ont perdu leur aide ce jour-là (les allergies, les
+     * dégoûts, et le triplet du corps côté entonnoir). Passer `""` aurait
+     * compilé et rendu un `<p>` VIDE: une marge qu'aucun texte ne justifie, et
+     * un trou entre le titre et le champ que personne ne saurait expliquer six
+     * mois plus tard. Absent veut dire « pas de ligne », et le rendu le
+     * respecte.
+     *
+     * ⚠️ `RequiredBlock`, juste en dessous, GARDE son `hint` obligatoire: ses
+     * deux montages en ont un, et un bloc « obligatoire » sans un mot pour dire
+     * ce qu'il exige serait un cadre autour de rien.
+     */
+    hint?: string;
     children: React.ReactNode;
   },
 ) {
@@ -438,7 +455,9 @@ function Section(
       className="rounded-card border border-line-strong bg-paper p-4"
     >
       <SectionLabel>{title}</SectionLabel>
-      <p className="mt-1 text-xs leading-5 text-ink-soft">{hint}</p>
+      {hint === undefined || hint === ""
+        ? null
+        : <p className="mt-1 text-xs leading-5 text-ink-soft">{hint}</p>}
       {/* `space-y-5` ET PAS `space-y-4`: mesuré sur capture le 2026-08-19, les
           six lignes d'habitudes se lisaient collées — l'étiquette en capitales
           du moment SUIVANT touchait presque le champ du précédent, et la liste
@@ -594,32 +613,81 @@ export default function MouthFormDialog(
  * geste qui a marché » vaut aussi dans l'autre sens.
  */
 export function MouthPreferencesButton(
-  { draft, busy, onOpen, voice, who }: {
-    draft: MouthFormDraft;
+  { busy, onOpen, voice, who, action = null }: {
+    /* ⛔ PLUS DE `draft`: il ne servait qu'au récapitulatif, retiré le
+       2026-09-20. Le garder aurait fait une prop que trois appelants
+       calculent pour rien — et la première d'entre elles est celle qu'on
+       oublie de mettre à jour. */
     busy: boolean;
     onOpen: () => void;
     /** REQUIS: le maître lisait « Renseigner SES préférences » sur sa carte. */
     voice: MouthVoice;
     who: string;
+    /**
+     * ── ⟳ 2026-09-20 · LE GESTE DE LA CARTE, SUR LA MÊME LIGNE ───────────
+     *
+     * Passé par les deux cartes de `/app/setup`, qui y mettent leur bouton
+     * « Enregistrer ». Absent partout ailleurs, et c'est ce qui décide de la
+     * FORME: seul, ce bloc n'est que son bouton; accompagné, il devient une
+     * barre de fin de carte, la porte à gauche et le geste à droite.
+     *
+     * ⚠️ L'ORDRE N'EST PAS UN GOÛT. Cette page a une règle datée du
+     * 2026-08-19: « Retour » à gauche, l'avance à droite — c'est pour elle
+     * que la barre de bas d'écran a été séparée en deux. « Enregistrer » est
+     * l'avance de la carte; la porte facultative, elle, ne doit pas occuper
+     * la position que l'écran réserve à ce qui fait avancer, à quelques
+     * dizaines de pixels au-dessus du « Continuer » de l'étape.
+     */
+    action?: React.ReactNode;
   },
 ): React.ReactElement {
-  const filled = filledPreferenceBlocks(draft);
+  const door = (
+    <Button variant="secondary" disabled={busy} onClick={onOpen}>
+      {t(voiced("household.mouth.preferences_open", voice), { who })}
+    </Button>
+  );
+  /* ══════════════════════════════════════════════════════════════════════
+     ⛔ ICI SE TENAIT LE RÉCAPITULATIF — RETIRÉ LE 2026-09-20
+     ══════════════════════════════════════════════════════════════════════
+
+     Une ligne sous le bouton: « Déjà renseigné : les allergies. », ou « Rien
+     de renseigné — le plan se compose sans. » Retirée sur demande, avec le
+     reste de ce qui alourdissait ces cartes.
+
+     ⚠️ ELLE PAYAIT QUELQUE CHOSE, ET CE QUELQUE CHOSE EST MAINTENANT À
+     DÉCOUVERT. La fenêtre des préférences n'a pas de bouton qui enregistre:
+     elle édite le brouillon de la fiche, et c'est le Save de la fiche qui
+     écrit. Cette ligne était la contrepartie nommée — sans elle, refermer la
+     fenêtre ne laisse plus aucune trace à l'écran de ce qu'on vient d'y
+     taper. Le brouillon le garde et l'écriture part bien; c'est la PREUVE
+     visible qui disparaît, pas la donnée.
+
+     ⚠️ `filledPreferenceBlocks` ET LES DEUX CLÉS RESTENT VIVANTS: trois
+     cadres repliables de `/app/household` les rendent encore, et là-bas le
+     récapitulatif est la raison même du repli (« on ne referme que ce qu'on
+     vient de lire »). Ce n'est pas le compteur qui part, c'est cette
+     ligne-ci, sur cette porte-ci. */
+  if (action === null) return door;
   return (
-    <div className="rounded-card border border-line-strong bg-paper p-4">
-      <Button variant="secondary" disabled={busy} onClick={onOpen}>
-        {t(voiced("household.mouth.preferences_open", voice), { who })}
-      </Button>
-      <p className="mt-2 text-xs leading-5 text-ink-soft">
-        {filled.length > 0
-          ? t("household.mouth.preferences_filled", {
-            blocks: blockList(
-              filled.map((b) =>
-                t(`household.mouth.block_${b}` as "household.mouth.block_identity")
-              ),
-            ),
-          })
-          : t("household.mouth.preferences_empty")}
-      </p>
+    /* ── UNE COLONNE SOUS `sm`, ET C'EST L'IDIOME DE CETTE PAGE ──────────
+       Deux boutons côte à côte sur un téléphone se compriment jusqu'à couper
+       leur libellé — celui de gauche fait sept mots. `items-start` empêche le
+       bouton de s'étirer sur toute la largeur en colonne (`align-items` vaut
+       `stretch`, et `Button` est un `inline-flex`). */
+    /* ── ⟳ 2026-09-20 · L'AIR AU-DESSUS DE LA BARRE, EN `pt-` ─────────────
+       Demandé sur capture: la barre collait aux tuiles de sport juste
+       au-dessus.
+
+       ⛔ `pt-3` ET PAS `mt-3`, ET CE N'EST PAS UN GOÛT. Les deux cartes qui
+       passent une `action` rendent cette barre dans un parent `space-y-3` /
+       `space-y-4`. Tailwind écrit `space-y` en `> :not([hidden]) ~
+       :not([hidden]) { margin-top: … }` — deux classes de spécificité contre
+       une: un `mt-*` posé ici serait ÉCRASÉ, et le lot ressemblerait à un lot
+       qui marche sur un écran où rien n'aurait bougé. Le padding, lui,
+       s'ajoute à l'écart du parent sans lui disputer la même propriété. */
+    <div className="flex flex-col items-start gap-2 pt-3 sm:flex-row sm:items-center sm:justify-between">
+      {door}
+      {action}
     </div>
   );
 }
@@ -835,12 +903,22 @@ export function MouthCoreFields(
               className={inputClass}
             />
           </Field>
+          {/* ── ⛔ LE `hint` A ÉTÉ RETIRÉ LE 2026-09-20 ──────────────────────
+              Il disait: « On ne demande jamais si c'est un adulte ou un
+              enfant : la date de naissance le dit. » C'était la réponse à une
+              question que personne ne pose — il répondait à un choix de
+              CONCEPTION (pourquoi il n'y a pas de case « enfant ») devant
+              quelqu'un qui remplit un champ de date. Retiré sur demande, avec
+              le reste de ce qui alourdissait cette fiche.
+
+              ⚠️ CE QUE LA PHRASE PROTÉGEAIT TIENT TOUJOURS, ET AILLEURS: la
+              règle « on ne demande jamais adulte ou enfant » est écrite dans
+              l'en-tête de `lib/mouthForm.ts`, elle est tenue par l'ABSENCE de
+              champ `kind` dans le brouillon, et un test refuse son retour.
+              C'était une note de conception affichée à l'utilisateur, pas une
+              garde. */}
           <Field
             label={t("setup.people.birth_date")}
-            // ⛔ CE `hint` EST LA RÉPONSE À « pourquoi vous ne demandez pas si
-            // c'est un enfant ». La date de naissance le dit, et la poser en
-            // plus ouvrirait deux réponses qui se contredisent.
-            hint={t("household.mouth.birth_date_hint")}
             htmlFor="mouth-birth-date"
           >
             <input
@@ -1096,7 +1174,6 @@ export function MouthCoreFields(
             rien — et « un geste qui ne fait rien est indiscernable d'un geste
             qui a marché » vaut aussi dans l'autre sens. */}
         <MouthPreferencesButton
-          draft={draft}
           busy={props.busy}
           onOpen={props.onOpenPreferences}
           voice={voice}
@@ -1415,46 +1492,51 @@ export function MouthPreferencesFields(
       {/* ── 2 · LES ALLERGIES · fail-closed ──────────────────────────────── */}
       <Section
         title={t(voiced("setup.mouths.allergies", voice), { who })}
-        hint={t("setup.people.allergies_hint")}
       >
-        <div className="flex flex-wrap gap-2">
-          {ALLERGEN_OPTIONS.map((option) => {
-            const on = draft.allergies.includes(option.slug);
-            return (
-              <Button
-                key={option.slug}
-                variant={on ? "primary" : "secondary"}
-                size="sm"
-                onClick={() =>
-                  set({
-                    allergies: on
-                      ? draft.allergies.filter((s) => s !== option.slug)
-                      : [...draft.allergies, option.slug],
-                    // COCHER UN ALLERGÈNE LÈVE « rien ». Les deux ensemble
-                    // sont un état contradictoire que la base n'a pas à
-                    // arbitrer.
-                    allergiesNone: false,
-                  })}
-              >
-                {allergenLabel(option.slug)}
-              </Button>
-            );
-          })}
-        </div>
-        {/* « RIEN » EST UNE RÉPONSE, distincte de « personne n'a demandé ».
-            Sans ce bouton, une section sautée et une section remplie d'un
-            « non » seraient le même état en base. */}
-        <Button
-          variant={draft.allergiesNone ? "primary" : "secondary"}
-          size="sm"
-          onClick={() =>
-            set({
-              allergiesNone: !draft.allergiesNone,
-              allergies: draft.allergiesNone ? draft.allergies : [],
-            })}
-        >
-          {t("setup.people.allergies_none")}
-        </Button>
+        {/* ══════════════════════════════════════════════════════════════════
+            ⛔ ICI SE TENAIENT LES DIX-SEPT PASTILLES — RETIRÉES LE 2026-09-20
+            ══════════════════════════════════════════════════════════════════
+
+            Avec elles est partie l'aide de section (`setup.people.allergies_hint`,
+            « Médical uniquement. Ça sort de toute la casserole. Les dégoûts
+            viennent après. »). Retrait demandé: la liste faisait lire dix-sept
+            dangers à quelqu'un qui n'en a aucun.
+
+            ⚠️ CE QUE ÇA COÛTE, ET IL FAUT LE SAVOIR AVANT DE JUGER LE LOT:
+            une pastille couvrait tous les noms d'un même danger — cocher
+            `peanut` faisait reconnaître « satay », « groundnut », « PB »
+            (`WIDE_COVERAGE_SLUGS`). Un mot tapé à la main n'est reconnu que
+            sous ce mot, sauf si la table d'alias le connaît
+            (`api/allergenSlug.ts`: « arachides », « fruits à coque »,
+            « produits laitiers »… y sont, en français). Le catalogue lui-même
+            n'a PAS bougé: `copy/allergens.ts` reste, le moteur et les autres
+            écrans le lisent toujours.
+
+            ⚠️ ET RIEN N'EST DEVENU INVISIBLE. Ce brouillon ne SÈME jamais les
+            allergies (« elles s'AJOUTENT, elles ne se posent pas » —
+            `HouseholdPage`): les pastilles ne montraient aucune déclaration
+            existante, elles n'en ajoutaient que de nouvelles. Retirer un
+            champ qui affiche l'existant aurait été un tout autre geste. */}
+        {/* ── ⛔ ICI SE TENAIT « Rien à déclarer » — RETIRÉ LE 2026-09-20 ────
+            Il existait pour qu'une section SAUTÉE et une section remplie d'un
+            « non » ne soient pas le même état en base. Retiré sur demande:
+            « pour ceux qui n'ont pas d'allergies, ça leur fait perdre du
+            temps ». Une section vide se lit désormais comme « rien », et
+            `allergiesNone` reste dans le brouillon, à `false` — trois lecteurs
+            le comptent encore. Ce que ça coûte: `allergiesReviewed` n'est plus
+            écrit pour quelqu'un qui n'a rien coché, et il ne bloque rien
+            depuis le 2026-08-19. */}
+        {/* LE TEXTE LIBRE, ET IL PORTE TOUT — ⟳ 2026-09-20.
+            Il ne montrait que le HORS-CATALOGUE: un slug coché avait sa
+            pastille au-dessus, et l'afficher deux fois aurait été deux fois la
+            même réponse. Sans les pastilles, ce filtre ne dédoublonnerait plus
+            rien — il CACHERAIT un mot que rien d'autre ne rend, et que plus
+            aucun geste ne pourrait retirer. */}
+        <TermsEntry
+          kind="allergy"
+          terms={draft.allergies}
+          onChange={(free) => set({ allergies: free, allergiesNone: false })}
+        />
       </Section>
 
       {/* ── 3 · CE QU'ELLE N'AIME PAS ────────────────────────────────────────
@@ -1470,12 +1552,17 @@ export function MouthPreferencesFields(
           celle-là est indexée sur `user_id`, donc INATTEIGNABLE pour une bouche
           sans compte — c'est-à-dire pour un enfant, le cas nominal du foyer. */}
       
+        {/* ⛔ L'AIDE DE SECTION (« Un dégoût, pas une allergie. ») EST PARTIE
+            LE 2026-09-20, sur demande. La distinction qu'elle portait tient
+            maintenant à la seule séparation des deux blocs — qui est, elle,
+            structurelle: deux tables, deux natures, et le commentaire
+            au-dessus dit pourquoi les fondre serait faux. */}
         <Section
           title={t(voiced("household.mouth.tastes", voice), { who })}
-          hint={t(voiced("household.mouth.tastes_hint", voice), { who })}
         >
-          <DislikeFields
-            dislikes={draft.dislikes}
+          <TermsEntry
+            kind="dislike"
+            terms={draft.dislikes}
             onChange={(next) => set({ dislikes: next })}
           />
         </Section>
@@ -1815,6 +1902,27 @@ export function MouthPreferencesFields(
               </p>
             )
             : null}
+          {/* ── ⟳ 2026-09-23 · LES À-CÔTÉS — ENTRÉE, FROMAGE, DESSERT, PAIN ──
+              Le plan sert un petit à-côté au déjeuner et au dîner, selon
+              l'objectif; ce champ dit ce que la personne veut à la place.
+
+              ⛔ DANS CETTE SECTION, PAS DANS UNE À ELLE. La section dit
+              « quand … mange, et quoi »: ce qui arrive à côté du plat de midi
+              et du soir en fait partie. Un septième cadre changerait aussi le
+              compte de sections que `mouthFormDialog.int.test.ts` tient à six
+              — et c'est une décision de forme, pas un effet de bord.
+
+              ⚠️ `set({ sideCourses })` ET RIEN D'AUTRE: le brouillon du
+              titulaire est DÉRIVÉ, et ce champ remonte parce qu'il est nommé
+              dans `SELF_SHEET_FIELDS`. Il part en base avec la fiche, par la
+              même liste que les habitudes (`mouthToPersist`). */}
+          <div className="border-t border-line pt-4">
+            <SideCoursesField
+              value={draft.sideCourses}
+              onChange={(next) => set({ sideCourses: next })}
+              disabled={props.busy}
+            />
+          </div>
         </Section>
 
       {/* ══════════════════════════════════════════════════════════════════
@@ -1953,6 +2061,10 @@ export function TargetAndPaceFields(
     onChange((prev) => ({ ...prev, ...patch }));
   const paceControl = paceControlFor(draft, todayLocalIso);
   const targetState = targetWeightStateFor(draft, todayLocalIso);
+  // ⚠️ LU SUR LE BROUILLON BRUT, PAS SUR `paceControl.value`. Le curseur
+  // affiche un cran RABATTU sur le plafond de ce corps; la base, elle, garde
+  // celui qu'on y a écrit. Voir `executedPaceNoticeFor`.
+  const executedNotice = executedPaceNoticeFor(draft, todayLocalIso);
   if (paceControl.kind === "folded") return null;
   return (
             <div className="space-y-4 border-t border-line pt-4">
@@ -2060,6 +2172,36 @@ export function TargetAndPaceFields(
                       {PACE_WARNING_LABELS[paceControl.warning][
                         uiLocale() === "fr" ? "fr" : "en"
                       ]}
+                    </p>
+                  ) : null}
+                  {/* ══════════════════════════════════════════════════════
+                      LE CRAN ENREGISTRÉ CONTRE LE CRAN CUISINÉ — 2026-09-22
+                      ══════════════════════════════════════════════════════
+
+                      ── LE FAIT MESURÉ ─────────────────────────────────────
+                      Un homme de 72 kg en prise portait `0,45` en base. Le
+                      resserrement du 2026-09-21 (`MAX_WEEKLY_BODY_FRACTION_UP`,
+                      0,5 %/semaine) a ramené son plafond à 0,35: le curseur
+                      s'affichait DÉJÀ à 0,35 (`paceControlFor` rabat), la base
+                      gardait 0,45, et le moteur cuisinait 0,35. Trois nombres,
+                      aucun écran pour les relier — c'est-à-dire quelqu'un qui
+                      croit avoir réglé 0,45 et qui mange 0,35.
+
+                      ⚠️ ELLE NE PEUT PAS DIRE « TU AS CHOISI CE QUE TU VOIS ».
+                      La ligne ne se rend que quand les deux nombres diffèrent
+                      À L'AFFICHAGE, et elle disparaît dès qu'on touche le
+                      curseur: le cran devient alors celui qu'on vient de poser,
+                      et il passe tel quel.
+
+                      ⚠️ TON NEUTRE, PAS AMBRE. Ce n'est ni un risque ni un
+                      refus: c'est un écart entre ce qui est écrit et ce qui est
+                      exécuté, et le curseur au-dessus montre déjà le second. */}
+                  {executedNotice !== null ? (
+                    <p className="mt-2 text-xs leading-5 text-ink-soft">
+                      {t("household.mouth.pace_executed", {
+                        chosen: pace(executedNotice.chosenKgPerWeek),
+                        executed: pace(executedNotice.executedKgPerWeek),
+                      })}
                     </p>
                   ) : null}
                   {/* ③ — LA SATURATION, ET POURQUOI IL N'Y A PLUS RIEN ICI.
@@ -2524,35 +2666,75 @@ function ShakerFields(
 }
 
 /** Les aliments refusés par DÉGOÛT — texte libre, une ligne par aliment. */
-function DislikeFields(
-  { dislikes, onChange }: {
-    dislikes: readonly string[];
+/** Les slugs des treize pastilles — pour ne pas les rendre deux fois. */
+
+/**
+ * LE TEXTE LIBRE, POUR LES DEUX SECTIONS — 2026-09-20.
+ *
+ * ── LE CIRCUIT, DANS LES MOTS DE L'UTILISATEUR ────────────────────────────
+ *   1. « le user décrit » — une phrase ou des virgules, dans le champ;
+ *   2. « dès qu'il décrit, le bouton Ajouter se colore » — `primary` dès
+ *      qu'il y a du texte, `secondary` sinon;
+ *   3. « quand la personne clique, analyse hyper rapide avec un modèle » —
+ *      `extractFoodTerms`, effort bas, douze secondes de plafond;
+ *   4. « les termes apparaissent sous forme de bulle, déjà cochés » — ajoutés
+ *      à `terms`, une croix pour en retirer un.
+ * Le dépôt des inconnus au sas est fait par la fonction, après sa réponse.
+ *
+ * ── ⛔ CE QU'ON NE PERD JAMAIS ────────────────────────────────────────────
+ * Le champ n'est vidé QUE si au moins une bulle en est sortie. Un modèle qui
+ * répond « aucun aliment » laisse la phrase en place, et la personne la
+ * retouche ou la découpe elle-même à la virgule. Une panne, elle, ne rend
+ * jamais rien: la fonction et ce module ont chacun leur découpage de repli.
+ *
+ * ⛔ REMPLACE `DislikeFields` (un mot à la fois, « Ajouter » à chaque mot).
+ * Il n'y avait pas d'équivalent pour les allergies: elles n'acceptaient que
+ * les treize pastilles. Un seul composant pour les deux, parce que la seule
+ * différence est le mot envoyé au modèle (`kind`) — et deux copies d'un
+ * champ finissent par poser deux questions différentes.
+ *
+ * ⚠️ NI LIBELLÉ NI AIDE VISIBLES — LA SECTION LES PORTE (2026-08-20, « cette
+ * section est verbeuse »). Le contrôle reste NOMMÉ par `aria-label`.
+ */
+function TermsEntry(
+  { kind, terms, onChange }: {
+    kind: FoodTermsKind;
+    terms: readonly string[];
     onChange: (next: readonly string[]) => void;
   },
 ) {
   const [entry, setEntry] = React.useState("");
+  const [working, setWorking] = React.useState(false);
+  const canAdd = entry.trim() !== "" && !working;
+  const add = async () => {
+    if (!canAdd) return;
+    setWorking(true);
+    try {
+      const got = await extractFoodTerms({ text: entry, kind });
+      // DÉDOUBLONNÉ SANS CASSE: « Thon » et « thon » sont une bulle.
+      const have = new Set(terms.map((x) => x.toLowerCase()));
+      const fresh = got.terms.filter((x) => !have.has(x.toLowerCase()));
+      if (fresh.length > 0) {
+        onChange([...terms, ...fresh]);
+        setEntry("");
+      }
+    } finally {
+      setWorking(false);
+    }
+  };
   return (
-    // ⛔ NI LIBELLÉ NI AIDE ICI — LA SECTION LES PORTE DÉJÀ (2026-08-20).
-    // Le bloc disait la même chose TROIS FOIS: « Ce que tu n'aimes pas » en
-    // titre, « un dégoût, pas une allergie » en aide de section, puis
-    // « Aliments refusés » en libellé de champ et la MÊME phrase sur
-    // l'allergie en aide de champ. Jugé: « cette section est verbeuse, pas du
-    // tout optimisée ».
-    //
-    // ⚠️ LE CONTRÔLE RESTE NOMMÉ: `aria-label` sur l'input, plus bas. Retirer
-    // le `<label>` sans rien mettre laisserait un champ anonyme.
     <div>
-      {dislikes.length > 0 ? (
+      {terms.length > 0 ? (
         // `break-words` PARCE QUE C'EST DU TEXTE D'UTILISATEUR: rien ne
         // garantit une espace, et un mot de 39 signes pousse la PAGE ENTIÈRE à
         // défiler horizontalement dans un cadre de 320 px.
         <ul className="mb-2 flex flex-wrap gap-2 break-words">
-          {dislikes.map((d) => (
+          {terms.map((d) => (
             <li key={d}>
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => onChange(dislikes.filter((x) => x !== d))}
+                onClick={() => onChange(terms.filter((x) => x !== d))}
               >
                 {d} ×
               </Button>
@@ -2562,27 +2744,41 @@ function DislikeFields(
       ) : null}
       <div className="flex flex-wrap gap-2">
         <input
-          id="mouth-dislike"
-          aria-label={t("household.mouth.dislikes")}
+          id={`mouth-terms-${kind}`}
+          aria-label={t(
+            kind === "allergy"
+              ? "household.mouth.terms_label_allergy"
+              : "household.mouth.terms_label_dislike",
+          )}
           type="text"
-          maxLength={120}
+          maxLength={400}
           value={entry}
-          placeholder={t("household.mouth.dislikes_placeholder")}
+          placeholder={t(
+            kind === "allergy"
+              ? "household.mouth.terms_placeholder_allergy"
+              : "household.mouth.terms_placeholder_dislike",
+          )}
           onChange={(e) => setEntry(e.target.value)}
+          // ENTRÉE = AJOUTER. Trois dégoûts tapés à la suite ne devraient pas
+          // coûter trois allers-retours vers un bouton.
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              void add();
+            }
+          }}
+          disabled={working}
           className={`${inputClass} flex-1`}
         />
         <Button
-          variant="secondary"
+          variant={canAdd ? "primary" : "secondary"}
           size="sm"
-          disabled={entry.trim() === ""}
-          onClick={() => {
-            const label = entry.trim();
-            if (label === "" || dislikes.includes(label)) return;
-            onChange([...dislikes, label]);
-            setEntry("");
-          }}
+          disabled={!canAdd}
+          onClick={() => void add()}
         >
-          {t("setup.people.allergies_add")}
+          {working
+            ? t("household.mouth.terms_working")
+            : t("setup.people.allergies_add")}
         </Button>
       </div>
     </div>

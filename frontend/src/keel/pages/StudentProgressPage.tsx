@@ -7,6 +7,7 @@ import {
   type JournalDay,
   type JournalMeal,
   type JournalReport,
+  type JournalTargetBreakdown,
   loadJournalTracking,
   retryJournalMeal,
   skipJournalMeal,
@@ -544,11 +545,116 @@ function DayPanel({
   );
 }
 
+/**
+ * LE DÉTAIL DU CALCUL — 2026-09-21.
+ *
+ * ── ⛔ CE COMPOSANT NE CALCULE RIEN ───────────────────────────────────────
+ * Tous les nombres arrivent tout faits (`energy_breakdown.ts`), et c'est la
+ * règle du dépôt: **le front n'a aucune formule d'énergie**. Le jour où cet
+ * écran dériverait son propre entretien, l'écran et le plan diraient deux
+ * choses différentes au premier arbitrage changé, et le désaccord serait
+ * invisible — chacun aurait raison chez lui.
+ *
+ * Les deux seules décisions prises ici sont de MISE EN PAGE: quelles lignes
+ * existent selon la chaîne, et le signe affiché devant l'écart (qui est déjà
+ * porté par la valeur — on ne fait que ne pas écrire « +-500 »).
+ *
+ * ⚠️ L'ORDRE DES LIGNES EST L'ORDRE DU CALCUL, et c'est tout l'intérêt: la
+ * pesée, puis ce qu'on en tire, puis ce que l'objectif y ajoute, puis le
+ * résultat. Les réordonner casserait la seule chose que ce panneau promet.
+ */
+export function TargetDetail({ breakdown }: { breakdown: JournalTargetBreakdown }) {
+  const perKg = breakdown.chain === "weight_per_kg" &&
+    breakdown.per_kg_low !== null && breakdown.per_kg_high !== null;
+  // UN POINT OU UNE FOURCHETTE, selon la chaîne — les deux bornes sont égales
+  // sur l'équation du corps, et écrire « 2726–2726 » serait du bruit.
+  const upkeep = breakdown.maintenance_low === null
+    ? null
+    : breakdown.maintenance_low === breakdown.maintenance_high
+    ? `${breakdown.maintenance_low} kcal`
+    : `${breakdown.maintenance_low}–${breakdown.maintenance_high} kcal`;
+  const rows: Array<[string, string]> = [];
+  if (breakdown.weight_kg !== null) {
+    rows.push([
+      t("student_progress.journal.detail_weight"),
+      `${breakdown.weight_kg} ${t("unit.kg")}`,
+    ]);
+  }
+  /* ── ⛔ ICI SE TENAIT UNE LIGNE « Tes journées » — RETIRÉE AVANT D'ÊTRE
+     LIVRÉE, PAR LE DÉTECTEUR DE COUTURES ─────────────────────────────────
+     Elle rendait `setup.activity.<cran>`, et `i18n/pageSeams.int.test.ts` l'a
+     refusée: `/app/progress` ne déclare pas le namespace `setup`. Les deux
+     sorties possibles étaient mauvaises — déclarer `setup` ici est une
+     PROMESSE (« cette page peut rendre ces clés »), et le catalogue avertit
+     qu'une déclaration écrite pour faire taire un rouge affaiblit le seul
+     détecteur qui voie les coutures avant l'utilisateur; recopier les quatre
+     libellés sous `student_progress.*` en ferait une cinquième copie d'un
+     vocabulaire fermé, le défaut que `food_group` a déjà payé.
+
+     ⚠️ ET ON NE PERD PAS L'INFORMATION: sur le raccourci, la ligne « Par
+     kilo » EST l'effet du cran, en chiffres (28 à 31 pour « debout, en
+     mouvement »); sur l'équation du corps, la phrase de chaîne nomme « tes
+     journées » en toutes lettres. `activity_level` reste dans la charge utile
+     — il est vrai, et un écran qui déclare `setup` pourra le rendre. */
+  if (perKg) {
+    rows.push([
+      t("student_progress.journal.detail_per_kg"),
+      t("student_progress.journal.detail_per_kg_value", {
+        low: String(breakdown.per_kg_low),
+        high: String(breakdown.per_kg_high),
+      }),
+    ]);
+  }
+  if (upkeep !== null) {
+    rows.push([t("student_progress.journal.detail_maintenance"), upkeep]);
+  }
+  if (breakdown.daily_delta_kcal !== 0) {
+    rows.push([
+      t("student_progress.journal.detail_delta"),
+      // LE SIGNE EST DÉJÀ DANS LA VALEUR (négatif sur une perte). On n'ajoute
+      // que le « + », que `String(500)` n'écrit pas.
+      `${breakdown.daily_delta_kcal > 0 ? "+" : ""}${breakdown.daily_delta_kcal} kcal`,
+    ]);
+  }
+  rows.push([
+    t("student_progress.journal.detail_total"),
+    `${breakdown.low}–${breakdown.high} kcal`,
+  ]);
+  return (
+    <div className="mt-4 rounded-card border border-line bg-paper-2 p-3">
+      <p className="text-label font-semibold uppercase text-ink-soft">
+        {t("student_progress.journal.detail_title")}
+      </p>
+      <dl className="mt-2 grid gap-x-4 gap-y-1 text-sm sm:grid-cols-[auto_1fr]">
+        {rows.map(([label, value]) => (
+          <React.Fragment key={label}>
+            <dt className="text-ink-soft">{label}</dt>
+            <dd className="text-ink">{value}</dd>
+          </React.Fragment>
+        ))}
+      </dl>
+      {/* QUELLE CHAÎNE A SERVI, EN TOUTES LETTRES. Deux comptes n'ont pas
+          forcément les mêmes étapes, et le taire ferait passer un raccourci
+          pour une équation. */}
+      <p className="mt-3 text-xs leading-5 text-ink-soft">
+        {breakdown.chain === "body_equation"
+          ? t("student_progress.journal.detail_chain_body_equation")
+          : t("student_progress.journal.detail_chain_weight_per_kg")}
+      </p>
+      <p className="mt-2 text-xs leading-5 text-ink-soft">
+        {t("student_progress.journal.detail_reserve")}
+      </p>
+    </div>
+  );
+}
+
 export default function StudentProgressPage() {
   const initialToday = browserToday();
   const [weekStart, setWeekStart] = React.useState(() => mondayOf(initialToday));
   const [selectedDate, setSelectedDate] = React.useState<string | null>(initialToday);
   const [wholeWeek, setWholeWeek] = React.useState(false);
+  /** ⟳ 2026-09-21 — le panneau « Détail » du repère. Fermé par défaut. */
+  const [detailOpen, setDetailOpen] = React.useState(false);
   const [report, setReport] = React.useState<JournalReport | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
@@ -646,7 +752,30 @@ export default function StudentProgressPage() {
     <KeelAppShell variant="student" width="wide" title={t("student_progress.title")}>
       <div className="space-y-6">
         <Card>
-          <SectionLabel>{t("student_progress.journal.target")}</SectionLabel>
+          {/* ── ⟳ 2026-09-21 · « Détail » À CÔTÉ DU REPÈRE ──────────────────
+              Demandé à l'écran: « un bouton Détail qui permette de donner le
+              détail du calcul de manière carrée, comme ça c'est transparent ».
+
+              ⛔ IL N'EXISTE QUE QUAND IL Y A QUELQUE CHOSE À EXPLIQUER.
+              `breakdown` vaut `null` dès qu'il n'y a pas de fourchette, et le
+              serveur est le seul à le décider: un bouton posé à côté de « pas
+              encore disponible » ouvrirait un panneau sur du vide. */}
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <SectionLabel className="mb-0">{t("student_progress.journal.target")}</SectionLabel>
+            {report.energy.open && report.target?.breakdown
+              ? (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setDetailOpen((v) => !v)}
+                >
+                  {detailOpen
+                    ? t("student_progress.journal.detail_close")
+                    : t("student_progress.journal.detail")}
+                </Button>
+              )
+              : null}
+          </div>
           {report.energy.open && report.target && report.target.low !== null && report.target.high !== null
             ? (
               <div className="mt-2">
@@ -656,6 +785,9 @@ export default function StudentProgressPage() {
                 <p className="mt-1 text-sm text-ink-soft">{t(goalKey as MessageKey)}</p>
                 {report.target.weight_week_start
                   ? <p className="mt-1 text-xs text-ink-soft">{t("student_progress.journal.target_date", { date: formatDate(report.target.weight_week_start) })}</p>
+                  : null}
+                {detailOpen && report.target.breakdown
+                  ? <TargetDetail breakdown={report.target.breakdown} />
                   : null}
               </div>
             )

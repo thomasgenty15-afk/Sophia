@@ -553,3 +553,71 @@ aliments et des grammes.
 **Le déroulé de session ne porte aucun poids.** Les grammes vivent dans les
 boîtes, où chacun est déjà attaché à un aliment et à un nom. Un poids écrit dans
 le `run_through` ne nomme aucun aliment et ne correspond à aucun couvercle.
+
+## 2026-09-22 — Le couvercle porte le nom du plat, et une part de casserole dit ce qu'elle contient
+
+Demande du propriétaire, relevée sur le brouillon `e0325544`.
+
+**① Le couvercle.** Il affichait le `title` du plat, c'est-à-dire la liste de
+ses ingrédients : « Christèle — Vendredi Petit-déjeuner — Œufs, blancs d'œufs,
+pomme de terre, épinards, tomate et amandes », au-dessus d'une ligne
+« Frittata aux pommes de terre et tomates ». On ne savait pas qu'on parlait de
+la frittata. Le couvercle prend désormais le **nom d'usage** du plat
+(`dishes[].name`, « Frittata tomate-amande »), et le titre seulement quand le
+nom manque (`lidDishLabel`, `frontend/src/keel/lib/mealBoxes.ts`). Le même
+couvercle sort sur le Boxing et sur la carte du repas. Le nom était déjà écrit
+dans le plan depuis août ; seul le lecteur du front (`readDishes`) l'ignorait.
+
+**② Ce qu'une part contient.** « Poulet rôti aux légumes — 261 g » ne disait pas
+combien de poulet et combien de légumes on met dans la boîte. Sous chaque ligne
+de casserole, le Boxing écrit maintenant « dont poulet ~110 g, légumes ~140 g ».
+
+- **Le calcul est au moteur** (`_shared/keel/pot_share_parts.ts`) : pour
+  chaque casserole, la masse prête de chaque ligne (même arithmétique que la
+  casserole, `measurePreparation`), rapportée à la masse prête totale. Les
+  protéines et les féculents sont nommés ligne par ligne ; les légumes sont
+  sommés ; les graisses, fromages, fruits à coque et assaisonnements comptent
+  au dénominateur sans être nommés. Une casserole d'une seule famille (un riz
+  nature) ne détaille rien ; une ligne non mesurable éteint le détail entier.
+- **Il voyage avec la préparation** (`preparations[].share_parts`, dans la
+  réponse ET dans le plan écrit, `withShareParts` dans le générateur). Le front
+  n'a pas le référentiel : il multiplie la fraction par les grammes de la boîte
+  et arrondit à 5 g.
+- **C'est une information, pas une pesée** : le tilde et le gris le disent ; un
+  mijoté ou une frittata ne se sépare pas. Le gramme de la ligne reste la seule
+  quantité qu'on pèse. La carte du repas n'en montre jamais (elle ne montre
+  aucun gramme).
+- Un plan écrit avant le 2026-09-22 n'a pas la clé : aucun détail, rien ne casse.
+
+Tests : `pot_share_parts_test.ts` (6 cas + 1 épingle de câblage),
+`frontend/src/keel/components/potShareParts.int.test.ts` (9 cas).
+
+## 2026-09-23 — L'à-côté se sert à côté de la boîte, jamais dedans
+
+Décision du propriétaire (audit `AUDIT-DOSAGES-2026-09-23.md`, campagne
+`CAMPAGNE-A-COTES-2026-09-23.md`) : le plat n'est plus tout le repas. Au
+déjeuner et au dîner, chacun reçoit un à-côté (entrée, fromage, dessert ou pain)
+selon son objectif et son réglage.
+
+- **Il n'entre pas dans la boîte.** Il vit dans `dishes[i].side_courses[]`
+  (`DishSideCoursePayload` : `member_id`, `kind`, `term`, `ref`, `grams`,
+  `unit_count`, `preparation_id`, `source`), rattaché au plat par
+  `attachSideCourses` (`_shared/keel/side_courses.ts`). Le poids affiché d'une
+  boîte reste celui du plat, et toutes les règles de masse (borne d'assiette
+  550 g, rabotage, « aucun terme neuf ») ne voient que le plat.
+- **L'hôte, dans cet ordre** : la boîte où la personne est seule, puis le bac
+  commun qui la nomme, puis le plat qui lui est attribué, puis le plat de la
+  table. L'écran refait les deux premiers (`sideHostBoxId`, `mealBoxes.ts`) et
+  rend les deux autres sur la carte du plat.
+- **À l'écran** : une ligne « À côté » sous la boîte (« 2 × carotte crue,
+  1 × pomme », « emmental ~35 g ») ; sur un bac commun, le prénom devant
+  (« Christèle : 1 × yaourt nature »). Rien ne dit d'où vient l'aliment
+  (modèle ou liste de secours du moteur).
+- **Au Boxing**, seule une entrée tirée d'une casserole de CETTE session (une
+  soupe) apparaît, pesée comme une part ; le fruit, le yaourt et le fromage
+  s'ajoutent le jour même.
+- **Aux courses** : en unités quand l'aliment n'est acheté que pour un à-côté
+  (« figue 16 ») ; additionné en grammes quand il sert aussi dans un plat.
+- **L'énergie** : `meal-energy-v1` garde le kcal de la boîte = le plat seul, et
+  ajoute les à-côtés à la journée. Un plan sans `side_courses` rend exactement
+  les nombres d'avant (vérifié sur `cc012345` et `e0325544`, écart ≤ 0,5 kcal).

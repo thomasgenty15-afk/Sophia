@@ -64,6 +64,10 @@ function report(args: {
       gap: null,
       direction: "down",
       weight_week_start: "2026-09-07",
+      // ⟳ 2026-09-21 — REQUIS, et ce décor n'en mesure rien: le détail se
+      // prouve dans `energy_breakdown_test.ts`. `null` est la valeur honnête
+      // ici — « il n'y a rien à expliquer », et c'est ce que le champ dit.
+      breakdown: null,
     },
     planned: args.planned ?? [],
     expected: args.expected ?? [],
@@ -72,11 +76,56 @@ function report(args: {
   });
 }
 
-Deno.test("journal keeps planned calories out of the reported subtotal until confirmation", () => {
+Deno.test("⟳ 2026-09-23 — un repas prévu passé, jamais contredit, est présumé mangé", () => {
   const day = report({ planned: [planned()] }).days[0];
   assertEquals(day.plannedKcal, 640);
-  assertEquals(day.reportedKcal, null);
+  assertEquals(day.reportedKcal, 640);
   assertEquals(day.meals[0].state, "planned");
+  assertEquals(day.meals[0].reportedEnergy?.basis, "plan_quantities");
+  // La présomption ne laisse pas la journée « à compléter ».
+  assertEquals(day.state, "complete");
+});
+
+Deno.test("« pas mangé » retire le repas du total, la présomption ne le remet pas", () => {
+  const day = report({ planned: [planned({ skipped: true })] }).days[0];
+  assertEquals(day.meals[0].state, "skipped");
+  assertEquals(day.reportedKcal, null);
+});
+
+Deno.test("un repas d'aujourd'hui dont l'heure n'est pas passée n'est pas encore compté", () => {
+  const day = buildJournal({
+    today: TODAY,
+    from: TODAY,
+    to: TODAY,
+    hour: 15,
+    slotHours: { lunch: 12, dinner: 19 },
+    floor: false,
+    energy: { open: true, reason: "open" },
+    target: null,
+    planned: [
+      planned({ date: TODAY }),
+      planned({
+        ref: { planId: "plan-a", dishIndex: 1 },
+        date: TODAY,
+        slot: "dinner",
+        title: "Soupe",
+        energy: { kcal: 400, basis: "plan_quantities" },
+      }),
+    ],
+    expected: [],
+    events: [],
+    weight: [],
+  }).days[0];
+  assertEquals(day.meals.find((m) => m.slot === "lunch")?.state, "planned");
+  assertEquals(day.meals.find((m) => m.slot === "dinner")?.state, "future");
+  assertEquals(day.reportedKcal, 640);
+  assertEquals(day.state, "in_progress");
+});
+
+Deno.test("un repas présumé sans énergie connue laisse la journée incomplète", () => {
+  const day = report({ planned: [planned({ energy: null })] }).days[0];
+  assertEquals(day.reportedKcal, null);
+  assertEquals(day.state, "incomplete");
 });
 
 Deno.test("a planned confirmation plus a photo remains one meal and uses plan energy once", () => {
@@ -276,7 +325,9 @@ Deno.test("a known fixed intake is reported and can sit beside a planned meal", 
     day.meals.find((meal) => meal.origin === "fixed")?.state,
     "reported",
   );
-  assertEquals(day.reportedKcal, 180);
+  // ⟳ 2026-09-23 — le déjeuner prévu est passé et personne ne l'a contredit:
+  // il est présumé mangé, et s'additionne au shaker.
+  assertEquals(day.reportedKcal, 180 + 640);
   assertEquals(day.plannedKcal, 640);
 });
 

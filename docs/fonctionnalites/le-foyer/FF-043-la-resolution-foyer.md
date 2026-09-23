@@ -217,6 +217,47 @@ des résultats très différents sur le même poids et que deviner serait choisi
 
 ## 5. Modèle de données
 
+> ### ⛔ 2026-09-22 — LE CANAL `more_of_the_same` EST RETIRÉ DU LECTEUR
+>
+> **Le fait mesuré.** Les `member_deltas` gelés dans
+> `generated_from.household.member_deltas` étaient **ajoutés au total du jour**
+> par `_shared/keel/plan_energy.ts` (`entry.kcal += addon.kcal`). Sur le plan
+> `6e4e5548-e518-475f-abe2-338652f4e1dc`, le lecteur `6f591eaf-…` recevait
+> **1 373 kcal/jour** d'add-on — environ 390 g de riz. La page du plan affichait
+> **3 792 à 3 900 kcal/jour** là où ses boîtes font **3 266 à 3 292** et où la
+> fourchette annoncée dit **3 204–3 348**.
+>
+> **Pourquoi c'est un retrait et pas un correctif.** Ce riz n'existait nulle
+> part ailleurs : **aucune boîte**, **aucune ligne de courses**, **aucune carte**.
+> Le nombre ne pouvait donc pas être « réparé » — il comptait un aliment que
+> personne n'allait acheter, cuire ni servir. Un chiffre faux sur une surface
+> utilisateur.
+>
+> **Ce qui est parti.** `MemberAddon`, `memberAddonEnergy`, le paramètre
+> `addons` de `planEnergy`, le champ `DayEnergy.addonKcal`, `readViewerAddons`
+> (`_shared/keel/meal_energy_shared.ts`), le champ `addon_kcal` de la réponse de
+> `meal-energy-v1`, `DayEnergyView.addonKcal` et la phrase
+> `meals.energy.day_with_addon` côté écran. Est partie avec eux l'abstention
+> `household_portions_not_numeric` : sa seule condition de déclenchement était
+> l'absence de cette trace, et cette trace n'est plus lue.
+>
+> **Ce qui reste.** Le générateur **continue d'écrire** `member_deltas` — valeur
+> historique, plus aucun lecteur. Ne le débranche pas et ne le « rebranche » pas
+> non plus par symétrie.
+>
+> **Ce que ça remplace.** Le **lot C (« le féculent à côté »)** : la divergence
+> par objectif se dira par un aliment **visible** — une ligne de courses et une
+> boîte — avant d'être comptée. L'ordre est celui-là et pas l'inverse : on rend
+> l'aliment, puis on compte ses kcal.
+>
+> ⚠️ **Ce que ça coûte, écrit ici pour que personne ne le redécouvre.** Le total
+> du jour d'un foyer est désormais le **tronc** : la casserole divisée par le
+> nombre de bouches (`servings`). Ce n'est **pas** la somme des boîtes du
+> lecteur. Sur le plan mesuré : **2 419 à 2 527 kcal** pour le jour, contre
+> **3 266 à 3 292** pour les boîtes du même lecteur. Les deux nombres viennent
+> de deux calculs différents (`planEnergy` sur les plats pliés / `boxEnergies`
+> sur les grammes nommés par bouche) et ce lot **ne les réconcilie pas**.
+
 | quoi | où | note |
 |---|---|---|
 | membre de référence | colonne sur la table foyer | **déclarée**, jamais dérivée. `null` ⇒ le compositeur de la session |

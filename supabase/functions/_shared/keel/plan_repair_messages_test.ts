@@ -25,6 +25,28 @@ import type { RepairPlanShape } from "./plan_repair_context.ts";
 import { buildRepairSessions, buildRepairUnits } from "./plan_repair_unit.ts";
 import type { RepairExpectedCell, RepairUnitDish } from "./plan_repair_unit.ts";
 import type { RepairDefect } from "./plan_repair_loop.ts";
+import type { RepairHouseholdContext } from "./side_courses_types.ts";
+
+/**
+ * ⟳ 2026-09-23 — LE FOYER TEL QUE LE PREMIER JET L'A REÇU (audit, lot 4 d).
+ * Des textes écrits EN DUR : ce fichier éprouve ce que la réparation porte, pas
+ * ce que le générateur rédige.
+ */
+const RECETTE =
+  "THE TEMPLATE: one serving is the ordinary plate of the person in the MIDDLE\n" +
+  "of the table, never the biggest eater's; the app scales it for everyone.";
+const FOYER: RepairHouseholdContext = {
+  cards: "== WHO EATS ==\n  · Christèle — fat loss, 3 meals a day.",
+  notes: "  · Christèle: no tofu, no fish at breakfast; no eggs.",
+  standardRecipe: RECETTE,
+  sideCourses: "Side courses: Thomas cheese + dessert; Christèle dessert.",
+};
+const SANS_FOYER: RepairHouseholdContext = {
+  cards: "",
+  notes: "",
+  standardRecipe: "",
+  sideCourses: "",
+};
 
 /**
  * ⚠️ LE TYPE EST ÉCRIT, PAS INTERSECTÉ. `RepairPlanShape["dishes"][number] &
@@ -181,6 +203,7 @@ function messages(n: number) {
     nutrition: null,
     baseVersion: "req#r0",
     afterVerdict: null,
+    household: FOYER,
   });
   assert(user !== null, `aucun message composé à ${n} bouche(s)`);
   const system = repairSystemPrompt({
@@ -272,6 +295,7 @@ Deno.test("⚠️ LE CAS QUI PASSE — sans défaut réparable, aucun message n'
     nutrition: null,
     baseVersion: "req#r0",
     afterVerdict: null,
+    household: FOYER,
   });
   assertEquals(rien, null);
 });
@@ -314,7 +338,7 @@ Deno.test("⟳ 2026-09-19 — le catalogue d'aliments voyage avec la réparation
     }),
   ];
   const scope = repairScopeOf({ plan, index, sessions, defects });
-  const base = { defects, days: [], plan, index, sessions, scope, nutrition: null, baseVersion: "req#r0", afterVerdict: null };
+  const base = { defects, days: [], plan, index, sessions, scope, nutrition: null, baseVersion: "req#r0", afterVerdict: null, household: SANS_FOYER };
   const avec = planRepairMessage({
     ...base,
     catalogLines: ["== THE FOOD IDS THIS KITCHEN WEIGHS WITH ==", "  apple · 52 · 0.3 · unit=150"],
@@ -331,4 +355,97 @@ Deno.test("⟳ 2026-09-19 — le catalogue d'aliments voyage avec la réparation
   assert(sans !== null);
   assert(!sans.text.includes("THE FOOD IDS"));
   assertEquals(sans.text.replace(/\n{3,}/g, "\n\n"), sans.text, "aucune ligne vide de trop");
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-23 — LA RÉPARATION CONNAÎT LE FOYER (audit des dosages, lot 4 d)
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Mesuré : sur cc012345 la réparation finale a réécrit 12 boîtes (sardines et
+// 3 tranches de pain, tofu au déjeuner, 200 g de yaourt pour tout le monde) ;
+// sur e0325544 elle a resservi des œufs à Christèle. Elle ne recevait ni les
+// fiches, ni les notes, ni la recette de référence.
+
+/** Le message utilisateur d'une réparation de grammage à deux bouches. */
+function reparation(household: RepairHouseholdContext) {
+  const bouches = ["m_a", "m_b"];
+  const { plan, index, sessions } = foyer(bouches);
+  const defects = [
+    defaut({
+      kind: "sizing",
+      cause: "cell_bounds_off",
+      day: "sat",
+      slot: "dinner",
+      memberId: bouches[0],
+      detail: "the dinner plate weighs 780 g cooked, and it must be 250 to 550 g.",
+      measure: { of: "mass", grams: 780, minG: 250, maxG: 550 },
+      magnitude: 80,
+    }),
+  ];
+  const scope = repairScopeOf({ plan, index, sessions, defects });
+  const out = planRepairMessage({
+    defects,
+    days: [],
+    plan,
+    index,
+    sessions,
+    scope,
+    nutrition: null,
+    baseVersion: "req#r0",
+    afterVerdict: null,
+    catalogLines: [],
+    household,
+  });
+  assert(out !== null);
+  return out;
+}
+
+Deno.test("⛔ la réparation contient la RECETTE DE RÉFÉRENCE, les fiches, les notes et les à-côtés", () => {
+  const out = reparation(FOYER);
+  assert(out.text.includes(RECETTE), "la recette de référence n'est pas dans la réparation");
+  assert(out.text.includes("Christèle — fat loss, 3 meals a day."), "les fiches manquent");
+  assert(out.text.includes("no tofu, no fish at breakfast; no eggs."), "les notes manquent");
+  assert(out.text.includes("Side courses: Thomas cheese + dessert; Christèle dessert."), "les à-côtés manquent");
+  assertEquals([...out.household.kept], ["cards", "notes", "standardRecipe", "sideCourses"]);
+  assertEquals([...out.household.dropped], []);
+  assertEquals(out.contextIncomplete, false);
+  // ⚠️ ENTRE CE QUI NE VA PAS ET LE PLAN : le modèle lit le défaut, pour qui
+  // il le corrige, puis le plan.
+  const defaut_ = out.text.indexOf("THESE DISHES DO NOT WORK AS WRITTEN:");
+  const foyerAt = out.text.indexOf("== THE HOUSEHOLD THIS PLAN FEEDS");
+  const planAt = out.text.indexOf("== THE PLAN AS THE APP READS IT RIGHT NOW ==");
+  assert(defaut_ >= 0 && foyerAt > defaut_ && planAt > foyerAt, "le foyer n'est pas entre les défauts et le plan");
+  // ⛔ ET L'ÉCHAPPATOIRE EST NOMMÉE.
+  assert(out.text.includes("What a note asks to avoid"), out.text);
+});
+
+Deno.test("PASSE — un foyer vide n'imprime rien, pas même un titre", () => {
+  const out = reparation(SANS_FOYER);
+  assert(!out.text.includes("== THE HOUSEHOLD THIS PLAN FEEDS"), "un titre au-dessus de rien");
+  assertEquals(out.household.chars, 0);
+  assertEquals([...out.household.empty], ["notes", "cards", "standardRecipe", "sideCourses"]);
+  assertEquals(out.contextIncomplete, false);
+});
+
+Deno.test("⛔ PLAFOND — un bloc qui ne tient pas est laissé dehors EN ENTIER et nommé ; des notes perdues arrêtent l'appel", () => {
+  // Des à-côtés démesurés : ils tombent, le reste passe, l'appel peut partir.
+  const gros = "x".repeat(8_000);
+  const cotes = reparation({ ...FOYER, sideCourses: gros });
+  assertEquals([...cotes.household.dropped], ["sideCourses"]);
+  assert(!cotes.text.includes("xxxxxxxxxx"), "un bloc coupé au milieu est passé");
+  assert(cotes.text.includes(RECETTE));
+  assertEquals(cotes.contextIncomplete, false);
+  // Des notes démesurées : elles tombent, et on NE PART PAS.
+  const notes = reparation({ ...FOYER, notes: gros });
+  assertEquals([...notes.household.dropped], ["notes"]);
+  assertEquals(notes.contextIncomplete, true);
+});
+
+Deno.test("le système de réparation dit que le plat n'est pas tout le repas", () => {
+  const { system } = messages(2);
+  assert(system.includes("== THE DISH IS NOT THE WHOLE MEAL =="), "la règle des à-côtés manque");
+  assert(system.includes("Never add a dessert, a bread, a cheese course or"), system);
+  // ⚠️ AVANT LES LIMITES DURES ET AVANT LE SCHÉMA.
+  assert(system.indexOf("THE DISH IS NOT THE WHOLE MEAL") < system.indexOf("severity=medical"));
+  assert(system.indexOf("THE DISH IS NOT THE WHOLE MEAL") < system.indexOf('{"repair":{'));
 });

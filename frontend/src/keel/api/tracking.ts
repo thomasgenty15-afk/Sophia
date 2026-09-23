@@ -83,6 +83,30 @@ export interface JournalDay {
   state: "future" | "in_progress" | "incomplete" | "complete";
 }
 
+/**
+ * LE DÉTAIL DU CALCUL — 2026-09-21. Miroir de `JournalTargetBreakdown`
+ * (`_shared/keel/tracking_v2.ts`), assemblé par `energy_breakdown.ts`.
+ *
+ * ⚠️ L'ÉCRAN NE MULTIPLIE RIEN. Tous les nombres ci-dessous sont DÉJÀ
+ * calculés: le front n'a aucune formule d'énergie, sinon l'écran et le plan
+ * finissent par dire deux choses différentes. Il traduit `chain` et il met en
+ * page, c'est tout.
+ */
+export interface JournalTargetBreakdown {
+  /** `body_equation` | `weight_per_kg` — quelle chaîne a produit le nombre. */
+  chain: string;
+  weight_kg: number | null;
+  activity_level: string | null;
+  per_kg_low: number | null;
+  per_kg_high: number | null;
+  maintenance_low: number | null;
+  maintenance_high: number | null;
+  /** SIGNÉ: négatif sur une perte. `0` = l'objectif n'a pas bougé la bande. */
+  daily_delta_kcal: number;
+  low: number;
+  high: number;
+}
+
 export interface JournalTarget {
   low: number | null;
   high: number | null;
@@ -90,6 +114,8 @@ export interface JournalTarget {
   gap: string | null;
   direction: string | null;
   weight_week_start: string | null;
+  /** `null` = rien à expliquer, et l'écran ne rend alors aucun bouton. */
+  breakdown: JournalTargetBreakdown | null;
 }
 
 export interface JournalReport {

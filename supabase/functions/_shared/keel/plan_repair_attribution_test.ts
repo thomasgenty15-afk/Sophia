@@ -59,6 +59,19 @@ import { exclusionRetryInstruction } from "./food_exclusion_belt.ts";
 import { unfedRetryInstruction } from "./meals_delivered.ts";
 import { preferenceSplitRetryInstruction } from "./preference_split_retry.ts";
 import { swapRetryInstruction } from "./swap_presence.ts";
+import type { RepairHouseholdContext } from "./side_courses_types.ts";
+
+// ⟳ 2026-09-23 — `planRepairMessage` exige le foyer (`household` : fiches,
+// notes, recette de référence, à-côtés), requis depuis le flux G du chantier
+// « assiettes normales ». Ces cas mesurent l'adresse des défauts, pas le
+// foyer : quatre blocs vides, que `repairHouseholdLines` n'imprime pas — le
+// message utilisateur reste celui d'avant, à l'octet.
+const AUCUN_FOYER: RepairHouseholdContext = {
+  cards: "",
+  notes: "",
+  standardRecipe: "",
+  sideCourses: "",
+};
 
 // ═══════════════════════════════════════════════════════════════════════════
 // LA TABLE D'ESSAI — N bouches, deux jours, trois moments, une casserole
@@ -268,6 +281,7 @@ function messages(args: {
     nutrition: args.sansNutrition === true ? null : nutrition,
     baseVersion: "req#r0",
     afterVerdict: null,
+    household: AUCUN_FOYER,
     hardMaxChars: args.hardMaxChars,
   });
   assert(user !== null, "aucun message composé");
@@ -698,7 +712,7 @@ Deno.test("④ ter — la PROTÉINE porte elle aussi son propriétaire et ses de
         memberId: "m_a",
         detail:
           "that day's plates carry 124 g of protein and they must carry at least 176 g.",
-        measure: { of: "protein", servedG: 124, floorG: 176 },
+        measure: { of: "protein", servedG: 124, floorG: 176, ceilingG: null },
       }),
       defaut({
         kind: "protein",
@@ -708,7 +722,7 @@ Deno.test("④ ter — la PROTÉINE porte elle aussi son propriétaire et ses de
         memberId: "m_b",
         detail:
           "that day's plates carry 124 g of protein and they must carry at least 210 g.",
-        measure: { of: "protein", servedG: 124, floorG: 210 },
+        measure: { of: "protein", servedG: 124, floorG: 210, ceilingG: null },
       }),
     ],
     days: [{
@@ -717,6 +731,7 @@ Deno.test("④ ter — la PROTÉINE porte elle aussi son propriétaire et ses de
       dayToken: "sat",
       proteinNowG: 124,
       proteinFloorG: 176,
+      proteinCeilingG: null,
       kcalNow: 2463,
       kcalBudget: 2454,
       dishes: [{
@@ -725,6 +740,8 @@ Deno.test("④ ter — la PROTÉINE porte elle aussi son propriétaire et ses de
         proteinG: 52,
         servedKcal: 860,
         grams: 343,
+        shared: false,
+        sharedLowerable: false,
       }],
     }],
   });
@@ -896,7 +913,7 @@ function defautsH4N4(): RepairDefect[] {
         memberId: m,
         detail:
           "that day's plates carry 124 g of protein and they must carry at least 176 g.",
-        measure: { of: "protein", servedG: 124, floorG: 176 },
+        measure: { of: "protein", servedG: 124, floorG: 176, ceilingG: null },
       }));
     }
   }

@@ -1,6 +1,7 @@
 import { assert, assertEquals } from "jsr:@std/assert@^1.0.0";
 import {
   compositionLinesByMouth,
+  TABLE_LINE_VERB,
   compositionLinesFor,
   cravingLinesFor,
   portionAdjustExclusionFacts,
@@ -514,23 +515,26 @@ function foodLine(kind: RetainedKind, subject: string, text: string, at = "2026-
   });
 }
 
-Deno.test("CHAQUE BOUCHE DU ROSTER REÇOIT SES LIGNES, le titulaire porte celles de la table", () => {
+Deno.test("CHAQUE BOUCHE DU ROSTER REÇOIT SES LIGNES, la table a son propre canal", () => {
   const out = compositionLinesByMouth({
     items: [
       foodLine("food.exclude", HOUSEHOLD_SUBJECT, "plus de plats en sauce"),
       foodLine("food.exclude", `member:${MINOR}`, "le poisson"),
     ],
     mouths: MOUTHS,
-    ownerMemberId: ADULT,
   });
 
-  assertEquals(out.byMouth.map((m) => m.memberId), [ADULT, MINOR]);
+  // ⟳ 2026-09-21 — LA LIGNE DE LA TABLE NE PASSE PLUS PAR LE TITULAIRE. Elle
+  // sort sous `household`, et SEULE la bouche nommée a une voix. Mesuré: sous
+  // « == Thomas == », le modèle lisait une préférence personnelle et servait
+  // le plat aux autres.
+  assertEquals(out.byMouth.map((m) => m.memberId), [MINOR]);
+  assertEquals(out.household, ["2026-09-01 — OFF the table: plus de plats en sauce"]);
   assertEquals(out.otherSubjects.length, 0);
-  assertEquals(out.householdUnattached, []);
   // La bouche sans ligne n'a PAS de voix vide: un nom suivi de rien ferait
   // croire au modèle qu'elle n'a rien à dire, ce qui est vrai, mais lui coûte
   // des jetons pour le dire.
-  assertEquals(out.byMouth.length, 2);
+  assertEquals(out.byMouth.length, 1);
 });
 
 Deno.test("⛔ LA LIGNE D'UNE BOUCHE PORTE SA MARQUE, CELLE DE LA TABLE N'EN PORTE PAS", () => {
@@ -541,13 +545,15 @@ Deno.test("⛔ LA LIGNE D'UNE BOUCHE PORTE SA MARQUE, CELLE DE LA TABLE N'EN POR
       foodLine("food.prefer", `member:${UNKNOWN_AGE}`, "les pâtes"),
     ],
     mouths: MOUTHS,
-    ownerMemberId: ADULT,
   });
   const of = (id: string) => out.byMouth.find((m) => m.memberId === id);
 
-  // ⛔ LA LIGNE DE LA TABLE SORT À L'OCTET PRÈS. Lui coller une marque de
-  // portée la rétrécirait à une personne — l'inverse de ce qu'elle dit.
-  assertEquals(of(ADULT)?.remembered, ["2026-09-01 — plus de plats en sauce"]);
+  // ⛔ LA LIGNE DE LA TABLE SORT À L'OCTET PRÈS, ET SOUS AUCUN NOM. Lui coller
+  // une marque de portée la rétrécirait à une personne — l'inverse de ce
+  // qu'elle dit; la mettre sous une carte fait exactement la même chose, en
+  // silence (mesuré le 2026-09-21).
+  assertEquals(out.household, ["2026-09-01 — OFF the table: plus de plats en sauce"]);
+  assertEquals(of(ADULT), undefined);
 
   // Un dégoût nommé dit son remède, et il n'est pas « n'en sers plus jamais ».
   assertEquals(
@@ -561,24 +567,58 @@ Deno.test("⛔ LA LIGNE D'UNE BOUCHE PORTE SA MARQUE, CELLE DE LA TABLE N'EN POR
   assert(of(UNKNOWN_AGE)?.remembered[0].includes("never a rule for the table"));
 });
 
+Deno.test("⛔ LA LIGNE DE LA TABLE PORTE SON VERBE — exclue et voulue ne s'écrivent plus pareil", () => {
+  // Mesuré le 2026-09-22 (`6ef02747`) : « petit suisse -- ONLY AT breakfast »
+  // (exclu) et « flocons d'avoines -- ONLY AT breakfast » (voulu) partaient
+  // identiques ; le modèle a gardé le petit-suisse et servi du tofu au
+  // petit-déjeuner sous une ligne qui l'excluait.
+  const out = compositionLinesByMouth({
+    items: [
+      { ...foodLine("food.exclude", HOUSEHOLD_SUBJECT, "petit suisse"), occasion: "breakfast" } as RetainedItem,
+      { ...foodLine("food.prefer", HOUSEHOLD_SUBJECT, "flocons d'avoine"), occasion: "breakfast" } as RetainedItem,
+      foodLine("method.avoid", HOUSEHOLD_SUBJECT, "la friture"),
+      foodLine("method.prefer", HOUSEHOLD_SUBJECT, "au four"),
+    ],
+    mouths: MOUTHS,
+  });
+  assertEquals(out.household, [
+    "2026-09-01 — OFF the table: petit suisse -- ONLY AT breakfast",
+    "2026-09-01 — wanted: flocons d'avoine -- ONLY AT breakfast",
+    "2026-09-01 — not this way: la friture",
+    "2026-09-01 — this way: au four",
+  ]);
+  // Le vocabulaire est fermé : un verbe par kind de composition, aucun vide.
+  for (const kind of ["food.exclude", "food.prefer", "method.avoid", "method.prefer"] as const) {
+    assert(TABLE_LINE_VERB[kind].length > 0, kind);
+  }
+  // Une ligne écrite ce tour-ci (source `written`) porte le verbe sans la date.
+  const written = compositionLinesByMouth({
+    items: [{ ...foodLine("food.exclude", HOUSEHOLD_SUBJECT, "le tofu"), source: "written" } as RetainedItem],
+    mouths: MOUTHS,
+  });
+  assertEquals(written.household, ["OFF the table: le tofu"]);
+});
+
 Deno.test("⛔ UNE BOUCHE PARTIE EST COMPTÉE, JAMAIS SERVIE", () => {
   const out = compositionLinesByMouth({
     items: [foodLine("food.exclude", `member:${GONE}`, "le poisson")],
     mouths: MOUTHS,
-    ownerMemberId: ADULT,
   });
   assertEquals(out.byMouth, []);
   assertEquals(out.otherSubjects.length, 1);
 });
 
-Deno.test("⛔ SANS TITULAIRE À TABLE, LES LIGNES DE LA TABLE NE TOMBENT PAS EN SILENCE", () => {
+Deno.test("⛔ LES LIGNES DE LA TABLE SORTENT, AVEC OU SANS TITULAIRE À TABLE", () => {
   const out = compositionLinesByMouth({
     items: [foodLine("food.exclude", HOUSEHOLD_SUBJECT, "plus de plats en sauce")],
     mouths: MOUTHS,
-    ownerMemberId: null,
   });
   assertEquals(out.byMouth, []);
-  assertEquals(out.householdUnattached, ["plus de plats en sauce"]);
+  // ⟳ 2026-09-21 — AVANT, ELLES TOMBAIENT DANS UN CHAMP QUE L'APPELANT
+  // COMPTAIT (`retained_lines_unattached:N`) ET NE DONNAIT À PERSONNE. Une
+  // règle de maison qui n'atteint pas le prompt n'existe pas: le compteur en
+  // faisait une perte observée, pas réparée.
+  assertEquals(out.household, ["2026-09-01 — OFF the table: plus de plats en sauce"]);
 });
 
 Deno.test("PROPRIÉTÉ — conservation: rien ne se perd entre les trois sorties", () => {
@@ -590,12 +630,12 @@ Deno.test("PROPRIÉTÉ — conservation: rien ne se perd entre les trois sorties
     // Une famille qui n'appartient pas à la composition: ignorée des trois.
     portionAdjust({ direction: "down" }) as unknown as RetainedItem,
   ];
-  const out = compositionLinesByMouth({ items, mouths: MOUTHS, ownerMemberId: ADULT });
+  const out = compositionLinesByMouth({ items, mouths: MOUTHS });
   const served = out.byMouth.reduce(
     (n, m) => n + m.written.length + m.remembered.length,
     0,
   );
-  assertEquals(served + out.householdUnattached.length + out.otherSubjects.length, 4);
+  assertEquals(served + out.household.length + out.otherSubjects.length, 4);
 });
 
 Deno.test("L'ORDRE EST CELUI DU ROSTER, pas celui du magasin", () => {
@@ -606,9 +646,11 @@ Deno.test("L'ORDRE EST CELUI DU ROSTER, pas celui du magasin", () => {
       foodLine("food.exclude", HOUSEHOLD_SUBJECT, "x"),
     ],
     mouths: MOUTHS,
-    ownerMemberId: ADULT,
   });
-  assertEquals(out.byMouth.map((m) => m.memberId), [ADULT, MINOR, UNKNOWN_AGE]);
+  // ⟳ 2026-09-21 — `ADULT` n'a plus de voix: sa seule ligne était celle de la
+  // TABLE, qui a maintenant son propre canal.
+  assertEquals(out.byMouth.map((m) => m.memberId), [MINOR, UNKNOWN_AGE]);
+  assertEquals(out.household, ["2026-09-01 — OFF the table: x"]);
 });
 
 Deno.test("LE PLUS RÉCENT D'ABORD, par bouche — le même tri que l'audience unique", () => {
@@ -618,7 +660,6 @@ Deno.test("LE PLUS RÉCENT D'ABORD, par bouche — le même tri que l'audience u
       foodLine("food.exclude", `member:${MINOR}`, "neuf", "2026-09-01"),
     ],
     mouths: MOUTHS,
-    ownerMemberId: ADULT,
   });
   const lines = out.byMouth[0].remembered;
   assert(lines[0].includes("neuf"), lines.join(" | "));
@@ -640,7 +681,6 @@ Deno.test("⛔ CE QUE LA PERSONNE A TAPÉ N'EST PAS DATÉ, et reste séparé", (
   const out = compositionLinesByMouth({
     items: [typed],
     mouths: MOUTHS,
-    ownerMemberId: ADULT,
   });
   assertEquals(out.byMouth[0].remembered, []);
   assertEquals(out.byMouth[0].written.length, 1);

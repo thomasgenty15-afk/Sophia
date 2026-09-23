@@ -390,6 +390,8 @@ Deno.test("L'ENVELOPPE DU COMPTE GAGNE TOUJOURS, y compris DÉGRADÉE", () => {
     ageState: "adult",
     accountEnvelope: DEGRADED,
     lineBody: { appetite: null, heightCm: 175, weightKg: 70, gender: "male", ageYears: 40, activityLevel: null , activityAxes: { day: null, sport: null, asked: false }},
+    // ⟳ 2026-09-23 — un objectif de fiche ne rouvre pas la porte de service.
+    lineProteinGoal: "muscle_gain",
   });
   assertEquals(e, DEGRADED);
 });
@@ -414,6 +416,9 @@ Deno.test("un objectif posé sur un ENFANT est INERTE — l'enveloppe est la mai
     },
     null,
     CHILD_8,
+    // ⟳ 2026-09-23 — l'objectif gaté de la lane: `goalApplies` rend `true`
+    // pour un mineur, donc il ARRIVE jusqu'ici. Il doit rester inerte.
+    "fat_loss",
   );
   const withoutGoal = toHouseholdMember(
     {
@@ -431,6 +436,7 @@ Deno.test("un objectif posé sur un ENFANT est INERTE — l'enveloppe est la mai
     },
     null,
     CHILD_8,
+    null,
   );
   // ÉGALITÉ D'EMPREINTE, pas inspection champ par champ: un test qui vérifie
   // « la bande n'est pas celle de fat_loss » laisse passer un plafond de
@@ -448,6 +454,45 @@ Deno.test("un objectif posé sur un ENFANT est INERTE — l'enveloppe est la mai
   assertEquals(withGoal.envelope.proteinPerMealG, null);
 });
 
+Deno.test("⟳ 2026-09-23 — `toHouseholdMember` lit l'objectif PASSÉ, jamais `member.goal`", () => {
+  // L'intégrateur passe l'objectif GATÉ (`goalApplies`, `goalUnderConditionGate`).
+  // Le jeton brut du roster n'a traversé aucune de ces portes: s'il était lu à
+  // la place du paramètre, une grossesse déclarée ne changerait rien ici.
+  const adult = {
+    memberId: "fab",
+    displayName: "Fabrice",
+    // Le jeton BRUT dit `fat_loss`; le paramètre dit `muscle_gain`.
+    goal: "fat_loss" as const,
+    ageState: "adult" as const,
+    body: null,
+    lightSlots: [],
+    eatingSlots: null,
+    habits: [],
+    habitNote: null,
+    requiredDensity: null,
+    proteinBrief: null,
+  };
+  const sheet: MouthBody = {
+    appetite: null,
+    heightCm: 180,
+    weightKg: 72,
+    gender: "male",
+    ageYears: 30,
+    activityLevel: null,
+    activityAxes: { day: null, sport: null, asked: false },
+  };
+  const gain = toHouseholdMember(adult, null, sheet, "muscle_gain");
+  const none = toHouseholdMember(adult, null, sheet, null);
+  assert(gain.envelope !== null && gain.envelope.mode === "per_kg");
+  assert(none.envelope !== null && none.envelope.mode === "per_kg");
+  // 1,6 × 72 = 115,2 ⇒ 115 (LE CAS QUI MORD); `null` ⇒ 1,2 × 72 = 86,4 ⇒ 86.
+  assertEquals(gain.envelope.proteinFloorG, 115);
+  assertEquals(none.envelope.proteinFloorG, 86);
+  // Et le jeton brut n'est pas relu en douce pour l'énergie: même bande.
+  assertEquals(gain.envelope.energy, none.envelope.energy);
+  assertEquals(gain.goal, "fat_loss", "le membre garde son jeton pour ses autres lecteurs");
+});
+
 Deno.test("un ÂGE INCONNU n'a pas d'enveloppe, même avec un corps complet", () => {
   // Ni l'équation d'adulte ni l'équation d'enfant: elles donnent des résultats
   // très différents sur le même poids, et deviner serait choisir. `null` = part
@@ -457,12 +502,13 @@ Deno.test("un ÂGE INCONNU n'a pas d'enveloppe, même avec un corps complet", ()
       ageState: "unknown",
       accountEnvelope: null,
       lineBody: { appetite: null, heightCm: 150, weightKg: 45, gender: "female", ageYears: null, activityLevel: null , activityAxes: { day: null, sport: null, asked: false }},
+      lineProteinGoal: "muscle_gain",
     }),
     null,
   );
 });
 
-Deno.test("le corps de la FICHE n'achète qu'une MAINTENANCE, jamais un objectif", () => {
+Deno.test("le corps de la FICHE n'achète qu'une MAINTENANCE d'énergie, jamais un objectif", () => {
   // Un adulte SANS compte: pas de série de pesées, donc pas de plancher TCA
   // derrière lui. Son enveloppe ne peut donc ni creuser un déficit ni poser un
   // plafond de densité — la seule bande qu'un corps de fiche puisse acheter.
@@ -470,6 +516,9 @@ Deno.test("le corps de la FICHE n'achète qu'une MAINTENANCE, jamais un objectif
     ageState: "adult",
     accountEnvelope: null,
     lineBody: { appetite: null, heightCm: 162, weightKg: 55, gender: "female", ageYears: 38, activityLevel: null , activityAxes: { day: null, sport: null, asked: false }},
+    // ⟳ 2026-09-23 — un objectif de PERTE sur la fiche: il atteint la protéine
+    // (1,2 × 55 = 66), jamais l'énergie ni le plafond de densité.
+    lineProteinGoal: "fat_loss",
   });
   assert(e !== null && e.mode === "per_kg" && e.energy !== null);
   // ⟳ 2026-09-10 — LA MAINTENANCE ATTENDUE EST ÉCRITE À LA MAIN, ET C'EST LA
@@ -479,9 +528,14 @@ Deno.test("le corps de la FICHE n'achète qu'une MAINTENANCE, jamais un objectif
   // changé de base tout en restant fausse — c'est exactement ce qui vient
   // d'arriver deux fois en deux jours.
   //
-  //   BMR = 10×55 + 6,25×162 − 5×37 − 161 = 1 216,5  (bande 30_44, milieu 37)
-  //   M   = 1 216,5 × 1,5 (activité inconnue) = **1 825**
-  const maintenance = 1825;
+  //   ⟳ 2026-09-23 — L'ÂGE EXACT (38 ans), plus le milieu de bande (37):
+  //   BMR = 10×55 + 6,25×162 − 5×38 − 161 = 1 211,5
+  //   M   = 1 211,5 × 1,5 (activité inconnue) = 1 817,25 ⇒ **1 817**
+  //   (au milieu de bande: 1 216,5 × 1,5 = 1 825 — 5 kcal de BMR × 1,5 d'écart)
+  //   largeur `maintenance` 0,10 ⇒ ±90,9 ⇒ [1 726 ; 1 908].
+  const maintenance = 1817;
+  assertEquals(e.energy, { low: 1726, high: 1908 });
+  assertEquals(e.proteinFloorG, 66);
   // La bande de maintenance encadre M; une bande de déficit serait SOUS M.
   assert(
     e.energy.low < maintenance && maintenance < e.energy.high,
@@ -496,7 +550,7 @@ Deno.test("PAS DE CORPS = PAS D'ENVELOPPE, jamais l'enveloppe DÉGRADÉE", () =>
   // composition de tout le monde. `null` ne dégrade personne: la bouche compte
   // pour une part standard.
   assertEquals(
-    mouthEnvelope({ ageState: "minor", accountEnvelope: null, lineBody: null }),
+    mouthEnvelope({ ageState: "minor", accountEnvelope: null, lineBody: null, lineProteinGoal: null }),
     null,
   );
   assertEquals(
@@ -504,6 +558,7 @@ Deno.test("PAS DE CORPS = PAS D'ENVELOPPE, jamais l'enveloppe DÉGRADÉE", () =>
       ageState: "minor",
       accountEnvelope: null,
       lineBody: { ...CHILD_8, weightKg: null },
+      lineProteinGoal: null,
     }),
     null,
   );
@@ -518,6 +573,7 @@ Deno.test("PAS DE CORPS = PAS D'ENVELOPPE, jamais l'enveloppe DÉGRADÉE", () =>
         ageState: "minor",
         accountEnvelope: null,
         lineBody: null,
+        lineProteinGoal: null,
       }),
     }),
   ]);
@@ -539,11 +595,14 @@ Deno.test("LA CONTRE-ÉPREUVE PÉDIATRIQUE — Schofield contre Mifflin-St Jeor"
   // elle rend `null`. C'est la première moitié de la preuve — le chemin adulte
   // est FERMÉ à un mineur, il ne se contente pas d'être découragé.
   assertEquals(
-    estimatedMaintenanceKcal({ appetite: null, activityLevel: null,
+    estimatedMaintenanceKcal({ sessionsEdge: "mid", appetite: null, activityLevel: null,
       activityAxes: { day: null, sport: null, asked: false },
       weightKg: CHILD_8.weightKg,
       heightCm: CHILD_8.heightCm,
       ageBand: ageBandOf(CHILD_8.ageYears),
+      // ⟳ 2026-09-23 — même l'âge exact ne rouvre pas le chemin adulte: la
+      // bande reste la porte.
+      ageYears: CHILD_8.ageYears,
       gender: CHILD_8.gender,
     }),
     null,
@@ -552,11 +611,13 @@ Deno.test("LA CONTRE-ÉPREUVE PÉDIATRIQUE — Schofield contre Mifflin-St Jeor"
   // La seconde moitié: ce qu'elle rendrait SI on la forçait, en lui donnant la
   // bande d'adulte la plus jeune. C'est le chiffre qu'un lecteur pressé aurait
   // livré.
-  const forcedMifflin = estimatedMaintenanceKcal({ appetite: null, activityLevel: null,
+  const forcedMifflin = estimatedMaintenanceKcal({ sessionsEdge: "mid", appetite: null, activityLevel: null,
     activityAxes: { day: null, sport: null, asked: false },
     weightKg: CHILD_8.weightKg,
     heightCm: CHILD_8.heightCm,
     ageBand: "18_29",
+    // ⟳ 2026-09-23 — `null`: le milieu de la bande forcée (24 ans).
+    ageYears: null,
     gender: CHILD_8.gender,
   });
   assert(pediatric !== null && forcedMifflin !== null);

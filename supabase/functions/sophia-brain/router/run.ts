@@ -221,6 +221,14 @@ import {
   rulesMentioning,
   usableFoodWord,
 } from "../../_shared/keel/rule_question.ts";
+import {
+  appHelpContextBlock,
+  appHelpTopicsAllowed,
+  loadAppHelpViewer,
+  photoTopicsIn,
+  selectAppHelpTopics,
+  UNKNOWN_APP_HELP_VIEWER,
+} from "../../_shared/keel/app_help/block.ts";
 import type { PrecisionPlanLine } from "../../_shared/keel/meal_precision.ts";
 import type { MealPrecisionFlowState } from "../../_shared/keel/meal_precision_flow.ts";
 import {
@@ -1206,6 +1214,16 @@ export type KeelTurnContext = {
    * l'utilité et jamais le contrôle (R6), quelle que soit l'humeur du composeur.
    */
   meal_photo_invitation?: string | null;
+  /**
+   * FF-066 — `true` quand une fiche d'aide de CE tour explique un geste photo.
+   *
+   * Lu par la ceinture de sortie (`enforceTurnLedger`), qui retire toute demande
+   * de photo non armée par le budget. Expliquer où est le bouton photo à
+   * quelqu'un qui demande comment noter un repas n'est pas une demande: c'est
+   * la même distinction que « l'élève a parlé de photo lui-même ». Absent ⇒
+   * `false` ⇒ la ceinture reste armée, qui est la direction sûre.
+   */
+  app_help_photo?: boolean;
   /**
    * LOT 2C — LE RENVOI DU SIZING armé par CE tour, ou `null`.
    *
@@ -2736,6 +2754,9 @@ export function finalVisibleText(
       isKeelStudent: keel.is_student === true,
       isMinor: keel.age_verdict?.status === "minor",
       userMessage: String(userMessage ?? ""),
+      // FF-066 — une fiche d'aide qui explique le geste photo n'est pas une
+      // demande de photo. Absent ⇒ `false` ⇒ la règle reste armée.
+      photoExplainedByAppHelp: keel.app_help_photo === true,
       locale: keel.content_locale ?? "en-GB",
     });
     if (ledgerBelt.reasons.length > 0) {
@@ -6002,7 +6023,21 @@ export async function processMessage(
       // borné, tous les élèves privés de réponse est une panne produit.
       const restrictionRaisedForAsks = keelTurn.restriction?.restriction_flag ===
         true;
-      const invitation = await armPhotoInvitation({
+      // FF-066 — UN TOUR D'AIDE NE PORTE PAS EN PLUS UNE INVITATION PHOTO. La
+      // réponse porte déjà une chose (l'explication demandée), et une fiche
+      // photo dirait deux fois « envoie une photo ». On n'arme pas, au lieu
+      // d'armer puis retirer: armer consomme le budget partagé du jour
+      // (`daily_ask_budget.ts`). Le refus est écrit au ledger comme les autres.
+      const appHelpTurn = keelTurn.is_student === true &&
+        turnFrame?.skill_signals?.app_help?.detected === true;
+      const invitation = appHelpTurn
+        ? {
+          sentence: null,
+          educating: false,
+          invitedEventId: null,
+          reason_code: "app_help_turn",
+        }
+        : await armPhotoInvitation({
         supabase,
         userId,
         responseLocale,
@@ -6765,6 +6800,75 @@ export async function processMessage(
       told_model: ruleQuestionContext != null,
     }));
   }
+  // ══════════════════════════════════════════════════════════════════════
+  // FF-066 · L'AIDE SUR L'APP — LA FICHE ENTRE AVANT LA GÉNÉRATION.
+  //
+  // Même place et même raison que `rule_question` juste au-dessus: le bloc
+  // part dans `injectedContext`, placé en tête du contexte, donc il survit à
+  // la coupe du prompt par la fin. `null` sur la quasi-totalité des tours: il
+  // ne coûte que sur celui où la question tombe (fiche R1).
+  //
+  // ⚠️ LE SIGNAL NE CHOISIT PAS QUI RÉPOND (R4). Un tour de crise l'a déjà
+  // perdu au dispatcher (`safetyBlocksToolSkills`); sous le plancher de
+  // restriction ou pour un mineur, les fiches de chiffres sont retirées ici.
+  //
+  // ⚠️ LE PROFIL VIENT DE LA BASE, JAMAIS DU MODÈLE (R5), et il n'est lu que
+  // sur ce tour-là. Une lecture en panne rend un profil inconnu: la fiche
+  // rend alors sa réponse par défaut, qui énonce ses conditions.
+  // ══════════════════════════════════════════════════════════════════════
+  let appHelpContext: string | null = null;
+  {
+    const signal = dispatcherSignals.app_help;
+    const detected = keelTurn.is_student === true && signal?.detected === true;
+    const selection = detected
+      ? selectAppHelpTopics(signal.topics)
+      : { topics: [], dropped: [] };
+    const allowed = appHelpTopicsAllowed({
+      topics: selection.topics,
+      restrictionFlag: keelTurn.restriction?.restriction_flag === true,
+      isMinor: keelTurn.age_verdict?.status === "minor",
+    });
+    let viewer = UNKNOWN_APP_HELP_VIEWER;
+    let viewerRead: "ok" | "failed" | "skipped" = "skipped";
+    if (detected && allowed.topics.length > 0) {
+      const read = await loadAppHelpViewer(
+        serviceRoleLedgerReadClient() ?? supabase,
+        userId,
+      );
+      viewer = read.viewer;
+      viewerRead = read.read;
+      appHelpContext = appHelpContextBlock({
+        topics: allowed.topics,
+        locale: responseLocale,
+        viewer,
+      });
+      keelTurn.app_help_photo = appHelpContext !== null &&
+        photoTopicsIn(allowed.topics);
+    }
+    // ── LE COMPTEUR, À CHAQUE TOUR D'ÉLÈVE (R9) ─────────────────────────────
+    // Sans le dénominateur, « 0 aide » ne se distingue pas de « 0 tour
+    // observé ». Et `dropped_topics` sépare « le modèle n'émet pas » de « il
+    // émet un identifiant qu'aucune fiche ne porte » — le second est une ligne
+    // de fiche à corriger, pas une panne.
+    if (keelTurn.is_student === true) {
+      console.info(JSON.stringify({
+        tag: "keel/app_help",
+        event: "seen",
+        request_id: requestId,
+        turn_id: turnFrame.turn_id,
+        detected,
+        topics: selection.topics,
+        dropped_topics: signal?.dropped_topics ?? [],
+        dropped_by_floor: allowed.droppedByFloor,
+        viewer_role: viewer.role,
+        viewer_goal: viewer.goal,
+        viewer_read: viewerRead,
+        injected: appHelpContext !== null,
+        block_chars: appHelpContext?.length ?? 0,
+        photo_explained: keelTurn.app_help_photo === true,
+      }));
+    }
+  }
   // ── LOT M7 · LE COMPTEUR DU REPLI DE SÉCURITÉ ─────────────────────────────
   //
   // ⛔ IL COMPTE, IL NE GARDE RIEN. Aucune décision ne dépend de cette ligne:
@@ -6863,6 +6967,10 @@ export async function processMessage(
     // tombe, et il est la seule chose qui empêche le modèle de deviner une
     // cause qui contredit la phrase qu'on va coller sous lui.
     ruleQuestionContext,
+    // FF-066 — la fiche d'aide du tour, `null` hors question sur l'app. Même
+    // place que la règle du dessus, pour la même raison: elle doit entrer AVANT
+    // la génération, et survivre à la coupe du prompt par la fin.
+    appHelpContext,
     // eva-r6 B02: directive de tour pour la preemption detresse SANS ideation
     // — le companion sortait un cadrage urgences disproportionne. Donnee de
     // tour (budget companion preserve), pas une regle de prompt.
