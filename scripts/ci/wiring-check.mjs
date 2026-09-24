@@ -86,6 +86,11 @@ const EXEMPT = new Map([
   // l'importent), et l'inliner dans l'un des deux le rendrait invisible à
   // l'autre. Même patron que `final_plan_gate_fixtures.ts`.
   ["draft_note_corpus.ts", "Fixture module: the 47-note corpus, read by the classifier and routing corpus tests only — by design."],
+  // ⟳ 2026-09-24 — UN OUTIL DE TEST, PAS UN MODULE DE PRODUCTION. Il rend le
+  // texte d'un fichier découpé ET des modules qu'on en a sortis, pour que les
+  // tests qui lisent du code ne deviennent pas muets après un déplacement. Ses
+  // seuls lecteurs sont des tests, par construction.
+  ["source_family.ts", "Test helper: reads a split file together with the modules moved out of it (scripts/source-families.json) — test readers only, by design."],
 ]);
 
 // ---------------------------------------------------------------------------

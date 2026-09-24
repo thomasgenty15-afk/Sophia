@@ -1,0 +1,14 @@
+{
+  "supabase/functions/generate-household-meal-v1/index.ts": [],
+  "supabase/functions/_shared/keel/meal_generation.ts": [],
+  "supabase/functions/_shared/keel/household_meal_generation.ts": [],
+  "supabase/functions/_shared/keel/household_portions.ts": [],
+  "supabase/functions/_shared/keel/portion_sizing.ts": [],
+  "supabase/functions/_shared/keel/final_plan_gate.ts": [],
+  "supabase/functions/sophia-brain/router/run.ts": [],
+  "supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/router.ts": [],
+  "frontend/src/keel/pages/SetupPage.tsx": [],
+  "frontend/src/keel/pages/HouseholdPage.tsx": [],
+  "frontend/src/keel/pages/StudentWeekPlanPage.tsx": [],
+  "frontend/src/keel/components/MouthFormDialog.tsx": []
+}
