@@ -51,7 +51,9 @@
   ],
   "supabase/functions/sophia-brain/router/run.ts": [
     "supabase/functions/sophia-brain/router/keel_turn_context.ts",
-    "supabase/functions/sophia-brain/router/run_output_guards.ts"
+    "supabase/functions/sophia-brain/router/run_output_guards.ts",
+    "supabase/functions/sophia-brain/router/keel_direct_effect_lane.ts",
+    "supabase/functions/sophia-brain/router/keel_prompt_blocks.ts"
   ],
   "supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/router.ts": [],
   "frontend/src/keel/pages/SetupPage.tsx": [

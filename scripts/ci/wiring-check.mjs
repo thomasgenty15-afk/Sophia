@@ -235,8 +235,22 @@ for (const fn of KEEL_EDGE_FUNCTIONS) {
 
 // 3. The KEEL direct effects must appear in the runtime lane, not only in
 //    their own folder — the exact shape of the W4 "inert loop" defect.
-const runTs = fs.existsSync(path.join(ROOT, "supabase/functions/sophia-brain/router/run.ts"))
-  ? codeOf("supabase/functions/sophia-brain/router/run.ts")
+//
+//    ⟳ 2026-09-24 (découpage des gros fichiers, lot 5a): `run.ts` est découpé,
+//    et la lane des effets KEEL vit maintenant dans `keel_direct_effect_lane.ts`.
+//    On lit donc la FAMILLE de `run.ts` — le fichier et les modules qui en sont
+//    sortis, listés dans `scripts/source-families.json` — sinon un effet câblé
+//    dans un module sorti serait déclaré « absent », et un effet retiré de
+//    `run.ts` mais laissé dans un module passerait pour câblé à tort.
+const RUN_TS = "supabase/functions/sophia-brain/router/run.ts";
+const runFamily = (() => {
+  const registry = path.join(ROOT, "scripts/source-families.json");
+  if (!fs.existsSync(registry)) return [RUN_TS];
+  const modules = JSON.parse(fs.readFileSync(registry, "utf8"))[RUN_TS] ?? [];
+  return [...modules, RUN_TS];
+})();
+const runTs = fs.existsSync(path.join(ROOT, RUN_TS))
+  ? runFamily.map((f) => codeOf(f)).join("\n")
   : "";
 for (const effect of ["log_protocol_event", "declare_deviation"]) {
   if (runTs && !runTs.includes(effect)) {

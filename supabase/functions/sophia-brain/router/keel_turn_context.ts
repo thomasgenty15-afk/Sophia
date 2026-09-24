@@ -40,6 +40,10 @@ import {
   type LoadedDoctrine,
   loadPublishedDoctrine,
 } from "../../_shared/keel/doctrine_loader.ts";
+// FF-016 — LES ALIMENTS RECOMMANDÉS DU COACH, jusqu'au tour de conversation.
+// `protocolFoodBlock` n'avait que deux appelants, les deux générateurs de
+// repas: le chat connaissait les interdits (la doctrine) et jamais les
+// encouragés.
 import {
   type LoadedProtocol,
   loadPublishedProtocol,
@@ -66,6 +70,10 @@ import {
   loadHouseholdTurnContext,
   resolveHouseholdIdFor,
 } from "../../_shared/keel/household_turn_context.ts";
+// LE FOYER, MOITIÉ SÉCURITÉ. `student_safety_constraints` est clée sur
+// `user_id`: l'allergie d'une bouche SANS COMPTE — un enfant, le cas nominal —
+// n'y est pas et n'entrait donc dans aucune union de conversation. Elle vit
+// dans `household_member_allergies`, et seul le générateur la lisait.
 import {
   type HouseholdTurnSafety,
   loadHouseholdTurnSafety,
