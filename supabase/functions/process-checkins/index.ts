@@ -7,7 +7,6 @@ import { CHAT_SCOPE } from "../_shared/chat/delivery.ts";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
 import { isWhatsappCoachingAccessAllowed } from "./access.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
-import { logMomentumObservabilityEvent } from "../_shared/momentum-observability.ts";
 import {
   enqueueProactiveTemplateCandidate,
   PROACTIVE_TEMPLATE_CANDIDATE_KIND,
@@ -62,8 +61,6 @@ import { allowedStudentSurfaces } from "../_shared/keel/restriction_guard.ts";
 import {
   allowRelaunchGreetingFromLastMessage,
   applyScheduledCheckinGreetingPolicy,
-  applyWhatsappProactiveOpeningPolicy,
-  computeScheduledForFromLocal,
   generateDynamicWhatsAppCheckinMessage,
 } from "../_shared/scheduled_checkins.ts";
 import {
@@ -76,41 +73,29 @@ import {
   localDateYmdInTimezone,
   MORNING_LIGHT_GREETING_EVENT_CONTEXT,
 } from "../_shared/action_occurrences.ts";
-import { loadMemoryV2Payload } from "../_shared/memory/runtime/loader.ts";
-import {
-  loadMomentumSnapshotV2,
-  type MomentumSnapshotV2,
-  persistMomentumSnapshotV2,
-} from "../_shared/momentum_v2.ts";
-import { buildActionFamilyKey } from "../_shared/memory/action_family.ts";
 // RETRAIT RÉSIDUS (2026-08-08): la revue hebdo du plan V2 est partie avec
 // le système de plan. Ses deux event contexts restent pour ANNULER À VUE
 // les lignes encore en base (motif action_morning_followup_removed).
 const WEEKLY_PROGRESS_REVIEW_EVENT_CONTEXT = "weekly_progress_review_v2";
 const WEEKLY_PLANNING_VALIDATION_PROMPT_EVENT_CONTEXT =
   "weekly_planning_validation_prompt";
-import {
-  getMomentumOutreachStateFromEventContext,
-  isMomentumOutreachEventContext,
-} from "../sophia-brain/momentum_outreach.ts";
-import {
-  buildMomentumMorningPlan,
-  buildMorningNudgePayloadV2,
-  isMorningNudgeEventContext,
-  resolveMorningNudgePlanV2,
-} from "../sophia-brain/momentum_morning_nudge.ts";
+// ⟳ 2026-09-24 — LA CHAÎNE MOMENTUM EST RETIRÉE (nudge du matin momentum,
+// relance momentum, mode réparation). Son seul producteur de lignes était le
+// watcher (`trigger-watcher-batch`), déprogrammé par 20260803030000. Les six
+// contextes restent ici pour ANNULER À VUE une ligne encore en base, jamais
+// pour l'envoyer par la branche générique.
+const LEGACY_MOMENTUM_EVENT_CONTEXTS = new Set([
+  "morning_active_actions_nudge",
+  "morning_nudge_v2",
+  "momentum_friction_legere",
+  "momentum_evitement",
+  "momentum_soutien_emotionnel",
+  "momentum_reactivation",
+]);
 import {
   getUserState,
   updateUserState,
 } from "../sophia-brain/state-manager.ts";
-import { logV2Event, V2_EVENT_TYPES } from "../_shared/v2-events.ts";
-import {
-  readRepairMode,
-  recordSoftContact,
-  writeRepairMode,
-} from "../sophia-brain/repair_mode_engine.ts";
-import { transitionRendezVous } from "../_shared/v2-rendez-vous.ts";
-import { registerRendezVousRefusal } from "../sophia-brain/rendez_vous_decision.ts";
 
 console.log("Process Checkins: Function initialized");
 
@@ -198,64 +183,6 @@ async function pauseWhatsappCoachingWorkForUser(params: {
     .eq("status", "pending");
 }
 
-function parseStringArray(value: unknown): string[] {
-  return Array.isArray(value)
-    ? value.map((item) => cleanText(item)).filter(Boolean)
-    : [];
-}
-function dateFromLocalDateYmd(localDate: string): Date | null {
-  const match = String(localDate ?? "").trim().match(
-    /^(\d{4})-(\d{2})-(\d{2})$/,
-  );
-  if (!match) return null;
-  const year = Number(match[1]);
-  const month = Number(match[2]);
-  const day = Number(match[3]);
-  if (!year || !month || !day) return null;
-  return new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
-}
-
-function morningPlanStrategy(plan: any): string | null {
-  return cleanText(plan?.posture ?? plan?.strategy) || null;
-}
-
-function morningPlanPosture(plan: any): string | null {
-  return cleanText(plan?.posture) || null;
-}
-
-function morningPlanConfidence(plan: any): string | null {
-  return cleanText(plan?.confidence) || null;
-}
-
-function morningPlanTargetIds(plan: any): string[] {
-  return parseStringArray(plan?.target_plan_item_ids);
-}
-
-function morningPlanTargetTitles(plan: any): string[] {
-  return parseStringArray(plan?.target_plan_item_titles);
-}
-
-function internalSecret(): string {
-  return (Deno.env.get("INTERNAL_FUNCTION_SECRET")?.trim() ||
-    Deno.env.get("SECRET_KEY")?.trim() || "");
-}
-
-function functionsBaseUrl(): string {
-  const supabaseUrl = (Deno.env.get("SUPABASE_URL") ?? "").trim();
-  if (!supabaseUrl) return "http://kong:8000";
-  if (supabaseUrl.includes("http://kong:8000")) return "http://kong:8000";
-  return supabaseUrl.replace(/\/+$/, "");
-}
-
-function publicSiteUrl(): string {
-  // Prefer APP_BASE_URL (the canonical frontend URL, always set per-project via
-  // the Stripe functions) so links never silently fall back to prod on staging.
-  return cleanText(
-    Deno.env.get("APP_BASE_URL") ?? Deno.env.get("SITE_URL") ??
-      Deno.env.get("PUBLIC_SITE_URL"),
-  ) || "https://app.sophia.app";
-}
-
 /**
  * DE-WHATSAPP — un seul point d'envoi remplacé, dix appelants intacts.
  *
@@ -338,112 +265,12 @@ async function markScheduledCheckinDeliveryState(params: {
     .eq("id", params.checkinId);
 }
 
-async function markScheduledCheckinAwaitingTemplateUser(params: {
-  supabaseAdmin: ReturnType<typeof createClient>;
-  checkin: Record<string, unknown>;
-  attemptCount: number;
-  draftMessage: string;
-  requestId: string;
-  extraPayload?: Record<string, unknown>;
-}) {
-  const { error } = await params.supabaseAdmin
-    .from("pending_actions")
-    .insert({
-      user_id: params.checkin.user_id,
-      kind: "scheduled_checkin",
-      status: "pending",
-      scheduled_checkin_id: params.checkin.id,
-      payload: {
-        draft_message: params.draftMessage,
-        event_context: params.checkin.event_context,
-        message_mode: params.checkin.message_mode ?? "static",
-        message_payload: params.checkin.message_payload ?? {},
-        ...(params.extraPayload ?? {}),
-      },
-      expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-    } as never);
-  if (error) throw error;
-
-  await markScheduledCheckinDeliveryState({
-    supabaseAdmin: params.supabaseAdmin,
-    checkinId: String(params.checkin.id ?? ""),
-    status: "awaiting_user",
-    attemptCount: params.attemptCount,
-    draftMessage: params.draftMessage,
-    errorMessage: null,
-    requestId: params.requestId,
-  });
-}
-
 // RETRAIT RÉSIDUS GRAND PUBLIC (2026-08-08) — tout le pipeline « rappels
 // récurrents » de cette fonction est parti avec `user_recurring_reminders`
 // (migration 20260808080000, décision humaine: 0 utilisateur grand public).
 // Les rappels PONCTUELS (one_shot_reminder → scheduled_checkins) ne passaient
 // pas par ici et ne sont pas touchés.
 
-
-function buildMomentumDeliveryPayload(
-  checkin: any,
-  extra: Record<string, unknown> = {},
-) {
-  const eventContext = String(checkin?.event_context ?? "");
-  return {
-    delivery_status: extra.delivery_status ?? null,
-    purpose: "momentum_outreach",
-    event_context: eventContext,
-    outreach_state: getMomentumOutreachStateFromEventContext(eventContext) ??
-      null,
-    scheduled_checkin_id: String(checkin?.id ?? ""),
-    transport: extra.transport ?? null,
-    skip_reason: extra.skip_reason ?? null,
-    failure_reason: extra.failure_reason ?? null,
-    scheduled_for: String(checkin?.scheduled_for ?? ""),
-    ...extra,
-  };
-}
-
-function buildMomentumMorningDeliveryPayload(
-  checkin: any,
-  extra: Record<string, unknown> = {},
-) {
-  const payload = ((checkin as any)?.message_payload ?? {}) as Record<
-    string,
-    unknown
-  >;
-  return {
-    delivery_status: extra.delivery_status ?? null,
-    purpose: "momentum_morning_nudge",
-    event_context: String(checkin?.event_context ?? ""),
-    momentum_state: cleanText(payload.momentum_state ?? extra.momentum_state) ||
-      null,
-    momentum_strategy:
-      cleanText(payload.momentum_strategy ?? extra.momentum_strategy) || null,
-    morning_nudge_posture: cleanText(
-      payload.morning_nudge_posture ?? extra.morning_nudge_posture,
-    ) || null,
-    relevance: cleanText(payload.relevance ?? extra.relevance) || null,
-    confidence: cleanText(payload.confidence ?? extra.confidence) || null,
-    scheduled_checkin_id: String(checkin?.id ?? ""),
-    transport: extra.transport ?? null,
-    skip_reason: extra.skip_reason ?? null,
-    failure_reason: extra.failure_reason ?? null,
-    scheduled_for: String(extra.scheduled_for ?? checkin?.scheduled_for ?? ""),
-    slot_day_offset: Number.isFinite(Number(payload.slot_day_offset))
-      ? Number(payload.slot_day_offset)
-      : null,
-    slot_weekday: cleanText(payload.slot_weekday) || null,
-    plan_item_ids_targeted: parseStringArray(
-      payload.plan_item_ids_targeted ?? extra.plan_item_ids_targeted,
-    ),
-    plan_item_titles_targeted: parseStringArray(
-      payload.plan_item_titles_targeted ?? extra.plan_item_titles_targeted,
-    ),
-    conversation_pulse_id:
-      cleanText(payload.conversation_pulse_id ?? extra.conversation_pulse_id) ||
-      null,
-    ...extra,
-  };
-}
 
 async function fetchWhatsappTempMemory(
   supabaseAdmin: ReturnType<typeof createClient>,
@@ -1232,22 +1059,6 @@ async function processPendingProactiveTemplateCandidates(params: {
 
     const skipped = Boolean(sendRes?.skipped);
 
-    if (!skipped && purpose === "daily_bilan_winback") {
-      // Chantier réengagement (19/07) : armer le flow conversationnel À LA
-      // LIVRAISON réelle de la touche (pas à l'enqueue), pour qu'un template
-      // non délivré ne laisse jamais un flow armé sans message reçu.
-      const winbackMeta = (payload.metadata_extra &&
-          typeof payload.metadata_extra === "object")
-        ? payload.metadata_extra as Record<string, unknown>
-        : {};
-      const winbackEpisodeId = cleanText(winbackMeta.reengagement_episode_id);
-      const winbackStep = Math.max(
-        1,
-        Math.min(3, Number(winbackMeta.winback_step) || 1),
-      ) as WinbackStep;
-    }
-
-
     await params.supabaseAdmin
       .from("pending_actions")
       .update({
@@ -1413,372 +1224,6 @@ async function processPendingAccessEndedNotifications(params: {
   return processed;
 }
 
-// ── Rendez-vous delivery ─────────────────────────────────────────────────────
-
-const RENDEZ_VOUS_KIND_INSTRUCTIONS: Record<string, string> = {
-  pre_event_grounding:
-    "Message WhatsApp de rendez-vous avant un événement important. Tu aides la personne à se préparer mentalement de façon calme et concrète. Mentionne l'événement, propose un angle de préparation simple. Ton rassurant.",
-  post_friction_repair:
-    "Message WhatsApp de rendez-vous après une période de friction. Tu reconnais que ça a été un moment difficile, tu proposes de faire un point simple sans pression. Pas de culpabilisation, pas de bilan forcé.",
-  weekly_reset:
-    "Message WhatsApp de rendez-vous hebdomadaire. Le bilan récent suggère un ajustement. Tu proposes de prendre 5 minutes pour recalibrer la semaine ensemble, de façon douce et constructive.",
-  mission_preparation:
-    "Message WhatsApp de rendez-vous de préparation de mission. Une étape importante approche. Tu aides à se projeter concrètement, à identifier un premier pas simple, sans dramatiser.",
-  transition_handoff:
-    "Message WhatsApp de rendez-vous de transition entre deux transformations. Tu fais un mini-bilan chaleureux de ce qui a été accompli, puis tu ouvres sur la suite avec enthousiasme mesuré.",
-};
-
-function rendezVousInstruction(kind: string): string {
-  return RENDEZ_VOUS_KIND_INSTRUCTIONS[kind] ??
-    "Message WhatsApp de rendez-vous. Sois chaleureux, concis et non-intrusif.";
-}
-
-function rendezVousSourceRefs(value: unknown): Record<string, unknown> {
-  return value && typeof value === "object" && !Array.isArray(value)
-    ? value as Record<string, unknown>
-    : {};
-}
-
-function sourceRefStringArray(value: unknown, max = 4): string[] {
-  if (!Array.isArray(value)) return [];
-  return value
-    .map((item) => String(item ?? "").trim())
-    .filter(Boolean)
-    .slice(0, max);
-}
-
-function buildRendezVousEventGrounding(rdv: {
-  kind: string;
-  trigger_reason: string | null;
-  posture: string | null;
-  source_refs: Record<string, unknown> | null;
-}): string {
-  const lines = [
-    `rendez_vous_kind=${rdv.kind}`,
-    `trigger=${String(rdv.trigger_reason ?? "")}`,
-    `posture=${String(rdv.posture ?? "")}`,
-  ];
-
-  const handoff = rendezVousSourceRefs(
-    rendezVousSourceRefs(rdv.source_refs).transformation_handoff,
-  );
-  const previousTitle = String(handoff.previous_transformation_title ?? "")
-    .trim();
-  const nextTitle = String(handoff.next_transformation_title ?? "").trim();
-  const recapLines = sourceRefStringArray(handoff.recap_lines, 4);
-  const wins = sourceRefStringArray(handoff.wins, 3);
-  const relationalSignals = sourceRefStringArray(handoff.relational_signals, 3);
-  const coachingMemory = String(handoff.coaching_memory_summary ?? "").trim();
-
-  if (previousTitle) lines.push(`previous_transformation=${previousTitle}`);
-  if (nextTitle) lines.push(`next_transformation=${nextTitle}`);
-  if (wins.length > 0) lines.push(`wins=${wins.join(" | ")}`);
-  if (relationalSignals.length > 0) {
-    lines.push(`relational_signals=${relationalSignals.join(" | ")}`);
-  }
-  if (recapLines.length > 0) {
-    lines.push(`handoff_recap=${recapLines.join(" | ")}`);
-  }
-  if (coachingMemory) lines.push(`coaching_memory=${coachingMemory}`);
-
-  return lines.join("\n");
-}
-
-async function replacePendingRendezVousReplyAction(params: {
-  supabaseAdmin: ReturnType<typeof createClient>;
-  userId: string;
-  rendezVousId: string;
-  kind: string;
-  cycleId: string | null;
-  transformationId: string | null;
-  deliveredAtIso: string;
-}) {
-  const nowIso = new Date().toISOString();
-  await params.supabaseAdmin
-    .from("pending_actions")
-    .update({ status: "cancelled", processed_at: nowIso })
-    .eq("user_id", params.userId)
-    .eq("kind", "rendez_vous")
-    .eq("status", "pending");
-
-  const { error } = await params.supabaseAdmin
-    .from("pending_actions")
-    .insert({
-      user_id: params.userId,
-      kind: "rendez_vous",
-      status: "pending",
-      payload: {
-        rendez_vous_id: params.rendezVousId,
-        rendez_vous_kind: params.kind,
-        cycle_id: params.cycleId,
-        transformation_id: params.transformationId,
-        delivered_at: params.deliveredAtIso,
-        source: "process_checkins",
-      },
-      expires_at: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-    });
-
-  if (error) throw error;
-}
-
-async function processDueRendezVous(params: {
-  supabaseAdmin: ReturnType<typeof createClient>;
-  requestId: string;
-}): Promise<number> {
-  // RETRAIT RÉSIDUS (2026-08-08): user_rendez_vous est droppée avec la cascade
-  // plan/transformation (0 utilisateur grand public) — plus rien à livrer.
-  if (params.requestId !== undefined) return 0;
-  const nowIso = new Date().toISOString();
-
-  const { data: dueRdvs, error } = await params.supabaseAdmin
-    .from("user_rendez_vous")
-    .select(
-      "id,user_id,cycle_id,transformation_id,kind,state,posture,trigger_reason,confidence,scheduled_for,source_refs",
-    )
-    .eq("state", "scheduled")
-    .lte("scheduled_for", nowIso)
-    .limit(20);
-
-  if (error) {
-    console.error(
-      `[process-checkins] request_id=${params.requestId} rendez_vous_fetch_failed`,
-      error,
-    );
-    return 0;
-  }
-
-  if (!dueRdvs || dueRdvs.length === 0) return 0;
-
-  console.log(
-    `[process-checkins] request_id=${params.requestId} due_rendez_vous=${dueRdvs.length}`,
-  );
-
-  let delivered = 0;
-
-  for (const rdv of dueRdvs as Array<Record<string, unknown>>) {
-    const userId = String(rdv.user_id ?? "").trim();
-    const rdvId = String(rdv.id ?? "").trim();
-    const kind = String(rdv.kind ?? "").trim();
-    if (!userId || !rdvId) continue;
-
-    const { data: profile } = await params.supabaseAdmin
-      .from("profiles")
-      .select(
-        "access_tier,trial_end,proactive_muted_at,chat_last_inbound_at,timezone,account_status",
-      )
-      .eq("id", userId)
-      .maybeSingle();
-
-    if ((profile as any)?.account_status === "deletion_pending") {
-      console.log(
-        `[process-checkins] request_id=${params.requestId} rendez_vous_skipped user_id=${userId} rdv_id=${rdvId} reason=account_deletion_pending`,
-      );
-      await transitionRendezVous(
-        params.supabaseAdmin as any,
-        rdvId,
-        "cancelled",
-        {
-          nowIso,
-          eventMetadata: {
-            source: "process_checkins",
-            reason: "account_deletion_pending",
-          },
-        },
-      ).catch(() => undefined);
-      continue;
-    }
-
-    if (
-      !isWhatsappCoachingAccessAllowed(
-        (profile as Record<string, unknown> | null) ?? null,
-      )
-    ) {
-      console.log(
-        `[process-checkins] request_id=${params.requestId} rendez_vous_skipped user_id=${userId} rdv_id=${rdvId} reason=access_paused`,
-      );
-      await transitionRendezVous(
-        params.supabaseAdmin as any,
-        rdvId,
-        "cancelled",
-        {
-          nowIso,
-          eventMetadata: {
-            source: "process_checkins",
-            reason: "access_paused",
-            access_tier: cleanText((profile as any)?.access_tier) || "none",
-          },
-        },
-      ).catch(() => undefined);
-      continue;
-    }
-
-    // Le mute produit, pas l'opt-in Meta: `whatsapp_opted_in` vaut `false` par
-    // défaut et faisait sauter TOUS les rendez-vous.
-    if ((profile as any)?.proactive_muted_at) {
-      console.log(
-        `[process-checkins] request_id=${params.requestId} rendez_vous_skipped user_id=${userId} rdv_id=${rdvId} reason=proactive_muted`,
-      );
-      await transitionRendezVous(
-        params.supabaseAdmin as any,
-        rdvId,
-        "cancelled",
-        {
-          nowIso,
-          eventMetadata: {
-            source: "process_checkins",
-            reason: "not_opted_in",
-          },
-        },
-      ).catch(() => undefined);
-      continue;
-    }
-
-    let bodyText: string;
-    try {
-      bodyText = await generateDynamicWhatsAppCheckinMessage({
-        admin: params.supabaseAdmin as any,
-        userId,
-        eventContext: `rendez_vous:${kind}`,
-        scheduledFor: String(rdv.scheduled_for ?? ""),
-        instruction: rendezVousInstruction(kind),
-        eventGrounding: buildRendezVousEventGrounding({
-          kind,
-          trigger_reason: typeof rdv.trigger_reason === "string"
-            ? rdv.trigger_reason
-            : null,
-          posture: typeof rdv.posture === "string" ? rdv.posture : null,
-          source_refs: (rdv.source_refs as Record<string, unknown> | null) ??
-            null,
-        }),
-        source: "process_checkins:rendez_vous",
-        requestId: params.requestId,
-      });
-    } catch (e) {
-      console.warn(
-        `[process-checkins] request_id=${params.requestId} rendez_vous_dynamic_gen_failed rdv_id=${rdvId}`,
-        e,
-      );
-      bodyText =
-        "Je passe te proposer un moment pour faire le point ensemble, si tu veux.";
-    }
-
-    if (!bodyText.trim()) {
-      bodyText =
-        "Je passe te proposer un moment pour faire le point ensemble, si tu veux.";
-    }
-
-    try {
-      const { data: profileForGreeting } = await params.supabaseAdmin
-        .from("profiles")
-        .select("chat_last_inbound_at,chat_last_outbound_at")
-        .eq("id", userId)
-        .maybeSingle();
-      const allowRelaunchGreeting = allowRelaunchGreetingFromLastMessage({
-        lastInboundAt: (profileForGreeting as any)?.chat_last_inbound_at,
-        lastOutboundAt: (profileForGreeting as any)?.chat_last_outbound_at,
-      });
-      bodyText = applyScheduledCheckinGreetingPolicy({
-        text: bodyText,
-        allowRelaunchGreeting,
-      });
-    } catch (e) {
-      console.warn(
-        `[process-checkins] request_id=${params.requestId} rendez_vous_greeting_failed rdv_id=${rdvId}`,
-        e,
-      );
-    }
-
-    try {
-      const resp = await callWhatsappSend({
-        user_id: userId,
-        message: { type: "text", body: bodyText },
-        purpose: "rendez_vous",
-        require_opted_in: true,
-        metadata_extra: {
-          source: "rendez_vous",
-          rendez_vous_id: rdvId,
-          rendez_vous_kind: kind,
-        },
-      });
-
-      const usedTemplate = Boolean((resp as any)?.used_template);
-      if (Boolean((resp as any)?.skipped)) {
-        const skipReason = String(
-          (resp as any)?.skip_reason ?? "rendez_vous_delivery_skipped",
-        );
-        console.log(
-          `[process-checkins] request_id=${params.requestId} rendez_vous_whatsapp_skipped rdv_id=${rdvId} reason=${skipReason}`,
-        );
-        await transitionRendezVous(
-          params.supabaseAdmin as any,
-          rdvId,
-          "cancelled",
-          {
-            nowIso,
-            eventMetadata: {
-              source: "process_checkins",
-              reason: skipReason,
-            },
-          },
-        ).catch(() => undefined);
-        continue;
-      }
-
-      await transitionRendezVous(
-        params.supabaseAdmin as any,
-        rdvId,
-        "delivered",
-        {
-          nowIso,
-          sourceRefsPatch: {
-            last_delivery_transport: usedTemplate ? "template" : "text",
-            last_delivery_request_id: params.requestId,
-          },
-          eventMetadata: {
-            source: "process_checkins",
-            transport: usedTemplate ? "template" : "text",
-          },
-        },
-      );
-
-      try {
-        await replacePendingRendezVousReplyAction({
-          supabaseAdmin: params.supabaseAdmin,
-          userId,
-          rendezVousId: rdvId,
-          kind,
-          cycleId: cleanText(rdv.cycle_id) || null,
-          transformationId: cleanText(rdv.transformation_id) || null,
-          deliveredAtIso: nowIso,
-        });
-      } catch (pendingError) {
-        console.error(
-          `[process-checkins] request_id=${params.requestId} rendez_vous_pending_insert_failed rdv_id=${rdvId}`,
-          pendingError,
-        );
-      }
-
-      delivered++;
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      console.error(
-        `[process-checkins] request_id=${params.requestId} rendez_vous_delivery_failed rdv_id=${rdvId}`,
-        msg,
-      );
-      await logEdgeFunctionError({
-        functionName: "process-checkins",
-        error: msg,
-        requestId: params.requestId,
-        userId,
-        source: "rendez_vous",
-        metadata: { rendez_vous_id: rdvId, kind },
-      });
-    }
-  }
-
-  return delivered;
-}
-
 Deno.serve(async (req) => {
   const requestId = getRequestId(req);
   try {
@@ -1790,165 +1235,12 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
     );
 
-    // 0) Flush deferred proactive WhatsApp messages when conversation has been quiet.
-    // This avoids sending memory echos mid-conversation.
-    const nowIso = new Date().toISOString();
+    // ⟳ 2026-09-24 — LE VIDAGE DES ENVOIS DIFFÉRÉS (`pending_actions.kind =
+    // 'deferred_send'`) ET LA LIVRAISON DES RENDEZ-VOUS SONT RETIRÉS : aucun
+    // écrivain de `deferred_send` dans le dépôt, et `user_rendez_vous` est
+    // droppée depuis le 2026-08-08. `deferred_send` reste dans la liste
+    // d'annulation de `pauseWhatsappCoachingWorkForUser`.
     const quietMs = QUIET_WINDOW_MINUTES * 60 * 1000;
-    const { data: deferred, error: defErr } = await supabaseAdmin
-      .from("pending_actions")
-      .select("id, user_id, payload, not_before, expires_at, created_at")
-      .eq("kind", "deferred_send")
-      .eq("status", "pending")
-      .or(`not_before.is.null,not_before.lte.${nowIso}`)
-      .or(`expires_at.is.null,expires_at.gt.${nowIso}`)
-      .order("created_at", { ascending: true })
-      .limit(50);
-    if (defErr) throw defErr;
-
-    let flushedCount = 0;
-    if (deferred && deferred.length > 0) {
-      for (const row of deferred as any[]) {
-        const access = await loadWhatsappCoachingAccess({
-          supabaseAdmin,
-          userId: String(row.user_id ?? ""),
-        });
-        if (!access.allowed) {
-          await pauseWhatsappCoachingWorkForUser({
-            supabaseAdmin,
-            userId: String(row.user_id ?? ""),
-            requestId,
-            reason: `whatsapp_coaching_access_paused:${access.tier}`,
-          });
-          continue;
-        }
-
-        // Ensure quiet window is satisfied before sending.
-        const { data: profile } = await supabaseAdmin
-          .from("profiles")
-          .select(
-            "chat_last_inbound_at, chat_last_outbound_at, account_status",
-          )
-          .eq("id", row.user_id)
-          .maybeSingle();
-        if ((profile as any)?.account_status === "deletion_pending") {
-          console.log(
-            `[process-checkins] request_id=${requestId} deferred_send_skipped pending_id=${row.id} reason=account_deletion_pending`,
-          );
-          await supabaseAdmin
-            .from("pending_actions")
-            .update({
-              status: "cancelled",
-              processed_at: new Date().toISOString(),
-            })
-            .eq("id", row.id);
-          continue;
-        }
-        const lastInbound = profile?.chat_last_inbound_at
-          ? new Date(profile.chat_last_inbound_at).getTime()
-          : null;
-        const lastOutbound = (profile as any)?.chat_last_outbound_at
-          ? new Date((profile as any).chat_last_outbound_at).getTime()
-          : null;
-        const lastActivity = Math.max(lastInbound ?? 0, lastOutbound ?? 0);
-        if (lastActivity > 0 && Date.now() - lastActivity < quietMs) {
-          // Still active: keep pending for next run.
-          continue;
-        }
-
-        const p = row.payload ?? {};
-        const purpose = (p as any)?.purpose ?? null;
-        const message = (p as any)?.message ?? null;
-        const requireOptedIn = (p as any)?.require_opted_in;
-        const metadataExtra = (p as any)?.metadata_extra;
-        let bodyText = (message && (message as any).type === "text")
-          ? String((message as any).body ?? "")
-          : "";
-        try {
-          const { data: profileForGreeting } = await supabaseAdmin
-            .from("profiles")
-            .select("chat_last_inbound_at, chat_last_outbound_at")
-            .eq("id", row.user_id)
-            .maybeSingle();
-          const allowRelaunchGreeting = allowRelaunchGreetingFromLastMessage({
-            lastInboundAt: (profileForGreeting as any)
-              ?.chat_last_inbound_at,
-            lastOutboundAt: (profileForGreeting as any)
-              ?.chat_last_outbound_at,
-          });
-          bodyText = applyWhatsappProactiveOpeningPolicy({
-            text: bodyText,
-            allowRelaunchGreeting,
-            fallback: "Comment ça va ?",
-          });
-          if (message && (message as any).type === "text") {
-            (message as any).body = bodyText;
-          }
-        } catch (e) {
-          console.warn(
-            `[process-checkins] request_id=${requestId} deferred_greeting_policy_failed pending_id=${row.id}`,
-            e,
-          );
-        }
-
-        try {
-          await callWhatsappSend({
-            user_id: row.user_id,
-            message,
-            purpose,
-            require_opted_in: requireOptedIn,
-            metadata_extra: metadataExtra,
-          });
-
-          await supabaseAdmin
-            .from("pending_actions")
-            .update({ status: "done", processed_at: new Date().toISOString() })
-            .eq("id", row.id);
-          flushedCount++;
-        } catch (e) {
-          const status = (e as any)?.status;
-          // 429 throttle => keep pending, retry later.
-          if (status === 429) continue;
-          if (status === 402) {
-            await pauseWhatsappCoachingWorkForUser({
-              supabaseAdmin,
-              userId: String(row.user_id ?? ""),
-              requestId,
-              reason: "whatsapp_coaching_access_paused:paywall",
-            });
-            continue;
-          }
-
-          // If WhatsApp can't be used (not opted in / paywall / missing phone), fall back to in-app log and stop retrying.
-          if (bodyText.trim()) {
-            await supabaseAdmin.from("chat_messages").insert({
-              user_id: row.user_id,
-              role: "assistant",
-              content: bodyText,
-              agent_used: "philosopher",
-              metadata: {
-                source: "deferred_send_fallback",
-                purpose,
-                ...(metadataExtra && typeof metadataExtra === "object"
-                  ? metadataExtra
-                  : {}),
-              },
-            });
-          }
-          await supabaseAdmin
-            .from("pending_actions")
-            .update({
-              status: "cancelled",
-              processed_at: new Date().toISOString(),
-            })
-            .eq("id", row.id);
-        }
-      }
-    }
-
-    const deliveredRendezVous = await processDueRendezVous({
-      supabaseAdmin,
-      requestId,
-    });
 
     const processedAccessBefore = await processPendingAccessEndedNotifications({
       supabaseAdmin,
@@ -2000,8 +1292,6 @@ Deno.serve(async (req) => {
         req,
         {
           message: "No checkins to process",
-          flushed_deferred: flushedCount,
-          delivered_rendez_vous: deliveredRendezVous,
           processed_access_notifications: processedAccessBefore +
             processedAccessAfter,
           enqueued_daily_bilan_winbacks: enqueuedDailyBilanWinbacksBefore,
@@ -2048,8 +1338,6 @@ Deno.serve(async (req) => {
       }
 
       const eventContext = String((checkin as any)?.event_context ?? "");
-      const isMomentumOutreach = isMomentumOutreachEventContext(eventContext);
-      const isMomentumMorningNudge = isMorningNudgeEventContext(eventContext);
       const isActionMorningEncouragement =
         eventContext === ACTION_MORNING_EVENT_CONTEXT;
       const isActionMorningFollowup =
@@ -2090,8 +1378,6 @@ Deno.serve(async (req) => {
         }
       }
       let userTimezone = "Europe/Paris";
-      let userProfileSnapshot: Record<string, unknown> | null = null;
-      let morningPlan: any = null;
 
       // RETRAIT RÉSIDUS (2026-08-08): tous les check-ins du système de plan
       // V2 (nudges d'action, revue hebdo, validation de planning) sont
@@ -2111,6 +1397,18 @@ Deno.serve(async (req) => {
         });
         continue;
       }
+      // ⟳ 2026-09-24 — même geste pour la chaîne momentum retirée (voir
+      // `LEGACY_MOMENTUM_EVENT_CONTEXTS`).
+      if (LEGACY_MOMENTUM_EVENT_CONTEXTS.has(eventContext.trim())) {
+        await markScheduledCheckinDeliveryState({
+          supabaseAdmin,
+          checkinId: checkin.id,
+          status: "cancelled",
+          errorMessage: "legacy_momentum_checkin_removed",
+          requestId,
+        });
+        continue;
+      }
 
       // Proactive-outreach staleness guard.
       // Morning nudges, daily/weekly bilan and momentum outreach lose their meaning
@@ -2120,8 +1418,7 @@ Deno.serve(async (req) => {
       // the freshness window.
       // A slot reminder is ABOUT a moment: "Lunch — on your plan today" landing at
       // 16:00 because delivery backed off is not a late message, it is a wrong one.
-      const isPeremptibleProactiveCheckin = isMomentumMorningNudge ||
-        isMorningLightGreeting || isMomentumOutreach ||
+      const isPeremptibleProactiveCheckin = isMorningLightGreeting ||
         isKeelProactive;
       if (isPeremptibleProactiveCheckin) {
         const stalenessPayload =
@@ -2189,46 +1486,8 @@ Deno.serve(async (req) => {
             .eq("id", checkin.id);
           continue;
         }
-        userProfileSnapshot = (profile as Record<string, unknown> | null) ??
-          null;
         userTimezone = String((profile as any)?.timezone ?? "").trim() ||
           "Europe/Paris";
-        const coachingPauseUntilMs =
-          (profile as any)?.whatsapp_coaching_paused_until
-            ? new Date((profile as any).whatsapp_coaching_paused_until)
-              .getTime()
-            : NaN;
-        if (
-          isMomentumMorningNudge &&
-          Number.isFinite(coachingPauseUntilMs) &&
-          coachingPauseUntilMs > Date.now()
-        ) {
-          await logMomentumObservabilityEvent({
-            supabase: supabaseAdmin as any,
-            userId: checkin.user_id,
-            requestId,
-            channel: "whatsapp",
-            scope: "whatsapp",
-            sourceComponent: "process_checkins",
-            eventName: "momentum_morning_nudge_decision",
-            payload: {
-              decision_kind: "momentum_morning_gate",
-              target_kind: "morning_nudge",
-              state_at_decision: null,
-              decision: "skip",
-              decision_reason: "momentum_morning_nudge_pause_active",
-              scheduled_checkin_id: String(checkin.id ?? ""),
-            },
-          });
-          await supabaseAdmin
-            .from("scheduled_checkins")
-            .update({
-              status: "cancelled",
-              processed_at: new Date().toISOString(),
-            })
-            .eq("id", checkin.id);
-          continue;
-        }
         // KEEL W4.6 — the restriction floor, at DELIVERY time.
         //
         // Provisioning already refuses to create these rows for a flagged student,
@@ -2302,38 +1561,6 @@ Deno.serve(async (req) => {
               status: checkin.status,
             })
             .eq("id", checkin.id);
-          if (isMomentumOutreach) {
-            await logMomentumObservabilityEvent({
-              supabase: supabaseAdmin as any,
-              userId: checkin.user_id,
-              requestId,
-              channel: "whatsapp",
-              scope: "whatsapp",
-              sourceComponent: "process_checkins",
-              eventName: "momentum_outreach_deferred",
-              payload: buildMomentumDeliveryPayload(checkin, {
-                delivery_status: "deferred",
-                transport: "quiet_window",
-                scheduled_for: nextIso,
-              }),
-            });
-          }
-          if (isMomentumMorningNudge) {
-            await logMomentumObservabilityEvent({
-              supabase: supabaseAdmin as any,
-              userId: checkin.user_id,
-              requestId,
-              channel: "whatsapp",
-              scope: "whatsapp",
-              sourceComponent: "process_checkins",
-              eventName: "momentum_morning_nudge_deferred",
-              payload: buildMomentumMorningDeliveryPayload(checkin, {
-                delivery_status: "deferred",
-                transport: "quiet_window",
-                scheduled_for: nextIso,
-              }),
-            });
-          }
           continue;
         }
       }
@@ -2348,151 +1575,6 @@ Deno.serve(async (req) => {
         .toLowerCase();
       let payload = ((checkin as any)?.message_payload ?? {}) as any;
       let bodyText = String((checkin as any)?.draft_message ?? "").trim();
-      let tempMemory: Record<string, unknown> = {};
-      if (isMomentumMorningNudge) {
-        tempMemory = await fetchWhatsappTempMemory(
-          supabaseAdmin,
-          String(checkin.user_id),
-        ).catch(() => ({}));
-        if (eventContext === "morning_nudge_v2") {
-          const resolvedMorningPlan = await resolveMorningNudgePlanV2({
-            supabase: supabaseAdmin as any,
-            userId: String(checkin.user_id),
-            tempMemory,
-            scheduledForIso: String((checkin as any)?.scheduled_for ?? ""),
-            scheduledCheckinId: String((checkin as any)?.id ?? ""),
-            timezone: userTimezone,
-          });
-          morningPlan = resolvedMorningPlan.plan;
-          if (
-            resolvedMorningPlan.repairModeTransition?.activated &&
-            resolvedMorningPlan.repairModeTransition.updatedTempMemory &&
-            resolvedMorningPlan.repairModeTransition.enteredEventPayload
-          ) {
-            tempMemory = resolvedMorningPlan.repairModeTransition
-              .updatedTempMemory as Record<
-                string,
-                unknown
-              >;
-            await persistWhatsappTempMemory({
-              supabaseAdmin,
-              userId: String(checkin.user_id),
-              tempMemory,
-            });
-            try {
-              await logV2Event(
-                supabaseAdmin as any,
-                V2_EVENT_TYPES.REPAIR_MODE_ENTERED,
-                resolvedMorningPlan.repairModeTransition.enteredEventPayload,
-              );
-            } catch (error) {
-              console.warn(
-                "[process-checkins] repair_mode_entered_v2 log failed:",
-                error,
-              );
-            }
-          }
-          payload = {
-            ...payload,
-            conversation_pulse_id: resolvedMorningPlan.conversationPulseId,
-          };
-        } else {
-          morningPlan = buildMomentumMorningPlan({
-            tempMemory,
-            payload,
-          });
-        }
-        await logMomentumObservabilityEvent({
-          supabase: supabaseAdmin as any,
-          userId: checkin.user_id,
-          requestId,
-          channel: "whatsapp",
-          scope: "whatsapp",
-          sourceComponent: "process_checkins",
-          eventName: "momentum_morning_nudge_decision",
-          payload: {
-            decision_kind: "momentum_morning_gate",
-            target_kind: "morning_nudge",
-            state_at_decision: morningPlan.state ?? null,
-            decision: morningPlan.decision,
-            decision_reason: morningPlan.reason,
-            strategy: morningPlanStrategy(morningPlan),
-            posture: morningPlanPosture(morningPlan),
-            relevance: morningPlan.relevance,
-            confidence: morningPlanConfidence(morningPlan),
-            plan_item_ids_targeted: morningPlanTargetIds(morningPlan),
-            plan_item_titles_targeted: morningPlanTargetTitles(morningPlan),
-            scheduled_checkin_id: String(checkin.id ?? ""),
-          },
-        });
-        if (morningPlan.decision === "skip") {
-          await logMomentumObservabilityEvent({
-            supabase: supabaseAdmin as any,
-            userId: checkin.user_id,
-            requestId,
-            channel: "whatsapp",
-            scope: "whatsapp",
-            sourceComponent: "process_checkins",
-            eventName: "momentum_morning_nudge_cancelled",
-            payload: buildMomentumMorningDeliveryPayload(checkin, {
-              delivery_status: "cancelled",
-              momentum_state: morningPlan.state ?? null,
-              momentum_strategy: morningPlanStrategy(morningPlan),
-              morning_nudge_posture: morningPlanPosture(morningPlan),
-              relevance: morningPlan.relevance,
-              confidence: morningPlanConfidence(morningPlan),
-              plan_item_ids_targeted: morningPlanTargetIds(morningPlan),
-              plan_item_titles_targeted: morningPlanTargetTitles(morningPlan),
-              skip_reason: morningPlan.reason,
-            }),
-          });
-          await markScheduledCheckinDeliveryState({
-            supabaseAdmin,
-            checkinId: checkin.id,
-            status: "cancelled",
-            errorMessage: morningPlan.reason,
-            requestId,
-          });
-          continue;
-        }
-        mode = "dynamic";
-        const morningNudgePayloadV2 = eventContext === "morning_nudge_v2"
-          ? buildMorningNudgePayloadV2({
-            plan: morningPlan as any,
-            sentAtIso: String((checkin as any)?.scheduled_for ?? ""),
-          })
-          : null;
-        payload = {
-          ...payload,
-          source: "process_checkins:momentum_morning_nudge",
-          momentum_state: morningPlan.state ?? null,
-          momentum_strategy: morningPlanStrategy(morningPlan),
-          morning_nudge_posture: morningPlanPosture(morningPlan),
-          ...(morningNudgePayloadV2 ?? {}),
-          morning_nudge_v2: morningNudgePayloadV2,
-          relevance: morningPlan.relevance,
-          instruction: morningPlan.instruction ?? payload?.instruction ?? "",
-          event_grounding: morningPlan.event_grounding ??
-            payload?.event_grounding ?? "",
-          confidence: morningPlanConfidence(morningPlan),
-          plan_item_ids_targeted: morningPlanTargetIds(morningPlan),
-          plan_item_titles_targeted: morningPlanTargetTitles(morningPlan),
-          chat_capability: "track_progress_only",
-        };
-        bodyText = morningPlan.fallback_text ?? bodyText;
-        try {
-          await supabaseAdmin
-            .from("scheduled_checkins")
-            .update({ message_payload: payload })
-            .eq("id", checkin.id);
-          (checkin as any).message_payload = payload;
-        } catch (e) {
-          console.warn(
-            `[process-checkins] request_id=${requestId} persist_morning_payload_failed checkin_id=${checkin.id}`,
-            e,
-          );
-        }
-      }
 
       if (
         isMorningLightGreeting &&
@@ -2697,8 +1779,7 @@ Deno.serve(async (req) => {
         }
       }
       // Needed for purpose tagging in both WhatsApp and fallback logging paths.
-      const isMorningNudgeKind = isMomentumMorningNudge ||
-        isMorningLightGreeting;
+      const isMorningNudgeKind = isMorningLightGreeting;
       const checkinPurpose = isBirthdayGreeting
         ? "birthday_greeting"
         // KEEL W4.6: these two purposes are what puts the send in the OPT-IN
@@ -2738,55 +1819,6 @@ Deno.serve(async (req) => {
         usedTemplate = Boolean((resp as any)?.used_template);
         sentViaWhatsapp = !skipped;
         if (skipped) {
-          if (isMomentumOutreach) {
-            const skipReason = String(
-              (resp as any)?.skip_reason ?? "scheduled_checkin_skipped",
-            );
-            await logMomentumObservabilityEvent({
-              supabase: supabaseAdmin as any,
-              userId: checkin.user_id,
-              requestId: String((resp as any)?.request_id ?? requestId),
-              channel: "whatsapp",
-              scope: "whatsapp",
-              sourceComponent: "process_checkins",
-              eventName: skipReason.includes("throttle")
-                ? "momentum_outreach_throttled"
-                : "momentum_outreach_cancelled",
-              payload: buildMomentumDeliveryPayload(checkin, {
-                delivery_status: skipReason.includes("throttle")
-                  ? "throttled"
-                  : "cancelled",
-                transport: usedTemplate ? "template" : "text",
-                skip_reason: skipReason,
-              }),
-            });
-          }
-          if (isMomentumMorningNudge) {
-            const skipReason = String(
-              (resp as any)?.skip_reason ?? "scheduled_checkin_skipped",
-            );
-            await logMomentumObservabilityEvent({
-              supabase: supabaseAdmin as any,
-              userId: checkin.user_id,
-              requestId: String((resp as any)?.request_id ?? requestId),
-              channel: "whatsapp",
-              scope: "whatsapp",
-              sourceComponent: "process_checkins",
-              eventName: "momentum_morning_nudge_cancelled",
-              payload: buildMomentumMorningDeliveryPayload(checkin, {
-                delivery_status: "cancelled",
-                momentum_state: morningPlan?.state ?? null,
-                momentum_strategy: morningPlanStrategy(morningPlan),
-                morning_nudge_posture: morningPlanPosture(morningPlan),
-                relevance: morningPlan?.relevance ?? null,
-                confidence: morningPlanConfidence(morningPlan),
-                plan_item_ids_targeted: morningPlanTargetIds(morningPlan),
-                plan_item_titles_targeted: morningPlanTargetTitles(morningPlan),
-                transport: usedTemplate ? "template" : "text",
-                skip_reason: skipReason,
-              }),
-            });
-          }
           await markScheduledCheckinDeliveryState({
             supabaseAdmin,
             checkinId: checkin.id,
@@ -2831,34 +1863,6 @@ Deno.serve(async (req) => {
           }
         }
 
-        if (isMomentumMorningNudge) {
-          if (payload?.morning_nudge_v2) {
-            console.log(
-              `[process-checkins] request_id=${requestId} morning_nudge_v2.nudge_kind=${payload.morning_nudge_v2.nudge_kind} morning_nudge_v2.posture=${payload.morning_nudge_v2.posture} morning_nudge_v2.opens_local_flow=${payload.morning_nudge_v2.opens_local_flow} morning_nudge_v2.intended_followup_flow=${payload.morning_nudge_v2.intended_followup_flow}`,
-            );
-          }
-          const currentRepairMode = readRepairMode(tempMemory);
-          if (currentRepairMode.active) {
-            const nextRepairMode = recordSoftContact(
-              currentRepairMode,
-              new Date().toISOString(),
-            );
-            if (
-              nextRepairMode.last_soft_contact_at !==
-                currentRepairMode.last_soft_contact_at
-            ) {
-              tempMemory = writeRepairMode(
-                tempMemory,
-                nextRepairMode,
-              ) as Record<string, unknown>;
-              await persistWhatsappTempMemory({
-                supabaseAdmin,
-                userId: String(checkin.user_id),
-                tempMemory,
-              });
-            }
-          }
-        }
       } catch (e) {
         const status = (e as any)?.status;
         const msg = e instanceof Error ? e.message : String(e);
@@ -2887,47 +1891,6 @@ Deno.serve(async (req) => {
           console.warn(
             `[process-checkins] request_id=${requestId} retrying_checkin checkin_id=${checkin.id} next_retry_at=${nextRetryAt}`,
           );
-          if (isMomentumOutreach) {
-            await logMomentumObservabilityEvent({
-              supabase: supabaseAdmin as any,
-              userId: checkin.user_id,
-              requestId: downstreamRequestId,
-              channel: "whatsapp",
-              scope: "whatsapp",
-              sourceComponent: "process_checkins",
-              eventName: "momentum_outreach_failed",
-              payload: buildMomentumDeliveryPayload(checkin, {
-                delivery_status: "retrying",
-                transport: null,
-                failure_reason: msg,
-                scheduled_for: nextRetryAt,
-              }),
-            });
-          }
-          if (isMomentumMorningNudge) {
-            await logMomentumObservabilityEvent({
-              supabase: supabaseAdmin as any,
-              userId: checkin.user_id,
-              requestId: downstreamRequestId,
-              channel: "whatsapp",
-              scope: "whatsapp",
-              sourceComponent: "process_checkins",
-              eventName: "momentum_morning_nudge_failed",
-              payload: buildMomentumMorningDeliveryPayload(checkin, {
-                delivery_status: "retrying",
-                momentum_state: morningPlan?.state ?? null,
-                momentum_strategy: morningPlanStrategy(morningPlan),
-                morning_nudge_posture: morningPlanPosture(morningPlan),
-                relevance: morningPlan?.relevance ?? null,
-                confidence: morningPlanConfidence(morningPlan),
-                plan_item_ids_targeted: morningPlanTargetIds(morningPlan),
-                plan_item_titles_targeted: morningPlanTargetTitles(morningPlan),
-                transport: null,
-                failure_reason: msg,
-                scheduled_for: nextRetryAt,
-              }),
-            });
-          }
           await markScheduledCheckinDeliveryState({
             supabaseAdmin,
             checkinId: checkin.id,
@@ -2943,45 +1906,6 @@ Deno.serve(async (req) => {
           `[process-checkins] request_id=${requestId} whatsapp_send_failed checkin_id=${checkin.id}`,
           msg,
         );
-        if (isMomentumOutreach) {
-          await logMomentumObservabilityEvent({
-            supabase: supabaseAdmin as any,
-            userId: checkin.user_id,
-            requestId: downstreamRequestId,
-            channel: "whatsapp",
-            scope: "whatsapp",
-            sourceComponent: "process_checkins",
-            eventName: "momentum_outreach_failed",
-            payload: buildMomentumDeliveryPayload(checkin, {
-              delivery_status: "failed",
-              transport: null,
-              failure_reason: msg,
-            }),
-          });
-        }
-        if (isMomentumMorningNudge) {
-          await logMomentumObservabilityEvent({
-            supabase: supabaseAdmin as any,
-            userId: checkin.user_id,
-            requestId: downstreamRequestId,
-            channel: "whatsapp",
-            scope: "whatsapp",
-            sourceComponent: "process_checkins",
-            eventName: "momentum_morning_nudge_failed",
-            payload: buildMomentumMorningDeliveryPayload(checkin, {
-              delivery_status: "failed",
-              momentum_state: morningPlan?.state ?? null,
-              momentum_strategy: morningPlanStrategy(morningPlan),
-              morning_nudge_posture: morningPlanPosture(morningPlan),
-              relevance: morningPlan?.relevance ?? null,
-              confidence: morningPlanConfidence(morningPlan),
-              plan_item_ids_targeted: morningPlanTargetIds(morningPlan),
-              plan_item_titles_targeted: morningPlanTargetTitles(morningPlan),
-              transport: null,
-              failure_reason: msg,
-            }),
-          });
-        }
         await markScheduledCheckinDeliveryState({
           supabaseAdmin,
           checkinId: checkin.id,
@@ -3063,43 +1987,6 @@ Deno.serve(async (req) => {
               stErr,
             );
           }
-          if (isMomentumOutreach) {
-            await logMomentumObservabilityEvent({
-              supabase: supabaseAdmin as any,
-              userId: checkin.user_id,
-              requestId,
-              channel: "whatsapp",
-              scope: "whatsapp",
-              sourceComponent: "process_checkins",
-              eventName: "momentum_outreach_sent",
-              payload: buildMomentumDeliveryPayload(checkin, {
-                delivery_status: "awaiting_user",
-                transport: "template",
-              }),
-            });
-          }
-          if (isMomentumMorningNudge) {
-            await logMomentumObservabilityEvent({
-              supabase: supabaseAdmin as any,
-              userId: checkin.user_id,
-              requestId,
-              channel: "whatsapp",
-              scope: "whatsapp",
-              sourceComponent: "process_checkins",
-              eventName: "momentum_morning_nudge_sent",
-              payload: buildMomentumMorningDeliveryPayload(checkin, {
-                delivery_status: "awaiting_user",
-                momentum_state: morningPlan?.state ?? null,
-                momentum_strategy: morningPlanStrategy(morningPlan),
-                morning_nudge_posture: morningPlanPosture(morningPlan),
-                relevance: morningPlan?.relevance ?? null,
-                confidence: morningPlanConfidence(morningPlan),
-                plan_item_ids_targeted: morningPlanTargetIds(morningPlan),
-                plan_item_titles_targeted: morningPlanTargetTitles(morningPlan),
-                transport: "template",
-              }),
-            });
-          }
           continue;
         }
       }
@@ -3122,43 +2009,6 @@ Deno.serve(async (req) => {
         );
         // Note: This might result in duplicate message if retried, but rare
       } else {
-        if (isMomentumOutreach) {
-          await logMomentumObservabilityEvent({
-            supabase: supabaseAdmin as any,
-            userId: checkin.user_id,
-            requestId,
-            channel: "whatsapp",
-            scope: "whatsapp",
-            sourceComponent: "process_checkins",
-            eventName: "momentum_outreach_sent",
-            payload: buildMomentumDeliveryPayload(checkin, {
-              delivery_status: "sent",
-              transport: usedTemplate ? "template" : "text",
-            }),
-          });
-        }
-        if (isMomentumMorningNudge) {
-          await logMomentumObservabilityEvent({
-            supabase: supabaseAdmin as any,
-            userId: checkin.user_id,
-            requestId,
-            channel: "whatsapp",
-            scope: "whatsapp",
-            sourceComponent: "process_checkins",
-            eventName: "momentum_morning_nudge_sent",
-            payload: buildMomentumMorningDeliveryPayload(checkin, {
-              delivery_status: "sent",
-              momentum_state: morningPlan?.state ?? null,
-              momentum_strategy: morningPlanStrategy(morningPlan),
-              morning_nudge_posture: morningPlanPosture(morningPlan),
-              relevance: morningPlan?.relevance ?? null,
-              confidence: morningPlanConfidence(morningPlan),
-              plan_item_ids_targeted: morningPlanTargetIds(morningPlan),
-              plan_item_titles_targeted: morningPlanTargetTitles(morningPlan),
-              transport: usedTemplate ? "template" : "text",
-            }),
-          });
-        }
         processedCount++;
       }
     }
@@ -3186,8 +2036,6 @@ Deno.serve(async (req) => {
       {
         success: true,
         processed: processedCount,
-        flushed_deferred: flushedCount,
-        delivered_rendez_vous: deliveredRendezVous,
         processed_access_notifications: processedAccessBefore +
           processedAccessAfter,
         enqueued_daily_bilan_winbacks: enqueuedDailyBilanWinbacksBefore +
