@@ -5,6 +5,7 @@ import { ensureInternalRequest } from "../_shared/internal-auth.ts";
 import { deliverLegacyPurpose } from "../_shared/chat/send_compat.ts";
 import { CHAT_SCOPE } from "../_shared/chat/delivery.ts";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
+import { isWhatsappCoachingAccessAllowed } from "./access.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import { logMomentumObservabilityEvent } from "../_shared/momentum-observability.ts";
 import {
@@ -138,23 +139,6 @@ const WHATSAPP_COACHING_PAUSED_STATUSES = [
 
 function cleanText(value: unknown): string {
   return String(value ?? "").trim();
-}
-
-function isWhatsappCoachingAccessAllowed(
-  profile: Record<string, unknown> | null | undefined,
-): boolean {
-  const tier = cleanText(profile?.access_tier).toLowerCase();
-  // W10 (MEGA_REVIEW B6): the KEEL tiers. Without them, every reminder and
-  // digest provisioned for a coach-paid student was cancelled at delivery with
-  // reason=access_paused — the student saw silence and the coach saw nothing.
-  if (tier === "coach" || tier === "student") return true;
-  if (tier === "alliance" || tier === "architecte") return true;
-  if (tier !== "trial") return false;
-
-  const trialEndRaw = cleanText(profile?.trial_end);
-  if (!trialEndRaw) return true;
-  const trialEndMs = new Date(trialEndRaw).getTime();
-  return Number.isFinite(trialEndMs) && trialEndMs > Date.now();
 }
 
 async function loadWhatsappCoachingAccess(params: {
