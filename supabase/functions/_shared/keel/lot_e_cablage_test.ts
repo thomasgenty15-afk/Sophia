@@ -120,7 +120,10 @@ Deno.test("⛔ LOT E / P0-a — L'AJUSTEUR TOURNE APRÈS LA MESURE ET AVANT TOUT
   // un minimum de 123).
   const mesure = SRC.indexOf("let measured = meal.dishes.map((d: GeneratedDish) =>");
   const ajuste = SRC.indexOf("adjustPlanProportions({", mesure);
-  const reparation = SRC.indexOf("const outOfBounds = measured", mesure);
+  // ⟳ 2026-09-24 — `const outOfBounds = measured` (calculé, jamais lu) est
+  // retiré. Le repère est la décision de rattrapage VIVANTE : la liste
+  // recalculée au premier tour de la boucle de réparation.
+  const reparation = SRC.indexOf("const horsBornes = measured", mesure);
   const applique = SRC.indexOf("const applied = applySizing({");
   assert(mesure > 0, "la première mesure a disparu — test à réviser");
   assert(ajuste > 0, "l'ajusteur déterministe n'a AUCUN appelant sur le chemin d'une bouche");

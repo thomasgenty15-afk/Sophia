@@ -526,15 +526,18 @@ Deno.test("CÂBLAGE ㉒ — la relance récite la RECETTE, quantités comprises"
   assert(bloc.includes("quantity: g.quantity"), "et c'est la chaîne du modèle");
   assert(bloc.includes("pots: r.pots.map("), "chaque casserole aussi");
   assert(bloc.includes("repairability: reworkable.has(pot.id)"), "avec son verrou");
-  // ⛔ ET UNE SEULE DÉRIVATION DE LA RECETTE. `componentsOf`, qui sert la garde
-  // d'identité, LIT `recipeOf` — deux listes séparées permettraient de demander
-  // une chose et d'en vérifier une autre.
-  assert(SRC.includes("const componentsOf = (i: number)"), "la garde a sa liste");
-  const ci = SRC.indexOf("const componentsOf = (i: number)");
-  assert(
-    SRC.slice(ci, ci + 400).includes("const r = recipeOf(i);"),
-    "et elle la dérive de la recette, pas d'un second parcours",
+  // ⛔ ET UNE SEULE DÉRIVATION DE LA RECETTE. Deux listes séparées
+  // permettraient de demander une chose et d'en vérifier une autre.
+  // ⟳ 2026-09-24 — `componentsOf` (la liste de la garde d'identité) est
+  // RETIRÉE : plus aucun appelant depuis que `repairIdentityHeld` n'est plus
+  // appelé par la lane. Ce qui reste à tenir : la recette n'est dérivée
+  // qu'UNE fois, et aucune seconde liste plate ne revient à côté d'elle.
+  assertEquals(
+    SRC.split("const recipeOf = (i: number)").length - 1,
+    1,
+    "la recette est dérivée deux fois",
   );
+  assert(!SRC.includes("const componentsOf = (i: number)"), "une seconde liste de la recette est revenue");
 });
 
 Deno.test("CÂBLAGE ㉓ — la règle des mangeurs est une ENTRÉE, et les deux chemins la fournissent", () => {

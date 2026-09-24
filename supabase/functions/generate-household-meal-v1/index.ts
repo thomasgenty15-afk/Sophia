@@ -103,7 +103,6 @@ import {
   proposedWindowStart,
   rhythmClockFrom,
   cookingAskedToday,
-  slotsPassedToday,
   slotsUnservableToday,
 } from "../_shared/keel/plan_hours.ts";
 // POURQUOI CES JOURS-LÀ — déterministe, assemblé par le serveur, jamais
@@ -137,7 +136,6 @@ import {
   draftNoteBeltItems,
 } from "../_shared/keel/draft_note_classify_io.ts";
 import {
-  foodTermsOf,
   planVocabularyOf,
 } from "../_shared/keel/plan_feedback_chat.ts";
 import {
@@ -253,12 +251,10 @@ import {
 } from "../_shared/keel/household_hand.ts";
 import {
   bestMergePair,
-  buildUnmergeBlock,
   MERGE_MEMBER_AWAY_ALL_WINDOW,
   MERGE_SHAPE_NOT_HONOURED,
   MERGE_WINDOW_ALL_PAST,
   MERGE_WINDOW_UNREADABLE,
-  type MergeMaterialDish,
   type MergedFromEntry,
   type MergeWindow,
   mergedFromEntry,
@@ -266,11 +262,6 @@ import {
   mergeMaterialShown,
   observeMergeShape,
   type PlanSpan,
-  // G5 — LE CRITÈRE DE DIVERGENCE EST CELUI DE LA FUSION, LU ET PAS RÉÉCRIT.
-  // « Une casserole déjà composée peut toujours en donner moins, jamais plus
-  // qu'elle n'en contient »: `servingConflicts` porte cette phrase depuis D6,
-  // et une seconde lecture ailleurs finirait par en dire autre chose.
-  servingConflicts,
 } from "../_shared/keel/household_merge.ts";
 import {
   carryMergedFrom,
@@ -416,7 +407,6 @@ import {
   repairDecision,
   repairDecisionForDish,
   REPAIR_REASONS,
-  repairIdentityHeld,
   potRepairability,
   DEDICATED_REPAIR_MAX_PER_PLAN,
   DEDICATED_DISH_HEAD,
@@ -504,7 +494,6 @@ import {
 import {
   contractKey,
   infeasibleDemands,
-  requiredDensityFor,
   requiredDensityFromContracts,
   type SlotContractSet,
   slotContractsFor,
@@ -538,14 +527,6 @@ import {
   densityFromComposition,
   weighedReadyGrams,
 } from "../_shared/keel/box_densify.ts";
-import {
-  mergeRetryByCell,
-  appendDedicatedDishes,
-  mergeRetryCells,
-  spliceReworkableUnits,
-  unforkReworkedPots,
-  slotsStillEmpty,
-} from "../_shared/keel/retry_merge.ts";
 // ⟳ 2026-09-09 — LA CHIRURGIE LOCALE : une case refaite, le reste intact par
 // construction. Module pur ; le générateur tient le brouillon de départ, le
 // modèle, et rejoue ses ceintures sur le plan fusionné.
@@ -650,8 +631,6 @@ import {
 // contrairement à `readCookingCapacity` qui vit en double dans ces deux
 // fichiers depuis toujours.
 import {
-  type CookingStyle,
-  type GroceryRuns,
   readCookingStyle,
   readGroceryRuns,
   readGroceryRunsAnswer,
@@ -711,10 +690,8 @@ import {
   BODY_SHARE_REASONS,
   countPortionNoteDrift,
   bodyShareFactors,
-  type BodyShareReason,
   BOX_FACTOR_SOURCES,
   BOX_SIZING_REASONS,
-  type BoxSizingReason,
   householdMouthFactors,
   type MouthRestrictionState,
   resolveBoxFactors,
@@ -9586,38 +9563,6 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
         [...MEAL_TOKEN_FIELDS, ...sideLanguageFields.tokens],
       );
 
-    // ══════════════════════════════════════════════════════════════════════
-    // ⟳ 2026-09-08 SOIR — LA RELANCE DE DENSITÉ PARLE EN DERNIER
-    // ══════════════════════════════════════════════════════════════════════
-    //
-    // ⛔ ELLE EST LA SEULE DES SIX RELANCES À DEMANDER DE **NE PAS** COMPOSER.
-    // Les cinq autres (`protein_anchor`, `exclusion`, `swap`,
-    // `preference_split`, `unfed`) demandent toutes de RECOMPOSER quelque
-    // chose — mets une protéine, retire cet aliment, sépare ce plat, nourris
-    // cette bouche. Le bloc de précédence qui atterrit après elles est
-    // cohérent: il dit comment arbitrer QUAND on compose. Celle-ci dit
-    // l'inverse — « ne recompose rien, réécris les quantités de cette
-    // recette-ci ».
-    //
-    // ── CE QUE LE MODÈLE LISAIT EN DERNIER, ET CE QU'IL A FAIT ───────────
-    // `movePrecedenceToTail` place le bloc d'arbitrage APRÈS tout le reste,
-    // instruction de relance comprise. Ce bloc dit, mot pour mot: « nothing in
-    // this message outranks it », puis « compose the nearest dish the higher
-    // rule DOES allow. Never drop the meal ». La consigne « garde l'identité,
-    // ne remplace pas » n'est classée dans AUCUN de ses cinq rangs.
-    //
-    // Mesuré le 2026-09-08 sur `qa-genty-clone`: le dîner à densifier est
-    // revenu en « Poulet, pommes de terre, poivron et salade au yaourt » —
-    // 111 g de survie sur 1 341. Le modèle a obéi, au dernier bloc lu.
-    //
-    // ⛔ ON NE TOUCHE PAS `movePrecedenceToTail`, ET C'EST DÉLIBÉRÉ. Ce bloc
-    // porte le plancher de sécurité du produit (allergies, régimes, lignes
-    // médicales) et sa place en queue est ce qui le rend opérant partout
-    // ailleurs. On ajoute UN chemin, pour UNE relance, et les cinq autres
-    // gardent leur assemblage à l'octet — un test le vérifie.
-    const householdRepairMessage = (instruction: string): string =>
-      `${householdUserMessage("")}\n\n${instruction}`;
-
     // ── ⛔ LE COMPTEUR DE `D3′` — DEUX POPULATIONS, ET IL EST OBLIGATOIRE ──
     //
     // La fiche l'écrit en toutes lettres: « un lot qui ne vit que dans un
@@ -10689,41 +10634,6 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
     // Les règles de maison et les envies (`household.userSuffix`) sont
     // rejouées telles quelles: une relance qui les perdrait rendrait un dîner
     // qui contredit ce que le foyer a écrit.
-    //
-    // ── C7 ① · CE QUE LA RELANCE N'A PAS LE DROIT DE PERDRE ───────────────
-    //
-    // ⚠️ MESURÉ LE 2026-08-12, run 1. Le critère d'acceptation était
-    // `retried.dishes.length >= meal.dishes.length`, et il est AVEUGLE au seul
-    // plat qui distingue une fusion d'une composition:
-    //
-    //   · réponse 1  — 18 plats, 9 plats dédiés sur 9;
-    //   · relance    — 20 plats, écrêtés à 18 par le plafond, 7 plats dédiés;
-    //   · le compte TOTAL est identique des deux côtés (le plafond écrête les
-    //     deux), donc la relance a été ACCEPTÉE — et la personne reprise a
-    //     perdu son déjeuner ET son dîner du dimanche.
-    //
-    // ⚠️ L'ANCIEN CRITÈRE RESTE, ET IL RESTE UNE DES DEUX MOITIÉS. Il protège
-    // du cas inverse — une relance qui rend une belle ancre protéique sur un
-    // plan plus court — et le remplacer par le compte de plats dédiés ferait
-    // exactement l'erreur qu'on répare, dans l'autre sens.
-    //
-    // LE COMPTE DE PLATS DÉDIÉS N'EST PAS RECALCULÉ À LA MAIN: c'est
-    // `observeMergeShape`, le MÊME constat que celui qui sera archivé quelques
-    // lignes plus bas, avec le MÊME dénominateur (`mergedEaterCells`). Deux
-    // façons de compter les plats d'une personne finiraient par se contredire,
-    // et c'est la relance qui trancherait.
-    //
-    // `null` hors fusion — et alors le critère se réduit à celui d'avant ce
-    // lot, mot pour mot: aucune composition ordinaire ne change de comportement.
-    const dedicatedMealsIn = (
-      candidate: Pick<GeneratedMeal, "dishes" | "preparations">,
-    ): number | null =>
-      ladder === null ? null : observeMergeShape({
-        shape: ladder.shape,
-        dishes: candidate.dishes,
-        preparations: candidate.preparations,
-        eaterCells: mergedEaterCells,
-      }).meals.dedicated;
     // ══════════════════════════════════════════════════════════════════════
     // ⟳ 2026-09-11 · LOT 6 — LE SAS DU RÉFÉRENTIEL REMONTE AVEC LA PESÉE
     // ══════════════════════════════════════════════════════════════════════
@@ -12472,7 +12382,6 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
 
 
     const anchorMissingBefore = meal.protein_anchor_missing.length;
-    const dedicatedBefore = dedicatedMealsIn(meal);
     // ══════════════════════════════════════════════════════════════════════
     // ⟳ 2026-09-12 · FERMETURE LOT 1 — CE SITE NE RAPPELLE PLUS LE MODÈLE
     // ══════════════════════════════════════════════════════════════════════
@@ -12606,8 +12515,6 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
 
     if (unallocatedTerms.length > 0) {
       const bitesBefore = bitesOf(meal);
-      const bittenCells = (bites: ReturnType<typeof bitesOf>) =>
-        new Set(bites.map((b) => `${b.day ?? ""}/${b.slot ?? ""}`));
       exclusionBitesAfter = bitesBefore.length;
       // ══════════════════════════════════════════════════════════════════
       // ⟳ 2026-09-12 · FERMETURE LOT 1 — CE SITE NE RAPPELLE PLUS LE MODÈLE
@@ -13751,8 +13658,6 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
     let c4BestSourceText = mealSourceText;
     /** Les défauts et les refus du meilleur tour. `null` = premier tour. */
     let c4BestDefects: readonly RepairDefect[] | null = null;
-    /** ⟳ 2026-09-15 — ceux des défauts de la meilleure version qui BLOQUENT. */
-    let c4BestBlocking: readonly RepairDefect[] | null = null;
     /** ⟳ 2026-09-19 — ceux qui valent un appel : bloquants + chassés (`CHASED_CAUSES`). */
     let c4BestMustRepair: readonly RepairDefect[] | null = null;
     let c4BestRefusals: readonly GateRefusal[] = [];
@@ -14657,19 +14562,6 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
           }).filter((pot) => pot.id.length > 0),
         };
       };
-      // La liste plate, pour la garde d'identité: mêmes termes, mêmes grammes,
-      // la part de casserole appliquée. UNE dérivation, deux lectures.
-      const componentsOf = (i: number): { term: string; grams: number }[] => {
-        const r = recipeOf(i);
-        return [
-          ...r.fresh.filter((g) => g.grams > 0).map((g) => ({ term: g.term, grams: g.grams })),
-          ...r.pots.flatMap((pot) =>
-            pot.ingredients
-              .filter((g) => g.grams > 0)
-              .map((g) => ({ term: g.term, grams: g.grams * pot.share }))
-          ),
-        ];
-      };
 
       // ══ LA RÈGLE DES MANGEURS, À UNE BOUCHE ══════════════════════════════
       //
@@ -15134,11 +15026,6 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
         // qui en avait 4, ou abîmé un plan qui en avait 9. Un compteur qui ne
         // sait pas dire dans quel sens il a bougé ne décide de rien.
         const verdictsBefore = { ...(measured.verdicts as Record<string, number>) };
-        // ⛔ LA MORSURE D'AVANT, PRISE AU MÊME INSTANT QUE LES VERDICTS. Elle
-        // est la référence du contrôle d'après-réparation: on refuse ce que la
-        // réparation AJOUTE, pas une morsure qu'elle a héritée (voir le pavé de
-        // `bitAdded`). Zéro quand personne n'exclut rien — `bitesOf` rend `[]`.
-        const bitesBeforeRepair = biteKeys(meal as never);
         // ══════════════════════════════════════════════════════════════
         // ⟳ 2026-09-08 — NE JAMAIS ENVOYER UNE DEMANDE BLOQUÉE
         // ══════════════════════════════════════════════════════════════
@@ -15172,26 +15059,6 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
         const askable = outOfBoundsN.filter((x) => !stuckAtAsk.has(x.i));
         let repairedOk = false;
         if (askable.length > 0) {
-          // ══════════════════════════════════════════════════════════════
-          // ⛔ LE PLAN D'AVANT EST GARDÉ, ET C'EST CE QUI REND LE REFUS POSSIBLE
-          // ══════════════════════════════════════════════════════════════
-          //
-          // Sans copie, une réparation acceptée est DÉFINITIVE: on ne peut que
-          // constater qu'elle a nui. Voir plus bas pourquoi il faut pouvoir
-          // revenir.
-          const before = {
-            dishes: structuredClone(meal.dishes),
-            preparations: structuredClone(meal.preparations),
-            emptySlots: structuredClone(meal.empty_slots),
-            // ⟳ 2026-09-08 — DEUX CHAMPS DE PLUS, trouvés par audit de tout ce que
-            // la fusion mute : `unforkReworkedPots` réécrit les SESSIONS et
-            // `mergeRetryCells` la LISTE DE COURSES. Un refus les laissait à
-            // l'état de la relance jetée, sur des plats et casseroles d'avant —
-            // un plan incohérent qui a l'air cohérent.
-            cookingSessions: structuredClone(meal.cooking_sessions),
-            shoppingList: structuredClone(meal.shopping_list),
-            sourceText: mealSourceText,
-          };
           // ══════════════════════════════════════════════════════════════
           // ⟳ 2026-09-09 — LE SECOND ESSAI, ET IL NE PART QUE SUR UN REFUS
           // ══════════════════════════════════════════════════════════════
@@ -16097,20 +15964,6 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
       // ⚠️ JAMAIS SUR UNE ADOPTION. `adoptingDraft` rejoue un brouillon déjà
       // relu par quelqu'un: y glisser un appel modèle rendrait un plan que la
       // personne n'a pas vu, sous le nom de celui qu'elle a validé.
-      const outOfBounds = measured
-        .map((m, i) => ({
-          i,
-          title: String(meal.dishes[i].title ?? ""),
-          ask: repairDecision({
-            sized: m.sized,
-            standard: m.standard,
-            bounds: m.bounds,
-            targetKcal: m.slotTarget,
-          }),
-        }))
-        .filter((x): x is { i: number; title: string; ask: RepairAsk } =>
-          x.ask !== null && x.title !== ""
-        );
       // ⟳ LOT 13 — LA MACHINERIE EST APPELÉE, PLUS RECOPIÉE. Les deux lignes
       // qui supposaient une bouche unique sont ici, et nulle part ailleurs.
       // ⟳ 2026-09-09 — MÊME SECOND ESSAI QU'À LA TABLE, MÊME RAISON. Écrit
@@ -22494,7 +22347,6 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
     c4BestEntry = c4Entry;
     c4BestSourceText = c4EntrySourceText;
     c4BestDefects = c4Pass.defects;
-    c4BestBlocking = c4Pass.blocking;
     c4BestMustRepair = c4Pass.mustRepair;
     c4BestRefusals = gateOut?.refusals ?? [];
 

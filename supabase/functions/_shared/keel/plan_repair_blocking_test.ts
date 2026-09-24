@@ -204,7 +204,11 @@ Deno.test("⛔ LE CÂBLAGE : le handler passe le compte À RÉPARER aux deux dé
     "les DEUX réévaluations après rejet doivent porter le compte à réparer",
   );
   assert(src.includes("c4BestMustRepair = c4Pass.mustRepair;"), "la meilleure version ne retient plus ce qui vaut un appel");
-  assert(src.includes("c4BestBlocking = c4Pass.blocking;"), "la meilleure version ne retient plus ses bloquants");
+  // ⟳ 2026-09-24 — `c4BestBlocking` est RETIRÉE : écrite, jamais lue. Ce que
+  // la meilleure version doit retenir pour décider d'un appel, c'est
+  // `c4BestMustRepair` (épinglé juste au-dessus, et lu par les deux
+  // réévaluations). Une seconde liste retenue sans lecteur ne revient pas.
+  assert(!src.includes("c4BestBlocking"), "la meilleure version retient de nouveau une liste que personne ne lit");
   assert(
     src.includes("c4Note(`plan_repair_skipped:no_blocking_defect:${c4Pass.defects.length}`);"),
     "le refus de politique n'est plus noté — la campagne ne pourra pas le compter",
