@@ -65,7 +65,15 @@
     "frontend/src/keel/pages/setup/RequestStep.tsx",
     "frontend/src/keel/pages/setup/MissCards.tsx"
   ],
-  "frontend/src/keel/pages/HouseholdPage.tsx": [],
+  "frontend/src/keel/pages/HouseholdPage.tsx": [
+    "frontend/src/keel/pages/household/labels.ts",
+    "frontend/src/keel/pages/household/CreateCard.tsx",
+    "frontend/src/keel/pages/household/MouthFields.tsx",
+    "frontend/src/keel/pages/household/MemberBadges.tsx",
+    "frontend/src/keel/pages/household/BodyFields.tsx",
+    "frontend/src/keel/pages/household/SheetFrame.tsx",
+    "frontend/src/keel/pages/household/MemberAccess.tsx"
+  ],
   "frontend/src/keel/pages/StudentWeekPlanPage.tsx": [
     "frontend/src/keel/pages/weekPlan/types.ts",
     "frontend/src/keel/pages/weekPlan/dates.ts",

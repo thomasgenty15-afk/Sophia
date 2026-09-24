@@ -51,7 +51,9 @@
     "frontend/src/keel/pages/CoachMealsPage.tsx": 1,
     "frontend/src/keel/pages/CoachProtocolPage.tsx": 6,
     "frontend/src/keel/pages/CoachStudentPage.tsx": 1,
-    "frontend/src/keel/pages/HouseholdPage.tsx": 13,
+    "frontend/src/keel/pages/HouseholdPage.tsx": 11,
+    "frontend/src/keel/pages/household/BodyFields.tsx": 1,
+    "frontend/src/keel/pages/household/MemberAccess.tsx": 1,
     "frontend/src/keel/pages/SetupPage.tsx": 1,
     "frontend/src/keel/pages/StudentProgressPage.tsx": 3,
     "frontend/src/keel/pages/StudentWeekPlanPage.tsx": 2
