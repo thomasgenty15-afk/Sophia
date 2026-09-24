@@ -54,5 +54,16 @@
   "frontend/src/keel/pages/SetupPage.tsx": [],
   "frontend/src/keel/pages/HouseholdPage.tsx": [],
   "frontend/src/keel/pages/StudentWeekPlanPage.tsx": [],
-  "frontend/src/keel/components/MouthFormDialog.tsx": []
+  "frontend/src/keel/components/MouthFormDialog.tsx": [
+    "frontend/src/keel/components/mouthFormDialog/types.ts",
+    "frontend/src/keel/components/mouthFormDialog/labels.ts",
+    "frontend/src/keel/components/mouthFormDialog/blocks.tsx",
+    "frontend/src/keel/components/mouthFormDialog/TermsEntry.tsx",
+    "frontend/src/keel/components/mouthFormDialog/ShakerFields.tsx",
+    "frontend/src/keel/components/mouthFormDialog/TargetAndPaceFields.tsx",
+    "frontend/src/keel/components/mouthFormDialog/MouthPreferencesButton.tsx",
+    "frontend/src/keel/components/mouthFormDialog/ActivityAndAppetiteFields.tsx",
+    "frontend/src/keel/components/mouthFormDialog/MouthCoreFields.tsx",
+    "frontend/src/keel/components/mouthFormDialog/MouthPreferencesFields.tsx"
+  ]
 }
