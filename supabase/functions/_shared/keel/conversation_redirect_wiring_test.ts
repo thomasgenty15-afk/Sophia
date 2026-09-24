@@ -179,8 +179,17 @@ export function assertRedirectWiring(
   // réponse — `plan_question` en capture une part importante.
   const belt = src.indexOf("export function finalVisibleText(");
   assert(belt !== -1, "`finalVisibleText` a disparu de `run.ts`");
+  // ⟳ 2026-09-24 (découpage des gros fichiers, lot 5a) — `finalVisibleText` est
+  // sortie dans `run_output_guards.ts`, et `src` est la FAMILLE de `run.ts`:
+  // les modules sortis d'abord, `run.ts` en dernier. « Après la signature » ne
+  // veut donc plus dire « dans la ceinture »: un ajout posé dans
+  // `processMessage` (resté dans `run.ts`, donc en fin de texte) passerait. On
+  // borne l'ajout au CORPS de la fonction — entre sa signature et la première
+  // accolade fermante en colonne 0 qui la suit.
+  const beltEnd = src.indexOf("\n}\n", belt);
+  assert(beltEnd !== -1, "`finalVisibleText` n'est plus refermée");
   assert(
-    (appendAt as number) > belt,
+    (appendAt as number) > belt && (appendAt as number) < beltEnd,
     "L'AJOUT A QUITTÉ `finalVisibleText`: il est posé AVANT la ceinture de " +
       "sortie, donc sur un seul chemin. Une lane voisine qui rend sa propre " +
       "réponse l'avalerait sans laisser de trace — « rendu » n'est pas « dit ».",
