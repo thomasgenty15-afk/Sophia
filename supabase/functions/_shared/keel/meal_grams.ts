@@ -11,8 +11,8 @@
 // `preparationReadyGrams` et `preparationReadyKcal`.
 //
 // `referentialGroupOfLine`, qui était entre `refForIngredient` et
-// `gramsRawForIngredient`, est RESTÉ dans `meal_generation.ts` : seul le
-// parseur l'appelle. Les deux commentaires d'en-tête au-dessus de
+// `gramsRawForIngredient`, est RESTÉ avec le parseur (dans `meal_parse.ts`
+// depuis le lot 2d-2) : seul le parseur l'appelle. Les deux commentaires d'en-tête au-dessus de
 // `refForIngredient` sont venus avec lui, dans l'ordre d'origine.
 
 import {

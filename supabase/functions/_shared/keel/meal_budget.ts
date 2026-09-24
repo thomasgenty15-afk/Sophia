@@ -9,8 +9,8 @@
 //
 // Ce qui est ici : `MAX_FRIDGE_DAYS`, `batchSessionBudget`, `dishCapFor`,
 // `MergedEater`, `dishBudgetFor`, `usableCookDays` et `addedCookDays`. Le
-// prompt et le parseur, restés dans `meal_generation.ts`, lisent tous les
-// deux le même budget par `dishBudgetFor`.
+// prompt et le parseur (`meal_prompt.ts`, `meal_parse.ts` depuis le lot
+// 2d-2) lisent tous les deux le même budget par `dishBudgetFor`.
 //
 // Les trois commentaires d'en-tête qui précèdent `MAX_FRIDGE_DAYS` sont
 // restés dans l'ordre d'origine (le premier décrit `dishCapFor`, le second

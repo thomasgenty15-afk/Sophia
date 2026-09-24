@@ -11,8 +11,8 @@
 // `scanMealForRegime`, `boxScanSurface` et le type `MealRegimeBite`.
 //
 // ⚠️ UN SEUL MOT A CHANGÉ : `export` devant `scanMealForRegime` et
-// `MealRegimeBite`, qui étaient privés. `parseGeneratedMeal`, resté dans
-// `meal_generation.ts`, les appelle. Le fichier d'origine ne les ré-exporte
+// `MealRegimeBite`, qui étaient privés. `parseGeneratedMeal` (dans
+// `meal_parse.ts` depuis le lot 2d-2) les appelle. Le fichier d'origine ne les ré-exporte
 // pas.
 
 import {

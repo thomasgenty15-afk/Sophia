@@ -15,8 +15,8 @@
 // prose (`dayProse`, `OCCASION_PROSE`, `occasionList`).
 //
 // ⚠️ UN SEUL MOT A CHANGÉ : `export` devant `DAY_TOKENS`, qui était privé.
-// `parseAwayDays` (ici) et `parseGeneratedMeal` (resté dans
-// `meal_generation.ts`) le lisent tous les deux. Le fichier d'origine ne le
+// `parseAwayDays` (ici) et `parseGeneratedMeal` (dans `meal_parse.ts`
+// depuis le lot 2d-2) le lisent tous les deux. Le fichier d'origine ne le
 // ré-exporte pas.
 //
 // Ce module n'importe rien.
