@@ -56,7 +56,11 @@
     "supabase/functions/sophia-brain/router/keel_prompt_blocks.ts",
     "supabase/functions/sophia-brain/router/run_helpers.ts"
   ],
-  "supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/router.ts": [],
+  "supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/router.ts": [
+    "supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/clarification_state.ts",
+    "supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/text_signals.ts",
+    "supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/payload_compile.ts"
+  ],
   "frontend/src/keel/pages/SetupPage.tsx": [
     "frontend/src/keel/pages/setup/types.ts",
     "frontend/src/keel/pages/setup/mouthDraft.ts",
