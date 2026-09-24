@@ -141,8 +141,15 @@ describe("les deux cadres de la fiche, et ce qui reste dehors", () => {
    * fonction, et rien d'autre.
    */
   const whole = source("./HouseholdPage.tsx");
-  const rowAt = whole.indexOf("function MemberRow(");
-  const src = whole.slice(rowAt);
+  // ⟳ 2026-09-24 (lot 4c) — `MemberRow` VIT DANS `household/MemberRow.tsx`.
+  // Dans le texte de la famille, les modules passent AVANT la page: « depuis
+  // `function MemberRow(` jusqu'à la fin » courrait sur les modules suivants
+  // puis sur la page entière. On découpe dans le module seul (hors registre,
+  // `source` le rend tel quel), où la ligne est la dernière fonction — comme
+  // elle l'était du fichier.
+  const rowModule = source("./household/MemberRow.tsx");
+  const rowAt = rowModule.indexOf("function MemberRow(");
+  const src = rowModule.slice(rowAt);
 
   /**
    * ⟳ 2026-09-19 — LES DEUX CADRES SONT DEVENUS DEUX FENÊTRES.

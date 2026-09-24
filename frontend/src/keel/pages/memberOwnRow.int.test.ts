@@ -42,6 +42,19 @@ function source(rel: string): string {
 
 const src = source("./HouseholdPage.tsx");
 
+/**
+ * ⟳ 2026-09-24 (lot 4c) — `MemberRow` VIT DANS `household/MemberRow.tsx`.
+ *
+ * Les cas qui lisaient « depuis `function MemberRow(` jusqu'à la fin » le
+ * faisaient sur la page, où la ligne était la dernière fonction. Dans le texte
+ * de la famille, les modules passent AVANT la page: la même tranche courrait
+ * sur le reste des modules puis sur la page entière. La ligne se lit donc dans
+ * son module seul (hors registre, `source` le rend tel quel), où elle est de
+ * nouveau la dernière fonction.
+ */
+const rowModule = source("./household/MemberRow.tsx");
+const row = rowModule.slice(rowModule.indexOf("function MemberRow("));
+
 describe("le partage des droits est tenu par UNE garde, pas par une liste", () => {
   it("`viewerIsOwner` est requis, jamais optionnel", () => {
     expect(src, "la garde est devenue facultative — donc désarmée par défaut")
@@ -89,7 +102,6 @@ describe("le partage des droits est tenu par UNE garde, pas par une liste", () =
     // fichier. Un `indexOf` global viserait la sienne — qui n'est pas gardée
     // par `viewerIsOwner`, et pour cause: cette fenêtre-là n'est rendue qu'au
     // maître, par construction.
-    const row = src.slice(src.indexOf("function MemberRow("));
     for (const [name, needle] of gated) {
       // ⚠️ DEUX PORTÉES, ET CHACUNE EST UN FAIT DU FICHIER: « Retirer l'accès »
       // vit dans `MemberAccess`, écrit AVANT `MemberRow`; la fiche de goûts,
@@ -179,7 +191,6 @@ describe("FF-066 lot 4 — « Retirer du foyer » demande une confirmation", () 
     // et la base effaçait la ligne (sa part, ses allergies, ses règles de
     // maison) sans retour possible — alors que le commentaire du bouton
     // promettait « une confirmation en deux temps ».
-    const row = src.slice(src.indexOf("function MemberRow("));
     const first = row.indexOf('t("household.member.remove")');
     expect(first, "le bouton « Retirer du foyer » a disparu").toBeGreaterThan(0);
     const firstButton = row.slice(Math.max(0, first - 200), first);

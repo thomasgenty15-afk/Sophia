@@ -2,7 +2,13 @@ import { globSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { sourceFamily } from "../../test/sourceFamily";
+import {
+  familyModules,
+  readSourceFamilies,
+  REPO_ROOT,
+  repoRelativePath,
+  sourceFamily,
+} from "../../test/sourceFamily";
 
 // ===========================================================================
 // UN SEUL SÉRIALISEUR POUR `household_member_habits.slots`
@@ -189,6 +195,26 @@ describe("les à-côtés traversent CHAQUE écrivain", () => {
       .join("\n");
   const rel = (f: string) => f.replace(root + "/", "");
 
+  /**
+   * ⟳ 2026-09-24 (lot 4c) — LE PARCOURS D'UN FICHIER, PAS LE FICHIER.
+   *
+   * `HouseholdPage.tsx` a été découpé: sa ligne d'une bouche (`MemberRow`),
+   * qui porte le second appel au sérialiseur ET le montage de
+   * `HouseholdHabitsCard`, vit maintenant dans `pages/household/MemberRow.tsx`.
+   * Compté par fichier, l'écran du foyer semblait avoir perdu un écrivain. On
+   * rapporte donc un module sorti à son fichier d'origine (le registre
+   * `scripts/source-families.json`): le compte reste celui d'un PARCOURS — deux
+   * écrivains sur l'écran du foyer, deux dans l'entonnoir.
+   */
+  const origins = new Map<string, string>();
+  for (const [origin, modules] of Object.entries(readSourceFamilies())) {
+    for (const m of modules) origins.set(m, origin);
+  }
+  const journeyOf = (keelRel: string): string => {
+    const repo = repoRelativePath(resolve(root, keelRel));
+    return rel(resolve(REPO_ROOT, origins.get(repo) ?? repo));
+  };
+
   /** Chaque bloc d'arguments `habitEntriesToWrite({ … })`, commentaires retirés. */
   function callBlocks(): Array<{ file: string; block: string }> {
     const out: Array<{ file: string; block: string }> = [];
@@ -210,8 +236,13 @@ describe("les à-côtés traversent CHAQUE écrivain", () => {
     // qui baisse est un écrivain perdu de vue; un compte qui monte, un
     // écrivain à relire. ⟳ 2026-09-23 — `carrySideCourses` (`mealExtras`),
     // sans appelant de production, a été retiré.
+    // ⟳ 2026-09-24 (lot 4c) — compté par PARCOURS (`journeyOf`, plus haut):
+    // l'un des deux appels de l'écran du foyer vit dans `household/MemberRow.tsx`.
     const byFile = new Map<string, number>();
-    for (const c of callBlocks()) byFile.set(c.file, (byFile.get(c.file) ?? 0) + 1);
+    for (const c of callBlocks()) {
+      const journey = journeyOf(c.file);
+      byFile.set(journey, (byFile.get(journey) ?? 0) + 1);
+    }
     expect(Object.fromEntries([...byFile].sort())).toEqual({
       "api/householdHabits.ts": 1,
       "lib/mouthForm.ts": 1,
@@ -311,7 +342,15 @@ describe("les à-côtés traversent CHAQUE écrivain", () => {
         i = src.indexOf("<HouseholdHabitsCard", i + 1);
       }
     }
-    expect(mounts).toEqual(["pages/HouseholdPage.tsx"]);
+    // ⟳ 2026-09-24 (lot 4c) — LE MONTAGE A SUIVI `MemberRow` dans
+    // `pages/household/MemberRow.tsx`. On le vérifie dans le fichier qui le
+    // porte réellement, et ce fichier doit appartenir à la famille de la page
+    // (le test du registre prouve qu'elle l'atteint par ses imports): un
+    // montage dans un module que la page n'atteint plus ne serait plus sur
+    // l'écran du foyer.
+    expect(mounts).toEqual(["pages/household/MemberRow.tsx"]);
+    expect(familyModules(resolve(root, "pages/HouseholdPage.tsx")))
+      .toContain("frontend/src/keel/pages/household/MemberRow.tsx");
   });
 
   it("⛔ PARTOUT OÙ LE LÉGER EST SEMÉ OU REPORTÉ, LES À-CÔTÉS LE SONT AUSSI", () => {

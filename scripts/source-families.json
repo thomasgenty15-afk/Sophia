@@ -74,7 +74,9 @@
     "frontend/src/keel/pages/household/SheetFrame.tsx",
     "frontend/src/keel/pages/household/MemberAccess.tsx",
     "frontend/src/keel/pages/household/MeFiche.tsx",
-    "frontend/src/keel/pages/household/AddMouth.tsx"
+    "frontend/src/keel/pages/household/AddMouth.tsx",
+    "frontend/src/keel/pages/household/MembersCard.tsx",
+    "frontend/src/keel/pages/household/MemberRow.tsx"
   ],
   "frontend/src/keel/pages/StudentWeekPlanPage.tsx": [
     "frontend/src/keel/pages/weekPlan/types.ts",

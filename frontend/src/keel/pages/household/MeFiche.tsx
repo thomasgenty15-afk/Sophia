@@ -8,6 +8,11 @@ import type { EatingOccasion } from "../../api/mealGeneration";
 import { ageStateOfTypedDate, draftFromKnown, emptyMouthDraft, type KnownMouth, type MouthFormDraft, submitIsHeld } from "../../lib/mouthForm";
 import { allergenLabel } from "../../copy/allergens";
 import { useEatingStructure } from "../../lib/useEatingStructure";
+// ⟳ 2026-09-09 — LE DÉFAUT (`MouthFormDialog`, le chrome) N'EST PLUS IMPORTÉ.
+// La fiche du titulaire l'ouvrait par-dessus la page; elle porte maintenant ses
+// préférences dans un accordéon, DANS sa propre fenêtre (`MeSheetForm`). Le
+// composant vit toujours: `SetupPage` le monte. Ce qu'on retire ici, c'est le
+// second `createPortal` empilé.
 import { MouthCoreFields, MouthPreferencesFields } from "../../components/MouthFormDialog";
 import Modal from "../../components/ui/Modal";
 import { t } from "../../i18n/t";
