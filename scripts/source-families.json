@@ -59,7 +59,14 @@
   "supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/router.ts": [
     "supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/clarification_state.ts",
     "supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/text_signals.ts",
-    "supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/payload_compile.ts"
+    "supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/payload_compile.ts",
+    "supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/intent_state.ts",
+    "supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/intent_multi_create.ts",
+    "supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/intent_reschedule.ts",
+    "supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/intent_status.ts",
+    "supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/intent_replace.ts",
+    "supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/intent_cancel.ts",
+    "supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/intent_create.ts"
   ],
   "frontend/src/keel/pages/SetupPage.tsx": [
     "frontend/src/keel/pages/setup/types.ts",
