@@ -230,6 +230,34 @@ le **formulaire** (l'entonnoir pour la sienne, la fiche d'une bouche pour les au
 de **conversation** `declare_safety_constraint`. L'arbitrage du 2026-09-01 est donc renversé
 pour le retour de plan ; son texte reste en annexe A.1, marqué.
 
+> ⟳ **2026-09-24 — UNE LISTE À PART : LES PLATS REFUSÉS**
+> ([FF-067](../fonctionnalites/composition-des-repas/FF-067-remplacer-un-plat-de-l-apercu.md),
+> décision du propriétaire). Ce n'est **pas une quatrième destination** : c'est une liste de
+> **titres de plats**, et un titre n'est pas une préférence (`plan_feedback.ts` le dit déjà) —
+> « Lait, pêche et avoine » ne se réduit pas à (personne, aliment, exclure). Elle n'entre donc
+> dans aucune des trois, et aucun des huit `kind` ne la porte.
+> - **Une seule source** : le geste « Remplacer » de l'aperçu. La raison tapée passe ensuite
+>   par le classifieur comme une note de la source ① — elle peut ranger une préférence, une
+>   note de ③ ou une sécurité, comme n'importe quelle note.
+> - **Où** : `student_goals.practical_constraints.rejected_dishes` — `{key, title, name,
+>   household, member_ids, reason, at, draft_id}`. `household` vaut vrai quand ceux qui
+>   mangeaient le plat étaient tout le foyer.
+> - **Qui écrit** : `keel-read-note-v1` seul, par `keel_append_rejected_dishes_for`
+>   (`service_role`), en une mise à jour SQL atomique : une entrée par titre, personnes
+>   réunies, « tout le foyer » absorbe les personnes, raison et date les plus récentes en tête,
+>   200 au plus. **Qui retire** : la personne, depuis « Ce que Sophia sait »
+>   (`keel_remove_rejected_dish`). Aucune expiration. **Personne d'autre** : une écriture du
+>   navigateur ne la change jamais (déclencheur `student_goals_keep_rejected_dishes`, migration
+>   `20260924150000`) — les écrans réécrivent la colonne entière depuis leur copie.
+> - **Qui lit** : la consigne de composition du foyer (`rejectedDishesLine`, les 60 plus
+>   récentes ; une entrée dont toutes les personnes sont parties n'est pas écrite), et le
+>   compteur `generated_from.rejected_dishes.served_again` (retours **à l'identique**
+>   seulement : un plancher, aucun matcher). `constraintsForPrompt` la retire du bloc des
+>   contraintes pratiques, pour que le modèle ne la lise pas deux fois.
+> - **Pas un doublon de ①** : « Paul n'aime pas les champignons » peut donner à la fois le
+>   plat refusé (un titre) et une `food.exclude` (un aliment). Ce sont deux faits : l'un
+>   empêche un plat de revenir, l'autre retire un aliment de tous les plats.
+
 ### 2.3 La règle anti-doublon
 
 > **Un fait qui passe le test de ① ne va JAMAIS en ③. Un mouvement de ② n'apparaît JAMAIS

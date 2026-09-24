@@ -131,6 +131,7 @@ function bornes(slotTargetKcal: number | null): PlateBounds {
     slotTargetKcal,
     light: false,
     appetite: null,
+    personal: null,
   });
 }
 

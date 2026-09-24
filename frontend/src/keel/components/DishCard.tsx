@@ -82,6 +82,25 @@ export interface DishSource {
   cookOn: string | null;
 }
 
+/**
+ * ⟳ 2026-09-24 — « REMPLACER » CE PLAT, SUR L'APERÇU SEULEMENT.
+ *
+ * Résolu par l'appelant (`PlanDraftDialog`), comme `tick`: la carte ne sait
+ * ni ce qui est barré ailleurs dans le plan ni combien de reprises il reste.
+ * Elle rend le bouton, ou le plat barré avec sa raison et la sortie « Garder
+ * ce plat ».
+ *
+ * `struck` = la raison écrite, pour CE titre — toutes les occurrences du même
+ * titre sont barrées ensemble, et c'est l'appelant qui le décide.
+ */
+export interface DishReplaceControl {
+  struck: { reason: string } | null;
+  /** Faux = plus de reprise, un travail en cours, ou le plafond de plats atteint. */
+  canReplace: boolean;
+  onReplace: () => void;
+  onKeep: () => void;
+}
+
 /** Le kcal d'un contenant à UN nom, lu comme celui du plat quand cette personne est seule à table. */
 function energyOfBox(box: BoxEnergyView | null): DishEnergyView | null {
   return box === null ? null : { kcal: box.kcal, basis: box.basis, complete: true, gaps: [] };
@@ -101,6 +120,8 @@ export default function DishCard(
     eaters = [],
     shares = [],
     collapsible = false,
+    compact = false,
+    replace = null,
   }: {
     dish: GeneratedDish;
     tick?: DishTick | null;
@@ -231,6 +252,23 @@ export default function DishCard(
      * grammages que ce dépôt vérifie justement par le DOM.
      */
     collapsible?: boolean;
+    /**
+     * ══════════════════════════════════════════════════════════════════════
+     * ⟳ 2026-09-24 — UNE LIGNE PAR PLAT, SUR L'APERÇU.
+     * ══════════════════════════════════════════════════════════════════════
+     *
+     * Demandé: « que les titres des repas, avec les ingrédients, sans
+     * grammages — le but est une lecture rapide du plan, parfois à huit
+     * personnes ». Fermée, la carte ne rend que son titre (qui porte déjà les
+     * ingrédients), son chiffre et « Remplacer ». Ouverte, elle redevient la
+     * carte d'avant — geste du jour, puis « Voir le détail » (`collapsible`).
+     *
+     * ⚠️ FAUX PAR DÉFAUT: `/app/plan` et `/app/today` ne changent pas.
+     * ⚠️ LE PLI CACHE, IL NE DÉMONTE PAS — même règle que `collapsible`.
+     */
+    compact?: boolean;
+    /** Voir `DishReplaceControl`. `null` = pas de remplacement ici (le défaut). */
+    replace?: DishReplaceControl | null;
   },
 ) {
   // CE PLAT PUISE-T-IL DANS UNE PRÉPARATION ?
@@ -324,18 +362,78 @@ export default function DishCard(
     eaters.length > 0 || shares.length > 0 || servedFrom !== null ||
     dish.ingredients.length > 0 || session !== null || looseSides.length > 0;
   const folded = collapsible && hasDetail && !detailOpen;
+  // ⟳ 2026-09-24 — LA LIGNE DE L'APERÇU (`compact`): fermée, le titre seul.
+  const [rowOpen, setRowOpen] = React.useState(false);
+  const rowId = React.useId();
+  const struck = replace?.struck ?? null;
 
   return (
     <Card>
       <div className="flex flex-wrap items-center gap-2">
-        <span className="font-medium text-ink">{dish.title}</span>
+        {compact
+          ? (
+            // LA LIGNE ENTIÈRE EST LE BOUTON — titre ET chiffre: c'est elle
+            // qu'on vise pour ouvrir un plat.
+            //
+            // ⟳ 2026-09-24 (retour du propriétaire) — ON NE VOYAIT PAS QU'UNE
+            // LIGNE S'OUVRE. Le « ▸ » de 12 px en encre secondaire ne se
+            // lisait pas comme un geste. Il devient une pastille ronde bordée
+            // — la forme d'un contrôle —, dont le chevron tourne quand la
+            // ligne est ouverte; la ligne réagit au survol. Le titre passe en
+            // `text-sm`: « les titres sont beaucoup trop gros » sur l'aperçu.
+            <button
+              type="button"
+              aria-expanded={rowOpen}
+              aria-controls={rowId}
+              onClick={() => setRowOpen((v) => !v)}
+              className="group -m-1 flex min-h-6 min-w-0 flex-1 items-center gap-2.5 rounded-part p-1 text-left hover:bg-paper-2"
+            >
+              <span
+                aria-hidden="true"
+                className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border transition-colors ${
+                  rowOpen
+                    ? "border-fig-700 bg-fig-50 text-fig-700"
+                    : "border-line-strong text-ink-soft group-hover:border-ink group-hover:text-ink"
+                }`}
+              >
+                <svg
+                  viewBox="0 0 16 16"
+                  className={`h-3.5 w-3.5 transition-transform ${rowOpen ? "rotate-90" : ""}`}
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M6 3.5 10.5 8 6 12.5" />
+                </svg>
+              </span>
+              {/* LE CHIFFRE SUIT LE DERNIER MOT DU TITRE, dans le même fil:
+                  en colonne à part, il prenait sa largeur au titre — quatre
+                  lignes pour un plat à 375 px. */}
+              <span
+                className={`min-w-0 break-words text-sm font-medium ${
+                  struck === null ? "text-ink" : "text-ink-soft line-through"
+                }`}
+              >
+                {dish.title}
+                {titleEnergy !== null && (
+                  <span className="ml-2 whitespace-nowrap font-normal">
+                    <DishEnergyLine energy={titleEnergy} />
+                  </span>
+                )}
+              </span>
+            </button>
+          )
+          : <span className="font-medium text-ink">{dish.title}</span>}
         {slotBadge && dish.slot && (
           <Badge tone="neutral">{dishSlotLabel(dish.slot)}</Badge>
         )}
         {/* FF-059 — LE CHIFFRE, à côté du plat et pas au-dessus. C'est un fait
             SUR CE PLAT, du même rang que son créneau: le mettre en tête de
-            carte en ferait le sujet, et le sujet reste le dîner. */}
-        <DishEnergyLine energy={titleEnergy} />
+            carte en ferait le sujet, et le sujet reste le dîner. Sur la ligne
+            compacte, il est DANS le bouton, juste au-dessus. */}
+        {!compact && <DishEnergyLine energy={titleEnergy} />}
         {tick && (
           <span className="ml-auto flex items-center gap-2">
             {/* Une case est un CONTRÔLE: sa bordure doit tenir le seuil 3:1 de
@@ -359,7 +457,45 @@ export default function DishCard(
             </label>
           </span>
         )}
+        {/* ⟳ 2026-09-24 — CHANGER, OU GARDER CE QU'ON A BARRÉ. `min-h-6` =
+            24 px de cible.
+            ⟳ même jour, retour du propriétaire — PAS DE ROUGE: « un gris de la
+            palette ira très bien ». Les gris du bouton secondaire (`Button`):
+            bord `line-strong` (3,84:1, seuil d'un contrôle), texte `ink-soft`
+            (6,11:1), survol `fig-50`. */}
+        {replace && (struck === null
+          ? (
+            <button
+              type="button"
+              onClick={replace.onReplace}
+              disabled={!replace.canReplace}
+              className="ml-auto min-h-6 shrink-0 rounded-part border border-line-strong px-2 py-0.5 text-xs font-medium text-ink-soft hover:bg-fig-50 hover:text-ink disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {mealCopy("meals.dish.replace")}
+            </button>
+          )
+          : (
+            <button
+              type="button"
+              onClick={replace.onKeep}
+              className="ml-auto min-h-6 shrink-0 text-xs font-medium text-ink-soft underline underline-offset-2 hover:text-ink"
+            >
+              {mealCopy("meals.dish.keep")}
+            </button>
+          ))}
       </div>
+      {/* LA RAISON, SOUS LE TITRE BARRÉ — les mots de la personne, tels quels:
+          c'est ce qui partira avec le plat quand elle cliquera « Ajuster le
+          plan ». `break-words`: une phrase libre n'a aucune longueur garantie. */}
+      {struck !== null && (
+        <p className="mt-1 break-words text-sm text-ink-soft">
+          {mealCopy("meals.dish.replace_reason", { reason: struck.reason })}
+        </p>
+      )}
+      {/* ⚠️ L'ENVELOPPE DE LA LIGNE EST TOUJOURS LÀ, même hors aperçu: un `div`
+          nu, `hidden` seulement quand la ligne compacte est fermée. Deux
+          branches JSX dédoubleraient le corps de la carte. */}
+      <div id={rowId} hidden={compact && !rowOpen}>
       {/* ── FF-057 §3.A · LE FORMULAIRE ACCIDENT, SOUS LA CASE QU'ON VIENT DE
           DÉCOCHER ────────────────────────────────────────────────────────────
           Il est INLINE et pas en fenêtre: la question porte sur CE plat-là, et
@@ -806,6 +942,7 @@ export default function DishCard(
           préparations et sur la session; les recopier ici donnerait à un
           assemblage le temps d'une cuisson. Elles ont déjà leur surface. */}
       {session && <SessionLink session={session} />}
+      </div>
       </div>
     </Card>
   );

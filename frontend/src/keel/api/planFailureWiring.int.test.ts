@@ -74,8 +74,10 @@ describe("aucune panne ordinaire ne sort en clair sur l'écran", () => {
    */
   it("le repli des deux lanes est `composition_unavailable`, pas le message brut", () => {
     const draft = code("frontend/src/keel/api/planDraft.ts");
+    // ⟳ 2026-09-24 — QUATRE: la lecture des raisons de « Remplacer »
+    // (`readRejections`) passe par le même repli que la note.
     expect(draft.match(/refusalOf\(error, "composition_unavailable"\)/g)?.length)
-      .toBe(3);
+      .toBe(4);
     // ⟳ 2026-09-15 · LOT E — `generateHouseholdMeal` N'A PLUS DE CHEMIN D'APPEL
     // À LUI : c'est une façade sur `composeDraft` (202 + relecture de la ligne)
     // puis `writeFromDraft`. Le second exemplaire du transport — et son repli
@@ -93,7 +95,9 @@ describe("aucune panne ordinaire ne sort en clair sur l'écran", () => {
    */
   it("le dialogue d'aperçu ne pose plus `e.message` sous un bouton", () => {
     const src = code("frontend/src/keel/components/plan/PlanDraftDialog.tsx");
-    expect(src.match(/message: failureText\(e\)/g)?.length).toBe(3);
+    // ⟳ 2026-09-24 — QUATRE: la note, l'adoption, la suite des questions en
+    // couche, et « Remplacer ». Chacun traduit son refus.
+    expect(src.match(/message: failureText\(e\)/g)?.length).toBe(4);
     expect(src, "un motif repart en brut sous un bouton")
       .not.toContain("message: e instanceof Error ? e.message");
   });

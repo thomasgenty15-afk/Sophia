@@ -96,6 +96,16 @@ CASES = [
     ("en_maintien_solo", "where do I see my weight curve?", ["progress_page", "weight_entry"]),
     ("en_maintien_solo", "I had a lovely dinner", []),
     ("fr_membre", "comment je prends mon plat en photo ?", ["meal_photo_how"]),
+    # ⟳ 2026-09-24 — la question réelle qui a montré le trou du catalogue
+    # (aucune fiche « moments de repas »; `plan_settings` servi à la place).
+    ("fr_perte_foyer", "comment je fais pour modifier les créneaux des repas que j'ai ? Parce que là ça m'affiche après midi quand je veux générer un plan mais moi je veux pas", ["meal_slots"]),
+    ("fr_perte_foyer", "comment je change mon objectif ?", ["goal_change"]),
+    ("fr_perte_foyer", "je suis devenue végétarienne, je le mets où dans l'app ?", ["food_preferences_self"]),
+    ("fr_perte_foyer", "où je change mon poids et ma taille pour les portions ?", ["body_details"]),
+    ("fr_maintien_solo", "je veux plus de goûter dans mes plans, je fais comment ?", ["meal_slots"]),
+    ("fr_maintien_solo", "je ne prends jamais de petit-déjeuner", []),
+    ("en_perte_foyer", "how do I remove the afternoon snack from my plans?", ["meal_slots"]),
+    ("en_perte_foyer", "how do I change my goal?", ["goal_change"]),
 ]
 
 

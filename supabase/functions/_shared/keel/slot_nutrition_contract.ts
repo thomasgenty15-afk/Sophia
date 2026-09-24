@@ -74,6 +74,9 @@
  *      (`plateBoundsFor(…).max × SHARED_TABLE_MAX_ASK_PER_100G / 100`, soit
  *      550 × 1,15 = 632,5 kcal chez l'adulte); l'à-côté grossit avant que le
  *      plat ne dépasse, jusqu'à sa part maximale;
+ *      ⟳ 2026-09-24 — ce plafond est celui de la PERSONNE quand il est plus
+ *      bas (`personalPlateBoundsFor`, 25 % de son entretien): 480 × 1,15 =
+ *      552 kcal pour un entretien de 1 920;
  *   ③ ce qui dépasse encore est le DÉBORDEMENT: il part aux COLLATIONS de la
  *      même personne (`relaxSharedForTable`, receveurs `snacks`);
  *   ④ s'il en reste, les bornes de CE moment passent au plafond de repli
@@ -100,6 +103,8 @@ import {
   MAX_ASKABLE_DENSITY_PER_100G,
   mergeCorridors,
   type PlateBounds,
+  type PersonalPlateBounds,
+  personalPlateBoundsFor,
   plateBandOf,
   plateBoundsFor,
   plateSlotClassOf,
@@ -112,6 +117,7 @@ import {
   type AnchorMouth,
   type AnchorReason,
   HOUSE_DEFAULT_SLOTS,
+  maintenanceKcalOf,
   slotPlanTargets,
   wholeDaySlots,
 } from "./mouth_anchor.ts";
@@ -728,6 +734,17 @@ export function slotContractsFor(args: {
   // 18 ans (la même tranche que `plateBoundsFor`), est mineur.
   const isMinor = args.mouth.ageState === "minor" ||
     plateBandOf(args.ageYears).band !== "adult";
+  // ⟳ 2026-09-24 — LE PLAFOND D'ASSIETTE DE CETTE PERSONNE, calculé UNE fois
+  // et passé aux quatre bornes ci-dessous (à-côté, relâche, couloir, contrat).
+  // ⛔ SON ENTRETIEN (`maintenanceKcalOf`), JAMAIS SA CIBLE: l'objectif ne
+  // rapetisse pas l'assiette de qui perd du poids et n'agrandit pas celle de
+  // qui en prend (plan du 2026-09-24, « l'assiette suit l'entretien »).
+  // `null` (mineur, âge ou entretien inconnu) = la table d'âge seule.
+  const personal: PersonalPlateBounds | null = personalPlateBoundsFor({
+    ageYears: args.ageYears,
+    maintenanceKcal: maintenanceKcalOf(args.mouth).kcal,
+    appetite: args.mouth.body?.appetite ?? null,
+  });
 
   for (const d of args.days) {
     const covered = [...new Set(d.coveredSlots)];
@@ -843,6 +860,7 @@ export function slotContractsFor(args: {
           slotTargetKcal: t,
           light: light.has(slot),
           appetite: args.mouth.body?.appetite ?? null,
+          personal,
         });
         const budget = sideBudgetFor({
           mealKcal: t,
@@ -865,6 +883,7 @@ export function slotContractsFor(args: {
         slotTargetKcal: dish,
         light: light.has(slot),
         appetite: args.mouth.body?.appetite ?? null,
+        personal,
       });
       if (b.physicalMax > 0) maxGrams.set(slot, b.max);
     }
@@ -886,6 +905,7 @@ export function slotContractsFor(args: {
           slotTargetKcal: t,
           light: light.has(slot),
           appetite: args.mouth.body?.appetite ?? null,
+          personal,
         }),
       });
       return c !== null && c.incompatible === "above_askable_cap";
@@ -1043,6 +1063,7 @@ export function slotContractsFor(args: {
         slotTargetKcal: target,
         light: light.has(slot),
         appetite: args.mouth.body?.appetite ?? null,
+        personal,
       });
       if (!(bounds.physicalMax > 0)) {
         contracts.push({

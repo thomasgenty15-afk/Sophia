@@ -111,6 +111,31 @@ export function lastDayReachedFromFirstShop(
  * silence: un plan qui fait acheter lundi ce qui se cuisine samedi sans le
  * dire.
  */
+/**
+ * ⟳ 2026-09-24 — LE MODÈLE N'ÉCRIT PLUS LE CALENDRIER D'ACHAT D'UN ALIMENT CRU.
+ *
+ * ⛔ DEUX PLANS RÉELS, LE MÊME DÉFAUT DANS LES DEUX SENS. Le 2026-09-08 (poul),
+ * le déroulé disait « achète la dinde la veille » pendant que le moteur la
+ * congelait à l'achat. Le 2026-09-24 (`ab2ab587`), il disait « sors le poulet
+ * cru du congélateur samedi soir » pendant que le moteur l'achetait frais
+ * vendredi. La consigne ne peut pas savoir quelle session aura sa course : c'est
+ * la datation finale qui le décide (`buyDatesByIndex`, la scission, la règle des
+ * deux jours), APRÈS la réponse du modèle.
+ *
+ * L'app le dit elle-même, depuis la liste finale : le bloc « à sortir du
+ * congélateur la veille » de chaque session (`frozenLinesForPreparations`),
+ * l'explication (`plan_rationale.ts`) et le rappel de la veille
+ * (`thaw_reminder.ts`). ⚠️ `sessionsFedFromFreezer` compte encore les déroulés
+ * qui NOMMENT le congélateur : un déroulé muet y est désormais le cas attendu.
+ */
+const NO_PURCHASE_TIMING =
+  // ⚠️ « defrosted » ET PAS « thawed » : le second contient « wed », et une
+  // consigne qui ne nomme pas un jour ne doit pas en écrire un par accident
+  // (`week_bounds_test.ts`, « un jour de cuisine hors fenêtre »).
+  "Do NOT write in a run_through or a method when a raw food is bought, frozen " +
+  "or defrosted: the app works it out from the final shopping list and tells " +
+  "the person itself.";
+
 export function rawReachLines(
   window: readonly string[],
   cadence: RawReachCadence | null,
@@ -162,14 +187,12 @@ export function rawReachLines(
           `cooking sessions, so some sessions have no trip of their own. `) +
         "This does NOT forbid cooking fresh fish or chicken on a day past its " +
         "line above -- but that food is bought at the shop that exists and goes " +
-        "STRAIGHT INTO THE FREEZER on the day it is bought. Say in that " +
-        "session's `run_through` that it comes out of the freezer the night " +
-        "before. Never write \"buy it fresh that day\": there is no shop that day."
+        "STRAIGHT INTO THE FREEZER on the day it is bought. " + NO_PURCHASE_TIMING
       : "This does NOT forbid cooking them later. It means the shopping for that " +
         "session happens closer to it: if you put fresh fish or chicken on a day " +
-        "past its line above, say in that session's `run_through` that its fresh " +
-        "items are bought that day or the day before. Never plan a session that " +
-        "quietly assumes week-old fresh meat.",
+        "past its line above, the app schedules a later shop for it. " +
+        NO_PURCHASE_TIMING + " Never plan a session that quietly assumes " +
+        "week-old fresh meat.",
   ];
 }
 

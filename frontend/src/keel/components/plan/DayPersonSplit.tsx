@@ -20,10 +20,13 @@ import type { DayDishEntry, DayEaterMark, DaySlotGroup } from "../../lib/planDay
 // `PlanDayBlock`, où il était déjà.
 //
 // ── LE CAS MAJORITAIRE NE PAIE RIEN ────────────────────────────────────────
-// Un moment sans plat dédié se rend EXACTEMENT comme avant ce lot: les cartes,
-// à la suite, sans en-tête et sans encadrement. Poser « Pour la table » sur un
-// dîner que tout le monde mange serait du bruit sur le chemin le plus fréquent
-// du produit (l'entrée est à une bouche).
+// Un moment que TOUT le foyer mange, sans plat dédié, se rend EXACTEMENT comme
+// avant ce lot: les cartes, à la suite, sans en-tête et sans encadrement.
+// Poser « Pour la table » sur un dîner que tout le monde mange serait du bruit
+// sur le chemin le plus fréquent du produit (l'entrée est à une bouche).
+// ⟳ 2026-09-24 — un plat commun qui ne nourrit qu'une PARTIE du foyer reçoit
+// son en-tête (« Pour Thomas » sur la collation qu'il est seul à prendre):
+// l'en-tête suit qui mange, pas seulement `member_id`.
 //
 // ── ⛔ UN PLAT COMMUN NE SE RÉPÈTE PAS SOUS CHAQUE BOUCHE ──────────────────
 // Quand Zoé a son petit-déjeuner et que la table en a un autre, on rend DEUX
@@ -91,7 +94,8 @@ export default function DayPersonSplit(props: DayPersonSplitProps) {
   const { group } = props;
   const slot = group.slot ?? "no_slot";
 
-  // ── LE CHEMIN ORDINAIRE: RIEN N'EST DÉDIÉ ───────────────────────────────
+  // ── LE CHEMIN ORDINAIRE: RIEN N'EST DÉDIÉ, ET TOUT LE FOYER MANGE ICI ───
+  // (ou on ne sait pas qui: deux plats communs au même moment, plan sans part).
   // Pas de voies, pas d'en-têtes — mais les MARQUEURS, eux, sont ici et nulle
   // part ailleurs: c'est le seul endroit où le plat ne dit pas déjà pour qui il
   // est. Dans une voie nommée, l'en-tête l'a déjà dit, et répéter les prénoms
@@ -232,10 +236,16 @@ function Lane(props: {
             render={props.render}
             id={`${props.id}-${i}`}
             soleEater={props.soleMember}
-            // L'EN-TÊTE DE LA VOIE A DÉJÀ NOMMÉ. Des pastilles répétant les
-            // mêmes prénoms trois centimètres plus bas seraient du bruit sur la
+            // L'EN-TÊTE DE LA VOIE A DÉJÀ NOMMÉ. Des pastilles répétant le
+            // même prénom trois centimètres plus bas seraient du bruit sur la
             // surface que ce lot existe pour rendre lisible.
-            marks={false}
+            // ⟳ 2026-09-24 — SAUF QUAND IL EN NOMME PLUSIEURS. La carte lit la
+            // même liste pour deux autres choses: taire le kcal global sous un
+            // plat que plusieurs mangent (`DishCard`, `titleEnergy`), et
+            // nommer chaque à-côté. Vide, elle affichait le kcal de la recette
+            // divisée par tout le foyer sous « Pour Zoé et Kid ». Même arbitrage
+            // que les parts: la répétition, plutôt qu'un chiffre faux.
+            marks={props.soleMember === null}
           />
         ))}
       </div>

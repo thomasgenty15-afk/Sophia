@@ -143,6 +143,24 @@ describe("LOT 3 · la séparation d'un moment", () => {
     expect(group.table).toHaveLength(1);
     expect(group.unnamed).toHaveLength(1);
   });
+
+  it("⛔ à une seule bouche, son plat à elle n'ouvre AUCUNE voie — et à deux, la voie revient", () => {
+    // Vu à l'écran le 2026-09-24 sur un plan solo: « Pour Paul » au-dessus de
+    // la collation. La lane du foyer écrit une `member_portions` d'une ligne
+    // et attribue la collation à cette bouche. ⚠️ Le test compte des bouches
+    // LITTÉRALES: monter `SHARES_MIN_MOUTHS` à 3 fait tomber la seconde moitié.
+    const own = dish({ title: "Afternoon snack", member_id: "mem-zoe" });
+    const [alone] = groupDayBySlot({ dishes: [dish(), own], portions: [ZOE] });
+    expect(alone.separated).toBe(false);
+    expect(alone.people).toEqual([]);
+    // Rien n'est perdu, et l'ordre reste celui du plan.
+    expect(alone.table.map((e) => e.dish.title)).toEqual([TABLE_DISH, "Afternoon snack"]);
+    expect(alone.unnamed).toEqual([]);
+
+    const [pair] = groupDayBySlot({ dishes: [dish(), own], portions: [ZOE, KID] });
+    expect(pair.separated).toBe(true);
+    expect(pair.people.map((p) => p.name)).toEqual(["Zoé"]);
+  });
 });
 
 // ===========================================================================
@@ -245,10 +263,12 @@ describe("2026-08-19 · une bouche n'est nommée qu'aux moments où elle mange",
       portions: [IKU, CHRISTELE],
     });
     expect(group.tableEaters.map((e) => e.name)).toEqual(["iku"]);
-    // ⚠️ ET « POUR LA TABLE » RESTE VRAI: à ce petit-déjeuner, iku EST toute
-    // la tablée. Compter sur le roster entier ferait dire « iku » là où « la
-    // table » est exact.
-    expect(group.tableIsEveryone).toBe(true);
+    // ⟳ 2026-09-24 — ET CE N'EST PLUS « POUR LA TABLE ». Ce test disait qu'à
+    // ce petit-déjeuner iku EST toute la tablée. Décision du propriétaire:
+    // l'en-tête suit qui mange, et il parle dès que le moment n'est pas pour
+    // tout le foyer — ici, une voie « Pour iku ».
+    expect(group.tableIsEveryone).toBe(false);
+    expect(group.separated).toBe(true);
   });
 
   it("⚠️ `null` = elle suit la maison, et elle est partout où la maison mange", () => {
@@ -376,6 +396,57 @@ describe("2026-08-19 · « pour la table » n'est dit que si la table entière y
     // la table » sur un plan qui ne connaît aucune bouche.
     expect(group.tableIsEveryone).toBe(false);
     expect(group.tableEaters).toEqual([]);
+  });
+});
+
+describe("2026-09-24 · l'en-tête suit qui mange, pas seulement `member_id`", () => {
+  // Vu sur un foyer de trois où seul Thomas prend les collations. Le matin,
+  // le moteur lui avait commandé un plat à lui (`member_id`): « Pour Thomas ».
+  // L'après-midi, le plat de la table qu'il mange seul: aucun en-tête. Même
+  // situation, deux affichages.
+  const THOMAS = person({
+    memberId: "mem-t",
+    displayName: "Thomas",
+    eatingSlots: ["breakfast", "snack_am", "lunch", "snack_pm", "dinner"],
+  });
+  const FABRICE = person({
+    memberId: "mem-f",
+    displayName: "Fabrice",
+    eatingSlots: ["breakfast", "lunch", "dinner"],
+  });
+  const CHRISTELE = person({
+    memberId: "mem-c",
+    displayName: "Christèle",
+    eatingSlots: ["breakfast", "lunch", "dinner"],
+  });
+  const HOUSE = [THOMAS, FABRICE, CHRISTELE];
+
+  it("⛔ un plat de la table qu'une seule bouche mange ouvre SA voie", () => {
+    const [group] = groupDayBySlot({
+      dishes: [dish({ slot: "snack_pm" })],
+      portions: HOUSE,
+    });
+    expect(group.separated).toBe(true);
+    expect(group.tableEaters.map((e) => e.name)).toEqual(["Thomas"]);
+    expect(group.tableIsEveryone).toBe(false);
+  });
+
+  it("⚠️ LE CAS QUI PASSE — un dîner que tout le foyer mange reste à plat", () => {
+    const [group] = groupDayBySlot({
+      dishes: [dish({ slot: "dinner" })],
+      portions: HOUSE,
+    });
+    expect(group.separated).toBe(false);
+    expect(group.tableIsEveryone).toBe(true);
+  });
+
+  it("⚠️ deux plats communs au même moment: on ne sait pas qui, donc aucun en-tête", () => {
+    const [group] = groupDayBySlot({
+      dishes: [dish({ slot: "snack_pm" }), dish({ slot: "snack_pm", title: "Other snack" })],
+      portions: HOUSE,
+    });
+    expect(group.tableEaters).toEqual([]);
+    expect(group.separated).toBe(false);
   });
 });
 

@@ -22,6 +22,8 @@ import { localDateIn } from "../api/dates";
 import { supabase } from "../../lib/supabase";
 import KeelAppShell from "../components/KeelAppShell";
 import KnownAboutYouCard from "../components/KnownAboutYouCard";
+import RejectedDishesCard from "../components/RejectedDishesCard";
+import { rejectedDishesFrom, removeRejectedDish } from "../api/rejectedDishes";
 import { Card } from "../components/ui/Card";
 import SetupSection from "../components/ui/SetupSection";
 import { EnergySwitches } from "../components/plan/EnergyReadout";
@@ -302,6 +304,17 @@ export default function StudentKnownPage() {
             nextPlan: next.nextPlan,
             notes: next.notes,
           });
+          await refresh();
+        }}
+      />
+      {/* ⟳ 2026-09-24 — LES PLATS REFUSÉS dans l'aperçu d'un plan (« Remplacer »).
+          Lus dans la même ligne que le reste de cette page; « Enlever » passe
+          par sa propre fonction, qui ne réécrit que cette liste. */}
+      <RejectedDishesCard
+        entries={rejectedDishesFrom(store.constraints)}
+        members={members}
+        onRemove={async (key) => {
+          await removeRejectedDish(key);
           await refresh();
         }}
       />

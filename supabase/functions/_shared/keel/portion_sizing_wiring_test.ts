@@ -263,10 +263,37 @@ Deno.test("CÂBLAGE ⑬ — le patch précède l'application, et rejoue la CEINT
   const belt = SRC.indexOf("const avant = biteKeys(meal as never);");
   const pose = SRC.indexOf("c4Fusion = applyRepairPatch({");
   assert(belt > repare && pose > belt, "la ceinture ne passe plus avant l'application");
-  // ⛔ JAMAIS SUR UNE ADOPTION NI SUR UNE REPRISE LOCALE.
+  // ⛔ JAMAIS SUR UNE ADOPTION. ⟳ 2026-09-24 — ET SUR UNE REPRISE LOCALE,
+  // SEULEMENT POUR UN REPAS MANQUANT DANS UNE CASE DEMANDÉE, avec des défauts
+  // bornés à ces cases : ouverte à toute la reprise, la boucle réparerait
+  // l'ancien brouillon hors des cases demandées.
   assert(
-    SRC.includes("if (!c4Stop && improvementRetries && c4Decision.call) {"),
-    "la garde de la décision ne nomme plus `improvementRetries`",
+    SRC.includes("if (!c4Stop && (improvementRetries || c4EditRepair) && c4Decision.call) {"),
+    "la garde de la décision ne nomme plus `improvementRetries` et la seule exception de la reprise",
+  );
+  // ⟳ 2026-09-24 — ce que la case refaite doit encore : un repas manquant ou
+  // un aliment exclu servi, DANS une case demandée, et rien d'autre.
+  assert(
+    /const c4EditMust = editing\s*\?\s*c4Pass\.defects\.filter\(\(d\) =>\s*\(d\.kind === "missing_meal" \|\| d\.kind === "safety"\) && c4InEdit\(d\)\s*\)\s*:\s*\[\];/.test(SRC),
+    "l'exception de la reprise ne se limite plus aux repas manquants et aliments exclus DANS une case demandée",
+  );
+  assert(
+    SRC.includes("const c4EditRepair = c4EditMust.length > 0;"),
+    "l'exception de la reprise ne dépend plus de ce que la case refaite doit",
+  );
+  // Et la décision le voit : sans ça, `call` resterait faux et la garde
+  // élargie ne servirait à rien.
+  assert(
+    SRC.includes("mustRepair: c4Pass.mustRepair.length + c4EditMust.length,"),
+    "la décision de réparation ignore ce que la case refaite doit",
+  );
+  assert(
+    SRC.indexOf("const c4EditMust = editing") < SRC.indexOf("const c4Decision = planRepairDecision({"),
+    "ce que la case refaite doit est calculé APRÈS la décision",
+  );
+  assert(
+    SRC.includes("c4EditRepair ? c4Pass.defects.filter(c4InEdit) : c4Pass.defects"),
+    "en reprise, les défauts envoyés ne sont plus bornés aux cases demandées",
   );
   assert(
     /const improvementRetries = !adoptingDraft && /.test(SRC),

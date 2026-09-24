@@ -108,18 +108,19 @@ function textOf(over: {
   cookingSessions?: readonly CookingSession[];
   shoppingList?: readonly ShoppingItem[];
   preparations?: readonly MealPreparation[];
+  today?: string;
 } = {}): string {
   return decode(renderToStaticMarkup(createElement(PlanResult, {
     dishes: over.dishes ?? [dish()],
+    dishLayout: "full",
     preparations: over.preparations ?? [],
     cookingSessions: over.cookingSessions ?? [],
     shoppingList: over.shoppingList ?? [],
     portions: [],
     startsOn: STARTS_ON,
     durationDays: DURATION,
-    today: STARTS_ON,
+    today: over.today ?? STARTS_ON,
     emptyLabel: "Tell me where to start above.",
-    defaultView: "week",
   }))).replace(/<[^>]*>/g, "");
 }
 
@@ -212,68 +213,71 @@ describe("D3 · le modèle: `withDaysThatCarry`", () => {
   });
 });
 
-describe("D3 · l'écran: la vue SEMAINE", () => {
-  it("⛔ LE DÉFAUT MESURÉ — la session du dimanche se voit maintenant", () => {
+// ⟳ 2026-09-24 — LA VUE SEMAINE EST PARTIE (« Toute la semaine » retirée, sur
+// demande). Le défaut D3 — un jour qui porte une session ou des courses SANS
+// repas devenait invisible — se garde désormais à deux endroits: le TABLEAU de
+// la semaine en tête (ligne Cuisine, ligne Courses) et la VUE JOUR, qui rend le
+// jour choisi même sans plat.
+describe("D3 · l'écran: le tableau de la semaine et la vue jour", () => {
+  it("⛔ LE DÉFAUT MESURÉ — la session du dimanche se voit dans le tableau", () => {
     const html = textOf({
       dishes: [dish()],
       cookingSessions: [session()],
     });
-    expect(html, "le titre du bloc du dimanche manque").toContain("Sunday");
-    expect(html, "la session du jour n'est pas rendue")
+    // 75 minutes de session, dans la ligne Cuisine du tableau.
+    expect(html, "la durée de la session du dimanche n'est pas dans le tableau")
+      .toContain(en["meals.week_table.hours_minutes"].replace("{h}", "1").replace("{m}", "15"));
+    // Et le dimanche lu seul porte son bloc de session.
+    const sunday = textOf({ dishes: [dish()], cookingSessions: [session()], today: "2026-08-23" });
+    expect(sunday, "le titre du bloc du dimanche manque").toContain("Sunday");
+    expect(sunday, "la session du jour n'est pas rendue")
       .toContain(en["meals.result.day_session"]);
   });
 
   it("⛔ LA VAGUE DE COURSES D'UN JOUR SANS REPAS SE VOIT AUSSI", () => {
     // `salmon` est périssable et sa cuisson est dimanche: la vague tombe
     // jeudi (cuisson − 3 jours de frigo), un jour qui n'a AUCUN plat.
-    const html = textOf({
+    const list = [item(), item({ term: "rice", aisle: "pantry" })];
+    const html = textOf({ dishes: [dish()], preparations: [prep()], shoppingList: list });
+    // Deux vagues ⇒ deux marques dans la ligne Courses (aucune session ici).
+    expect(occurrences(html, "●"), "une vague manque au tableau").toBe(2);
+    const thursday = textOf({
       dishes: [dish()],
       preparations: [prep()],
-      shoppingList: [item(), item({ term: "rice", aisle: "pantry" })],
+      shoppingList: list,
+      today: "2026-08-20",
     });
-    expect(html, "le bloc du jeudi manque").toContain("Thursday");
-    expect(html).toContain(en["meals.result.day_groceries_one"]);
+    expect(thursday, "le bloc du jeudi manque").toContain("Thursday");
+    expect(thursday).toContain(en["meals.result.day_groceries_one"]);
   });
 
-  it("⚠️ LA MOITIÉ QUI RETIENT — les jours vides n'apparaissent pas", () => {
+  it("⚠️ LA MOITIÉ QUI RETIENT — seul le jour lu a son bloc", () => {
     const html = textOf({ dishes: [dish()] });
-    // Le rail nomme les sept jours en ABRÉGÉ (« Mon », « Tue »…); seuls les
-    // BLOCS portent le jour entier. Un seul bloc: lundi.
+    // Le rail et le tableau nomment les sept jours en ABRÉGÉ (« Mon »,
+    // « Tue »…); seuls les BLOCS portent le jour entier. Un seul bloc: lundi.
     expect(html).toContain("Monday");
-    for (const day of ["Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]) {
-      expect(html, `${day} est rendu alors qu'il ne porte rien`)
-        .not.toContain(day);
+    for (const day of ["Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]) {
+      expect(html, `${day} a un bloc alors qu'il n'est pas lu`).not.toContain(day);
     }
-    expect(html).not.toContain("Sunday");
   });
 
-  it("⚠️ UNE VAGUE VIDE N'OUVRE PAS DE JOUR — le bloc serait creux", () => {
+  it("⚠️ UNE VAGUE VIDE N'OUVRE PAS DE JOUR — une seule marque de courses", () => {
     // Aucun article périssable ⇒ une seule vague, au premier jour du plan.
-    // Rien ne doit ouvrir mardi..dimanche.
     const html = textOf({
       dishes: [dish()],
       preparations: [prep()],
       shoppingList: [item({ term: "rice", aisle: "pantry" })],
     });
-    expect(html).not.toContain("Thursday");
-    expect(html).not.toContain("Sunday");
-  });
-
-  it("⚠️ LE CAS QUI PASSE — une semaine pleine se rend comme avant", () => {
-    const html = textOf({
-      dishes: [dish(), dish({ day: "tue" }), dish({ day: "sun" })],
-    });
-    expect(html).toContain("Monday");
-    expect(html).toContain("Tuesday");
-    expect(html).toContain("Sunday");
-    expect(html).not.toContain("Wednesday");
+    expect(occurrences(html, "●")).toBe(1);
   });
 
   it("⚠️ AUCUN PLAT DU TOUT MAIS UNE SESSION ⇒ le plan n'est pas « vide »", () => {
     const html = textOf({ dishes: [], cookingSessions: [session()] });
     expect(html, "un plan qui a une session à faire se dit vide")
       .not.toContain("Tell me where to start above.");
-    expect(html).toContain(en["meals.result.day_session"]);
+    expect(html).toContain(
+      en["meals.week_table.hours_minutes"].replace("{h}", "1").replace("{m}", "15"),
+    );
   });
 
   it("⚠️ VRAIMENT RIEN ⇒ la phrase de l'appelant, inchangée", () => {
@@ -288,6 +292,7 @@ describe("D3 · la vue JOUR ne change pas", () => {
     // jour rendait déjà le jour choisi même vide.
     const html = decode(renderToStaticMarkup(createElement(PlanResult, {
       dishes: [dish()],
+      dishLayout: "full",
       preparations: [],
       cookingSessions: [session({ day: "mon" })],
       shoppingList: [],
@@ -296,7 +301,6 @@ describe("D3 · la vue JOUR ne change pas", () => {
       durationDays: DURATION,
       today: STARTS_ON,
       emptyLabel: "Tell me where to start above.",
-      defaultView: "day",
     }))).replace(/<[^>]*>/g, "");
     expect(html).toContain("Monday");
     expect(html).toContain(en["meals.result.day_session"]);

@@ -457,3 +457,132 @@ export function exclusionRetryInstruction(
     "Replace the offending ingredient with something else that fits the same slot and the same effort. Do NOT drop the dish, and do NOT mention the change in any \"why\" — this is a taste, not a medical rule.",
   ].join("\n");
 }
+
+/**
+ * ⟳ 2026-09-24 — « CE PLAN SERT-IL UN ALIMENT EXCLU ? », ÉCRIT UNE SEULE FOIS.
+ *
+ * C'était le corps de `bitesOf` dans `generate-household-meal-v1`, où il ne
+ * servait qu'au plan qu'on venait de composer. L'ajustement par la note
+ * (`edit_cells` avec `cells_from: "exclusions"`) pose la même question au
+ * brouillon DÉJÀ composé, pour savoir quelles cases refaire. Deux copies de
+ * cette règle finiraient par ne plus dire la même chose ; la ceinture et
+ * l'ajustement appellent donc celle-ci.
+ *
+ * ⚠️ DEUX JEUX DE MOTS, ET C'EST LA VENTILATION QUI CHOISIT. Un plat ventilé
+ * par bouche est déjà tenu par la ceinture du parseur (elle retire la bouche
+ * mordue) : seuls les mots de la TABLE s'y appliquent. Un plat que personne
+ * ne se voit attribuer est servi à TOUS : il doit passer la ligne de chacun.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export interface ServedExclusionBite {
+  readonly dish: string;
+  readonly matched: string;
+  readonly because: string | null;
+  readonly day: string | null;
+  readonly slot: string | null;
+}
+
+export function servedExclusionBites(args: {
+  readonly meal: {
+    readonly dishes: readonly {
+      readonly title: string;
+      readonly method: string;
+      readonly ingredients: readonly { term: string }[];
+      readonly uses?: readonly { preparationId: string }[] | null;
+      readonly boxes?: readonly { memberIds?: readonly string[] | null }[] | null;
+      readonly day?: string | null;
+      readonly slot?: string | null;
+    }[];
+    readonly preparations: readonly ExclusionPreparation[];
+  };
+  readonly householdTerms: readonly ExclusionTerm[];
+  readonly unallocatedTerms: readonly ExclusionTerm[];
+}): ServedExclusionBite[] {
+  const preparationById = new Map(args.meal.preparations.map((p) => [p.id, p]));
+  return args.meal.dishes.flatMap((d) => {
+    const allocated = (d.boxes ?? []).some((b) => (b?.memberIds ?? []).length > 0);
+    const terms = allocated ? args.householdTerms : args.unallocatedTerms;
+    if (terms.length === 0) return [];
+    const bite = dishBitesExclusion({
+      dish: { title: d.title, method: d.method, ingredients: d.ingredients },
+      uses: (d.uses ?? []).map((u) => ({ preparationId: u.preparationId })),
+      preparationById,
+      terms,
+      surface: "all",
+      // ⟳ 2026-09-21 — LE MOMENT DU PLAT RELU. Une exclusion écrite pour
+      // le matin ne déclenche pas une relance sur un dîner.
+      slot: d.slot ?? null,
+    });
+    return bite.matched === null ? [] : [{
+      dish: d.title,
+      matched: bite.matched,
+      because: bite.because,
+      day: d.day ?? null,
+      slot: d.slot ?? null,
+    }];
+  });
+}
+
+/**
+ * ⟳ 2026-09-24 — CE QU'UNE PERSONNE NE MANGE PLUS, SUR LES PLATS QU'ELLE MANGE.
+ *
+ * `servedExclusionBites` n'applique que les mots de la TABLE aux plats
+ * ventilés : pendant une composition, la ceinture du parseur retire la
+ * bouche mordue de sa boîte, et ce retrait tient lieu de réponse. Un
+ * brouillon DÉJÀ composé ne repasse pas par le parseur : « Christèle n'aime
+ * pas le saumon » rendait `edit_nothing_to_change` alors que sa boîte du
+ * dimanche midi portait du saumon (banc du 2026-09-24, test 11).
+ *
+ * Ici, chaque personne est jugée avec SES mots seulement (ceux de la table
+ * sont déjà lus par `servedExclusionBites`), et seulement sur les plats où
+ * elle a une boîte ou qui lui sont dédiés. Un plat qu'elle ne mange pas ne
+ * la concerne pas : le refaire serait toucher l'assiette d'un autre.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function memberServedExclusionBites(args: {
+  readonly meal: {
+    readonly dishes: readonly {
+      readonly title: string;
+      readonly method: string;
+      readonly ingredients: readonly { term: string }[];
+      readonly uses?: readonly { preparationId: string }[] | null;
+      readonly boxes?: readonly { memberIds?: readonly string[] | null }[] | null;
+      readonly memberId?: string | null;
+      readonly day?: string | null;
+      readonly slot?: string | null;
+    }[];
+    readonly preparations: readonly ExclusionPreparation[];
+  };
+  readonly members: readonly { readonly memberId: string; readonly terms: readonly ExclusionTerm[] }[];
+}): (ServedExclusionBite & { readonly memberId: string })[] {
+  const preparationById = new Map(args.meal.preparations.map((p) => [p.id, p]));
+  const out: (ServedExclusionBite & { readonly memberId: string })[] = [];
+  for (const d of args.meal.dishes) {
+    for (const m of args.members) {
+      if (m.terms.length === 0) continue;
+      const served = d.memberId === m.memberId ||
+        (d.boxes ?? []).some((b) => (b?.memberIds ?? []).includes(m.memberId));
+      if (!served) continue;
+      const bite = dishBitesExclusion({
+        dish: { title: d.title, method: d.method, ingredients: d.ingredients },
+        uses: (d.uses ?? []).map((u) => ({ preparationId: u.preparationId })),
+        preparationById,
+        terms: m.terms,
+        surface: "all",
+        slot: d.slot ?? null,
+      });
+      if (bite.matched === null) continue;
+      out.push({
+        dish: d.title,
+        matched: bite.matched,
+        because: bite.because,
+        day: d.day ?? null,
+        slot: d.slot ?? null,
+        memberId: m.memberId,
+      });
+    }
+  }
+  return out;
+}

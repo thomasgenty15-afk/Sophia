@@ -62,6 +62,37 @@ const NOTE_ITEMS = "...(noteBelt?.items ?? []),";
 const COUNTER = "note_items: noteBelt?.items.length ?? 0,";
 const CLASSIFIED = "classified: draftNoteEarly === null ? undefined : await draftNoteEarly,";
 
+// ⟳ 2026-09-24 — DEUX LECTURES DU MAGASIN SEUL SONT VOULUES, ET SEULEMENT DANS
+// LES DEUX REPRISES QUI SUIVENT UNE NOTE DÉJÀ RANGÉE: `cells_from: "exclusions"`
+// (« je n'aime pas le tofu ») et `cells_from: "rejections"` (« Remplacer »).
+// Elles arrivent APRÈS `keel-read-note-v1`, qui a rangé la note; leur requête
+// n'en porte aucune, et le magasin est complet. ③ se juge donc HORS de ces deux
+// blocs: la ceinture de la composition reste tenue à `beltItems`, et la coupe ③
+// ci-dessous le prouve toujours.
+const EDIT_BLOCK_HEADS = [
+  'if (editCellsFrom === "exclusions") {',
+  'if (editCellsFrom === "rejections") {',
+];
+
+function withoutEditBlocks(code: string): string {
+  let out = code;
+  for (const head of EDIT_BLOCK_HEADS) {
+    const at = out.indexOf(head);
+    if (at < 0) continue;
+    let depth = 0;
+    let end = -1;
+    for (let k = at + head.length - 1; k < out.length; k++) {
+      if (out[k] === "{") depth++;
+      else if (out[k] === "}" && --depth === 0) {
+        end = k + 1;
+        break;
+      }
+    }
+    if (end > 0) out = out.slice(0, at) + out.slice(end);
+  }
+  return out;
+}
+
 function verdict(raw: string, lane: Lane): string[] {
   const code = stripComments(raw);
   const missing: string[] = [];
@@ -72,7 +103,7 @@ function verdict(raw: string, lane: Lane): string[] {
   if (!code.includes(BELT_READ)) missing.push("ceinture_ne_lit_pas_la_note");
   if (!code.includes(NOTE_ITEMS)) missing.push("items_de_la_note_absents");
   const beltSites = (code.match(/exclusionTermsFor\(\{\s*items: beltItems,/g) ?? []).length;
-  const storeOnly = /exclusionTermsFor\(\{\s*items: routedRetained\.composition/.test(code);
+  const storeOnly = /exclusionTermsFor\(\{\s*items: routedRetained\.composition/.test(withoutEditBlocks(code));
   if (beltSites !== lane.beltSites || storeOnly) missing.push("exclusionTermsFor_lit_le_magasin_seul");
   if (!code.includes(COUNTER)) missing.push("compteur_absent");
   const classified = code.split(CLASSIFIED).length - 1;

@@ -874,7 +874,7 @@ export const REPAIR_PATCH_SCHEMA_LINES: readonly string[] = [
   '  { "term":"one food, never a choice between two",',
   '    "quantity":"the phrase a person reads", "amount":<number>|null,',
   '    "unit":"g"|"ml"|"unit"|"tbsp"|"tsp"|null,',
-  '    "state":"raw"|"cooked"|null, "ref":"<id from the food list>",',
+  '    "state":"raw"|"cooked"|null,',
   '    "part":"<id from this recipe\'s components>" }',
   '⛔ EVERY INGREDIENT ALWAYS CARRIES "amount" AND "unit". Salt, black pepper',
   "   and herbs may stay a pinch; nothing else may. A recipe that comes back",
@@ -900,8 +900,12 @@ export const REPAIR_PATCH_SCHEMA_LINES: readonly string[] = [
   "   does not move, and the app puts the plan's day back anyway. A NEW",
   '   preparation carries a "cook_on" that an existing cooking session covers.',
   "⛔ Do not send a shopping list: the app builds it from your ingredients.",
-  '⛔ Every ingredient that carries a weight carries its "ref" from the food',
-  "   list, spelled exactly as listed.",
+  // ⟳ 2026-09-24 — LE NOM, PAS L'IDENTIFIANT : la même règle que le brief
+  // initial (`renderCatalogBlock`). La lane identifie chaque aliment par son
+  // nom après la réparation (`identifyPlanFoods`, `final_repair_identify`).
+  "⛔ Name every ingredient by ONE food, precisely, with whatever changes it",
+  '   ("pâtes complètes", "thon en conserve", "lait écrémé"). Do not write',
+  '   "ref": the app identifies each food from its name.',
 ];
 
 /**

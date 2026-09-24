@@ -1921,6 +1921,8 @@ export function MouthPreferencesFields(
               value={draft.sideCourses}
               onChange={(next) => set({ sideCourses: next })}
               disabled={props.busy}
+              voice={voice}
+              who={who}
             />
           </div>
         </Section>
@@ -1948,8 +1950,19 @@ export function MouthPreferencesFields(
           l'objet existe — l'idiome de la fiche d'ajout d'une personne, et la
           seule chose qui distingue « rien encore ici » de « tu as ajouté
           ça ». Il porte en revanche `data-sheet-section`, parce qu'il EST une
-          section de la fiche et que le compte de cadres le vérifie. */}
-      {props.shakerPort.kind !== "none" ? (
+          section de la fiche et que le compte de cadres le vérifie.
+
+          ⟳ 2026-09-24 — ET IL NE SE MONTRE QU'À LA PRISE DE MUSCLE. Demandé:
+          « pour le reste pas besoin, ça va ramener de la confusion ». La
+          proposition « sans insistance » aux autres objectifs est retirée.
+
+          ⚠️ SAUF S'IL EXISTE DÉJÀ. Un shaker enregistré continue d'être compté
+          par le moteur quel que soit l'objectif: le cacher à qui change
+          d'objectif laisserait un apport compté qu'on ne peut plus ni voir ni
+          retirer. */}
+      {props.shakerPort.kind !== "none" &&
+          (shakerIsForeground(draft.goal) || draft.shaker !== null)
+        ? (
         <ShakerFields
           shaker={draft.shaker}
           foreground={shakerIsForeground(draft.goal)}
@@ -1996,14 +2009,19 @@ export function MouthPreferencesFields(
 
       {/* ⛔ « Fermer cette fenêtre garde ce que tu as tapé » A ÉTÉ RETIRÉ LE
           2026-08-19. La phrase existait pour rassurer sur une CROIX de
-          fermeture; le bouton « Terminé » juste en dessous dit la même chose en
-          se laissant cliquer, et deux façons de dire « c'est gardé » font
-          douter qu'il le soit.
+          fermeture; le bouton juste en dessous dit la même chose en se
+          laissant cliquer, et deux façons de dire « c'est gardé » font douter
+          qu'il le soit.
+
+          ⟳ 2026-09-24 — « Terminé » EST DEVENU « Enregistrer », sur demande.
+          Le mot est exact: tous les appelants écrivent sur `onClose` (voir
+          `SetupPage` et `HouseholdPage`). Seule la fiche d'une personne pas
+          encore ajoutée attend « Ajouter » — sa ligne n'existe pas encore.
 
           ⚠️ ET LE BOUTON EST CENTRÉ: c'est le seul geste de fin de la fenêtre,
           donc il ne s'aligne sur rien d'autre. Collé à gauche sous une colonne
           de sections, il se lisait comme le bouton d'une de ces sections. */}
-      <div className="flex justify-center pt-2">
+      <div data-sheet-done="" className="flex justify-center pt-2">
         <Button variant="secondary" disabled={props.busy} onClick={props.onClose}>
           {t("household.mouth.preferences_done")}
         </Button>

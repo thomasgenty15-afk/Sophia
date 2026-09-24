@@ -24,7 +24,7 @@ import { thawLineFor } from "../../lib/thawLine";
 import { ingredientQuantityText } from "../../lib/ingredientQuantity";
 import FoldSection, { BoxingFold } from "./FoldSection";
 import DayPersonSplit from "./DayPersonSplit";
-import DishCard from "../DishCard";
+import DishCard, { type DishReplaceControl } from "../DishCard";
 import { Card } from "../ui/Card";
 import { type DishTick } from "../../lib/useMealTicks";
 
@@ -122,6 +122,14 @@ export interface PlanDayBlockProps {
   dayEnergy?: (day: string | null) => DayEnergyView | null;
   /** ⟳ 2026-09-04 — le kcal d'un contenant à UN nom, pour le Boxing de la session et la carte. */
   boxEnergy?: (boxId: string) => BoxEnergyView | null;
+  /**
+   * ⟳ 2026-09-24 — `"compact"` = une ligne par plat (l'aperçu), `"full"` = la
+   * carte d'avant (`/app/plan`). REQUISE: c'est l'appelant qui sait quel écran
+   * il rend, et un défaut ferait basculer l'un des deux en silence.
+   */
+  dishLayout: "full" | "compact";
+  /** ⟳ 2026-09-24 — « Remplacer » sur un plat, même forme que `tick`. Absent hors aperçu. */
+  dishReplace?: (dish: GeneratedDish) => DishReplaceControl | null;
 }
 
 export default function PlanDayBlock(props: PlanDayBlockProps) {
@@ -139,6 +147,14 @@ export default function PlanDayBlock(props: PlanDayBlockProps) {
   });
   const quiet = group.dishes.length === 0 && sessions.length === 0 &&
     props.wave === null;
+  // ⟳ 2026-09-24 (retour du propriétaire) — SUR L'APERÇU, DES TITRES PLUS
+  // PETITS: « les titres sont hyper gros » à côté d'un tableau en 13 px et de
+  // cartes en 14 px. L'ordre reste celui du 2026-09-23 (jour > moment >
+  // personne > plat), les tailles descendent: jour 16 px gras (la serif de
+  // la charte ne passe jamais sous 20 px, elle n'a donc pas de place ici),
+  // moment 12 px en capitales, plat 14 px (`DishCard compact`). Le plan
+  // adopté (`dishLayout="full"`) garde ses tailles.
+  const compact = props.dishLayout === "compact";
   return (
     <div>
       {/* ⟳ 2026-09-23 — LE JOUR EST LE TITRE LE PLUS FORT DU BLOC. Il était
@@ -152,7 +168,7 @@ export default function PlanDayBlock(props: PlanDayBlockProps) {
           en sans, à côté, pour que la serif ne passe jamais sous 19 px. */}
       {group.day && (
         <div className="mb-4 flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-line pb-2">
-          <h3 className="font-display text-sub text-ink">
+          <h3 className={compact ? "text-base font-semibold text-ink" : "font-display text-sub text-ink"}>
             {dishDayLabel(group.day)}
           </h3>
           {/* OÙ ON EN EST DANS LE PLAN. Sans repère, une semaine qui
@@ -274,7 +290,9 @@ export default function PlanDayBlock(props: PlanDayBlockProps) {
                 les faire disparaître d'un plan vivant coûterait plus cher qu'un
                 titre imparfait. */}
             {slotGroup.slot !== null && (
-              <h4 className="mb-2 text-sm font-semibold uppercase tracking-wide text-ink">
+              <h4
+                className={`mb-2 ${compact ? "text-xs" : "text-sm"} font-semibold uppercase tracking-wide text-ink`}
+              >
                 {dishSlotLabel(slotGroup.slot)}
               </h4>
             )}
@@ -347,6 +365,10 @@ export default function PlanDayBlock(props: PlanDayBlockProps) {
                   // carte par carte. La journée, elle, garde tout ouvert — le
                   // détail y est le sujet de la page.
                   collapsible
+                  // ⟳ 2026-09-24 — SUR L'APERÇU, UN CRAN DE PLUS: le titre seul,
+                  // qui s'ouvre sur la carte ci-dessus.
+                  compact={props.dishLayout === "compact"}
+                  replace={props.dishReplace?.(dish) ?? null}
                 />
               )}
             />

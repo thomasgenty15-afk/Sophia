@@ -223,9 +223,18 @@ describe("l'aperçu du plan reste le rendu unique, et il n'écrit rien", () => {
       // déposent leur constat, et UNE SEULE décision part après la garde
       // finale. La propriété épinglée ici est la même, sur le site qui reste :
       // aucune relance sur une adoption ni sur une reprise locale.
+      // ⟳ 2026-09-24 — la reprise locale rouvre l'appel pour UN cas : un repas
+      // manquant ou un défaut de sécurité DANS une case demandée
+      // (`c4EditRepair`, faux hors `edit_cells`). Une adoption ne l'ouvre
+      // toujours pas. Détail épinglé dans `portion_sizing_wiring_test.ts`.
       expect(server, rel).toContain(
-        `if (!c4Stop && ${gate} && c4Decision.call) {`,
+        rel.includes("household")
+          ? "if (!c4Stop && (improvementRetries || c4EditRepair) && c4Decision.call) {"
+          : `if (!c4Stop && ${gate} && c4Decision.call) {`,
       );
+      if (rel.includes("household")) {
+        expect(server, rel).toContain("const c4EditMust = editing\n");
+      }
       // ⛔ ET IL N'Y A QU'UN SEUL APPEL DE RÉPARATION DANS TOUTE LA LANE.
       expect(
         (server.match(/kind: "repair",/g) ?? []).length,

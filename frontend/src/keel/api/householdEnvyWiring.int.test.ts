@@ -129,12 +129,20 @@ describe("le câblage — l'envie part quand le maître compose pour le foyer", 
     // destination, et une seule. C'est l'assertion « il y a un champ, il part
     // quelque part, et pas deux fois ».
     const src = code("frontend/src/keel/components/MealBuilder.tsx");
-    expect(src, "le champ d'envie n'est plus monté").toContain(
-      'htmlFor="meals-envy"',
+    // ⟳ 2026-09-23 — LE CHAMP VIT DANS LE FORMULAIRE COMMUN, que `MealBuilder`
+    // monte avec son état d'envie.
+    const fields = code("frontend/src/keel/components/PlanRequestFields.tsx");
+    expect(src, "le formulaire commun n'est plus monté").toContain("<PlanRequestFields");
+    expect(src, "l'envie n'est plus branchée").toMatch(/envy=\{envy\}\s+onEnvy=\{setEnvy\}/);
+    expect(fields, "le champ d'envie n'est plus monté").toContain(
+      'htmlFor={id("envy")}',
     );
     // ⛔ UNE SEULE, ET C'EST MESURÉ: un second `<textarea>` d'envie ferait
     // revenir la question en double que ce lot a retirée.
-    const asked = src.match(/t\("plan\.envy\.title"\)/g) ?? [];
+    const asked = [
+      ...(src.match(/t\("plan\.envy\.title"\)/g) ?? []),
+      ...(fields.match(/t\("plan\.envy\.title"\)/g) ?? []),
+    ];
     expect(asked.length, "l'envie est posée deux fois dans le même formulaire")
       .toBe(1);
 

@@ -42,11 +42,19 @@ describe("2026-08-20 · l'envie du foyer, de l'étape 3 jusqu'au plan", () => {
   const setup = code("frontend/src/keel/pages/SetupPage.tsx");
 
   it("⛔ l'étape 3 POSE la question", () => {
-    expect(setup, "le champ d'envie n'est pas rendu").toContain("setup-envy");
+    // ⟳ 2026-09-23 — le champ vit dans le formulaire commun
+    // (`PlanRequestFields`), monté ici avec l'état d'envie de l'étape.
+    const fields = readFileSync(
+      new URL("../components/PlanRequestFields.tsx", import.meta.url),
+      "utf8",
+    );
+    expect(setup, "le formulaire commun n'est pas monté").toContain('idPrefix="setup"');
+    expect(setup, "l'envie n'est pas branchée").toMatch(/envy=\{envy\}\s+onEnvy=\{onEnvy\}/);
+    expect(fields, "le champ d'envie n'est pas rendu").toContain('htmlFor={id("envy")}');
     // La MÊME clé que `MealBuilder`, jamais un second libellé: deux textes
     // écrits séparément divergent au premier retouché.
-    expect(setup).toContain("plan.envy.title");
-    expect(setup).toContain("plan.envy.placeholder");
+    expect(fields).toContain("plan.envy.title");
+    expect(fields).toContain("plan.envy.placeholder");
   });
 
   it("⛔ et elle l'ÉCRIT, avec le même écrivain que `/app/plan`", () => {
@@ -114,6 +122,6 @@ describe("2026-08-20 · l'envie du foyer, de l'étape 3 jusqu'au plan", () => {
     // ⚠️ ET ELLE EST VRAIE D'UNE PERSONNE SEULE: l'étape 1 crée son foyer, elle
     // en est le maître, donc elle voit la question.
     expect(setup).toContain("askEnvy={facts.householdId !== null && facts.isOwner}");
-    expect(setup).toContain("askEnvy\n");
+    expect(setup).toContain("showEnvy={askEnvy}");
   });
 });

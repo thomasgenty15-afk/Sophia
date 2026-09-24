@@ -92,6 +92,11 @@ export function purchasesForNeed(args: {
   readonly window: number | null;
   /** Le rang du dernier jour de la fenêtre du plan. */
   readonly lastRank: number;
+  /**
+   * ⟳ 2026-09-24 — LES RANGS DES JOURS DE COURSES DÉJÀ POSÉS. REQUIS : `[]`
+   * dit « aucun », une absence ne se relirait pas.
+   */
+  readonly shopDays: readonly number[];
 }): PurchasePlan {
   const undated = args.uses.filter((u) => u.rank === null).length;
   const unweighed = args.uses.filter((u) =>
@@ -134,19 +139,40 @@ export function purchasesForNeed(args: {
   for (const u of dates) {
     const courant = groupes.length === 0 ? null : groupes[groupes.length - 1];
     const premier = courant === null ? null : courant.uses[0].rank;
+    // ⟳ 2026-09-24 — STRICTEMENT MOINS QUE LA FENÊTRE. Un groupe dont
+    // l'étendue VAUT la fenêtre ne s'achète qu'au jour de son premier usage
+    // (`dernier − fenêtre` = `premier`) — et un achat le jour même arrive
+    // après le petit-déjeuner (décision de l'utilisateur, épinards du lundi).
+    // Un groupe s'achète donc au plus tard la VEILLE de son premier usage.
     if (
       courant !== null && premier !== null &&
-      (fenetre === null || u.rank - premier <= fenetre)
+      (fenetre === null || u.rank - premier < Math.max(1, fenetre))
     ) {
       courant.uses.push(u);
       continue;
     }
     groupes.push({ uses: [u] });
   }
+  //
+  // ⟳ 2026-09-24 — UN JOUR DE COURSES DÉJÀ POSÉ PASSE AVANT. Tout jour entre
+  // `dernier − fenêtre` et la veille de `premier` couvre le groupe. Mesuré sur le brouillon
+  // `377e91ad` : des épinards du lundi (fenêtre 3) étaient datés vendredi, une
+  // course pour eux seuls, entre celle du jeudi et celle du samedi — alors que
+  // samedi les couvrait. On prend le jour déjà posé le plus TARD de cet
+  // intervalle (le plus frais) ; sans lui, la règle d'avant.
+  //
+  // ⛔ STRICTEMENT AVANT `premier`. Une course le jour même de l'usage ne le
+  // couvre pas : des épinards achetés lundi pour le petit-déjeuner de lundi
+  // arrivent après le repas.
   const dateDe = (g: { uses: { rank: number }[] }): number => {
     if (fenetre === null) return 0;
+    const premier = g.uses[0].rank;
     const dernier = g.uses[g.uses.length - 1].rank;
-    return Math.max(0, dernier - fenetre);
+    const auPlusTot = Math.max(0, dernier - fenetre);
+    const dejaPoses = args.shopDays
+      .filter((d) => Number.isFinite(d) && d >= auPlusTot && d < premier)
+      .sort((a, b) => a - b);
+    return dejaPoses.length > 0 ? dejaPoses[dejaPoses.length - 1] : auPlusTot;
   };
 
   // ── LES PARTS ───────────────────────────────────────────────────────────
@@ -201,6 +227,13 @@ export interface SplitCounts {
   readonly unsplittable: number;
   /** Lignes dont aucun besoin n'a été retrouvé : laissées telles quelles. */
   readonly without_need: number;
+  /**
+   * ⟳ 2026-09-24 — LIGNES D'UN SEUL ACHAT REDATÉES : leur date (la cuisson la
+   * plus tôt − la fenêtre) était trop tôt pour leur DERNIER usage. Mesuré :
+   * « blanc de poulet » acheté vendredi, mangé dimanche ET mardi — quatre
+   * jours pour une volaille qui en tient deux (brouillon `930edb4b`).
+   */
+  readonly redated_single: number;
 }
 
 /**
@@ -230,28 +263,69 @@ export function splitShoppingByUses<L>(args: {
   /** `true` quand la ligne porte une quantité qu'on sait couper. */
   readonly splittable: (line: L) => boolean;
   readonly lastRank: number;
+  /** Les rangs des jours de courses déjà posés — voir `purchasesForNeed`. */
+  readonly shopDays: readonly number[];
+  /**
+   * ⟳ 2026-09-24 — LE RANG DU JOUR D'ACHAT ACTUEL DE LA LIGNE, `null` si elle
+   * n'est pas datée. REQUIS : c'est lui qui dit qu'un achat unique est trop
+   * tôt pour son dernier usage.
+   */
+  readonly rankOf: (line: L) => number | null;
   /** La ligne, avec sa part du besoin et son jour d'achat. */
   readonly withShare: (line: L, share: number, rank: number) => L;
-}): { readonly lines: L[]; readonly counts: SplitCounts } {
+}): {
+  readonly lines: L[];
+  /**
+   * ⟳ 2026-09-24 — LES RANGS DES USAGES QUE CHAQUE LIGNE RENDUE COUVRE, alignés
+   * sur `lines`. `null` = aucun besoin retrouvé. C'est ce que lit
+   * `spaceShoppingDays` : une ligne scindée ne couvre que SES usages, et la
+   * juger sur tous ceux du besoin la clouerait à sa place.
+   */
+  readonly covers: (readonly number[] | null)[];
+  readonly counts: SplitCounts;
+} {
   const out: L[] = [];
+  const covers: (readonly number[] | null)[] = [];
   let split_needs = 0;
   let extra_lines = 0;
   let unsplittable = 0;
   let without_need = 0;
+  let redated_single = 0;
   for (const line of args.lines) {
     const uses = args.usesOf(line);
     if (uses === null) {
       without_need += 1;
       out.push(line);
+      covers.push(null);
       continue;
     }
     const plan = purchasesForNeed({
       uses,
       window: args.windowOf(line),
       lastRank: args.lastRank,
+      shopDays: args.shopDays,
     });
+    const allCovered = plan.purchases.flatMap((p) => p.coversRanks);
     if (plan.purchases.length <= 1) {
+      // ⟳ 2026-09-24 — UN SEUL ACHAT SUFFIT, MAIS LA LIGNE EST DATÉE TROP TÔT.
+      // Sa date vient de la cuisson la PLUS TÔT ; si elle précède
+      // `dernier usage − fenêtre`, le dernier repas mange un aliment périmé.
+      // On la redate au jour que `purchasesForNeed` a choisi — toujours avant
+      // le premier usage. Une ligne sans fenêtre (conserve, congelée) ne bouge pas.
+      const current = args.rankOf(line);
+      const window = args.windowOf(line);
+      const only = plan.purchases[0];
+      if (
+        only !== undefined && current !== null && window !== null && allCovered.length > 0 &&
+        current < Math.max(0, Math.max(...allCovered) - window) && only.rank > current
+      ) {
+        redated_single += 1;
+        out.push(args.withShare(line, 1, only.rank));
+        covers.push(allCovered);
+        continue;
+      }
       out.push(line);
+      covers.push(allCovered);
       continue;
     }
     if (!args.splittable(line)) {
@@ -259,14 +333,164 @@ export function splitShoppingByUses<L>(args: {
       // non plus : la ligne reste entière et le besoin est nommé au journal.
       unsplittable += 1;
       out.push(line);
+      covers.push(allCovered);
       continue;
     }
     split_needs += 1;
     extra_lines += plan.purchases.length - 1;
-    for (const p of plan.purchases) out.push(args.withShare(line, p.share, p.rank));
+    for (const p of plan.purchases) {
+      out.push(args.withShare(line, p.share, p.rank));
+      covers.push(p.coversRanks);
+    }
   }
   return {
     lines: out,
-    counts: { split_needs, extra_lines, unsplittable, without_need },
+    covers,
+    counts: { split_needs, extra_lines, unsplittable, without_need, redated_single },
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ③ ⟳ 2026-09-24 — DEUX JOURS AU MOINS ENTRE DEUX COURSES
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * L'ÉCART MINIMUM ENTRE DEUX JOURS DE COURSES, en jours.
+ *
+ * Décision de l'utilisateur (2026-09-24), sur deux plans réels : une course
+ * d'épinards seuls le vendredi entre celles du jeudi et du samedi (`377e91ad`),
+ * une course de laitue seule le lendemain de la grosse (`59b06fd6`). On ne
+ * retourne pas au magasin le lendemain — sauf quand la fraîcheur l'exige
+ * (un poisson qui ne tient qu'un jour) : ça, l'utilisateur l'a accepté.
+ */
+export const MIN_DAYS_BETWEEN_SHOPS = 2;
+
+export interface SpacingCounts {
+  /** Paires de jours de courses trop proches, AVANT ce passage. */
+  readonly adjacent_before: number;
+  /** ⛔ Celles qui RESTENT — la fraîcheur l'a exigé. À zéro, la règle tient partout. */
+  readonly adjacent_after: number;
+  readonly lines_moved: number;
+  /** Jours de courses supprimés : tout leur contenu a rejoint une autre course. */
+  readonly days_removed: number;
+  /** Jours de courses décalés à deux jours au moins des autres. */
+  readonly days_shifted: number;
+}
+
+/**
+ * RETIRE LES JOURS DE COURSES TROP PROCHES D'UN AUTRE, SANS JAMAIS ABÎMER LA
+ * FRAÎCHEUR.
+ *
+ * Pour un jour trop proche d'un autre, dans cet ordre :
+ *   1. chaque article rejoint une course DÉJÀ PRÉVUE où il reste frais jusqu'à
+ *      son usage (la plus tardive, la plus fraîche) — si tous le peuvent, le
+ *      jour disparaît ;
+ *   2. sinon, ce qui reste est DÉCALÉ à un jour éloigné d'au moins
+ *      `MIN_DAYS_BETWEEN_SHOPS` de toutes les autres courses, où il reste frais
+ *      (le plus proche du jour d'origine) ;
+ *   3. sinon, le jour reste — la fraîcheur passe avant la règle — et se compte
+ *      (`adjacent_after`).
+ * Le jour le plus tardif de la paire est essayé d'abord, puis le plus précoce
+ * s'il n'est pas la première course.
+ *
+ * ⛔ LA FENÊTRE D'ACHAT D'UN ARTICLE : du plus tôt `dernier usage − fenêtre`
+ * (borné au premier jour) au plus tard LA VEILLE de son premier usage (le jour
+ * même si ce premier usage est le premier jour). Un achat le jour même d'un
+ * repas arrive après lui — la règle déjà posée par `purchasesForNeed`.
+ * Un article sans usage connu, ou dont la fenêtre est vide, ne bouge pas.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function spaceShoppingDays<L>(args: {
+  readonly lines: readonly L[];
+  /** Les rangs des usages que chaque ligne couvre (`splitShoppingByUses().covers`). */
+  readonly covers: readonly (readonly number[] | null)[];
+  /** La fenêtre crue de la ligne. `null` = rien ne la fait attendre. */
+  readonly windowOf: (line: L) => number | null;
+  /** Le rang du jour d'achat de la ligne, ou `null` quand elle n'est pas datée. */
+  readonly rankOf: (line: L) => number | null;
+  /** La ligne, achetée à ce rang. */
+  readonly withRank: (line: L, rank: number) => L;
+}): { readonly lines: L[]; readonly counts: SpacingCounts } {
+  const out = args.lines.slice();
+  const ranks = out.map((l) => args.rankOf(l));
+  const ranges = out.map((l, i) => {
+    const covered = args.covers[i] ?? null;
+    if (covered === null || covered.length === 0) return null;
+    const first = Math.min(...covered);
+    const last = Math.max(...covered);
+    const window = args.windowOf(l);
+    const lo = window === null ? 0 : Math.max(0, last - window);
+    const hi = first > 0 ? first - 1 : 0;
+    return lo > hi ? null : { lo, hi };
+  });
+  const days = (): number[] =>
+    [...new Set(ranks.filter((r): r is number => r !== null))].sort((a, b) => a - b);
+  const adjacentPairs = (ds: readonly number[]): number => {
+    let n = 0;
+    for (let k = 1; k < ds.length; k++) if (ds[k] - ds[k - 1] < MIN_DAYS_BETWEEN_SHOPS) n++;
+    return n;
+  };
+  const adjacent_before = adjacentPairs(days());
+  let lines_moved = 0;
+  let days_removed = 0;
+  let days_shifted = 0;
+
+  const tryFix = (day: number): boolean => {
+    const others = days().filter((d) => d !== day);
+    const onDay = ranks.flatMap((r, i) => (r === day ? [i] : []));
+    const moves = new Map<number, number>();
+    const rest: number[] = [];
+    for (const i of onDay) {
+      const r = ranges[i];
+      const targets = r === null ? [] : others.filter((d) => d >= r.lo && d <= r.hi);
+      if (targets.length > 0) moves.set(i, Math.max(...targets));
+      else rest.push(i);
+    }
+    if (rest.length > 0) {
+      if (rest.some((i) => ranges[i] === null)) return false;
+      const lo = Math.max(...rest.map((i) => ranges[i]!.lo));
+      const hi = Math.min(...rest.map((i) => ranges[i]!.hi));
+      const candidates: number[] = [];
+      for (let x = lo; x <= hi; x++) {
+        if (x === day) continue;
+        if (others.every((o) => Math.abs(x - o) >= MIN_DAYS_BETWEEN_SHOPS)) candidates.push(x);
+      }
+      if (candidates.length === 0) return false;
+      candidates.sort((a, b) => Math.abs(a - day) - Math.abs(b - day) || a - b);
+      for (const i of rest) moves.set(i, candidates[0]);
+    }
+    for (const [i, rank] of moves) {
+      out[i] = args.withRank(out[i], rank);
+      ranks[i] = rank;
+      lines_moved++;
+    }
+    if (rest.length === 0) days_removed++;
+    else days_shifted++;
+    return true;
+  };
+
+  // ⚠️ CHAQUE CORRECTION RETIRE UNE PAIRE SANS EN CRÉER : un article rejoint un
+  // jour qui existe déjà, ou un jour éloigné de tous les autres. Le garde-fou
+  // de la boucle n'est qu'une ceinture.
+  for (let guard = 0; guard < 64; guard++) {
+    const ds = days();
+    let changed = false;
+    for (let k = 1; k < ds.length && !changed; k++) {
+      if (ds[k] - ds[k - 1] >= MIN_DAYS_BETWEEN_SHOPS) continue;
+      changed = tryFix(ds[k]) || (k - 1 > 0 && tryFix(ds[k - 1]));
+    }
+    if (!changed) break;
+  }
+
+  return {
+    lines: out,
+    counts: {
+      adjacent_before,
+      adjacent_after: adjacentPairs(days()),
+      lines_moved,
+      days_removed,
+      days_shifted,
+    },
   };
 }

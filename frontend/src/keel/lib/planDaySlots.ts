@@ -111,7 +111,11 @@ export interface DayPersonBlock {
 export interface DaySlotGroup {
   /** Le jeton du moment. `null` = plat sans moment (des plans anciens en ont). */
   slot: string | null;
-  /** Les plats de la table — `member_id === null`. */
+  /**
+   * Les plats de la table — `member_id === null`. Sous le plancher de deux
+   * bouches, aussi les plats de la seule bouche nommée: à une, elle EST la
+   * table, et un en-tête « Pour {prénom} » ne séparerait personne.
+   */
   table: DayDishEntry[];
   /** Un bloc par bouche nommée qui a son plat à elle, dans l'ordre du plan. */
   people: DayPersonBlock[];
@@ -123,9 +127,10 @@ export interface DaySlotGroup {
    */
   unnamed: DayDishEntry[];
   /**
-   * VRAI quand au moins une bouche a son plat à elle à ce moment-là. C'est ce
-   * qui déclenche les sous-blocs; sans ça le moment se rend à plat, comme
-   * avant ce lot.
+   * VRAI quand au moins une bouche a son plat à elle à ce moment-là, OU quand
+   * le plat commun ne nourrit qu'une partie du foyer (⟳ 2026-09-24). C'est ce
+   * qui déclenche les sous-blocs; sans ça le moment se rend à plat. Jamais
+   * vrai sous le plancher de deux bouches.
    */
   separated: boolean;
   /**
@@ -151,7 +156,8 @@ export interface DaySlotGroup {
    */
   tableEaters: DayEaterMark[];
   /**
-   * VRAI quand `tableEaters` couvre TOUTES les bouches nommées du plan.
+   * VRAI quand `tableEaters` couvre TOUTES les bouches nommées du plan — le
+   * plan entier, pas les seules bouches qui mangent à ce moment (⟳ 2026-09-24).
    *
    * ⛔ C'EST LA SEULE CONDITION QUI AUTORISE « POUR LA TABLE » COMME UNE
    * AFFIRMATION. Partout ailleurs le mot est un repli, pas un fait.
@@ -420,6 +426,17 @@ export function groupDayBySlot(args: {
         unnamedDishes.push(entry);
         continue;
       }
+      // ⛔ SOUS LE PLANCHER DE DEUX BOUCHES, AUCUNE VOIE (2026-09-24). Vu à
+      // l'écran sur un plan solo: « Pour Paul » au-dessus de la collation de
+      // l'après-midi. Depuis que `generate-household-meal-v1` compose aussi
+      // pour une seule bouche, un plan solo porte une `member_portions` d'une
+      // ligne et des plats attribués à cette bouche. Le plancher tenait les
+      // pastilles et les parts, pas les en-têtes. À une bouche, elle EST la
+      // table: son plat se range avec ceux de la table, dans l'ordre du plan.
+      if (!withShares) {
+        table.push(entry);
+        continue;
+      }
       // L'ORDRE DES BLOCS EST CELUI DU PLAN, pas celui du roster: c'est
       // l'ordre dans lequel le moment se lit, et une bouche sans plat dédié
       // n'a rien à faire dans cette liste (elle mange le plat de la table).
@@ -449,22 +466,32 @@ export function groupDayBySlot(args: {
         )
         .map((p) => ({ memberId: p.memberId, name: p.displayName }))
       : [];
+    // ⚠️ « TOUTES » SE COMPTE SUR LE ROSTER, PAS SUR `tableEaters` NON VIDE.
+    // Sans le second membre, un moment où une seule des trois bouches mange le
+    // plat commun se dirait encore « pour la table ».
+    // ⟳ 2026-09-24 — ET SUR LE PLAN ENTIER, PLUS SUR LES SEULES BOUCHES QUI
+    // MANGENT À CE MOMENT. Vu sur un foyer de trois où seul Thomas prend les
+    // collations: le matin (plat à lui, `member_id`) disait « Pour Thomas »,
+    // l'après-midi (plat de la table qu'il mange seul) ne disait rien. Décision
+    // du propriétaire: l'en-tête suit QUI MANGE, et il parle dès que le moment
+    // n'est pas pour tout le foyer. Le compte du 2026-08-19 faisait d'iku, seul
+    // au petit-déjeuner, « toute la tablée », et taisait la seule chose utile
+    // d'un coup d'œil: une seule part à préparer.
+    const tableIsEveryone = withShares &&
+      tableEaters.length === args.portions.length;
     return {
       slot,
       table,
       people,
       unnamed: unnamedDishes,
-      separated: people.length > 0,
+      // ⟳ 2026-09-24 — LA VOIE COMMUNE S'OUVRE AUSSI QUAND ELLE NE NOURRIT
+      // QU'UNE PARTIE DU FOYER. `tableEaters` vide (deux plats communs au même
+      // moment, ou personne n'y mange d'après le plan) = on ne sait pas qui:
+      // silence, comme avant.
+      separated: people.length > 0 ||
+        (table.length > 0 && tableEaters.length > 0 && !tableIsEveryone),
       tableEaters,
-      // ⚠️ « TOUTES » SE COMPTE SUR LE ROSTER, PAS SUR `tableEaters` NON VIDE.
-      // Sans le second membre, un moment où une seule des trois bouches mange
-      // le plat commun se dirait encore « pour la table ».
-      // ⚠️ « TOUTES » SE COMPTE SUR LES BOUCHES QUI MANGENT À CE MOMENT, pas
-      // sur le roster entier: à un petit-déjeuner que seul iku prend, il EST
-      // toute la tablée, et « Pour la table » est alors exact.
-      tableIsEveryone: withShares &&
-        tableEaters.length ===
-          args.portions.filter((p) => eatsAtSlot(p, slot)).length,
+      tableIsEveryone,
     };
   });
 }

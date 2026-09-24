@@ -397,7 +397,7 @@ export function sideCoursesBlock(args: {
     "Return the foods in ONE more top-level key of the JSON:",
     '  "side_courses": [ { "day": "<day token>", "slot": "lunch"|"dinner",',
     '      "member_id": "<exact id>", "kind": "starter"|"cheese"|"dessert"|"bread",',
-    '      "term": "<the food>", "ref": "<its id from THE FOOD IDS list, or null>",',
+    '      "term": "<the food, named exactly>",',
     '      "preparation_id": "<id of its preparation, or null>" } ]',
     // ⛔ L'ÉCHAPPATOIRE, COLLÉE À LA CLÉ — et SUR UNE LIGNE: c'est la phrase
     // que le test cherche telle quelle, et celle que le modèle doit lire d'un
@@ -465,7 +465,8 @@ export const SIDE_COURSES_TRANSLATABLE_FIELDS: readonly string[] = Object.freeze
 export const SIDE_COURSES_TOKEN_FIELDS: readonly string[] = Object.freeze([
   `side_courses[].kind (one of: ${SIDE_COURSE_KINDS.join(", ")})`,
   "side_courses[].member_id (the exact id, never a name)",
-  "side_courses[].ref (an id from the food list, never translated)",
+  // ⟳ 2026-09-24 — plus de `ref` : le modèle nomme l'aliment, la lane
+  // l'identifie par son nom avant le registre (`identifyPlanFoods`).
   "side_courses[].preparation_id (must match preparations[].id exactly)",
 ]);
 

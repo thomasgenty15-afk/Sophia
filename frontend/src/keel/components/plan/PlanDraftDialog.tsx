@@ -43,9 +43,12 @@
 
 import React from "react";
 
-import type { GeneratedMealResult } from "../../api/mealGeneration";
+import type { GeneratedDish, GeneratedMealResult } from "../../api/mealGeneration";
 import {
   canRemix,
+  DISH_REPLACE_MAX,
+  type DishRejection,
+  dishTitleKey,
   DRAFT_NOTE_MAX_CHARS,
   draftTurnsLeft,
   type DraftEdit,
@@ -53,6 +56,8 @@ import {
   hasNote,
   type NoteAnswer,
   type NoteCell,
+  noteIsExclusionOnly,
+  NOTE_QUESTIONS_MAX,
   type NoteQuestion,
   noteLength,
   noteOverflows,
@@ -65,8 +70,11 @@ import { Button } from "../ui/Button";
 import { Card, SectionLabel } from "../ui/Card";
 import { inputClass } from "../ui/Field";
 import Modal from "../ui/Modal";
+import { type DishReplaceControl } from "../DishCard";
 import ComposingLabel from "./ComposingLabel";
+import NoteQuestionsLayer from "./NoteQuestionsLayer";
 import PlanResult from "./PlanResult";
+import ReplaceReasonLayer from "./ReplaceReasonLayer";
 
 export interface PlanDraftDialogProps {
   open: boolean;
@@ -134,6 +142,32 @@ export interface PlanDraftDialogProps {
    * recompose pas : on refait cette case seulement. REQUIS, jamais `?`.
    */
   onEditCells: (draftId: string, cells: ReadonlyArray<NoteCell>) => Promise<void>;
+  /**
+   * ⟳ 2026-09-24 — LE CINQUIÈME GESTE. La note n'a rangé QUE des exclusions
+   * (« je n'aime pas le tofu ») et un brouillon est rangé : le serveur refait
+   * seulement les plats qui contiennent l'aliment, le reste ne bouge pas
+   * (`editExclusions`). REQUIS, jamais `?`.
+   */
+  onEditExclusions: (draftId: string) => Promise<void>;
+  /**
+   * ⟳ 2026-09-24 — « REMPLACER », EN DEUX GESTES, ENCHAÎNÉS ICI.
+   *
+   * `onReadRejections` envoie les raisons des plats barrés à la lecture de
+   * note (mode « plats refusés »): le serveur range la liste des plats refusés
+   * et classe chaque raison — il peut rendre des QUESTIONS, posées en couche.
+   * Puis `onReplaceDishes` refait ces plats-là, et seulement eux.
+   *
+   * ⛔ LES DEUX SONT REQUIS, jamais `?`: un site de montage qui en oublierait un
+   * aurait un « Ajuster le plan » mort sans un mot du compilateur.
+   */
+  onReadRejections: (
+    draftId: string,
+    rejections: ReadonlyArray<DishRejection>,
+  ) => Promise<NoteOutcome>;
+  onReplaceDishes: (
+    draftId: string,
+    rejections: ReadonlyArray<DishRejection>,
+  ) => Promise<void>;
   /** Ce que la dernière reprise locale a pris et laissé (`envelope.edit`). REQUIS. */
   edit: DraftEdit | null;
   /** Écrit le plan pour de bon. */
@@ -214,6 +248,9 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
     onAnswerNote,
     onCompose,
     onEditCells,
+    onEditExclusions,
+    onReadRejections,
+    onReplaceDishes,
     edit,
     onAdopt,
     adoptLabel,
@@ -295,6 +332,46 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
   const [noteOutcome, setNoteOutcome] = React.useState<NoteOutcome | null>(null);
   const [declined, setDeclined] = React.useState(0);
   /**
+   * ⟳ 2026-09-24 — LES PLATS BARRÉS (« Remplacer »), PAR CLÉ DE TITRE.
+   *
+   * Barrer un plat barre TOUTES ses occurrences: la clé est le titre affiché
+   * (`dishTitleKey`: espaces repliés, minuscules, accents gardés — la même
+   * règle que le serveur). Vide = le chemin d'avant, inchangé.
+   *
+   * ⚠️ L'UN OU L'AUTRE (décision du 2026-09-24): dès qu'un plat est barré,
+   * « Adopter » et la zone de commentaire disparaissent, et « Ajuster le
+   * plan » ne remplace QUE les plats barrés.
+   */
+  const [rejected, setRejected] = React.useState<ReadonlyMap<string, { title: string; reason: string }>>(
+    () => new Map(),
+  );
+  /** Le plat dont on écrit la raison (la couche est ouverte), ou `null`. */
+  const [reasonFor, setReasonFor] = React.useState<{ key: string; title: string } | null>(null);
+  const [reasonDraft, setReasonDraft] = React.useState("");
+  /**
+   * ⟳ 2026-09-24 — LES QUESTIONS DE PRÉCISION, POSÉES EN COUCHE, et ce qui
+   * part une fois qu'elles sont répondues: la composition de la note
+   * (`"note"`), ou le remplacement des plats barrés. `seq` remonte la couche
+   * à neuf pour chaque série — ses cases cochées ne passent pas d'une série à
+   * l'autre.
+   */
+  const [asking, setAsking] = React.useState<
+    {
+      questions: ReadonlyArray<NoteQuestion>;
+      overflow: number;
+      outcome: NoteOutcome;
+      then: "note" | { draftId: string; rejections: ReadonlyArray<DishRejection> };
+      seq: number;
+    } | null
+  >(null);
+  const askSeq = React.useRef(0);
+  /**
+   * ⟳ 2026-09-24 — CE QUE LE DERNIER « AJUSTER » A FAIT: une note, ou des
+   * plats remplacés — les phrases de repli d'une note (« rien trouvé à
+   * changer ») seraient fausses sous un remplacement.
+   */
+  const [channel, setChannel] = React.useState<"note" | "replace">("note");
+  /**
    * LE REFUS, ET L'ENDROIT OÙ IL DOIT SE LIRE.
    *
    * ⚠️ CE N'EST PLUS UNE SIMPLE CHAÎNE, ET C'EST LA CONSÉQUENCE DU SECOND
@@ -328,7 +405,20 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
     setFailure(null);
     setNoteOutcome(null);
     setDeclined(0);
+    setRejected(new Map());
+    setReasonFor(null);
+    setAsking(null);
+    setChannel("note");
   }, [open]);
+
+  // ⟳ 2026-09-24 — UN AUTRE BROUILLON, D'AUTRES PLATS: les plats barrés
+  // tombent quand le brouillon change (remplacement réussi, recomposition).
+  // Un remplacement REFUSÉ ne change pas de brouillon: les plats restent
+  // barrés, et on peut relancer.
+  React.useEffect(() => {
+    setRejected(new Map());
+    setReasonFor(null);
+  }, [draftId]);
 
   /**
    * COMPOSER, ET COMPTER LE TOUR APRÈS. Un tour est une COMPOSITION, pas une
@@ -336,9 +426,16 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
    * coûte rien de ce que le plafond protège. Le tour se compte après l'appel,
    * jamais avant: un refus n'a rien composé, donc rien consommé.
    */
+  /**
+   * ⟳ 2026-09-24 — UN SEUL COMPTEUR DE TOURS pour tous les chemins qui
+   * composent (recomposition, reprise de case, reprise par exclusion,
+   * remplacement de plats): un tour est une composition, d'où qu'elle parte.
+   */
+  const countTurn = () => setTurnsUsed((n) => n + 1);
+
   const composeNow = async () => {
     await onCompose();
-    setTurnsUsed((n) => n + 1);
+    countTurn();
   };
 
   /**
@@ -350,27 +447,68 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
   const renderNow = async (outcome: NoteOutcome) => {
     if (outcome.cells.length > 0 && draftId !== null) {
       await onEditCells(draftId, outcome.cells);
-      setTurnsUsed((n) => n + 1);
+      countTurn();
+      return;
+    }
+    // ⟳ 2026-09-24 — UNE NOTE QUI N'EST QU'UNE EXCLUSION MODIFIE LE
+    // BROUILLON AU LIEU DE LE RECOMPOSER. Recomposer ne gardait rien du plan
+    // regardé, pour retirer un aliment.
+    if (draftId !== null && noteIsExclusionOnly(outcome)) {
+      await onEditExclusions(draftId);
+      countTurn();
       return;
     }
     await composeNow();
   };
 
   /**
-   * LA RÉPONSE À UNE QUESTION — ou son refus (`memberId: null`).
-   *
-   * ⚠️ ON NE COMPOSE QU'UNE FOIS LA DERNIÈRE QUESTION FERMÉE, et seulement si
-   * quelque chose a bougé: une phrase dont l'unique demande a été passée n'a
-   * rien changé, et recomposer un plan identique coûterait un tour pour rien.
-   * On le dit à la place.
+   * ⟳ 2026-09-24 — LES QUESTIONS DE PRÉCISION PARTENT EN COUCHE, trois au
+   * plus (le serveur plafonne aussi). Rien n'est composé tant qu'elle est
+   * ouverte: composer avant la réponse ferait un plan pour la mauvaise
+   * assiette.
    */
-  const answerQuestion = async (question: NoteQuestion, memberId: string | null) => {
-    if (noteOutcome === null) return;
+  const openQuestions = (
+    outcome: NoteOutcome,
+    then: "note" | { draftId: string; rejections: ReadonlyArray<DishRejection> },
+  ) => {
+    askSeq.current += 1;
+    setAsking({
+      questions: outcome.questions.slice(0, NOTE_QUESTIONS_MAX),
+      overflow: Math.max(0, outcome.questions.length - NOTE_QUESTIONS_MAX),
+      outcome,
+      then,
+      seq: askSeq.current,
+    });
+  };
+
+  /**
+   * LES RÉPONSES, PUIS LA SUITE DU CANAL.
+   *
+   * Chaque personne cochée part par la branche `answer` de la lecture de note
+   * (sans appel modèle). « Personne de la liste », ou rien de coché, n'écrit
+   * rien — et se dit (`question_skipped`).
+   *
+   * ⚠️ LA NOTE NE RECOMPOSE QUE SI QUELQUE CHOSE A BOUGÉ: une phrase dont
+   * l'unique demande a été passée n'a rien changé, et recomposer un plan
+   * identique coûterait un tour pour rien. Le REMPLACEMENT, lui, part
+   * toujours: les plats barrés restent à remplacer, quelle que soit la
+   * réponse.
+   */
+  const continueAfterQuestions = async (choices: ReadonlyArray<string | null>) => {
+    if (asking === null) return;
+    const { questions, overflow, outcome, then } = asking;
+    setAsking(null);
     setWorking("adjusting");
     setFailure(null);
     try {
-      let merged: NoteOutcome = noteOutcome;
-      if (memberId !== null) {
+      let merged: NoteOutcome = { ...outcome, questions: [] };
+      let skipped = overflow;
+      for (const [i, question] of questions.entries()) {
+        const memberId = choices[i] ?? null;
+        if (memberId === null) {
+          skipped++;
+          continue;
+        }
         // ⟳ 2026-09-23 — deux genres de question, un seul geste: la bouche.
         const res = await onAnswerNote(
           question.kind === "portion"
@@ -378,13 +516,13 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
             : { kind: "who", memberId, entry: question.entry },
         );
         merged = { ...merged, announced: [...merged.announced, ...res.announced] };
-      } else {
-        setDeclined((n) => n + 1);
       }
-      const rest = merged.questions.filter((q) => q !== question);
-      merged = { ...merged, questions: rest };
       setNoteOutcome(merged);
-      if (rest.length > 0) return;
+      setDeclined(skipped);
+      if (then !== "note") {
+        await replaceNow(then.draftId, then.rejections, merged);
+        return;
+      }
       if (merged.announced.length === 0 && merged.cells.length === 0) return;
       await renderNow(merged);
     } catch (e) {
@@ -392,6 +530,84 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
     } finally {
       setWorking(null);
     }
+  };
+
+  /**
+   * ⟳ 2026-09-24 — LES OCCURRENCES DES PLATS BARRÉS, sur le brouillon affiché.
+   * Un complément (il complète une assiette commune) n'est jamais barré: le
+   * serveur ne sait pas le refaire seul.
+   */
+  const rejectionsNow = (): DishRejection[] => {
+    const out: DishRejection[] = [];
+    for (const dish of draft?.dishes ?? []) {
+      if (dish.complements_shared === true || !dish.day || !dish.slot) continue;
+      const hit = rejected.get(dishTitleKey(dish.title));
+      if (!hit) continue;
+      out.push({ day: dish.day, slot: dish.slot, memberId: dish.member_id, title: dish.title, reason: hit.reason });
+    }
+    return out;
+  };
+
+  /**
+   * REMPLACER — OU TOUT REFAIRE QUAND LA SANTÉ A BOUGÉ.
+   *
+   * ⛔ UNE ALLERGIE OU UN RÉGIME RANGÉ PAR UNE RAISON VAUT POUR TOUT LE PLAN.
+   * Le remplacement ne refait que des plats; une contrainte de santé neuve
+   * doit être tenue partout, et c'est la composition entière qui la tient
+   * (les plats barrés sont déjà dans la liste des plats refusés: elle ne les
+   * reproposera pas).
+   */
+  const replaceNow = async (
+    id: string,
+    rejections: ReadonlyArray<DishRejection>,
+    outcome: NoteOutcome,
+  ) => {
+    if (outcome.announced.some((a) => a.kind === "safety")) {
+      await composeNow();
+      return;
+    }
+    await onReplaceDishes(id, rejections);
+    countTurn();
+  };
+
+  /** « Ajuster le plan » quand des plats sont barrés. */
+  const runReplace = async () => {
+    if (draftId === null) return;
+    const rejections = rejectionsNow();
+    if (rejections.length === 0) return;
+    setChannel("replace");
+    setWorking("adjusting");
+    setFailure(null);
+    try {
+      // ① LIRE — la liste des plats refusés est rangée, chaque raison classée.
+      const outcome = await onReadRejections(draftId, rejections);
+      setNoteOutcome(outcome);
+      setDeclined(0);
+      // ② UNE QUESTION ? La couche s'ouvre; le remplacement partira au clic.
+      if (outcome.questions.length > 0) {
+        openQuestions(outcome, { draftId, rejections });
+        return;
+      }
+      // ③ REMPLACER — ces plats-là, et ceux qu'une exclusion neuve viderait.
+      await replaceNow(draftId, rejections, outcome);
+    } catch (e) {
+      setFailure({ at: "body", message: failureText(e) });
+    } finally {
+      setWorking(null);
+    }
+  };
+
+  /** « Valider » dans la couche de raison: le plat est barré, partout. */
+  const confirmReason = () => {
+    if (reasonFor === null || !hasNote(reasonDraft) || noteOverflows(reasonDraft)) return;
+    const { key, title } = reasonFor;
+    const reason = reasonDraft.trim().replace(/\s+/g, " ");
+    setRejected((prev) => new Map(prev).set(key, { title, reason }));
+    setReasonFor(null);
+    setReasonDraft("");
+    // L'UN OU L'AUTRE: un plat barré referme la zone de commentaire (la phrase
+    // tapée reste en mémoire, et revient si plus rien n'est barré).
+    setNoteOpen(false);
   };
 
   /**
@@ -424,12 +640,53 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
   const adopting = working === "adopting";
   /** La recomposition en cours — celle qui dure deux minutes. */
   const adjusting = working === "adjusting";
-  const pendingQuestion = noteOutcome !== null && noteOutcome.questions.length > 0
-    ? noteOutcome.questions[0]
-    : null;
   const left = draftTurnsLeft(turnsUsed);
   const canAskAgain = canRemix(turnsUsed);
   const charsLeft = DRAFT_NOTE_MAX_CHARS - noteLength(note);
+
+  // ── ⟳ 2026-09-24 · « REMPLACER » ────────────────────────────────────────
+  // Les occurrences par titre (un plat en lot revient jusqu'à neuf fois,
+  // mesuré): c'est ce qui compte contre le plafond d'un remplacement.
+  const occurrences = new Map<string, number>();
+  for (const dish of draft?.dishes ?? []) {
+    if (dish.complements_shared === true || !dish.day || !dish.slot) continue;
+    const key = dishTitleKey(dish.title);
+    occurrences.set(key, (occurrences.get(key) ?? 0) + 1);
+  }
+  const struckCount = [...rejected.keys()].reduce((n, key) => n + (occurrences.get(key) ?? 0), 0);
+  /** L'UN OU L'AUTRE: au moins un plat barré change le pied et le fronton. */
+  const strikeMode = rejected.size > 0;
+  /** Un plat de plus dépasserait le plafond: le bouton se grise, et on le dit. */
+  const capBlocks = [...occurrences].some(([key, n]) =>
+    !rejected.has(key) && struckCount + n > DISH_REPLACE_MAX
+  );
+  const dishReplace = (dish: GeneratedDish): DishReplaceControl | null => {
+    if (dish.complements_shared === true || !dish.day || !dish.slot) return null;
+    const key = dishTitleKey(dish.title);
+    const hit = rejected.get(key) ?? null;
+    return {
+      struck: hit === null ? null : { reason: hit.reason },
+      canReplace: !busyNow && canAskAgain && draftId !== null &&
+        struckCount + (occurrences.get(key) ?? 0) <= DISH_REPLACE_MAX,
+      onReplace: () => {
+        setReasonDraft("");
+        setReasonFor({ key, title: dish.title });
+      },
+      onKeep: () =>
+        setRejected((prev) => {
+          const next = new Map(prev);
+          next.delete(key);
+          return next;
+        }),
+    };
+  };
+  /**
+   * Les plats refaits EN PLUS des barrés, un titre une fois: le serveur les
+   * rend par occurrence, et un plat en lot se répète dans la semaine.
+   */
+  const extendedTitles = [
+    ...new Map((edit?.extended ?? []).map((d) => [dishTitleKey(d.title), d.title])).values(),
+  ];
 
   /**
    * ── LES DEUX GESTES, DANS LE PIED DE LA FENÊTRE ─────────────────────────
@@ -467,7 +724,7 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
    * réponse.
    */
   const bodyNotice = droppedClauses > 0 || noteOutcome !== null ||
-    pendingQuestion !== null || edit !== null || failure?.at === "body";
+    edit !== null || failure?.at === "body";
 
   const footerActions = (
     /* ══════════════════════════════════════════════════════════════════════
@@ -490,7 +747,45 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
        JAMAIS à l'écran en même temps, et c'est le même geste en deux temps.
        « Valider » (`note_send`) a été retiré — à côté de « Remplacer mon plan
        par celui-ci », deux mots de validation pour deux effets différents. */
-    noteOpen
+    /* ⟳ 2026-09-24 — DES PLATS BARRÉS: UN SEUL GESTE. Ni adoption, ni zone
+       de commentaire (l'un ou l'autre): « Ajuster le plan » remplace les plats
+       barrés, et rien d'autre. Le compte des reprises reste dit. */
+    strikeMode
+      ? (
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <span className="text-label text-ink-soft">
+              {left === 0
+                ? t("plan.draft.turns_none")
+                : left === 1
+                ? t("plan.draft.turns_one")
+                : t("plan.draft.turns_left", { count: left })}
+            </span>
+            <span className="text-label text-ink-soft">
+              {struckCount === 1
+                ? t("plan.draft.struck_one")
+                : t("plan.draft.struck_many", { count: struckCount })}
+            </span>
+          </div>
+          {capBlocks && (
+            <p className="text-label text-ink-soft">
+              {t("plan.draft.struck_cap", { max: DISH_REPLACE_MAX })}
+            </p>
+          )}
+          <div className="flex justify-end">
+            <Button
+              variant="primary"
+              disabled={busyNow || !canAskAgain || draftId === null}
+              onClick={() => void runReplace()}
+            >
+              {adjusting
+                ? <ComposingLabel progress={progress} />
+                : t("plan.draft.remix")}
+            </Button>
+          </div>
+        </div>
+      )
+      : noteOpen
       ? (
         <div className="flex flex-col gap-2">
           <div className="flex items-end gap-2">
@@ -508,7 +803,7 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
               // SILENCE au 280e signe, et la personne enverrait une demande
               // tronquée sans jamais savoir laquelle. On compte, on prévient,
               // le serveur tranche.
-              disabled={busyNow || !canAskAgain || pendingQuestion !== null}
+              disabled={busyNow || !canAskAgain}
               onChange={(e) => setNote(e.target.value)}
             />
             {/* ⛔ LA CONDITION DE `disabled` TIENT SUR UNE LIGNE, et ce n'est
@@ -518,8 +813,9 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
                 absente. */}
             <Button
               variant={hasNote(note) ? "primary" : "secondary"}
-              disabled={busyNow || !canAskAgain || !hasNote(note) || pendingQuestion !== null}
+              disabled={busyNow || !canAskAgain || !hasNote(note)}
           onClick={async () => {
+            setChannel("note");
             setWorking("adjusting");
             setFailure(null);
             try {
@@ -536,6 +832,7 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
               // deux demandes collées, dont une que la personne croyait
               // derrière elle.
               if (outcome.questions.length > 0) {
+                openQuestions(outcome, "note");
                 setNote("");
                 return;
               }
@@ -627,21 +924,29 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
       : (
         /* FERMÉ: les deux gestes aux deux bords, l'avance à droite — le même
            sens que l'entonnoir (`SetupPage`, `setup.next` en `justify-end`). */
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <Button
-            variant="secondary"
-            disabled={busyNow || !canAskAgain}
-            onClick={() => setNoteOpen(true)}
-          >
-            {t("plan.draft.remix")}
-          </Button>
-          <Button
-            variant="primary"
-            disabled={busyNow || !draft}
-            onClick={() => void runAdopt("body")}
-          >
-            {adopting ? t("plan.draft.adopting") : (adoptLabel ?? t("plan.draft.adopt"))}
-          </Button>
+        <div className="flex flex-col gap-2">
+          {/* ⟳ 2026-09-24 — PLUS DE REPRISE, ET ON LE DIT: « Ajuster » et tous
+              les « Remplacer » sont éteints; sans cette ligne, rien ne dit
+              pourquoi (vu sur le banc de l'aperçu). */}
+          {!canAskAgain && (
+            <p className="text-label text-ink-soft">{t("plan.draft.turns_none")}</p>
+          )}
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <Button
+              variant="secondary"
+              disabled={busyNow || !canAskAgain}
+              onClick={() => setNoteOpen(true)}
+            >
+              {t("plan.draft.remix")}
+            </Button>
+            <Button
+              variant="primary"
+              disabled={busyNow || !draft}
+              onClick={() => void runAdopt("body")}
+            >
+              {adopting ? t("plan.draft.adopting") : (adoptLabel ?? t("plan.draft.adopt"))}
+            </Button>
+          </div>
         </div>
       )
   );
@@ -686,16 +991,46 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
          ⚠️ CE QUE « ADOPTER » FAIT est dit en haut du corps (juste dessous)
          comme il l'est en pied: un raccourci ne doit pas faire l'économie de
          l'avertissement. */
-      headerAction={
-        <Button
-          variant="primary"
-          size="sm"
-          disabled={busyNow || !draft}
-          onClick={() => void runAdopt("header")}
-        >
-          {adopting ? t("plan.draft.adopting") : (adoptLabel ?? t("plan.draft.adopt"))}
-        </Button>
-      }
+      headerAction={strikeMode
+        // ⟳ 2026-09-24 — DES PLATS BARRÉS: PAS D'ADOPTION, ni ici ni en pied.
+        // On n'écrit pas un plan dont on vient de refuser des plats.
+        ? undefined
+        : (
+          <Button
+            variant="primary"
+            size="sm"
+            disabled={busyNow || !draft}
+            onClick={() => void runAdopt("header")}
+          >
+            {adopting ? t("plan.draft.adopting") : (adoptLabel ?? t("plan.draft.adopt"))}
+          </Button>
+        )}
+      /* ⟳ 2026-09-24 — LES DEUX « POP-UPS » SONT DES COUCHES DE CETTE FENÊTRE,
+         pas des seconds portails (jamais essayés ici): la raison d'un plat à
+         remplacer, puis les questions de précision. */
+      layer={reasonFor !== null
+        ? (
+          <ReplaceReasonLayer
+            dishTitle={reasonFor.title}
+            value={reasonDraft}
+            onChange={setReasonDraft}
+            onCancel={() => setReasonFor(null)}
+            onConfirm={confirmReason}
+          />
+        )
+        : asking !== null
+        ? (
+          <NoteQuestionsLayer
+            key={asking.seq}
+            questions={asking.questions}
+            busy={busyNow}
+            onContinue={(choices) => void continueAfterQuestions(choices)}
+          />
+        )
+        : null}
+      // Échap referme la couche de raison (le plat n'est pas barré); les
+      // questions, elles, se ferment par « Continuer ».
+      onLayerDismiss={reasonFor !== null ? () => setReasonFor(null) : undefined}
       // `lg`: on y monte une SEMAINE — grille, préparations, jours. À `max-w-lg`
       // la grille du plan se lit à travers une meurtrière.
       size="lg"
@@ -834,11 +1169,12 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
               startsOn={draft.startsOn}
               durationDays={draft.durationDays}
               today={draft.startsOn}
-              // LOT 1 — L'APERÇU S'OUVRE EN SEMAINE ENTIÈRE: on juge un
-              // brouillon en entier avant de l'adopter. Le rail reste là —
-              // lire le mardi du brouillon est à un clic. Le plan ADOPTÉ,
-              // lui, ouvre sur le jour (le défaut de `PlanResult`).
-              defaultView="week"
+              // ⟳ 2026-09-24 — PLUS DE « TOUTE LA SEMAINE »: l'aperçu ouvre sur
+              // son premier jour (`today = startsOn`), la semaine se juge dans
+              // le tableau en tête. Une LIGNE PAR PLAT, dépliable, et
+              // « Remplacer » sur chacune.
+              dishLayout="compact"
+              dishReplace={dishReplace}
               // LE VIDE DE CETTE FENÊTRE N'EST PAS CELUI DE L'ÉCRAN. « Dis-moi
               // par où commencer ci-dessus » n'a pas de sens ici: il n'y a pas
               // de formulaire au-dessus. On dit ce qui s'est passé.
@@ -853,6 +1189,9 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
               energy={energy.showing ? ((dish) => energy.forDish(dish)) : undefined}
               boxEnergy={energy.hasBoxEnergy ? ((id) => energy.forBox(id)) : undefined}
               dayEnergy={energy.showing ? ((day) => energy.forDay(day)) : undefined}
+              // ⟳ 2026-09-24 — le tableau de la semaine: même règle que
+              // `forBox`, dont il n'est que la somme.
+              memberDayEnergy={(member, day) => energy.forMemberDay(member, day)}
             />
           )
           // `draft === null` = rien à montrer. Pas de squelette, pas de
@@ -937,7 +1276,7 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
             `envelope.edit`, jamais depuis ce qu'on a demandé : ce sont les
             cases PRISES qui se disent. Une case demandée et non prise a levé
             un refus, rendu en rouge sous le champ. */}
-        {edit !== null && edit.taken.length > 0
+        {edit !== null && edit.operation === "edit_cells" && edit.taken.length > 0
           ? (
             <p className="mt-2 text-sm leading-6 text-ink">
               {t("plan.draft.cells_applied", {
@@ -952,46 +1291,56 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
           )
           : null}
 
-        {/* ── LA QUESTION DU SERVEUR (lot 4) ───────────────────────────────
-            « Tu as écrit « … » — c'est pour qui ? », un bouton par bouche,
-            et une échappatoire qui n'écrit rien. On cite le MORCEAU sur
-            lequel le serveur a buté, jamais la note entière. Tant qu'elle est
-            ouverte, ni le champ ni la reprise: composer maintenant ferait un
-            plan pour la mauvaise assiette. */}
-        {pendingQuestion !== null
+        {/* ⟳ 2026-09-24 — CE QUE « REMPLACER » A FAIT, depuis `envelope.edit`:
+            ce sont les plats PRIS qui se disent, et ceux refaits en plus parce
+            qu'une exclusion neuve les aurait vidés. Un plat demandé et non
+            pris se dit aussi — il reste dans l'aperçu tel quel. */}
+        {edit !== null && edit.operation === "replace_dishes" && edit.taken.length > 0
           ? (
-            <div className="mt-3 rounded-md border border-line bg-paper-2 p-3 text-sm leading-6 text-ink">
-              <p>{t("plan.draft.question_who", { text: pendingQuestion.text })}</p>
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                {pendingQuestion.options.map((o) => (
-                  <Button
-                    key={o.memberId}
-                    variant="secondary"
-                    disabled={busyNow}
-                    onClick={() => void answerQuestion(pendingQuestion, o.memberId)}
-                  >
-                    {o.label}
-                  </Button>
-                ))}
-                <Button
-                  variant="ghost"
-                  disabled={busyNow}
-                  onClick={() => void answerQuestion(pendingQuestion, null)}
-                >
-                  {t("plan.draft.question_none")}
-                </Button>
-              </div>
-            </div>
+            <p className="mt-2 text-sm leading-6 text-ink">
+              {edit.taken.length === 1
+                ? t("plan.draft.dishes_replaced_one", { kept: edit.untouched })
+                : t("plan.draft.dishes_replaced_many", { count: edit.taken.length, kept: edit.untouched })}
+            </p>
           )
           : null}
-        {pendingQuestion === null && declined > 0
+        {edit !== null && edit.operation === "replace_dishes" && extendedTitles.length > 0
+          ? (
+            <p className="mt-2 text-sm leading-6 text-ink">
+              {t(extendedTitles.length === 1 ? "plan.draft.dishes_extended_one" : "plan.draft.dishes_extended_many", {
+                dishes: extendedTitles.map((title) => `« ${title} »`).join(", "),
+              })}
+            </p>
+          )
+          : null}
+        {edit !== null && edit.operation === "replace_dishes" && edit.notRendered.length > 0
+          ? (
+            <p className="mt-2 text-sm leading-6 text-ink">
+              {t("plan.draft.dishes_not_replaced", { count: edit.notRendered.length })}
+            </p>
+          )
+          : null}
+        {noteOutcome !== null && noteOutcome.rejectedFiled > 0
+          ? (
+            <p className="mt-2 text-sm leading-6 text-ink-soft">
+              {noteOutcome.rejectedFiled === 1
+                ? t("plan.draft.rejected_filed_one")
+                : t("plan.draft.rejected_filed_many", { count: noteOutcome.rejectedFiled })}
+            </p>
+          )
+          : null}
+        {/* ⟳ 2026-09-24 — LA QUESTION DU SERVEUR N'EST PLUS ICI: elle s'ouvre en
+            couche (`NoteQuestionsLayer`), trois au plus, cochées, et rien ne
+            compose tant qu'elle est ouverte. Ce bloc ne garde que ce qui en
+            résulte. */}
+        {asking === null && declined > 0
           ? (
             <p className="mt-2 text-sm leading-6 text-ink">
               {t("plan.draft.question_skipped")}
             </p>
           )
           : null}
-        {pendingQuestion === null && declined === 0 && noteOutcome !== null &&
+        {asking === null && channel === "note" && declined === 0 && noteOutcome !== null &&
             noteOutcome.announced.length === 0 && noteOutcome.whoUnknown > 0
           ? (
             <p className="mt-2 text-sm leading-6 text-ink">
@@ -1003,7 +1352,7 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
             compliqué » sur un style déjà minimal rendait « rien trouvé à
             changer » — faux, et décourageant. Se dit même quand autre chose
             a été noté à côté. */}
-        {pendingQuestion === null && noteOutcome !== null && noteOutcome.atEdge > 0
+        {asking === null && noteOutcome !== null && noteOutcome.atEdge > 0
           ? (
             <p className="mt-2 text-sm leading-6 text-ink">
               {t("plan.draft.note_at_edge")}
@@ -1012,7 +1361,7 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
           : null}
         {/* LU, ET PAS RANGÉ EXPRÈS (les jours de cuisine, un objectif, un
             merci): « rien à changer » laisserait croire qu'on n'a pas lu. */}
-        {pendingQuestion === null && declined === 0 && noteOutcome !== null &&
+        {asking === null && channel === "note" && declined === 0 && noteOutcome !== null &&
             noteOutcome.announced.length === 0 && noteOutcome.whoUnknown === 0 &&
             noteOutcome.atEdge === 0 && noteOutcome.skipped > 0
           ? (
@@ -1021,7 +1370,7 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
             </p>
           )
           : null}
-        {pendingQuestion === null && declined === 0 && noteOutcome !== null &&
+        {asking === null && channel === "note" && declined === 0 && noteOutcome !== null &&
             noteOutcome.announced.length === 0 && noteOutcome.whoUnknown === 0 &&
             noteOutcome.atEdge === 0 && noteOutcome.skipped === 0
           ? (

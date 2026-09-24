@@ -830,3 +830,46 @@ describe("le cadre d'ajout se nomme", () => {
     expect(markup).toContain(en["setup.mouths.add"]);
   });
 });
+
+// ===========================================================================
+// ⟳ 2026-09-24 — « QUI MANGE ICI, À PART VOUS »: PLUS DE PHRASE D'INTRO, ET LE
+// BOUTON CENTRÉ TANT QUE PERSONNE N'EST INSCRIT
+// ===========================================================================
+describe("la carte vide n'a qu'un bouton, centré", () => {
+  function folded(): string {
+    Object.defineProperty(globalThis, "location", {
+      value: { pathname: PATH, search: "", href: `http://localhost${PATH}` },
+      configurable: true,
+      writable: true,
+    });
+    setChosenUiLocaleForTest("en");
+    return renderToStaticMarkup(
+      createElement(MouthsStep, {
+        mouths: [],
+        maxOthers: 7,
+        draft: draft(),
+        onDraftChange: () => {},
+        onAdd: () => {},
+        held: null,
+        failure: null,
+        added: null,
+        formOpen: false,
+        onOpenForm: () => {},
+        onDiscard: () => {},
+        busy: false,
+      } as unknown as Parameters<typeof MouthsStep>[0]),
+    );
+  }
+
+  it("le bouton d'ajout est dans un conteneur centré", () => {
+    const markup = folded();
+    const button = markup.indexOf(en["setup.mouths.add"]);
+    expect(button).toBeGreaterThan(-1);
+    const wrapper = markup.lastIndexOf("<div", markup.lastIndexOf("<button", button));
+    expect(markup.slice(wrapper, markup.indexOf(">", wrapper))).toContain("justify-center");
+  });
+
+  it("« Trois choses par personne… » ne se rend plus", () => {
+    expect(decode(folded())).not.toContain("Three things per person");
+  });
+});

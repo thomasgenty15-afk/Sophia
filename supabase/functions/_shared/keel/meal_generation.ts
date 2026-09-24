@@ -3997,14 +3997,10 @@ export const MEAL_TOKEN_FIELDS: readonly string[] = [
   // eux, ne sont pas de la langue — ce sont des noms propres, et ils traversent
   // tels quels.
   "dishes[].boxes[].id (ASCII snake_case, English words only)",
-  // ⟳ LOT C (2026-09-11) — L'IDENTIFIANT DE RÉFÉRENCE EST UN JETON, ET IL EST
-  // LE PIÈGE DE `preparation_id` SUR UN TROISIÈME CHAMP. Il est LU dans une
-  // liste anglaise servie au modèle, comparé caractère pour caractère contre
-  // `food_composition_refs.slug`, et refusé s'il ne correspond pas. Un
-  // `haricots_verts` dans un plan français ne se rapproche plus de rien: la
-  // ligne n'est alors pesée par personne.
-  "dishes[].ingredients[].ref (an id from the food list, never translated)",
-  "preparations[].ingredients[].ref (an id from the food list, never translated)",
+  // ⟳ 2026-09-24 — `ingredients[].ref` N'EST PLUS DANS CETTE LISTE : le modèle
+  // n'écrit plus d'identifiant, il NOMME (`renderCatalogBlock`), et la lane
+  // identifie chaque aliment par son nom (`identifyPlanFoods`). L'annoncer ici
+  // comme un jeton à garder contredirait « Do not write "ref" ».
   // ⟳ LOT D (2026-09-11) — LE NOM D'UN COMPOSANT ET SON RÔLE SONT DES JETONS,
   // et c'est le piège de `preparation_id` sur un cinquième champ. `part` est
   // comparé caractère pour caractère au `components[].id` du même bloc: un
@@ -7087,6 +7083,7 @@ export function parseGeneratedMeal(
   const refTally: Record<RefOutcome, number> = {
     absent: 0,
     accepted: 0,
+    alias: 0,
     unknown: 0,
     not_composable: 0,
   };
@@ -10032,8 +10029,8 @@ export function parseGeneratedMeal(
   // `ingredientCount` ne compte que les lignes des PLATS; `refTally` compte
   // aussi celles des préparations, où vit l'essentiel de la masse. Les diviser
   // l'un par l'autre rendrait des taux au-dessus de 100 %.
-  const refLines = refTally.absent + refTally.accepted + refTally.unknown +
-    refTally.not_composable;
+  const refLines = refTally.absent + refTally.accepted + refTally.alias +
+    refTally.unknown + refTally.not_composable;
   if (refTally.absent > 0 && refLines > 0) {
     issues.push(`ref_absent: ${refTally.absent}/${refLines} ingredients`);
   }
@@ -10042,6 +10039,11 @@ export function parseGeneratedMeal(
       `ref_refused: ${refTally.unknown} unknown, ${refTally.not_composable} not_composable, ` +
         `${refTally.accepted} accepted`,
     );
+  }
+  // ⟳ 2026-09-24 — un autre nom connu accepté comme identifiant: compté, sans
+  // quoi « le modèle cite la liste » et « on rattrape ses synonymes » se liraient pareil.
+  if (refTally.alias > 0) {
+    issues.push(`ref_alias: ${refTally.alias} accepted via food_composition_aliases`);
   }
   // ── LA PART DENSE, NOMMÉE ───────────────────────────────────────────────
   // Ici on NOMME, contrairement au compteur ci-dessus: la liste est courte par

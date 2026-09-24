@@ -504,8 +504,10 @@ const offer = (over: Partial<Parameters<typeof offerableGroceryRuns>[0]> = {}) =
     oneCookingSession: false,
     daysToEat: 7,
     maxFridgeDays: 3,
-    freezer: null,
-    // ⟳ 2026-09-21 — sans congélateur par défaut: le cas qui offre le plus.
+    // ⟳ 2026-09-24 — AVEC congélateur par défaut: depuis que « une course »
+    // sort de l'offre sans lui au-delà de trois jours, c'est le cas qui garde
+    // la liste entière. Les cas sans congélateur le disent explicitement.
+    freezer: true,
     ...over,
   } as Parameters<typeof offerableGroceryRuns>[0]);
 
@@ -534,7 +536,9 @@ Deno.test("l'offre — « le moins possible » retire la troisième course jusqu
   assertEquals(six.values, [1, 2]);
   assertEquals(six.forced, null);
   assertEquals(six.limit, "days");
-  assertEquals(offer({ style: "minimal", daysToEat: 7 }).values, [1, 2, 3]);
+  // Sans congélateur, sept jours font trois sessions: la troisième course
+  // revient — et « une course » sort (⟳ 2026-09-24).
+  assertEquals(offer({ style: "minimal", daysToEat: 7, freezer: false }).values, [2, 3]);
   // Avec congélateur, sept jours tiennent en deux sessions: la troisième
   // course disparaît, et c'est le STYLE qui le dit.
   const froid = offer({ style: "minimal", daysToEat: 7, freezer: true });
@@ -609,17 +613,96 @@ Deno.test("l'offre — à égalité de plafond, c'est la FENÊTRE qu'on nomme", 
   // sept jours avec congélateur. Sans, sept jours font trois sessions et les
   // trois courses restent offertes.
   assertEquals(offer({ style: "minimal", daysToEat: 7, freezer: true }).limit, "style");
-  assertEquals(offer({ style: "minimal", daysToEat: 7 }).limit, null);
+  assertEquals(offer({ style: "minimal", daysToEat: 7, freezer: false }).limit, "freezer");
+});
+
+// ===========================================================================
+// ⟳ 2026-09-24 — SANS CONGÉLATEUR, « UNE COURSE » NE COUVRE PAS UN PLAN LONG
+//
+// Décision produit: ne plus proposer « Une fois » sans congélateur au-delà de
+// trois jours. Avant, l'écran l'offrait, `deriveCookingPlan` la passait à deux
+// (`runs_1_needs_freezer`), et aucune phrase ne le disait.
+// ===========================================================================
+Deno.test("l'offre — sans congélateur, « une course » sort au-delà de la conservation", () => {
+  for (const freezer of [false, null] as const) {
+    for (const daysToEat of [4, 5, 6]) {
+      const out = offer({ freezer, daysToEat });
+      assertEquals(out.values, [2], `${freezer}/${daysToEat}j`);
+      assertEquals(out.forced, 2, `${freezer}/${daysToEat}j`);
+      assertEquals(out.limit, "freezer", `${freezer}/${daysToEat}j`);
+    }
+    const seven = offer({ freezer, daysToEat: 7 });
+    assertEquals(seven.values, [2, 3], `${freezer}/7j`);
+    assertEquals(seven.forced, null);
+    assertEquals(seven.limit, "freezer");
+  }
+});
+
+Deno.test("l'offre — sans congélateur, jusqu'à trois jours, UN lot couvre tout", () => {
+  // La limite est « au-delà de trois jours »: en deçà, un plat cuisiné tient
+  // jusqu'au bout et « une course » reste la seule réponse.
+  for (const daysToEat of [1, 2, 3]) {
+    const out = offer({ freezer: false, daysToEat });
+    assertEquals(out.values, [1], `${daysToEat}j`);
+    assertEquals(out.limit, "days", `${daysToEat}j`);
+  }
+});
+
+Deno.test("l'offre — MUTATION: le seuil est la conservation LUE, pas un 3 en dur", () => {
+  // Avec une conservation d'une semaine, sept jours tiennent en un lot.
+  assertEquals(offer({ freezer: false, daysToEat: 7, maxFridgeDays: 7 }).values, [1]);
+  // Avec une conservation d'un jour, deux jours suffisent à retirer « une ».
+  assertEquals(offer({ freezer: false, daysToEat: 2, maxFridgeDays: 1 }).values, [2]);
+});
+
+Deno.test("l'offre — le congélateur rend « une course »", () => {
+  for (const daysToEat of [4, 5, 6, 7]) {
+    assertEquals(offer({ freezer: true, daysToEat }).values[0], 1, `${daysToEat}j`);
+  }
+});
+
+Deno.test("l'offre — sans congélateur, CHAQUE cadence proposée est celle que le plan organise", () => {
+  // Le miroir du test plus bas, sur la moitié que ce lot change: au-delà de la
+  // conservation, sans congélateur. (En deçà, la dérivation passe encore
+  // « une course » à deux dès qu'il y a deux sessions — écart connu, hors de
+  // ce lot.)
+  const windowDays = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as DayToken[];
+  for (const style of COOKING_STYLES) {
+    for (const daysToEat of [4, 5, 6, 7]) {
+      const out = offer({ style, freezer: false, daysToEat });
+      for (const runs of out.values) {
+        const derived = deriveCookingPlan({
+          style,
+          runs,
+          freezer: false,
+          windowDays: windowDays.slice(0, daysToEat),
+          leadDay: false,
+          daysToEat,
+          maxFridgeDays: 3,
+        });
+        assertEquals(
+          derived.runs,
+          runs,
+          `proposé ${runs} course(s) en ${style}/${daysToEat}j sans congélateur, le plan en organise ${derived.runs}`,
+        );
+        assert(!derived.notes.includes("runs_1_needs_freezer"), `${style}/${daysToEat}j`);
+      }
+    }
+  }
 });
 
 Deno.test("l'offre — elle n'est JAMAIS vide, et jamais au-dessus du plafond dur", () => {
   for (const style of [null, ...COOKING_STYLES] as const) {
     for (const oneCookingSession of [true, false]) {
+      for (const freezer of [true, false, null] as const) {
       for (const daysToEat of [-3, 0, 1, 2, 5, 40]) {
-        const out = offer({ style, oneCookingSession, daysToEat });
+        const out = offer({ style, oneCookingSession, daysToEat, freezer });
         assert(out.values.length >= 1, `offre vide: ${style}/${daysToEat}`);
         assert(out.values.length <= MAX_COOKING_SESSIONS);
-        assertEquals(out.values[0], 1, "« une course » sort toujours de l'offre");
+        // ⟳ 2026-09-24 — « une course » sort de l'offre SAUF sans congélateur
+        // sur un plan plus long que la conservation (et sans la case).
+        const floor = freezer !== true && !oneCookingSession && daysToEat > 3;
+        assertEquals(out.values[0], floor ? 2 : 1, `${style}/${freezer}/${daysToEat}j`);
         // ⛔ UN MOTIF DÈS QUE LA LISTE EST COURTE — la moitié qui se lit à
         // l'écran. Une option qui s'évapore sans phrase se lit comme une panne.
         // ⟳ 2026-09-21 — le plafond de l'OFFRE est celui des courses (trois),
@@ -629,7 +712,8 @@ Deno.test("l'offre — elle n'est JAMAIS vide, et jamais au-dessus du plafond du
           out.values.length === GROCERY_RUNS.length,
           `motif et longueur désaccordés: ${JSON.stringify(out)}`,
         );
-        assertEquals(out.forced, out.values.length === 1 ? 1 : null);
+        assertEquals(out.forced, out.values.length === 1 ? out.values[0] : null);
+      }
       }
     }
   }

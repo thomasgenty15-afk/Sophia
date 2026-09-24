@@ -1129,6 +1129,89 @@ export function viewerDayEnergy(args: {
   return byDay;
 }
 
+/**
+ * ⟳ 2026-09-24 — LE TOTAL DE CHAQUE JOUR, POUR CHAQUE PERSONNE DONT LES BOÎTES
+ * SORTENT — le tableau de la semaine, en tête du plan.
+ *
+ * ⛔ UNE SOMME DE BOÎTES DÉJÀ ÉMISES, ET RIEN D'AUTRE. Chaque boîte reçue ici a
+ * passé `decideBoxEnergy` (plancher TCA, âge, doctrine, interrupteur,
+ * appartenance du lecteur): la somme ne fait sortir aucun chiffre que la
+ * réponse ne portait pas déjà, boîte par boîte. Une personne sans boîte émise
+ * (enfant, sans objectif, interrupteur éteint) n'a AUCUNE ligne — pas un zéro.
+ *
+ * ⚠️ `viewerDayEnergy` N'EST PAS RÉÉCRITE sur celle-ci: son filtre est épinglé
+ * (`energy_gate_mouth_test.ts`), et le total du jour du LECTEUR reste son
+ * affaire. Les deux sommes sont les mêmes pour le lecteur, par construction.
+ *
+ * `meals_total` = les plats de ce jour dont UNE boîte nomme la personne, bac
+ * commun compris; `meals_counted` = ceux qui ont sa boîte ÉMISE. Un repas pris
+ * dans un bac commun ne se chiffre pas pour elle (le bac est une quantité de
+ * table, pas sa portion): le total est alors vrai sur ce qu'il couvre, et
+ * `complete` le dit. Un à-côté illisible le dit aussi.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export interface MemberDayEnergyRow {
+  member_id: string;
+  day: string;
+  kcal: number;
+  meals_counted: number;
+  meals_total: number;
+  complete: boolean;
+}
+
+export function memberDayEnergy(args: {
+  boxes: readonly {
+    box_id: string;
+    day: string | null;
+    member_id: string;
+    kcal: number;
+    sides: readonly EmittedSide[];
+  }[];
+  /** Les plats du payload (`readEnergyBoxDishes`) — pour le dénominateur. */
+  dishes: readonly { day: string | null; boxes: readonly { id: string; memberIds: readonly string[] }[] }[];
+}): MemberDayEnergyRow[] {
+  const keyOf = (member: string, day: string) => `${member} ${day}`;
+  // LE DÉNOMINATEUR — les repas du jour où une boîte nomme la personne.
+  const total = new Map<string, number>();
+  for (const dish of args.dishes) {
+    if (dish.day === null) continue;
+    const named = new Set<string>();
+    for (const box of dish.boxes) for (const m of box.memberIds) named.add(m);
+    for (const m of named) total.set(keyOf(m, dish.day), (total.get(keyOf(m, dish.day)) ?? 0) + 1);
+  }
+  const rows = new Map<string, MemberDayEnergyRow>();
+  for (const box of args.boxes) {
+    if (box.day === null) continue;
+    const key = keyOf(box.member_id, box.day);
+    const row = rows.get(key) ?? {
+      member_id: box.member_id,
+      day: box.day,
+      kcal: 0,
+      meals_counted: 0,
+      meals_total: 0,
+      complete: true,
+    };
+    row.kcal += box.kcal;
+    row.meals_counted += 1;
+    for (const side of box.sides) {
+      if (side.kcal === null) row.complete = false;
+      else row.kcal += side.kcal;
+    }
+    rows.set(key, row);
+  }
+  const out: MemberDayEnergyRow[] = [];
+  for (const [key, row] of rows) {
+    // Au moins les repas comptés: un plat sans jour lisible au dénominateur ne
+    // doit pas rendre un « 3 sur 2 ».
+    row.meals_total = Math.max(row.meals_counted, total.get(key) ?? 0);
+    if (row.meals_counted < row.meals_total) row.complete = false;
+    row.kcal = Math.round(row.kcal);
+    out.push(row);
+  }
+  return out;
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // OUTILS
 // ═══════════════════════════════════════════════════════════════════════════

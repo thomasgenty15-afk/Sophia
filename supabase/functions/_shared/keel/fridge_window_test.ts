@@ -95,8 +95,10 @@ const EXPECTED_RAW_WINDOW: ReadonlyArray<[string, number]> = [
   ["fried_food", 1],
   ["poultry", 2],
   ["lean_protein", 2],
-  ["red_meat", 3],
-  ["leafy_greens", 3],
+  // ⟳ 2026-09-24 — `red_meat` 3 → 2, `leafy_greens` 3 → 5 (migration
+  // `20260924210000`, brouillon `59b06fd6`).
+  ["red_meat", 2],
+  ["leafy_greens", 5],
   ["berries", 3],
   ["tofu_tempeh", 5],
   ["dairy_yogurt", 7],
@@ -143,7 +145,10 @@ Deno.test("la volaille tient MOINS longtemps que le nombre historique", () => {
   // Ce test rougit si quelqu'un remet le poulet à trois.
   assert(rawWindowDaysFor("poultry")! < 3, "le poulet ne peut pas attendre 3 jours");
   assert(rawWindowDaysFor("white_fish")! < rawWindowDaysFor("poultry")!);
-  assert(rawWindowDaysFor("red_meat")! > rawWindowDaysFor("poultry")!);
+  // ⟳ 2026-09-24 — la viande en pièce ne tient plus davantage que la volaille :
+  // un filet de porc acheté jeudi pour dimanche a été jugé dangereux
+  // (brouillon `59b06fd6`). Ce test rougit si quelqu'un la remet à trois.
+  assert(rawWindowDaysFor("red_meat")! <= 2, "une viande crue en pièce ne passe pas deux jours");
 });
 
 Deno.test("un groupe inconnu rend null, jamais un défaut", () => {

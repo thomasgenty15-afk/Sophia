@@ -665,11 +665,34 @@ export type DraftNoteMember = {
  * ⚠️ `members` EST REQUIS, ET `[]` EST UNE RÉPONSE. `[]` dit « personne d'autre
  * à table »; `undefined` dirait « je n'ai pas su lire le foyer ».
  */
+/**
+ * ⟳ 2026-09-24 — UN PLAT BARRÉ SUR L'APERÇU (« Remplacer »), ET QUI LE MANGE.
+ * Les bouches viennent des boîtes du brouillon rangé (`resolveRejections`),
+ * jamais de l'écran.
+ */
+export interface RejectedDishContext {
+  readonly title: string;
+  readonly eaterIds: readonly string[];
+}
+
+/**
+ * ⟳ 2026-09-24 — LES QUESTIONS DE PRÉCISION POSÉES EN UNE FOIS. L'écran les
+ * pose dans une couche, cochées; au-delà, la question n'est pas posée et rien
+ * n'est écrit pour elle (le serveur ne devine jamais).
+ */
+export const DRAFT_NOTE_QUESTIONS_MAX = 3;
+
 export function buildDraftNoteClassifyPrompt(args: {
   note: string;
   contentLocale: string;
   members: readonly DraftNoteMember[];
   planFoods: readonly string[];
+  /**
+   * ⟳ 2026-09-24 — LES PLATS BARRÉS DONT LA NOTE PORTE LES RAISONS. REQUIS,
+   * jamais `?`: `[]` dit « une note ordinaire », et le prompt est alors
+   * identique à l'octet près à celui d'avant ce lot.
+   */
+  rejectedDishes: readonly RejectedDishContext[];
 }): string {
   const lines: string[] = [];
   lines.push(
@@ -728,6 +751,17 @@ export function buildDraftNoteClassifyPrompt(args: {
     lines.push(
       "The foods in the plan they annotated — copy a term EXACTLY, never rephrase: " +
         JSON.stringify(foods),
+    );
+  }
+  // ── ⟳ 2026-09-24 · LES PLATS BARRÉS — la règle et la liste sur UNE ligne ──
+  // Une ligne de la note qui ne nomme personne parle de ceux qui MANGENT ce
+  // plat: sans cette ligne, « trop sucré » sous le plat de Paul se rangeait
+  // pour la personne qui écrit.
+  const rejected = (args.rejectedDishes ?? []).filter((d) => String(d?.title ?? "").trim() !== "");
+  if (rejected.length > 0) {
+    lines.push(
+      'Each line of the note is about ONE dish they turned down in this plan, written «dish» : what they said. A line that names nobody is about the people who eat that dish — use their member_id; everyone at the table ⇒ null: ' +
+        JSON.stringify(rejected.map((d) => ({ dish: d.title.trim(), eaten_by: [...d.eaterIds] }))),
     );
   }
 return lines.join("\n");

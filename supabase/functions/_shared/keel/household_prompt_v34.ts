@@ -136,7 +136,7 @@ import {
  * `v34_what_came_back_is_named`, le même jour que `HOUSEHOLD_PROMPT_VERSION`
  * (v41) et pour la même raison: la ligne « à éviter » suit l'envie.
  */
-export const HOUSEHOLD_PROMPT_V34_VERSION = "v34_what_came_back_is_named";
+export const HOUSEHOLD_PROMPT_V34_VERSION = "v34_what_they_turned_down";
 
 /**
  * LE PLANCHER DE BOUCHES À PARTIR DUQUEL v34 EST SERVI.
@@ -641,6 +641,8 @@ export function buildHouseholdPromptBlocksV34(
   const envy = buildEnvyBlock(input.envyLine);
   // ⟳ 2026-09-23 — la ligne « à éviter », telle que `avoidLineOf` l'a écrite.
   const avoid = (input.avoidLine ?? "").trim();
+  // ⟳ 2026-09-24 — la ligne des plats refusés, juste après celle « à éviter ».
+  const rejected = (input.rejectedDishesLine ?? "").trim();
   const kitchen = kitchenBlock(input.kitchenEquipment);
   const workLunch = workLunchBlock(input.members, input.workLunch ?? []);
   const traditions = traditionBlock(input.traditions, input.daysInWindow);
@@ -784,6 +786,8 @@ export function buildHouseholdPromptBlocksV34(
     // ⟳ 2026-09-23 — juste après l'envie, qu'elle cite (« above »): même place
     // qu'en v33.
     avoid,
+    // ⟳ 2026-09-24 — les plats refusés, juste après: même place qu'en v33.
+    rejected,
     decidedBeforeYouBlock(input.decided ?? null),
     kitchen.block,
     // ── LA QUEUE: LES VERROUS, DANS L'ORDRE DE v33 ──────────────────────
@@ -810,6 +814,7 @@ export function buildHouseholdPromptBlocksV34(
     }`,
     envyLineUsed: envy.trim().length > 0,
     avoidLineUsed: avoid.length > 0,
+    rejectedLineUsed: rejected.length > 0,
     voiceIssues: voices.issues,
     voiceCounts: voices.counts,
     voicesHeard: voices.heard.length,

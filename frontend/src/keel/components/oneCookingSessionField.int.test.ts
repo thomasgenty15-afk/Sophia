@@ -27,21 +27,74 @@ import { en } from "../i18n/en";
 const read = (rel: string) => readFileSync(resolve(__dirname, rel), "utf8");
 const BUILDER = read("./MealBuilder.tsx");
 const SETUP = read("../pages/SetupPage.tsx");
+// ⟳ 2026-09-23 — LES CHAMPS VIVENT ICI, et les deux écrans montent ce
+// composant. L'ordre et le câblage des champs se lisent donc dans ce fichier;
+// ce que chaque écran doit encore prouver, c'est qu'il le monte, et qu'il ne
+// remonte pas un champ à côté.
+const FIELDS = read("./PlanRequestFields.tsx");
 const FIELD = read("./OneCookingSessionField.tsx");
 // La chrome partagée: c'est elle qui DESSINE la parenthèse et fixe le corps.
 const CHECKBOX = read("./ui/CheckboxField.tsx");
 
+describe("⟳ 2026-09-23 — UN SEUL FORMULAIRE, MONTÉ PAR LES DEUX ÉCRANS", () => {
+  // Demandé: « quand on change dans l'un ça doit changer dans l'autre ». Deux
+  // copies des mêmes champs avaient déjà divergé (pastilles d'un côté, lignes
+  // de l'autre). La garde: chaque écran monte `PlanRequestFields`, et aucun ne
+  // remonte un des champs à côté.
+  const FIELD_TAGS = [
+    "<OneCookingSessionField",
+    "<CookingStyleField",
+    "<GroceryRunsField",
+    "<KitchenEquipmentCard",
+    "<MealPickerGrid",
+  ];
+  const bare = (src: string) =>
+    src
+      .replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .split("\n")
+      .map((line) => (line.trimStart().startsWith("//") ? "" : line))
+      .join("\n");
+
+  it("les deux écrans montent `PlanRequestFields`", () => {
+    expect(BUILDER).toMatch(/<PlanRequestFields/);
+    expect(SETUP).toMatch(/<PlanRequestFields/);
+  });
+
+  it("⛔ l'entonnoir ne remonte AUCUN champ à côté", () => {
+    for (const tag of FIELD_TAGS) {
+      expect(bare(SETUP), `SetupPage monte encore ${tag}`).not.toContain(tag);
+    }
+  });
+
+  it("⛔ `/app/plan` non plus — sauf la grille du membre secondaire", () => {
+    // `MealBuilder` garde UNE grille à lui: celle d'un membre qui ne compose
+    // pas (le formulaire lui est fermé), le seul endroit où il déclare ses
+    // propres absences.
+    for (const tag of FIELD_TAGS.filter((x) => x !== "<MealPickerGrid")) {
+      expect(bare(BUILDER), `MealBuilder monte encore ${tag}`).not.toContain(tag);
+    }
+    expect(bare(BUILDER).split("<MealPickerGrid").length - 1).toBe(1);
+  });
+});
+
 describe("le champ est monté sur les DEUX surfaces", () => {
   it("sur `/app/plan` (MealBuilder)", () => {
-    expect(BUILDER).toMatch(/<OneCookingSessionField/);
-    expect(BUILDER).toMatch(/value=\{oneCookingSession\}/);
-    expect(BUILDER).toMatch(/onChange=\{setOneCookingSession\}/);
+    expect(BUILDER).toMatch(/<PlanRequestFields/);
+    expect(BUILDER).toMatch(/oneCookingSession=\{oneCookingSession\}/);
+    expect(BUILDER).toMatch(/onOneCookingSession=\{setOneCookingSession\}/);
   });
 
   it("sur l'entonnoir (SetupPage, étape « demande »)", () => {
-    expect(SETUP).toMatch(/<OneCookingSessionField/);
-    expect(SETUP).toMatch(/value=\{oneCookingSession\}/);
-    expect(SETUP).toMatch(/onChange=\{onOneCookingSession\}/);
+    expect(SETUP).toMatch(/<PlanRequestFields/);
+    expect(SETUP).toMatch(/oneCookingSession=\{oneCookingSession\}/);
+    expect(SETUP).toMatch(/onOneCookingSession=\{onOneCookingSession\}/);
+  });
+
+  it("et le formulaire commun le branche", () => {
+    expect(FIELDS).toMatch(/<OneCookingSessionField/);
+    expect(FIELDS).toMatch(/value=\{props\.oneCookingSession\}/);
+    expect(FIELDS).toMatch(/onChange=\{props\.onOneCookingSession\}/);
   });
 
   it("⛔ ET LES DEUX LA POSENT SOUS LE SÉLECTEUR DE STYLE, pas ailleurs", () => {
@@ -65,7 +118,7 @@ describe("le champ est monté sur les DEUX surfaces", () => {
     //
     // ⚠️ CE QUE CE TEST TIENT N'A PAS BOUGÉ: les deux surfaces posent la même
     // question au même endroit. Une seule qui bouge, et on a deux formulaires.
-    for (const [name, src] of [["MealBuilder", BUILDER], ["SetupPage", SETUP]] as const) {
+    for (const [name, src] of [["PlanRequestFields", FIELDS]] as const) {
       const style = src.indexOf("<CookingStyleField");
       const session = src.indexOf("<OneCookingSessionField");
       const runs = src.indexOf("<GroceryRunsField");
@@ -80,7 +133,7 @@ describe("le champ est monté sur les DEUX surfaces", () => {
     // La suppression est le lot, pas un effet de bord. Un champ qui revient
     // par une page oubliée réécrirait `cook_days` et ressusciterait une
     // contrainte que le moteur lit encore.
-    for (const [name, src] of [["MealBuilder", BUILDER], ["SetupPage", SETUP]] as const) {
+    for (const [name, src] of [["MealBuilder", BUILDER], ["SetupPage", SETUP], ["PlanRequestFields", FIELDS]] as const) {
       expect(src, name).not.toMatch(/plan\.cooking\.days_label/);
       expect(src, name).not.toMatch(/setup\.plan\.cook_days/);
       expect(src, name).not.toMatch(/cookDays/);
@@ -107,7 +160,7 @@ describe("⟳ A1 — « je cuisine la veille » N'EST PLUS UNE CASE", () => {
   // une invisible.
 
   it("le champ, ses clés et son état ont disparu des deux surfaces", () => {
-    for (const [name, src] of [["MealBuilder", BUILDER], ["SetupPage", SETUP]] as const) {
+    for (const [name, src] of [["MealBuilder", BUILDER], ["SetupPage", SETUP], ["PlanRequestFields", FIELDS]] as const) {
       // ⚠️ MESURÉ SUR LA SOURCE PRIVÉE DE SES COMMENTAIRES. Le retrait est
       // RACONTÉ dans un commentaire qui nomme `cookTheDayBefore`; un grep naïf
       // y verrait un appelant vivant et ce test resterait vert le jour où
@@ -181,7 +234,7 @@ describe("la porte du congélateur", () => {
     // Deux définitions d'une même règle divergent, et c'est celle qu'on regarde
     // le moins qui garde l'ancienne. `freezerMirror.int.test.ts` compare déjà
     // le miroir au serveur sur les trois états.
-    for (const [name, src] of [["MealBuilder", BUILDER], ["SetupPage", SETUP]] as const) {
+    for (const [name, src] of [["PlanRequestFields", FIELDS]] as const) {
       expect(src, name).toMatch(/hasFreezerDeclared\(/);
       expect(src, name).toMatch(/hasFreezer=\{/);
     }
@@ -261,11 +314,13 @@ describe("la porte du congélateur", () => {
   it("la question de l'équipement est COLLECTABLE depuis `/app/plan`", () => {
     // Sans elle, la porte existe et la clé n'est nulle part: `/app/setup` n'a
     // aucune entrée de nav, et `/app/about-you` ne pose pas la question.
-    expect(BUILDER).toMatch(/<KitchenEquipmentCard/);
+    expect(FIELDS).toMatch(/<KitchenEquipmentCard/);
+    expect(FIELDS).toMatch(/practicalConstraints=\{props\.practicalConstraints\}/);
     expect(BUILDER).toMatch(/practicalConstraints=\{planConstraints\}/);
     // ⚠️ LA MÊME CARTE, jamais une rangée de pastilles réécrite: elle porte sa
     // garde de chargement, son refus de sélection vide, et son écriture qui
     // RELIT la colonne avant de fusionner.
+    expect(FIELDS).not.toMatch(/KITCHEN_TOOLS\.map/);
     expect(BUILDER).not.toMatch(/KITCHEN_TOOLS\.map/);
   });
 });
@@ -309,7 +364,7 @@ describe("la réponse part vraiment, sur le seul moteur", () => {
     // semaine. L'écrire dans `practical_constraints` le rejouerait en silence
     // sur celle où on reçoit du monde — l'arbitrage qui a sorti le budget et le
     // mode de cuisson du profil le 2026-08-13.
-    for (const [name, src] of [["MealBuilder", BUILDER], ["SetupPage", SETUP]] as const) {
+    for (const [name, src] of [["MealBuilder", BUILDER], ["SetupPage", SETUP], ["PlanRequestFields", FIELDS]] as const) {
       expect(src, name).not.toMatch(/one_cooking_session:\s*(true|false|oneCookingSession)/);
     }
   });
@@ -422,7 +477,7 @@ describe("⟳ P2 — le style et la cadence de courses, montés aux DEUX endroit
   // champs écrits séparément divergeraient au premier libellé retouché, et
   // c'est celui qu'on regarde le moins qui garderait l'ancien mot.
   it("les deux composants sont montés sur `/app/plan` ET dans l'entonnoir", () => {
-    for (const [name, src] of [["MealBuilder", BUILDER], ["SetupPage", SETUP]] as const) {
+    for (const [name, src] of [["PlanRequestFields", FIELDS]] as const) {
       expect(src, name).toMatch(/<CookingStyleField/);
       expect(src, name).toMatch(/<GroceryRunsField/);
     }
@@ -432,7 +487,7 @@ describe("⟳ P2 — le style et la cadence de courses, montés aux DEUX endroit
     // L'ordre est le sens: c'est le style qui PLAFONNE le nombre de sessions,
     // donc lire « trois courses » avant de savoir qu'on cuisine le moins
     // possible ferait attendre trois séances que le plan ne fera pas.
-    for (const [name, src] of [["MealBuilder", BUILDER], ["SetupPage", SETUP]] as const) {
+    for (const [name, src] of [["PlanRequestFields", FIELDS]] as const) {
       const style = src.indexOf("<CookingStyleField");
       const runs = src.indexOf("<GroceryRunsField");
       expect(style, name).toBeGreaterThan(-1);
@@ -454,7 +509,7 @@ describe("⟳ P2 — le style et la cadence de courses, montés aux DEUX endroit
     // des courses (elle est donc AVANT elles): style → session → courses. Ce
     // que le test tient reste l'invariant du lot: les deux surfaces posent les
     // trois champs dans le MÊME ordre.
-    for (const [name, src] of [["MealBuilder", BUILDER], ["SetupPage", SETUP]] as const) {
+    for (const [name, src] of [["PlanRequestFields", FIELDS]] as const) {
       const style = src.indexOf("<CookingStyleField");
       const session = src.indexOf("<OneCookingSessionField");
       const runs = src.indexOf("<GroceryRunsField");
@@ -471,8 +526,8 @@ describe("⟳ P2 — le style et la cadence de courses, montés aux DEUX endroit
     // comme un bouton mort — cicatrice mesurée trois fois sur l'écran de
     // réglages. L'entonnoir tient le même ordre en montant la carte AVANT
     // `RequestStep`; ici les deux vivent dans le même formulaire.
-    const equipment = BUILDER.indexOf("<KitchenEquipmentCard");
-    const session = BUILDER.indexOf("<OneCookingSessionField");
+    const equipment = FIELDS.indexOf("<KitchenEquipmentCard");
+    const session = FIELDS.indexOf("<OneCookingSessionField");
     expect(equipment, "la carte d'équipement a disparu").toBeGreaterThan(-1);
     expect(session, "la case a disparu").toBeGreaterThan(equipment);
   });
@@ -487,7 +542,7 @@ describe("⟳ P2 — le style et la cadence de courses, montés aux DEUX endroit
     // moteur le DÉRIVAIT du style, et c'est la composition suivante qui
     // départageait. Une garde qui ne couvre qu'une des deux surfaces laisse
     // exactement ce trou-là.
-    for (const [name, src] of [["MealBuilder", BUILDER], ["SetupPage", SETUP]] as const) {
+    for (const [name, src] of [["MealBuilder", BUILDER], ["SetupPage", SETUP], ["PlanRequestFields", FIELDS]] as const) {
       const code = src
         .split("\n")
         .map((line) => (line.trimStart().startsWith("//") ? "" : line))
@@ -562,10 +617,10 @@ describe("⛔ P2 — l'ÉQUIPEMENT vient AVANT le nombre de courses", () => {
     // et elle reste AVANT les courses. Ce que ce test tient n'a pas bougé:
     // l'inventaire vient AVANT tout ce qui en dépend — la case du congélateur
     // comme « une seule course ».
-    const equipment = BUILDER.indexOf("<KitchenEquipmentCard");
-    const style = BUILDER.indexOf("<CookingStyleField");
-    const runs = BUILDER.indexOf("<GroceryRunsField");
-    const session = BUILDER.indexOf("<OneCookingSessionField");
+    const equipment = FIELDS.indexOf("<KitchenEquipmentCard");
+    const style = FIELDS.indexOf("<CookingStyleField");
+    const runs = FIELDS.indexOf("<GroceryRunsField");
+    const session = FIELDS.indexOf("<OneCookingSessionField");
     for (const [name, at] of [["équipement", equipment], ["style", style], ["courses", runs], ["session", session]] as const) {
       expect(at, `${name} introuvable`).toBeGreaterThan(-1);
     }
@@ -587,9 +642,9 @@ describe("⛔ P2 — l'ÉQUIPEMENT vient AVANT le nombre de courses", () => {
     // et c'est sans conséquence: un élément imbriqué se rend quand même APRÈS
     // les frères qui le précèdent, donc l'inventaire reste avant le style. Ce
     // qui casserait l'ordre est une CLASSE de déplacement — le test suivant.
-    const equipment = BUILDER.indexOf("<KitchenEquipmentCard");
-    const closes = BUILDER.indexOf("</details>", equipment);
-    const style = BUILDER.indexOf("<CookingStyleField");
+    const equipment = FIELDS.indexOf("<KitchenEquipmentCard");
+    const closes = FIELDS.indexOf("</details>", equipment);
+    const style = FIELDS.indexOf("<CookingStyleField");
     expect(closes).toBeGreaterThan(equipment);
     expect(closes, "le style est DANS le bloc de l'inventaire").toBeLessThan(style);
     // ══════════════════════════════════════════════════════════════════════
@@ -606,7 +661,7 @@ describe("⛔ P2 — l'ÉQUIPEMENT vient AVANT le nombre de courses", () => {
     // change pas le niveau d'imbrication, les deux blocs ont le même parent.
     // On compte donc les délimiteurs, commentaires retirés — ce dépôt en écrit
     // des pavés, pleins de parenthèses françaises qui fausseraient le compte.
-    const between = BUILDER.slice(closes, style)
+    const between = FIELDS.slice(closes, style)
       .replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
       .replace(/\/\*[\s\S]*?\*\//g, "")
       .split("\n")
@@ -649,7 +704,7 @@ describe("⛔ P2 — l'ÉQUIPEMENT vient AVANT le nombre de courses", () => {
         .map((line) => (line.trimStart().startsWith("//") ? "" : line))
         .join("\n");
 
-    for (const [name, src] of [["MealBuilder", BUILDER], ["SetupPage", SETUP]] as const) {
+    for (const [name, src] of [["PlanRequestFields", FIELDS]] as const) {
       const style = src.indexOf("<CookingStyleField");
       const session = src.indexOf("<OneCookingSessionField");
       expect(style, `${name}: le style a disparu`).toBeGreaterThan(-1);
@@ -677,14 +732,14 @@ describe("⛔ P2 — l'ÉQUIPEMENT vient AVANT le nombre de courses", () => {
     }
   });
 
-  it("dans l'entonnoir aussi, et là c'est l'ÉTAPE qui le garantit", () => {
-    // `/app/setup` pose l'inventaire à l'étape « table » et le style à l'étape
-    // « demande »: l'ordre y est tenu par la machine d'étapes, pas par la
-    // position dans le fichier. On vérifie quand même la position, parce que
-    // les deux cartes vivent dans le même composant.
-    expect(SETUP.indexOf("<KitchenEquipmentCard")).toBeGreaterThan(-1);
-    expect(SETUP.indexOf("<KitchenEquipmentCard")).toBeLessThan(
-      SETUP.indexOf("<CookingStyleField"),
+  it("dans l'entonnoir aussi — c'est le MÊME formulaire", () => {
+    // ⟳ 2026-09-23 — l'inventaire ne se monte plus en carte à part au-dessus
+    // de l'étape 3: il est replié DANS `PlanRequestFields`, que l'entonnoir
+    // monte avec la photo de la colonne.
+    expect(SETUP).toMatch(/<PlanRequestFields/);
+    expect(SETUP).toMatch(/practicalConstraints=\{facts\.practicalConstraints\}/);
+    expect(FIELDS.indexOf("<KitchenEquipmentCard")).toBeLessThan(
+      FIELDS.indexOf("<CookingStyleField"),
     );
   });
 });

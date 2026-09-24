@@ -8,7 +8,12 @@ import type {
   PlanTimingView,
   ShoppingItem,
 } from "../../api/mealGeneration";
-import type { BoxEnergyView, DayEnergyView, DishEnergyView } from "../../api/mealEnergy";
+import type {
+  BoxEnergyView,
+  DayEnergyView,
+  DishEnergyView,
+  MemberDayEnergyView,
+} from "../../api/mealEnergy";
 import { waveAssignments } from "../../api/groceryWaves";
 import { dishDayLabel, mealCopy } from "../../api/mealLabels";
 import { groupByDay, withDaysThatCarry } from "../../lib/mealBuilderModel";
@@ -22,6 +27,8 @@ import { dishDate } from "../../api/mealStretch";
 import { dayTokenOf } from "../../api/dates";
 import { windowDates, windowDayOrder } from "../../api/mealWindow";
 import PlanDayBlock from "./PlanDayBlock";
+import PlanWeekTable from "./PlanWeekTable";
+import { type DishReplaceControl } from "../DishCard";
 import { type DishTick } from "../../lib/useMealTicks";
 import { Card } from "../ui/Card";
 
@@ -158,12 +165,22 @@ export interface PlanResultProps {
   /** Le total d'un jour. `null` = pas de chiffre pour ce jour. */
   dayEnergy?: (day: string | null) => DayEnergyView | null;
   /**
-   * LOT 1 — LA VUE À L'OUVERTURE. `"day"` (le défaut) ouvre sur le jour
-   * d'aujourd'hui — sur un brouillon, `today = startsOn`, donc sur son premier
-   * jour. `"week"` ouvre la semaine entière: c'est l'aperçu, qu'on juge en
-   * entier avant de l'adopter. UNE prop, pas un second rendu.
+   * ⟳ 2026-09-24 — LE TOTAL DU JOUR DE CHAQUE PERSONNE, pour le tableau de la
+   * semaine. Même forme que `energy`: le serveur a déjà tranché qui a droit à
+   * un chiffre, et `undefined` = aucune ligne de personne.
    */
-  defaultView?: "week" | "day";
+  memberDayEnergy?: (memberId: string, day: string) => MemberDayEnergyView | null;
+  /**
+   * ⟳ 2026-09-24 — `"compact"` = une ligne par plat, dépliable (l'aperçu);
+   * `"full"` = la carte d'avant (`/app/plan`). REQUISE: chaque écran dit ce
+   * qu'il rend.
+   *
+   * ⛔ `defaultView` EST PARTIE LE MÊME JOUR, avec « Toute la semaine »: les
+   * deux écrans ouvrent sur un jour, et la semaine se lit dans le tableau.
+   */
+  dishLayout: "full" | "compact";
+  /** ⟳ 2026-09-24 — « Remplacer » sur un plat (l'aperçu seulement). Même forme que `tick`. */
+  dishReplace?: (dish: GeneratedDish) => DishReplaceControl | null;
 }
 
 export default function PlanResult(props: PlanResultProps) {
@@ -173,14 +190,13 @@ export default function PlanResult(props: PlanResultProps) {
   const groups = groupByDay(props.dishes, dayOrder);
 
   // ── LOT 1 · QUEL JOUR ON LIT ──────────────────────────────────────────────
-  // L'état est le JETON choisi (ou « all »); ce qui se REND passe par
+  // L'état est le JETON choisi; ce qui se REND passe par
   // `effectiveSelectedDay`: l'onglet « courant » → « suivant » garde ce
   // composant monté, et un jeton hors de la nouvelle fenêtre retomberait sur
   // un écran vide. La liste des jours reste `dayOrder` — aucune seconde
   // dérivation.
   const [selectedDay, setSelectedDay] = React.useState<DaySelection>(() =>
     defaultSelectedDay({
-      view: props.defaultView ?? "day",
       order: dayOrder,
       dates: dayDates,
       today: props.today,
@@ -255,13 +271,39 @@ export default function PlanResult(props: PlanResultProps) {
   // donc il se rend dans les deux vues — le filtrer sur un jour le ferait
   // disparaître d'un plan qui le contient.
   const undated = groups.find((g) => g.day === null) ?? null;
-  const shownGroups = shown === "all" ? carrying : [
+  const shownGroups = [
     ...(undated ? [undated] : []),
     // Le jour choisi, MÊME sans plat: il peut porter une session, des courses
     // et des moments déclarés — un jour qui disparaît parce qu'il n'a pas de
-    // plat se lirait comme un plan troué.
-    { day: shown, dishes: groups.find((g) => g.day === shown)?.dishes ?? [] },
+    // plat se lirait comme un plan troué. `null` = aucun jour dans la fenêtre.
+    ...(shown === null
+      ? []
+      : [{ day: shown, dishes: groups.find((g) => g.day === shown)?.dishes ?? [] }]),
   ];
+
+  // ── ⟳ 2026-09-24 · LE TABLEAU DE LA SEMAINE ──────────────────────────────
+  // Les mêmes jointures que le rendu du jour, jamais une seconde: la vague par
+  // `waveForDate` sur `dayDates`, la session par son jeton. Une durée inconnue
+  // sur une des sessions du jour rend la MARQUE seule — une somme partielle
+  // dirait moins de cuisine qu'il n'y en a.
+  const groceryDays = new Set(
+    dayOrder.filter((day) => {
+      const wave = waveForDate(waves, dayDates[day] ?? null);
+      return wave !== null && wave.indices.length > 0;
+    }),
+  );
+  const cookingMinutes = new Map<string, number | null>();
+  for (const session of props.cookingSessions) {
+    if (!session.day) continue;
+    const before = cookingMinutes.get(session.day);
+    const minutes = session.total_minutes;
+    cookingMinutes.set(
+      session.day,
+      before === null || minutes === null
+        ? null
+        : (before ?? 0) + minutes,
+    );
+  }
 
   // ── A1 · LA PHRASE DU TIMING ─────────────────────────────────────────────
   // `dishDayLabel(dayTokenOf(leadDay))` et pas une date formatée: tout le reste
@@ -336,7 +378,8 @@ export default function PlanResult(props: PlanResultProps) {
         </Card>
       )}
       {/* ── LOT 1 · LE RAIL DES JOURS ──────────────────────────────────────
-          Un bouton par jour de la fenêtre + « toute la semaine ». Le patron
+          Un bouton par jour de la fenêtre (« toute la semaine » est partie
+          le 2026-09-24: la semaine se lit dans le tableau juste au-dessus). Le patron
           est le contrôle segmenté de `PlanByPerson` (deux `Button`
           `aria-pressed`, pas de primitive `Tabs`). Il défile DANS son
           conteneur: la contrainte qui gouverne est 320 px, et un rail qui
@@ -348,24 +391,24 @@ export default function PlanResult(props: PlanResultProps) {
           les commandes du plan qu'on regarde — quels jours, et ses deux
           fenêtres —, pas trois blocs indépendants. */}
       <div className="space-y-3">
+      {/* ⟳ 2026-09-24 — LE TABLEAU EN TÊTE: la semaine se juge ici, le rail en
+          dessous choisit le jour qu'on lit. */}
+      <PlanWeekTable
+        dayOrder={dayOrder}
+        dayDates={dayDates}
+        today={props.today}
+        selectedDay={shown}
+        groceryDays={groceryDays}
+        cookingMinutes={cookingMinutes}
+        people={props.portions.map((p) => ({ memberId: p.memberId, name: p.displayName }))}
+        memberDayEnergy={props.memberDayEnergy}
+      />
       <div className="overflow-x-auto">
         <div
           className="flex w-max gap-2"
           role="group"
           aria-label={mealCopy("meals.result.day_rail")}
         >
-          <button
-            type="button"
-            aria-pressed={shown === "all"}
-            onClick={() => setSelectedDay("all")}
-            className={`min-h-6 rounded-part border px-2.5 py-0.5 text-xs ${
-              shown === "all"
-                ? "border-line-strong bg-fig-50 font-semibold text-ink"
-                : "border-line-strong bg-paper text-ink-soft hover:bg-fig-50"
-            }`}
-          >
-            {mealCopy("meals.result.day_all")}
-          </button>
           {dayOrder.map((day) => {
             const isToday = dayDates[day] === props.today;
             const on = shown === day;
@@ -461,6 +504,8 @@ export default function PlanResult(props: PlanResultProps) {
           energy={props.energy}
           dayEnergy={props.dayEnergy}
           boxEnergy={props.boxEnergy}
+          dishLayout={props.dishLayout}
+          dishReplace={props.dishReplace}
         />
       ))}
       {/* ⛔ 2026-09-23 — LA NOTE « Calculé à partir des quantités de ton plan

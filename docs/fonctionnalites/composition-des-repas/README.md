@@ -28,6 +28,7 @@ vérifiés.
 | [FF-055 · Les recommandations d'activité](FF-055-les-recommandations-d-activite.md) | 🟠 Noyau livré | Deux versions : le plancher public sans coach, sa posture avec. Et la ligne qui tient dans les deux — même un coach ne fait pas programmer Sophia. |
 | [FF-057 · La procédure accident](FF-057-la-procedure-accident.md) | 🟡 Spécifiée | « J'ai pas suivi » ne mène nulle part : le fait est capté, personne ne répond à « qu'est-ce que ça change pour la suite ». Trois entrées, un formulaire à trois boutons, quatre actions de réalignement — dont la session de cuisine sautée, qui fait disparaître des repas sans que l'écran s'en aperçoive. |
 | [FF-065 · Le plancher du budget](FF-065-le-plancher-du-budget.md) | 🟢 Livrée | Sept jours pour quatre à 1 € partaient au modèle comme un plafond : il ne refuse jamais, il coupe. Deux seuils mesurés sur la grille de prix — l'un refuse, l'autre dit seulement ce que ce budget va changer. |
+| [FF-067 · Remplacer un plat de l'aperçu](FF-067-remplacer-un-plat-de-l-apercu.md) | 🟠 En cours | L'aperçu se lit en une ligne par plat ; « Remplacer » refait ce plat-là et rien d'autre, et la liste des plats refusés ne les laisse plus revenir. En tête, un tableau de la semaine : courses, cuisine, calories de ceux qui visent un poids. |
 
 ## Le chantier des unités de composition
 

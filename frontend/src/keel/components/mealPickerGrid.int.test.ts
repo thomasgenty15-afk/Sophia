@@ -4,6 +4,11 @@ import { describe, expect, it } from "vitest";
 
 import { MealPickerGridBody } from "./MealPickerGrid";
 import {
+  type GridCell,
+  lineStateOf,
+  lineToggleTarget,
+} from "../lib/presenceAbsence";
+import {
   type AwayMark,
   awayKindOf,
   type PresenceState,
@@ -165,8 +170,65 @@ describe("L3 — le deux-états reste l'écran d'hier", () => {
     const html = render({
       away: [{ day: "tue", slots: ["lunch"], kind: "eating_out" }],
     });
-    // Deux jours × deux moments = quatre cases; trois cochées, une non.
-    expect(html.split('checked=""').length - 1).toBe(3);
+    // Deux jours × deux moments = quatre cases; trois cochées, une non. Les
+    // cases d'en-tête (`data-line`) ne sont pas des repas: on les écarte.
+    const cells = [...html.matchAll(/<input[^>]*>/g)]
+      .map((m) => m[0])
+      .filter((tag) => !tag.includes("data-line"));
+    expect(cells.length).toBe(4);
+    expect(cells.filter((tag) => tag.includes('checked=""')).length).toBe(3);
+  });
+});
+
+// ===========================================================================
+// ⟳ 2026-09-23 — TOUTE UNE LIGNE, TOUTE UNE COLONNE
+//
+// Demandé: décocher « dîner » une fois pour toute la semaine, ou « vendredi »
+// une fois pour toute la journée.
+// ===========================================================================
+describe("les cases d'en-tête — une ligne = un repas, une colonne = un jour", () => {
+  it("une case par ligne et une par colonne, nommées", () => {
+    const html = render({});
+    const heads = [...html.matchAll(/<input[^>]*data-line[^>]*>/g)].map((m) => m[0]);
+    // Deux moments + deux jours.
+    expect(heads.length).toBe(4);
+    expect(html).toContain(EN["meals.picker.bulk_hint"]);
+    expect(html).toContain("Lunch — every day");
+    expect(html).toContain("— every meal");
+  });
+
+  it("cochée quand la ligne est entière à table, pas quand elle est mêlée", () => {
+    const html = render({
+      away: [{ day: "tue", slots: ["lunch"], kind: "away" }],
+    });
+    const heads = [...html.matchAll(/<input[^>]*data-line[^>]*>/g)].map((m) => m[0]);
+    const checked = heads.filter((tag) => tag.includes('checked=""'));
+    // Colonne lundi (entière) et ligne dîner (entière): cochées. Colonne mardi
+    // et ligne midi (mêlées): non.
+    expect(checked.length).toBe(2);
+    expect(heads.filter((tag) => tag.includes('aria-checked="mixed"')).length).toBe(2);
+  });
+
+  it("tant qu'un repas de la ligne est à table, elle se retire en entier", () => {
+    const row: GridCell[] = [["mon", "dinner"], ["tue", "dinner"]];
+    expect(lineToggleTarget(new Map(), row)).toBe("away");
+    // ⛔ MÊLÉE ⇒ RETIRÉE. « Je décoche dîner » avec un mardi soir déjà décoché
+    // ne doit pas remettre la ligne à table.
+    const mixed = new Map<string, PresenceState>([["tue|dinner", "away"]]);
+    expect(lineStateOf(mixed, row)).toBe("mixed");
+    expect(lineToggleTarget(mixed, row)).toBe("away");
+    const none = new Map<string, PresenceState>([
+      ["mon|dinner", "away"],
+      ["tue|dinner", "away"],
+    ]);
+    expect(lineStateOf(none, row)).toBe("none");
+    expect(lineToggleTarget(none, row)).toBe("at_table");
+  });
+
+  it("pas de case d'en-tête en trois états", () => {
+    const html = render({ threeState: true });
+    expect(html).not.toContain("data-line");
+    expect(html).not.toContain(EN["meals.picker.bulk_hint"]);
   });
 });
 

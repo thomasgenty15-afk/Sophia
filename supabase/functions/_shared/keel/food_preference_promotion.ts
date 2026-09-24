@@ -47,6 +47,7 @@
  * PURE MODULE: aucun I/O, aucune horloge, aucun aléatoire.
  */
 import { FIELD_CHANGES_KEY } from "./field_change.ts";
+import { REJECTED_DISHES_KEY } from "./rejected_dishes.ts";
 import {
   canHold,
   parseRetainedItem,
@@ -1241,6 +1242,11 @@ export function constraintsForPrompt(
   // Il est fait pour un ÉCRAN — le fil « ce qui vient de changer » — pas pour
   // un prompt.
   delete out[FIELD_CHANGES_KEY];
+  // ⟳ 2026-09-24 — LES PLATS REFUSÉS NE PARTENT PAS BRUTS. La consigne en est
+  // une ligne construite (`rejectedDishesLine`: prénoms du roster, personnes
+  // parties retirées, 60 entrées au plus); le jsonb en plus dirait deux fois
+  // la même chose, avec des identifiants de bouche au lieu des prénoms.
+  delete out[REJECTED_DISHES_KEY];
   const dated = foodPreferencesForPrompt(constraints);
   if (dated.length > 0) out[FOOD_PREFERENCES_KEY] = dated;
   return out;

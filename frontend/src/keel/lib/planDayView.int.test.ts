@@ -37,14 +37,14 @@ describe("defaultSelectedDay — le jour qu'on ouvre", () => {
   it("la vue jour ouvre sur AUJOURD'HUI quand il est dans la fenêtre", () => {
     // Le vendredi 14: le troisième jour du plan, pas le premier.
     expect(
-      defaultSelectedDay({ view: "day", order: ORDER, dates: DATES, today: "2026-08-14" }),
+      defaultSelectedDay({ order: ORDER, dates: DATES, today: "2026-08-14" }),
     ).toBe("fri");
   });
 
   it("aujourd'hui HORS fenêtre ⇒ le PREMIER jour du plan, jamais le calendrier", () => {
     // Un plan « suivant », regardé avant son départ: mercredi ouvre, pas lundi.
     expect(
-      defaultSelectedDay({ view: "day", order: ORDER, dates: DATES, today: "2026-08-01" }),
+      defaultSelectedDay({ order: ORDER, dates: DATES, today: "2026-08-01" }),
     ).toBe("wed");
   });
 
@@ -52,40 +52,43 @@ describe("defaultSelectedDay — le jour qu'on ouvre", () => {
     // C'est la jointure qui rend le brouillon correct SANS code dédié:
     // `PlanDraftDialog` passe `today={draft.startsOn}` depuis toujours.
     expect(
-      defaultSelectedDay({ view: "day", order: ORDER, dates: DATES, today: STARTS }),
+      defaultSelectedDay({ order: ORDER, dates: DATES, today: STARTS }),
     ).toBe("wed");
   });
 
-  it("la vue semaine ouvre « all », quel que soit aujourd'hui", () => {
-    expect(
-      defaultSelectedDay({ view: "week", order: ORDER, dates: DATES, today: "2026-08-14" }),
-    ).toBe("all");
-  });
+  // ⟳ 2026-09-24 — « la vue semaine ouvre « all » » EST PARTI avec « Toute la
+  // semaine »: il n'y a plus de vue semaine, la semaine se lit dans le
+  // tableau en tête (`PlanWeekTable`).
 
   it("une fenêtre courte n'ouvre que ses propres jours", () => {
     // Trois jours à partir du mercredi: le samedi n'existe pas dans ce plan.
     const order = windowDayOrder(STARTS, 3);
     const dates = windowDates(STARTS, 3);
     expect(
-      defaultSelectedDay({ view: "day", order, dates, today: "2026-08-15" }),
+      defaultSelectedDay({ order, dates, today: "2026-08-15" }),
     ).toBe("wed");
   });
 
-  it("sans aucun jour, « all » — jamais un jeton inventé", () => {
+  it("sans aucun jour, `null` — jamais un jeton inventé", () => {
     expect(
-      defaultSelectedDay({ view: "day", order: [], dates: {}, today: "2026-08-14" }),
-    ).toBe("all");
+      defaultSelectedDay({ order: [], dates: {}, today: "2026-08-14" }),
+    ).toBe(null);
   });
 });
 
 describe("effectiveSelectedDay — une sélection qui survit au changement de plan", () => {
-  it("« all » et un jeton de la fenêtre passent tels quels", () => {
-    expect(
-      effectiveSelectedDay({ selected: "all", order: ORDER, dates: DATES, today: "2026-08-14" }),
-    ).toBe("all");
+  it("un jeton de la fenêtre passe tel quel; « all » n'existe plus et retombe sur le défaut", () => {
     expect(
       effectiveSelectedDay({ selected: "sat", order: ORDER, dates: DATES, today: "2026-08-14" }),
     ).toBe("sat");
+    // ⟳ 2026-09-24 — l'ancienne valeur de « Toute la semaine », si un état la
+    // portait encore, n'ouvre pas un écran vide: elle retombe sur aujourd'hui.
+    expect(
+      effectiveSelectedDay({ selected: "all", order: ORDER, dates: DATES, today: "2026-08-14" }),
+    ).toBe("fri");
+    expect(
+      effectiveSelectedDay({ selected: null, order: ORDER, dates: DATES, today: "2026-08-14" }),
+    ).toBe("fri");
   });
 
   it("un jeton hors de la NOUVELLE fenêtre retombe sur le défaut, jamais sur du vide", () => {
@@ -214,15 +217,29 @@ describe("le câblage de la vue jour", () => {
 
   it("le rail des jours existe, et il écrit dans LA sélection", () => {
     const src = code(RESULT);
-    expect(src, "le bouton « toute la semaine » a disparu").toContain(
+    // ⟳ 2026-09-24 — « Toute la semaine » est partie, sur demande: la semaine
+    // se lit dans le tableau en tête, le rail ne choisit plus qu'un jour.
+    expect(src, "« toute la semaine » est revenue").not.toContain(
       'mealCopy("meals.result.day_all")',
     );
-    expect(src, "le rail n'écrit plus la sélection").toContain(
-      'onClick={() => setSelectedDay("all")}',
+    expect(src, "une sélection « all » est revenue").not.toContain(
+      'setSelectedDay("all")',
     );
     expect(src, "les jours du rail n'écrivent plus la sélection").toContain(
       "onClick={() => setSelectedDay(day)}",
     );
+  });
+
+  it("⟳ 2026-09-24 — le tableau de la semaine est en tête, au-dessus du rail", () => {
+    const src = code(RESULT);
+    const table = src.indexOf("<PlanWeekTable");
+    const rail = src.indexOf('mealCopy("meals.result.day_rail")');
+    expect(table, "le tableau de la semaine n'est plus monté").toBeGreaterThan(-1);
+    expect(rail, "le rail a disparu").toBeGreaterThan(-1);
+    expect(table, "le tableau doit précéder le rail").toBeLessThan(rail);
+    // Il lit les MÊMES jointures que le bloc jour, jamais une seconde.
+    expect(src).toContain("groceryDays={groceryDays}");
+    expect(src).toContain("cookingMinutes={cookingMinutes}");
   });
 
   // ⟳ 2026-09-09 — LA GRILLE EST PARTIE, ET LE RAIL RESTE LE SEUL SÉLECTEUR.
@@ -259,14 +276,11 @@ describe("le câblage de la vue jour", () => {
     );
   });
 
-  it("l'aperçu ouvre la SEMAINE, le validé ouvre le JOUR", () => {
-    const dialog = code("frontend/src/keel/components/plan/PlanDraftDialog.tsx");
-    expect(dialog, "l'aperçu n'ouvre plus en semaine entière").toContain(
-      'defaultView="week"',
-    );
+  it("⟳ 2026-09-24 — les deux écrans ouvrent sur UN JOUR (plus de vue semaine)", () => {
     const result = code(RESULT);
-    expect(result, "le défaut n'est plus la vue jour").toContain(
-      'props.defaultView ?? "day"',
+    expect(result, "une vue d'ouverture est revenue").not.toContain("props.defaultView");
+    expect(result, "le jour d'ouverture ne passe plus par le défaut").toContain(
+      "defaultSelectedDay({",
     );
   });
 

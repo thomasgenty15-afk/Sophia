@@ -170,3 +170,79 @@ Durées : médiane 178 s en v37 et 165 s en v38 (163 s en v36). Sortie du modèl
 - Pour la production, à lancer par le propriétaire : `supabase db push`, puis
   `supabase functions deploy` (toutes les fonctions : `meal_envelope.ts` et
   `meal_energy_shared.ts` sont importés par plusieurs d'entre elles).
+
+## 6. Itération « familles » (soir du 2026-09-23)
+
+Constat du propriétaire sur les plans v37/v38 : les mêmes à-côtés tous les jours
+(Thomas : 10 repas sur 10 « emmental 35 g + 2 pommes »), et 2 pommes par dessert.
+
+Décision : les à-côtés se pensent **pour la table** (au même repas, le même
+aliment pour tous ceux qui ont ce type ; seule la quantité change), un aliment
+**2 jours de suite au plus** (le pain excepté), peu d'aliments sur la semaine pour
+que les courses suivent. D'abord dans la consigne, puis mesurer.
+
+Ce qui a été fait (consigne v39 puis v40, aujourd'hui sous le jeton v41 d'une
+autre session qui l'a reprise telle quelle) :
+- consigne : règle de la table, règle des 2 jours (pain excepté), l'exception
+  nommée (allergie, exclusion, régime), « nommer l'aliment exact, jamais une
+  catégorie » ; la prise de muscle suit le dessert de la table ;
+- calcul : un gros fruit (unité ≥ 100 g) au plus par dessert ; une petite unité
+  (< 50 g : datte, pruneau) se pèse ; un dessert dense accepté dès 15 g ; le pain
+  se pèse toujours (« pain complet ~70 g ») ; le nom de l'aliment l'emporte sur une
+  référence générique (« banane » + `fruit` → banane) ; le manque d'un dessert est
+  repris par le pain puis le fromage du même repas avant le plat ;
+- calories de base du dessert ramenées à la taille d'un fruit : maintien 110 → 90,
+  prise 180 → 110 (le surplus est planifié dans le pain) ;
+- trace `side_courses.variety` (familles, séries, variété, fruits plafonnés,
+  manque repris) et grille G20 à G24 dans le harnais.
+
+| | v37 (A1, A3) | v39 (A5, A6) | v41 (A8, A9) |
+|---|---|---|---|
+| Familles partagées | 100 % (même pomme tous les jours) | 100 % | 100 % |
+| Séries de 3 jours et plus | 7 par plan | 1 à 3 (le pain) | 0 |
+| Fruits / fromages distincts | 1 / 1 | 2–4 / 2–3 | 4 / 3 |
+| Desserts de 2 gros fruits | 15 | 0 | 0 |
+| Aliments d'à-côté dans les courses | 4 | 9–11 | 10–11 |
+| Repas médian de Thomas | 885 g | — | 762–771 g |
+| Énergie de Thomas | 97,6–100 % | 96–99,8 % | **99,6–100 %** (A9) |
+
+Famille E (v41) : familles partagées 100 %, 4 fruits, aucune série. Personne
+seule (D6) : 4 fruits, aucune série, énergie 99,2–100 %.
+
+Restes : Christèle en maintien voit son plat monter (médiane 516 g en A9) et un
+jour à 95,9 % ; la mesure d'un bac commun reste une estimation (Claire 95 %).
+
+## 7. Plafond d'assiette personnel et compensation sans perte (2026-09-24)
+
+Constat : le plat de Christèle (maintien) était remonté à 516 g en médiane. Le
+plafond d'assiette valait 550 g pour tous les adultes (la table d'âge décidait dès
+qu'un repas dépasse 550 kcal), donc le seuil de compensation par les à-côtés
+(632,5 kcal) était le même pour tous et ne se déclenchait jamais pour elle ; et un
+plat raboté perdait son énergie au lieu de passer au pain.
+
+Décision du propriétaire, formule « l'assiette suit l'entretien » :
+- plafond d'un repas d'adulte = 25 % de l'énergie d'entretien × appétit, entre 400
+  et 550 g ; plancher = la moitié, entre 220 et 250 g (`personalPlateBoundsFor`,
+  `portion_sizing.ts`) ; mineur, âge ou entretien inconnu ⇒ la table d'avant ;
+- le contrat, le brief du modèle, le seuil de `sideBudgetFor`, le rabotage et
+  l'audit lisent ce plafond ;
+- après le rabotage (`fitPortionsToBounds` rend `shavedByMeal`) et la coupe d'une
+  personne seule, le manque est repris par le pain puis le fromage servis, ou par
+  un pain ajouté (jamais s'il est refusé ou impossible, jamais en perte ni pour un
+  mineur) ; trace `plate_bounds` (seau + rang) et compteurs `boundary_*`.
+
+Plafonds de ton foyer : Christèle 480 g, Thomas 550 g, Fabrice 550 g.
+
+| | A9 (avant) | A10 | A11 |
+|---|---|---|---|
+| Plat de Christèle, médiane / max | 516 / 550 g | 475 / 480 g | 480 / 480 g |
+| Énergie de Christèle | 95,9–100,1 % | 98,0–100,2 % | 98,3–100,5 % |
+| Pain à ses déjeuners | non | oui (40–55 g) | oui (45–55 g) |
+| Énergie rabotée non reprise (foyer) | — | 0,1 % | 0,5 % |
+| Thomas, Fabrice | inchangés (550 g, 99–100 %) | idem | idem |
+
+Famille E : Claire reçoit son plafond (476 g) ; Léo garde la table (450 g). Personne
+seule (D7) : inchangé (550 g, 99,3–100,2 %). Restes : Hugo (prise, 3 repas sans
+collation) reste au repli de 700 g ; la mesure d'un bac commun reste une
+estimation (Claire 95,6–97 %) ; un manque résiduel de 30 à 49 kcal n'ajoute pas de
+pain (la plus petite part de pain en pèse ~50).

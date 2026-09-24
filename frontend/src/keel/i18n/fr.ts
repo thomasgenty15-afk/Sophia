@@ -1127,7 +1127,7 @@ export const fr: TranslatedMessages = {
   "start.title": "Créez votre compte.",
   "start.lead":
     "D’abord le compte. Ensuite, vous décrivez qui mange à votre table et ce " +
-    "qu’il faut à chacun : c’est autour de ça que Sophia compose la semaine.",
+    "qu’il faut à chacun : c’est autour de ça que Sophia compose le plan.",
 
   // ⚠️ `start.price` RETIRÉE LE 2026-09-01. Elle vivait SOUS le bouton
   // d'envoi — un prix qui arrive après la décision qu'il devait éclairer —
@@ -2150,6 +2150,13 @@ export const fr: TranslatedMessages = {
     "Je n’ai pas réussi à refaire ce repas-là. L’aperçu est inchangé — reformule, ou refais tout le plan.",
   "plan.refusal.cell_unknown":
     "Ce repas-là n’est pas dans cet aperçu. L’aperçu est inchangé.",
+  // ⟳ 2026-09-24 — « Remplacer ».
+  "plan.refusal.dish_unknown":
+    "Ces plats ne sont plus dans cet aperçu. Il n’a pas changé.",
+  "plan.refusal.dish_not_rendered":
+    "Je n’ai pas réussi à changer ces plats cette fois. L’aperçu n’a pas changé : réessaie avec « Ajuster le plan ».",
+  "plan.refusal.edit_nothing_to_change":
+    "Aucun plat de cet aperçu ne contient ça : il reste tel quel. C’est retenu pour les prochains plans.",
   "plan.refusal.draft_has_no_source":
     "Cet aperçu est trop ancien pour être repris repas par repas. Refais tout le plan.",
   "plan.refusal.draft_mismatch":
@@ -2180,8 +2187,6 @@ export const fr: TranslatedMessages = {
     "Rien de ce que vous avez répondu n’est perdu. Vous pourrez revenir depuis votre plan.",
   "setup.saved": "Enregistré.",
   "setup.situate.title": "Pour combien de personnes cuisinez-vous ?",
-  "setup.situate.hint":
-    "C’est ce qui dimensionne chaque plan qu’on construit, et c’est tout ce dont cette étape a besoin. Vous pourrez le changer plus tard.",
   "setup.situate.solo": "Juste moi",
   "setup.situate.solo_hint":
     "Un plan, vos parts, en batch cooking si c’est votre façon de faire.",
@@ -2329,8 +2334,6 @@ export const fr: TranslatedMessages = {
   "setup.people.allergies_add": "Ajouter",
   "setup.people.allergies_remove": "Retirer",
   "setup.mouths.title": "Qui mange ici, à part vous",
-  "setup.mouths.intro":
-    "Trois choses par personne, et le plan de ce soir les compte déjà.",
   // ⚠️ `setup.mouths.discard` (« Effacer cette fiche ») est parti le
   // 2026-08-19: la fiche se REFERME maintenant, et le mot que l'utilisateur a
   // demandé est « Retirer » (`setup.mouths.remove`, partagé avec la carte
@@ -2550,7 +2553,7 @@ export const fr: TranslatedMessages = {
   "household.mouth.preferences_empty":
     "Rien de renseigné — le plan se compose sans. Ça se remplit plus tard.",
   "household.mouth.preferences_filled": "Déjà renseigné : {blocks}.",
-  "household.mouth.preferences_done": "Terminé",
+  "household.mouth.preferences_done": "Enregistrer",
   "household.mouth.save": "Enregistrer",
   "household.mouth.add": "L'ajouter",
   "household.mouth.fold": "Replier",
@@ -2649,8 +2652,10 @@ export const fr: TranslatedMessages = {
   "household.mouth.answer_no": "Non",
   // ⟳ 2026-09-23 — LES À-CÔTÉS, PAR PERSONNE. Voir la note d'`en.ts`: trois
   // états par type, « Selon l'objectif » est la clé absente.
-  "household.mouth.side_courses.title": "Entrée, fromage, dessert, pain",
-  "household.mouth.side_courses.hint": "Ce qu'on sert à côté du plat, au déjeuner et au dîner.",
+  "household.mouth.side_courses.title": "Est-ce que {who} mange entrée, fromage, dessert, pain ?",
+  "household.mouth.side_courses.title_you": "Est-ce que tu manges entrée, fromage, dessert, pain ?",
+  "household.mouth.side_courses.hint":
+    "En choisissant « Selon l'objectif », tu laisses Sophia décider de leur présence ou non, au déjeuner ou au dîner.",
   "household.mouth.side_courses.starter": "Entrée",
   "household.mouth.side_courses.cheese": "Fromage",
   "household.mouth.side_courses.dessert": "Dessert",
@@ -2948,14 +2953,6 @@ export const fr: TranslatedMessages = {
   "setup.plan.time_hint":
     "En gros. C’est un ordre de grandeur, pas un chronomètre.",
   "setup.plan.budget": "Budget de ce plan",
-  // ⟳ 2026-09-08 — TROIS PROPOSITIONS RÉDUITES À UNE. « Toutes les courses,
-  // dans votre monnaie » redisait l'étiquette du champ (« Budget de ce
-  // plan »), et « au lieu de deviner ce que “serré” veut dire chez vous »
-  // expliquait le produit à sa place. Ce qui reste est la seule chose que la
-  // personne y gagne: un chiffre CHANGE le plan, et on dit comment.
-  "setup.plan.budget_hint":
-    "Un vrai chiffre permet d’arbitrer : des morceaux moins chers, moins de " +
-    "légumes hors saison.",
   "setup.plan.compose": "Construire mon premier plan",
   "setup.plan.composing": "Construction en cours…",
   // Les huit phrases de l'attente — voir la note d'`en.ts`.
@@ -3816,7 +3813,6 @@ export const fr: TranslatedMessages = {
   "meals.result.today": "Aujourd’hui",
   "meals.result.past": "Passé",
   // ── LOT 1 (2026-08-17) · LA VUE PAR JOUR ────────────────────────────────
-  "meals.result.day_all": "Toute la semaine",
   "meals.result.day_rail": "Lire un jour",
   "meals.result.day_session": "Session de cuisine",
   "meals.result.day_session_show": "Voir le détail",
@@ -3826,6 +3822,16 @@ export const fr: TranslatedMessages = {
   "meals.result.day_groceries_show": "Voir la liste",
   "meals.result.day_groceries_hide": "Masquer la liste",
   "meals.result.day_nothing": "Rien à cuisiner ni à acheter ce jour-là.",
+  // ── ⟳ 2026-09-24 · LE TABLEAU DE LA SEMAINE, EN TÊTE DU PLAN ────────────
+  // Il remplace « Toute la semaine » (`meals.result.day_all`, retirée).
+  "meals.week_table.caption": "Ta semaine en un coup d’œil",
+  "meals.week_table.groceries": "Courses",
+  "meals.week_table.cooking": "Cuisine",
+  "meals.week_table.yes": "oui",
+  "meals.week_table.hours": "{h} h",
+  "meals.week_table.hours_minutes": "{h} h {m}",
+  "meals.week_table.person_kcal": "{name} (kcal)",
+  "meals.week_table.partial_note": "* Une partie des repas de ce jour-là n’est pas comptée.",
   "meals.day_person.table": "Pour la table",
   "meals.day_person.member": "Pour {name}",
   "meals.day_person.members": "Pour {names}",
@@ -3863,6 +3869,10 @@ export const fr: TranslatedMessages = {
   // ingrédients ajoutés — la recette du lot, elle, vit dans la session.
   "meals.dish.unfold": "Voir le détail",
   "meals.dish.fold": "Masquer le détail",
+  // ⟳ 2026-09-24 — REMPLACER UN PLAT DE L'APERÇU.
+  "meals.dish.replace": "Changer",
+  "meals.dish.keep": "Garder ce plat",
+  "meals.dish.replace_reason": "À changer : « {reason} »",
   // Le compte est en tête: on sort ses bacs avant de commencer, pas au milieu.
   "meals.boxes.count_one": "1 contenant à remplir",
   "meals.boxes.count_many": "{n} contenants à remplir",
@@ -3930,10 +3940,11 @@ export const fr: TranslatedMessages = {
   "meals.sessions.overview_title": "Déroulé global",
   "meals.picker.title": "Quels repas, quels jours",
   "meals.picker.subtitle":
-    "Tout ce que tu as déclaré est actif. Décoche un repas que tu ne prendras " +
-    "pas à la maison — rien n’est cuisiné pour lui, et rien n’est acheté.",
+    "Décoche un repas que tu ne prendras pas à la maison — rien n’est cuisiné " +
+    "pour lui, et rien n’est acheté.",
   "meals.picker.meal": "Repas",
-  "meals.picker.all_on": "Tous les repas sont actifs. Décoche ceux où tu manges ailleurs.",
+  "meals.picker.all_on":
+    "Pour modifier le nombre de repas, rends-toi dans Foyer > Préférences alimentaires.",
   "meals.picker.some_off_one": "{n} repas décoché. Il revient la prochaine fois si tu le recoches.",
   "meals.picker.some_off_many": "{n} repas décochés. Ils reviennent la prochaine fois si tu les recoches.",
   "meals.picker.state_at_table": "Ici, à table",
@@ -3967,6 +3978,12 @@ export const fr: TranslatedMessages = {
   // `parity.int.test.ts`.
   "meals.picker.saving": "…",
   "meals.picker.cancel": "Annuler",
+  // ⟳ 2026-09-23 — LES CASES D'EN-TÊTE: une ligne = un repas sur tous les
+  // jours, une colonne = un jour entier.
+  "meals.picker.bulk_hint":
+    "La case devant un repas ou au-dessus d’un jour retire toute la ligne ou toute la colonne.",
+  "meals.picker.row_all": "{meal} — tous les jours",
+  "meals.picker.column_all": "{day} — tous les repas",
   "meals.today.title": "Côté cuisine",
   "meals.today.cook_today": "Tu cuisines aujourd’hui",
   "meals.today.cook_tomorrow": "Tu cuisines demain",
@@ -5849,7 +5866,7 @@ export const fr: TranslatedMessages = {
   "plan.cooking.difficulty_label": "Recettes",
   "plan.cooking.difficulty_simple": "Simples — peu d’étapes, peu de casseroles",
   "plan.cooking.difficulty_normal": "Normales",
-  "plan.cooking.difficulty_keen": "J’aime cuisiner, envoie",
+  "plan.cooking.difficulty_keen": "J’aime cuisiner",
   "plan.cooking.variety_label": "Variété",
   "plan.cooking.variety_repeat": "Ça ne me gêne pas de remanger la même chose",
   "plan.cooking.variety_some": "Un peu de répétition, ça va",
@@ -5985,6 +6002,20 @@ export const fr: TranslatedMessages = {
   "plan.request.presence_all_home": "Là à tous les repas",
   "plan.request.presence_away_one": "{n} repas ailleurs",
   "plan.request.presence_away_other": "{n} repas ailleurs",
+  // ⟳ 2026-09-23 — L'ABSENCE SUR TOUT LE PLAN (vacances, séjour ailleurs).
+  // ⚠️ « Absence », le NOM, et pas « absent »: le libellé ne s'accorde avec
+  // personne. Le geste écrit chaque jour de la fenêtre en « journée entière »
+  // dans la colonne que « Modifier » édite déjà (`lib/presenceAbsence.ts`).
+  "plan.request.presence_absence": "Absence",
+  "plan.request.presence_absence_aria": "{name} : absence sur tout ce plan",
+  "plan.request.presence_absence_undo": "Annuler l’absence",
+  "plan.request.presence_absent": "Absence — hors de ce plan",
+  // ⚠️ DIT PRÈS DU GESTE, pas seulement au retour du serveur
+  // (`window_fully_away`, 409): sinon on compose, on attend, et on lit le refus.
+  "plan.request.presence_everyone_away":
+    "Personne n’est là sur ces dates : il n’y a rien à composer. Annule une absence ou change les dates.",
+  // Le nom de la ligne du titulaire quand aucune ligne de foyer n'est lue.
+  "plan.request.presence_you": "Toi",
 
   // ── L'ENVIE DE LA SEMAINE ───────────────────────────────────────────────
   // ⟳ 2026-09-16 — UN MOT, PLUS UNE PHRASE. Le titre reprenait la phrase de
@@ -6127,6 +6158,24 @@ export const fr: TranslatedMessages = {
   "plan.draft.question_who": "Tu as écrit « {text} » — c’est pour qui ?",
   "plan.draft.question_none": "Personne de la liste",
   "plan.draft.question_skipped": "D’accord, je n’ai rien changé pour cette phrase-là.",
+  // ⟳ 2026-09-24 — LES QUESTIONS EN COUCHE, et « REMPLACER » UN PLAT.
+  "plan.draft.questions_title": "Avant de refaire le plan",
+  "plan.draft.questions_continue": "Continuer",
+  "plan.draft.replace_title": "Pourquoi changer ce plat ?",
+  "plan.draft.replace_label": "Ta raison (obligatoire)",
+  "plan.draft.replace_placeholder": "Ex. : trop sucré, Paul n’aime pas les champignons, trop long à préparer…",
+  "plan.draft.replace_cancel": "Annuler",
+  "plan.draft.replace_confirm": "Valider",
+  "plan.draft.struck_one": "1 plat à changer",
+  "plan.draft.struck_many": "{count} plats à changer",
+  "plan.draft.struck_cap": "{max} plats au plus d’un coup : ajuste d’abord ceux-là.",
+  "plan.draft.dishes_replaced_one": "J’ai changé 1 plat ; le reste est identique ({kept} plats gardés tels quels).",
+  "plan.draft.dishes_replaced_many": "J’ai changé {count} plats ; le reste est identique ({kept} plats gardés tels quels).",
+  "plan.draft.dishes_extended_one": "J’ai aussi refait {dishes} : il contenait un aliment que tu viens d’écarter.",
+  "plan.draft.dishes_extended_many": "J’ai aussi refait {dishes} : ils contenaient un aliment que tu viens d’écarter.",
+  "plan.draft.dishes_not_replaced": "Certains plats n’ont pas pu être changés cette fois ({count}) : ils sont restés tels quels.",
+  "plan.draft.rejected_filed_one": "Ce plat est rangé dans tes plats refusés (« Ce que Sophia sait de toi »).",
+  "plan.draft.rejected_filed_many": "Ces {count} plats sont rangés dans tes plats refusés (« Ce que Sophia sait de toi »).",
   "plan.draft.safety_not_written":
     "Je n’ai pas pu l’enregistrer dans la fiche : {lines}. Ajoute-le depuis la fiche du foyer.",
   "plan.draft.cells_applied":
@@ -6339,6 +6388,14 @@ export const fr: TranslatedMessages = {
   "known.recent.intro": "Je n'ai rien décidé en cachette : voilà ce que j'ai rangé récemment, et pourquoi. Enlève ce qui ne va pas.",
   "known.edit": "Modifier",
   "known.remove": "Enlever",
+  // ⟳ 2026-09-24 — LES PLATS REFUSÉS (« Remplacer » dans l'aperçu d'un plan).
+  "known.rejected.title": "Plats refusés",
+  "known.rejected.intro": "Les plats que tu as changés dans l’aperçu d’un plan. Sophia ne les propose plus aux personnes indiquées.",
+  "known.rejected.empty": "Aucun pour l’instant. Quand tu changes un plat dans l’aperçu d’un plan, il arrive ici.",
+  "known.rejected.everyone": "Tout le foyer",
+  "known.rejected.said_on": "le {day}",
+  "known.rejected.said": "« {reason} »",
+  "known.rejected.remove_failed": "Ça n’a pas été enlevé. Réessaie.",
   "known.save": "Enregistrer",
   "known.cancel": "Annuler",
   "known.saving": "Enregistrement…",
@@ -6534,7 +6591,7 @@ export const fr: TranslatedMessages = {
   "plan.cooking.style_unset": "Pas encore répondu",
   "plan.cooking.style_minimal": "Le moins possible — je réchauffe",
   "plan.cooking.style_balanced": "Un juste milieu",
-  "plan.cooking.style_keen": "J'aime cuisiner, envoie",
+  "plan.cooking.style_keen": "J'aime cuisiner",
   "plan.cooking.runs_label": "Courses",
   "plan.cooking.runs_unset": "Pas encore répondu",
   // ⚠️ « Peu importe » EST UNE RÉPONSE, et le libellé doit le faire sentir
@@ -6601,8 +6658,21 @@ export const fr: TranslatedMessages = {
     "d'avance — et chacune commence par des courses. Avec « le moins " +
     "possible », le plan en pose moins, donc il y a moins de passages au " +
     "magasin.",
+  // ⟳ 2026-09-24 — SANS CONGÉLATEUR, « UNE FOIS » N'EST PLUS PROPOSÉE au-delà
+  // de ce qu'un plat cuisiné tient au frigo (décision produit). La phrase
+  // remplace le contrôle quand il ne reste qu'une cadence, et s'affiche sous
+  // la liste sinon. Elle ne cite aucun nombre de courses: seulement les deux
+  // nombres que la personne compare (les jours du plan, la conservation), et
+  // où lever le refus — mot pour mot le titre de la carte (`setup.equipment.title`).
+  "plan.cooking.runs_needs_freezer":
+    "Sans congélateur, il faut repasser au magasin en cours de plan : un plat " +
+    "cuisiné se garde {d} jours au frigo, et ce plan en compte {n}. Pour tout " +
+    "acheter en une fois, coche le congélateur dans « Avec quoi tu cuisines ».",
   "setup.missing.cooking_style": "Dis-nous comment tu veux cuisiner",
   "setup.missing.grocery_runs": "Dis-nous combien de courses tu acceptes",
+  "setup.missing.kitchen_equipment": "Dis-nous avec quoi tu cuisines",
+  "plan.request.equipment_required":
+    "À renseigner avant de lancer le plan : coche au moins ce que tu as.",
 
   //
   // A8.3 — LE LECTEUR DU RESTE. Voir le bloc jumeau d'`en.ts` pour le motif des

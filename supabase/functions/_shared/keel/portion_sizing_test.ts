@@ -602,8 +602,8 @@ Deno.test("le module est DÉTERMINISTE, et n'abîme pas son entrée", () => {
 // ═══════════════════════════════════════════════════════════════════════════
 
 Deno.test("les bornes d'un ENFANT ne sont pas celles d'un adulte", () => {
-  const adulte = plateBoundsFor({ ageYears: 35, slot: "dinner", slotTargetKcal: null, light: false, appetite: null });
-  const enfant = plateBoundsFor({ ageYears: 9, slot: "dinner", slotTargetKcal: null, light: false, appetite: null });
+  const adulte = plateBoundsFor({ ageYears: 35, slot: "dinner", slotTargetKcal: null, light: false, appetite: null, personal: null });
+  const enfant = plateBoundsFor({ ageYears: 9, slot: "dinner", slotTargetKcal: null, light: false, appetite: null, personal: null });
   assertEquals(adulte.band, "adult");
   assertEquals(enfant.band, "child");
   assert(enfant.max < adulte.max && enfant.min < adulte.min);
@@ -613,20 +613,20 @@ Deno.test("les bornes d'un ENFANT ne sont pas celles d'un adulte", () => {
 });
 
 Deno.test("l'âge INCONNU retombe sur adulte, et la SOURCE le dit", () => {
-  const b = plateBoundsFor({ ageYears: null, slot: "lunch", slotTargetKcal: null, light: false, appetite: null });
+  const b = plateBoundsFor({ ageYears: null, slot: "lunch", slotTargetKcal: null, light: false, appetite: null, personal: null });
   assertEquals(b.band, "adult");
   assertEquals(b.source, "age_unknown");
   // ⛔ Le repli va vers la borne la plus LARGE: se tromper vers l'enfant
   // raboterait l'assiette d'un adulte, et c'est le sens d'erreur que ce
   // chantier existe pour fermer.
   assertEquals(b.max, PLATE_MASS_BOUNDS_G.adult.meal.max);
-  assertEquals(plateBoundsFor({ ageYears: 35, slot: "lunch", slotTargetKcal: null, light: false, appetite: null }).source, "age_known");
+  assertEquals(plateBoundsFor({ ageYears: 35, slot: "lunch", slotTargetKcal: null, light: false, appetite: null, personal: null }).source, "age_known");
   assertEquals(plateBandOf(null), { band: "adult", known: false });
 });
 
 Deno.test("une COLLATION n'a pas les bornes d'un repas", () => {
-  const repas = plateBoundsFor({ ageYears: 35, slot: "dinner", slotTargetKcal: null, light: false, appetite: null });
-  const gouter = plateBoundsFor({ ageYears: 35, slot: "snack_pm", slotTargetKcal: null, light: false, appetite: null });
+  const repas = plateBoundsFor({ ageYears: 35, slot: "dinner", slotTargetKcal: null, light: false, appetite: null, personal: null });
+  const gouter = plateBoundsFor({ ageYears: 35, slot: "snack_pm", slotTargetKcal: null, light: false, appetite: null, personal: null });
   assertEquals(repas.slotClass, "meal");
   assertEquals(gouter.slotClass, "snack");
   // ⚠️ ET PAS « une collation reste sous le plancher d'un repas »: 300 g de
@@ -648,8 +648,8 @@ Deno.test("la bande de grammes DESCEND de la part kcal du moment", () => {
   // ⟳ 2026-09-23 — le « gros » passe de 600 à 500 kcal: sous le plafond de
   // table de 550 g, 600 kcal feraient mordre la TABLE, et ce test parle de la
   // part.
-  const petit = plateBoundsFor({ ageYears: 35, slot: "dinner", slotTargetKcal: 300, light: false, appetite: null });
-  const gros = plateBoundsFor({ ageYears: 35, slot: "dinner", slotTargetKcal: 500, light: false, appetite: null });
+  const petit = plateBoundsFor({ ageYears: 35, slot: "dinner", slotTargetKcal: 300, light: false, appetite: null, personal: null });
+  const gros = plateBoundsFor({ ageYears: 35, slot: "dinner", slotTargetKcal: 500, light: false, appetite: null, personal: null });
   // ⛔ LE PLAFOND SUIT LA PART, ET IL LA SUIT PROPORTIONNELLEMENT: c'est la
   // règle de `mealMassCapFor` — « le plus gros repas plausible pèse ce que
   // porte son énergie à la densité la plus basse qu'on accepte ».
@@ -665,18 +665,18 @@ Deno.test("la table d'âge reste un GARDE-FOU: elle rabat, elle ne source pas", 
   // d'assiette. La capacité d'estomac de la tranche d'âge rabat, et le compteur
   // le DIT — sans lui, « la table ne mord jamais » et « la table mord partout »
   // rendraient le même objet.
-  const enorme = plateBoundsFor({ ageYears: 35, slot: "dinner", slotTargetKcal: 1200, light: false, appetite: null });
+  const enorme = plateBoundsFor({ ageYears: 35, slot: "dinner", slotTargetKcal: 1200, light: false, appetite: null, personal: null });
   assertEquals(enorme.max, PLATE_MASS_BOUNDS_G.adult.meal.max);
   assertEquals(enorme.boundSource, "table");
   // Et sur un enfant, la même part rabat plus tôt — c'est tout l'objet du
   // garde-fou.
-  const enfant = plateBoundsFor({ ageYears: 9, slot: "dinner", slotTargetKcal: 1200, light: false, appetite: null });
+  const enfant = plateBoundsFor({ ageYears: 9, slot: "dinner", slotTargetKcal: 1200, light: false, appetite: null, personal: null });
   assertEquals(enfant.max, PLATE_MASS_BOUNDS_G.child.meal.max);
   assertEquals(enfant.boundSource, "table");
 });
 
 Deno.test("SANS part lisible, la table est la SEULE source — le nombre d'avant", () => {
-  const b = plateBoundsFor({ ageYears: 35, slot: "dinner", slotTargetKcal: null, light: false, appetite: null });
+  const b = plateBoundsFor({ ageYears: 35, slot: "dinner", slotTargetKcal: null, light: false, appetite: null, personal: null });
   assertEquals(b.min, PLATE_MASS_BOUNDS_G.adult.meal.min);
   assertEquals(b.max, PLATE_MASS_BOUNDS_G.adult.meal.max);
   assertEquals(b.boundSource, "no_target");
@@ -684,7 +684,7 @@ Deno.test("SANS part lisible, la table est la SEULE source — le nombre d'avant
   // rendrait un plafond de 0 g, c'est-à-dire une assiette vide servie comme une
   // décision.
   assertEquals(
-    plateBoundsFor({ ageYears: 35, slot: "dinner", slotTargetKcal: 0, light: false, appetite: null }).boundSource,
+    plateBoundsFor({ ageYears: 35, slot: "dinner", slotTargetKcal: 0, light: false, appetite: null, personal: null }).boundSource,
     "no_target",
   );
 });
@@ -695,12 +695,12 @@ Deno.test("le PLANCHER ne monte jamais au-dessus de la table", () => {
   // cible). Un plancher dérivé au-dessus des 250 g de la table forcerait donc à
   // servir plus que la cible à toute assiette un peu dense — c'est-à-dire à
   // défaire, par la borne, le dimensionnement qu'on vient de calculer.
-  const gros = plateBoundsFor({ ageYears: 35, slot: "dinner", slotTargetKcal: 900, light: false, appetite: null });
+  const gros = plateBoundsFor({ ageYears: 35, slot: "dinner", slotTargetKcal: 900, light: false, appetite: null, personal: null });
   assert(900 / MEAL_KCAL_PER_G_COMPOSED > PLATE_MASS_BOUNDS_G.adult.meal.min);
   assertEquals(gros.min, PLATE_MASS_BOUNDS_G.adult.meal.min);
   // Sur une petite part, c'est la dérivée qui gagne — et c'est ce qui protège
   // un goûter d'être gonflé jusqu'au plancher d'un repas.
-  const petit = plateBoundsFor({ ageYears: 35, slot: "dinner", slotTargetKcal: 200, light: false, appetite: null });
+  const petit = plateBoundsFor({ ageYears: 35, slot: "dinner", slotTargetKcal: 200, light: false, appetite: null, personal: null });
   assertEquals(petit.min, Math.round(200 / MEAL_KCAL_PER_G_COMPOSED));
 });
 
@@ -727,7 +727,7 @@ Deno.test("⟳ 2026-09-23 — un gros repas adulte: 550 g à la table, 700 g au 
   //   bmax brut = 900 / 1,0 = 900 ; bmin = min(900/1,35 ; 250) = 250
   //   table  Gmax = min(900 ; 550) = 550 ; visée (250 + 550)/2 = 400
   //   repli  Gmax = min(900 ; 700) = 700 ; visée (250 + 700)/2 = 475
-  const args = { ageYears: 35, slot: "lunch", slotTargetKcal: 900, light: false, appetite: null };
+  const args = { ageYears: 35, slot: "lunch", slotTargetKcal: 900, light: false, appetite: null, personal: null };
   const table = plateBoundsFor(args);
   const repli = hardCeilingBoundsFor(args);
   assertEquals([table.min, table.max, table.preferred, table.physicalMax], [250, 550, 400, 550]);
@@ -753,13 +753,13 @@ Deno.test("⟳ 2026-09-23 — ⛔ le repli ne vaut que pour le REPAS ADULTE: les
     [35, "snack_pm", 300], // collation adulte
   ];
   for (const [ageYears, slot, max] of cas) {
-    const args = { ageYears, slot, slotTargetKcal: 1200, light: false, appetite: null };
+    const args = { ageYears, slot, slotTargetKcal: 1200, light: false, appetite: null, personal: null };
     assertEquals(hardCeilingBoundsFor(args), plateBoundsFor(args), `${ageYears}/${slot}`);
     assertEquals(hardCeilingBoundsFor(args).max, max, `${ageYears}/${slot}`);
   }
   // ⚠️ ET L'ÂGE INCONNU RETOMBE SUR L'ADULTE, donc sur le repli.
   assertEquals(
-    hardCeilingBoundsFor({ ageYears: null, slot: "dinner", slotTargetKcal: 1200, light: false, appetite: null }).max,
+    hardCeilingBoundsFor({ ageYears: null, slot: "dinner", slotTargetKcal: 1200, light: false, appetite: null, personal: null }).max,
     700,
   );
 });
@@ -775,6 +775,7 @@ Deno.test("⟳ 2026-09-23 — le repli garde la règle de la table: appétit et 
     slotTargetKcal: 1200,
     light: true,
     appetite: "small",
+    personal: null,
   });
   assertEquals([b.min, b.max, b.appetiteFactor, b.densityFloorPerG], [225, 630, 0.9, 0.6]);
 });
@@ -787,7 +788,7 @@ Deno.test("⟳ 2026-09-23 — le repli garde la règle de la table: appétit et 
 // mesurent des GRAMMES et des kcal; écrire un gramme de protéine inventé
 // ferait croire qu'ils en disent quelque chose, donc `null`.
 const STD = { kcal: 500, cookedG: 400, densityPer100G: 125, proteinG: null, pots: [], gaps: [] };
-const BOUNDS = plateBoundsFor({ ageYears: 35, slot: "dinner", slotTargetKcal: null, light: false, appetite: null });
+const BOUNDS = plateBoundsFor({ ageYears: 35, slot: "dinner", slotTargetKcal: null, light: false, appetite: null, personal: null });
 
 Deno.test("facteur = cible ÷ kcal, et les grammes suivent", () => {
   // ⟳ 2026-09-23 — 625 kcal au lieu de 750: 750 font 600 g, au-dessus du
@@ -1572,8 +1573,8 @@ Deno.test("⛔ LA FACTORISATION N'A PAS BOUGÉ `mouthTargetKcal` — entretien +
 //   N3 — `lidPlanFor` rend un bac d'UN nom au lieu d'une boîte. ROUGE.
 //   N4 — le bac rend la MOYENNE de ses parts au lieu de leur somme. ROUGE.
 
-const BOUNDS_ADULTE = plateBoundsFor({ ageYears: 35, slot: "dinner", slotTargetKcal: null, light: false, appetite: null });
-const BOUNDS_ENFANT = plateBoundsFor({ ageYears: 9, slot: "dinner", slotTargetKcal: null, light: false, appetite: null });
+const BOUNDS_ADULTE = plateBoundsFor({ ageYears: 35, slot: "dinner", slotTargetKcal: null, light: false, appetite: null, personal: null });
+const BOUNDS_ENFANT = plateBoundsFor({ ageYears: 9, slot: "dinner", slotTargetKcal: null, light: false, appetite: null, personal: null });
 
 const eater = (
   memberId: string,
@@ -1899,7 +1900,7 @@ Deno.test("⟳ 2026-09-23 — la visée d'un REPAS est la densité du gabarit: 6
   //   Gmax = min(600 ; 550) = 550 ; Gmin = min(600/1,35 ; 250) = 250
   //   Dmin = ⌈60 000/550⌉ = ⌈109,09⌉ = 110 ; Dmax = ⌊60 000/250⌋ = 240
   //   visée = max(125 ; 109,09) = 125
-  const b = plateBoundsFor({ ageYears: 35, slot: "lunch", slotTargetKcal: 600, light: false, appetite: null });
+  const b = plateBoundsFor({ ageYears: 35, slot: "lunch", slotTargetKcal: 600, light: false, appetite: null, personal: null });
   assertEquals([b.min, b.max], [250, 550]);
   const c = densityCorridorFor({ targetKcal: 600, bounds: b })!;
   assertEquals([c.minPer100G, c.maxPer100G, c.preferredPer100G], [110, 240, 125]);
@@ -1909,14 +1910,14 @@ Deno.test("⟳ 2026-09-23 — la visée d'un REPAS est la densité du gabarit: 6
   //   800 kcal ⇒ Dmin = ⌈145,45⌉ = 146 ; visée arrondi(145,45) = 145 ⇒ 146
   const gros = densityCorridorFor({
     targetKcal: 800,
-    bounds: plateBoundsFor({ ageYears: 35, slot: "dinner", slotTargetKcal: 800, light: false, appetite: null }),
+    bounds: plateBoundsFor({ ageYears: 35, slot: "dinner", slotTargetKcal: 800, light: false, appetite: null, personal: null }),
   })!;
   assertEquals([gros.minPer100G, gros.maxPer100G, gros.preferredPer100G], [146, 250, 146]);
   // ⚠️ ET UN PETIT REPAS garde 125 à l'intérieur de son couloir:
   //   300 kcal ⇒ Gmax 300, Gmin ⌊222,2⌉ = 222 ⇒ [100, ⌊135,1⌋ = 135], visée 125
   const petit = densityCorridorFor({
     targetKcal: 300,
-    bounds: plateBoundsFor({ ageYears: 35, slot: "dinner", slotTargetKcal: 300, light: false, appetite: null }),
+    bounds: plateBoundsFor({ ageYears: 35, slot: "dinner", slotTargetKcal: 300, light: false, appetite: null, personal: null }),
   })!;
   assertEquals([petit.minPer100G, petit.maxPer100G, petit.preferredPer100G], [100, 135, 125]);
 });
@@ -1927,14 +1928,14 @@ Deno.test("⟳ 2026-09-23 — la visée d'une COLLATION ne change pas: plancher 
   //   Dmin = ⌈133,33⌉ = 134 ; Dmax = ⌊500⌋ ⇒ 250 ; visée arrondi(146,67) = 147
   const c = densityCorridorFor({
     targetKcal: 400,
-    bounds: plateBoundsFor({ ageYears: 35, slot: "snack_pm", slotTargetKcal: 400, light: false, appetite: null }),
+    bounds: plateBoundsFor({ ageYears: 35, slot: "snack_pm", slotTargetKcal: 400, light: false, appetite: null, personal: null }),
   })!;
   assertEquals([c.minPer100G, c.maxPer100G, c.preferredPer100G], [134, 250, 147]);
   // ⛔ LE CAS QUI MORD: la règle des repas rendrait max(125 ; 133,33) ⇒ 134.
   // Et un petit goûter de 250 kcal: Dmin 100, visée 110 — pas 125.
   const petit = densityCorridorFor({
     targetKcal: 250,
-    bounds: plateBoundsFor({ ageYears: 35, slot: "snack_pm", slotTargetKcal: 250, light: false, appetite: null }),
+    bounds: plateBoundsFor({ ageYears: 35, slot: "snack_pm", slotTargetKcal: 250, light: false, appetite: null, personal: null }),
   })!;
   assertEquals([petit.minPer100G, petit.maxPer100G, petit.preferredPer100G], [100, 250, 110]);
 });
@@ -2873,7 +2874,7 @@ Deno.test("⛔ ALLÉGER porte un PLANCHER : sous lui l'assiette dépasse son pla
   // Mesuré au tir SPLICE3 : « reste sous N » sans plancher a produit un bouillon
   // à 57,8 kcal/100 g, et l'assiette est passée de trop petite à trop grosse.
   const standard = { kcal: 500, cookedG: 250, densityPer100G: 200, proteinG: null, pots: [], gaps: [] };
-  const bounds = plateBoundsFor({ ageYears: 40, slot: "breakfast", slotTargetKcal: null, light: false, appetite: null });
+  const bounds = plateBoundsFor({ ageYears: 40, slot: "breakfast", slotTargetKcal: null, light: false, appetite: null, personal: null });
   const eaters = [{ targetKcal: 400, bounds, verdict: "under_min" as const, isMinor: false }];
   const d = repairDecisionForDish({ standard, eaters });
   assert(d.ask !== null && d.ask.direction === "lighten");

@@ -352,7 +352,7 @@ Deno.test("④ la bande de grammes suit la part — et la table dit QUAND elle r
     }).bySlot.get(slot)!;
     return {
       part,
-      ...plateBoundsFor({ ageYears: PERSON.ageYears, slot, slotTargetKcal: part, light: false, appetite: null }),
+      ...plateBoundsFor({ ageYears: PERSON.ageYears, slot, slotTargetKcal: part, light: false, appetite: null, personal: null }),
     };
   };
 
@@ -423,6 +423,7 @@ function cibleEtGrammes(m: AnchorMouth) {
     // il agit désormais. Écrire `null` ici rendrait le test de l'appétit
     // structurellement incapable de mesurer quoi que ce soit.
     appetite: m.body?.appetite ?? null,
+    personal: null,
   });
   return {
     kcal: day.kcal!,

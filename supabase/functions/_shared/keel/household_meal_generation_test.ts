@@ -1924,7 +1924,7 @@ Deno.test("LOT 4 — la version de la lane foyer a bougé d'UN cran", () => {
   // ⟳ 2026-09-23 — `v39_side_courses_come_in_families`: le bloc SIDE COURSES
   // dit la table, son exception, les deux jours et le dessert d'un aliment.
   // ⟳ 2026-09-23 — v40: la table partage ses à-côtés (`side_courses_prompt.ts`).
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v41_what_came_back_is_named");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v42_what_they_turned_down");
 });
 
 // ===========================================================================
@@ -2684,7 +2684,7 @@ Deno.test("v41 — la ligne « à éviter » suit l'envie, et précède les règ
   const rule = u.indexOf("- Léa: never serve nutella");
   assert(rule > 0 && u.indexOf(AVOID_LINE) < rule, "la ligne passe après une règle de maison");
   assertEquals(b.avoidLineUsed, true);
-  assertEquals(b.promptVersion, "v41_what_came_back_is_named");
+  assertEquals(b.promptVersion, "v42_what_they_turned_down");
 });
 
 Deno.test("v41 — sans liste, la consigne est celle d'avant à l'octet près", () => {

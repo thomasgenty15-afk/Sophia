@@ -165,6 +165,7 @@ Deno.test("DENSITÉ — 250 kcal : la borne HAUTE survit jusqu'au texte de la co
     slotTargetKcal: 250,
     light: false,
     appetite: null,
+    personal: null,
   });
   assertEquals([bounds.min, bounds.max], [185, 250]);
   const c = densityCorridorFor({ targetKcal: 250, bounds })!;
@@ -393,6 +394,7 @@ Deno.test("⛔ DENSITÉ — 462 kcal LÉGER sous un plafond de 550 g : minimum 8
     slotTargetKcal: 462,
     light: true,
     appetite: null,
+    personal: null,
   });
   assertEquals(leger.densityFloorPerG, 0.6);
   assertEquals([leger.min, leger.max, leger.preferred], [250, 550, 400]);
@@ -421,6 +423,7 @@ Deno.test("⛔ DENSITÉ — 462 kcal LÉGER sous un plafond de 550 g : minimum 8
     slotTargetKcal: 462,
     light: false,
     appetite: null,
+    personal: null,
   });
   assertEquals(ordinaire.densityFloorPerG, 1);
   assertEquals([ordinaire.min, ordinaire.max], [250, 462]);
@@ -466,6 +469,7 @@ Deno.test("DENSITÉ — Dmin retombe EXACTEMENT sur le plancher générique quan
     slotTargetKcal: 500,
     light: false,
     appetite: null,
+    personal: null,
   });
   assertEquals(b.boundSource, "target");
   const c = densityCorridorFor({ targetKcal: 500, bounds: b })!;
@@ -483,6 +487,7 @@ Deno.test("DENSITÉ — Dmin retombe EXACTEMENT sur le plancher générique quan
     slotTargetKcal: 300,
     light: true,
     appetite: null,
+    personal: null,
   });
   assertEquals(l.boundSource, "target");
   assertEquals(
@@ -500,6 +505,7 @@ Deno.test("DENSITÉ — Dmin retombe EXACTEMENT sur le plancher générique quan
     slotTargetKcal: 900,
     light: false,
     appetite: null,
+    personal: null,
   });
   assertEquals(gros.boundSource, "table");
   assertEquals(
@@ -538,6 +544,7 @@ Deno.test("⛔ DENSITÉ — « trop bas » : un GROS APPÉTIT fait passer Dmin S
     slotTargetKcal: 500,
     light: false,
     appetite: "large",
+    personal: null,
   });
   assertEquals([b.min, b.max, b.preferred], [275, 550, 413]);
   const c = densityCorridorFor({ targetKcal: 500, bounds: b })!;
@@ -564,6 +571,7 @@ Deno.test("⛔ DENSITÉ — « trop bas » : un GROS APPÉTIT fait passer Dmin S
     slotTargetKcal: 500,
     light: false,
     appetite: null,
+    personal: null,
   });
   assertEquals(
     densityCorridorFor({ targetKcal: 500, bounds: neutre })!.minPer100G,
@@ -594,6 +602,7 @@ Deno.test("⛔ DENSITÉ — au-dessus du plafond de demande, le besoin est NOMM�
     slotTargetKcal: 900,
     light: false,
     appetite: null,
+    personal: null,
   });
   assertEquals([b.min, b.max], [80, 300]);
   const c = densityCorridorFor({ targetKcal: 900, bounds: b })!;
@@ -621,6 +630,7 @@ Deno.test("⛔ DENSITÉ — au-dessus du plafond de demande, le besoin est NOMM�
       slotTargetKcal: 700,
       light: false,
       appetite: null,
+      personal: null,
     }),
   })!;
   assertEquals(sous.incompatible, null);
@@ -909,6 +919,7 @@ Deno.test("DENSITÉ — la chaîne de PRODUCTION n'atteint jamais ce cas au-dess
               slotTargetKcal: E,
               light,
               appetite,
+              personal: null,
             });
             const c = densityCorridorFor({ targetKcal: E, bounds });
             if (c === null) continue;

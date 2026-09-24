@@ -18,28 +18,28 @@ import type { PlanGrid, PlanGridCell } from "./planGridModel";
 // Le jour d'ouverture est celui dont la DATE (`windowDates`, jeton → date)
 // est `today`. Sur un brouillon, l'appelant passe `today = startsOn`, donc le
 // défaut tombe sur le premier jour du brouillon sans un octet de code en plus.
+//
+// ⟳ 2026-09-24 — « TOUTE LA SEMAINE » EST PARTIE, sur demande, des deux écrans
+// (aperçu et `/app/plan`). La semaine se lit désormais dans le tableau en tête
+// (`PlanWeekTable`); le rail ne choisit plus qu'UN jour, et la valeur `"all"`
+// n'existe plus.
 
-export type DaySelection = "all" | string;
+/** Le jeton du jour lu. `null` = la fenêtre n'a aucun jour (plan vide). */
+export type DaySelection = string | null;
 
 /**
- * Le jour qu'on ouvre.
- *
- * `view: "week"` = la semaine entière, et c'est l'appelant qui le demande
- * (l'aperçu s'ouvre en semaine: on juge un brouillon en entier avant de
- * l'adopter). En vue jour: le jour d'aujourd'hui s'il est dans la fenêtre,
- * sinon le PREMIER jour du plan — jamais un jour du calendrier.
+ * Le jour qu'on ouvre: aujourd'hui s'il est dans la fenêtre, sinon le PREMIER
+ * jour du plan — jamais un jour du calendrier.
  */
 export function defaultSelectedDay(args: {
-  view: "week" | "day";
   /** Les jetons dans l'ordre du PLAN (`windowDayOrder`). */
   order: readonly string[];
   /** La table jeton → date (`windowDates`). */
   dates: Record<string, string>;
   today: string;
 }): DaySelection {
-  if (args.view === "week") return "all";
   const today = args.order.find((day) => args.dates[day] === args.today);
-  return today ?? args.order[0] ?? "all";
+  return today ?? args.order[0] ?? null;
 }
 
 /**
@@ -56,10 +56,8 @@ export function effectiveSelectedDay(args: {
   dates: Record<string, string>;
   today: string;
 }): DaySelection {
-  if (args.selected === "all") return "all";
-  if (args.order.includes(args.selected)) return args.selected;
+  if (args.selected !== null && args.order.includes(args.selected)) return args.selected;
   return defaultSelectedDay({
-    view: "day",
     order: args.order,
     dates: args.dates,
     today: args.today,

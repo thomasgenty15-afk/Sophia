@@ -67,8 +67,8 @@ Deno.test("vocabulaires fermés des à-côtés, épinglés en dur", () => {
 Deno.test("épinglage — SIDE_COURSE_BASE_KCAL, par objectif et par type", () => {
   assertEquals(SIDE_COURSE_BASE_KCAL, {
     fat_loss: { starter: 60, cheese: 70, dessert: 80, bread: 70 },
-    maintenance: { starter: 60, cheese: 110, dessert: 110, bread: 100 },
-    muscle_gain: { starter: 80, cheese: 130, dessert: 180, bread: 160 },
+    maintenance: { starter: 60, cheese: 110, dessert: 90, bread: 100 },
+    muscle_gain: { starter: 80, cheese: 130, dessert: 110, bread: 160 },
     minor: { starter: 40, cheese: 80, dessert: 90, bread: 80 },
   });
 });

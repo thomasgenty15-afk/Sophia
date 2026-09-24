@@ -95,6 +95,7 @@ import {
   SIDE_COURSE_KINDS,
   SIDE_COURSE_MAX_MEAL_SHARE,
   SIDE_COURSE_MAX_UNITS,
+  SIDE_COURSE_MIN_ADDED_KCAL,
   SIDE_COURSE_REFUSALS,
   SIDE_COURSE_SLOTS,
   type SideCourseAsk,
@@ -198,6 +199,10 @@ const MUSCLE_GAIN_GROW_KINDS: readonly SideCourseKind[] = ["bread", "dessert", "
  * ⛔ SEULS LES À-CÔTÉS DÉJÀ SERVIS À CE REPAS GROSSISSENT. Le registre n'en
  * ajoute jamais un: ce serait contourner un refus (exclusion, allergie) ou un
  * réglage `false` de la personne.
+ * ⟳ 2026-09-24 — UNE EXCEPTION, BORNÉE: le manque venu de la borne d'assiette
+ * (`extraDeficitByKey`) peut AJOUTER un pain, en maintien et en prise, quand
+ * l'appelant le permet (`breadAllowed`: réglage, impossible, moment léger) et
+ * que le pain passe les mêmes portes que les autres (juge, allergies).
  * ⛔ LE DESSERT N'Y EST PAS: c'est lui qui a laissé le manque.
  */
 export const SIDE_COURSE_REGROW_ORDER: Readonly<Record<SideCourseGoal, readonly SideCourseKind[]>> =
@@ -887,6 +892,32 @@ export interface SideCourseVarietyCounters extends SideCourseTableCounters {
   regrown_entries: number;
   /** ⟳ 2026-09-23 (v40) — les repas avec un manque dont les kcal ne sont PAS sommées (plancher TCA). */
   deficit_kcal_withheld: number;
+  /**
+   * ⟳ 2026-09-24 — LE MANQUE VENU DE LA BORNE D'ASSIETTE (`extraDeficitByKey`):
+   * ce que le rabotage a retiré au plat, rendu aux à-côtés.
+   *
+   *   `boundary_meals`         les repas qui avaient un tel manque (tous,
+   *                            plancher TCA compris: c'est un nombre de repas);
+   *   `boundary_deficit_kcal`  Σ de ce manque — le dénominateur des deux
+   *                            suivants: `regrown + lost = deficit`, à
+   *                            l'arrondi des grammes près;
+   *   `boundary_regrown_kcal`  Σ de ce que le pain et le fromage déjà servis,
+   *                            et le pain ajouté, en ont repris;
+   *   `boundary_bread_added`   les pains AJOUTÉS à un repas qui n'en avait pas;
+   *   `boundary_lost_kcal`     Σ de ce qui n'a trouvé aucune place (perte,
+   *                            mineur, pain refusé, plafonds atteints, repas
+   *                            sans à-côté): cette énergie n'est plus servie;
+   *   `boundary_kcal_withheld` les repas d'une personne sous plancher TCA dont
+   *                            ces kcal ne sont PAS sommées.
+   *
+   * ⛔ Des sommes, jamais une clé par personne.
+   */
+  boundary_meals: number;
+  boundary_deficit_kcal: number;
+  boundary_regrown_kcal: number;
+  boundary_bread_added: number;
+  boundary_lost_kcal: number;
+  boundary_kcal_withheld: number;
 }
 
 /** L'aliment d'une entrée servie, pour comparer deux entrées entre elles. */
@@ -1173,6 +1204,12 @@ type Candidate =
  *   (`SIDE_COURSE_REGROW_ORDER`); le reste va au plat (`snapDeltaKcal`).
  *   Compté `variety.deficit_regrown_kcal`, `deficit_to_dish_kcal`,
  *   `regrown_entries`.
+ * · ⟳ 2026-09-24 — Puis ce que la borne d'assiette a retiré au plat
+ *   (`extraDeficitByKey`): même croissance, sous la part maximale des
+ *   à-côtés dans le repas (`mealKcalByKey`); sans pain servi, un pain est
+ *   AJOUTÉ (maintien et prise seulement, `breadAllowed`); le reste est perdu.
+ *   Compté `variety.boundary_*`. ⚠️ Un pain ajouté n'était pas demandé: il
+ *   n'entre dans aucun compteur du modèle (`asked`, `filled_by_engine`).
  *
  * ⛔ INVARIANT DES COMPTEURS: `valid + filled_by_engine + dropped = asked`, et
  * `refused = Σ refused_by`. Une allocation à 0 kcal ou moins n'est pas une
@@ -1210,6 +1247,33 @@ export function buildSideCourseLedger(args: {
    * part (`fruit_capped_kcal_withheld`).
    */
   kcalWithheldMemberIds: ReadonlySet<string>;
+  /**
+   * ⟳ 2026-09-24 — CE QUE LA BORNE D'ASSIETTE A RETIRÉ AU PLAT, par repas
+   * (kcal), clé `sideCourseKey`: le rabotage (`fitPortionsToBounds`,
+   * `shavedByMeal`) et, pour une personne seule, la coupe du dimensionnement
+   * (`clampToBounds`). Le bloc ③ bis le rend au pain et au fromage.
+   *
+   * ⛔ REQUIS, jamais `?`: c'est la casse de compilation qui recense les
+   * appelants. `new Map()` quand rien n'a été raboté — c'est le cas de chaque
+   * premier passage d'un tour de réparation.
+   */
+  extraDeficitByKey: ReadonlyMap<string, number>;
+  /**
+   * ⟳ 2026-09-24 — LE PAIN PEUT-IL ÊTRE AJOUTÉ À CETTE PERSONNE, À CE
+   * MOMENT ? L'appelant y met son réglage (`bread: false` ⇒ non), ce
+   * qu'aucun pain de secours ne peut servir (`impossibleKindsFor`) et le
+   * moment léger (un seul à-côté). ⛔ REQUIS: sans lui, un pain ajouté
+   * contournerait un refus.
+   */
+  breadAllowed: (memberId: string, slot: SideCourseSlot) => boolean;
+  /**
+   * ⟳ 2026-09-24 — L'ÉNERGIE DU REPAS ENTIER (plat + à-côtés du contrat), clé
+   * `sideCourseKey`. Elle borne les à-côtés quand ils grossissent AU-DELÀ du
+   * prévu: jamais plus que `SIDE_COURSE_MAX_MEAL_SHARE` du repas (sinon ce
+   * n'est plus un à-côté, c'est un second plat). Une clé absente ⇒ aucune
+   * place au-delà du prévu.
+   */
+  mealKcalByKey: ReadonlyMap<string, number>;
 }): SideCourseEngineLedger {
   const memberIndex = new Map<string, number>();
   args.memberIds.forEach((id, i) => {
@@ -1286,11 +1350,16 @@ export function buildSideCourseLedger(args: {
     ref: CompositionRef,
     term: string,
     source: SideCourseServed["source"],
+    /**
+     * ⟳ 2026-09-24 — LES KCAL À PESER. Le prévu du type (`row.planned`) pour
+     * une demande; ce que le pain AJOUTÉ doit porter au bloc ③ bis, qui n'a
+     * rien de prévu. ⛔ Requis: le deviner ici pèserait un pain ajouté à zéro.
+     */
+    planned: number,
   ): Candidate => {
     const { ask } = row;
     const groups = SIDE_COURSE_KIND_GROUPS[kind][ask.goal];
     if (!groups.includes(ref.foodGroupRef)) return { ok: false, reason: "wrong_kind" };
-    const planned = row.planned.get(kind) ?? 0;
     const g = sideGramsFor({
       kcal: planned,
       kind,
@@ -1494,7 +1563,7 @@ export function buildSideCourseLedger(args: {
         : resolveCompositionLine(args.index, { term, ref: entry.ref }).ref);
       candidate = ref === null || !isComposable(ref) || !(ref.energyKcal > 0)
         ? { ok: false, reason: "unresolved" }
-        : weighRef(row, kind, ref, term === "" ? ref.label : term, "model");
+        : weighRef(row, kind, ref, term === "" ? ref.label : term, "model", row.planned.get(kind) ?? 0);
     }
     if (!candidate.ok) {
       refuse(candidate.reason);
@@ -1535,7 +1604,7 @@ export function buildSideCourseLedger(args: {
           const ref = servableRef(args.index, slug);
           if (ref === null) continue;
           const word = SIDE_COURSE_FALLBACK_TERMS[slug]?.[args.language] ?? ref.label;
-          const c = weighRef(row, kind, ref, word, "engine_fallback");
+          const c = weighRef(row, kind, ref, word, "engine_fallback", row.planned.get(kind) ?? 0);
           if (c.ok) chosen = c;
         }
         if (chosen !== null) break;
@@ -1557,49 +1626,182 @@ export function buildSideCourseLedger(args: {
   // `sideGramsFor` — unités, bornes, plafond et arrondi compris. Ce qui reste
   // va au plat: `snapDeltaKcal` relit le servi APRÈS croissance, donc rien
   // n'est compté deux fois.
+  /**
+   * Fait grossir l'à-côté DÉJÀ SERVI `slotKey` d'au plus `want` kcal, dans le
+   * plafond de son type. Rend les kcal ajoutées (0 si rien n'a bougé).
+   * ⟳ 2026-09-24 — sorti de la boucle pour servir aussi au bloc ③ bis, sans
+   * seconde écriture de la même croissance.
+   */
+  const regrowServed = (slotKey: string, kind: SideCourseKind, want: number): number => {
+    const e = filled.get(slotKey);
+    // ⛔ Seul ce qui est déjà servi grossit ici (le pain ajouté est au ③ bis).
+    if (e === undefined || e.ref === null) return 0;
+    const ref = servableRef(args.index, e.ref);
+    if (ref === null) return 0;
+    const cap = SIDE_COURSE_KIND_MAX_KCAL[kind];
+    const target = Math.min(cap, e.kcal + want);
+    if (!(target > e.kcal)) return 0;
+    const g = sideGramsFor({
+      kcal: target,
+      kind,
+      kcalPer100g: ref.energyKcal,
+      proteinPer100g: ref.proteinG,
+      unitGrams: ref.unitGrams,
+      group: ref.foodGroupRef,
+    });
+    // L'arrondi peut ne rien ajouter (une tranche de plus franchirait le
+    // plafond): l'à-côté reste tel quel, et le manque passe au suivant.
+    if (!(g.kcal > e.kcal) || g.kcal > cap) return 0;
+    filled.set(slotKey, {
+      ...e,
+      grams: g.grams,
+      unitCount: g.unitCount,
+      kcal: g.kcal,
+      proteinG: g.proteinG,
+    });
+    return g.kcal - e.kcal;
+  };
+  /**
+   * ⟳ 2026-09-24 — LE PAIN AJOUTÉ À UN REPAS QUI N'EN A PAS: celui qu'une autre
+   * personne a déjà à ce repas (la table mange le même pain), sinon la liste de
+   * secours de l'objectif, dans son ordre. Chaque candidat passe les portes de
+   * `weighRef` (groupe, plafond, juge du moment, allergies). `null` = aucun.
+   * ⚠️ `plannedKcal: 0`: ce pain n'était pas prévu, et `snapDeltaKcal` lit le
+   * prévu du repas sans lui.
+   */
+  const addedBreadFor = (row: AskRow, kcal: number): SideCourseServed | null => {
+    const { ask } = row;
+    const candidates: { slug: string; term: string }[] = [];
+    for (const e of filled.values()) {
+      if (e.kind !== "bread" || e.ref === null || e.memberId === ask.memberId) continue;
+      if (e.dayToken !== ask.dayToken || e.slot !== ask.slot) continue;
+      candidates.push({ slug: e.ref, term: e.term });
+    }
+    for (const slug of SIDE_COURSE_FALLBACK_SLUGS.bread[ask.goal]) {
+      candidates.push({ slug, term: SIDE_COURSE_FALLBACK_TERMS[slug]?.[args.language] ?? "" });
+    }
+    for (const c of candidates) {
+      const ref = servableRef(args.index, c.slug);
+      if (ref === null) continue;
+      const got = weighRef(
+        row,
+        "bread",
+        ref,
+        c.term === "" ? ref.label : c.term,
+        "engine_fallback",
+        kcal,
+      );
+      if (got.ok) return { ...got.served, plannedKcal: 0 };
+    }
+    return null;
+  };
+  /** ⟳ 2026-09-24 — le manque d'un repas venu de la borne d'assiette, lisible ou 0. */
+  const boundaryDeficitOf = (key: string): number => {
+    const v = args.extraDeficitByKey.get(key);
+    return v !== undefined && Number.isFinite(v) && v > 0 ? v : 0;
+  };
+  /** ⟳ 2026-09-24 — les compteurs du bloc ③ bis. Des sommes. */
+  const boundary = {
+    meals: 0,
+    deficitKcal: 0,
+    regrownKcal: 0,
+    breadAdded: 0,
+    lostKcal: 0,
+    withheld: 0,
+  };
+  /** Les repas du relevé qui ont une demande d'à-côté (traités au ③ bis). */
+  const boundaryHandled = new Set<string>();
   for (const row of rows) {
     const { ask } = row;
     const key = sideCourseKey(ask.memberId, ask.dayToken, ask.slot);
-    let left = (plannedKcalByKey.get(key) ?? 0) -
-      row.order.reduce((s, k) => s + (filled.get(`${key}|${k}`)?.kcal ?? 0), 0);
-    if (!(left > 0)) continue;
     const withheld = args.kcalWithheldMemberIds.has(ask.memberId);
-    for (const kind of SIDE_COURSE_REGROW_ORDER[ask.goal]) {
-      if (!(left > 0)) break;
-      const slotKey = `${key}|${kind}`;
-      const e = filled.get(slotKey);
-      // ⛔ Jamais d'à-côté ajouté: seul ce qui est déjà servi grossit.
-      if (e === undefined || e.ref === null) continue;
-      const ref = servableRef(args.index, e.ref);
-      if (ref === null) continue;
-      const cap = SIDE_COURSE_KIND_MAX_KCAL[kind];
-      const target = Math.min(cap, e.kcal + left);
-      if (!(target > e.kcal)) continue;
-      const g = sideGramsFor({
-        kcal: target,
-        kind,
-        kcalPer100g: ref.energyKcal,
-        proteinPer100g: ref.proteinG,
-        unitGrams: ref.unitGrams,
-        group: ref.foodGroupRef,
-      });
-      // L'arrondi peut ne rien ajouter (une tranche de plus franchirait le
-      // plafond): l'à-côté reste tel quel, et le manque passe au suivant.
-      if (!(g.kcal > e.kcal) || g.kcal > cap) continue;
-      const grown = g.kcal - e.kcal;
-      filled.set(slotKey, {
-        ...e,
-        grams: g.grams,
-        unitCount: g.unitCount,
-        kcal: g.kcal,
-        proteinG: g.proteinG,
-      });
-      left -= grown;
-      correction.regrownEntries += 1;
-      if (!withheld) correction.regrownKcal += grown;
+    const servedNow = () =>
+      row.order.reduce((s, k) => s + (filled.get(`${key}|${k}`)?.kcal ?? 0), 0);
+    let left = (plannedKcalByKey.get(key) ?? 0) - servedNow();
+    if (left > 0) {
+      for (const kind of SIDE_COURSE_REGROW_ORDER[ask.goal]) {
+        if (!(left > 0)) break;
+        const grown = regrowServed(`${key}|${kind}`, kind, left);
+        if (!(grown > 0)) continue;
+        left -= grown;
+        correction.regrownEntries += 1;
+        if (!withheld) correction.regrownKcal += grown;
+      }
+      if (withheld) correction.withheld += 1;
+      else correction.toDishKcal += Math.max(0, left);
     }
-    if (withheld) correction.withheld += 1;
-    else correction.toDishKcal += Math.max(0, left);
+
+    // ── ③ bis ⟳ 2026-09-24 · Le manque venu de la borne d'assiette ─────────
+    // Le plat a été raboté à son plafond (ou coupé au dimensionnement chez une
+    // personne seule): cette énergie n'est plus dans l'assiette. Elle va au
+    // pain puis au fromage DÉJÀ servis (`SIDE_COURSE_REGROW_ORDER`), dans leurs
+    // plafonds et sous la part maximale des à-côtés dans le repas; s'il n'y a
+    // pas de pain, un pain est AJOUTÉ (pas en perte de poids, pas pour un
+    // mineur, jamais contre un refus: `breadAllowed`). Ce qui reste est PERDU,
+    // et compté.
+    //
+    // ⚠️ APRÈS le manque des à-côtés eux-mêmes (ci-dessus): celui-là était déjà
+    // dans le plat au dimensionnement; ce qui arrive ici, c'est ce que le plat
+    // a perdu depuis.
+    const extra = boundaryDeficitOf(key);
+    if (!(extra > 0)) continue;
+    boundaryHandled.add(key);
+    boundary.meals += 1;
+    // La place des à-côtés: jamais moins que le prévu (le rendre n'est jamais
+    // un second plat), jamais plus que la part maximale du repas au-delà.
+    const shareCap = Math.max(
+      plannedKcalByKey.get(key) ?? 0,
+      SIDE_COURSE_MAX_MEAL_SHARE[ask.goal === "minor" ? "minor" : "adult"] *
+        Math.max(0, args.mealKcalByKey.get(key) ?? 0),
+    );
+    let owed = extra;
+    let moved = 0;
+    for (const kind of SIDE_COURSE_REGROW_ORDER[ask.goal]) {
+      const want = Math.min(owed, shareCap - servedNow());
+      if (!(want > 0)) break;
+      const grown = regrowServed(`${key}|${kind}`, kind, want);
+      owed -= grown;
+      moved += grown;
+    }
+    const breadKcal = Math.min(owed, shareCap - servedNow(), SIDE_COURSE_KIND_MAX_KCAL.bread);
+    if (
+      !filled.has(`${key}|bread`) &&
+      ask.goal !== "fat_loss" && ask.goal !== "minor" &&
+      // Sous 50 kcal, un pain posé sur la table est un bout de croûte (la
+      // règle de `sideBudgetFor`, `SIDE_COURSE_MIN_ADDED_KCAL`).
+      breadKcal >= SIDE_COURSE_MIN_ADDED_KCAL &&
+      args.breadAllowed(ask.memberId, ask.slot)
+    ) {
+      const bread = addedBreadFor(row, breadKcal);
+      if (bread !== null) {
+        filled.set(`${key}|bread`, bread);
+        if (!row.order.includes("bread")) row.order.push("bread");
+        owed -= bread.kcal;
+        moved += bread.kcal;
+        boundary.breadAdded += 1;
+      }
+    }
+    if (withheld) boundary.withheld += 1;
+    else {
+      boundary.deficitKcal += extra;
+      boundary.regrownKcal += moved;
+      boundary.lostKcal += Math.max(0, owed);
+    }
+  }
+  // ⟳ 2026-09-24 — UN MANQUE SANS DEMANDE D'À-CÔTÉ (petit-déjeuner, collation,
+  // repas où la personne refuse tout) n'a rien pour le reprendre: il est perdu,
+  // et compté. La personne se lit sur la clé (`sideCourseKey` commence par
+  // son identifiant), jamais sur un texte.
+  for (const [key] of args.extraDeficitByKey) {
+    const extra = boundaryDeficitOf(key);
+    if (!(extra > 0) || boundaryHandled.has(key)) continue;
+    boundary.meals += 1;
+    const memberId = args.memberIds.find((id) => key.startsWith(`${id}|`)) ?? null;
+    if (memberId !== null && args.kcalWithheldMemberIds.has(memberId)) boundary.withheld += 1;
+    else {
+      boundary.deficitKcal += extra;
+      boundary.lostKcal += extra;
+    }
   }
 
   // ── Le registre, dans l'ordre des demandes puis des types ──────────────
@@ -1640,6 +1842,12 @@ export function buildSideCourseLedger(args: {
     deficit_to_dish_kcal: correction.toDishKcal,
     regrown_entries: correction.regrownEntries,
     deficit_kcal_withheld: correction.withheld,
+    boundary_meals: boundary.meals,
+    boundary_deficit_kcal: boundary.deficitKcal,
+    boundary_regrown_kcal: boundary.regrownKcal,
+    boundary_bread_added: boundary.breadAdded,
+    boundary_lost_kcal: boundary.lostKcal,
+    boundary_kcal_withheld: boundary.withheld,
   };
   return { entries, byKey, counters, plannedKcalByKey, variety };
 }

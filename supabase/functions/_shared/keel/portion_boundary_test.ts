@@ -289,3 +289,48 @@ Deno.test("PASSE À CÔTÉ — des items complets ne se comptent pas, `null` com
   assertEquals(c.items_missing_shave_facts, 0);
   assertEquals(c.already_in_bounds, 1);
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-24 — LE RELEVÉ DES REPAS RABOTÉS (`shavedByMeal`)
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Il part au registre des à-côtés, qui rend cette énergie au pain et au
+// fromage. ⛔ Un par repas RABOTÉ, rien pour un repas dans ses bornes, un bac,
+// ou un repas qu'on n'a pas pu raboter; jamais dans les compteurs.
+
+Deno.test("⟳ 2026-09-24 — relevé: seuls les repas rabotés, avec leurs kcal (91 et 84)", () => {
+  const goals: Record<string, StarchGoal | null> = { fab: "fat_loss", tho: "muscle_gain" };
+  const boxes: BoundedBox[] = [
+    plate("fab", [item(320, 1.2, null), item(300, 1.3, "refined_grain")]),
+    plate("tho", [item(320, 1.2, null), item(300, 1.3, "refined_grain")], "dinner"),
+    // Dans ses bornes: jugé, pas raboté ⇒ pas de ligne.
+    plate("chr", [item(250, 1.2, null), item(200, 1.3, "refined_grain")]),
+    // Un bac à deux noms: pas une assiette ⇒ pas de ligne.
+    {
+      boxId: "bac",
+      day: "mon",
+      slot: "lunch",
+      memberIds: ["fab", "tho"],
+      items: [item(900, 1.3, "refined_grain")],
+    },
+  ];
+  const c = fit(boxes, 550, (m) => goals[m] ?? null);
+  assertEquals(c.shavedByMeal.length, 2);
+  assertEquals(c.shavedByMeal.map((s) => [s.memberId, s.day, s.slot]), [
+    ["fab", "mon", "lunch"],
+    ["tho", "mon", "dinner"],
+  ]);
+  assertAlmostEquals(c.shavedByMeal[0].kcal, 91, 1e-9);
+  assertAlmostEquals(c.shavedByMeal[1].kcal, 84, 1e-9);
+  // ⛔ PAS UN COMPTEUR: les compteurs vides ne le portent pas.
+  assertEquals("shavedByMeal" in emptyPortionBoundaryCounts(), false);
+});
+
+Deno.test("⟳ 2026-09-24 — relevé: un repas qu'on n'a pas pu raboter n'y est PAS (rien n'a été retiré)", () => {
+  // 2 000 g pour un plafond de 550: le plancher d'identité ne laisse pas
+  // retirer 1 450 g ⇒ intouché, compté `still_over_max`.
+  const boxes = [plate("x", [item(1000, 1.2, null), item(1000, 1.3, "refined_grain")])];
+  const c = fit(boxes, 550, () => "maintenance");
+  assertEquals(c.still_over_max, 1);
+  assertEquals(c.shavedByMeal, []);
+});

@@ -81,102 +81,81 @@ describe("le contrat de dates.ts", () => {
   });
 });
 
+// ===========================================================================
+// ⟳ 2026-09-23 — LES DEUX CHAMPS DE DATE NE VIVENT PLUS QU'À UN ENDROIT
+//
+// `MealBuilder` et l'entonnoir portaient chacun leur paire de champs — et le
+// défaut du brouillon avait été réparé sur l'un sept jours avant l'autre. Les
+// deux écrans montent maintenant `PlanRequestFields`: la garde se lit là, et
+// chaque écran doit prouver qu'il n'a pas remonté un champ de date à côté.
+// ===========================================================================
+const FIELDS_SOURCE = readFileSync(
+  resolve(__dirname, "./PlanRequestFields.tsx"),
+  "utf8",
+);
+const bare = (src: string) =>
+  src
+    .replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .split("\n")
+    .map((line) => (line.trimStart().startsWith("//") ? "" : line))
+    .join("\n");
+
 describe("le câblage des deux champs de date", () => {
   // La forme de régression, nommée: rebrancher le setter qui nourrit le
   // calcul directement sur la valeur du champ.
   const RAW_BINDINGS = [
     /onChange=\{\(e\) => setWindowStart\(e\.target\.value\)\}/,
     /onChange=\{\(e\) => setWindowEnd\(e\.target\.value\)\}/,
+    /onChange=\{\(e\) => (props\.)?onWindowStart\(e\.target\.value\)\}/,
+    /onChange=\{\(e\) => (props\.)?onWindowEnd\(e\.target\.value\)\}/,
   ];
 
+  it("aucun écran ne remonte un champ de date à côté du formulaire commun", () => {
+    // La signature du champ de départ: borné au jour même. L'entonnoir a
+    // d'autres champs de date (la date de naissance), d'où cette marque-là.
+    expect(bare(SOURCE)).not.toContain("min={browserLocalDate()}");
+    expect(bare(SETUP_SOURCE)).not.toContain("min={browserLocalDate()}");
+    expect(SOURCE).toMatch(/<PlanRequestFields/);
+    expect(SETUP_SOURCE).toMatch(/<PlanRequestFields/);
+  });
+
   it("aucun champ n'écrit sa frappe DIRECTEMENT dans l'état du calcul", () => {
-    for (const raw of RAW_BINDINGS) {
-      expect(SOURCE, String(raw)).not.toMatch(raw);
+    for (const src of [SOURCE, SETUP_SOURCE, FIELDS_SOURCE]) {
+      for (const raw of RAW_BINDINGS) {
+        expect(src, String(raw)).not.toMatch(raw);
+      }
     }
   });
 
   it("les deux champs affichent le BROUILLON, pas l'état du calcul", () => {
-    expect(SOURCE).toMatch(/value=\{startDraft\}/);
-    expect(SOURCE).toMatch(/value=\{endDraft\}/);
-    // Et l'ancienne forme a bien disparu des deux `value`.
-    expect(SOURCE).not.toMatch(/value=\{windowStart\}\s*\n\s*onChange/);
-    expect(SOURCE).not.toMatch(/value=\{windowEnd\}\s*\n\s*onChange/);
+    expect(FIELDS_SOURCE).toMatch(/value=\{startDraft\}/);
+    expect(FIELDS_SOURCE).toMatch(/value=\{endDraft\}/);
   });
 
-  it("et l'état du calcul n'est franchi QUE derrière la garde", () => {
-    // Deux champs, donc deux portes. Moins de deux = un champ est resté ouvert.
-    const gated = SOURCE.match(
-      /if \(isIsoDate\(next\)\) setWindow(Start|End)\(next\);/g,
-    );
-    expect(gated?.length ?? 0).toBe(2);
+  it("et l'état du calcul n'est franchi QUE derrière `isIsoDate`", () => {
+    expect(FIELDS_SOURCE).toMatch(/if \(!isIsoDate\(typed\)\)/);
+    expect(FIELDS_SOURCE).toMatch(/if \(isIsoDate\(typed\)\) props\.onWindowEnd\(typed\);/);
   });
 });
 
-// ===========================================================================
-// L'ENTONNOIR PORTE LES MÊMES DEUX CHAMPS — 2026-09-01
-// ===========================================================================
-
-describe("le câblage des deux champs de date de l'entonnoir", () => {
-  // La forme de régression, nommée: `RequestStep` reçoit ses setters en props,
-  // donc elle ne s'écrit pas comme celle de `MealBuilder` — et c'est exactement
-  // pour ça qu'elle avait survécu au correctif d'à côté.
-  const RAW_BINDINGS = [
-    /onChange=\{\(e\) => onWindowStart\(e\.target\.value\)\}/,
-    /onChange=\{\(e\) => onWindowEnd\(e\.target\.value\)\}/,
-  ];
-
-  it("aucun champ n'écrit sa frappe DIRECTEMENT dans l'état du calcul", () => {
-    for (const raw of RAW_BINDINGS) {
-      expect(SETUP_SOURCE, String(raw)).not.toMatch(raw);
-    }
+describe("les deux bornes du départ", () => {
+  it("le départ est libre, sauf le passé", () => {
+    // ⟳ 2026-09-06 — LE `max` A ÉTÉ RETIRÉ, ET CE CAS TIENT SON ABSENCE.
+    // Décision produit: la date de départ est libre, seul le passé reste borné.
+    expect(FIELDS_SOURCE, "min").toMatch(/min=\{browserLocalDate\(\)\}/);
+    expect(FIELDS_SOURCE, "un max est revenu sur le départ")
+      .not.toMatch(/max=\{lastNameableStart/);
   });
 
-  it("les deux champs affichent le BROUILLON", () => {
-    expect(SETUP_SOURCE).toMatch(/value=\{startDraft\}/);
-    expect(SETUP_SOURCE).toMatch(/value=\{endDraft\}/);
-  });
-
-  it("l'état du calcul n'est franchi QUE derrière `isIsoDate`", () => {
-    expect(SETUP_SOURCE).toMatch(/if \(!isIsoDate\(typed\)\)/);
-    expect(SETUP_SOURCE).toMatch(/if \(isIsoDate\(typed\)\) onWindowEnd\(typed\);/);
-  });
-});
-
-describe("les deux bornes du départ, sur les DEUX écrans", () => {
-  // ⛔ CE BLOC LIT LES DEUX SOURCES ENSEMBLE, ET C'EST LE POINT. `MealBuilder`
-  // portait `min`/`max` depuis le 2026-08-12; l'entonnoir n'avait NI L'UN NI
-  // L'AUTRE, et proposait donc un départ dans le passé — que le serveur refuse
-  // en 400, sous un motif qui parle des JOURS. Un refus qu'on peut rendre
-  // inexprimable ne doit pas exister.
-  for (
-    const [name, source] of [
-      ["MealBuilder", SOURCE],
-      ["SetupPage", SETUP_SOURCE],
-    ] as const
-  ) {
-    it(`${name}: le départ est libre, sauf le passé`, () => {
-      // ⟳ 2026-09-06 — LE `max` A ÉTÉ RETIRÉ, ET CE CAS TIENT SON ABSENCE.
-      // Il valait `lastNameableStart(today)`; un dimanche il tombait sur `min`
-      // et le calendrier n'offrait qu'une case. Décision produit: la date de
-      // départ est libre, seul le passé reste borné. Le refus serveur qui
-      // justifiait ce `max` (`window_beyond_this_week`) est parti le même jour,
-      // et le prompt ancre la liste des jours sur la date d'ouverture.
-      expect(source, `${name}: min`).toMatch(/min=\{browserLocalDate\(\)\}/);
-      expect(source, `${name}: un max est revenu sur le départ`)
-        .not.toMatch(/max=\{lastNameableStart/);
-    });
-  }
-
-  it("SetupPage ramène au jour même par `catchUpWindowStart`, pas par une seconde règle", () => {
+  it("le départ passé est ramené au jour même par `catchUpWindowStart`, pas par une seconde règle", () => {
     // ⚠️ LA RÈGLE VIT DANS `useMealTicks`, elle est testée là-bas, et elle ne
-    // corrige QUE le passé. La recopier ici ferait deux idées de « ramener au
-    // jour même », et c'est celle qu'on relit le moins qui garderait l'ancienne.
-    expect(SETUP_SOURCE).toMatch(
+    // corrige QUE le passé.
+    expect(FIELDS_SOURCE).toMatch(
       /catchUpWindowStart\(typed, browserLocalDate\(\)\)/,
     );
-    // Et le champ MONTRE le déplacement: sans cette ligne, l'écran afficherait
-    // le 29 au-dessus d'un plan qui part du 31.
-    expect(SETUP_SOURCE).toMatch(/setStartDraft\(clamped\);/);
+    // Et le champ MONTRE le déplacement.
+    expect(FIELDS_SOURCE).toMatch(/setStartDraft\(clamped\);/);
   });
 });
 
@@ -198,20 +177,14 @@ describe("les deux bornes du départ, sur les DEUX écrans", () => {
 // n'a même pas de ligne, et le plan composerait sans elle.
 // ===========================================================================
 describe("« Choisir les repas » — le même geste sur les deux écrans", () => {
-  it("les deux surfaces montent le lien, avec la MÊME clé", () => {
-    // Un second libellé divergerait au premier mot retouché, et `/app/setup`
-    // déclare déjà le namespace `meals` (il monte la grille).
-    for (
-      const [name, src] of [
-        ["MealBuilder", SOURCE],
-        ["SetupPage", SETUP_SOURCE],
-      ] as const
-    ) {
-      expect(src, `${name}: le lien a disparu`).toMatch(/meals\.picker\.open/);
-      expect(src, `${name}: la grille n'est plus montée`).toMatch(
-        /<MealPickerGrid/,
-      );
-    }
+  it("les deux surfaces montent la MÊME liste « Qui mange à la maison »", () => {
+    // ⟳ 2026-09-23 — le lien solo et les pastilles de l'entonnoir ont laissé la
+    // place à la liste de `/app/plan` (une ligne par personne, son état,
+    // « Absence » et « Modifier »), montée par le formulaire commun.
+    expect(FIELDS_SOURCE).toMatch(/plan\.request\.presence_title/);
+    expect(FIELDS_SOURCE).toMatch(/<MealPickerGrid/);
+    expect(SOURCE).toMatch(/presence=\{presenceRows\}/);
+    expect(SETUP_SOURCE).toMatch(/presence=\{presence\}/);
   });
 
   it("⛔ et il écrit la colonne DE LA PERSONNE, pas celle du foyer", () => {
@@ -227,23 +200,28 @@ describe("« Choisir les repas » — le même geste sur les deux écrans", () =
     ).toMatch(/const fresh = await readFunnelFacts\(userId\);\n\s+await mergePracticalConstraints\(\{\n\s+userId,\n\s+current: fresh\.practicalConstraints,\n\s+patch: \{ away_days: next \}/);
   });
 
-  it("⛔ LES DEUX SOURCES RESTENT SÉPARÉES (D14): deux états, jamais un seul", () => {
-    // La liste dépliable écrit `household_members.away_days` (ce que le maître
-    // déclare POUR quelqu'un); le lien écrit ce que la personne dit d'ELLE.
-    // Un seul état d'ouverture les aurait recollées au premier
-    // `setAwayFor(ownMemberId)`, et la grille aurait montré une colonne en
-    // enregistrant l'autre.
-    expect(SETUP_SOURCE).toMatch(/const \[selfPickerOpen, setSelfPickerOpen\]/);
+  it("⛔ LES DEUX SOURCES RESTENT SÉPARÉES (D14)", () => {
+    // La ligne du titulaire écrit ce qu'il dit de LUI-MÊME
+    // (`practical_constraints.away_days`); celle d'une autre bouche écrit la
+    // marque du maître (`household_members.away_days`). Nourrir une ligne de
+    // l'autre colonne recopierait une déclaration là où elle survivrait à sa
+    // rétractation.
     expect(SETUP_SOURCE).toMatch(/selfAway=\{parseAwayMarks\(/);
+    expect(SETUP_SOURCE).toMatch(/onSelfAwaySave=\{saveSelfAway\}/);
+    expect(SETUP_SOURCE).toMatch(/away: selfAway,\n\s+save: onSelfAwaySave,/);
     expect(
       SETUP_SOURCE,
-      "le lien s'est rebranché sur la colonne du foyer",
-    ).not.toMatch(/onSelfAwaySaved=\{[^}]*setMemberAway/);
+      "la ligne du titulaire s'est rebranchée sur la colonne du foyer",
+    ).not.toMatch(/onSelfAwaySave=\{[^}]*setMemberAway/);
+    // `/app/plan`: le titulaire lit et écrit par la page (`awayDays`,
+    // `onAwaySaved`), les autres par `setMemberAway`.
+    expect(SOURCE).toMatch(/away: props\.awayDays \?\? \[\],\n\s+save: \(next\) => saveSelf\(next\),/);
+    expect(SOURCE).toMatch(/away: member\.awayHousehold,/);
   });
 
-  it("la grille ne s'ouvre pas sur un rythme vide — un contrôle sans ligne", () => {
-    // Sans moment déclaré, `MealPickerGrid` n'a aucune ligne à rendre: le lien
+  it("pas de ligne sur un rythme vide — une grille sans ligne", () => {
+    // Sans moment déclaré, `MealPickerGrid` n'a aucune ligne à rendre: la ligne
     // ouvrirait une fenêtre vide, ce qui se lit comme une panne.
-    expect(SETUP_SOURCE).toMatch(/\{rhythm\.length > 0 && \(/);
+    expect(SETUP_SOURCE).toMatch(/if \(rhythm\.length === 0\) return \[\];/);
   });
 });

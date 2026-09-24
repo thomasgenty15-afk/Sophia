@@ -193,7 +193,9 @@ Deno.test("⛔ LE CÂBLAGE : le handler passe le compte À RÉPARER aux deux dé
     new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
   );
   // ⟳ 2026-09-19 — `mustRepair`, plus `blocking` : bloquants ∪ chassés.
-  assert(src.includes("mustRepair: c4Pass.mustRepair.length,"), "la décision ne reçoit plus le compte à réparer");
+  // ⟳ 2026-09-24 — plus, en modification seulement, ce que la case refaite
+  // doit encore (`c4EditMust`, vide hors modification).
+  assert(src.includes("mustRepair: c4Pass.mustRepair.length + c4EditMust.length,"), "la décision ne reçoit plus le compte à réparer");
   assert(!src.includes("blocking: c4Pass.blocking.length,\n      // ⛔ LES APPELS"), "la décision relit le compte bloquant seul");
   assertEquals(
     (src.match(/remainingMustRepair: \(c4BestMustRepair \?\? \[\]\)\.length,/g) ?? []).length,

@@ -4466,6 +4466,10 @@ function MemberRow(
                     <SideCoursesField
                       value={sidePending ?? habits?.sideCourses ?? {}}
                       disabled={busy}
+                      voice={isMe ? "self" : "other"}
+                      who={member.displayName === "—"
+                        ? t("household.mouth.who_fallback")
+                        : member.displayName}
                       onChange={(next) => {
                         setSidePending(next);
                         void onSaveHabits(

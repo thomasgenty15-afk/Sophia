@@ -46,7 +46,7 @@ import type {
   CompositionIndex,
   CompositionRef,
 } from "./food_composition.ts";
-import { resolveCompositionLine } from "./food_composition.ts";
+import { normalizeTerm, resolveCompositionLine } from "./food_composition.ts";
 import { FOOD_GROUP_REFS, type FoodGroupRef } from "./tokens.ts";
 import { findForbiddenMatches, type ForbiddenTerm } from "./forbidden_matcher.ts";
 
@@ -581,16 +581,36 @@ export function renderCatalogBlock(
     "These are the exact numbers the app will weigh your recipes with. Use them",
     "for the density you compute: guessing a food table and then checking your",
     "own guess proves nothing.",
-    "Each line reads: id · kcal per 100 g raw · protein g per 100 g raw · extras.",
+    "Each line reads: food · kcal per 100 g raw · protein g per 100 g raw · extras.",
     '  "x2.6" is the raw-to-cooked factor: 100 g raw becomes 260 g cooked.',
     '  "unit=50" is what ONE of them weighs. "pinch=5" is a dash of it.',
     '  "-" means the table does not carry that number. Do not invent one.',
-    "  A name after the numbers means the id alone would mislead you: read it.",
+    "  A description after the numbers says what that food really is: read it.",
     "",
     ...entries.map(catalogLine),
     "",
-    'ON EVERY INGREDIENT YOU WRITE, add "ref": the id from this list, exactly as',
-    "spelled here. Dishes and preparations alike.",
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-24 — LE MODÈLE NE PORTE PLUS D'IDENTIFIANT : IL NOMME
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // Décision de l'utilisateur : « le modèle compose librement, c'est nous qui
+    // retrouvons le nom dans la base ». `identifyPlanFoods` rattache chaque
+    // ligne à la base par son NOM (résolveur de terme, faux amis compris), puis
+    // par un petit appel qui choisit dans la base entière. Un identifiant écrit
+    // quand même est ignoré par la lane (`forgetModelRefs`) : c'est lui qui
+    // pesait « pâtes complètes » comme `white_pasta`, le voisin de la liste.
+    // La liste reste, pour ses CHIFFRES : le modèle dose avec.
+    'WRITE EVERY INGREDIENT BY ITS NAME, never by an id: the app identifies each',
+    'food from "term" itself. Dishes and preparations alike. Do not write "ref".',
+    'Name ONE food, precisely, with whatever changes it: "courgette", "pâtes',
+    'complètes", "thon en conserve", "lait écrémé", "raisins secs".',
+    // ⟳ 2026-09-24 — « steak haché de bœuf cuit », « galette de poisson
+    // cuite », « brocoli cuit » sur une liste de courses (brouillons
+    // `930edb4b`, `97567be2`) : la cuisson dans le NOM se lit « à acheter
+    // cuit ». La cuisson a sa clé.
+    'Name it as it is BOUGHT: "blanc de poulet", never "blanc de poulet cuit" --',
+    'how it is cooked goes in "state", and raw meat or fish is always cooked',
+    'somewhere in the plan.',
     "",
     // ══════════════════════════════════════════════════════════════════════
     // ⟳ 2026-09-12 · ÉTAPE C1 — LE CONTRAT DE SORTIE DIT MAINTENANT LA RÈGLE
@@ -610,14 +630,25 @@ export function renderCatalogBlock(
     // sortie NEUVE. Ce bloc ne peut pas l'interdire tout seul — c'est
     // `checkOutputContract` ci-dessous qui refuse, et le modèle doit savoir
     // pourquoi avant d'écrire, pas après.
+    //
+    // ⟳ 2026-09-24 — LE NOM SEUL REVIENT, POUR L'ALIMENT HORS LISTE, ET CETTE
+    // FOIS QUELQU'UN LE LIT. Le retrait du 2026-09-12 avait une raison juste
+    // (un nom que personne ne sait peser éteint le plat) et un coût mesuré : le
+    // catalogue plafonné décidait de la cuisine. Courgette 23e sur 95 légumes,
+    // absente ; aubergine, concombre et avocat dans ZÉRO plan sur 49 ; une
+    // courgette pesée comme un poivron (« pick the closest listed id »), une
+    // autre sous un identifiant inventé qui a coûté un déjeuner.
+    // `identifyPlanFoods` rattache désormais chaque nom à la base (par le nom,
+    // puis par un petit appel qui choisit dans la base entière) avant le sas :
+    // « pita complète » sans code trouve `pita_wholemeal`, et son poids d'unité.
+    // L'identifiant reste EXIGÉ pour tout aliment de la liste.
     "TWO RULES, AND THEY DECIDE WHETHER A DISH CAN BE SERVED AT ALL:",
-    '  1. A line you WEIGH carries all three: "ref", "amount", "unit".',
-    "     No id means no weight, and a meal nobody can weigh has no portion.",
-    '  2. A dash you do NOT weigh — salt, pepper, a herb — carries "ref" and NO',
-    '     amount. The app weighs it by the "pinch=" figure on its line above.',
-    "This list does NOT limit what you may cook. But an ingredient you weigh must",
-    "come from it: pick the closest listed id and say so in the term, or make that",
-    "ingredient a dash. What is always refused is an id that is not on this list.",
+    '  1. A line you WEIGH carries "amount" and "unit".',
+    "     No amount means no weight, and a meal nobody can weigh has no portion.",
+    "  2. A dash you do NOT weigh — salt, pepper, a herb — carries NO amount.",
+    "This list does NOT limit what you may cook: it only gives the numbers the",
+    'app weighs with. A food that is not on it is welcome ("aubergine",',
+    '"concombre", "avocat"), named the same way.',
   ];
 }
 
@@ -817,6 +848,9 @@ export function checkOutputContract(args: {
 export const REF_OUTCOMES = [
   "absent",
   "accepted",
+  // ⟳ 2026-09-24 — l'identifiant n'est pas un slug mais un AUTRE NOM connu
+  // d'un aliment (`food_composition_aliases`). Accepté, et compté à part.
+  "alias",
   "unknown",
   "not_composable",
 ] as const;
@@ -869,7 +903,28 @@ export function readRefSlug(
   // ne veut QUE le chemin de l'identifiant — un terme vide ne peut rien
   // rattraper, et c'est exactement la propriété qu'on veut.
   const line = resolveCompositionLine(index, { term: "", ref: slug, refRefused: false });
-  if (!line.ref) return { slug: null, outcome: "unknown" };
+  if (!line.ref) {
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-24 — UN AUTRE NOM CONNU N'EST PAS UN IDENTIFIANT INVENTÉ
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ MESURÉ SUR LE BROUILLON `377e91ad` : « courgette · ref zucchini ».
+    // `zucchini` n'est pas un slug, mais il est écrit mot pour mot dans
+    // `food_composition_aliases` (→ `courgette`). Refusé, il laissait la
+    // casserole sans énergie, le déjeuner du mardi sans portion, et la
+    // réparation ajoutait un second déjeuner à chaque personne.
+    //
+    // ⚠️ CE N'EST PAS UN RAPPROCHEMENT : une égalité de clé sur la table
+    // d'alias, lue en entier, sous la même forme que ses clés
+    // (`normalizeTerm`). Aucune réduction, aucun secours par le terme. Un faux
+    // ami (`falseFriends`) n'est jamais accepté par ce chemin : il reste refusé.
+    const form = normalizeTerm(slug);
+    const target = index.falseFriends?.has(form) ? undefined : index.byAlias.get(form);
+    const viaAlias = target === undefined ? undefined : index.bySlug.get(target);
+    if (viaAlias === undefined) return { slug: null, outcome: "unknown" };
+    if (!isComposable(viaAlias)) return { slug: null, outcome: "not_composable" };
+    return { slug: viaAlias.slug, outcome: "alias" };
+  }
   // ⛔ ET LA PORTE DE VALIDATION RESTE ICI, PAS LÀ-BAS. Elle vaut à la
   // COMPOSITION d'un plan NEUF, jamais à la mesure d'un plan déjà servi
   // (arbitrage ② du socle, `food_reference_manifest.ts`). La descendre dans le

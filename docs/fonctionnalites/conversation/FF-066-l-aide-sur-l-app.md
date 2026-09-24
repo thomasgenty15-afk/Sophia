@@ -3,8 +3,8 @@
 | | |
 |---|---|
 | **Identifiant** | `FF-066-l-aide-sur-l-app` |
-| **Statut** | 🟠 En cours — lots 0 à 4 construits et mesurés en local le 2026-09-23, **non commités, non mis en ligne** ; les membres de foyer n'ont pas encore l'aide (§11) |
-| **Date** | 2026-09-23 |
+| **Statut** | 🟠 En cours — lots 0 à 4 commités le 2026-09-23 (`92bcbca5`), **non mis en ligne** ; correctifs du 2026-09-24 (§14) non commités ; les membres de foyer n'ont pas encore l'aide (§11) |
+| **Date** | 2026-09-24 |
 | **Autorité produit** | [conversation/README.md](README.md) (T7, T9) · [le-foyer/README.md](../le-foyer/README.md) (une personne gouverne le menu) · `CLAUDE.md` (« KEEL » n'apparaît sur aucune surface lue par un utilisateur, données injectées comprises) |
 | **Dépend de** | [FF-023](FF-023-la-conversation-normale.md) — la réponse est écrite par le composeur de la conversation normale |
 | **Effort estimé** | 5 jours pour les lots 0 à 3 ; 1 à 2 jours pour le lot 4 selon les arbitrages |
@@ -52,7 +52,7 @@ ne sait pas de quoi elle parle. Les deux ferment la porte du chat
 
 ### Dans le périmètre
 
-- 46 fiches couvrant les écrans du produit B2C : `/app/setup`,
+- 50 fiches couvrant les écrans du produit B2C : `/app/setup`,
   `/app/plan`, `/app/today`, `/app/chat`, `/app/progress`, `/app/about-you`,
   `/app/household`, `/app/billing`, `/account`, `/join-household`, le lien de
   désinscription des e-mails. Liste au §5.
@@ -74,7 +74,7 @@ ne sait pas de quoi elle parle. Les deux ferment la porte du chat
 | L'aide n'agit pas : elle ne compose pas, ne coche pas, ne résilie pas | le chat n'écrit pas le plan ; une aide qui agit devient un effet, avec ses gardes et son registre |
 | Pas de fiche sur les écrans coach et pro | ils sont masqués (`VITE_B2C_ONLY`) ; s'ils rouvrent, leurs fiches seront un lot à part |
 | Aucune fiche ne contient « KEEL » | le texte injecté au modèle est une surface utilisateur : la dernière fuite est passée par les données |
-| Pas de base de données de fiches, pas de recherche par similarité (pgvector) | 46 fiches tiennent dans un fichier ; le dispatcher les trie déjà dans l'appel qu'il fait à chaque tour |
+| Pas de base de données de fiches, pas de recherche par similarité (pgvector) | 50 fiches tiennent dans un fichier ; le dispatcher les trie déjà dans l'appel qu'il fait à chaque tour |
 | Pas de lane dédiée, pas d'état sur plusieurs tours | une question d'aide se règle en un tour ; l'ancienne lane a coûté 1 574 lignes |
 | Pas de fiche dont les libellés ne sont pas vérifiés par un test | une fiche non vérifiée ment dès le prochain renommage |
 | Pas de page « Aide » dans l'app dans ce chantier | possible plus tard depuis la même source, sans aucun coût en tokens |
@@ -146,6 +146,7 @@ type AppHelpCard = {
 | Cuisine et courses | `shopping_list` · `shopping_tick` · `cooking_sessions` · `boxes_freezer` |
 | Suivi | `meal_default_eaten` · `meal_not_eaten` · `meal_photo_how` · `meal_photo_counted` · `meal_describe` · `meal_correct_past` · `weight_entry` · `progress_page` · `energy_number_origin` |
 | Foyer | `household_add_person` · `household_invite` · `household_member_rights` · `household_who_composes` · `household_allergy_rule` · `household_remove` · `household_paused` |
+| Ma fiche (⟳ 2026-09-24) | `meal_slots` · `food_preferences_self` · `body_details` · `goal_change` |
 | Sophia | `notifications_off` · `sophia_evening_messages` · `sophia_memory` · `sophia_can_do` · `voice_and_push` · `install_app` |
 | Compte et abonnement | `price_trial` · `subscription_cancel` · `language_change` · `email_change` · `password_change` · `account_delete` · `data_export` · `emails_unsubscribe` |
 | Le reste | `unknown_feature` — injecte les titres de toutes les fiches, pour que Sophia réponde « non, voici ce qui existe » |
@@ -335,7 +336,7 @@ pas livré, elle ne nomme plus aucun écran.
 
 ### Lot 1 — Les fiches · 1,5 à 2 jours
 
-- `supabase/functions/_shared/keel/app_help/cards.ts` : les 46 fiches du §5,
+- `supabase/functions/_shared/keel/app_help/cards.ts` : les 50 fiches du §5,
   en français et en anglais, avec leurs variantes. Chaque fait est revérifié à
   sa ligne de code avant d'être écrit.
 - `_shared/keel/app_help/cards_test.ts` (deno) :
@@ -408,7 +409,7 @@ jour la fiche concernée ; le test des libellés y oblige de toute façon.
 | Lot | Fichiers |
 |---|---|
 | 0 | `sophia-brain/agents/companion.ts` (règle R2 fr/en, esquisse de l'ancien produit retirée) · `companion_prompt_contract_test.ts` · `sophia-brain/knowledge/frontend-site-map.ts` **supprimé** (aucun importeur) |
-| 1 | `_shared/keel/app_help/cards.ts` (46 fiches, 182 libellés cités, tous vérifiés) · `block_title.ts` · `cards_test.ts` · `frontend/src/keel/i18n/appHelpLabels.int.test.ts` |
+| 1 | `_shared/keel/app_help/cards.ts` (50 fiches, tous les libellés cités vérifiés) · `block_title.ts` · `cards_test.ts` · `frontend/src/keel/i18n/appHelpLabels.int.test.ts` |
 | 2 | `contracts/turn_frame.v1.ts` · `router/dispatcher.ts` · `router/turn_context_runtime.ts` · `dispatcher/dispatcher.v2.ts` · `dispatcher/dispatcher.prompts.ts` (règle 6-sexies) · `_shared/keel/app_help/block.ts` · `router/run.ts` (bloc, log `keel/app_help`, pas d'invitation photo sur un tour d'aide) · `_shared/keel/turn_ledger.ts` (une fiche photo désarme la règle photo) · tests `block_test.ts`, `dispatcher_app_help_test.ts`, `turn_ledger_test.ts` |
 | 3 | `scripts/2026-09-23-banc-aide-app.py` |
 | 4 | voir §11 « Arbitrées » et « Trouvés en construisant » |
@@ -470,3 +471,41 @@ d'aide, 10 messages qui n'en sont pas.
 2. Mettre en ligne la fonction du chat (`supabase functions deploy sophia-brain`,
    à lancer par un humain) et le front.
 3. Décider du sort des membres de foyer dans le chat (§11).
+
+## 14. ⟳ 2026-09-24 — Le premier vrai raté, et ce qu'il a montré
+
+**La question** (compte réel, local) : « comment je fais pour modifier les
+créneaux des repas que j'ai ? Parce que là ça m'affiche après midi quand je veux
+générer un plan mais moi je veux pas ». **La réponse** : « Je n'ai pas la commande
+exacte sous la main ».
+
+**Ce que dit le log** : `detected: true`, `topics: ["plan_settings"]`, bloc
+injecté. Le signal a marché ; **le catalogue n'avait pas la fiche**. Les moments
+de repas se règlent dans une fenêtre (« Préférences alimentaires » → « Quand tu
+manges, et quoi »), et l'inventaire du 2026-09-23 était parti des ÉCRANS : il a
+raté ce qui vit dans les fenêtres de la fiche d'une personne. Le dispatcher a
+servi la fiche la plus proche, et le composeur a correctement refusé d'inventer.
+
+**Réparé :**
+- quatre fiches de plus, famille « Ma fiche » : `meal_slots`, `food_preferences_self`,
+  `body_details`, `goal_change` (les deux dernières retirées sous le plancher et
+  pour un mineur, comme les autres fiches de chiffres) ;
+- les **quatre phrases de renvoi** du chat (`PROFILE_REDIRECT_SENTENCES`,
+  `_shared/keel/conversation_redirect.ts`) envoyaient là où le geste est
+  impossible : « Ce que Sophia sait de toi » (on n'y ajoute rien) et « tes
+  réglages » (`/app/setup`, fermé dès qu'un plan existe). Elles nomment
+  maintenant « Foyer » → ta ligne → « Préférences alimentaires », « Paramètres du
+  foyer » → « Avec quoi tu cuisines », « Quand tu manges, et quoi », et le
+  formulaire de composition de « Mon plan ». `appHelpLabels.int.test.ts` vérifie
+  que chaque écran qu'elles citent est affiché par l'app (limite : il vérifie
+  que l'écran EXISTE, pas que le geste y soit possible).
+
+**Vérifié en passant, et faux :** j'ai cru que l'objectif ne se changeait plus
+nulle part (le champ est en lecture seule sur « Foyer »). C'est le formulaire de
+repli ; la fenêtre « Informations personnelles » du titulaire (`MeSheetForm` →
+`MouthCoreFields`) porte bien « Ce que tu vises », le poids visé et le rythme, et
+les écrit (`ownGoalWriter`). Rien à réparer côté écran.
+
+**À suivre :** une autre session construit « Remplacer » un plat dans l'aperçu
+(non commité au 2026-09-24). Quand il sortira, la fiche `plan_change_dish` devra
+suivre : le test des libellés attrape un bouton renommé, pas un bouton ajouté.

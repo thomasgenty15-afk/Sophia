@@ -14,6 +14,11 @@ import {
   presenceStateOf,
 } from "../lib/presenceMarks";
 import { marksOutsideWindow } from "../lib/presenceOutsideWindow";
+import {
+  type GridCell,
+  lineStateOf,
+  lineToggleTarget,
+} from "../lib/presenceAbsence";
 import { Button } from "./ui/Button";
 import Modal from "./ui/Modal";
 
@@ -314,11 +319,35 @@ export function MealPickerGridBody(props: {
   const offCount = state.size;
   const outCount = [...state.values()].filter((s) => s === "eating_out").length;
 
+  // ── TOUTE UNE LIGNE, TOUTE UNE COLONNE (2026-09-23) ───────────────────────
+  // Demandé: « si je sais que tous les dîners de la semaine je ne vais pas être
+  // présent, je décoche dîner et toute la ligne s'enlève » — et pareil pour un
+  // jour entier. La case d'en-tête est cochée quand toute la ligne est à table,
+  // à moitié quand elle est mêlée. Cliquer retire toute la ligne tant qu'un de
+  // ses repas est encore à table; une ligne entièrement retirée revient.
+  //
+  // ⚠️ SEULEMENT EN DEUX ÉTATS. Le trois-états a un choix nommé par case; une
+  // case à cocher d'en-tête y serait un second contrôle au vocabulaire
+  // différent.
+  const bulk = !threeState;
+  const lineState = (cells: readonly GridCell[]) => lineStateOf(state, cells);
+  const toggleLine = (cells: readonly GridCell[]) => {
+    const next = lineToggleTarget(state, cells);
+    for (const [d, s] of cells) setCell(d, s, next);
+  };
+  const rowCells = (slot: string) => props.days.map((d): GridCell => [d, slot]);
+  const columnCells = (day: string) => rows.map((r): GridCell => [day, r.slot]);
+
   return (
     <>
       <p className="mb-3 text-sm text-ink-soft">
         {mealCopy("meals.picker.subtitle")}
       </p>
+      {bulk && rows.length > 0 && (
+        <p className="-mt-1 mb-3 text-xs text-ink-soft">
+          {mealCopy("meals.picker.bulk_hint")}
+        </p>
+      )}
 
       {rows.length === 0
         ? (
@@ -361,26 +390,42 @@ export function MealPickerGridBody(props: {
                     >
                       {mealCopy("meals.picker.meal")}
                     </th>
-                    {props.days.map((day, i) => (
-                      <th
-                        key={`${day}-${i}`}
-                        scope="col"
-                        className="px-1 py-2 text-center text-xs font-medium text-ink-soft"
-                      >
-                        {/* Le jour, puis la date. Sur une fenêtre qui traverse
-                            deux mois, « Sat » seul ne dit pas lequel. */}
-                        <span className="block">
-                          {(dishDayLabel(day) ?? day).slice(0, 3)}
-                        </span>
-                        {/* La date était en `gray-400` — 2,84:1, sous le seuil
-                            du texte. Elle passe à `ink-soft` (6,11:1) et se
-                            distingue du jour par la GRAISSE, pas par un gris de
-                            plus. */}
-                        <span className="block font-normal text-ink-soft">
-                          {props.dates[i]?.slice(8) ?? ""}
-                        </span>
-                      </th>
-                    ))}
+                    {props.days.map((day, i) => {
+                      const line = lineState(columnCells(day));
+                      return (
+                        <th
+                          key={`${day}-${i}`}
+                          scope="col"
+                          className="px-1 py-2 text-center text-xs font-medium text-ink-soft"
+                        >
+                          {/* Le jour, puis la date. Sur une fenêtre qui traverse
+                              deux mois, « Sat » seul ne dit pas lequel. */}
+                          <label className="flex cursor-pointer flex-col items-center gap-1">
+                            {/* La case de colonne AU-DESSUS du jour: elle
+                                coiffe la colonne qu'elle retire. */}
+                            {bulk && (
+                              <LineCheckbox
+                                state={line}
+                                onToggle={() => toggleLine(columnCells(day))}
+                                label={mealCopy("meals.picker.column_all", {
+                                  day: dishDayLabel(day) ?? day,
+                                })}
+                              />
+                            )}
+                            <span className="block">
+                              {(dishDayLabel(day) ?? day).slice(0, 3)}
+                            </span>
+                            {/* La date était en `gray-400` — 2,84:1, sous le
+                                seuil du texte. Elle passe à `ink-soft` (6,11:1)
+                                et se distingue du jour par la GRAISSE, pas par
+                                un gris de plus. */}
+                            <span className="block font-normal text-ink-soft">
+                              {props.dates[i]?.slice(8) ?? ""}
+                            </span>
+                          </label>
+                        </th>
+                      );
+                    })}
                   </tr>
                 </thead>
                 <tbody>
@@ -390,7 +435,18 @@ export function MealPickerGridBody(props: {
                         scope="row"
                         className="sticky left-0 z-10 whitespace-nowrap bg-paper py-2 pr-3 text-left font-normal text-ink"
                       >
-                        {occasionLabel(row.slot)}
+                        <label className="flex cursor-pointer items-center gap-2">
+                          {bulk && (
+                            <LineCheckbox
+                              state={lineState(rowCells(row.slot))}
+                              onToggle={() => toggleLine(rowCells(row.slot))}
+                              label={mealCopy("meals.picker.row_all", {
+                                meal: occasionLabel(row.slot),
+                              })}
+                            />
+                          )}
+                          {occasionLabel(row.slot)}
+                        </label>
                       </th>
                       {props.days.map((day, i) => {
                         const at = state.get(key(day, row.slot)) ?? "at_table";
@@ -526,5 +582,32 @@ export function MealPickerGridBody(props: {
           </>
         )}
     </>
+  );
+}
+
+/**
+ * LA CASE D'EN-TÊTE — cochée quand toute la ligne est à table, à moitié quand
+ * elle est mêlée. `indeterminate` n'existe qu'en propriété DOM, pas en
+ * attribut: il se pose par la référence.
+ */
+function LineCheckbox(props: {
+  state: "all" | "none" | "mixed";
+  onToggle: () => void;
+  label: string;
+}) {
+  const mixed = props.state === "mixed";
+  return (
+    <input
+      type="checkbox"
+      className="h-4 w-4 accent-fig-700"
+      checked={props.state === "all"}
+      ref={(el) => {
+        if (el) el.indeterminate = mixed;
+      }}
+      aria-checked={mixed ? "mixed" : props.state === "all"}
+      data-line=""
+      onChange={props.onToggle}
+      aria-label={props.label}
+    />
   );
 }

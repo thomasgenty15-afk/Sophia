@@ -717,7 +717,11 @@ import {
 // dîners dans les deux derniers plans (3 protéines + 2 féculents,
 // `plan_avoid_list.ts`), « à éviter si possible ». Absente quand la liste est
 // vide. Le bloc d'arbitrage ne bouge pas.
-export const HOUSEHOLD_PROMPT_VERSION = "v41_what_came_back_is_named";
+// ⟳ 2026-09-24 — v42 : CE QU'ILS ONT REFUSÉ EST NOMMÉ. Une ligne suit celle
+// « à éviter »: les plats barrés sur un aperçu (« Remplacer »), avec les
+// personnes à qui ne plus les servir (`rejected_dishes.ts`). Absente quand la
+// liste est vide. Le bloc d'arbitrage ne bouge pas.
+export const HOUSEHOLD_PROMPT_VERSION = "v42_what_they_turned_down";
 
 export interface HouseholdRestriction {
   memberId: string;
@@ -1407,6 +1411,13 @@ export interface HouseholdPromptInput {
    * la consigne est identique à l'octet près à celle d'avant ce lot.
    */
   avoidLine?: string | null;
+  /**
+   * ⟳ 2026-09-24 — LES PLATS REFUSÉS (« Remplacer » sur un aperçu), avec les
+   * personnes à qui ne plus les servir (`rejectedDishesLine`,
+   * `rejected_dishes.ts`). Écrite JUSTE APRÈS la ligne « à éviter ». Absente,
+   * `null` ou vide ⇒ la consigne est identique à l'octet près à celle d'avant.
+   */
+  rejectedDishesLine?: string | null;
   restrictions: readonly HouseholdRestriction[];
   /**
    * LOT C ② — LES BOUCHES QUI PORTENT UNE RÈGLE, ET ELLES SEULES.
@@ -2547,6 +2558,8 @@ export interface HouseholdPromptBlocks {
   envyLineUsed: boolean;
   /** ⟳ 2026-09-23 — la ligne « à éviter » est-elle entrée dans le prompt ? */
   avoidLineUsed: boolean;
+  /** ⟳ 2026-09-24 — la ligne des plats refusés est-elle entrée dans le prompt ? */
+  rejectedLineUsed: boolean;
   /**
    * D4 — CE QUI A ÉTÉ COUPÉ DANS LES VOIX, nommément: une ligne retenue par la
    * garde de non-divulgation (`voice_line_withheld:<membre>:<motif>`), des
@@ -2748,6 +2761,8 @@ export function buildHouseholdPromptBlocks(
   const envyBlock = buildEnvyBlock(input.envyLine);
   // ⟳ 2026-09-23 — la ligne « à éviter », telle que `avoidLineOf` l'a écrite.
   const avoidBlock = (input.avoidLine ?? "").trim();
+  // ⟳ 2026-09-24 — la ligne des plats refusés, telle que `rejectedDishesLine` l'a écrite.
+  const rejectedBlock = (input.rejectedDishesLine ?? "").trim();
   const voices = buildHouseholdVoices(input.voices);
   // LOT A — les notes par bouche, déjà rendues par `memo.ts`. Sa trace
   // (`served`) sort par le même objet que son texte.
@@ -2968,6 +2983,7 @@ export function buildHouseholdPromptBlocks(
     // devant les règles de maison: « si possible » ne doit jamais se lire plus
     // contraignant qu'une allergie.
     avoidBlock,
+    rejectedBlock,
     // ── ⟳ 2026-09-04 · CE QUI EST DÉJÀ TRANCHÉ, ET LA CLÉ QUI LE COMPLÈTE ──
     // Juste après l'envie, parce que la première tension que le modèle doit
     // savoir nommer est « ce qu'ils veulent CETTE FOIS contre la direction du
@@ -3113,6 +3129,7 @@ export function buildHouseholdPromptBlocks(
     }`,
     envyLineUsed: envyBlock.length > 0,
     avoidLineUsed: avoidBlock.length > 0,
+    rejectedLineUsed: rejectedBlock.length > 0,
     voiceIssues: voices.issues,
     voicesHeard: voices.heard.length,
     voiceCounts: voices.counts,

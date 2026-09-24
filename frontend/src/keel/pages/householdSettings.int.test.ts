@@ -193,9 +193,20 @@ describe("ce que l'entonnoir garde, et ce qu'il a rendu", () => {
    * composition fera, en lisant la même colonne par le miroir de sa fonction.
    */
   it("l'étape 3 monte l'équipement, et rien d'autre de la maison", () => {
-    expect(setup).toContain("<KitchenEquipmentCard");
-    expect(setup, "les traditions sont restées dans un entonnoir qu'on ne rejoue pas")
-      .not.toContain("<HouseholdTraditionsCard");
+    // ⟳ 2026-09-23 — l'équipement est replié DANS le formulaire de plan
+    // (`PlanRequestFields`), monté par l'étape 3 et par `/app/plan`. Les
+    // traditions restent dans la fiche du foyer: ni l'un ni l'autre ne les
+    // monte.
+    const fields = readFileSync(
+      new URL("../components/PlanRequestFields.tsx", import.meta.url),
+      "utf8",
+    );
+    expect(setup).toContain("<PlanRequestFields");
+    expect(fields).toContain("<KitchenEquipmentCard");
+    for (const src of [setup, fields]) {
+      expect(src, "les traditions sont revenues dans le formulaire de plan")
+        .not.toContain("<HouseholdTraditionsCard");
+    }
   });
 });
 

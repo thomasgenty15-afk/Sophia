@@ -206,6 +206,55 @@ export function readBoxes(raw: unknown): BoxEnergyView[] {
   return Array.isArray(raw) ? raw.map(readBox).filter((b): b is BoxEnergyView => b !== null) : [];
 }
 
+/**
+ * ⟳ 2026-09-24 — LE TOTAL DU JOUR D'UNE PERSONNE, pour le tableau de la semaine.
+ *
+ * Le serveur le calcule comme la SOMME DE SES BOÎTES DÉJÀ ÉMISES
+ * (`memberDayEnergy`, `served_final.ts`): il ne sort donc que pour une
+ * personne dont les boîtes passent déjà leurs portes — un adulte qui vise une
+ * perte ou une prise. Un enfant, une personne sans objectif, un lecteur qui a
+ * éteint: aucune ligne, et l'écran rend « — ».
+ *
+ * `complete: false` = certains repas de ce jour ne sont pas dans une boîte à
+ * son nom (bac commun): le nombre est vrai sur ce qu'il couvre, et l'écran le
+ * marque.
+ */
+export interface MemberDayEnergyView {
+  memberId: string;
+  day: string;
+  kcal: number;
+  complete: boolean;
+  mealsCounted: number;
+  mealsTotal: number;
+}
+
+export function readMemberDay(raw: unknown): MemberDayEnergyView | null {
+  const m = (raw ?? {}) as Record<string, unknown>;
+  const memberId = String(m.member_id ?? "").trim();
+  const day = String(m.day ?? "").trim();
+  const kcal = finiteEnergyNumber(m.kcal);
+  // ⛔ TOUT OU RIEN, comme `readBox`: un total sans personne ou sans jour
+  // atterrirait dans la mauvaise case du tableau.
+  if (!memberId || !day || kcal === null || kcal <= 0) return null;
+  const counted = finiteEnergyNumber(m.meals_counted);
+  const total = finiteEnergyNumber(m.meals_total);
+  return {
+    memberId,
+    day,
+    kcal: Math.round(kcal),
+    complete: m.complete === true,
+    mealsCounted: counted === null ? 0 : Math.round(counted),
+    mealsTotal: total === null ? 0 : Math.round(total),
+  };
+}
+
+/** Tout ou rien par ligne; un champ absent (serveur d'avant ce lot) rend `[]`. */
+export function readMemberDays(raw: unknown): MemberDayEnergyView[] {
+  return Array.isArray(raw)
+    ? raw.map(readMemberDay).filter((d): d is MemberDayEnergyView => d !== null)
+    : [];
+}
+
 export interface PlanEnergyView {
   planId: string;
   /**
@@ -224,6 +273,8 @@ export interface PlanEnergyView {
   days: DayEnergyView[];
   /** ⟳ LOT F — les contenants à un nom dont la bouche a droit à son chiffre. */
   boxes: BoxEnergyView[];
+  /** ⟳ 2026-09-24 — le total du jour de chaque personne dont les boîtes sortent. */
+  memberDays: MemberDayEnergyView[];
 }
 
 /**
@@ -371,7 +422,7 @@ export type EnergyReading =
      * EXPLICITEMENT éteint ne reçoit rien ici (R7). Un lecteur fermé par le
      * plancher, l'âge ou son coach non plus. Le serveur décide; ici on lit.
      */
-    boxes: Array<{ planId: string; boxes: BoxEnergyView[] }>;
+    boxes: Array<{ planId: string; boxes: BoxEnergyView[]; memberDays: MemberDayEnergyView[] }>;
   };
 
 /** Un refus, sans un chiffre. La forme de repli de TOUTE erreur de ce module. */
@@ -711,7 +762,13 @@ export async function loadMealEnergy(
       boxes: known === "student_off" && Array.isArray(row.plans)
         ? row.plans.map((entry) => {
           const p = (entry ?? {}) as Record<string, unknown>;
-          return { planId: String(p.plan_id ?? ""), boxes: readBoxes(p.boxes) };
+          return {
+            planId: String(p.plan_id ?? ""),
+            boxes: readBoxes(p.boxes),
+            // ⟳ 2026-09-24 — les totaux du jour de ces mêmes bouches: une somme
+            // des boîtes ci-dessus, faite par le serveur, jamais ici.
+            memberDays: readMemberDays(p.member_days),
+          };
         }).filter((p) => p.planId !== "" && p.boxes.length > 0)
         : [],
     };
@@ -736,6 +793,9 @@ export async function loadMealEnergy(
         // ⟳ LOT F — INDÉPENDANT DE `computable`: une boîte à un nom a son kcal
         // par ses propres grammes.
         boxes: readBoxes(p.boxes),
+        // ⟳ 2026-09-24 — le total du jour de chaque personne dont les boîtes
+        // sortent. Indépendant de `computable`, comme les boîtes qu'il somme.
+        memberDays: readMemberDays(p.member_days),
         // ① LES CONSEILS SE RANGENT SUR LEURS JOURS ICI, et jamais sur un plan
         // qu'on vient de déclarer incalculable: un ordre de grandeur posé sur
         // une journée dont on refuse de dire le total serait le seul chiffre de

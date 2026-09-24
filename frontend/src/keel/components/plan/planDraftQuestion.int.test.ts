@@ -32,6 +32,9 @@ describe("PlanDraftDialog — la question avant la composition", () => {
     expect(src).toMatch(/\n {2}edit: DraftEdit \| null;/);
     expect(src).not.toMatch(/onRemix/);
     expect(src).not.toMatch(/noteOutcome: NoteOutcome \| null;/);
+    // ⟳ 2026-09-24 — « Remplacer »: lire les raisons, puis refaire les plats.
+    expect(src).toMatch(/onReadRejections: \(\s*draftId: string,\s*rejections: ReadonlyArray<DishRejection>,\s*\) => Promise<NoteOutcome>;/);
+    expect(src).toMatch(/onReplaceDishes: \(\s*draftId: string,\s*rejections: ReadonlyArray<DishRejection>,\s*\) => Promise<void>;/);
   });
 
   it("s'arrête après la lecture quand une question est rendue — AVANT de composer", () => {
@@ -51,13 +54,18 @@ describe("PlanDraftDialog — la question avant la composition", () => {
   });
 
   it("le tour se compte APRÈS une composition ou une reprise locale, jamais sur une lecture ou une réponse", () => {
+    // ⟳ 2026-09-24 — UN SEUL COMPTEUR (`countTurn`), appelé APRÈS chaque
+    // chemin qui compose: recomposer, refaire la case, l'ajustement par
+    // exclusion, remplacer des plats. Aucun autre endroit n'incrémente.
+    expect(src.match(/setTurnsUsed\(\(n\) => n \+ 1\)/g)?.length, "un seul incrément").toBe(1);
+    expect(src).toMatch(/const countTurn = \(\) => setTurnsUsed\(\(n\) => n \+ 1\);/);
     const fn = src.slice(src.indexOf("const composeNow = async () => {"));
     const body = fn.slice(0, fn.indexOf("};"));
-    expect(body).toMatch(/await onCompose\(\);\s*setTurnsUsed\(\(n\) => n \+ 1\);/);
-    // ⟳ 2026-09-09 — deux endroits, chacun APRÈS son appel : composer, ou
-    // refaire la case. Aucun autre.
-    expect(src).toMatch(/await onEditCells\(draftId, outcome\.cells\);\s*setTurnsUsed\(\(n\) => n \+ 1\);/);
-    expect(src.match(/setTurnsUsed\(\(n\) => n \+ 1\)/g)?.length, "deux endroits comptent un tour").toBe(2);
+    expect(body).toMatch(/await onCompose\(\);\s*countTurn\(\);/);
+    expect(src).toMatch(/await onEditCells\(draftId, outcome\.cells\);\s*countTurn\(\);/);
+    expect(src).toMatch(/await onEditExclusions\(draftId\);\s*countTurn\(\);/);
+    expect(src).toMatch(/await onReplaceDishes\(id, rejections\);\s*countTurn\(\);/);
+    expect(src.match(/countTurn\(\);/g)?.length, "quatre chemins comptent un tour").toBe(4);
   });
 
   it("⟳ pièce 4 — la case seule quand la phrase en désigne une ET qu'un brouillon est rangé, sinon tout", () => {
@@ -66,18 +74,29 @@ describe("PlanDraftDialog — la question avant la composition", () => {
     expect(body).toMatch(/if \(outcome\.cells\.length > 0 && draftId !== null\) \{/);
     expect(body).toMatch(/await onEditCells\(draftId, outcome\.cells\);/);
     expect(body).toMatch(/await composeNow\(\);/);
+    // ⟳ 2026-09-24 — une note qui n'est QU'UNE exclusion modifie le brouillon,
+    // et ce test vient AVANT la recomposition : sinon elle ne s'atteint jamais.
+    const exclusion = body.indexOf("if (draftId !== null && noteIsExclusionOnly(outcome)) {");
+    expect(exclusion).toBeGreaterThan(0);
+    expect(exclusion).toBeLessThan(body.indexOf("await composeNow();"));
     // Ce qui se dit vient de `edit.taken` (les cases PRISES), jamais de la demande.
-    expect(src).toMatch(/edit !== null && edit\.taken\.length > 0/);
+    expect(src).toMatch(/edit !== null && edit\.operation === "edit_cells" && edit\.taken\.length > 0/);
     expect(src).toMatch(/t\("plan\.draft\.cells_applied"/);
   });
 
-  it("une réponse ferme sa question, ne compose qu'à la dernière, et pas quand rien n'a bougé", () => {
-    const fn = src.slice(src.indexOf("const answerQuestion = async ("));
+  it("⟳ 2026-09-24 — les réponses partent ensemble, puis la suite: la note ne recompose que si quelque chose a bougé, le remplacement part toujours", () => {
+    const fn = src.slice(src.indexOf("const continueAfterQuestions = async ("));
     const body = fn.slice(0, fn.indexOf("finally {"));
-    expect(body).toMatch(/merged\.questions\.filter\(\(q\) => q !== question\)/);
-    expect(body).toMatch(/if \(rest\.length > 0\) return;/);
-    expect(body).toMatch(/if \(merged\.announced\.length === 0 && merged\.cells\.length === 0\) return;/);
-    expect(body).toMatch(/await renderNow\(merged\);/);
+    // « Personne de la liste » (ou rien de coché) n'écrit rien, et se compte.
+    expect(body).toMatch(/if \(memberId === null\) \{\s*skipped\+\+;\s*continue;/);
+    const replace = body.indexOf("await replaceNow(then.draftId, then.rejections, merged);");
+    const guard = body.indexOf("if (merged.announced.length === 0 && merged.cells.length === 0) return;");
+    const render = body.indexOf("await renderNow(merged);");
+    expect(replace, "le remplacement ne part plus après les questions").toBeGreaterThan(0);
+    expect(guard).toBeGreaterThan(replace);
+    expect(render).toBeGreaterThan(guard);
+    // Trois questions au plus; le reste est compté comme passé.
+    expect(src).toMatch(/questions: outcome\.questions\.slice\(0, NOTE_QUESTIONS_MAX\)/);
   });
 
   it("⟳ 2026-09-23 — « pour qui ? » sur un goût passe par le MÊME geste que la part, et le morceau repart tel quel", () => {
@@ -87,7 +106,7 @@ describe("PlanDraftDialog — la question avant la composition", () => {
     // question `who` emprunte le canal de la part: mêmes boutons, même
     // échappatoire, et l'entrée à écrire (`entry`) voyage dans la question
     // et revient avec le tap — le front ne la lit pas.
-    const fn = src.slice(src.indexOf("const answerQuestion = async ("));
+    const fn = src.slice(src.indexOf("const continueAfterQuestions = async ("));
     const body = fn.slice(0, fn.indexOf("finally {"));
     expect(body).toMatch(/question\.kind === "portion"\s*\?\s*\{ kind: "portion", memberId, direction: question\.direction \}\s*:\s*\{ kind: "who", memberId, entry: question\.entry \}/);
     const api = read("../../api/planDraft.ts");
@@ -100,11 +119,39 @@ describe("PlanDraftDialog — la question avant la composition", () => {
     expect(api).toMatch(/: \{ kind: "who", member_id: answer\.memberId, entry: answer\.entry \}/);
   });
 
-  it("le champ et la reprise sont fermés tant qu'une question est ouverte, et l'échappatoire existe", () => {
-    expect(src).toMatch(/disabled=\{busyNow \|\| !canAskAgain \|\| pendingQuestion !== null\}/);
-    expect(src).toMatch(/!hasNote\(note\) \|\| pendingQuestion !== null\}/);
-    expect(src).toMatch(/answerQuestion\(pendingQuestion, null\)/);
-    expect(src).toMatch(/t\("plan\.draft\.question_who", \{ text: pendingQuestion\.text \}\)/);
+  it("⟳ 2026-09-24 — les questions sont une COUCHE: tant qu'elle est ouverte, le reste est inerte, et l'échappatoire existe", () => {
+    // La couche est montée par `Modal`, qui rend fronton, corps et pied `inert`
+    // tant qu'elle est là: ni le champ ni la reprise ne se touchent.
+    expect(src).toMatch(/: asking !== null\s*\?\s*\(\s*<NoteQuestionsLayer/);
+    const modal = read("../ui/Modal.tsx");
+    expect(modal.match(/inert=\{hasLayer\}/g)?.length, "fronton, corps et pied inertes").toBe(3);
+    const layer = read("./NoteQuestionsLayer.tsx");
+    expect(layer).toMatch(/t\("plan\.draft\.question_none"\)/);
+    expect(layer).toMatch(/t\("plan\.draft\.question_who", \{ text: question\.text \}\)/);
+  });
+
+  it("⟳ 2026-09-24 — « Remplacer »: des plats barrés retirent l'adoption, et la lecture précède le remplacement", () => {
+    // L'UN OU L'AUTRE: le fronton n'offre plus « Adopter », le pied n'a plus
+    // qu'« Ajuster le plan ».
+    expect(src).toMatch(/headerAction=\{strikeMode\s*\?\s*undefined/);
+    const foot = src.slice(src.indexOf("    strikeMode\n      ? ("), src.indexOf("      : noteOpen\n"));
+    expect(foot, "le pied des plats barrés a disparu").not.toBe("");
+    expect(foot).not.toMatch(/runAdopt/);
+    expect(foot).toMatch(/onClick=\{\(\) => void runReplace\(\)\}/);
+    // Lire (et ranger) AVANT de refaire; une question arrête avant.
+    const fn = src.slice(src.indexOf("const runReplace = async () => {"));
+    const body = fn.slice(0, fn.indexOf("finally {"));
+    const read1 = body.indexOf("await onReadRejections(draftId, rejections);");
+    const stop = body.indexOf("openQuestions(outcome, { draftId, rejections });");
+    const go = body.indexOf("await replaceNow(draftId, rejections, outcome);");
+    expect(read1).toBeGreaterThan(0);
+    expect(stop).toBeGreaterThan(read1);
+    expect(go).toBeGreaterThan(stop);
+    // Une allergie ou un régime rangé par une raison ⇒ tout le plan.
+    const now = src.slice(src.indexOf("const replaceNow = async ("));
+    expect(now.slice(0, now.indexOf("\n  };"))).toMatch(
+      /if \(outcome\.announced\.some\(\(a\) => a\.kind === "safety"\)\) \{\s*await composeNow\(\);/,
+    );
   });
 });
 
@@ -157,6 +204,9 @@ describe("la phrase n'est lue QU'UNE fois — jamais par le composeur ni l'adopt
       expect(src, `${name}: onAnswerNote`).toMatch(/onAnswerNote=\{async \(answer\) =>/);
       expect(src, `${name}: onCompose`).toMatch(/onCompose=\{async \(\) =>/);
       expect(src, `${name}: onEditCells`).toMatch(/onEditCells=\{async \(id, cells\) =>/);
+      // ⟳ 2026-09-24 — « Remplacer ».
+      expect(src, `${name}: onReadRejections`).toMatch(/onReadRejections=\{async \(id, rejections\) =>/);
+      expect(src, `${name}: onReplaceDishes`).toMatch(/onReplaceDishes=\{async \(id, rejections\) =>/);
       expect(src, `${name}: edit`).toMatch(/edit=\{draft\?\.envelope\.edit \?\? null\}/);
       expect(src, `${name}: draftNote retenu`).not.toMatch(/setDraftNote\(/);
       // ⟳ 2026-09-21 — la page du plan adopte l'entrée de la SOURCE de

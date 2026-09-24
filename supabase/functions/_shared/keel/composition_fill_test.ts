@@ -20,6 +20,7 @@ import {
   energySourceShares,
   FILL_REQUEST_CAP,
   fillCompositions,
+  modelAnswerHolds,
   fillRequestsFor,
   type GroupBand,
   groupBandsFrom,
@@ -193,7 +194,7 @@ Deno.test("⛔ RÈGLE 3 — un aliment NEUF, et AUCUN alias n'est écrit", () =>
   const { requests } = fillRequestsFor(INDEX, [YUZU]);
   const answers = parseCompositionFillAnswers(
     JSON.stringify({
-      items: [{ term: "yuzu", food_group_ref: "citrus", kcal_100g: 40, yield_class: "neutral" }],
+      items: [{ term: "yuzu", food_group_ref: "citrus", kcal_100g: 40, protein_g: 0.8, carbs_g: 9, fat_g: 0.3, yield_class: "neutral" }],
     }),
     requests,
   );
@@ -318,7 +319,7 @@ Deno.test("⛔ un terme QU'ON N'A PAS DEMANDÉ est jeté", () => {
   const answers = parseCompositionFillAnswers(
     JSON.stringify({
       items: [
-        { term: "yuzu", food_group_ref: "citrus", kcal_100g: 40, yield_class: "neutral" },
+        { term: "yuzu", food_group_ref: "citrus", kcal_100g: 40, protein_g: 0.8, carbs_g: 9, fat_g: 0.3, yield_class: "neutral" },
         { term: "kumquat", food_group_ref: "citrus", kcal_100g: 71, yield_class: "neutral" },
       ],
     }),
@@ -372,7 +373,7 @@ Deno.test("un groupe SANS bande accepte quand même une valeur plausible", () =>
   const { requests } = fillRequestsFor(INDEX, [{ term: "ghee" }]);
   const answers = parseCompositionFillAnswers(
     JSON.stringify({
-      items: [{ term: "ghee", food_group_ref: "olive_oil", kcal_100g: 890, yield_class: "neutral" }],
+      items: [{ term: "ghee", food_group_ref: "olive_oil", kcal_100g: 890, protein_g: 0.3, carbs_g: 0, fat_g: 99, yield_class: "neutral" }],
     }),
     requests,
   );
@@ -447,7 +448,7 @@ Deno.test("les quatre parts d'énergie, et `group_bounds` compte à part", () =>
   // `yuzu` répond, `shiso` non -> une ligne `model`, une `group_bounds`.
   const answers = parseCompositionFillAnswers(
     JSON.stringify({
-      items: [{ term: "yuzu", food_group_ref: "citrus", kcal_100g: 40, yield_class: "neutral" }],
+      items: [{ term: "yuzu", food_group_ref: "citrus", kcal_100g: 40, protein_g: 0.8, carbs_g: 9, fat_g: 0.3, yield_class: "neutral" }],
     }),
     requests,
   );
@@ -536,4 +537,51 @@ Deno.test("la consigne nomme les clés, le vocabulaire fermé et l'échappatoire
   assert(msg.includes("yuzu"));
   assert(msg.includes("declared group: citrus"));
   assert(msg.includes("citrus, "), "le vocabulaire fermé doit voyager avec la demande");
+});
+
+// ⟳ 2026-09-24 — LE MODÈLE EST CRU S'IL NE SE CONTREDIT PAS (`modelAnswerHolds`).
+Deno.test("⑪ hors bande MAIS cohérent: la purée de noisettes est crue (60 g de lipides, bande à 55,9)", () => {
+  const holds = modelAnswerHolds(
+    { term: "puree de noisettes", canonicalTerm: "hazelnut butter", labelFr: null, labelEn: null, foodGroupRef: "nuts_seeds",
+      energyKcal: 628, proteinG: 15, carbsG: 18, fatG: 60, fiberG: 9.7, yieldClass: "neutral" } as never,
+    "nuts_seeds",
+    new Map([["nuts_seeds", { energyLow: 426, energyHigh: 636, fatHigh: 55.9 }]]) as never,
+  );
+  assertEquals(holds, { holds: true });
+});
+
+Deno.test("⑫ une réponse qui se contredit n'est pas crue: la levure « 325 kcal » dont les macros font 148", () => {
+  const v = modelAnswerHolds(
+    { term: "levure", canonicalTerm: null, labelFr: null, labelEn: null, foodGroupRef: "other_fruit",
+      energyKcal: 325, proteinG: 22, carbsG: 8.2, fatG: 3, fiberG: 0, yieldClass: "neutral" } as never,
+    null,
+    new Map() as never,
+  );
+  assertEquals(v, { holds: false, reason: "inconsistent" });
+  // Et le cas qui passe grâce aux fibres: le cacao range ses 33 g de fibres dans ses glucides.
+  assertEquals(modelAnswerHolds(
+    { term: "origan", canonicalTerm: null, labelFr: null, labelEn: null, foodGroupRef: "leafy_greens",
+      energyKcal: 265, proteinG: 9, carbsG: 68.9, fatG: 4.3, fiberG: 42.5, yieldClass: "neutral" } as never,
+    null,
+    new Map() as never,
+  ), { holds: true });
+});
+
+Deno.test("⑬ un AUTRE aliment: « fromage râpé » rangé en crucifères à 28 kcal, déclaré fromage — refusé ; la boisson de soja rangée en tofu, crue", () => {
+  const bands = new Map([
+    ["dairy_cheese", { energyLow: 227, energyHigh: 406 }],
+    ["legumes", { energyLow: 73, energyHigh: 340 }],
+  ]) as never;
+  assertEquals(modelAnswerHolds(
+    { term: "fromage rape", canonicalTerm: null, labelFr: null, labelEn: null, foodGroupRef: "cruciferous_veg",
+      energyKcal: 28, proteinG: 2.2, carbsG: 5.9, fatG: 0.4, fiberG: 2, yieldClass: "neutral" } as never,
+    "dairy_cheese",
+    bands,
+  ), { holds: false, reason: "other_food" });
+  assertEquals(modelAnswerHolds(
+    { term: "boisson de soja", canonicalTerm: null, labelFr: null, labelEn: null, foodGroupRef: "tofu_tempeh",
+      energyKcal: 54, proteinG: 3.3, carbsG: 3.9, fatG: 2, fiberG: 0.5, yieldClass: "neutral" } as never,
+    "legumes",
+    bands,
+  ), { holds: true });
 });

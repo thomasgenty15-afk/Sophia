@@ -69,6 +69,7 @@ import {
   type SideEmitCounts,
   sideCompositionLine,
   sidesOnEmittedBoxes,
+  memberDayEnergy,
   viewerDayEnergy,
 } from "../_shared/keel/served_final.ts";
 import {
@@ -878,6 +879,14 @@ Deno.serve(async (req) => {
       viewerMemberId,
       requestId,
     });
+    // ⟳ 2026-09-24 — LE TOTAL DU JOUR DE CHAQUE PERSONNE DONT LES BOÎTES
+    // SORTENT (le tableau de la semaine). Une SOMME des boîtes ci-dessus, déjà
+    // jugées bouche par bouche: aucun chiffre neuf ne franchit le fil.
+    const memberDaysOf = (row: { id: string; dishes: unknown }) =>
+      memberDayEnergy({
+        boxes: boxesByPlan.get(row.id)?.boxes ?? [],
+        dishes: readEnergyBoxDishes(row.dishes),
+      });
     if (readerClosedByDefault) {
       // Une réponse FERMÉE qui porte quelque chose — et c'est la seule. Ce
       // qu'elle porte n'est pas au lecteur: ce sont les couvercles des bouches
@@ -891,6 +900,7 @@ Deno.serve(async (req) => {
           plan_id: row.id,
           boxes: boxesByPlan.get(row.id)?.boxes ?? [],
           boxes_gate: boxesByPlan.get(row.id)?.gate ?? boxGateZero(),
+          member_days: memberDaysOf(row),
         })),
         request_id: requestId,
       });
@@ -1043,6 +1053,9 @@ Deno.serve(async (req) => {
         // et le compteur de la porte, écrit même à zéro.
         boxes: boxesByPlan.get(row.id)?.boxes ?? [],
         boxes_gate: boxesByPlan.get(row.id)?.gate ?? boxGateZero(),
+        // ⟳ 2026-09-24 — le total du jour de chaque personne dont les boîtes
+        // sortent: la somme des `boxes` juste au-dessus, rien de plus.
+        member_days: memberDaysOf(row),
         // R1: clés ASCII snake_case, comme partout en base et sur le fil.
         dishes: energy.dishes.map((d, i) => ({
           index: i,

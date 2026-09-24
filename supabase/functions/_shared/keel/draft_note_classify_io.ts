@@ -52,6 +52,7 @@ import {
   DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT,
   DRAFT_NOTE_PRODUCER,
   buildDraftNoteClassifyPrompt,
+  type RejectedDishContext,
   draftNoteClassifyTrace,
   EMPTY_DRAFT_NOTE_CLASSIFICATION,
   readDraftNoteClassification,
@@ -355,6 +356,12 @@ export async function classifyDraftNoteEarly(args: {
   members: readonly DraftNoteMember[];
   contentLocale: string;
   planFoods: readonly string[];
+  /**
+   * ⟳ 2026-09-24 — les plats barrés dont la note porte les raisons
+   * (`keel-read-note-v1`, mode « Remplacer »). Absent = `[]`: la génération et
+   * le bilan n'en ont pas, et leur prompt reste identique à l'octet près.
+   */
+  rejectedDishes?: readonly RejectedDishContext[];
   requestId?: string;
   /** ⚠️ Test seulement. Ne change PAS le modèle demandé. */
   run?: DraftNoteLlmRunner;
@@ -377,6 +384,7 @@ export async function classifyDraftNoteEarly(args: {
     contentLocale: args.contentLocale,
     members: args.members,
     planFoods: args.planFoods,
+    rejectedDishes: args.rejectedDishes ?? [],
   });
 
   // ── L'APPEL. UN ÉCHEC EST NOMMÉ ET COMPTÉ, JAMAIS AVALÉ ─────────────────
@@ -558,6 +566,13 @@ export async function classifyAndPersistDraftNote(args: {
    * ne peut rien vérifier.
    */
   composition: CompositionIndex | null;
+  /**
+   * ⟳ 2026-09-24 — MODE « REMPLACER »: la note porte les raisons des plats
+   * barrés, une ligne par plat. Le prompt reçoit chaque plat avec ses
+   * mangeurs, et le tiroir des CASES est vidé — c'est le générateur qui sait
+   * quoi refaire (les plats barrés), pas une phrase. Absent = `[]`.
+   */
+  rejectedDishes?: readonly RejectedDishContext[];
   /** ⚠️ Test seulement. Ne change PAS le modèle demandé — voir le type. */
   run?: DraftNoteLlmRunner;
   classified?: DraftNoteEarlyClassification;
@@ -613,6 +628,7 @@ export async function classifyAndPersistDraftNote(args: {
     members: args.members,
     contentLocale: args.contentLocale,
     planFoods: args.planFoods,
+    rejectedDishes: args.rejectedDishes ?? [],
     requestId: args.requestId,
     run: args.run,
   });
@@ -651,6 +667,8 @@ export async function classifyAndPersistDraftNote(args: {
     planFoods: args.planFoods,
   });
   const classification = outcome.classification;
+  // ⟳ 2026-09-24 — en mode « Remplacer », aucune case ne sort d'ici.
+  const cellsOut = (args.rejectedDishes ?? []).length > 0 ? [] : classification.cells.requests;
   const trace = draftNoteClassifyTrace(classification);
 
   if (!outcome.ok) {
@@ -854,7 +872,7 @@ export async function classifyAndPersistDraftNote(args: {
       announced: [],
       questions,
       atEdge: 0,
-      cells: classification.cells.requests,
+      cells: cellsOut,
       safetyAnnounced: [],
       safetyNotWritten: [],
     };
@@ -1177,7 +1195,7 @@ export async function classifyAndPersistDraftNote(args: {
     announced,
     questions,
     atEdge: appetite.at_edge + settings.at_edge,
-    cells: classification.cells.requests,
+    cells: cellsOut,
     safetyAnnounced,
     safetyNotWritten,
   };

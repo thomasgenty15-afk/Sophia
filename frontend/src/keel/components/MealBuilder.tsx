@@ -7,7 +7,6 @@ import {
   type GroceryRunsAnswer,
 } from "../api/cookingPlan";
 import React from "react";
-import { ChevronDown } from "lucide-react";
 import { PlanComposingCard } from "./plan/PlanComposingCard";
 
 import { useAuth } from "../../context/AuthContext";
@@ -44,7 +43,6 @@ import {
 } from "../api/planBudget";
 import { mealCopy } from "../api/mealLabels";
 import {
-  ENVY_MAX_CHARS,
   type HouseholdView,
   loadEnvyLine,
   loadHousehold,
@@ -53,31 +51,23 @@ import {
   submitEnvy,
 } from "../api/household";
 import { mayCompose } from "../api/planRouting";
-// LOT B — le mode de cuisson demandé à la composition.
-// « TOUT DANS UNE SESSION DE CUISINE » — la case, et la porte qui la conditionne.
-import OneCookingSessionField from "./OneCookingSessionField";
-import KitchenEquipmentCard from "./KitchenEquipmentCard";
-import { kitchenToolLabel } from "./kitchenToolLabel";
-import CookingStyleField from "./CookingStyleField";
-import GroceryRunsField from "./GroceryRunsField";
-import {
-  hasFreezerDeclared,
-  readKitchenEquipment,
-} from "../api/kitchenEquipment";
+import { readKitchenEquipment } from "../api/kitchenEquipment";
 import type { PracticalConstraints } from "../api/practicalConstraints";
 import { planFailureKey } from "../copy/planRefusals";
 import { t } from "../i18n/t";
 import type { ComposeDraftInput, DraftProgress } from "../api/planDraft";
 import Modal from "./ui/Modal";
-import { formatBudgetAmount, formatDate } from "../i18n/format";
+import { formatDate } from "../i18n/format";
 import { plural } from "../i18n/plural";
 import TakeTheHandCard, { type HouseholdPlace } from "./TakeTheHandCard";
 import PlanResult from "./plan/PlanResult";
 import ShoppingListPanel from "./ShoppingListPanel";
 import CookingSessions from "./CookingSessions";
 import MealPickerGrid from "./MealPickerGrid";
+import PlanRequestFields, { type PresenceRow } from "./PlanRequestFields";
+import { awayMomentsIn } from "../lib/presenceAbsence";
 import { } from "../api/mealStretch";
-import { addDays, daysBetween, isIsoDate, weekStartFor } from "../api/dates";
+import { addDays, daysBetween, weekStartFor } from "../api/dates";
 import { browserLocalDate, useMealTicks, catchUpWindowStart } from "../lib/useMealTicks";
 import { useMealEnergy } from "../lib/useMealEnergy";
 // ⟳ 2026-09-20 — `EnergySwitches` N'EST PLUS IMPORTÉ: la rangée des deux
@@ -86,7 +76,6 @@ import { useMealEnergy } from "../lib/useMealEnergy";
 import { groupByDay } from "../lib/mealBuilderModel";
 import { Button } from "./ui/Button";
 import { Card, SectionLabel } from "./ui/Card";
-import { Field, inputClass } from "./ui/Field";
 
 // LE CONSTRUCTEUR DE REPAS — le moteur `generate-meal-v1`, enfin relié.
 //
@@ -242,22 +231,6 @@ export interface PreviewPlanArgs {
 }
 
 /**
- * COMBIEN DE MOMENTS UNE BOUCHE ÉCARTE DANS CETTE FENÊTRE — le chiffre que la
- * ligne de présence affiche, et que le lien du solo porte après son libellé.
- * Un jour marqué sans créneau vaut tous les créneaux du rythme.
- */
-function awayMomentsInWindow(
-  marks: readonly AwayMark[],
-  dayTokens: readonly string[],
-  slotsPerDay: number,
-): number {
-  const inWindow = new Set<string>(dayTokens);
-  return marks
-    .filter((a) => inWindow.has(a.day))
-    .reduce((n, a) => n + (a.slots.length === 0 ? slotsPerDay : a.slots.length), 0);
-}
-
-/**
  * ⟳ 2026-09-23 — LE LIBELLÉ COURT SOUS 363 PX DE LARGE. Sur un téléphone
  * étroit, « Préparer le plan suivant », « Composer un autre plan », « Tes
  * sessions de cuisine » et « Liste de courses » prenaient chacun sa ligne.
@@ -403,26 +376,6 @@ export default function MealBuilder(props: MealBuilderProps) {
     };
   }, []);
 
-  // ── CE QUI EST TAPÉ N'EST PAS ENCORE UNE DATE ─────────────────────────
-  // Un `<input type="date">` passe par des valeurs VIDES et incomplètes
-  // pendant qu'on l'édite au clavier. Écrire `e.target.value` directement
-  // dans l'état ci-dessus revenait à faire entrer une demi-date dans
-  // `addDays` et `daysBetween` — qui la donnent à `assertIsoDate`, qui jette
-  // (R7: une date malformée est un throw, jamais un jour décalé en silence).
-  // Le throw partait PENDANT LE RENDU, donc l'ErrorBoundary emportait la page
-  // entière. Mesuré le 2026-08-18: la fenêtre du plan était inéditable au
-  // clavier, et rien à l'écran ne disait pourquoi.
-  //
-  // La garde n'est pas touchée. Le BROUILLON porte ce qui est tapé, l'ÉTAT
-  // porte ce qui est valide, et rien ne se décale en silence: une date
-  // incomplète ne bouge simplement pas encore la fenêtre. Les deux effets
-  // ci-dessous rendent au champ ce que le bornage a corrigé — sans eux,
-  // l'écran afficherait une date que le calcul n'utilise pas.
-  const [startDraft, setStartDraft] = React.useState(windowStart);
-  const [endDraft, setEndDraft] = React.useState(windowEnd);
-  React.useEffect(() => setStartDraft(windowStart), [windowStart]);
-  React.useEffect(() => setEndDraft(windowEnd), [windowEnd]);
-
   /**
    * LES JOURS DE LA FENÊTRE DEMANDÉE — ceux que la grille montre.
    *
@@ -443,7 +396,7 @@ export default function MealBuilder(props: MealBuilderProps) {
   /** Combien de moments sont écartés DANS cette fenêtre — pour le bouton. */
   const awayInWindow = React.useMemo(
     () =>
-      awayMomentsInWindow(
+      awayMomentsIn(
         props.awayDays ?? [],
         askedDays.tokens,
         (props.rhythm ?? []).length,
@@ -555,9 +508,57 @@ export default function MealBuilder(props: MealBuilderProps) {
    * Une seule à la fois: N grilles ouvertes se recouvriraient, et la fenêtre du
    * kit est une feuille collée en bas sous 640 px.
    */
-  const [awayFor, setAwayFor] = React.useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = React.useState(false);
   const [pickerBusy, setPickerBusy] = React.useState(false);
+
+  /**
+   * « QUI MANGE À LA MAISON » — une ligne par personne, pour `PlanRequestFields`.
+   *
+   * ⛔ DEUX SOURCES, ET ELLES NE FUSIONNENT PAS (D14). La ligne du titulaire
+   * édite SA déclaration (`practical_constraints.away_days`, `onAwaySaved`);
+   * celle d'une autre bouche édite la marque du maître
+   * (`household_members.away_days`). Nourrir une grille de l'union recopierait
+   * la déclaration de quelqu'un dans la colonne de l'autre.
+   *
+   * ⚠️ SANS FOYER LU, le titulaire garde sa ligne: c'est le seul endroit où il
+   * déclare ses absences.
+   */
+  const presenceRows = React.useMemo<PresenceRow[]>(() => {
+    const houseRhythm = props.rhythm ?? [];
+    const saveSelf = props.onAwaySaved;
+    const selfRow = (name: string): PresenceRow | null =>
+      saveSelf
+        ? {
+          key: "self",
+          name,
+          slots: houseRhythm,
+          away: props.awayDays ?? [],
+          save: (next) => saveSelf(next),
+        }
+        : null;
+    if (!household) {
+      const only = selfRow(t("plan.request.presence_you"));
+      return only ? [only] : [];
+    }
+    return household.members.map((member): PresenceRow => {
+      if (member.memberId === household.me?.memberId) {
+        const mine = selfRow(member.displayName);
+        if (mine) return mine;
+      }
+      return {
+        key: member.memberId,
+        name: member.displayName,
+        // `eatingSlots === null` = aux moments de la maison, jamais « ne mange pas ».
+        slots: member.eatingSlots ?? houseRhythm,
+        away: member.awayHousehold,
+        save: async (next) => {
+          const result = await setMemberAway(member.memberId, next);
+          if (!result.ok) throw new Error(result.reason);
+          setHousehold(await loadHousehold(userId));
+        },
+      };
+    });
+  }, [household, props.rhythm, props.awayDays, props.onAwaySaved, userId]);
   // ── TROIS CHAMPS RETIRÉS DE L'ÉCRAN, TROIS COLONNES GARDÉES ────────────
   // `slot` (« A particular meal ») demandait UN créneau pour toute la fenêtre.
   // La grille « Which meals, which days » dit la même chose au jour près, donc
@@ -673,20 +674,6 @@ export default function MealBuilder(props: MealBuilderProps) {
     PracticalConstraints | null
   >(null);
   const [hasGoalRow, setHasGoalRow] = React.useState(false);
-  /**
-   * CE FOYER A-T-IL DÉCLARÉ UN CONGÉLATEUR ? — la porte de l'option, lue UNE
-   * fois et passée aux deux endroits qui en ont besoin.
-   *
-   * ⛔ `hasFreezerDeclared`, JAMAIS `includes("freezer")` À LA MAIN. « Pas de
-   * congélateur » et « on ne lui a jamais demandé » doivent rendre le même
-   * `false`, et c'est cette fonction-là qui le garantit — en miroir du serveur,
-   * comparé sur les trois états par `api/freezerMirror.int.test.ts`.
-   */
-  const hasFreezer = hasFreezerDeclared(readKitchenEquipment(planConstraints));
-  /** Les outils déclarés, pour le titre de la carte repliée: « Four · Plaques ». */
-  const equipmentSummary = (readKitchenEquipment(planConstraints) ?? [])
-    .map(kitchenToolLabel)
-    .join(" · ");
   /**
    * ⟳ 2026-09-10 · LOT 7 — `preferences` / `preferencesCarried` SONT PARTIS.
    *
@@ -871,43 +858,6 @@ export default function MealBuilder(props: MealBuilderProps) {
   const result = tab === "next" ? plans.next : plans.current;
 
   /**
-   * CE QUE LES BOUTONS COUVRENT, en clair, avant de cliquer.
-   *
-   * L'aperçu est INDICATIF: la fenêtre qui fait foi est résolue par le serveur
-   * avec le fuseau de l'élève. Les deux doivent s'accorder au jour près, d'où
-   * le module miroir et sa table de cas partagée.
-   *
-   * Une intention impossible (durée hors bornes, départ dans le passé) ne casse
-   * pas l'écran: elle rend son motif, et le serveur refusera de toute façon.
-   */
-  const windowPreview = React.useMemo(() => {
-    try {
-      const today = browserLocalDate();
-      const w = resolveRequestedWindow(windowRequest, today);
-      const ends = planEndsOn(w.startsOn, w.durationDays);
-      if (w.durationDays === 1) return t("meals.form.window_one_day");
-      // ⚠️ CETTE LIGNE A ÉTÉ ANGLAISE ET NUE JUSQU'AU 2026-08-14, et aucun test
-      // ne pouvait le voir: c'était un littéral, pas une clé. Elle rendait
-      // « 2026-08-14 → 2026-08-20 · 7 days » à un foyer français — une date ISO
-      // que personne ne lit à voix haute, et un mot anglais au milieu de la
-      // page. Trouvé en REGARDANT l'écran, pas en lisant le code.
-      return t("meals.form.window_span")
-        .replace("{from}", formatDate(w.startsOn, { year: false }))
-        .replace("{to}", formatDate(ends, { year: false }))
-        .replace(
-          "{days}",
-          plural(
-            w.durationDays,
-            t("meals.form.window_days_one"),
-            t("meals.form.window_days_other"),
-          ).replace("{n}", String(w.durationDays)),
-        );
-    } catch (e) {
-      return e instanceof Error ? e.message : String(e);
-    }
-  }, [windowRequest]);
-
-  /**
    * Le lendemain de la fin du plan courant — le départ qui ne tronque RIEN.
    *
    * C'est le défaut de « Prepare next plan », parce que c'est le seul choix qui
@@ -1084,6 +1034,16 @@ export default function MealBuilder(props: MealBuilderProps) {
       // vivant. Ce que le clic ajoute est le geste qui manquait: il rend la
       // main au champ, plutôt que de ne rien faire.
       document.getElementById("meals-budget")?.focus();
+      return;
+    }
+    // ⟳ 2026-09-24 — PAS DE PLAN SANS « AVEC QUOI TU CUISINES ». Même geste
+    // que le plancher juste au-dessus: la raison est déjà écrite dans le bloc
+    // (`PlanRequestFields`, ouvert tant que rien n'est déclaré), et le clic y
+    // EMMÈNE plutôt que de la répéter sous le bouton.
+    if (readKitchenEquipment(planConstraints) === null) {
+      const block = document.getElementById("meals-equipment");
+      if (block instanceof HTMLDetailsElement) block.open = true;
+      block?.querySelector("summary")?.focus();
       return;
     }
     // ⛔ ET PLUS DE GARDE SUR LA DURÉE D'UNE SESSION. Elle réclamait un champ
@@ -1370,561 +1330,47 @@ export default function MealBuilder(props: MealBuilderProps) {
                 colonnes ne rangeaient plus rien: elles cassaient seulement
                 l'ordre de lecture que l'autre écran tient. */}
             <form className="space-y-4" onSubmit={(e) => void build(e)}>
-              {/* ── LA FENÊTRE: UNE DATE DE DÉBUT, UNE DATE DE FIN ──────
-                  Trois boutons (« Until Sunday », « For 7 days », « Choose
-                  exactly ») plus un champ date plus un champ nombre, pour
-                  dire une chose que deux dates disent seules. Et les trois
-                  boutons mentaient à moitié: « Until Sunday » un dimanche
-                  fait un jour, « For 7 days » ne dit pas lesquels, et le
-                  nombre de jours obligeait à compter dans sa tête pour
-                  savoir où on atterrit.
-
-                  LA BORNE DE SEPT JOURS EST CELLE DE LA BASE, pas une
-                  préférence d'écran: `duration_days between 1 and 7`, et
-                  `MAX_WINDOW_DAYS` côté code. Le champ l'applique avec `max`
-                  plutôt que de laisser choisir trois semaines et récolter un
-                  refus au moment de générer. */}
-              <Field label={t("meals.form.window_label")} htmlFor="meals-window">
-                <div className="flex flex-wrap items-end gap-3">
-                  <div>
-                    <label
-                      htmlFor="meals-window"
-                      className="block text-label font-semibold uppercase text-ink-soft"
-                    >
-                      {t("meals.form.window_from")}
-                    </label>
-                    <input
-                      id="meals-window"
-                      type="date"
-                      // Pas de départ dans le PASSÉ: `isReportable`
-                      // autoriserait sinon des coches rétroactives sur des
-                      // jours qu'un plan précédent possédait.
-                      min={browserLocalDate()}
-                      // ⛔ IL Y AVAIT UN `max` ICI — `lastNameableStart`, le
-                      // dimanche de la semaine en cours —, RETIRÉ LE
-                      // 2026-09-06 avec la garde serveur qui le justifiait.
-                      // La date de départ est libre; seul le passé reste
-                      // borné, juste au-dessus. Le prompt ancre désormais la
-                      // liste des jours sur la DATE d'ouverture de la fenêtre,
-                      // donc il ne peut plus se contredire. Toute l'histoire,
-                      // avec la mesure de 6,2 s facturées, est dans la tombe
-                      // de `meal_plan_window.ts`.
-                      value={startDraft}
-                      onChange={(e) => {
-                        const next = e.target.value;
-                        setStartDraft(next);
-                        if (isIsoDate(next)) setWindowStart(next);
-                      }}
-                      className={`${inputClass} mt-1 w-auto`}
-                    />
-                    {/* ⛔ LA PHRASE A ÉTÉ RETIRÉE — 2026-09-08, sur les DEUX
-                        écrans en même temps parce qu'elle venait d'une seule
-                        clé (`plan.window.start_bound`, supprimée). Elle
-                        décrivait une borne que le champ applique déjà par son
-                        `min`: le calendrier ne propose pas le passé, et une
-                        aide qui explique un geste impossible est du bruit.
-                        La borne reste, ici comme au serveur. */}
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="meals-window-end"
-                      className="block text-label font-semibold uppercase text-ink-soft"
-                    >
-                      {t("meals.form.window_to")}
-                    </label>
-                    <input
-                      id="meals-window-end"
-                      type="date"
-                      min={windowStart}
-                      max={addDays(windowStart, MAX_WINDOW_DAYS - 1)}
-                      value={endDraft}
-                      onChange={(e) => {
-                        const next = e.target.value;
-                        setEndDraft(next);
-                        if (isIsoDate(next)) setWindowEnd(next);
-                      }}
-                      className={`${inputClass} mt-1 w-auto`}
-                    />
-                  </div>
-                </div>
-                {/* L'APERÇU DIT CE QUE LES DEUX DATES FONT — le nombre de
-                    jours, qu'on ne compte plus soi-même. */}
-                <p className="mt-1 text-xs text-ink-soft">{windowPreview}</p>
-                {/* CHOISIR LES REPAS, PLUS LES JOURS. « Choose exactly »
-                    servait à préciser une fenêtre; les deux dates le font
-                    seules. Le geste qui manquait est plus fin: dans cette
-                    fenêtre-là, quels MOMENTS je mange chez moi. */}
-                {/* ⟳ 2026-09-16 — PLUS DE DOUBLE ENTRÉE POUR LE MAÎTRE. Ce lien
-                    ouvre SA grille (source `self`); dès qu'il a une ligne dans
-                    « Qui mange à la maison » juste en dessous, c'est cette
-                    ligne qui l'ouvre, et le lien se tait. Il reste pour qui
-                    n'a pas de ligne: un compte sans foyer chargé. */}
-                {props.onAwaySaved && !household?.me && (
-                  <button
-                    type="button"
-                    onClick={() => setPickerOpen(true)}
-                    // UN LIEN, DONC LA MARQUE (charte §2). `fig-700`/`paper` = 9,98:1.
-                    className="mt-2 text-xs font-medium text-fig-700 underline underline-offset-2 hover:text-fig-800"
-                  >
-                    {mealCopy("meals.picker.open")}
-                    {awayInWindow > 0 && (
-                      <span className="ml-1 font-normal text-ink-soft">
-                        · {awayInWindow}
-                      </span>
-                    )}
-                  </button>
-                )}
-              </Field>
-
-              {/* ⛔ L'INVENTAIRE DE CUISINE EST REMONTÉ ICI LE 2026-09-03, ET
-                  L'ORDRE EST LA GARDE.
-
-                  Il vivait 178 lignes PLUS BAS, après « combien de courses ».
-                  On acceptait donc « une seule course » avant de savoir s'il y a
-                  un congélateur — et « une seule course » ne tient QUE par le
-                  congélateur. La personne répondait, puis découvrait le refus
-                  dans l'explication du plan, pour une question qui était sous
-                  ses yeux.
-
-                  ⚠️ ET IL PRÉCÈDE AUSSI « TOUT CUISINER EN UNE SEULE FOIS »,
-                  qui est grisée sans congélateur et dont le refus renvoie mot
-                  pour mot à « Avec quoi vous cuisinez ». Un refus posé
-                  au-dessus de son remède se lit comme un bouton mort.
-
-                  ⚠️ CE N'EST PAS COSMÉTIQUE: c'est le même ordre que
-                  l'entonnoir, qui monte `KitchenEquipmentCard` AVANT la carte
-                  « Ce plan-ci ». Il est mesuré sur le HTML RENDU, pas sur la
-                  source. */}
-              {/* ══════════════════════════════════════════════════════════
-                  ⛔ L'INVENTAIRE DE CUISINE, COLLECTABLE ICI — ET C'EST LA
-                  CONDITION POUR QUE LA CASE DU DESSUS EXISTE VRAIMENT.
-                  ══════════════════════════════════════════════════════════
-
-                  Cette carte ne vivait QUE dans l'entonnoir (`/app/setup`,
-                  étape « table »), qui n'a aucune entrée de nav. Quelqu'un qui
-                  a un congélateur et n'a jamais vu la question lisait donc, sur
-                  cet écran-ci, « il faut un congélateur » — sans le moindre
-                  endroit atteignable pour le dire. C'est mot pour mot la
-                  cicatrice « port à null = champ incollectable »: la porte
-                  existe, la clé n'est nulle part.
-
-                  ⚠️ REPLIÉE, ET C'EST SA NATURE. Un four ne change pas d'une
-                  semaine à l'autre: la question se pose UNE fois, et déplier ne
-                  sert qu'à celui qui a quelque chose à corriger. `<details>`
-                  natif, pas un état React — il n'y a rien à se rappeler d'un
-                  rendu à l'autre.
-
-                  ⛔ ET C'EST LA MÊME CARTE, jamais une seconde: elle porte sa
-                  garde de chargement (`practicalConstraints === null`), son
-                  refus de sélection vide, et son écriture qui RELIT la colonne
-                  avant de fusionner. Une rangée de pastilles réécrite ici
-                  aurait perdu les trois. */}
-              <details className="group rounded-card border border-line-strong bg-paper p-4">
-                {/* ⟳ 2026-09-16 — FERMÉE, LA CARTE DIT QUAND MÊME CE QU'ELLE
-                    CONTIENT. La case « tout cuisiner en une seule fois » se
-                    grise sans congélateur et renvoie ici: il fallait déplier
-                    pour savoir s'il était coché. Les outils déclarés se lisent
-                    dans le titre, et l'accordéon ne s'ouvre plus que pour
-                    corriger. */}
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
-                  <span className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                    <span className="text-label font-semibold uppercase text-ink-soft">
-                      {t("setup.equipment.title")}
-                    </span>
-                    {equipmentSummary !== "" && (
-                      <span className="text-xs text-ink-soft">{equipmentSummary}</span>
-                    )}
-                  </span>
-                  <ChevronDown
-                    aria-hidden
-                    className="h-4 w-4 shrink-0 text-ink-soft transition-transform group-open:rotate-180"
-                  />
-                </summary>
-                <div className="mt-4">
-                  <KitchenEquipmentCard
-                    embedded
-                    practicalConstraints={planConstraints}
-                    hasGoal={hasGoalRow}
-                    // ⚠️ ON RELIT LA COLONNE, on ne devine pas ce qu'elle
-                    // contient maintenant. La carte vient d'y écrire; recopier
-                    // sa sélection dans l'état local d'ici ferait une seconde
-                    // idée de ce que la cuisine possède, et c'est celle qu'on
-                    // regarde le moins qui garderait l'ancienne.
-                    onSaved={async () => {
-                      if (!userId) return;
-                      const fresh = await readPlanInputs(userId);
-                      setPlanConstraints(fresh.practicalConstraints);
-                      setHasGoalRow(fresh.hasGoal);
-                    }}
-                  />
-                </div>
-              </details>
-
-              {/* ⛔ « POUR COMBIEN DE PERSONNES » A ÉTÉ RETIRÉ — 2026-09-03.
-                  Il n'a jamais eu de sujet à plusieurs bouches (le générateur
-                  du foyer DÉDUIT les couverts de la présence, repas par
-                  repas), et l'entonnoir envoie `servings: 1` en dur sur ses
-                  trois gestes. La grille de présence, juste en dessous, est la
-                  question qui le remplace. */}
-
-              {/* ── QUI MANGE À LA MAISON — UNE LIGNE PAR BOUCHE, ET SON ÉTAT ──
-                  ⟳ 2026-09-16 — TROIS CARTES SONT DEVENUES TROIS LIGNES. Chaque
-                  bouche portait un gros bouton identique et rien de son état:
-                  il fallait ouvrir trois fenêtres pour savoir qui manque. La
-                  ligne dit « là à tous les repas » ou « n repas ailleurs »,
-                  comptés sur CETTE fenêtre, et le geste est un lien.
-
-                  ⛔ LE MAÎTRE N'A PLUS DEUX ENTRÉES. Sa ligne ouvre la grille
-                  de SA déclaration (`practical_constraints.away_days`, source
-                  `self`) — celle que le lien sous les dates ouvrait, et qui se
-                  tait dès qu'il a une ligne ici. Les autres bouches gardent la
-                  marque du maître (`household_members.away_days`, source
-                  `household`). D14 tient les deux sources séparées; l'écran
-                  n'en montre qu'une par personne — celle que son lien édite.
-
-                  ⚠️ C'EST LA MÊME GRILLE QUE PARTOUT AILLEURS, MONTÉE N FOIS.
-                  Elle reprend les jours HORS fenêtre tels quels au `save`,
-                  sinon marquer un week-end effacerait « jeudi midi ». Une
-                  seconde implémentation « aurait fini par en effacer la
-                  moitié ».
-
-                  ⚠️ ET ON NE FUSIONNE JAMAIS `awayHousehold` AVEC `awaySelf`.
-                  La grille RÉÉCRIT ce qu'on lui donne: nourrie de l'union, elle
-                  recopierait la déclaration de la personne dans la colonne du
-                  maître, où elle survivrait à sa rétractation. */}
-              {household && (
-                <Field label={t("plan.request.presence_title")}>
-                  <ul className="divide-y divide-line rounded-card border border-line-strong bg-paper px-4">
-                    {household.members.map((member) => {
-                      const isMe = member.memberId === household.me?.memberId;
-                      const editsSelf = isMe && props.onAwaySaved !== undefined;
-                      const marks = editsSelf ? (props.awayDays ?? []) : member.awayHousehold;
-                      const away = awayMomentsInWindow(
-                        marks,
-                        askedDays.tokens,
-                        (member.eatingSlots ?? props.rhythm ?? []).length,
-                      );
-                      return (
-                        <li
-                          key={member.memberId}
-                          className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 py-2.5"
-                        >
-                          <span className="min-w-0">
-                            <span className="block text-sm font-medium text-ink">
-                              {member.displayName}
-                            </span>
-                            <span
-                              className={`block text-xs ${away > 0 ? "text-fig-700" : "text-ink-soft"}`}
-                            >
-                              {away === 0
-                                ? t("plan.request.presence_all_home")
-                                : plural(
-                                  away,
-                                  t("plan.request.presence_away_one"),
-                                  t("plan.request.presence_away_other"),
-                                ).replace("{n}", String(away))}
-                            </span>
-                          </span>
-                          {/* UN LIEN, DONC LA MARQUE (charte §2) — le même que
-                              celui du solo sous les dates. */}
-                          <button
-                            type="button"
-                            disabled={pickerBusy}
-                            onClick={() =>
-                              editsSelf
-                                ? setPickerOpen(true)
-                                : setAwayFor(
-                                  awayFor === member.memberId ? null : member.memberId,
-                                )}
-                            className="text-xs font-medium text-fig-700 underline underline-offset-2 hover:text-fig-800 disabled:cursor-not-allowed disabled:opacity-50"
-                          >
-                            {t("plan.request.presence_open")}
-                          </button>
-                          {/* MONTÉE MÊME FERMÉE — `Modal` rend `null` sans
-                              démonter — donc une grille modifiée survit à une
-                              fermeture accidentelle. Pas pour le maître: sa
-                              grille est celle du solo, montée plus bas.
-
-                              ⚠️ `away={member.awayHousehold}` ET RIEN D'AUTRE
-                              (voir le pavé au-dessus). `eatingSlots === null`
-                              veut dire « aux moments de la maison », pas « ne
-                              mange jamais »: on retombe sur le rythme de qui
-                              compose. Le roster rend la taille depuis le
-                              2026-08-14, la grille la reçoit telle quelle. */}
-                          {!editsSelf && (
-                            <MealPickerGrid
-                              open={awayFor === member.memberId}
-                              onClose={() => setAwayFor(null)}
-                              days={askedDays.tokens}
-                              dates={askedDays.dates}
-                              rhythm={member.eatingSlots ?? (props.rhythm ?? [])}
-                              away={member.awayHousehold}
-                              busy={pickerBusy}
-                              onSave={async (next) => {
-                                setPickerBusy(true);
-                                try {
-                                  await setMemberAway(member.memberId, next);
-                                  setHousehold(await loadHousehold(userId));
-                                } finally {
-                                  setPickerBusy(false);
-                                }
-                              }}
-                            />
-                          )}
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </Field>
-              )}
-
-              {/* LA COUPURE ENTRE « QUAND, POUR QUI » ET « COMMENT ». Trois
-                  groupes, deux traits: les dates et les bouches; la cuisine et
-                  les courses; l'envie. Aucun titre de groupe: les libellés des
-                  champs suffisent, et l'écran avait déjà trop de texte. */}
-              <div className="border-t border-line" />
-
-              {/* ══════════════════════════════════════════════════════════
-                  ⛔ « LES JOURS OÙ TU CUISINES » A ÉTÉ RETIRÉ — 2026-09-01
-                  ══════════════════════════════════════════════════════════
-
-                  Décision produit, prise en connaissance de cause: le plan ne
-                  demande plus quels jours on cuisine. Il n'en restait qu'une
-                  question utile — COMBIEN DE FOIS on cuisine — et elle est
-                  posée plus bas, sous le sélecteur de style: « tout cuisiner en
-                  une seule fois » (« je cuisine la veille » a disparu le
-                  2026-09-03, le serveur la dérive).
-
-                  ⚠️ CE QUE ÇA CHANGE POUR LE MOTEUR, ET C'EST VOULU:
-                  `practical_constraints.cook_days` est désormais ÉCRIT VIDE par
-                  `savePlanInputs`. La branche `declared.length === 0` de
-                  `cookDayLines` prend alors la main — le modèle pose ses
-                  sessions lui-même, au plus tôt. Laisser l'ancienne valeur en
-                  base aurait fait pire que la retirer: une contrainte qui
-                  décide encore des plans et que plus aucun écran ne peut
-                  changer. */}
-
-              {/* ⟳ P2 (2026-09-03) — LES DEUX MÊMES COMPOSANTS QUE
-                  L'ENTONNOIR, et c'est le point: deux champs écrits séparément
-                  divergeraient au premier libellé retouché, et c'est celui
-                  qu'on regarde le moins qui garderait l'ancien mot.
-
-                  ⚠️ L'ORDRE COMPTE, ET IL EST L'INVERSE DE L'ÉVIDENCE. Le
-                  style d'abord, la cadence de courses ensuite: c'est le style
-                  qui PLAFONNE le nombre de sessions, donc lire « trois
-                  courses » avant de savoir qu'on cuisine le moins possible
-                  ferait attendre trois séances que le plan ne fera pas. */}
-
-              {/* ══════════════════════════════════════════════════════════
-                  DEUX COLONNES, PARCE QUE C'EST UNE SEULE QUESTION —
-                  2026-09-07.
-                  ══════════════════════════════════════════════════════════
-
-                  La règle de cet écran ne change pas: il EMPILE ses questions,
-                  et ne met côte à côte que ce qui n'en fait qu'une — c'est
-                  déjà pourquoi les deux dates partagent une ligne. Le style et
-                  « une seule fois » sont exactement ce cas: l'aide du sélecteur
-                  annonce « le nombre de fois où le plan vous demande de
-                  cuisiner » (`plan.cooking.style_hint`), et la case en est le
-                  cas extrême. Empilés, les deux blocs se lisaient comme deux
-                  réglages; sur une ligne, la case se lit comme la précision du
-                  champ qu'elle borde.
-
-                  ⛔ L'ORDRE DU DOM NE BOUGE PAS, et c'est ce qui rend ce
-                  changement gratuit pour le reste: le style est le PREMIER
-                  enfant de la grille, donc la colonne de gauche. Pas d'`order-*`,
-                  pas de `grid-flow-*-dense`, pas de `*-reverse` ici — ils
-                  feraient mentir `oneCookingSessionField.int.test.ts`, qui lit
-                  la SOURCE pour affirmer l'ordre de lecture, et qui vérifie
-                  maintenant leur absence dans cette enveloppe.
-
-                  ⚠️ `sm:` ET PAS `lg:`. Sous 640 px la case retombe SOUS le
-                  sélecteur: deux colonnes de texte à 150 px ne rangent rien.
-                  Et `sm:items-center`, pas le haut — le bloc de la case est le
-                  plus court des deux, et calé en haut il flottait à côté d'une
-                  ÉTIQUETTE en capitales, pas à côté du contrôle qu'il précise. */}
-              <div className="grid gap-4 sm:grid-cols-2 sm:items-center">
-                <CookingStyleField
-                  id="meals-cooking-style"
-                  value={cookingStyle}
-                  onChange={setCookingStyle}
-                  disabled={building}
-                />
-
-                {/* ══════════════════════════════════════════════════════════
-                  « TOUT CUISINER EN UNE SEULE FOIS » — À DROITE DU SÉLECTEUR
-                  QU'ELLE PRÉCISE, ET EN PLUS PETIT.
-                  ══════════════════════════════════════════════════════════
-
-                  ⟳ 2026-09-04 — TROISIÈME PLACE EN QUATRE JOURS, et celle-ci
-                  a un motif que les deux autres n'avaient pas: la case ne
-                  répond pas à une question de calendrier ni à une question de
-                  courses, elle précise LE SÉLECTEUR QU'ELLE BORDE. L'aide du
-                  style annonce « le nombre de fois où le plan vous demande de
-                  cuisiner » (`plan.cooking.style_hint`); cette case en est le
-                  cas extrême. (⟳ 2026-09-07: la même paire, sur une ligne au
-                  lieu de deux — voir l'enveloppe juste au-dessus.)
-
-                  ⛔ AVANT « COMBIEN DE COURSES », toujours. Une seule course
-                  IMPLIQUE la session unique — les deux entrent par la même
-                  porte côté moteur (`generate-household-meal-v1`: `askedOne ||
-                  groceryRuns === 1`) —, donc la cadence de courses se lit
-                  APRÈS avoir dit si la cuisine tient en une fois.
-
-                  ⚠️ ET C'EST L'ORDRE DE L'ÉTAPE 3, qui fait foi. Deux écrans
-                  qui posent les mêmes questions dans deux ordres se relisent
-                  comme deux formulaires; `oneCookingSessionField.int.test.ts`
-                  lit les deux sources et refuse l'écart. */}
-                <OneCookingSessionField
-                  id="meals-one-cooking-session"
-                  value={oneCookingSession}
-                  onChange={setOneCookingSession}
-                  disabled={building}
-                  hasFreezer={hasFreezer}
-                />
-              </div>
-
-              {/* ⟳ 2026-09-04 — LES MÊMES TROIS ENTRÉES QUE DANS L'ENTONNOIR,
-                  lues aux mêmes endroits: le style juste au-dessus, la case
-                  « une seule fois » entre les deux, et la fenêtre demandée en
-                  haut du formulaire. Une seule qui manquerait ferait proposer
-                  ici une cadence que l'étape 3 refuse — deux écrans, deux
-                  offres, et c'est celui qu'on regarde le moins qui garderait
-                  l'ancienne. */}
-              <GroceryRunsField
-                id="meals-grocery-runs"
-                value={groceryRuns}
-                onChange={setGroceryRuns}
+              {/* ⟳ 2026-09-23 — LES CHAMPS SONT CEUX DE L'ÉTAPE 3, AU COMPOSANT
+                  PRÈS: `PlanRequestFields` est monté ici et par
+                  `SetupPage#RequestStep`. Ce qui reste ici est ce qui entoure
+                  les champs — l'avertissement chiffré au-dessus, le refus et
+                  les deux boutons en dessous. */}
+              <PlanRequestFields
+                idPrefix="meals"
                 disabled={building}
-                style={cookingStyle}
+                windowStart={windowStart}
+                windowEnd={windowEnd}
+                onWindowStart={setWindowStart}
+                onWindowEnd={setWindowEnd}
+                days={askedDays}
+                practicalConstraints={planConstraints}
+                hasGoal={hasGoalRow}
+                // ⚠️ ON RELIT LA COLONNE, on ne devine pas ce qu'elle contient:
+                // la carte vient d'y écrire.
+                onEquipmentSaved={async () => {
+                  if (!userId) return;
+                  const fresh = await readPlanInputs(userId);
+                  setPlanConstraints(fresh.practicalConstraints);
+                  setHasGoalRow(fresh.hasGoal);
+                }}
+                presence={presenceRows}
+                cookingStyle={cookingStyle}
+                onCookingStyle={setCookingStyle}
                 oneCookingSession={oneCookingSession}
-                daysToEat={askedDays.tokens.length}
-                freezer={hasFreezer}
+                onOneCookingSession={setOneCookingSession}
+                groceryRuns={groceryRuns}
+                onGroceryRuns={setGroceryRuns}
+                budget={budget}
+                onBudget={(raw) => {
+                  setBudget(raw);
+                  // Le refus du clic meurt avec la valeur qui l'a causé.
+                  setError(null);
+                }}
+                budgetVerdict={budgetVerdict}
+                showEnvy
+                envy={envy}
+                onEnvy={setEnvy}
               />
-
-              {/* ⛔ « TEMPS PAR SESSION DE CUISINE » A ÉTÉ RETIRÉ — 2026-09-03.
-                  Six pastilles de durée (30 min → 3 h) vivaient ici. P2 les a
-                  retirées de l'entonnoir le matin même — « personne ne sait
-                  répondre 45 avant d'avoir vu le plan » — et les a remplacées
-                  par les deux questions ci-dessus, dont `cooking_time_min` est
-                  maintenant DÉRIVÉ (`_shared/keel/cooking_plan.ts`). Les
-                  laisser ici aurait fait DEUX autorités sur une colonne, dont
-                  celle que l'entonnoir contredit à la composition suivante.
-
-                  ⚠️ LA VALEUR N'EST PAS EFFACÉE POUR AUTANT: `cookingTimeMin`
-                  fait l'aller-retour dans `savePlanInputs`. Voir son état. */}
-
-              {/* LE BUDGET, APRÈS LA CUISINE ET AVANT L'ENVIE — l'ordre de
-                  l'étape 3, au champ près. */}
-              <Field
-                label={t("plan.cooking.budget_label")}
-                htmlFor="meals-budget"
-              >
-                <input
-                  id="meals-budget"
-                  type="number"
-                  inputMode="decimal"
-                  min={1}
-                  max={BUDGET_MAX}
-                  step="1"
-                  className={inputClass}
-                  value={budget}
-                  onChange={(e) => {
-                    setBudget(e.target.value);
-                    // ⚠️ LE REFUS DU CLIC MEURT AVEC LA VALEUR QUI L'A CAUSÉ.
-                    // `error` n'est remis à `null` qu'à l'envoi suivant: sans
-                    // cette ligne, le refus du plancher restait au pied du
-                    // formulaire pendant toute la correction.
-                    setError(null);
-                  }}
-                />
-                {/* ⛔ CE QUI SE DIT, ET CE QUI SE REFUSE, NE SONT PAS AU MÊME
-                    ENDROIT. Le refus (« il faut au moins X ») part dans
-                    `error`, au pied du formulaire, parce qu'il arrête l'envoi.
-                    Ceci-ci n'arrête rien: c'est ce que ce budget va CHANGER,
-                    et ça se lit sous le champ qui l'a produit, pendant qu'on
-                    tape. Le mettre dans `error` ferait ressembler une
-                    information à un blocage. */}
-                {budgetVerdict.kind === "tight" && (
-                  <p className="mt-1 text-xs text-ink-soft">
-                    {t("plan.cooking.budget_tight")}
-                  </p>
-                )}
-                {/* ⛔ LE REFUS SE REND ICI AUSSI, ET VIVANT — mesuré le
-                    2026-09-11 sur un run réel: rendu SEULEMENT au clic, il
-                    restait affiché pendant qu'on corrigeait le montant, et
-                    disait encore « il faut au moins 92,75 » devant un champ
-                    à 150. Un refus qui survit à sa cause est un refus faux.
-                    Il est donc calculé, comme la phrase du dessus, à partir
-                    de ce que le champ porte MAINTENANT. */}
-                {budgetVerdict.kind === "below_floor" && (
-                  <p className="mt-1 text-xs font-medium text-red-700">
-                    {t("plan.cooking.budget_below_floor").replace(
-                      "{amount}",
-                      formatBudgetAmount(budgetVerdict.floor),
-                    )}
-                  </p>
-                )}
-              </Field>
-
-              <div className="border-t border-line" />
-
-              {/* ── ⛔ ICI SE TENAIT « COMMENT TU CUISINES CETTE SEMAINE » —
-                  RETIRÉ LE 2026-09-06, sur le même geste que dans l'entonnoir
-                  et pour la même raison: il se lisait comme un doublon de
-                  « Comment voulez-vous cuisiner ? », rendu juste au-dessus.
-                  Les deux écrans montaient le MÊME champ; en retirer un seul
-                  aurait fait diverger les deux couloirs de composition. Le
-                  détail de ce que ça coûte est dans `SetupPage.tsx`, à la même
-                  place. */}
-
-              {/* ══════════════════════════════════════════════════════════
-                  L'ENVIE — UNE SEULE QUESTION, DEUX DESTINATIONS.
-                  ══════════════════════════════════════════════════════════
-
-                  ⛔ IL Y EN AVAIT DEUX, ET C'EST LE DÉFAUT QUE CE LOT FERME.
-                  Un maître de foyer lisait ici « Ce dont tu as envie cette
-                  fois » PUIS « C'est la maison a envie de quoi ? » — deux zones
-                  de texte qui posent la même question, à deux endroits du même
-                  formulaire, avec deux mots différents. L'étape 3 n'en pose
-                  qu'une; c'est elle qui fait foi.
-
-                  ⚠️ LES MOTS SONT CEUX DE L'ENTONNOIR (`plan.envy.*`), et le
-                  titre n'est PAS du français canonique: c'est la phrase de
-                  l'utilisateur, mot pour mot, et la corriger est une décision
-                  humaine (voir la note d'`fr.ts`).
-
-                  ⟳ 2026-09-10 · LOT 7 — UNE QUESTION, UN SEUL CANAL.
-                  La destination « suivait la lane »: la ligne de la semaine
-                  (`household_envy_submissions`, `submitEnvy`) pour un maître,
-                  le corps de la requête (`preferences`) pour un solo. Il n'y a
-                  plus qu'un moteur, donc plus qu'un canal — la ligne de la
-                  semaine, qui est déjà celle de l'entonnoir. Envoyer les deux
-                  mettrait la même phrase deux fois dans la consigne.
-
-                  ⛔ ET LA LÉGENDE « repris de la dernière fois » EST PARTIE
-                  AVEC `preferences`. Elle disait d'où venait un texte relu du
-                  DERNIER PLAN; la ligne de la semaine n'est pas reprise, elle
-                  est RELUE sur la semaine visée (`loadEnvyLine`, ancrée par
-                  `envyWeek`) — et elle change quand on corrige la date de
-                  départ. Il n'y a donc plus rien à prévenir: ce qui s'affiche
-                  décrit toujours la semaine qu'on regarde. */}
-              <Field
-                label={t("plan.envy.title")}
-                htmlFor="meals-envy"
-              >
-                <textarea
-                  id="meals-envy"
-                  className={`${inputClass} min-h-16`}
-                  value={envy}
-                  // LE PLAFOND DE LA COLONNE DU FOYER, et il s'applique
-                  // maintenant à tout le monde: c'est la seule colonne où cette
-                  // phrase atterrit.
-                  maxLength={ENVY_MAX_CHARS}
-                  placeholder={t("plan.envy.placeholder")}
-                  onChange={(e) => setEnvy(e.target.value)}
-                />
-              </Field>
 
               {/* ⛔ « CE QUI SE PASSE CETTE SEMAINE » A ÉTÉ RETIRÉ — 2026-09-03.
                   Le champ disait ce que la grille de présence ne peut pas dire
@@ -2398,6 +1844,10 @@ export default function MealBuilder(props: MealBuilderProps) {
                 // à un nom sort aussi quand le LECTEUR est fermé par défaut
                 // (maintenance, rien choisi). Le serveur a déjà tranché qui y a
                 // droit; `forBox` ne fait que lire ce qui a voyagé.
+                // ⟳ 2026-09-24 — le tableau de la semaine: même règle que
+                // `forBox`, dont il n'est que la somme.
+                memberDayEnergy={(member, day) => energy.forMemberDay(member, day)}
+                dishLayout="full"
               />
             )}
           {/* ⛔ 2026-09-23 — LA FOURCHETTE « Autour de {low}–{high} par jour…

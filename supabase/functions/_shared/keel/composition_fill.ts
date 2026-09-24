@@ -725,12 +725,92 @@ function withinBand(v: number | null, lo: number | null, hi: number | null): boo
 }
 
 /**
+ * ⟳ 2026-09-24 — CROIRE LE MODÈLE, SAUF QUAND IL SE CONTREDIT.
+ *
+ * ── CE QUE ÇA REMPLACE, ET POURQUOI ─────────────────────────────────────────
+ * La réponse devait tenir dans la BANDE de sa famille sur les quatre valeurs
+ * (énergie, protéines, glucides, lipides). La bande est tirée des aliments
+ * HUMAINS de la famille — seize pour les fruits à coque —, pas de ce qu'un
+ * aliment de cette famille peut valoir. Rejoué le 2026-09-24 sur les 626
+ * réponses distinctes du modèle en base : la bande en jetait 51 %, dont la
+ * purée de noisettes (60 g de lipides pour une bande qui s'arrête à 55,9) et
+ * la purée d'amandes (21,6 g de glucides pour 18,8). Jetées, elles tombaient
+ * en `group_bounds`, que `meal-energy-v1` refuse de lire : le shake de Thomas
+ * sortait du total du jour, et le tableau de la semaine disait « * une partie
+ * des repas n'est pas comptée ».
+ *
+ * ── CE QUI RESTE, ET CE QUE CHAQUE CONTRÔLE ATTRAPE ─────────────────────────
+ *   · `inconsistent` — la réponse se contredit elle-même, ou ne se vérifie
+ *     pas (macros absentes) : une valeur négative, plus de 100 g de macros pour 100 g d'aliment, ou une énergie
+ *     que ses propres macros ne rendent pas (Atwater 4/4/9, à 25 % ou 20 kcal
+ *     près ; les fibres comptées à 2 kcal quand le modèle les range dans les
+ *     glucides, sinon le cacao et l'origan tombent à tort). Attrape la levure
+ *     « 325 kcal » dont les macros font 148, le tofu soyeux « 55 » qui en fait 78.
+ *   · `other_food` — le modèle a rangé l'aliment dans une AUTRE famille que
+ *     celle que la ligne déclarait, ET son énergie est hors de ce que la
+ *     famille déclarée peut valoir (sa bande, élargie de ×0,5 à ×1,5). Attrape
+ *     « fromage râpé » lu comme du chou râpé (crucifères, 28 kcal, 7 fois en
+ *     base) ; laisse passer la boisson de soja rangée en tofu plutôt qu'en
+ *     légumineuses (54 kcal, dans la bande élargie).
+ * Rejoué sur les mêmes 626 réponses : 97 % sont crues (609), et les 17 qui
+ * ne le sont pas se contredisent réellement.
+ *
+ * ⚠️ CE QUI PASSE ENCORE, ET C'EST DIT : une confusion d'aliment DANS la
+ * même famille (« raisin blanc » lu comme du raisin sec, 279 kcal, fruits).
+ * Aucun nombre ne la distingue d'un vrai fruit sec.
+ *
+ * PURE.
+ */
+export const MODEL_ENERGY_TOLERANCE_SHARE = 0.25;
+export const MODEL_ENERGY_TOLERANCE_KCAL = 20;
+export const MODEL_OTHER_FOOD_BAND_LOW = 0.5;
+export const MODEL_OTHER_FOOD_BAND_HIGH = 1.5;
+
+export function modelAnswerHolds(
+  answer: FillAnswer,
+  declaredGroup: FoodGroupRef | null,
+  bands: ReadonlyMap<FoodGroupRef, GroupBand>,
+): { holds: true } | { holds: false; reason: "inconsistent" | "other_food" } {
+  const k = answer.energyKcal;
+  if (!Number.isFinite(k) || k < 0 || k > MAX_PLAUSIBLE_KCAL_PER_100G) {
+    return { holds: false, reason: "inconsistent" };
+  }
+  const p = answer.proteinG;
+  const c = answer.carbsG;
+  const f = answer.fatG;
+  // ⛔ SANS SES MACROS, UNE ÉNERGIE NE SE VÉRIFIE PAS — elle n'est donc pas
+  // crue. Les 626 réponses réelles du 2026-09-24 portent toutes les trois ;
+  // une réponse qui les omet est déjà une réponse à part (le yuzu « 400 kcal »
+  // du test ④ n'en porte aucune).
+  if (p === null || c === null || f === null) return { holds: false, reason: "inconsistent" };
+  if (p < 0 || c < 0 || f < 0) return { holds: false, reason: "inconsistent" };
+  if (p + c + f > 102) return { holds: false, reason: "inconsistent" };
+  const fiber = answer.fiberG !== null && answer.fiberG > 0 ? Math.min(answer.fiberG, c) : 0;
+  const withCarbs = 4 * p + 4 * c + 9 * f;
+  const fiberApart = 4 * p + 4 * (c - fiber) + 2 * fiber + 9 * f;
+  const tolerance = Math.max(MODEL_ENERGY_TOLERANCE_SHARE * k, MODEL_ENERGY_TOLERANCE_KCAL);
+  if (Math.min(Math.abs(withCarbs - k), Math.abs(fiberApart - k)) > tolerance) {
+    return { holds: false, reason: "inconsistent" };
+  }
+  if (declaredGroup !== null && answer.foodGroupRef !== null && answer.foodGroupRef !== declaredGroup) {
+    const declared = bands.get(declaredGroup) ?? null;
+    if (
+      declared !== null &&
+      (k < declared.energyLow * MODEL_OTHER_FOOD_BAND_LOW || k > declared.energyHigh * MODEL_OTHER_FOOD_BAND_HIGH)
+    ) {
+      return { holds: false, reason: "other_food" };
+    }
+  }
+  return { holds: true };
+}
+
+/**
  * LES LIGNES DE COMPOSITION D'UN PLAN, à partir des réponses et des bandes.
  *
  * ── L'ÉCHELLE D'ACCEPTATION, DANS CET ORDRE ───────────────────────────────
- *   1. le modèle a répondu, la valeur est plausible et tient dans la bande
- *      (ou le groupe n'a pas de bande)          -> `model`, résidu 0
- *   2. le modèle a répondu HORS BANDE            -> milieu de bande,
+ *   1. le modèle a répondu et sa réponse ne se contredit pas
+ *      (`modelAnswerHolds`, ⟳ 2026-09-24)       -> `model`, résidu 0
+ *   2. le modèle a répondu, mais se contredit   -> milieu de bande,
  *      `group_bounds`, résidu = demi-largeur, valeur brute gardée pour le sas
  *   3. le modèle n'a pas répondu du tout         -> milieu de bande du groupe
  *      DÉCLARÉ sur la ligne d'ingrédient, `group_bounds`
@@ -752,16 +832,18 @@ export function fillCompositions(args: {
   const refused: { term: string; reason: FillRefusal }[] = [];
   /** Les termes REMPLIS mais mis en revue humaine. Comptés, jamais silencieux. */
   const review: string[] = [];
+  /** ⟳ 2026-09-24 — pourquoi une réponse du modèle n'a pas été crue. */
+  const verdicts: Record<string, number> = { inconsistent: 0, other_food: 0 };
   for (const term of args.overCap ?? []) refused.push({ term, reason: "over_cap" });
 
   for (const req of args.requests) {
     const answer = byTerm.get(req.term) ?? null;
-    const group = answer?.foodGroupRef ?? req.declaredGroup ?? null;
+    let group = answer?.foodGroupRef ?? req.declaredGroup ?? null;
     if (group === null) {
       refused.push({ term: req.term, reason: "no_group" });
       continue;
     }
-    const band = args.bands.get(group) ?? null;
+    let band = args.bands.get(group) ?? null;
 
     if (answer !== null && answer.energyKcal > MAX_PLAUSIBLE_KCAL_PER_100G) {
       // Au-delà de la matière grasse pure. Aucune bande n'a besoin d'exister
@@ -773,17 +855,17 @@ export function fillCompositions(args: {
       }
     }
 
-    const inBand = answer !== null && band !== null &&
-      answer.energyKcal >= band.energyLow && answer.energyKcal <= band.energyHigh &&
-      withinBand(answer.proteinG, band.proteinLow, band.proteinHigh) &&
-      withinBand(answer.carbsG, band.carbsLow, band.carbsHigh) &&
-      withinBand(answer.fatG, band.fatLow, band.fatHigh);
+    // ⟳ 2026-09-24 — LE MODÈLE EST CRU SUR PAROLE, SAUF S'IL SE CONTREDIT.
+    // La bande de famille ne décide plus: voir `modelAnswerHolds`.
+    const verdict = answer === null
+      ? null
+      : modelAnswerHolds(answer, req.declaredGroup, args.bands);
+    if (verdict !== null && !verdict.holds) {
+      verdicts[verdict.reason] = (verdicts[verdict.reason] ?? 0) + 1;
+    }
 
     // ① le modèle, accepté
-    if (
-      answer !== null && answer.energyKcal <= MAX_PLAUSIBLE_KCAL_PER_100G &&
-      (band === null || inBand)
-    ) {
+    if (answer !== null && verdict !== null && verdict.holds) {
       // ⛔ LE CANONIQUE NE DÉSIGNE JAMAIS UN ALIMENT QUE LE RÉFÉRENTIEL PORTE
       // DÉJÀ. C'est le cas `laitue -> lait`, et il est écarté même quand le
       // modèle a raison — on ne saurait pas faire la différence.
@@ -827,6 +909,12 @@ export function fillCompositions(args: {
 
     // ②③ le repli par bornes — le seul chemin qui ne peut pas échouer, et il
     // demande une bande. Pas de bande ⇒ abstention comptée, jamais un nombre.
+    // ⟳ 2026-09-24 — si le modèle a parlé d'un AUTRE aliment (`other_food`),
+    // le repli est la famille DÉCLARÉE: celle du modèle est justement suspecte.
+    if (verdict !== null && !verdict.holds && verdict.reason === "other_food" && req.declaredGroup !== null) {
+      group = req.declaredGroup;
+      band = args.bands.get(group) ?? null;
+    }
     if (band === null) {
       refused.push({ term: req.term, reason: "no_band" });
       continue;
@@ -870,6 +958,8 @@ export function fillCompositions(args: {
     answered: args.answers.length,
     model: filled.filter((f) => f.source === "model").length,
     group_bounds: filled.filter((f) => f.source === "group_bounds").length,
+    model_inconsistent: verdicts.inconsistent,
+    model_other_food: verdicts.other_food,
   };
   for (const reason of FILL_REFUSALS) counts[reason] = 0;
   for (const r of refused) counts[r.reason] = (counts[r.reason] ?? 0) + 1;

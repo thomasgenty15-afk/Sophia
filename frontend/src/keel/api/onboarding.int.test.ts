@@ -179,6 +179,9 @@ function complete(branch: FunnelBranch): FunnelState {
       cookingStyle: "balanced",
       groceryRuns: 2,
     },
+    // ⟳ 2026-09-24 — « AVEC QUOI TU CUISINES » RETIENT LA GÉNÉRATION: un état
+    // déclaré complet la porte, sinon chaque cas mesurerait ce refus-là.
+    kitchenEquipment: ["oven", "stovetop"],
   };
 }
 
@@ -378,6 +381,8 @@ describe("canGenerate — l'état complet", () => {
         "cooking_style",
         "grocery_runs",
         "budget_amount",
+        // ⟳ 2026-09-24 — « Avec quoi tu cuisines » retient la génération.
+        "kitchen_equipment",
       ].sort(),
     );
   });
@@ -499,6 +504,20 @@ describe("canGenerate — étape par étape", () => {
       "solo",
       (s) => ({ ...s, plan: { ...s.plan, budgetAmount: null } }),
       "budget_amount",
+    ],
+    // ⟳ 2026-09-24 — demandé: pas de plan tant que « Avec quoi tu cuisines »
+    // n'est pas renseigné. `null` = rien de coché (`readKitchenEquipment`).
+    [
+      "une cuisine jamais déclarée",
+      "solo",
+      (s) => ({ ...s, kitchenEquipment: null }),
+      "kitchen_equipment",
+    ],
+    [
+      "une cuisine jamais déclarée, en famille",
+      "family",
+      (s) => ({ ...s, kitchenEquipment: null }),
+      "kitchen_equipment",
     ],
     // ⚠️ LES DEUX FORMES QUI RESSEMBLENT À UNE RÉPONSE. `Number("")` vaut 0 et
     // EST fini: une garde `!== null` les laisserait partir au modèle comme des

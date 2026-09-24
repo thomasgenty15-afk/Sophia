@@ -6,7 +6,29 @@
  * possède l'appel de publication : le cas refusé ne peut donc pas écrire par
  * accident. Elle ne décide d'aucune tolérance positive ; un reste éventuel est
  * une masse réelle, journalisée par l'appelant.
+ *
+ * ⟳ 2026-09-23 — UN DÉFICIT DE CUISINE N'EST PAS UN DÉFICIT. Staging, requête
+ * `03676bbf…`: tout le plan est parti en 422 pour une casserole courte de
+ * MOINS D'UN GRAMME (`worst_shortfall_g: 1`, qui est un `Math.ceil`). La
+ * croissance avance par pas entiers, la masse prête se recalcule avec l'eau de
+ * cuisson: un reste de quelques dixièmes sous zéro est de l'arithmétique, pas
+ * une casserole vide. Un manque est donc TOLÉRÉ tant qu'il reste sous
+ * `max(10 g, 3 % du prélevé)` — ce qu'aucune cuisine ne sait peser. Au-delà, la
+ * porte refuse comme avant.
  */
+export const POT_SHORTFALL_TOLERANCE_MIN_G = 10;
+export const POT_SHORTFALL_TOLERANCE_SHARE = 0.03;
+
+/** `true` si ce manque (en g, positif) est sous la tolérance de cuisine. */
+export function potShortfallTolerated(drawnG: number, shortfallG: number): boolean {
+  if (!Number.isFinite(drawnG) || !Number.isFinite(shortfallG)) return false;
+  if (shortfallG <= 0) return true;
+  const tolerance = Math.max(
+    POT_SHORTFALL_TOLERANCE_MIN_G,
+    POT_SHORTFALL_TOLERANCE_SHARE * Math.max(0, drawnG),
+  );
+  return shortfallG <= tolerance;
+}
 export type PotMassPublication<R> =
   | { readonly kind: "published"; readonly result: R }
   | {

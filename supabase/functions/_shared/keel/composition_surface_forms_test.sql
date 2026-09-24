@@ -203,6 +203,44 @@ select '⑨ le cron hebdomadaire est planifié',
             where jobname = 'keel-promote-pending-compositions'), 'aucun job');
 
 -- ── LE VERDICT ─────────────────────────────────────────────────────────────
+-- ── ⑩ ⟳ 2026-09-24 — UNE RÉPONSE DU MODÈLE DÉLOGE LA CONVENTION QUI OCCUPE SON NOM
+--
+-- Migration 20260924230000. Mesuré sur le plan local `59b06fd6` : « purée
+-- d'amandes » restait à 531,1 kcal de milieu de bande, refusé à la lecture,
+-- pendant que la réponse du modèle (614) dormait sous « almond butter ».
+-- MUTATION QUI DOIT ROUGIR: retirer l'`update ... set status = 'covered'`, ou
+-- la clause `not (p2.fill_source = 'group_bounds' and p2.status = 'covered')`.
+insert into public.food_composition_pending
+  (term, food_group_ref, label, energy_kcal, yield_class, fill_source, sightings)
+values ('zzz puree de test', 'nuts_seeds', 'zzz puree de test', 531.1, 'neutral', 'group_bounds', 2);
+select public.record_food_composition_sightings(
+  '[{"term":"zzz test butter","food_group_ref":"nuts_seeds","label":"zzz test butter",
+     "energy_kcal":614,"protein_g":21,"carbs_g":20,"fat_g":55,"yield_class":"neutral","fill_source":"model",
+     "forms":[{"form":"zzz puree de test","source":"encountered"}]}]'::jsonb);
+insert into t_probe
+select '⑩ la forme passe à la valeur du modèle, la convention est couverte',
+  (select status from public.food_composition_pending where term = 'zzz puree de test') = 'covered'
+  and exists (select 1 from public.food_composition_pending_by_form
+              where form = 'zzz puree de test' and fill_source = 'model' and status = 'pending' and energy_kcal = 614),
+  format('convention %s ; lectures par la forme: %s',
+    (select status from public.food_composition_pending where term = 'zzz puree de test'),
+    (select string_agg(fill_source || '/' || status || '/' || energy_kcal, ', ')
+     from public.food_composition_pending_by_form where form = 'zzz puree de test'));
+
+-- Le cas qui PASSE: une valeur de MODÈLE qui occupe le nom n'est jamais délogée.
+insert into public.food_composition_pending
+  (term, food_group_ref, label, energy_kcal, yield_class, fill_source, sightings)
+values ('zzz vraie valeur', 'nuts_seeds', 'zzz vraie valeur', 600, 'neutral', 'model', 2);
+select public.record_food_composition_sightings(
+  '[{"term":"zzz autre beurre","food_group_ref":"nuts_seeds","label":"zzz autre beurre",
+     "energy_kcal":620,"protein_g":20,"carbs_g":20,"fat_g":56,"yield_class":"neutral","fill_source":"model",
+     "forms":[{"form":"zzz vraie valeur","source":"encountered"}]}]'::jsonb);
+insert into t_probe
+select '⑪ une valeur de modèle garde son nom',
+  (select status from public.food_composition_pending where term = 'zzz vraie valeur') = 'pending'
+  and not exists (select 1 from public.food_composition_pending_aliases where alias = 'zzz vraie valeur'),
+  format('statut %s', (select status from public.food_composition_pending where term = 'zzz vraie valeur'));
+
 select case when ok then '  OK  ' else ' ÉCHEC' end as verdict, name, detail from t_probe order by name;
 do $$
 declare n integer;

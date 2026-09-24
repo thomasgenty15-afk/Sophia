@@ -463,7 +463,9 @@ Deno.test("le poisson se rapproche encore: un seul jour d'écart", () => {
   assertEquals(waves[0].buyOn, "2026-08-06", "jeudi, la veille de la cuisson");
 });
 
-Deno.test("la viande en pièce garde les trois jours historiques", () => {
+Deno.test("la viande en pièce: deux jours (⟳ 2026-09-24, c'était trois)", () => {
+  // Un filet de porc acheté jeudi pour dimanche, jugé dangereux sur un plan
+  // réel (brouillon `59b06fd6`).
   const waves = planGroceryWaves({
     startsOn: MONDAY,
     durationDays: 7,
@@ -472,7 +474,7 @@ Deno.test("la viande en pièce garde les trois jours historiques", () => {
     shoppingList: [grouped("boeuf", "protein", "red_meat")],
     preparations: [{ id: "p1", cookOn: "fri", ingredientTerms: ["boeuf"] }],
   });
-  assertEquals(waves[0].buyOn, "2026-08-04", "mardi, comme avant le lot");
+  assertEquals(waves[0].buyOn, "2026-08-05", "mercredi, deux jours avant la cuisson");
 });
 
 Deno.test("les légumes frais ENTRENT dans la première vague, ils n'en sortent plus", () => {
@@ -490,14 +492,16 @@ Deno.test("les légumes frais ENTRENT dans la première vague, ils n'en sortent 
   assertEquals(waves[0].buyOn, MONDAY);
 });
 
-Deno.test("la salade reste fragile: trois jours, comme la viande en pièce", () => {
+Deno.test("la salade: cinq jours (⟳ 2026-09-24, c'était trois)", () => {
+  // Décision de l'utilisateur : une laitue se garde cinq jours au frigo. Cuite
+  // dimanche 09, elle s'achète au plus tôt mardi 04.
   const waves = planGroceryWaves({
     startsOn: MONDAY,
     durationDays: 7,
     runs: null,
     freezer: false,
     shoppingList: [grouped("laitue", "produce", "leafy_greens")],
-    preparations: [{ id: "p1", cookOn: "fri", ingredientTerms: ["laitue"] }],
+    preparations: [{ id: "p1", cookOn: "sun", ingredientTerms: ["laitue"] }],
   });
   assertEquals(waves[0].buyOn, "2026-08-04");
 });
@@ -622,7 +626,7 @@ Deno.test("⟳ une ligne SANS identité garde le repli historique, et le rayon l
 
 Deno.test("A1 — la PREMIÈRE vague ne porte pas de phrase, même tombée après le début", () => {
   // Tout est périssable et rien ne se cuisine avant la fin de semaine: la
-  // première vague tombe le MERCREDI 05 (samedi 08 − 3 jours de salade), pas
+  // première vague tombe le MARDI 04 (dimanche 09 − 5 jours de salade), pas
   // le lundi.
   const waves = planGroceryWaves({
     startsOn: MONDAY,
@@ -634,7 +638,7 @@ Deno.test("A1 — la PREMIÈRE vague ne porte pas de phrase, même tombée aprè
       { term: "poisson", quantity: null, aisle: "protein", food_group: "fish", ref: null },
     ],
     preparations: [
-      { id: "p1", cookOn: "sat", ingredientTerms: ["salade"] },
+      { id: "p1", cookOn: "sun", ingredientTerms: ["salade"] },
       { id: "p2", cookOn: "sun", ingredientTerms: ["poisson"] },
     ],
   });
@@ -871,7 +875,9 @@ Deno.test("⛔ LOT C — LA SALADE NE SE CONGÈLE PAS, et sa vague survit", () =
     ],
     preparations: [
       { id: "p1", cookOn: "mon", ingredientTerms: ["lentilles"] },
-      { id: "p2", cookOn: "sat", ingredientTerms: ["salade verte"] },
+      // ⟳ 2026-09-24 — dimanche : la salade tient cinq jours, samedi était
+      // encore à portée de la course du lundi.
+      { id: "p2", cookOn: "sun", ingredientTerms: ["salade verte"] },
       { id: "p3", cookOn: "sat", ingredientTerms: ["poisson"] },
     ],
   });
@@ -1141,10 +1147,11 @@ Deno.test("repli — à égalité de couverture, la date qui n'abandonne aucun i
     ],
   });
   // Poulet (fenêtre 2, cuisson mercredi): lundi..mercredi — il tient au frais
-  // depuis la première course. Laitue (fenêtre 3, cuisson dimanche):
-  // jeudi..dimanche, incongelable. La seule date en plus va donc à la laitue:
-  // deux courses, rien au congélateur, aucune vague à part.
-  assertEquals(waves.map((w) => w.buyOn), ["2026-09-21", "2026-09-24"]);
+  // depuis la première course. Laitue (fenêtre 5 depuis le 2026-09-24,
+  // cuisson dimanche): mardi..dimanche, incongelable. La seule date en plus va
+  // donc à la laitue, la plus tôt: deux courses, rien au congélateur, aucune
+  // vague à part. (La lane l'éloigne ensuite d'un jour: `spaceShoppingDays`.)
+  assertEquals(waves.map((w) => w.buyOn), ["2026-09-21", "2026-09-22"]);
   assertEquals(waves[0].items.map((i) => i.term).sort(), ["poulet", "riz"]);
   assertEquals(waves.flatMap((w) => w.freezeOnPurchase), []);
   assertEquals(waves[1].items.map((i) => i.term), ["laitue"]);
@@ -1169,9 +1176,9 @@ Deno.test("repli — à UNE course, l'incongelable hors de portée garde sa vagu
     ],
   });
   // Poulet (fenêtre 2, cuisson vendredi): mercredi..vendredi — hors de portée
-  // de la seule course, congelé lundi. Laitue: jeudi..dimanche, incongelable,
-  // garde sa vague de jeudi. Une course demandée, deux vagues écrites.
-  assertEquals(waves.map((w) => w.buyOn), ["2026-09-21", "2026-09-24"]);
+  // de la seule course, congelé lundi. Laitue (fenêtre 5): mardi..dimanche,
+  // incongelable, garde sa vague de mardi. Une course demandée, deux vagues.
+  assertEquals(waves.map((w) => w.buyOn), ["2026-09-21", "2026-09-22"]);
   assertEquals(waves[0].freezeOnPurchase.map((i) => i.term), ["poulet"]);
   assertEquals(waves[1].keptForFreshness.map((i) => i.term), ["laitue"]);
 });

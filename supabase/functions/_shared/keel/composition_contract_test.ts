@@ -374,23 +374,33 @@ Deno.test("le bloc DIT que la liste ne limite pas la cuisine", () => {
   // La compatibilité des plans HISTORIQUES sans `ref` reste un mode de
   // LECTURE (`refForIngredient`); elle ne vaut pas autorisation pour une
   // sortie neuve.
-  assert(
-    !bloc.includes('leave "ref" out'),
-    "⛔ le bloc ne doit plus autoriser l'omission de l'identifiant",
-  );
+  //
+  // ⟳ 2026-09-24 — ELLE REVIENT, POUR L'ALIMENT HORS LISTE SEULEMENT, et
+  // parce que quelqu'un la lit désormais : `identifyPlanFoods` rattache le nom
+  // à la base avant le sas (« pita complète » trouve `pita_wholemeal`). Sans
+  // elle, le catalogue plafonné décidait de la cuisine : zéro aubergine sur 49
+  // plans, une courgette pesée comme un poivron. Le voisin reste interdit.
+  //
+  // ⟳ 2026-09-24 (suite) — ET PLUS AUCUN IDENTIFIANT N'EST DEMANDÉ : le modèle
+  // nomme, la lane identifie (`forgetModelRefs`, `identifyPlanFoods`).
+  assert(bloc.includes('Do not write "ref"'), "le modèle nomme, il ne code plus");
+  assert(bloc.includes("WRITE EVERY INGREDIENT BY ITS NAME"));
   // LA RÈGLE QUI LA REMPLACE, ET SES DEUX MOITIÉS.
-  assert(bloc.includes('"ref", "amount", "unit"'), "la ligne pesée porte les trois");
+  assert(
+    bloc.includes('1. A line you WEIGH carries "amount" and "unit".'),
+    "la ligne pesée porte sa quantité",
+  );
   assert(bloc.includes("pinch="), "la convention du condiment est nommée");
-  // Et la clé de schéma est DANS le bloc qui porte la liste: la promesse et la
-  // clé doivent se toucher (0 % de conformité mesuré quand elles sont séparées).
-  assert(bloc.includes('add "ref"'));
+  // ⟳ 2026-09-24 — la clé `ref` n'est plus demandée ; la clé qui porte
+  // l'identité est `term`, et c'est elle que le bloc nomme.
+  assert(bloc.includes('"term"'));
 });
 
 // ---------------------------------------------------------------------------
 // ③ LA LECTURE D'UN `ref` — C2
 // ---------------------------------------------------------------------------
 
-Deno.test("⛔ UN IDENTIFIANT SE COMPARE CARACTÈRE POUR CARACTÈRE — aucun alias, aucune tolérance", () => {
+Deno.test("⛔ UN IDENTIFIANT SE COMPARE CARACTÈRE POUR CARACTÈRE — seul un alias écrit en table passe", () => {
   // ⛔ C'EST LA DIFFÉRENCE AVEC `resolveIngredient`, ET ELLE EST TOUT LE LOT.
   // Le résolveur de TERME essaie le slug direct avant les alias: le mot
   // français « prune » y rencontre l'identifiant anglais `prune` (fruit sec,
@@ -403,14 +413,48 @@ Deno.test("⛔ UN IDENTIFIANT SE COMPARE CARACTÈRE POUR CARACTÈRE — aucun al
     slug: "chicken_breast",
     outcome: "accepted",
   });
-  // Un ALIAS n'est pas un identifiant, même s'il résout comme terme libre.
+  // ⟳ 2026-09-24 — UN ALIAS ÉCRIT EN TABLE EST ACCEPTÉ, sous le slug qu'il
+  // désigne, et compté à part (`alias`). C'était `unknown` : « courgette · ref
+  // zucchini » laissait une casserole sans énergie (brouillon `377e91ad`).
   assertEquals(readRefSlug("poulet", idx, ANY_INDEXED_REF), {
-    slug: null,
-    outcome: "unknown",
+    slug: "chicken_breast",
+    outcome: "alias",
   });
   // Ni une casse différente, ni un pluriel.
   assertEquals(readRefSlug("Chicken_Breast", idx, ANY_INDEXED_REF).outcome, "unknown");
   assertEquals(readRefSlug("chicken_breasts", idx, ANY_INDEXED_REF).outcome, "unknown");
+});
+
+Deno.test("⟳ 2026-09-24 — `zucchini` est accepté comme `courgette`, pas comme une devinette", () => {
+  const idx = index([ref({ slug: "courgette", foodGroupRef: "non_starchy_veg" })], [
+    { alias: "zucchini", slug: "courgette" },
+  ]);
+  assertEquals(readRefSlug("zucchini", idx, ANY_INDEXED_REF), {
+    slug: "courgette",
+    outcome: "alias",
+  });
+  // ⛔ PAS DE RÉDUCTION NI DE PLURIEL : seule la clé écrite en table passe.
+  assertEquals(readRefSlug("zucchinis", idx, ANY_INDEXED_REF).outcome, "unknown");
+  assertEquals(readRefSlug("zucchini_raw", idx, ANY_INDEXED_REF).outcome, "unknown");
+});
+
+Deno.test("⟳ 2026-09-24 — un FAUX AMI n'est jamais accepté par l'alias", () => {
+  const idx = buildCompositionIndex(
+    [ref({ slug: "grapes" }), ref({ slug: "dried_grapes" })],
+    [{ alias: "raisin sec", slug: "dried_grapes" }],
+    [{ alias: "raisin sec", slug: "grapes" }],
+  );
+  assertEquals(readRefSlug("raisin sec", idx, ANY_INDEXED_REF).outcome, "unknown");
+});
+
+Deno.test("⟳ 2026-09-24 — un alias vers une référence NON COMPOSABLE reste refusé", () => {
+  const idx = index([ref({ slug: "mystery", source: "sas" })], [
+    { alias: "enigma", slug: "mystery" },
+  ]);
+  assertEquals(readRefSlug("enigma", idx, (r) => r.source !== "sas"), {
+    slug: null,
+    outcome: "not_composable",
+  });
 });
 
 Deno.test("un identifiant ABSENT n'est pas un identifiant FAUX", () => {

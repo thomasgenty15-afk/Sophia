@@ -6,6 +6,7 @@ import {
   type DishEnergyView,
   type EnergyReading,
   type EnergyTargetView,
+  type MemberDayEnergyView,
   loadMealEnergy,
   setEnergyDisplay,
   setEnergyTarget,
@@ -74,6 +75,14 @@ export interface MealEnergy {
    * déjà tranché qui a droit à quoi; cette fonction ne fait que lire.
    */
   forBox: (boxId: string) => BoxEnergyView | null;
+  /**
+   * ⟳ 2026-09-24 — LE TOTAL DU JOUR D'UNE PERSONNE, pour le tableau de la
+   * semaine. Même règle que `forBox`: il répond aussi quand `showing` est faux
+   * (lecteur en maintenance qui n'a rien choisi), parce qu'il n'est que la somme
+   * de boîtes que le serveur a déjà laissé sortir. `null` = pas de chiffre pour
+   * cette personne ce jour-là.
+   */
+  forMemberDay: (memberId: string, day: string) => MemberDayEnergyView | null;
   /**
    * ⟳ LOT F — VRAI quand au moins un contenant porte un chiffre. C'est ce qui
    * arme la note de base (`EnergyBasisNote`) sur un écran où le LECTEUR n'a pas
@@ -208,6 +217,16 @@ export function useMealEnergy(args: {
   }, [reading, plan, askedId]);
 
   // LA TABLE PLAT → CHIFFRE, clée sur la RÉFÉRENCE de l'objet plat.
+  const byMemberDay = React.useMemo(() => {
+    const map = new Map<string, MemberDayEnergyView>();
+    if (!reading) return map;
+    const source = reading.show === true
+      ? (plan?.memberDays ?? [])
+      : (reading.boxes.find((p) => p.planId === askedId)?.memberDays ?? []);
+    for (const row of source) map.set(`${row.memberId} ${row.day}`, row);
+    return map;
+  }, [reading, plan, askedId]);
+
   const byDish = React.useMemo(() => {
     const map = new Map<GeneratedDish, DishEnergyView>();
     if (!plan?.computable) return map;
@@ -270,6 +289,7 @@ export function useMealEnergy(args: {
     forDish: (dish) => byDish.get(dish) ?? null,
     forDay: (day) => byDay.get(day) ?? null,
     forBox: (boxId) => byBox.get(boxId) ?? null,
+    forMemberDay: (memberId, day) => byMemberDay.get(`${memberId} ${day}`) ?? null,
     hasBoxEnergy: byBox.size > 0,
     toggle,
     error,

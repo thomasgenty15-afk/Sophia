@@ -190,10 +190,19 @@ export function sizingRedirectFor(args: {
  * personne fait le geste, ne trouve rien, et conclut que le produit ment. Les
  * quatre ci-dessous sont vérifiées:
  *
- *   `food_preference`  → `/app/about-you`  (`StudentKnownPage`)
- *   `equipment`        → `/app/setup`      (`SetupPage`, équipement de cuisine)
- *   `rhythm`           → `/app/setup`      (`SetupPage`, rythme des repas)
- *   `logistics`        → `/app/setup`      (`SetupPage`, temps/budget/courses)
+ *   `food_preference`  → `/app/household`  ta ligne → « Préférences alimentaires »
+ *   `equipment`        → `/app/household`  « Paramètres du foyer » → « Avec quoi tu cuisines »
+ *   `rhythm`           → `/app/household`  ta ligne → « Préférences alimentaires »
+ *                                          → « Quand tu manges, et quoi »
+ *   `logistics`        → `/app/plan`       le formulaire de composition (budget, courses, façon de cuisiner)
+ *
+ * ⟳ 2026-09-24 (FF-066) — LES QUATRE MENTAIENT. Elles visaient
+ * « Ce que Sophia sait de toi » (où l'on ne peut RIEN ajouter) et « tes
+ * réglages » (`/app/setup`, qui renvoie vers `/app/plan` dès qu'un plan
+ * existe, donc pour presque tout le monde). Mesuré au banc de l'aide sur
+ * l'app: « je n'aime pas trop le poisson » recevait « Ajoute-le dans « Ce que
+ * Sophia sait de toi » ». Chaque écran cité ici est maintenant vérifié contre
+ * `fr.ts` / `en.ts` par `frontend/src/keel/i18n/appHelpLabels.int.test.ts`.
  *
  * ⚠️ `craving` N'EST PAS ICI, ET C'EST VOULU. Une envie a déjà son canal à
  * elle (`household_envy_submissions`, écran foyer): la renvoyer vers un champ
@@ -233,27 +242,27 @@ export const PROFILE_REDIRECT_SENTENCES: Readonly<
 > = {
   food_preference: {
     en:
-      "I haven't saved that — chat doesn't keep anything on its own. Add it under \"What Sophia knows about you\" and your next meals will hold to it.",
+      "I haven't saved that — chat doesn't keep anything on its own. Put it in your details: “Household” → your line → “Food preferences”, and your next plans will hold to it.",
     fr:
-      "Je n'ai pas enregistré ça — le chat ne retient rien de lui-même. Ajoute-le dans « Ce que Sophia sait de toi » et tes prochains repas s'y tiendront.",
+      "Je n'ai pas enregistré ça — le chat ne retient rien de lui-même. Mets-le dans ta fiche : « Foyer » → ta ligne → « Préférences alimentaires », et tes prochains plans s'y tiendront.",
   },
   equipment: {
     en:
-      "I haven't saved that — chat doesn't keep anything on its own. Update your kitchen equipment in your setup, and the next plans will cook with what you actually have.",
+      "I haven't saved that — chat doesn't keep anything on its own. Update your equipment in “Household” → “Household settings” → “What you cook with”, and the next plans will cook with what you actually have.",
     fr:
-      "Je n'ai pas enregistré ça — le chat ne retient rien de lui-même. Mets à jour ton équipement de cuisine dans tes réglages, et les prochains plans cuisineront avec ce que tu as vraiment.",
+      "Je n'ai pas enregistré ça — le chat ne retient rien de lui-même. Mets à jour ton équipement dans « Foyer » → « Paramètres du foyer » → « Avec quoi tu cuisines », et les prochains plans cuisineront avec ce que tu as vraiment.",
   },
   rhythm: {
     en:
-      "I haven't saved that — chat doesn't keep anything on its own. Your meal rhythm is set in your setup, and that's what every plan starts from.",
+      "I haven't saved that — chat doesn't keep anything on its own. Your meal times are set in “Household” → your line → “Food preferences” → “When you eat, and what”, and that's what every plan starts from.",
     fr:
-      "Je n'ai pas enregistré ça — le chat ne retient rien de lui-même. Le rythme de tes repas se règle dans tes réglages, et c'est de là que part chaque plan.",
+      "Je n'ai pas enregistré ça — le chat ne retient rien de lui-même. Tes moments de repas se règlent dans « Foyer » → ta ligne → « Préférences alimentaires » → « Quand tu manges, et quoi », et c'est de là que part chaque plan.",
   },
   logistics: {
     en:
-      "I haven't saved that — chat doesn't keep anything on its own. Cooking time, budget and shopping days are set in your setup, and the plans size themselves on those.",
+      "I haven't saved that — chat doesn't keep anything on its own. Budget, cooking style and food shops are set in the composition form in “My plan”, and the plans size themselves on those.",
     fr:
-      "Je n'ai pas enregistré ça — le chat ne retient rien de lui-même. Ton temps de cuisine, ton budget et tes jours de courses se règlent dans tes réglages, et les plans se dimensionnent dessus.",
+      "Je n'ai pas enregistré ça — le chat ne retient rien de lui-même. Ton budget, ta façon de cuisiner et tes courses se règlent dans le formulaire de composition de « Mon plan », et les plans se dimensionnent dessus.",
   },
 } as const;
 

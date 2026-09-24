@@ -218,3 +218,22 @@ describe("l'aperçu de brouillon EST la fenêtre qui en a besoin", () => {
     expect(effet).toMatch(/waitForDraft\(/);
   });
 });
+
+// ⟳ 2026-09-24 — LA COUCHE (`layer`) ET LE FOCUS. Vu à l'écran: la raison de
+// « Remplacer » se tapait dans le vide. Le champ de la couche prenait le focus
+// par `autoFocus` au montage, puis l'effet du `Modal` le reprenait pour la
+// couche entière. La couche ne reprend le focus que s'il n'est pas DÉJÀ chez
+// elle.
+describe("une couche ne vole pas le focus d'un de ses champs", () => {
+  it("⛔ l'effet de focus épargne un élément déjà focalisé dans la couche", () => {
+    const effect = MODAL.slice(MODAL.indexOf("if (hasLayer) {"), MODAL.indexOf("}, [open, hasLayer]);"));
+    expect(effect).toMatch(/!layerEl\.contains\(document\.activeElement\)\) layerEl\.focus\(\)/);
+    expect(effect, "un `focus()` inconditionnel sur la couche est revenu").not.toMatch(
+      /if \(hasLayer\) layerRef\.current\?\.focus\(\)/,
+    );
+  });
+  it("⚠️ la prémisse: le champ de la raison demande le focus lui-même", () => {
+    const layer = bare(read("../plan/ReplaceReasonLayer.tsx"));
+    expect(layer).toMatch(/<textarea[\s\S]*?autoFocus/);
+  });
+});

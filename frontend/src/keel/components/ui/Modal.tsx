@@ -146,6 +146,27 @@ export interface ModalProps {
    * d'autant plus empêcher la page de bouger derrière elle.
    */
   closeOnlyByButton?: boolean;
+  /**
+   * ⟳ 2026-09-24 — UNE COUCHE PAR-DESSUS LE CONTENU, JAMAIS UNE SECONDE FENÊTRE.
+   *
+   * L'aperçu de brouillon demande deux « pop-ups » (la raison d'un plat à
+   * remplacer, les questions de précision). Deux portails empilés n'ont jamais
+   * été essayés ici (`HouseholdPage`, « PAS DEUX `Modal` IMBRIQUÉS »), et ce
+   * composant n'y est pas prêt: Échap fermerait les deux, le verrou de
+   * défilement se restaurerait dans le désordre. La couche vit donc DANS la
+   * boîte de la fenêtre, la recouvre en entier, et le contenu recouvert devient
+   * `inert` — on ne tabule plus dans ce qu'on ne voit plus.
+   *
+   * `undefined`/`null` = pas de couche, et c'est le cas de toutes les fenêtres
+   * sauf l'aperçu.
+   */
+  layer?: React.ReactNode;
+  /**
+   * Échap sur la couche referme LA COUCHE, jamais la fenêtre dessous — même
+   * quand la fenêtre, elle, n'écoute pas Échap (`closeOnlyByButton`).
+   * `undefined` = Échap ne fait rien sur la couche.
+   */
+  onLayerDismiss?: () => void;
   size?: ModalSize;
   children: React.ReactNode;
 }
@@ -160,10 +181,20 @@ export default function Modal(
     headerAction,
     footer,
     closeOnlyByButton = false,
+    layer,
+    onLayerDismiss,
     size = "md",
     children,
   }: ModalProps,
 ) {
+  const hasLayer = layer !== undefined && layer !== null && layer !== false;
+  // Lu par le gestionnaire d'Échap de la fenêtre, qui ne se réabonne pas à
+  // chaque rendu: une `ref`, pas une dépendance. Écrite dans un effet, jamais
+  // pendant le rendu (`react-hooks/refs`); une touche arrive toujours après.
+  const layerShown = React.useRef(false);
+  React.useEffect(() => {
+    layerShown.current = hasLayer;
+  }, [hasLayer]);
   // Résolu au RENDU et pas dans la signature: `t()` lit la locale courante à
   // l'appel, et une valeur par défaut de paramètre l'évaluerait aussi à chaque
   // rendu — mais l'écrire ici la met sous les yeux de qui lit le composant.
@@ -189,11 +220,23 @@ export default function Modal(
   React.useEffect(() => {
     if (!open || closeOnlyByButton) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      // Une couche ouverte prend Échap pour elle: la fenêtre reste.
+      if (e.key === "Escape" && !layerShown.current) onClose();
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [open, onClose, closeOnlyByButton]);
+
+  // ÉCHAP SUR LA COUCHE — un effet à part: il vaut aussi pour une fenêtre
+  // `closeOnlyByButton`, dont l'effet du dessus ne s'abonne même pas.
+  React.useEffect(() => {
+    if (!open || !hasLayer || !onLayerDismiss) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onLayerDismiss();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open, hasLayer, onLayerDismiss]);
 
   /**
    * LE GESTE A-T-IL COMMENCÉ SUR LE VOILE ? — et pas seulement fini dessus.
@@ -212,9 +255,20 @@ export default function Modal(
   const pressStartedOnVeil = React.useRef(false);
 
   const dialogRef = React.useRef<HTMLDivElement | null>(null);
+  const layerRef = React.useRef<HTMLDivElement | null>(null);
+  // LE FOCUS SUIT CE QUI EST DEVANT: la couche quand elle s'ouvre, la fenêtre
+  // quand elle se referme — sinon il resterait sur un élément devenu `inert`.
+  //
+  // ⚠️ UN CHAMP DE LA COUCHE QUI A DÉJÀ PRIS LE FOCUS LE GARDE. `autoFocus`
+  // agit au montage, AVANT cet effet: le reprendre pour la couche entière
+  // faisait taper la raison de « Remplacer » dans le vide (vu à l'écran).
   React.useEffect(() => {
-    if (open) dialogRef.current?.focus();
-  }, [open]);
+    if (!open) return;
+    if (hasLayer) {
+      const layerEl = layerRef.current;
+      if (layerEl && !layerEl.contains(document.activeElement)) layerEl.focus();
+    } else dialogRef.current?.focus();
+  }, [open, hasLayer]);
 
   if (!open) return null;
 
@@ -264,12 +318,17 @@ export default function Modal(
         // porte son nom. Elle est le GROUND de ce qu'elle contient, donc `paper`
         // comme la page: les cartes posées dedans gardent exactement le contraste
         // qu'elles ont sur un écran.
-        className={`flex max-h-[90vh] w-full ${SIZE[size]} flex-col overflow-hidden rounded-t-fiche bg-paper shadow-xl outline-none sm:rounded-fiche`}
+        // `relative`: la couche (`layer`) se pose en `absolute inset-0` sur
+        // cette boîte, fronton et pied compris.
+        className={`relative flex max-h-[90vh] w-full ${SIZE[size]} flex-col overflow-hidden rounded-t-fiche bg-paper shadow-xl outline-none sm:rounded-fiche`}
       >
         {/* LE FRONTON. `paper-2` sur `paper` (1,08:1) plus le trait `line`: la
             barre de titre se détache du corps sans qu'on ait besoin d'un aplat.
             C'est l'idiome de la fiche, celui de `/auth` et `/start`. */}
-        <div className="flex items-center justify-between gap-3 border-b border-line bg-paper-2 px-4 py-3">
+        <div
+          inert={hasLayer}
+          className="flex items-center justify-between gap-3 border-b border-line bg-paper-2 px-4 py-3"
+        >
           {/* PUBLIC SANS, PAS YOUNG SERIF: un titre de fenêtre fait 16 px et la
               display ne descend jamais sous 20. Et pas d'équerre — la signature
               ouvre une SECTION, elle ne redouble pas un titre de dialogue. */}
@@ -311,7 +370,7 @@ export default function Modal(
         {/* LE DÉFILEMENT EST ICI, pas sur la page: une liste de courses ou une
             semaine de préparations ne tient pas dans une fenêtre, et laisser la
             page défiler derrière fait perdre le contenu dès le premier geste. */}
-        <div className="min-h-0 flex-1 overflow-y-auto p-4">{children}</div>
+        <div inert={hasLayer} className="min-h-0 flex-1 overflow-y-auto p-4">{children}</div>
 
         {/* LE PIED. `shrink-0` ET PAS SEULEMENT UN TRAIT: dans une colonne
             flex, un pied sans lui se ferait comprimer par le corps
@@ -329,8 +388,26 @@ export default function Modal(
             ordinaire. */}
         {footer
           ? (
-            <div className="shrink-0 border-t border-line bg-paper-2 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+            <div
+              inert={hasLayer}
+              className="shrink-0 border-t border-line bg-paper-2 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+            >
               {footer}
+            </div>
+          )
+          : null}
+
+        {/* LA COUCHE — voir la prop `layer`. Elle recouvre la boîte entière;
+            ce qui est dessous garde son état et sa position de défilement, et
+            se retrouve tel quel quand la couche se referme. */}
+        {hasLayer
+          ? (
+            <div
+              ref={layerRef}
+              tabIndex={-1}
+              className="absolute inset-0 z-10 flex flex-col overflow-hidden bg-paper outline-none"
+            >
+              {layer}
             </div>
           )
           : null}

@@ -261,8 +261,12 @@ export const RAW_WINDOW_DAYS: Readonly<Record<FoodGroupRef, number>> = {
   poultry: 2,
   /** Viande maigre et hachée — le haché s'oxyde comme la volaille. */
   lean_protein: 2,
-  /** Viande en pièce : trois jours, la valeur historique de `MAX_FRIDGE_DAYS`. */
-  red_meat: 3,
+  /**
+   * Viande en pièce : ⟳ 2026-09-24, DEUX jours (c'était trois, la valeur
+   * historique de `MAX_FRIDGE_DAYS`). Un filet de porc acheté jeudi pour
+   * dimanche a été jugé dangereux sur un plan réel (brouillon `59b06fd6`).
+   */
+  red_meat: 2,
   /** Œufs : plusieurs semaines. */
   eggs: 21,
   /** Tofu et tempeh : sous vide, DLC courte mais pas celle d'une chair. */
@@ -279,8 +283,12 @@ export const RAW_WINDOW_DAYS: Readonly<Record<FoodGroupRef, number>> = {
   refined_grain: 21,
 
   // ── LÉGUMES : « frais ~7 j », sauf la feuille, qui est le cas fragile ──
-  /** Salades et herbes : trois jours, et c'est déjà optimiste. */
-  leafy_greens: 3,
+  /**
+   * Salades et herbes : ⟳ 2026-09-24, CINQ jours (c'était trois). Une laitue
+   * mangée lundi faisait ouvrir une course le vendredi pour elle seule,
+   * le lendemain de la grosse (brouillon `59b06fd6`). Décision de l'utilisateur.
+   */
+  leafy_greens: 5,
   cruciferous_veg: 7,
   non_starchy_veg: 7,
   /** Pomme de terre, patate douce, courge : semaines, pas jours. */

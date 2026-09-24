@@ -321,8 +321,14 @@ export const SIDE_COURSE_BASE_KCAL: Readonly<
   Record<SideCourseGoal, Readonly<Record<SideCourseKind, number>>>
 > = Object.freeze({
   fat_loss: Object.freeze({ starter: 60, cheese: 70, dessert: 80, bread: 70 }),
-  maintenance: Object.freeze({ starter: 60, cheese: 110, dessert: 110, bread: 100 }),
-  muscle_gain: Object.freeze({ starter: 80, cheese: 130, dessert: 180, bread: 160 }),
+  // ⟳ 2026-09-23 (v40, réglage de campagne) — LE DESSERT PRÉVU À LA TAILLE D'UN
+  // FRUIT OU D'UN LAITAGE. Mesuré (A8): prévu 180 pour la prise, une pomme en
+  // porte 71,4 ⇒ ~100 kcal de manque par repas, rendues à un plat déjà à 550 g
+  // et rabotées (Thomas à 95–97 %). À 110 (prise) et 90 (maintien), le surplus
+  // est PLANIFIÉ dans le pain (`sideBudgetFor` l'ajoute d'abord), qui se pèse et
+  // le porte jusqu'à 200 kcal. Le total d'à-côté d'un repas plafonné ne change pas.
+  maintenance: Object.freeze({ starter: 60, cheese: 110, dessert: 90, bread: 100 }),
+  muscle_gain: Object.freeze({ starter: 80, cheese: 130, dessert: 110, bread: 160 }),
   minor: Object.freeze({ starter: 40, cheese: 80, dessert: 90, bread: 80 }),
 });
 

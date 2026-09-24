@@ -72,6 +72,9 @@ export type VoicedKey =
   // « Un dégoût, pas une allergie. » ne se rend plus: plus rien à décliner
   // en « tu ». Même geste que `rhythm_floor_locked` cinq jours plus tôt.
   | "household.mouth.shaker_title"
+  // ⟳ 2026-09-24 — LA QUESTION DES À-CÔTÉS EST POSÉE À QUELQU'UN: « tu »
+  // sur sa propre fiche, le prénom sur celle des autres.
+  | "household.mouth.side_courses.title"
   | "household.mouth.shaker_label"
   | "household.mouth.shaker_label_hint"
   | "household.mouth.preferences_open"
@@ -106,6 +109,7 @@ const YOU: Record<VoicedKey, MessageKey> = {
   "household.mouth.rhythm_house": "household.mouth.rhythm_house_you",
   "household.mouth.tastes": "household.mouth.tastes_you",
   "household.mouth.shaker_title": "household.mouth.shaker_title_you",
+  "household.mouth.side_courses.title": "household.mouth.side_courses.title_you",
   "household.mouth.shaker_label": "household.mouth.shaker_label_you",
   "household.mouth.shaker_label_hint": "household.mouth.shaker_label_hint_you",
   "household.mouth.preferences_open": "household.mouth.preferences_open_you",

@@ -657,10 +657,18 @@ export type GroceryRunsLimit =
   /** La fenêtre est plus courte que trois jours. */
   | "days"
   /** Le style plafonne les sessions sous trois. */
-  | "style";
+  | "style"
+  /**
+   * ⟳ 2026-09-24 — Pas de congélateur et un plan plus long que ce qu'un plat
+   * cuisiné tient au frigo: « une course » n'est plus proposée.
+   */
+  | "freezer";
 
 export interface GroceryRunsOffer {
-  /** Les cadences proposables, croissantes. JAMAIS vide: `1` reste toujours. */
+  /**
+   * Les cadences proposables, croissantes. JAMAIS vide. `1` en sort sauf sans
+   * congélateur sur un plan plus long que la conservation (motif `freezer`).
+   */
   values: GroceryRuns[];
   /** La seule réponse possible, ou `null` tant qu'il reste un choix. */
   forced: GroceryRuns | null;
@@ -712,12 +720,23 @@ export interface GroceryRunsOffer {
  * qui portent déjà « 3 » avec un style `minimal` gardent leur phrase, et rien
  * n'efface leur réponse.
  *
- * ⛔ LE CONGÉLATEUR N'ENTRE PAS ICI. « Une seule course » sans congélateur est
- * une demande LÉGITIME: le moteur sert alors deux sessions et le DIT
- * (`runs_1_needs_freezer`). Le retirer de l'offre en ferait une quatrième
- * implémentation de la porte du congélateur — trois sont déjà alignées par
- * `freezerMirror.int.test.ts` —, et surtout un refus muet là où il existe une
- * phrase.
+ * ⟳ 2026-09-24 — LE CONGÉLATEUR ENTRE ICI, ET C'EST UN RENVERSEMENT DÉCIDÉ.
+ * Ce pavé disait « "une seule course" sans congélateur est une demande
+ * légitime: le moteur sert deux courses et le DIT (`runs_1_needs_freezer`) ».
+ * La phrase promise n'a jamais été rendue: `plan_rationale` ne la sort que si
+ * la case « tout cuisiner en une seule fois » est cochée, ce qui est
+ * impossible sans congélateur. La personne choisissait « Une fois » et
+ * recevait trois ou quatre passages au magasin sans un mot.
+ *
+ * Décision produit du 2026-09-24: sans congélateur, « une course » n'est plus
+ * PROPOSÉE dès que le plan dépasse ce qu'un plat cuisiné tient au frigo
+ * (`daysToEat > maxFridgeDays`). En deçà, un seul lot couvre tout et « une
+ * course » reste la seule réponse. La porte lit `freezer !== true`, la même
+ * que `deriveCookingPlan` (③): `null` (jamais demandé) compte comme « sans ».
+ *
+ * ⚠️ LA DÉRIVATION NE CHANGE PAS. Un compte qui porte déjà `grocery_runs = 1`
+ * garde sa réponse (le champ la montre, grisée, avec le motif), et le moteur
+ * la passe toujours à deux.
  *
  * @param style le style DÉCLARÉ, `null` = jamais demandé ⇒ aucun plafond de
  *   style. Une clé absente n'est pas « le moins possible » (cicatrice
@@ -827,6 +846,20 @@ export function offerableGroceryRuns(input: {
     limit = "days";
   }
 
+  // ── ②bis SANS CONGÉLATEUR, « UNE COURSE » NE COUVRE PAS UN PLAN LONG ─────
+  // ⟳ 2026-09-24 — décision produit (voir l'en-tête). Le plancher passe à 2;
+  // la fenêtre et le style ont déjà fixé le haut, et `needed >= 2` garantit
+  // qu'il reste au moins une cadence.
+  //
+  // ⚠️ LE MOTIF NOMMÉ EST LE CONGÉLATEUR, même quand la fenêtre ou le style
+  // ont aussi raboté le haut: c'est lui qui retire « Une fois », la réponse
+  // que la personne cherchera en premier.
+  let min = 1;
+  if (input.freezer !== true && days > input.maxFridgeDays) {
+    min = 2;
+    limit = "freezer";
+  }
+
   // ── ③ « TOUT EN UNE SEULE FOIS » TRANCHE, ET IL PASSE DERNIER ───────────
   // Une seule cuisson veut dire une seule vague de courses: le module des
   // vagues ne sait pas en produire plus d'une par session. Il gagne sur les
@@ -835,10 +868,11 @@ export function offerableGroceryRuns(input: {
   // chercher la cause au mauvais endroit.
   if (input.oneCookingSession) {
     max = 1;
+    min = 1;
     limit = "one_session";
   }
 
-  const values = GROCERY_RUNS.filter((runs) => runs <= max);
+  const values = GROCERY_RUNS.filter((runs) => runs >= min && runs <= max);
   return {
     values,
     forced: values.length === 1 ? values[0] : null,

@@ -2208,7 +2208,7 @@ export const en = {
   "start.title": "Create your account.",
   "start.lead":
     "First the account. Then you describe who eats at your table and what each " +
-    "of them needs — that is what Sophia composes the week around.",
+    "of them needs — that is what Sophia builds the plan around.",
 
   // fact: le prix est celui du hall (`home.hero.price`), au mot près.
   // ⚠️ AUCUNE DURÉE D'ESSAI, AUCUN BOUTON D'ACHAT: le tunnel de paiement du
@@ -4639,6 +4639,12 @@ export const en = {
   "plan.refusal.cell_not_rendered":
     "I couldn't redo that meal. The preview is unchanged — rephrase, or redo the whole plan.",
   "plan.refusal.cell_unknown": "That meal is not in this preview. The preview is unchanged.",
+  // ⟳ 2026-09-24 — "Replace".
+  "plan.refusal.dish_unknown": "Those dishes are no longer in this preview. It is unchanged.",
+  "plan.refusal.dish_not_rendered":
+    "I couldn't change those dishes this time. The preview is unchanged: try \"Adjust the plan\" again.",
+  "plan.refusal.edit_nothing_to_change":
+    "No dish in this preview contains that: it stays as it is. It is kept for your next plans.",
   "plan.refusal.draft_has_no_source": "This preview is too old to be redone meal by meal. Redo the whole plan.",
   "plan.refusal.draft_mismatch": "This preview no longer matches the requested week. Redo the whole plan.",
   "plan.refusal.note_unusable":
@@ -4687,8 +4693,6 @@ export const en = {
   // Ce n'est PAS une case « persona »: les trois réponses SONT les trois
   // cibles du produit, et le nombre est ce qui dimensionne le plan.
   "setup.situate.title": "How many people do you cook for?",
-  "setup.situate.hint":
-    "It sizes every plan we build, and it is the only thing this step needs. You can change it later.",
   "setup.situate.solo": "Just me",
   "setup.situate.solo_hint": "One plan, your servings, batch-cooked if that is your thing.",
   "setup.situate.pair": "Two of us",
@@ -4874,8 +4878,6 @@ export const en = {
   // objet à deux stades (FF-048 §1). L'écran ne présente donc jamais une
   // fourche « bouche ou compte ? ».
   "setup.mouths.title": "Who else eats here",
-  "setup.mouths.intro":
-    "Three things per person, and tonight's plan already counts them in.",
   // ── « Clear this form » EST PARTI LE 2026-08-19, ET SON BOUTON AUSSI ────
   // La fiche d'ajout se REPLIE désormais: elle n'existe que si on l'a ouverte,
   // et le geste qui la referme porte le mot que l'utilisateur a demandé —
@@ -5133,7 +5135,7 @@ export const en = {
   "household.mouth.preferences_empty":
     "Nothing noted — the plan composes without it. This can be filled in later.",
   "household.mouth.preferences_filled": "Already noted: {blocks}.",
-  "household.mouth.preferences_done": "Done",
+  "household.mouth.preferences_done": "Save",
   "household.mouth.save": "Save",
   "household.mouth.add": "Add them",
   "household.mouth.fold": "Hide",
@@ -5241,8 +5243,10 @@ export const en = {
   // question `takes_*` au-dessus: ces colonnes portaient le sens inverse, et
   // leurs valeurs sont périmées. Les types d'à-côté viennent de
   // `_shared/keel/side_courses_types.ts` (`SIDE_COURSE_KINDS`).
-  "household.mouth.side_courses.title": "Starter, cheese, dessert, bread",
-  "household.mouth.side_courses.hint": "What's served alongside the dish, at lunch and dinner.",
+  "household.mouth.side_courses.title": "Does {who} have a starter, cheese, dessert or bread?",
+  "household.mouth.side_courses.title_you": "Do you have a starter, cheese, dessert or bread?",
+  "household.mouth.side_courses.hint":
+    "Choose “Based on the goal” and you let Sophia decide whether they come with lunch or dinner.",
   "household.mouth.side_courses.starter": "Starter",
   "household.mouth.side_courses.cheese": "Cheese",
   "household.mouth.side_courses.dessert": "Dessert",
@@ -5541,9 +5545,6 @@ export const en = {
   "setup.plan.time_hint":
     "Roughly. It is used as an order of magnitude, not as a stopwatch.",
   "setup.plan.budget": "Budget for this plan",
-  "setup.plan.budget_hint":
-    "A real number lets us trade things off: cheaper cuts, fewer " +
-    "out-of-season vegetables.",
   "setup.plan.compose": "Build my first plan",
   "setup.plan.composing": "Building it now…",
   // ── LES HUIT PHRASES DE L'ATTENTE — voir `ComposingLabel` ────────────────
@@ -5808,7 +5809,6 @@ export const en = {
   // Le rail des jours de `PlanResult`: un bouton par jour de la fenêtre, plus
   // celui-ci. Les jours eux-mêmes sont rendus par `meals.day.*` — aucun
   // libellé de jour ne vit ici.
-  "meals.result.day_all": "The whole week",
   "meals.result.day_rail": "Read one day",
   // La carte de session du bloc jour — la durée affichée est celle de la
   // SESSION, sur sa propre carte; jamais sur un plat.
@@ -5824,6 +5824,16 @@ export const en = {
   // Un jour vraiment vide le dit — un bloc muet sous un titre de jour se
   // lirait comme une panne.
   "meals.result.day_nothing": "Nothing to cook or buy this day.",
+  // ── ⟳ 2026-09-24 · THE WEEK TABLE, AT THE TOP OF THE PLAN ───────────────
+  // It replaces "The whole week" (`meals.result.day_all`, removed).
+  "meals.week_table.caption": "Your week at a glance",
+  "meals.week_table.groceries": "Groceries",
+  "meals.week_table.cooking": "Cooking",
+  "meals.week_table.yes": "yes",
+  "meals.week_table.hours": "{h}h",
+  "meals.week_table.hours_minutes": "{h}h{m}",
+  "meals.week_table.person_kcal": "{name} (kcal)",
+  "meals.week_table.partial_note": "* Some of that day’s meals aren’t counted.",
   // ── LOT 3 · DEUX PLATS AU MÊME MOMENT, ET POUR QUI ──────────────────────
   // Le prénom est INTERPOLÉ, jamais traduit: il vient de la ligne membre (F5).
   "meals.day_person.table": "For the table",
@@ -5896,6 +5906,10 @@ export const en = {
   // the added ingredients — the batch recipe lives in the cooking session.
   "meals.dish.unfold": "See the detail",
   "meals.dish.fold": "Hide the detail",
+  // ⟳ 2026-09-24 — REPLACE A DISH OF THE PREVIEW.
+  "meals.dish.replace": "Change",
+  "meals.dish.keep": "Keep this dish",
+  "meals.dish.replace_reason": "To change: “{reason}”",
   // ⚠️ LE COMPTE EST EN TÊTE PARCE QU'ON SORT SES BACS AVANT DE COMMENCER.
   // C'est la seule chose qu'on veuille savoir avant d'avoir lu une ligne. Deux
   // clés et pas un suffixe fabriqué en code (R7), comme les courses du jour.
@@ -5984,10 +5998,11 @@ export const en = {
   // copie doit le dire, sinon on décoche en croyant seulement masquer.
   "meals.picker.title": "Which meals, which days",
   "meals.picker.subtitle":
-    "Everything you declared is on. Untick a meal you will not be eating at " +
-    "home — nothing gets cooked for it, and nothing gets bought.",
+    "Untick a meal you will not be eating at home — nothing gets cooked for " +
+    "it, and nothing gets bought.",
   "meals.picker.meal": "Meal",
-  "meals.picker.all_on": "Every meal is on. Untick the ones you are out for.",
+  "meals.picker.all_on":
+    "To change the number of meals, go to Household > Food preferences.",
   // Deux formes: « 1 repas décoché » est un singulier en français, et cette
   // valeur-là est atteignable (on décoche un seul dîner).
   "meals.picker.some_off_one": "{n} meal off. It comes back next time if you tick it.",
@@ -6023,6 +6038,12 @@ export const en = {
   "meals.picker.save": "Save",
   "meals.picker.saving": "…",
   "meals.picker.cancel": "Cancel",
+  // ⟳ 2026-09-23 — THE HEADER BOXES: a row is one meal across every day, a
+  // column is one whole day.
+  "meals.picker.bulk_hint":
+    "The box before a meal or above a day clears the whole row or the whole column.",
+  "meals.picker.row_all": "{meal} — every day",
+  "meals.picker.column_all": "{day} — every meal",
   "meals.today.title": "In the kitchen",
   "meals.today.cook_today": "You cook today",
   "meals.today.cook_tomorrow": "You cook tomorrow",
@@ -7139,7 +7160,7 @@ export const en = {
   "plan.cooking.difficulty_label": "Recipes",
   "plan.cooking.difficulty_simple": "Simple — few steps, few pans",
   "plan.cooking.difficulty_normal": "Normal",
-  "plan.cooking.difficulty_keen": "I like cooking, bring it on",
+  "plan.cooking.difficulty_keen": "I like cooking",
   "plan.cooking.variety_label": "Variety",
   "plan.cooking.variety_repeat": "Happy to repeat the same meals",
   "plan.cooking.variety_some": "Some repetition is fine",
@@ -7299,6 +7320,16 @@ export const en = {
   "plan.request.presence_all_home": "Home for every meal",
   "plan.request.presence_away_one": "{n} meal away",
   "plan.request.presence_away_other": "{n} meals away",
+  // ⟳ 2026-09-23 — AWAY FOR THE WHOLE PLAN (holidays, a stay elsewhere). The
+  // gesture writes every day of the window as a whole day away, in the column
+  // that "Edit" already writes (`lib/presenceAbsence.ts`).
+  "plan.request.presence_absence": "Away",
+  "plan.request.presence_absence_aria": "{name}: away for this whole plan",
+  "plan.request.presence_absence_undo": "Undo away",
+  "plan.request.presence_absent": "Away — left out of this plan",
+  "plan.request.presence_everyone_away":
+    "Nobody is home over these dates: there is nothing to compose. Undo an absence or change the dates.",
+  "plan.request.presence_you": "You",
 
   // ── L'ENVIE DE LA SEMAINE (venue de `household.envy.*`) ──────────────────
   //
@@ -7464,6 +7495,24 @@ export const en = {
   "plan.draft.question_who": "You wrote “{text}” — who is that for?",
   "plan.draft.question_none": "None of them",
   "plan.draft.question_skipped": "OK, I changed nothing for that sentence.",
+  // ⟳ 2026-09-24 — QUESTIONS IN A LAYER, and "REPLACE" A DISH.
+  "plan.draft.questions_title": "Before I redo the plan",
+  "plan.draft.questions_continue": "Continue",
+  "plan.draft.replace_title": "Why change this dish?",
+  "plan.draft.replace_label": "Your reason (required)",
+  "plan.draft.replace_placeholder": "E.g. too sweet, Paul doesn't like mushrooms, takes too long…",
+  "plan.draft.replace_cancel": "Cancel",
+  "plan.draft.replace_confirm": "Confirm",
+  "plan.draft.struck_one": "1 dish to change",
+  "plan.draft.struck_many": "{count} dishes to change",
+  "plan.draft.struck_cap": "At most {max} dishes at once: adjust these first.",
+  "plan.draft.dishes_replaced_one": "I changed 1 dish; the rest is identical ({kept} dishes kept as they were).",
+  "plan.draft.dishes_replaced_many": "I changed {count} dishes; the rest is identical ({kept} dishes kept as they were).",
+  "plan.draft.dishes_extended_one": "I also redid {dishes}: it contained a food you just ruled out.",
+  "plan.draft.dishes_extended_many": "I also redid {dishes}: they contained a food you just ruled out.",
+  "plan.draft.dishes_not_replaced": "Some dishes couldn't be changed this time ({count}): they stayed as they were.",
+  "plan.draft.rejected_filed_one": "This dish is now in your turned-down dishes (“What Sophia knows about you”).",
+  "plan.draft.rejected_filed_many": "These {count} dishes are now in your turned-down dishes (“What Sophia knows about you”).",
   "plan.draft.safety_not_written":
     "I couldn’t save this to the sheet: {lines}. Add it from the household sheet.",
   "plan.draft.cells_applied": "I redid {cells}; the rest is identical ({count} dishes kept as they were).",
@@ -7743,6 +7792,14 @@ export const en = {
   "known.recent.intro": "Nothing was decided behind your back: here is what I filed recently, and why. Remove anything that is wrong.",
   "known.edit": "Edit",
   "known.remove": "Remove",
+  // ⟳ 2026-09-24 — DISHES TURNED DOWN ("Replace" in a plan preview).
+  "known.rejected.title": "Dishes you turned down",
+  "known.rejected.intro": "Dishes you changed in a plan preview. Sophia no longer suggests them to the people listed.",
+  "known.rejected.empty": "None yet. When you change a dish in a plan preview, it shows up here.",
+  "known.rejected.everyone": "Everyone",
+  "known.rejected.said_on": "on {day}",
+  "known.rejected.said": "“{reason}”",
+  "known.rejected.remove_failed": "It wasn’t removed. Try again.",
   "known.save": "Save",
   "known.cancel": "Cancel",
   "known.saving": "Saving…",
@@ -7920,7 +7977,7 @@ export const en = {
   "plan.cooking.style_unset": "Not answered yet",
   "plan.cooking.style_minimal": "As little as possible — I reheat",
   "plan.cooking.style_balanced": "A middle ground",
-  "plan.cooking.style_keen": "I like cooking, bring it on",
+  "plan.cooking.style_keen": "I like cooking",
   "plan.cooking.runs_label": "Food shops",
   "plan.cooking.runs_unset": "Not answered yet",
   "plan.cooking.runs_any": "No preference — the plan decides",
@@ -7950,8 +8007,23 @@ export const en = {
     "A cooking session is one stretch where you cook several days ahead — and " +
     "each one starts with a food shop. With \"as little as possible\", the " +
     "plan uses fewer of them, so there are fewer trips to the shop.",
+  // ⟳ 2026-09-24 — WITHOUT A FREEZER, "ONCE" IS NO LONGER OFFERED past what a
+  // cooked dish keeps in the fridge (product decision). Names the two numbers
+  // the person compares and where to lift the refusal — the card title, word
+  // for word (`setup.equipment.title`).
+  "plan.cooking.runs_needs_freezer":
+    "Without a freezer you have to go back to the shop during the plan: a " +
+    "cooked dish keeps {d} days in the fridge, and this plan covers {n}. To " +
+    "buy everything in one go, tick the freezer under \"What you cook with\".",
   "setup.missing.cooking_style": "Tell us how you want to cook",
   "setup.missing.grocery_runs": "Tell us how many food shops you are up for",
+  // ⟳ 2026-09-24 — « AVEC QUOI TU CUISINES » RETIENT LA GÉNÉRATION. Demandé:
+  // bloquer le plan tant que la cuisine n'est pas renseignée. Le motif
+  // (`kitchen_equipment`) retient l'étape 3; la ligne `plan.request.*` se lit
+  // DANS le bloc replié, sur les deux écrans qui montent `PlanRequestFields`.
+  "setup.missing.kitchen_equipment": "Tell us what you cook with",
+  "plan.request.equipment_required":
+    "Needed before the plan can start: tick at least what you have.",
 
   //
   // A8.3 — LE LECTEUR DU RESTE. La boîte d'une part non mangée, rendue là où la

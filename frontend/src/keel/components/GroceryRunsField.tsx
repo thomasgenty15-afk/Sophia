@@ -92,6 +92,9 @@ const FORCED_KEYS: Record<GroceryRunsLimit, MessageKey> = {
   one_session: "plan.cooking.runs_only_one_session",
   days: "plan.cooking.runs_only_one_batch",
   style: "plan.cooking.runs_capped_style",
+  // ⟳ 2026-09-24 — sans congélateur, un plan de quatre à six jours ne laisse
+  // qu'une cadence; la phrase dit pourquoi « Une fois » manque, et où la rendre.
+  freezer: "plan.cooking.runs_needs_freezer",
 };
 
 /** CE QU'ON DIT QUAND LA LISTE EST COURTE — à la place de l'aide générale. */
@@ -99,6 +102,7 @@ const CAPPED_KEYS: Record<GroceryRunsLimit, MessageKey> = {
   one_session: "plan.cooking.runs_only_one_session",
   days: "plan.cooking.runs_capped_days",
   style: "plan.cooking.runs_capped_style",
+  freezer: "plan.cooking.runs_needs_freezer",
 };
 
 export interface GroceryRunsFieldProps {

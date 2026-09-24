@@ -47,6 +47,7 @@ import type {
   ShoppingItem,
 } from "./meal_generation.ts";
 import { readQuantityFromProse } from "./quantity_from_prose.ts";
+import { runThroughWithoutPreparations } from "./session_run_through.ts";
 import type { MealsDelivered } from "./meals_delivered.ts";
 import type { CompositionIndex } from "./food_composition.ts";
 import {
@@ -119,6 +120,20 @@ export interface MergeOutcome {
    * ⟳ 2026-09-09 — CE N'EST PLUS « toute différence ». Voir `shoppingSummed`.
    */
   readonly shoppingConflicts: number;
+  /**
+   * ⟳ 2026-09-24 — LES DÉROULÉS DE SESSION RECALÉS SUR LES CASSEROLES FUSIONNÉES.
+   *
+   * Lu sur l'ajustement « plus de tofu » du foyer `326427ff…` : la session du
+   * mercredi cuisait désormais `prep_chicken_replacement`, et son déroulé
+   * disait encore « enfourner le tofu et les légumes 25 min ». La fusion
+   * changeait la LISTE des casseroles d'une session et gardait son TEXTE.
+   * `runThroughsReplaced` : le déroulé du modèle pour ce jour couvrait toutes
+   * les casseroles, il a été pris. `runThroughsTrimmed` : il ne les couvrait
+   * pas ; les phrases qui nomment une casserole partie sont tombées
+   * (`runThroughWithoutPreparations`) et le texte du modèle a été ajouté.
+   */
+  readonly runThroughsReplaced: number;
+  readonly runThroughsTrimmed: number;
   /**
    * ⟳ 2026-09-09 — LES LIGNES ADDITIONNÉES, ET LE DÉFAUT QU'ELLES FERMENT.
    *
@@ -246,8 +261,19 @@ export function mergeRetryCells(args: {
   cells: readonly string[];
   /** ⟳ C3 — le référentiel, PASSÉ. `null` = on s'abstient d'identifier. */
   index: CompositionIndex | null;
+  /**
+   * ⟳ 2026-09-24 — CE QUE `cells` NOMME. Absent: des CASES (`day/slot`), le
+   * comportement d'origine — tous les plats d'une case partent et arrivent
+   * ensemble. « Remplacer » passe `dishReplaceKey` (`dish_replace.ts`): des
+   * PLATS, un par bouche et par case; les autres plats de la case restent
+   * ceux de la base, avec leurs casseroles (toujours citées, donc jamais
+   * élaguées), et une casserole que la relance a changée est dédoublée (`__r`)
+   * au lieu d'être écrasée sous un plat gardé.
+   */
+  keyOf?: (dish: GeneratedDish) => string;
 }): MergeOutcome {
-  const retryCells = new Set(args.retry.dishes.map(cellKey));
+  const keyOf = args.keyOf ?? cellKey;
+  const retryCells = new Set(args.retry.dishes.map(keyOf));
   const cells = [...new Set(args.cells)].filter((c) => retryCells.has(c)).sort();
   if (cells.length === 0) {
     return {
@@ -261,6 +287,8 @@ export function mergeRetryCells(args: {
       sessionsDropped: 0,
       shoppingPruned: 0,
       shoppingConflicts: 0,
+      runThroughsReplaced: 0,
+      runThroughsTrimmed: 0,
       shoppingSummed: 0,
       shoppingSorts: emptyShoppingSortCounts(),
     };
@@ -272,15 +300,15 @@ export function mergeRetryCells(args: {
   const retry: GeneratedMeal = structuredClone(args.retry);
 
   // ── LES PLATS: ceux de base sortent des cellules prises, ceux de la relance entrent ──
-  const keptDishes = meal.dishes.filter((d) => !taken.has(cellKey(d)));
-  const importedDishes: GeneratedDish[] = retry.dishes.filter((d) => taken.has(cellKey(d)));
+  const keptDishes = meal.dishes.filter((d) => !taken.has(keyOf(d)));
+  const importedDishes: GeneratedDish[] = retry.dishes.filter((d) => taken.has(keyOf(d)));
   // ⟳ 2026-09-12 · C3 — CE QUI SORT DU PLAN, NOMMÉ AVANT DE SORTIR. C'est la
   // moitié du correctif: un retrait de courses n'est légitime que s'il peut
   // citer l'unité disparue. Les plats remplacés d'abord; les casseroles
   // orphelines s'y ajoutent plus bas, une fois l'élagage décidé.
   const removedIdentities = claimedIdentities(
     args.index,
-    meal.dishes.filter((d) => taken.has(cellKey(d))),
+    meal.dishes.filter((d) => taken.has(keyOf(d))),
   );
 
   // ── LES CASSEROLES CITÉES: réutilisées, importées, ou renommées ──────────
@@ -366,6 +394,50 @@ export function mergeRetryCells(args: {
   meal.cooking_sessions = meal.cooking_sessions.filter((s) => s.preparationIds.length > 0);
   const sessionsDropped = sessionsBefore - meal.cooking_sessions.length;
 
+  // ── ⟳ 2026-09-24 — LE DÉROULÉ SUIT LES CASSEROLES DE SA SESSION ──────────
+  // Voir `runThroughsReplaced` / `runThroughsTrimmed` sur `MergeOutcome`.
+  const basePrepById = new Map(args.base.preparations.map((p) => [p.id, p]));
+  const baseSessionPreps = new Map(
+    args.base.cooking_sessions.map((s) => [s.day, new Set(s.preparationIds)]),
+  );
+  let runThroughsReplaced = 0;
+  let runThroughsTrimmed = 0;
+  for (const s of meal.cooking_sessions) {
+    const before = baseSessionPreps.get(s.day);
+    // Une session NEUVE vient déjà de la relance (`fromRetry`), texte compris.
+    if (!before) continue;
+    const now = new Set(s.preparationIds);
+    if (before.size === now.size && [...before].every((id) => now.has(id))) continue;
+    const fromRetry = retry.cooking_sessions.find((r) => r.day === s.day);
+    const retryText = String(fromRetry?.runThrough ?? "").trim();
+    const retryIds = new Set((fromRetry?.preparationIds ?? []).map((id) => renamed[id] ?? id));
+    if (retryText !== "" && s.preparationIds.every((id) => retryIds.has(id))) {
+      s.runThrough = fromRetry!.runThrough;
+      if (fromRetry!.totalMinutes !== null && fromRetry!.totalMinutes !== undefined) {
+        s.totalMinutes = fromRetry!.totalMinutes;
+      }
+      runThroughsReplaced++;
+      continue;
+    }
+    const removed = [...before]
+      .filter((id) => !now.has(id))
+      .map((id) => basePrepById.get(id))
+      .filter((p): p is MealPreparation => p !== undefined)
+      .map((p) => ({
+        id: p.id,
+        title: p.title,
+        ingredientTerms: (p.ingredients ?? []).map((i) => String(i.term ?? "")),
+      }));
+    const trimmed = runThroughWithoutPreparations({
+      runThrough: String(s.runThrough ?? ""),
+      removed,
+      remainingTitles: s.preparationIds.map((id) => baseById.get(id)?.title ?? ""),
+    });
+    const addsNew = s.preparationIds.some((id) => !before.has(id));
+    s.runThrough = [trimmed.text, addsNew ? retryText : ""].filter((t) => t.trim() !== "").join(" ");
+    runThroughsTrimmed++;
+  }
+
   // ── LES COURSES: les lignes de la relance que les plats importés réclament ──
   const claimed = claimedIdentities(args.index, [
     ...importedDishes,
@@ -427,6 +499,8 @@ export function mergeRetryCells(args: {
     sessionsDropped,
     shoppingPruned: sorted.counts.removed,
     shoppingConflicts,
+    runThroughsReplaced,
+    runThroughsTrimmed,
     shoppingSummed,
     shoppingSorts: sorted.counts,
   };

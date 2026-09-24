@@ -39,6 +39,7 @@ import {
   sideCompositionLine,
   sidesFromLedger,
   sidesOnEmittedBoxes,
+  memberDayEnergy,
   viewerDayEnergy,
 } from "./served_final.ts";
 import { SIDE_COURSE_REFUSALS, type SideCourseLedger, type SideCourseRefusal } from "./side_courses_types.ts";
@@ -720,4 +721,92 @@ Deno.test("meal-energy — un à-côté illisible sort sans chiffre et rend la j
     sides: 3,
     complete: false,
   });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-24 — LE TOTAL DU JOUR DE CHAQUE PERSONNE (le tableau de la semaine)
+// ═══════════════════════════════════════════════════════════════════════════
+
+const emitted = (box_id: string, day: string | null, member_id: string, kcal: number, sides: { kcal: number | null }[] = []) => ({
+  box_id,
+  day,
+  member_id,
+  kcal,
+  sides: sides.map((s) => ({ kind: null, term: "x", kcal: s.kcal, basis: "plan_quantities" })),
+});
+
+Deno.test("memberDayEnergy: une ligne par personne et par jour, somme de SES boîtes émises", () => {
+  const rows = memberDayEnergy({
+    boxes: [
+      emitted("b1", "mon", "paul", 600),
+      emitted("b2", "mon", "paul", 800, [{ kcal: 150 }]),
+      emitted("b3", "tue", "paul", 700),
+      emitted("b4", "mon", "lea", 500),
+    ],
+    dishes: [
+      { day: "mon", boxes: [{ id: "b1", memberIds: ["paul"] }, { id: "b4", memberIds: ["lea"] }] },
+      { day: "mon", boxes: [{ id: "b2", memberIds: ["paul"] }] },
+      { day: "tue", boxes: [{ id: "b3", memberIds: ["paul"] }] },
+    ],
+  });
+  const byKey = new Map(rows.map((r) => [`${r.member_id} ${r.day}`, r]));
+  assertEquals(byKey.get("paul mon"), {
+    member_id: "paul", day: "mon", kcal: 1550, meals_counted: 2, meals_total: 2, complete: true,
+  });
+  assertEquals(byKey.get("paul tue")?.kcal, 700);
+  assertEquals(byKey.get("lea mon")?.kcal, 500);
+  assertEquals(rows.length, 3);
+});
+
+Deno.test("memberDayEnergy: un repas en bac commun rend le jour incomplet, jamais compté à zéro", () => {
+  const rows = memberDayEnergy({
+    boxes: [emitted("b1", "mon", "paul", 600)],
+    dishes: [
+      { day: "mon", boxes: [{ id: "b1", memberIds: ["paul"] }] },
+      // Le dîner: un bac pour Paul ET Léa — aucune boîte émise pour Paul.
+      { day: "mon", boxes: [{ id: "b9", memberIds: ["paul", "lea"] }] },
+    ],
+  });
+  assertEquals(rows, [{
+    member_id: "paul", day: "mon", kcal: 600, meals_counted: 1, meals_total: 2, complete: false,
+  }]);
+});
+
+Deno.test("memberDayEnergy: un à-côté illisible rend le jour incomplet", () => {
+  const [row] = memberDayEnergy({
+    boxes: [emitted("b1", "mon", "paul", 600, [{ kcal: null }])],
+    dishes: [{ day: "mon", boxes: [{ id: "b1", memberIds: ["paul"] }] }],
+  });
+  assertEquals(row.kcal, 600);
+  assertEquals(row.complete, false);
+});
+
+Deno.test("memberDayEnergy: sans boîte émise, aucune ligne — pas un zéro", () => {
+  assertEquals(
+    memberDayEnergy({
+      boxes: [],
+      dishes: [{ day: "mon", boxes: [{ id: "b1", memberIds: ["tom"] }] }],
+    }),
+    [],
+  );
+  // Une boîte sans jour n'alimente aucune journée.
+  assertEquals(memberDayEnergy({ boxes: [emitted("b1", null, "paul", 600)], dishes: [] }), []);
+});
+
+Deno.test("memberDayEnergy: pour le lecteur, la même somme que `viewerDayEnergy`", () => {
+  const boxes = [
+    emitted("b1", "mon", "paul", 600, [{ kcal: 120 }]),
+    emitted("b2", "mon", "paul", 800),
+    emitted("b4", "mon", "lea", 500),
+  ];
+  const viewer = viewerDayEnergy({ boxes, viewerMemberId: "paul" }).get("mon");
+  const member = memberDayEnergy({
+    boxes,
+    dishes: [
+      { day: "mon", boxes: [{ id: "b1", memberIds: ["paul"] }, { id: "b4", memberIds: ["lea"] }] },
+      { day: "mon", boxes: [{ id: "b2", memberIds: ["paul"] }] },
+    ],
+  }).find((r) => r.member_id === "paul");
+  assert(viewer !== undefined && member !== undefined);
+  assertEquals(member.kcal, viewer.kcal);
 });

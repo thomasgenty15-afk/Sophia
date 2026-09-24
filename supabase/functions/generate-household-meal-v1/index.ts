@@ -377,6 +377,14 @@ import {
   fillPlanComposition,
   repairPlanComposition,
 } from "../_shared/keel/composition_fill_io.ts";
+// ⟳ 2026-09-24 — un aliment mal nommé est retrouvé AVANT le sas: par son nom,
+// sinon par un petit appel qui choisit dans la base. Voir `composition_identify.ts`.
+import { identifyPlanFoods } from "../_shared/keel/composition_identify_io.ts";
+// ⟳ 2026-09-24 — la viande ou le poisson cru qu'aucune cuisson ne touche.
+import {
+  rawProteinRepairInstruction,
+  uncookedRawProteins,
+} from "../_shared/keel/raw_protein_cooking.ts";
 // ⟳ LOT `L17-0` — les DEUX populations du groupe déclaré: ce que le modèle
 // écrit, et ce qui atteint la base. Le compteur lit la charge ÉCRITE.
 import { foodGroupWriteCounts } from "../_shared/keel/food_group_write.ts";
@@ -443,6 +451,12 @@ import {
   finalPortionCheck,
   PLATE_BOUND_SOURCES,
   plateBoundsFor,
+  // ⟳ 2026-09-24 — LE PLAFOND D'ASSIETTE DE CHAQUE ADULTE (25 % de son
+  // entretien), et la table d'âge qu'il remplace pour la trace `plate_bounds`.
+  type PersonalPlateBounds,
+  personalPlateBoundsFor,
+  PLATE_MASS_BOUNDS_G,
+  plateBandOf,
   lidPlanFor,
   potFactorAcross,
   SHADOW_SIZING_AT_N,
@@ -538,9 +552,24 @@ import {
 import {
   type CellEdit,
   cellEditInstruction,
+  exclusionEditCells,
   mergeCellEdit,
   readCellEdits,
 } from "../_shared/keel/cell_edit.ts";
+// ⟳ 2026-09-24 — « REMPLACER » UN PLAT DE L'APERÇU: la reprise locale, par
+// PLAT et non par case, étendue aux plats qu'une exclusion neuve viderait.
+import {
+  type ExtendedDish,
+  mergeRejectionEdit,
+  rejectionEditPlan,
+} from "../_shared/keel/dish_replace.ts";
+import {
+  dishTitleKey,
+  readDishRejections,
+  readRejectedDishes,
+  rejectedDishesLine,
+  rejectedServedAgain,
+} from "../_shared/keel/rejected_dishes.ts";
 import { preferenceSplitRetryInstruction } from "../_shared/keel/preference_split_retry.ts";
 // ── LE RÉGIME À TABLE (R4/R5) — LE DÉFAUT ① DE LA SPEC ─────────────────────
 // Avant le 2026-08-14, ce fichier ne portait AUCUNE occurrence du mot « diet »:
@@ -722,6 +751,8 @@ import {
   type AnchorMouth,
   DATED_NOTE_BOOST,
   householdAnchors,
+  // ⟳ 2026-09-24 — l'entretien d'une bouche: il fait son plafond d'assiette.
+  maintenanceKcalOf,
   mouthTargetKcal,
 } from "../_shared/keel/mouth_anchor.ts";
 import {
@@ -806,6 +837,8 @@ import {
   type SideCourseAttachCounters,
   sideCourseDayKey,
   type SideCourseEngineLedger,
+  // ⟳ 2026-09-24 — la clé d'un repas, pour le manque venu de la borne d'assiette.
+  sideCourseKey,
   type SideCourseExtractStatus,
   sideCourseGoalFor,
   sideDrawsByPreparation,
@@ -901,7 +934,7 @@ import { repairSystemPrompt } from "../_shared/keel/plan_repair_prompt.ts";
 // ⟳ 2026-09-12 · FERMETURE LOT 2 — CHAQUE USAGE EST VÉRIFIÉ, PAS SEULEMENT LE
 // PREMIER. Un aliment cuisiné lundi ET vendredi n'est plus acheté une fois pour
 // les deux: on le scinde en deux courses.
-import { splitShoppingByUses } from "../_shared/keel/shopping_purchases.ts";
+import { spaceShoppingDays, splitShoppingByUses } from "../_shared/keel/shopping_purchases.ts";
 import { keepingOf } from "../_shared/keel/food_keeping.ts";
 // ⟳ 2026-09-13 · LOT 1 — LE RECENSEMENT DES SURFACES, PARTAGÉ AVEC LE PARSEUR.
 import {
@@ -1012,7 +1045,7 @@ import {
   decidePlanPublication,
   runValidation,
 } from "../_shared/keel/plan_publication.ts";
-import { potMassBlocker } from "../_shared/keel/pot_mass_publication.ts";
+import { potMassBlocker, potShortfallTolerated } from "../_shared/keel/pot_mass_publication.ts";
 import {
   mouthFactTally,
   type ResolvedMouth,
@@ -1045,6 +1078,8 @@ import {
   dishBitesExclusion,
   exclusionRetryInstruction,
   exclusionTermsFor,
+  memberServedExclusionBites,
+  servedExclusionBites,
 } from "../_shared/keel/food_exclusion_belt.ts";
 // ⛔ LE MÊME ARBITRE QUE L'ENVELOPPE — lot M3. Voir `portionIndexMoves`: ce
 // compteur lisait `winningPortionAdjust`, qui n'arbitre plus rien.
@@ -2385,7 +2420,24 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
     const askedPantry = readPantry(body.pantry, issues);
     const editDraftId = String(body.draft_id ?? "").trim() || null;
     const editCellsRead = readCellEdits(body.cells);
-    const editCells: readonly CellEdit[] = editCellsRead.cells;
+    // ⟳ 2026-09-24 — `cells_from: "exclusions"` : les cases ne viennent pas de
+    // la phrase, elles sont DÉDUITES du brouillon (tout plat qui sert un
+    // aliment exclu, par `servedExclusionBites`). C'est l'ajustement « je
+    // n'aime pas le tofu » : il refaisait toute la semaine, il ne refait plus
+    // que ce qui contient l'aliment. Les cases sont posées après le
+    // chargement du brouillon, plus bas.
+    // ⟳ 2026-09-24 — `cells_from: "rejections"` : les plats BARRÉS sur
+    // l'aperçu (« Remplacer »), une raison chacun (`rejections`). Les cases
+    // sont posées après le chargement du brouillon, comme pour les
+    // exclusions; la fusion, elle, prend des PLATS (`mergeRejectionEdit`).
+    const rawCellsFrom = String(body.cells_from ?? "").trim();
+    const editCellsFrom: "exclusions" | "rejections" | null = rawCellsFrom === "exclusions"
+      ? "exclusions"
+      : rawCellsFrom === "rejections"
+      ? "rejections"
+      : null;
+    const editRejections = readDishRejections(body.rejections);
+    let editCells: readonly CellEdit[] = editCellsRead.cells;
     if (editing) {
       if (String(body.intent ?? "").trim() !== "draft") {
         return jsonResponse(req, {
@@ -2401,12 +2453,21 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
           request_id: requestId,
         }, { status: 400 });
       }
-      if (editCells.length === 0) {
+      if (editCells.length === 0 && editCellsFrom === null) {
         return jsonResponse(req, {
           error: "cells_required",
           detail: "operation=edit_cells must name at least one readable cell " +
             "(`cells: [{day, slot, text}]`)",
           refused: editCellsRead.refused,
+          request_id: requestId,
+        }, { status: 400 });
+      }
+      if (editCellsFrom === "rejections" && editRejections.targets.length === 0) {
+        return jsonResponse(req, {
+          error: "rejections_required",
+          detail: "cells_from=rejections must name at least one readable dish " +
+            "(`rejections: [{day, slot, member_id, title, reason}]`)",
+          refused: editRejections.refused,
           request_id: requestId,
         }, { status: 400 });
       }
@@ -5139,7 +5200,6 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
       memberSlots: members.flatMap((m) => (m.eatingSlots ?? []).map((o) => o.slot)),
     });
     const houseBaseSlots: string[] = [...houseGrid.base];
-    const houseDeclaredSlots: string[] = [...houseGrid.union];
 
     const structureTally = {
       derived: 0,
@@ -5176,16 +5236,35 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
         declaredSlots: (m.eatingSlots ?? []).map((o) => o.slot),
         conditionRefs: conditionRefsOf(m.memberId),
       }, coachCounting);
+      // ⟳ 2026-09-23 — UNE BOUCHE MUETTE PART DE **SON** CORPS, PLUS DE LA
+      // MAISON. Staging, foyer `326427ff…`: Christèle (rythme `null`) partait
+      // de l'union de la maison — les cinq moments de Thomas et Fabrice. La
+      // dérivation ne sait qu'AJOUTER; 5 ≥ ses 4, rien ne bougeait, elle
+      // restait `null`, donc « aux moments de la maison », et mangeait le
+      // milieu de matinée de Thomas. Sa recommandation n'en contient pas.
+      //
+      // ⛔ `[]` COMME À L'ÉCRAN. `eating-structure-v1` calcule la pré-coche de
+      // la fiche avec les moments DU BROUILLON — vides pour qui n'a rien
+      // coché. Le plan d'une bouche muette est donc exactement ce que sa fiche
+      // lui aurait proposé; deux points de départ donneraient deux avis.
+      const silent = m.eatingSlots === null;
       const structure = eatingStructureFor({
         targetKcal: target.kcal,
         weightKg: body?.weightKg ?? null,
-        declaredSlots: m.eatingSlots === null
-          ? houseDeclaredSlots
-          : m.eatingSlots.map((o) => o.slot),
+        declaredSlots: silent ? [] : m.eatingSlots!.map((o) => o.slot),
         blockedSlots: [],
       });
       structureByMember.set(m.memberId, structure);
       structureTally[structure.reason] += 1;
+      if (silent) {
+        // Sans cible ou sans corps (`requiredCount === null`), rien n'est
+        // dérivé: `null` reste, et le repli « moments de la maison » tient.
+        if (structure.requiredCount !== null && structure.slots.length > 0) {
+          m.eatingSlots = parseEatingRhythm(structure.slots);
+          structureTally.mouths_filled += 1;
+        }
+        continue;
+      }
       if (structure.opened.length === 0) continue;
       structureTally.opened_total += structure.opened.length;
       structureTally.mouths_opened += 1;
@@ -5243,10 +5322,10 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
       // nues, rend `{slot, size: null}` dans l'ordre de la journée et écarte
       // ce qui n'est pas du vocabulaire. Une taille posée ici serait une
       // portion que personne n'a dite.
-      if (m.eatingSlots === null) {
-        m.eatingSlots = parseEatingRhythm(structure.slots);
-        structureTally.mouths_filled += 1;
-      }
+      //
+      // ⟳ 2026-09-23 — LE REMPLISSAGE EST REMONTÉ dans la branche `silent`
+      // ci-dessus: il part désormais du corps seul, pas de la maison. Ici ne
+      // passent plus que les bouches DÉCLARÉES, qu'on ne touche jamais.
     }
     // ⚠️ DES HISTOGRAMMES, JAMAIS UN KCAL NI UN IDENTIFIANT. La cicatrice est
     // écrite ailleurs dans ce fichier: une trace nominative sur l'énergie de
@@ -6971,6 +7050,15 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
       keepSlugs: avoidKeepSlugs,
     });
     const avoidLine = avoidLineOf(avoid.list);
+    // ⟳ 2026-09-24 — LES PLATS REFUSÉS (« Remplacer » sur un aperçu), lus dans
+    // la ligne `student_goals` déjà chargée. Les prénoms viennent du roster;
+    // une personne partie retire sa part de l'entrée. `null` = rien à dire, et
+    // la consigne reste identique à l'octet près.
+    const rejectedEntries = readRejectedDishes(goalRow.practical_constraints);
+    const rejectedLine = rejectedDishesLine({
+      entries: rejectedEntries,
+      roster: members.map((m) => ({ memberId: m.memberId, name: m.displayName })),
+    });
     const catalog = composition === null ? null : buildCompositionCatalog({
       index: composition,
       isComposable,
@@ -7724,6 +7812,32 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
      */
     const sideKcalWithheldIds = new Set<string>();
     /**
+     * ⟳ 2026-09-24 — LE PLAFOND D'ASSIETTE DE CHAQUE BOUCHE (`memberId` →
+     * `personalPlateBoundsFor`, `null` = la table d'âge seule). Rempli UNE fois
+     * dans la boucle des contrats, sur la MÊME bouche que le contrat, avec la
+     * MÊME fonction que `slotContractsFor`. Lu par les deux replis de bornes
+     * (une case hors contrat) et par la trace `plate_bounds`.
+     * ⛔ JAMAIS JOURNALISÉ TEL QUEL: il porte un `member_id` à côté d'un
+     * nombre tiré de l'entretien (seau + rang, comme `day_kcal.per_mouth`).
+     */
+    const personalPlateBoundsByMember = new Map<string, PersonalPlateBounds | null>();
+    /**
+     * ⟳ 2026-09-24 — LES TYPES D'À-CÔTÉ IMPOSSIBLES DE CHAQUE BOUCHE, par moment:
+     * le résultat d'`impossibleKindsFor` de la boucle des contrats (mêmes termes
+     * de mémoire et de maison, même régime, mêmes allergies), gardé pour le
+     * pain que le registre peut AJOUTER après le modèle (`sideBreadAllowed`).
+     */
+    const sideImpossibleByMember = new Map<
+      string,
+      ReadonlyMap<SideCourseSlot, ReadonlySet<SideCourseKind>>
+    >();
+    /**
+     * ⟳ 2026-09-24 — L'ÉNERGIE DU REPAS ENTIER (plat + à-côtés du contrat), clé
+     * `sideCourseKey`: elle borne les à-côtés qui grossissent au-delà du prévu
+     * (`buildSideCourseLedger`, `mealKcalByKey`). En mémoire seulement.
+     */
+    const sideMealKcalByKey = new Map<string, number>();
+    /**
      * ⟳ 2026-09-23 (contrôle W2d) — LES CASES DU REPLI À 700 g, NOMMÉES, sous
      * `generated_from.household.hard_ceiling_cells`. `overflow_to_dish` dit
      * combien; cette liste dit lesquelles. Sans elle, un plat de 700 g
@@ -7876,6 +7990,7 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
       for (const kinds of impossibleSides.values()) {
         for (const k of kinds) sideCoursesTrace.plan.impossible_by_kind[k] += 1;
       }
+      sideImpossibleByMember.set(m.memberId, impossibleSides);
       const sideDays = [...slotsByDay].map(([dayToken, slots]) => ({
         dayToken,
         dayIndex: sideDayIndexOf(dayToken),
@@ -7895,22 +8010,36 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
       // `AnchorMouth` dans le même fichier finiraient par répondre deux cibles
       // différentes à la même personne — et c'est celle qu'on regarde le moins
       // qui déciderait.
+      // ⟳ 2026-09-24 — NOMMÉE, parce qu'elle sert deux fois: au contrat, et à
+      // son plafond d'assiette juste en dessous. La même bouche, pas une copie.
+      const anchorMouth: AnchorMouth = {
+        memberId: m.memberId,
+        // ⟳ 2026-09-08 — LE CRAN DE PART, SUR LA CIBLE DU JOUR. Sans lui, un
+        // « ma mère ne mange pas autant » s'écrit en mémoire et ne déplace
+        // aucune assiette: `envelopeFor` MESURE depuis le 2026-09-06, et
+        // sous `portion_v1` c'est `mouthTargetKcal` qui dimensionne.
+        portionIndex: portionIndexOf(m),
+        ageState: m.ageState,
+        restriction: restrictionOf(m),
+        body,
+        direction: m.goal === null ? null : scaleDirectionOf(m.goal),
+        paceKgPerWeek: paceByMember.get(m.memberId) ?? null,
+        declaredSlots: (m.eatingSlots ?? []).map((o) => o.slot),
+        conditionRefs: conditionRefsOf(m.memberId),
+      };
+      // ⟳ 2026-09-24 — SON PLAFOND D'ASSIETTE, par la fonction et les entrées
+      // que `slotContractsFor` emploie (même bouche, même âge, même appétit):
+      // les deux replis de bornes et la trace le relisent ici, jamais recalculé.
+      personalPlateBoundsByMember.set(
+        m.memberId,
+        personalPlateBoundsFor({
+          ageYears: body?.ageYears ?? null,
+          maintenanceKcal: maintenanceKcalOf(anchorMouth).kcal,
+          appetite: body?.appetite ?? null,
+        }),
+      );
       const contracts = slotContractsFor({
-        mouth: {
-          memberId: m.memberId,
-          // ⟳ 2026-09-08 — LE CRAN DE PART, SUR LA CIBLE DU JOUR. Sans lui, un
-          // « ma mère ne mange pas autant » s'écrit en mémoire et ne déplace
-          // aucune assiette: `envelopeFor` MESURE depuis le 2026-09-06, et
-          // sous `portion_v1` c'est `mouthTargetKcal` qui dimensionne.
-          portionIndex: portionIndexOf(m),
-          ageState: m.ageState,
-          restriction: restrictionOf(m),
-          body,
-          direction: m.goal === null ? null : scaleDirectionOf(m.goal),
-          paceKgPerWeek: paceByMember.get(m.memberId) ?? null,
-          declaredSlots: (m.eatingSlots ?? []).map((o) => o.slot),
-            conditionRefs: conditionRefsOf(m.memberId),
-        },
+        mouth: anchorMouth,
         coachCounting,
         // ⛔ LE RYTHME, PAS LA GRILLE — C'EST TOUT LE LOT B. Ce qu'elle a
         // DÉCLARÉ manger fait le dénominateur; ce que le plan couvre fait la
@@ -7972,6 +8101,11 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
         // aliment que le moteur ne pèserait à rien.
         const courses = c.sideCourses.filter((x) => x.kcal > 0);
         if (courses.length === 0) continue;
+        // ⟳ 2026-09-24 — le repas entier de cette case (plat + à-côtés).
+        sideMealKcalByKey.set(
+          sideCourseKey(m.memberId, c.dayToken, slot),
+          (c.composeKcal ?? 0) + c.sideKcal,
+        );
         sideCourseAsks.push({
           memberId: m.memberId,
           dayToken: c.dayToken,
@@ -8606,6 +8740,8 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
       // ⟳ 2026-09-23 — la ligne « à éviter », calculée plus haut, juste après
       // le chargement du référentiel. `null` quand la liste est vide.
       avoidLine,
+      // ⟳ 2026-09-24 — les plats refusés, juste après la ligne « à éviter ».
+      rejectedDishesLine: rejectedLine,
       restrictions,
       // ── LOT C ② · QUI PORTE UNE RÈGLE À CETTE TABLE ──────────────────────
       // Calculée UNE fois, plus haut (`ruleHolders`), et lue ici comme à la
@@ -8910,6 +9046,10 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
     // Trois refus nommés ; aucun ne recompose en silence.
     let editBaseSourceText: string | null = null;
     let editBaseMeal: GeneratedMeal | null = null;
+    // ⟳ 2026-09-24 — « Remplacer »: les PLATS à prendre dans la réponse
+    // (`dishReplaceKey`), et ceux qu'une exclusion neuve fait refaire en plus.
+    let editDishKeys: string[] | null = null;
+    let editExtended: { key: string; title: string }[] = [];
     if (editing && editDraftId !== null) {
       const row = await loadDraftForAdoption(admin, { draftId: editDraftId, userId });
       // ⚠️ QUATRE `jsonResponse` ÉCRITS EN CLAIR, pas une fabrique : le test
@@ -8962,6 +9102,173 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
       editBaseMeal = storedMeal as GeneratedMeal;
       const text = typeof row.source_text === "string" ? row.source_text.trim() : "";
       editBaseSourceText = text !== "" ? text : JSON.stringify(storedMeal);
+      // ⟳ 2026-09-24 — LES CASES DE L'AJUSTEMENT PAR EXCLUSION, LUES SUR LE
+      // BROUILLON. Mêmes mots que la ceinture de la composition (les items
+      // retenus, par la même `exclusionTermsFor`), même détecteur
+      // (`servedExclusionBites`). La note a déjà été rangée par
+      // `keel-read-note-v1` : ses exclusions SONT dans `routedRetained`.
+      if (editCellsFrom === "exclusions") {
+        const houseTerms = exclusionTermsFor({
+          items: routedRetained.composition,
+          subject: HOUSEHOLD_SUBJECT,
+        });
+        const ownTerms = members.map((m) => ({
+          memberId: m.memberId,
+          terms: exclusionTermsFor({
+            items: routedRetained.composition,
+            subject: memberSubject(m.memberId) ?? "",
+          }),
+        }));
+        const bites = servedExclusionBites({
+          meal: editBaseMeal as never,
+          householdTerms: houseTerms,
+          unallocatedTerms: [...houseTerms, ...ownTerms.flatMap((m) => m.terms)],
+        });
+        // ⟳ 2026-09-24 — ET CE QU'UNE PERSONNE NE MANGE PLUS, SUR SES PLATS À
+        // ELLE. Sans cette ligne, « Christèle n'aime pas le saumon » rendait
+        // `edit_nothing_to_change` avec du saumon dans sa boîte du dimanche.
+        const ownBites = memberServedExclusionBites({
+          meal: editBaseMeal as never,
+          members: ownTerms,
+        });
+        editCells = exclusionEditCells([
+          ...bites.map((b) => ({ ...b, who: null })),
+          ...ownBites.map((b) => ({ ...b, who: nameOf.get(b.memberId) ?? null })),
+        ]);
+        console.log(JSON.stringify({
+          tag: "keel.household_meal.exclusion_edit",
+          user_id: userId,
+          request_id: requestId,
+          base_draft_id: editDraftId,
+          terms: houseTerms.length,
+          biting_dishes: bites.length,
+          biting_own_dishes: ownBites.length,
+          cells: editCells.length,
+          base_dishes: editBaseMeal.dishes.length,
+        }));
+        // ⛔ RIEN À REFAIRE, AUCUN APPEL. Le brouillon ne sert déjà plus
+        // l'aliment : le recomposer coûterait deux minutes pour rendre un
+        // autre plan que celui que la personne regardait.
+        if (editCells.length === 0) {
+          return jsonResponse(req, {
+            error: "edit_nothing_to_change",
+            detail: "no dish of this draft contains what the household excluded; the draft is unchanged",
+            draft_id: editDraftId,
+            request_id: requestId,
+          }, { status: 409 });
+        }
+      }
+      // ⟳ 2026-09-24 — « REMPLACER »: LES PLATS BARRÉS, ET CEUX QU'UNE
+      // EXCLUSION NEUVE VIDERAIT. Les raisons ont déjà été rangées par
+      // `keel-read-note-v1` (liste des plats refusés, goûts, mémo): leurs
+      // exclusions SONT dans `routedRetained`. La garde d'exclusion rejoue sur
+      // tout le plan fusionné et ne répare pas sous une reprise: un plat non
+      // barré qui sert « champignons » à Paul l'en retirerait, sans rien lui
+      // reposer. On demande donc à la garde elle-même (`judgeDishEaters`,
+      // bouche par bouche sur les plats servis; `servedExclusionBites`, le plat
+      // de table sans boîte) quels plats elle viderait, et on les refait aussi.
+      if (editCellsFrom === "rejections") {
+        const base: GeneratedMeal = editBaseMeal;
+        const houseTerms = exclusionTermsFor({
+          items: routedRetained.composition,
+          subject: HOUSEHOLD_SUBJECT,
+        });
+        const termsOf = (memberId: string) =>
+          exclusionTermsFor({
+            items: routedRetained.composition,
+            subject: memberSubject(memberId) ?? "",
+          });
+        const baseFed = eatersByDish({
+          dishes: base.dishes.map((d) => ({
+            day: d.day ?? null,
+            slot: d.slot ?? null,
+            memberId: d.memberId ?? null,
+            complementsShared: d.complementsShared === true,
+            heldOff: [],
+          })),
+          cells: householdGrid.cells,
+        });
+        const judged = judgeDishEaters({
+          dishes: base.dishes,
+          preparations: base.preparations,
+          fedByDish: baseFed.fedByDish,
+          memberIds: platedMembers.map((x) => x.memberId),
+          exclusionsOf: termsOf,
+          regimeOf: (memberId: string) => members.find((x) => x.memberId === memberId)?.diet ?? null,
+          householdTerms: houseTerms,
+        });
+        const tableBites = servedExclusionBites({
+          meal: base as never,
+          householdTerms: houseTerms,
+          unallocatedTerms: [...houseTerms, ...members.flatMap((m) => termsOf(m.memberId))],
+        });
+        const extended: ExtendedDish[] = [
+          ...judged.held.map((h) => ({ dishIndex: h.dishIndex, memberId: h.memberId, matched: h.matched })),
+          ...tableBites.flatMap((bite) =>
+            base.dishes.flatMap((d, i) =>
+              d.title === bite.dish && (d.day ?? null) === bite.day && (d.slot ?? null) === bite.slot
+                ? [{ dishIndex: i, memberId: null, matched: bite.matched }]
+                : []
+            )
+          ),
+        ];
+        // ⛔ LA RAISON EST UNE PHRASE DE LA PERSONNE, ET ELLE PART AU MODÈLE
+        // (« they said: … »): elle passe LA MÊME GARDE que la note — plancher
+        // TCA du compte qui compose (fail-closed), interdits de doctrine —
+        // avant d'y arriver. `keel-read-note-v1` l'a jugée pour la ranger, mais
+        // celle qui arrive ici vient de l'écran. Refusée, elle est tue: le plat
+        // est remplacé sans elle.
+        let reasonsRefused = 0;
+        const guardedTargets = editRejections.targets.map((target) => {
+          const verdict = readDraftNote({
+            raw: target.reason,
+            doctrineForbidden,
+            restrictionFlag:
+              composedMembers.find((m) => m.userId === userId)?.body?.restrictionFlag ?? true,
+          });
+          if (verdict.usable === null) {
+            reasonsRefused++;
+            return { ...target, reason: "" };
+          }
+          return { ...target, reason: verdict.usable };
+        });
+        const plan = rejectionEditPlan({
+          base,
+          targets: guardedTargets,
+          extended,
+          names: new Map(members.map((m) => [m.memberId, m.displayName])),
+        });
+        editCells = plan.cells;
+        editDishKeys = plan.dishKeys;
+        editExtended = plan.extended;
+        console.log(JSON.stringify({
+          tag: "keel.household_meal.dish_replace",
+          user_id: userId,
+          request_id: requestId,
+          base_draft_id: editDraftId,
+          targets: editRejections.targets.length,
+          refused: editRejections.refused,
+          reasons_refused: reasonsRefused,
+          resolved: plan.resolved,
+          unknown: plan.unknown,
+          held: judged.held.length,
+          table_bites: tableBites.length,
+          extended: plan.extended.length,
+          cells: plan.cells.length,
+          dishes: plan.dishKeys.length,
+          base_dishes: base.dishes.length,
+        }));
+        // ⛔ RIEN À REFAIRE, AUCUN APPEL: aucun plat barré n'est plus dans ce
+        // brouillon (il a changé depuis l'affichage).
+        if (plan.dishKeys.length === 0) {
+          return jsonResponse(req, {
+            error: "dish_unknown",
+            detail: "none of the dishes to replace is in this draft any more; the draft is unchanged",
+            draft_id: editDraftId,
+            request_id: requestId,
+          }, { status: 409 });
+        }
+      }
     }
 
     // ⛔ ICI, ET PAS TRENTE LIGNES PLUS BAS. La réclamation de quota de fusion
@@ -9525,7 +9832,16 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
 
     const editExtra = editBaseSourceText === null
       ? ""
-      : `\n\n${cellEditInstruction({ planSourceText: editBaseSourceText, cells: editCells })}`;
+      : `\n\n${
+        cellEditInstruction({
+          planSourceText: editBaseSourceText,
+          cells: editCells,
+          // ⟳ 2026-09-24 — l'ajustement par exclusion ne redemande que ses
+          // cases ; la phrase qui nomme une à trois cases garde le plan entier.
+          // ⟳ 2026-09-24 — « Remplacer » aussi: ses cases seulement.
+          returns: editCellsFrom !== null ? "cells_only" : "full_plan",
+        })
+      }`;
 
     let result: unknown;
     try {
@@ -9935,7 +10251,59 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
     // texte de la plus grande partie du plan, et c'est lui que le brouillon
     // rangé portera pour la reprise SUIVANTE.
     let cellEditTrace: Record<string, unknown> | null = null;
-    if (editBaseMeal !== null && editBaseSourceText !== null) {
+    if (editBaseMeal !== null && editBaseSourceText !== null && editDishKeys !== null) {
+      // ⟳ 2026-09-24 — « REMPLACER »: LA FUSION PREND DES PLATS, PAS DES CASES.
+      // Les autres plats d'une case refaite restent ceux de la base, pas la
+      // copie du modèle (qui lit un texte de plan qui peut dater d'avant une
+      // reprise). Un plat rendu sous un titre refusé n'est pas pris.
+      const base: GeneratedMeal = editBaseMeal;
+      const refusedTitleKeys = new Set([
+        ...editRejections.targets.map((t) => dishTitleKey(t.title)),
+        ...readRejectedDishes(goalRow.practical_constraints).map((e) => e.key),
+      ]);
+      const replaced = mergeRejectionEdit({
+        base,
+        retry: meal,
+        dishKeys: editDishKeys,
+        refusedTitleKeys,
+        index: composition,
+      });
+      cellEditTrace = {
+        base_draft_id: editDraftId,
+        operation: "replace_dishes",
+        requested: editDishKeys,
+        taken: replaced.taken,
+        not_rendered: replaced.notRendered,
+        same_title: replaced.sameTitle,
+        unknown: [],
+        extended: editExtended,
+        untouched_dishes: replaced.untouched,
+        base_dishes: base.dishes.length,
+        model_dishes: meal.dishes.length,
+        preparations_imported: replaced.merge.importedPreparations.length,
+        preparations_pruned: replaced.merge.preparationsPruned.length,
+        shopping_added: replaced.merge.shoppingAdded,
+        run_throughs_replaced: replaced.merge.runThroughsReplaced,
+        run_throughs_trimmed: replaced.merge.runThroughsTrimmed,
+      };
+      console.log(JSON.stringify({
+        tag: "keel.household_meal.dish_replace_merge",
+        user_id: userId,
+        request_id: requestId,
+        ...cellEditTrace,
+      }));
+      if (replaced.taken.length === 0) {
+        return jsonResponse(req, {
+          error: "dish_not_rendered",
+          detail: "none of the dishes to replace came back usable from the model; the draft is unchanged",
+          draft_id: editDraftId,
+          edit: cellEditTrace,
+          request_id: requestId,
+        }, { status: 409 });
+      }
+      meal = replaced.meal;
+      mealSourceText = editBaseSourceText;
+    } else if (editBaseMeal !== null && editBaseSourceText !== null) {
       const base: GeneratedMeal = editBaseMeal;
       // ⟳ 2026-09-21 — LE CALENDRIER DESCEND À LA FUSION. Une case que la
       // grille sert (au moins un mangeur) est connue même si le plan de
@@ -9962,6 +10330,9 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
         preparations_imported: edited.merge.importedPreparations.length,
         preparations_pruned: edited.merge.preparationsPruned.length,
         shopping_added: edited.merge.shoppingAdded,
+        // ⟳ 2026-09-24 — les déroulés de session recalés par la fusion.
+        run_throughs_replaced: edited.merge.runThroughsReplaced,
+        run_throughs_trimmed: edited.merge.runThroughsTrimmed,
       };
       console.log(JSON.stringify({
         tag: "keel.household_meal.cell_edit",
@@ -10165,7 +10536,36 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
       // les entrées d'avant sont revalidées sur le plan réparé.
       if (sideRawEntries.length > 0) sideCoursesTrace.extract.reused_previous += 1;
     };
-    const buildSideLedgerFor = (plan: GeneratedMeal): SideCourseEngineLedger =>
+    /**
+     * ⟳ 2026-09-24 — LE PAIN QUE LE REGISTRE PEUT AJOUTER à un repas raboté
+     * (bloc ③ bis de `buildSideCourseLedger`). Trois refus, et un seul suffit:
+     *   · le réglage de la personne dit `bread: false` à ce moment
+     *     (`rawHabits`, la lecture que le planificateur a reçue);
+     *   · aucun pain de secours ne peut lui être servi (`impossibleKindsFor`,
+     *     le résultat de la boucle des contrats: mêmes termes de mémoire et de
+     *     maison, même régime, mêmes allergies);
+     *   · le moment est léger: il garde un seul à-côté (la règle de
+     *     `sideBudgetFor`, « un moment léger n'ajoute pas de pain »).
+     * Les exclusions de la note fraîche restent au juge du registre, qui pèse
+     * ce pain comme les autres.
+     */
+    const sideBreadAllowed = (memberId: string, slot: SideCourseSlot): boolean =>
+      rawHabits.get(memberId)?.sideCourses?.[slot]?.bread !== false &&
+      !(sideImpossibleByMember.get(memberId)?.get(slot)?.has("bread") ?? false) &&
+      !(platedMembers.find((x) => x.memberId === memberId)?.lightSlots ?? []).includes(slot);
+    /**
+     * ⟳ 2026-09-24 — LE RELEVÉ VIDE: aucun plat raboté. C'est celui de chaque
+     * construction du registre AVANT le dimensionnement d'un tour.
+     */
+    const NO_BOUNDARY_DEFICIT: ReadonlyMap<string, number> = new Map();
+    const buildSideLedgerFor = (
+      plan: GeneratedMeal,
+      /**
+       * ⟳ 2026-09-24 — ce que la borne d'assiette a retiré au plat, par repas
+       * (`sideCourseKey`). ⛔ Requis: `NO_BOUNDARY_DEFICIT` en tête de tour.
+       */
+      extraDeficitByKey: ReadonlyMap<string, number>,
+    ): SideCourseEngineLedger =>
       buildSideCourseLedger({
         raw: sideRawEntries,
         asks: sideCourseAsks,
@@ -10178,9 +10578,90 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
         allergens: constraints,
         language: sideLanguage,
         kcalWithheldMemberIds: sideKcalWithheldIds,
+        extraDeficitByKey,
+        breadAllowed: sideBreadAllowed,
+        mealKcalByKey: sideMealKcalByKey,
       });
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-24 — LE MODÈLE NOMME, ON IDENTIFIE : plats, casseroles, à-côtés
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ LE DÉFAUT, MESURÉ SUR LE BROUILLON `377e91ad`. « courgette · ref
+    // zucchini » : la courgette n'était pas dans le catalogue servi, le modèle
+    // a inventé un identifiant, la ligne a été refusée — et le sas ne la
+    // regarde pas. Casserole sans énergie, déjeuner du mardi sans portion, et
+    // la réparation a servi un second déjeuner à chacun.
+    //
+    // Décision de l'utilisateur : le modèle NOMME chaque aliment (il n'écrit
+    // plus d'identifiant) et c'est ici qu'on le retrouve dans la base — par
+    // son nom, sinon par UN petit appel qui choisit dans la base entière, sinon
+    // « absent » (le sas crée l'aliment d'un plat ; un à-côté absent reçoit un
+    // aliment de secours du registre). Un identifiant écrit quand même est
+    // oublié, et ne sert que de repli quand rien d'autre n'a répondu.
+    //
+    // ⚠️ AVANT LE REGISTRE DES À-CÔTÉS, et c'est pour ça qu'il est ici et pas
+    // au-dessus du sas : le registre pèse les à-côtés dès sa construction, et
+    // la cible de chaque plat en dépend (`dishTargetOf`). Plats, casseroles et
+    // à-côtés partent dans le MÊME appel. Les lignes sont modifiées EN PLACE ;
+    // `regramMeal` les repèse après le sas.
+    const identifyFoods = async (args: {
+      /** `true` au premier jet ; `false` en tête de tour (les plats y sont déjà). */
+      withPlanLines: boolean;
+      source: "composition_identify" | "side_course_identify";
+    }) => {
+      if (composition === null) return null;
+      const sideLines = sideRawEntries.map((e) => ({
+        term: e.term,
+        ref: e.ref,
+        refRefused: false,
+      }));
+      const sideNamed = sideLines.filter((_, i) =>
+        sideRawEntries[i].preparation_id === null && sideRawEntries[i].term !== ""
+      );
+      const identifie = await identifyPlanFoods({
+        db: admin,
+        index: composition,
+        isComposable,
+        lines: [
+          ...(args.withPlanLines
+            ? [
+              ...meal.dishes.flatMap((d) => d.ingredients),
+              ...meal.preparations.flatMap((p) => p.ingredients),
+            ]
+            : []),
+          ...sideNamed,
+        ],
+        forgetModelRefs: true,
+        meta: { source: `${FN_NAME}.${args.source}`, requestId, userId },
+      });
+      // Un à-côté tiré d'une casserole se lit par la casserole : il n'a pas de nom à identifier.
+      sideRawEntries = sideRawEntries.map((e, i) =>
+        e.preparation_id === null && e.term !== "" ? { ...e, ref: sideLines[i].ref } : e
+      );
+      // ⚠️ LE JOURNAL SORT MÊME À ZÉRO : « rien à retrouver » et « le bloc
+      // n'est pas branché » ne se liraient pas pareil sans lui.
+      console.log(JSON.stringify({
+        tag: `keel.household_meal.${args.source}`,
+        user_id: userId,
+        request_id: requestId,
+        side_terms: sideNamed.length,
+        ...identifie.counts,
+      }));
+      return identifie;
+    };
     readSideCourses(mealSourceText);
-    let sideLedger: SideCourseEngineLedger = buildSideLedgerFor(meal);
+    const identifie = await identifyFoods({ withPlanLines: true, source: "composition_identify" });
+    if (identifie !== null && identifie.counts.requested > 0) {
+      issues.push(
+        `composition_identify: ${identifie.counts.lines_by_model} by_model, ` +
+          `${identifie.counts.lines_absent} absent, ` +
+          `${identifie.counts.lines_unanswered} unanswered ` +
+          `(${identifie.counts.lines_model_ref_fallback} on the model's id), ` +
+          `${identifie.counts.lines_by_name} by_name, ` +
+          `${identifie.counts.groups_corrected} groups_corrected`,
+      );
+    }
+    let sideLedger: SideCourseEngineLedger = buildSideLedgerFor(meal, NO_BOUNDARY_DEFICIT);
     sideCoursesTrace.model = sideLedger.counters;
     sideCoursesTrace.variety = sideLedger.variety;
     /**
@@ -10292,6 +10773,10 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
     // aucun inconnu » — sur un plan que le sas n'a jamais regardé. Le défaut
     // était le MÊME, à la virgule près, dans les deux lanes; il est réparé au
     // même endroit pour qu'une troisième lane ne le réintroduise pas.
+    //
+    // ⟳ 2026-09-24 — L'IDENTIFICATION DES ALIMENTS A DÉJÀ EU LIEU, plus haut
+    // (`identifyFoods`, juste après la lecture des à-côtés) : le sas ne voit
+    // que ce que ni le nom ni l'appel d'identification n'ont retrouvé.
     const filledComposition = await fillPlanComposition({
       baseIndex: composition,
       attempt: (baseIndex) =>
@@ -11149,6 +11634,8 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
             // est un facteur, et c'est déjà fait par la part.
             light: (p?.lightSlots ?? []).includes(slot),
             appetite: p?.appetite ?? null,
+            // ⟳ 2026-09-24 — son plafond d'assiette, relu (boucle des contrats).
+            personal: personalPlateBoundsByMember.get(memberId) ?? null,
           });
           boundsSource[bounds.source]++;
           boundKind[bounds.boundSource]++;
@@ -11828,31 +12315,16 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
 
     // ⟳ 2026-09-11 · LOT 6 — REMONTÉ: c'est LUI qui dit si une exclusion est servie.
 
+    // ⟳ 2026-09-24 — LE CORPS EST PARTI DANS `servedExclusionBites`
+    // (`food_exclusion_belt.ts`) : l'ajustement par la note pose la même
+    // question au brouillon déjà composé, et une seconde copie de la règle
+    // aurait fini par dire autre chose. Les deux jeux de mots (table / tous)
+    // y sont expliqués.
     const bitesOf = (m: ParsedMeal) =>
-      m.dishes.flatMap((d) => {
-        // ⚠️ DEUX JEUX DE MOTS, ET C'EST LA VENTILATION QUI CHOISIT. Un plat
-        // ventilé par bouche est déjà tenu par la ceinture du parseur (elle
-        // retire la bouche mordue). Un plat que personne ne se voit
-        // attribuer est servi à TOUS: il doit passer la ligne de chacun,
-        // sinon le seul remède — retirer une bouche — n'existe pas.
-        const allocated = (d.boxes ?? []).some((b) =>
-          (b?.memberIds ?? []).length > 0
-        );
-        const terms = allocated ? householdExclusionTerms : unallocatedTerms;
-        if (terms.length === 0) return [];
-        const bite = dishBitesExclusion({
-          dish: { title: d.title, method: d.method, ingredients: d.ingredients },
-          uses: (d.uses ?? []).map((u) => ({ preparationId: u.preparationId })),
-          preparationById: new Map(m.preparations.map((p) => [p.id, p])) as never,
-          terms,
-          surface: "all",
-          // ⟳ 2026-09-21 — LE MOMENT DU PLAT RELU. Une exclusion écrite pour
-          // le matin ne déclenche pas une relance sur un dîner.
-          slot: d.slot ?? null,
-        });
-        return bite.matched === null
-          ? []
-          : [{ dish: d.title, matched: bite.matched, because: bite.because, day: d.day, slot: d.slot }];
+      servedExclusionBites({
+        meal: m as never,
+        householdTerms: householdExclusionTerms,
+        unallocatedTerms,
       });
 
     // ⟳ 2026-09-11 · LOT 6 — REMONTÉ: entrée du détecteur de livraison.
@@ -13174,7 +13646,21 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
     // ça aurait divergé de celle-ci; c'est la MÊME fermeture qu'on rappelle.
     const outputContractOf = (m: typeof meal) =>
       composition === null ? null : checkOutputContract({
-        lines: outputContractLinesOf(m),
+        // ⟳ 2026-09-24 — UNE LIGNE SANS CODE QUE SON NOM IDENTIFIE N'EST PLUS
+        // `ref_missing`. Le prompt autorise désormais le nom seul pour un
+        // aliment hors catalogue ; l'identification a écrit le code des
+        // aliments du référentiel, et une fiche créée par le sas se lit par son
+        // nom (`indexForReading`). Seule reste fautive la ligne pesée que
+        // PERSONNE n'identifie.
+        lines: outputContractLinesOf(m).map((l) => {
+          if (l.ref !== null || l.refRefused) return l;
+          const parLeNom = resolveCompositionLine(composition, {
+            term: l.term,
+            ref: null,
+            refRefused: false,
+          });
+          return parLeNom.ref === null ? l : { ...l, ref: parLeNom.ref.slug };
+        }),
         // ⛔ LA MÊME RÈGLE D'ADMISSION QUE LA PESÉE, PAS UNE SECONDE.
         // `condimentMassFor` est ce que `resolveIngredients` appelle quand une
         // ligne n'a aucune quantité lisible; une règle recopiée ici
@@ -13549,6 +14035,33 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
         console.warn(`[${FN_NAME}] upstream exclusion`, e);
       }
 
+      // ── ② bis ⟳ 2026-09-24 — LA VIANDE OU LE POISSON CRU QUE RIEN NE CUIT ─
+      //
+      // ⛔ MESURÉ SUR DEUX PLANS RÉELS : un plan sans aucune session (saumon,
+      // poulet, cabillaud « déjà cuits », jamais cuits), un burger dont le
+      // steak haché n'est cuit nulle part. Famille sécurité : c'est ce qui rend
+      // malade. Chassé (`CHASED_CAUSES`) — et s'il survit à la boucle, le plan
+      // n'est pas livré (plus bas, avant la publication).
+      try {
+        const crus = uncookedRawProteins({ dishes: meal.dishes, index: composition });
+        const texte = rawProteinRepairInstruction();
+        crus.found.forEach((c, i) => {
+          pousse({
+            kind: "safety",
+            cause: "raw_protein_uncooked",
+            day: c.day,
+            slot: c.slot,
+            dish: c.dish,
+            detail: i === 0
+              ? `${texte} Here: "${c.term}".`
+              : `"${c.dish}" serves "${c.term}" raw as well.`,
+          });
+        });
+      } catch (e) {
+        issues.push("upstream_defects_raw_protein_unreadable");
+        console.warn(`[${FN_NAME}] upstream raw protein`, e);
+      }
+
       // ── ③ UNE BOUCHE SANS REPAS ────────────────────────────────────────
       try {
         const livre = mealsDelivered(deliveredViewOf(meal), mouthCells);
@@ -13860,9 +14373,38 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
     // casserole qui n'existe plus, et une cible de plat calculée sur des
     // grammes qu'on ne sert pas. Revalidé ici, rattaché au verrou plus bas.
     readSideCourses(mealSourceText);
-    sideLedger = buildSideLedgerFor(meal);
+    // ⟳ 2026-09-24 — les à-côtés de CE texte (candidate réparée, ou relecture)
+    // passent par la même identification ; les plats l'ont déjà eue.
+    await identifyFoods({ withPlanLines: false, source: "side_course_identify" });
+    sideLedger = buildSideLedgerFor(meal, NO_BOUNDARY_DEFICIT);
     sideCoursesTrace.model = sideLedger.counters;
     sideCoursesTrace.variety = sideLedger.variety;
+    /**
+     * ⟳ 2026-09-24 — CE QUE LA BORNE D'ASSIETTE RETIRE AU PLAT DANS CE TOUR,
+     * par repas (`sideCourseKey` → kcal): la coupe du dimensionnement chez une
+     * personne seule (`clampToBounds`), puis le rabotage
+     * (`fitPortionsToBounds`, `shavedByMeal`). Le registre est reconstruit
+     * avec lui juste après le rabotage.
+     * ⛔ NEUF À CHAQUE TOUR, déclaré ici et nulle part ailleurs: le relevé
+     * d'un tour décrit des plats qu'une réparation vient de changer, il ne se
+     * cumule pas avec le suivant. ⛔ En mémoire seulement (`member_id` à côté
+     * de kcal).
+     */
+    const boundaryDeficitByKey = new Map<string, number>();
+    const addBoundaryDeficit = (
+      memberId: string,
+      day: string | null,
+      slot: string | null,
+      kcal: number,
+    ): void => {
+      if (!Number.isFinite(kcal) || !(kcal > 0)) return;
+      const key = sideCourseKey(
+        memberId,
+        String(day ?? "").trim().toLowerCase(),
+        String(slot ?? "").trim().toLowerCase(),
+      );
+      boundaryDeficitByKey.set(key, (boundaryDeficitByKey.get(key) ?? 0) + kcal);
+    };
     /** L'état exact de la candidate AVANT que la finalisation la mute. */
     const c4Entry: typeof meal = structuredClone(meal);
     // ⚠️ ET LE TEXTE SOURCE AVEC LUI. `reconcilePortions` le relit: repartir
@@ -15316,6 +15858,8 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
           slotTargetKcal: slotTarget,
           light: lightSlots.includes(slot),
           appetite: body?.appetite ?? null,
+          // ⟳ 2026-09-24 — son plafond d'assiette, relu (boucle des contrats).
+          personal: personalPlateBoundsByMember.get(mouth.memberId) ?? null,
         });
         // ⟳ 2026-09-11 · LOT E — LA BOUCHE UNIQUE RETIENT SES BORNES, ELLE
         // AUSSI. C'est le chemin qui a servi les 727 g contre un plafond de
@@ -15705,6 +16249,18 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
           engineServedByMouthDay.set(
             key,
             (engineServedByMouthDay.get(key) ?? 0) + standard.kcal * bounded.factor,
+          );
+        }
+        // ⟳ 2026-09-24 — CE QUE LA COUPE DU DIMENSIONNEMENT RETIRE AU PLAT, en
+        // kcal: facteur nu − facteur borné, sur la part standard. Le registre
+        // le rend aux à-côtés après le rabotage. ⚠️ Une remontée sous le
+        // plancher (`under_min`) n'est pas une perte: elle n'entre pas ici.
+        if (rowSized && standard.kcal !== null && sized.factor > bounded.factor) {
+          addBoundaryDeficit(
+            mouth.memberId,
+            day,
+            slot,
+            (sized.factor - bounded.factor) * standard.kcal,
           );
         }
         applyRows.push({
@@ -16435,6 +16991,16 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
       readonly later: typeof shopLaterDays;
       readonly frozen: typeof writtenWaves.frozenAtPurchase;
     }): void => {
+    /** ⟳ 2026-09-24 — les jours des sessions RÉELLEMENT écrites, dans l'ordre du plan. */
+    const sessionsLivrees = daysToFill.filter((d) =>
+      meal.cooking_sessions.some((session) => session.day === d)
+    );
+    if (
+      capacity.plan !== null && capacity.plan.sessions > 0 && sessionsLivrees.length === 0 &&
+      !issues.includes("sessions_planned_none_delivered")
+    ) {
+      issues.push("sessions_planned_none_delivered");
+    }
     try {
       const explained = explainPlanChoices({
         locale: reportLocale,
@@ -16563,10 +17129,14 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
           // ⟳ A2 (2026-09-03) — CE QUE LE STYLE A PLAFONNÉ. `null` quand les
           // deux questions de P2 n'ont pas été posées: aucune ligne, et
           // l'explication d'un compte antérieur ne bouge pas d'un caractère.
+          // ⟳ 2026-09-24 — LES SESSIONS LIVRÉES, PAS CELLES QU'ON AVAIT
+          // PRÉVUES. Mesuré sur le brouillon `930edb4b` : zéro session écrite
+          // par le modèle, et l'explication annonçait « 3 sessions de cuisine :
+          // jeudi, samedi et lundi ». Sans session livrée, la phrase se tait
+          // (`cookDays` vide) et l'écart se compte (`sessions_planned_none_delivered`).
           cookingPlan: capacity.plan === null ? null : {
-            sessions: capacity.plan.sessions,
-            // LES JOURS DÉRIVÉS, dits avec les mots de la dérivation.
-            cookDays: capacity.plan.cookDays as never,
+            sessions: sessionsLivrees.length,
+            cookDays: sessionsLivrees as never,
             // ⟳ LOT C — ce que le PLAN organise, à côté de l'écart avec le demandé.
             runs: capacity.plan.runs,
             unusedRuns: capacity.plan === null || groceryRuns === null
@@ -18032,7 +18602,14 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
     // kcal. Rangé par seau (la règle du journal, précédent `residualGaps`), et
     // sous plancher TCA la bouche ne verse aucun kcal dans aucune somme.
     const portionBoundaryTrace = (() => {
-      const { by_member: byMember, kcal_shaved: _kcalShavedAll, ...counts } = portionBoundary;
+      // ⟳ 2026-09-24 — `shavedByMeal` non plus: un `member_id` à côté de kcal,
+      // lu par le registre juste en dessous, jamais par un journal.
+      const {
+        by_member: byMember,
+        kcal_shaved: _kcalShavedAll,
+        shavedByMeal: _shavedByMeal,
+        ...counts
+      } = portionBoundary;
       const byBucket: Record<string, { mouths: number; meals: number; grams: number; kcal: number }> =
         {};
       let kcalShaved = 0;
@@ -18071,6 +18648,31 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
       issues.push(
         `portion_boundary_unfitted:${portionBoundary.still_over_max}/${portionBoundary.still_under_min}`,
       );
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-24 — CE QUE LA BORNE A RETIRÉ AU PLAT REVIENT AUX À-CÔTÉS
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ LE DÉFAUT: un plat au-dessus de son plafond était raboté, et l'énergie
+    // retirée n'allait nulle part (Christèle à 95,9 % un vendredi). Le relevé
+    // de ce tour (coupe du dimensionnement + rabotage) repart au registre des
+    // à-côtés, qui fait grossir le pain puis le fromage déjà servis, ajoute un
+    // pain s'il n'y en a pas (maintien et prise, jamais contre un refus), et
+    // compte le reste comme perdu (`variety.boundary_*`).
+    //
+    // ⚠️ ICI, AVANT `finalPortionCheck`, la réconciliation des casseroles et la
+    // reconstruction des courses: ce sont elles qui lisent `sideLedger`
+    // (parts de soupe, lignes d'à-côtés). Le plan écrit reçoit ces à-côtés
+    // plus bas, avant l'énergie servie (`attachSideCourses`).
+    // ⚠️ SANS RABOTAGE, RIEN NE BOUGE: le registre de la tête de tour reste.
+    for (const shaved of portionBoundary.shavedByMeal) {
+      addBoundaryDeficit(shaved.memberId, shaved.day, shaved.slot, shaved.kcal);
+    }
+    if (boundaryDeficitByKey.size > 0) {
+      sideLedger = buildSideLedgerFor(meal, boundaryDeficitByKey);
+      sideCoursesTrace.model = sideLedger.counters;
+      sideCoursesTrace.variety = sideLedger.variety;
     }
 
     // ══════════════════════════════════════════════════════════════════════
@@ -18232,6 +18834,8 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
       unit_bumped: 0,
       overdrawn_before: 0,
       overdrawn_after: 0,
+      overdrawn_tolerated: 0,
+      worst_tolerated_g: 0,
       unreadable_drawn: 0,
       worst_shortfall_g: 0,
       sessions_emptied: 0,
@@ -18518,6 +19122,14 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
         const rest = g === null || !Number.isFinite(g) ? null : g - drawn;
         if (drawn > 0 && rest === null) {
           potReconcile.unreadable_drawn++;
+        } else if (rest !== null && rest < 0 && potShortfallTolerated(drawn, -rest)) {
+          // ⟳ 2026-09-23 — un manque sous `max(10 g, 3 %)` est de l'arrondi:
+          // compté à part, jamais bloquant (`pot_mass_publication.ts`).
+          potReconcile.overdrawn_tolerated++;
+          potReconcile.worst_tolerated_g = Math.max(
+            potReconcile.worst_tolerated_g,
+            Math.ceil(-rest),
+          );
         } else if (rest !== null && rest < 0) {
           potReconcile.overdrawn_after++;
           potReconcile.worst_shortfall_g = Math.max(
@@ -18785,8 +19397,19 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
         );
         return id === undefined ? null : usages.needs.get(id) ?? null;
       };
+      // ⟳ 2026-09-24 — les jours de courses que la datation vient de poser :
+      // un achat scindé s'y range quand il y reste frais (`purchasesForNeed`).
+      const rangsDeCourses = daysToFill.map((_, rank) => rank).filter((rank) =>
+        meal.shopping_list.some((l) => l.buy_on === addDays(startsOn, rank))
+      );
+      const rangDAchat = (l: { buy_on?: string | null }): number | null => {
+        const rank = daysToFill.findIndex((_, i) => addDays(startsOn, i) === l.buy_on);
+        return rank < 0 ? null : rank;
+      };
       const scission = splitShoppingByUses({
         lines: meal.shopping_list,
+        shopDays: rangsDeCourses,
+        rankOf: rangDAchat,
         usesOf: (l) => {
           const besoin = besoinDe(l);
           if (besoin === null) return null;
@@ -18835,6 +19458,32 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
       });
       meal.shopping_list = scission.lines;
 
+      // ── ② bis ⟳ 2026-09-24 — DEUX JOURS AU MOINS ENTRE DEUX COURSES ─────
+      //
+      // Décision de l'utilisateur, sur deux plans réels : une course d'épinards
+      // seuls entre jeudi et samedi (`377e91ad`), une course de laitue seule le
+      // lendemain de la grosse (`59b06fd6`). Un jour de courses trop proche d'un
+      // autre rejoint une course existante, ou se décale — sans qu'aucun
+      // article ne sorte de sa fenêtre crue ; sinon il reste, et se compte
+      // (un poisson qui ne tient qu'un jour).
+      const espacement = spaceShoppingDays({
+        lines: meal.shopping_list,
+        covers: scission.covers,
+        // ⛔ LA MÊME LECTURE DE CONSERVATION QUE LA SCISSION, LA DATATION ET LA GARDE.
+        windowOf: (l) =>
+          keepingOf({
+            ref: l.ref ?? null,
+            group: l.food_group ?? null,
+            frozen: l.freeze_on_purchase === true,
+          }).rawWindowDays,
+        rankOf: rangDAchat,
+        withRank: (l, rank) => ({ ...l, buy_on: addDays(startsOn, rank) }),
+      });
+      meal.shopping_list = espacement.lines;
+      if (espacement.counts.adjacent_after > 0) {
+        issues.push(`shopping_days_adjacent_kept: ${espacement.counts.adjacent_after}`);
+      }
+
       // ── ③ LES JOURS, LES VAGUES ÉCRITES ET LA PROSE, RECOMPOSÉS ────────
       const joursApres = [
         ...new Set(
@@ -18849,7 +19498,9 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
       ).length;
       const changement = nouveaux.length > 0 ||
         joursApres.length !== shoppingDays.length ||
-        scission.counts.split_needs > 0;
+        scission.counts.split_needs > 0 ||
+        scission.counts.redated_single > 0 ||
+        espacement.counts.lines_moved > 0;
       if (changement) {
         shoppingDays = joursApres;
         const vaguesApres = describeWrittenWaves({
@@ -18878,6 +19529,8 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
         new_days: nouveaux,
         // ⛔ CE QUE LA SCISSION A COÛTÉ ET CE QU'ELLE N'A PAS PU FAIRE.
         ...scission.counts,
+        // ⟳ 2026-09-24 — et ce que la règle des deux jours a déplacé ou laissé.
+        spacing: espacement.counts,
         prose_recomposed: changement,
       }));
       if (scission.counts.split_needs > 0) {
@@ -19666,6 +20319,41 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
     issues.push(...boxSizing.issues);
 
     // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-24 — LES À-CÔTÉS RATTACHÉS DE NOUVEAU AU PLAN ÉCRIT
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ `dishes` porte les à-côtés du registre d'AVANT le rabotage (rattachés
+    // au verrou de maison, plus haut). Depuis, le registre a pu être reconstruit
+    // avec ce que la borne a retiré au plat: un fromage plus gros, un pain
+    // ajouté. Sans ce rattachement, l'énergie servie et le plan écrit
+    // perdraient exactement ce que la compensation vient de rendre.
+    //
+    // ⚠️ `attachSideCourses` EST IDEMPOTENT: sans reconstruction, il rend les
+    // mêmes à-côtés. ⚠️ ET LE VERROU DE MAISON LES REVOIT: rattacher depuis le
+    // registre ferait revenir un à-côté que le verrou avait retiré, et un pain
+    // ajouté n'est jamais passé devant lui. Seuls les `side_courses` sont
+    // recollés; la substance des plats n'a pas changé depuis le premier verrou,
+    // qui a déjà refusé le plan s'il servait l'exclu.
+    {
+      const sideReattach = attachSideCourses(dishes, sideLedger);
+      const sideRelock = applyHouseRuleLock(
+        sideReattach.dishes,
+        householdSplit.houseRuleLabels,
+      );
+      for (const [at, relocked] of sideRelock.dishes.entries()) {
+        const payload = dishes[at] as Record<string, unknown> | undefined;
+        if (payload === undefined) continue;
+        if (Array.isArray(relocked.side_courses)) payload.side_courses = relocked.side_courses;
+        else delete payload.side_courses;
+      }
+      sideCoursesTrace.attach = sideReattach.counters;
+      sideCoursesTrace.house_rule_side_dropped = sideRelock.sideCoursesDropped.length;
+      for (const s of sideRelock.sideCoursesDropped) {
+        if (!lock.sideCoursesDropped.includes(s)) issues.push(`house_rule_side_dropped:${s}`);
+      }
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
     // CE QUE LA PHRASE DE TABLE PORTE ENCORE — mesuré, sur TOUS les plans.
     // ══════════════════════════════════════════════════════════════════════
     //
@@ -20270,10 +20958,55 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
     //     demanderait de lire les titres et les méthodes pour décider si un
     //     plat passe au four — c'est-à-dire un matcher, et ce dépôt en a mesuré
     //     12 faux positifs sur 12.
+    /**
+     * ⟳ 2026-09-24 — LE PLAFOND ET LE PLANCHER D'ASSIETTE DE CHAQUE BOUCHE, et
+     * d'où ils viennent: `personal` (25 % de l'entretien,
+     * `personalPlateBoundsFor`) ou `table` (la table d'âge, `null` personnel).
+     * ⛔ SEAU + RANG, JAMAIS UN `member_id`: un plafond personnel, c'est un
+     * quart d'entretien. Le rang se compte comme `day_kcal.per_mouth` (ordre
+     * des identifiants, par seau). Sous plancher TCA, aucune ligne: la bouche
+     * est comptée dans `withheld_mouths`.
+     */
+    const plateBoundsTrace = (() => {
+      const out = {
+        withheld_mouths: 0,
+        per_mouth: [] as {
+          eater_bucket: string;
+          n: number;
+          max_g: number;
+          min_g: number;
+          source: "personal" | "table";
+        }[],
+      };
+      const rank = new Map<string, number>();
+      const ids = platedMembers.map((x) => x.memberId).sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
+      for (const memberId of ids) {
+        if (withheldMemberIds.has(memberId)) {
+          out.withheld_mouths++;
+          continue;
+        }
+        const table =
+          PLATE_MASS_BOUNDS_G[plateBandOf(bodyOfMouth(memberId)?.ageYears ?? null).band].meal;
+        const personal = personalPlateBoundsByMember.get(memberId) ?? null;
+        const bucket = mouthBucketOf(memberId);
+        const n = (rank.get(bucket) ?? 0) + 1;
+        rank.set(bucket, n);
+        out.per_mouth.push({
+          eater_bucket: bucket,
+          n,
+          max_g: personal === null ? table.max : Math.min(table.max, personal.maxG),
+          min_g: personal === null ? table.min : Math.min(table.min, personal.minG),
+          source: personal === null ? "table" : "personal",
+        });
+      }
+      return out;
+    })();
     const promptTrace = {
       // ⟳ 2026-09-20 — ce que le plancher protéique a demandé au modèle, et ce
       // que le plafond de la table lui a retiré. Voir `sharedProteinCaps`.
       protein_brief: proteinBriefCounters,
+      // ⟳ 2026-09-24 — les bornes d'assiette de chaque bouche, seau + rang.
+      plate_bounds: plateBoundsTrace,
       // ⟳ 2026-09-23 — L'ÉNERGIE SERVIE SUR LES BOÎTES QUI PARTENT, la charge
       // de l'assiette, le rabotage des bornes avec ses kcal, et la ceinture
       // des boîtes du moteur — sur l'aperçu comme sur la ligne écrite. ⛔ Aucun
@@ -21777,6 +22510,54 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
     // ⚠️ `calls_exhausted` SE LIT AVANT `attempts_exhausted`: le plafond dur du
     // lot d'abord, le budget partagé ensuite. Les confondre ferait chercher un
     // budget trop petit là où c'est le plafond qui a mordu.
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-24 — LA RÉPARATION S'OUVRE EN MODIFICATION, POUR UN REPAS
+    //                MANQUANT DANS LES CASES QU'ON VIENT DE REFAIRE, ET LÀ SEUL
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // Mesuré sur l'ajustement « plus de tofu » (foyer `326427ff…`, essai e5) :
+    // le modèle a rendu 20 cases sur 21, l'ancien plat au tofu est resté sur
+    // `fri/snack_am`, la ceinture en a retiré Fabrice, et le brouillon est parti
+    // avec `repair.by_kind.missing_meal: 2` et `calls_made: 0`. Le défaut était
+    // vu, adressé (unité réservée), compté parmi les causes poursuivies — et
+    // `improvementRetries` (faux en modification) coupait l'appel.
+    //
+    // ⛔ PAS `|| editing`. Ouverte à toute la modification, la boucle réparerait
+    // les anciens défauts du brouillon HORS des cases demandées, et la promesse
+    // « le reste ne bouge pas » tomberait. Deux bornes donc :
+    //   · l'appel n'a lieu que si un repas MANQUE dans une case demandée ;
+    //   · les défauts envoyés sont ceux des cases demandées (par jeton de jour
+    //     OU par date : les deux adresses coexistent dans `RepairDefect`). Un
+    //     patch qui toucherait une autre unité est rejeté en bloc
+    //     (`out_of_scope_unit`).
+    // Les demandes de densité et de plats personnels restent éteintes en
+    // modification (`improvementRetries` aux sites qui les posent).
+    const c4EditKeys = new Set(
+      editing
+        ? editCells.flatMap((c) => [
+          `${c.day}/${c.slot}`,
+          `${contractDates[c.day] ?? c.day}/${c.slot}`,
+        ])
+        : [],
+    );
+    const c4InEdit = (d: { day: string | null; date: string | null; slot: string | null }) =>
+      c4EditKeys.has(`${d.day ?? ""}/${d.slot ?? ""}`) ||
+      c4EditKeys.has(`${d.date ?? ""}/${d.slot ?? ""}`);
+    // ⟳ 2026-09-24 (même soir) — ET PAS SEULEMENT LES CAUSES « CHASSÉES ».
+    // Mesuré sur r3/r4 : la case oubliée ne laissait que deux défauts que la
+    // politique générale ne poursuit pas — un aliment exclu PAR GOÛT encore
+    // servi (compté, non bloquant) et un plat personnel manquant
+    // (`own_meal_dish_missing`, rangé en préférence). `must_repair: 0`, aucun
+    // appel, et le brouillon partait avec « Tofu, pain croustillant de
+    // seigle » sur le mercredi. Dans une case qu'on vient de refaire pour
+    // retirer un aliment, ces deux défauts SONT la demande : ils sont
+    // poursuivis ici, et ici seulement.
+    const c4EditMust = editing
+      ? c4Pass.defects.filter((d) =>
+        (d.kind === "missing_meal" || d.kind === "safety") && c4InEdit(d)
+      )
+      : [];
+    const c4EditRepair = c4EditMust.length > 0;
     const c4Decision = planRepairDecision({
       defects: c4Pass.defects,
       // ⟳ 2026-09-15 · DÉCISION PRODUIT — seul un défaut BLOQUANT fait partir un
@@ -21784,7 +22565,9 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
       // ⟳ 2026-09-19 — PLUS LES CAUSES CHASSÉES. Une case trouée ne bloque
       // plus la livraison (elle part nommée), mais elle vaut un appel tant
       // qu'il reste du budget : `mustRepair` = bloquants ∪ `CHASED_CAUSES`.
-      mustRepair: c4Pass.mustRepair.length,
+      // ⟳ 2026-09-24 — en modification, plus ce que la case refaite doit
+      // encore (voir `c4EditMust`). Hors modification, `c4EditMust` est vide.
+      mustRepair: c4Pass.mustRepair.length + c4EditMust.length,
       // ⛔ LES APPELS PARTIS DE CE SITE, pas les tentatives accordées.
       callsMade: c4CallsMade,
       maxCalls: PLAN_REPAIR_MAX_CALLS,
@@ -21840,7 +22623,10 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
     if (!c4Decision.call && c4Decision.reason === "no_blocking_defect") {
       c4Note(`plan_repair_skipped:no_blocking_defect:${c4Pass.defects.length}`);
     }
-    if (!c4Stop && improvementRetries && c4Decision.call) {
+    if (!c4Stop && editing && c4Decision.call && !c4EditRepair) {
+      c4Note("plan_repair_skipped:editing");
+    }
+    if (!c4Stop && (improvementRetries || c4EditRepair) && c4Decision.call) {
       // ══════════════════════════════════════════════════════════════════
       // ⟳ 2026-09-12 · FERMETURE LOT 1 — ON VÉRIFIE LE CONTEXTE AVANT DE
       //                CONSOMMER LA TENTATIVE
@@ -21857,7 +22643,9 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
       // avec rien à réparer. La table des unités adresse aussi les DEUX plats
       // dédiés d'un même créneau (défaut ②) et les portions ATTENDUES ET
       // ABSENTES, qui n'avaient d'adresse nulle part.
-      const c4RepairDefects = defectsForRepairAttempt(c4Pass.defects);
+      const c4RepairDefects = defectsForRepairAttempt(
+        c4EditRepair ? c4Pass.defects.filter(c4InEdit) : c4Pass.defects,
+      );
       const c4Units = buildRepairUnits({
         dishes: meal.dishes,
         // ⛔ LES ENTRÉES DE DERNIER RECOURS RÉCLAMÉES CE TOUR-CI. Sans elles,
@@ -22485,6 +23273,31 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
             // ⚠️ ON ABSORBE, ON NE RÉASSIGNE PAS. `composition` est fermée dans
             // `shadowSizing` et dans les demandes, bien plus haut.
             if (composition !== null) {
+              // ⟳ 2026-09-24 — LA RÉPARATION A PU ÉCRIRE DES ALIMENTS NEUFS :
+              // ils passent par la même identification que le premier jet,
+              // avant le sas. Le tour suivant de la boucle repèse le plan.
+              const identifieReparation = await identifyPlanFoods({
+                db: admin,
+                index: composition,
+                isComposable,
+                lines: [
+                  ...meal.dishes.flatMap((d) => d.ingredients),
+                  ...meal.preparations.flatMap((pr) => pr.ingredients),
+                ],
+                forgetModelRefs: true,
+                meta: {
+                  source: `${FN_NAME}.final_repair_identify`,
+                  requestId,
+                  userId,
+                },
+              });
+              console.log(JSON.stringify({
+                tag: "keel.household_meal.final_repair_identify",
+                user_id: userId,
+                request_id: requestId,
+                round: c4Round,
+                ...identifieReparation.counts,
+              }));
               const neufs = [
                 ...meal.dishes.flatMap((d) => d.ingredients),
                 ...meal.preparations.flatMap((pr) => pr.ingredients),
@@ -22756,6 +23569,40 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
       ...avoidTrace,
     }));
     (writePayload.generated_from as Record<string, unknown>).avoid_list = avoidTrace;
+    // ⟳ 2026-09-24 — LES PLATS REFUSÉS, ET CEUX REVENUS À L'IDENTIQUE. Un
+    // plancher: un plat refusé revenu sous un autre titre n'est pas vu (aucun
+    // matcher). Écrit à chaque génération, liste vide comprise.
+    const rejectedTrace = {
+      entries: rejectedEntries.length,
+      line_used: household.rejectedLineUsed,
+      // Lu sur `writePayload`, comme les deux traces du dessus: le plan FINAL.
+      served_again: rejectedServedAgain({
+        entries: rejectedEntries,
+        dishes: (Array.isArray(writePayload.dishes) ? writePayload.dishes : []).map((raw) => {
+          const d = (raw ?? {}) as Record<string, unknown>;
+          const boxes = Array.isArray(d.boxes) ? d.boxes : [];
+          return {
+            title: String(d.title ?? ""),
+            eaterIds: [
+              ...new Set([
+                ...boxes.flatMap((b) => {
+                  const ids = ((b ?? {}) as Record<string, unknown>).member_ids;
+                  return Array.isArray(ids) ? ids.map((id) => String(id ?? "")) : [];
+                }),
+                ...(typeof d.member_id === "string" && d.member_id !== "" ? [d.member_id] : []),
+              ]),
+            ],
+          };
+        }),
+      }),
+    };
+    console.log(JSON.stringify({
+      tag: "keel.household_meal.rejected_dishes",
+      user_id: userId,
+      request_id: requestId,
+      ...rejectedTrace,
+    }));
+    (writePayload.generated_from as Record<string, unknown>).rejected_dishes = rejectedTrace;
     // ⟳ LOT R — LES ÉCARTS D'UN PLAN LIVRABLE SONT JOURNALISÉS AUSSI, avec leurs
     // chiffres. Mesuré le 2026-09-16 sur staging : dix écarts (six cases de
     // goûter, quatre jours de protéine), tous `number_protected`, et aucun moyen
@@ -23398,6 +24245,37 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
         detail: ["preparation_quantity_unreconciled"],
         request_id: requestId,
       }, { status: 422 });
+    }
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-24 — LA VIANDE OU LE POISSON CRU QUE RIEN NE CUIT NE PART PAS
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // La boucle l'a chassé (`raw_protein_uncooked`) tant qu'elle avait du
+    // budget. S'il survit, le plan n'est pas livré : servir du poulet cru
+    // « à assembler » n'est pas un écart de qualité, c'est ce qui rend malade.
+    // Le même motif que le verrou de sortie — l'ancien plan reste intact.
+    {
+      const crusRestants = uncookedRawProteins({ dishes: meal.dishes, index: composition });
+      console.log(JSON.stringify({
+        tag: "keel.household_meal.raw_protein_uncooked",
+        user_id: userId,
+        request_id: requestId,
+        found: crusRestants.found.length,
+        unknown_same_day: crusRestants.unknownSameDay,
+        sites: crusRestants.found.map((c) => `${c.day ?? ""}/${c.slot ?? ""}:${c.slug}`),
+      }));
+      if (crusRestants.unknownSameDay > 0) {
+        issues.push(`raw_protein_same_day_unknown:${crusRestants.unknownSameDay}`);
+      }
+      if (crusRestants.found.length > 0) {
+        issues.push(`raw_protein_uncooked:${crusRestants.found.length}`);
+        await releaseMergeQuota("raw_protein_uncooked");
+        return jsonResponse(req, {
+          error: "plan_not_deliverable",
+          detail: [`raw_protein_uncooked:${crusRestants.found.length}`],
+          request_id: requestId,
+        }, { status: 422 });
+      }
     }
     const publication = await decidePlanPublication({
       reason: "output_lock_unavailable",

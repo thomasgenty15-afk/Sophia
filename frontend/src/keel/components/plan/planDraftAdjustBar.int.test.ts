@@ -36,7 +36,10 @@ describe("la barre d'ajustement du brouillon", () => {
     // ⟳ 2026-09-21 — SANS LES ACCOLADES: le bouton d'ENVOI ne rend plus la clé
     // nue, il rend `adjusting ? <ComposingLabel/> : t(...)`. C'est le lot qui
     // fait tourner LE BON bouton pendant les deux minutes de recomposition.
-    expect(SRC.split('t("plan.draft.remix")').length - 1).toBe(2);
+    // ⟳ 2026-09-24 — TROIS: le pied des plats barrés (« Remplacer ») porte le
+    // même geste, « Ajuster le plan », qui remplace alors les plats barrés.
+    // Les trois pieds sont exclusifs: jamais deux à l'écran en même temps.
+    expect(SRC.split('t("plan.draft.remix")').length - 1).toBe(3);
     expect(SRC, "le bouton qui recompose ne dit pas qu'il travaille")
       .toContain("adjusting\n                ? <ComposingLabel progress={progress} />");
     expect(SRC).not.toContain("plan.draft.note_send");

@@ -429,6 +429,11 @@ Deno.test("⛔ LOT B — petit et grand appétit déplacent la BORNE, donc le CO
   //          Gmin = min(0,9 × 250 ; 495) = 225
   //   grand  Gmax = min(1,1 × 550 ; 550) = 550 ⇒ Dmin = ⌈84 455/550⌉ = ⌈153,55⌉ = 154
   //          Gmin = min(1,1 × 250 ; 550) = 275
+  //   ⟳ 2026-09-24 — ⛔ ET LE PLANCHER PERSONNEL S'Y AJOUTE. Paul a un
+  //          entretien de 2 963 kcal: plafond personnel min(550 ; 741) = 550,
+  //          plancher min(250 ; 275) = 250 (`personalPlateBoundsFor`). Le
+  //          plancher du grand appétit descend donc de 275 à 250 — le « Fabrice
+  //          550 / 250 » du plan. Le petit appétit garde 225 (sous 250).
   //
   // ⚠️ UN PETIT APPÉTIT DEMANDE DONC UN PLAT PLUS DENSE, pas une portion plus
   // maigre : la cible n'a pas bougé, c'est l'assiette qui a rétréci.
@@ -445,7 +450,7 @@ Deno.test("⛔ LOT B — petit et grand appétit déplacent la BORNE, donc le CO
   assertAlmostEquals(dP.composeKcal!, 844.55, 0.01);
   assertAlmostEquals(dG.composeKcal!, 844.55, 0.01);
   assertEquals([dP.bounds!.min, dP.bounds!.max], [225, 495]);
-  assertEquals([dG.bounds!.min, dG.bounds!.max], [275, 550]);
+  assertEquals([dG.bounds!.min, dG.bounds!.max], [250, 550]);
   assertEquals(dP.corridor!.minPer100G, 171);
   assertEquals(dG.corridor!.minPer100G, 154);
   // ⛔ LE CAS QUI MORD : une borne qui ne bougerait pas rendrait le même couloir
@@ -542,6 +547,7 @@ Deno.test("⛔ LOT B — le couloir du prompt est celui que le dimensionnement c
         slotTargetKcal: c.composeKcal,
         light: c.light,
         appetite: PAUL.appetite,
+        personal: null,
       }),
     })!;
     assertEquals(refait.minPer100G, c.corridor.minPer100G);
@@ -1340,7 +1346,13 @@ function journeeLegere(slots: readonly string[]) {
       paceKgPerWeek: 0.25,
       declaredSlots: slots,
     }),
-    ageYears: 40,
+    // ⟳ 2026-09-24 — ⚠️ ÂGE INCONNU DU CONTRAT ⇒ LA TABLE D'ÂGE SEULE, sans
+    // plafond personnel (`personalPlateBoundsFor` rend `null`). Ces tests
+    // portent sur le débordement sous le plat plein de la TABLE (632,5), et
+    // le corps a été choisi pour lui; son plafond personnel (entretien 2 056,
+    // 514 g ⇒ 591,1 kcal) ferait déborder le dîner aussi. La cible de journée
+    // ne bouge pas: elle lit l'âge du corps, pas ce paramètre.
+    ageYears: null,
     rhythmSlots: slots,
     days: [jour("sat", "2026-09-12", slots, {
       sides: sides([["lunch", REFUS], ["dinner", REFUS]]),

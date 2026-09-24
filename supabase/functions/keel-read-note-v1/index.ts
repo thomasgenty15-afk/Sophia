@@ -74,9 +74,22 @@ import {
   answerDraftNoteWho,
   classifyAndPersistDraftNote,
 } from "../_shared/keel/draft_note_classify_io.ts";
-import { draftNoteClassifyTrace } from "../_shared/keel/draft_note_classify.ts";
+import {
+  DRAFT_NOTE_QUESTIONS_MAX,
+  draftNoteClassifyTrace,
+  type RejectedDishContext,
+} from "../_shared/keel/draft_note_classify.ts";
 import { draftNoteMembersOf } from "../_shared/keel/draft_note_members_io.ts";
-import { readDraftNote } from "../_shared/keel/plan_draft_note.ts";
+import { type DraftNoteVerdict, readDraftNote } from "../_shared/keel/plan_draft_note.ts";
+// ⟳ 2026-09-24 — « Remplacer »: les plats barrés, retrouvés sur le brouillon,
+// rangés dans la liste des plats refusés, puis leurs raisons classées.
+import { loadDraftForAdoption } from "../_shared/keel/draft_store.ts";
+import {
+  readDishRejections,
+  rejectedEntriesFrom,
+  resolveRejections,
+} from "../_shared/keel/rejected_dishes.ts";
+import { appendRejectedDishes } from "../_shared/keel/rejected_dishes_io.ts";
 // ⟳ 2026-09-22 · LOT A — le référentiel qui donne sa clé à un souvenir.
 import type { CompositionIndex } from "../_shared/keel/food_composition.ts";
 import { loadCompositionIndex } from "../_shared/keel/food_composition_io.ts";
@@ -191,7 +204,7 @@ Deno.serve(async (req) => {
           ok: out.ok,
           reason: out.reason,
           dropped_clauses: 0,
-          announced: out.announced.map((a) => ({ text: a.text, who: a.who ?? null, kind: a.kind })),
+          announced: out.announced.map((a) => ({ text: a.text, who: a.who ?? null, kind: a.kind, sense: a.sense ?? null })),
           questions: [],
           request_id: requestId,
         });
@@ -208,7 +221,7 @@ Deno.serve(async (req) => {
         ok: out.ok,
         reason: out.reason,
         dropped_clauses: 0,
-        announced: out.announced.map((a) => ({ text: a.text, who: a.who ?? null, kind: a.kind })),
+        announced: out.announced.map((a) => ({ text: a.text, who: a.who ?? null, kind: a.kind, sense: a.sense ?? null })),
         questions: [],
         request_id: requestId,
       });
@@ -250,7 +263,158 @@ Deno.serve(async (req) => {
       }))
       .filter((t) => t.token.length > 0);
 
-    const note = readDraftNote({ raw: body.draft_note, doctrineForbidden, restrictionFlag });
+    // ── LE RÔLE — lu AVANT la note: « Remplacer » en a besoin pour ranger
+    // chaque plat refusé avec les personnes qui le mangeaient.
+    const members = await draftNoteMembersOf(admin, userId, TAG);
+
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-24 — MODE « REMPLACER »: DES PLATS BARRÉS, UNE RAISON CHACUN
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // Sur l'aperçu, la personne barre des plats et dit pourquoi. Ici:
+    //   ① on les retrouve sur le brouillon RANGÉ (case, bouche, titre) — les
+    //      mangeurs viennent de ses boîtes, jamais de l'écran;
+    //   ② chaque raison passe la garde d'entrée d'une note (plancher TCA,
+    //      interdits de doctrine): une raison refusée n'entre ni dans la liste
+    //      ni au modèle, le plat, lui, est quand même refusé;
+    //   ③ la LISTE DES PLATS REFUSÉS est écrite D'ABORD — c'est un fait sur la
+    //      personne, qui ne dépend pas de la suite;
+    //   ④ les raisons sont classées comme une note (goûts, allergie dite, ce
+    //      que Sophia sait), avec les mangeurs de chaque plat; aucune case ne
+    //      sort — c'est le générateur (`cells_from: "rejections"`) qui refait.
+    //
+    // ⛔ L'UN OU L'AUTRE: une note ET des plats barrés dans la même requête est
+    // un appel que l'écran ne fait jamais — refusé, pas deviné.
+    const rejectionMode = Array.isArray(body.rejections) && body.rejections.length > 0;
+    let rejectedDishes: RejectedDishContext[] = [];
+    let rejectedFiled = 0;
+    let rejectionCounters: Record<string, unknown> | null = null;
+    let note: DraftNoteVerdict;
+    if (rejectionMode) {
+      if (String(body.draft_note ?? "").trim() !== "") {
+        return jsonResponse(req, {
+          error: "rejections_with_note",
+          detail: "send the struck dishes OR a note, never both",
+          request_id: requestId,
+        }, { status: 400 });
+      }
+      const reading = readDishRejections(body.rejections);
+      if (reading.targets.length === 0) {
+        return jsonResponse(req, {
+          error: "rejections_required",
+          detail: "`rejections` names no readable dish ({day, slot, member_id, title, reason})",
+          refused: reading.refused,
+          request_id: requestId,
+        }, { status: 400 });
+      }
+      const draftId = String(body.draft_id ?? "").trim();
+      if (!draftId) {
+        return jsonResponse(req, {
+          error: "draft_id_required",
+          detail: "the struck dishes belong to a stored draft (`draft_id`)",
+          request_id: requestId,
+        }, { status: 400 });
+      }
+      const row = await loadDraftForAdoption(admin, { draftId, userId });
+      if (row === null) {
+        return jsonResponse(req, {
+          error: "draft_not_found",
+          detail: "no such draft for this account",
+          draft_id: draftId,
+          request_id: requestId,
+        }, { status: 404 });
+      }
+      if (String(row.status ?? "") !== "done") {
+        return jsonResponse(req, {
+          error: "draft_not_done",
+          detail: `the draft is ${String(row.status ?? "?")}, not done`,
+          draft_id: draftId,
+          request_id: requestId,
+        }, { status: 409 });
+      }
+      const storedDishes = (row.source_meal as { dishes?: unknown } | null)?.dishes;
+      if (!Array.isArray(storedDishes)) {
+        return jsonResponse(req, {
+          error: "draft_has_no_source",
+          detail: "this draft carries no plan to find the dishes in",
+          draft_id: draftId,
+          request_id: requestId,
+        }, { status: 409 });
+      }
+      const resolved = resolveRejections({ dishes: storedDishes, targets: reading.targets });
+      if (resolved.resolved === 0) {
+        return jsonResponse(req, {
+          error: "dish_unknown",
+          detail: "none of the struck dishes is in this draft any more",
+          draft_id: draftId,
+          request_id: requestId,
+        }, { status: 409 });
+      }
+      const lines: string[] = [];
+      let reasonsRefused = 0;
+      const toFile = resolved.toFile.map((dish) => {
+        const verdict = readDraftNote({ raw: dish.reason, doctrineForbidden, restrictionFlag });
+        if (verdict.usable === null) {
+          reasonsRefused++;
+          return { ...dish, reason: "" };
+        }
+        // Une ligne par plat: chaque souvenir cite SA phrase, pas celle d'à côté.
+        lines.push(`«${dish.title}» : ${verdict.usable}`);
+        return { ...dish, reason: verdict.usable };
+      });
+      const write = await appendRejectedDishes({
+        admin,
+        userId,
+        entries: rejectedEntriesFrom({
+          rejections: toFile,
+          householdMemberIds: members.map((m) => m.memberId),
+          at: today,
+          draftId,
+        }),
+      });
+      rejectedFiled = write.ok ? toFile.length : 0;
+      rejectedDishes = toFile.map((dish) => ({ title: dish.title, eaterIds: dish.eaterIds }));
+      rejectionCounters = {
+        targets: reading.targets.length,
+        refused: reading.refused,
+        resolved: resolved.resolved,
+        unknown: resolved.unknown,
+        dishes: toFile.length,
+        reasons_refused: reasonsRefused,
+        filed: rejectedFiled,
+        write_failed: write.ok ? null : write.reason,
+      };
+      console.log(JSON.stringify({
+        tag: TAG,
+        event: "rejections",
+        user_id: userId,
+        request_id: requestId,
+        draft_id: draftId,
+        ...rejectionCounters,
+      }));
+      note = lines.length > 0
+        ? { usable: lines.join("\n"), refusal: null, dropped: [] }
+        : { usable: null, refusal: "empty", dropped: [] };
+      if (note.usable === null) {
+        // Toutes les raisons sont tombées à la garde: la liste est rangée,
+        // rien d'autre à classer. Le remplacement, lui, peut partir.
+        return jsonResponse(req, {
+          ok: true,
+          reason: "nothing_to_classify",
+          dropped_clauses: 0,
+          announced: [],
+          safety_not_written: [],
+          questions: [],
+          cells: [],
+          rejected_filed: rejectedFiled,
+          rejections: rejectionCounters,
+          counters: {},
+          request_id: requestId,
+        });
+      }
+    } else {
+      note = readDraftNote({ raw: body.draft_note, doctrineForbidden, restrictionFlag });
+    }
     console.log(JSON.stringify({
       tag: TAG,
       event: "read",
@@ -259,6 +423,7 @@ Deno.serve(async (req) => {
       usable: note.usable !== null,
       refusal: note.refusal,
       dropped: note.dropped.length,
+      rejections: rejectionMode,
       today_claimed: claimed !== null,
     }));
     if (note.usable === null) {
@@ -275,8 +440,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // ── LE RÔLE ET LA LANGUE ─────────────────────────────────────────────
-    const members = await draftNoteMembersOf(admin, userId, TAG);
+    // ── LA LANGUE ─────────────────────────────────────────────────────────
     let contentLocale = "";
     try {
       const prof = await admin.from("profiles").select("locale").eq("id", userId).maybeSingle();
@@ -323,9 +487,14 @@ Deno.serve(async (req) => {
       contentLocale,
       planFoods: [],
       source: "draft_note",
+      // ⟳ 2026-09-24 — `[]` pour une note: son prompt ne change pas d'un octet.
+      rejectedDishes,
       requestId,
     });
     const trace = draftNoteClassifyTrace(out.classification);
+    // ⟳ 2026-09-24 — TROIS QUESTIONS AU PLUS, posées en couche par l'écran. Une
+    // question non posée n'écrit rien: le serveur ne devine jamais.
+    const questions = out.questions.slice(0, DRAFT_NOTE_QUESTIONS_MAX);
 
     console.log(JSON.stringify({
       tag: TAG,
@@ -335,6 +504,7 @@ Deno.serve(async (req) => {
       ok: out.ok,
       announced: out.announced.length,
       questions: out.questions.length,
+      questions_capped: out.questions.length - questions.length,
       cells: out.cells.length,
       notice_delivered: out.notice.delivered,
       safety_announced: out.safetyAnnounced.length,
@@ -349,17 +519,21 @@ Deno.serve(async (req) => {
       // ⟳ 2026-09-23 — ⑩ ce qui est entré dans la fiche santé, dans la même
       // liste « j'ai noté » que le reste: la personne le lit sous le champ.
       announced: [
-        ...out.announced.map((a) => ({ text: a.text, who: a.who ?? null, kind: a.kind })),
+        ...out.announced.map((a) => ({ text: a.text, who: a.who ?? null, kind: a.kind, sense: a.sense ?? null })),
         ...out.safetyAnnounced.map((a) => ({ text: a.text, who: a.who, kind: "safety" })),
       ],
       // ⑩ ce qui n'a pas pu y entrer — le front le DIT, avec où l'ajouter.
       safety_not_written: out.safetyNotWritten.map((a) => ({ text: a.text, who: a.who })),
       // ⟳ lot 4 — ce qu'on n'a PAS pu écrire faute d'une bouche, à demander.
-      questions: out.questions,
+      questions,
       // ⟳ 2026-09-09 — les cases de CE plan, à rendre au composeur (`edit_cells`).
       // Rien n'est écrit pour elles: sans brouillon ouvert, elles tombent — et
       // le compteur `cells` le dit.
       cells: out.cells,
+      // ⟳ 2026-09-24 — « Remplacer »: combien de plats ont rejoint la liste des
+      // plats refusés, et ce que la lecture des plats barrés a trouvé.
+      rejected_filed: rejectedFiled,
+      rejections: rejectionCounters,
       // ⛔ LES COMPTEURS QUI DISENT « RIEN N'A ÉTÉ FAIT, ET VOICI POURQUOI ».
       // Sans eux, un tiroir vide et un tiroir inerte se ressemblent.
       counters: {

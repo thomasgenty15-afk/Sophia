@@ -155,10 +155,12 @@ Deno.test("② ⛔ L'ÉCHAPPATOIRE EST NOMMÉE, sur une ligne, collée à la cl�
   );
   const keyEnd = lines.findIndex((l) => l.includes('"preparation_id": "<id of its preparation, or null>" } ]'));
   assert(escape > keyEnd && keyEnd >= 0 && escape - keyEnd <= 2, block);
-  // Les sept champs du schéma, tous nommés.
-  for (const field of ['"day"', '"slot"', '"member_id"', '"kind"', '"term"', '"ref"', '"preparation_id"']) {
+  // Les six champs du schéma, tous nommés. ⟳ 2026-09-24 — `"ref"` en est
+  // sorti : le modèle nomme l'aliment, la lane l'identifie par son nom.
+  for (const field of ['"day"', '"slot"', '"member_id"', '"kind"', '"term"', '"preparation_id"']) {
     assert(block.includes(field), `${field} manque au schéma`);
   }
+  assert(!block.includes('"ref"'), "le schéma des à-côtés ne demande plus d'identifiant");
   assert(block.includes('"starter"|"cheese"|"dessert"|"bread"'));
 });
 
@@ -296,7 +298,6 @@ Deno.test("④ épinglage — les champs de langue de la clé `side_courses`", (
   assertEquals([...SIDE_COURSES_TOKEN_FIELDS], [
     "side_courses[].kind (one of: starter, cheese, dessert, bread)",
     "side_courses[].member_id (the exact id, never a name)",
-    "side_courses[].ref (an id from the food list, never translated)",
     "side_courses[].preparation_id (must match preparations[].id exactly)",
   ]);
 });

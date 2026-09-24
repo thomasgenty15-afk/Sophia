@@ -218,6 +218,7 @@ des crons, observabilité, files de reprise.
 | [FF-059](composition-des-repas/FF-059-le-chiffre-affiche.md) | Le chiffre affiché — quatre portes avant un kcal | `composition-des-repas` | 🟡 Spécifiée |
 | [FF-060](acquisition-et-acces/FF-060-le-parcours-d-entree.md) | Le parcours d'entrée — trois étapes qui finissent par un plan | `acquisition-et-acces` | 🟢 Livrée |
 | [FF-066](conversation/FF-066-l-aide-sur-l-app.md) | L'aide sur l'app — Sophia sait dire où est le bouton | `conversation` | 🟠 En cours |
+| [FF-067](composition-des-repas/FF-067-remplacer-un-plat-de-l-apercu.md) | Remplacer un plat de l'aperçu — et ne plus le revoir | `composition-des-repas` | 🟠 En cours |
 
 > **Un identifiant ne se réutilise jamais** — y compris quand deux sessions
 > écrivent en parallèle, et y compris quand la fiche disparaît. `FF-002` a été

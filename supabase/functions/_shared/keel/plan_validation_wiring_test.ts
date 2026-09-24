@@ -156,10 +156,13 @@ Deno.test("C5 CÂBLAGE ② — la porte est APRÈS la boucle de réparation", ()
   // réparer, et on REFUSE la livraison si une morsure survit
   // (`output_lock_violation`). Sans ce second refus, l'adoption serait une
   // ouverture.
+  // ⟳ 2026-09-24 — ET QUATRE : la viande ou le poisson cru que rien ne cuit
+  // (`raw_protein_uncooked`), chassé par la boucle, refusé APRÈS elle s'il
+  // survit — le même placement que le verrou de sortie.
   assertEquals(
     SRC.split(REFUS).length - 1,
-    3,
-    "un des trois refus `plan_not_deliverable` a été ajouté ou retiré",
+    4,
+    "un des quatre refus `plan_not_deliverable` a été ajouté ou retiré",
   );
   const verrou = SRC.indexOf('tag: "keel.household_meal.output_lock_violation"');
   assert(verrou > 0, "le refus du verrou de sortie a disparu");

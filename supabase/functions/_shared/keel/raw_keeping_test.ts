@@ -100,7 +100,10 @@ Deno.test("la consigne NOMME des jours, jamais des durées", () => {
   // Et la SORTIE est dans la phrase: cuisiner tard reste permis, ça déplace la
   // course.
   assertStringIncludes(lines, "does NOT forbid");
-  assertStringIncludes(lines, "bought that day or the day before");
+  // ⟳ 2026-09-24 — la sortie est une course plus proche, que l'app planifie ;
+  // le modèle n'écrit pas quand acheter.
+  assertStringIncludes(lines, "the app schedules a later shop");
+  assertStringIncludes(lines, "Do NOT write in a run_through or a method when a raw food is bought");
 });
 
 Deno.test("une fenêtre courte ne dit rien du tout", () => {
@@ -464,8 +467,9 @@ Deno.test("REJEU — la MÊME cuisson au lundi fait mordre quatre préparations"
     preparations: REAL_PREPS.map((p) => ({ id: p.id, cookOn: "mon", ingredients: perishable(p.groups) })),
   });
   assertEquals(out.checked, 5);
-  // Le cabillaud (1 jour) et les trois qui portent de la feuille (3 jours).
-  assertEquals(out.breaches.length, 4);
+  // Le cabillaud (1 jour). ⟳ 2026-09-24 — les trois qui portent de la feuille
+  // ne mordent plus : la feuille tient cinq jours, jeudi → lundi en fait quatre.
+  assertEquals(out.breaches.length, 1);
   const cod = out.breaches.find((b) => b.preparationId === "prep_thu_cod_potatoes");
   assert(cod, "le cabillaud doit mordre");
   assertEquals(cod?.group, "white_fish");
@@ -557,7 +561,11 @@ Deno.test("⛔ UNE COURSE + CONGÉLATEUR — la consigne dit « congeler à l'ac
   const lines = rawReachLines(WEEK, { runs: 1, sessions: 3, usesFreezer: true }).join("\n");
   assertStringIncludes(lines, "They shop ONCE, on mon");
   assertStringIncludes(lines, "STRAIGHT INTO THE FREEZER");
-  assertStringIncludes(lines, "comes out of the freezer the night before");
+  // ⟳ 2026-09-24 — le modèle n'écrit plus « sors-le du congélateur » : l'app le
+  // dit depuis la liste finale (le 2026-09-24, le poulet décongelé du déroulé
+  // avait été acheté frais la veille).
+  assertStringIncludes(lines, "Do NOT write in a run_through or a method when a raw food is bought, frozen");
+  assert(!lines.includes("comes out of the freezer the night before"), lines);
   // La phrase d'hier promettait un magasin que la liste n'ouvre pas.
   assert(!lines.includes("bought that day or the day before"), lines);
   // Et les lignes par famille ne bougent pas: la règle est la même, seule la
@@ -573,7 +581,7 @@ Deno.test("deux courses pour trois sessions — la consigne nomme l'écart", () 
 
 Deno.test("sans congélateur, ou cadence jamais déclarée: la phrase d'avant, au caractère près", () => {
   const before = rawReachLines(WEEK, null).join("\n");
-  assertStringIncludes(before, "bought that day or the day before");
+  assertStringIncludes(before, "the app schedules a later shop");
   assert(!before.includes("FREEZER"), before);
   // `usesFreezer: false` = le plan ne s'appuie pas sur le congélateur (assez de
   // courses, ou pas d'appareil): la sortie honnête reste la course plus proche.
@@ -599,9 +607,9 @@ Deno.test("PROMPT — avec une course et un congélateur, le tronc porte la sort
   assertStringIncludes(msg, "They shop ONCE, on mon");
   assertStringIncludes(msg, "STRAIGHT INTO THE FREEZER");
   assert(!msg.includes("bought that day or the day before"), msg);
-  // Et `null` rend le prompt d'avant ce lot.
+  // Et `null` rend la sortie « course plus proche », sans calendrier écrit.
   const before = buildMealPrompt({ budgetFloor: null, ...PROMPT_BASE }).userMessage;
-  assertStringIncludes(before, "bought that day or the day before");
+  assertStringIncludes(before, "the app schedules a later shop");
 });
 
 Deno.test("le compteur des sessions nourries au congélateur — fed, named, silent", () => {
@@ -655,8 +663,9 @@ for (
 
 Deno.test("⛔ UNE COURSE — les feuilles et herbes fraîches ne vont pas dans une session après leur ligne", () => {
   const one = rawReachLines(WEEK, { runs: 1, sessions: 3, usesFreezer: true }).join("\n");
-  // WEEK ouvre lundi: les feuilles (3 jours) tiennent jusqu'à jeudi.
-  assertStringIncludes(one, "never put them into a session after thu");
+  // WEEK ouvre lundi: les feuilles (5 jours depuis le 2026-09-24) tiennent
+  // jusqu'à samedi.
+  assertStringIncludes(one, "never put them into a session after sat");
   assertStringIncludes(one, "use dried or frozen herbs");
   // Deux courses: il y a un magasin plus tard, la phrase ne sort pas.
   const two = rawReachLines(WEEK, { runs: 2, sessions: 3, usesFreezer: true }).join("\n");
@@ -665,9 +674,11 @@ Deno.test("⛔ UNE COURSE — les feuilles et herbes fraîches ne vont pas dans 
 });
 
 Deno.test("buyDatesByIndex — la ligne qui fait SURVIVRE une vague est marquée", () => {
+  // ⟳ 2026-09-24 — sept jours et une cuisson le mardi : le persil tient cinq
+  // jours, dimanche était encore à portée de la course du mercredi.
   const out = buyDatesByIndex({
     startsOn: "2026-09-09",
-    durationDays: 6,
+    durationDays: 7,
     runs: 1,
     freezer: true,
     shoppingList: [
@@ -676,7 +687,7 @@ Deno.test("buyDatesByIndex — la ligne qui fait SURVIVRE une vague est marquée
       { term: "lentilles", aisle: "pantry", food_group: "legumes", ref: null },
     ],
     preparations: [
-      { id: "p", cookOn: "sun", ingredientTerms: ["dinde hachée", "persil"] },
+      { id: "p", cookOn: "tue", ingredientTerms: ["dinde hachée", "persil"] },
       { id: "q", cookOn: "wed", ingredientTerms: ["lentilles"] },
     ],
   });

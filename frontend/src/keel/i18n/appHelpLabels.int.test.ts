@@ -73,3 +73,32 @@ describe("FF-066 — les fiches d'aide citent les libellés tels que l'écran le
     });
   }
 });
+
+// ⟳ 2026-09-24 — LES PHRASES DE RENVOI DU CHAT, MÊME GARDE. Elles envoyaient
+// vers « Ce que Sophia sait de toi » (où l'on n'ajoute rien) et vers « tes
+// réglages » (`/app/setup`, fermé dès qu'un plan existe). Chaque écran qu'elles
+// citent entre guillemets doit être un texte que l'app affiche vraiment.
+import { PROFILE_REDIRECT_SENTENCES } from "../../../../supabase/functions/_shared/keel/conversation_redirect.ts";
+
+describe("FF-066 — les phrases de renvoi du chat citent des écrans qui existent", () => {
+  const shownToFrench = new Set(
+    Object.keys(en).map((key) =>
+      isTranslatedMessageKey(key) ? (fr as Record<string, string>)[key] : (en as Record<string, string>)[key]
+    ),
+  );
+  const shownToEnglish = new Set(Object.values(en as Record<string, string>));
+  for (const [kind, pack] of Object.entries(PROFILE_REDIRECT_SENTENCES)) {
+    it(`${kind} — chaque « … » est un texte de fr.ts, chaque “…” un texte de en.ts`, () => {
+      const frQuoted = [...pack.fr.matchAll(/«[\s\u00a0\u202f]*([^»]+?)[\s\u00a0\u202f]*»/g)].map((m) => m[1]);
+      const enQuoted = [...pack.en.matchAll(/“([^”]+)”/g)].map((m) => m[1]);
+      expect(frQuoted.length, `${kind}: la phrase française ne nomme aucun écran`).toBeGreaterThan(0);
+      expect(enQuoted.length, `${kind}: la phrase anglaise ne nomme aucun écran`).toBeGreaterThan(0);
+      for (const label of frQuoted) {
+        expect(shownToFrench.has(label), `${kind}: « ${label} » n'est affiché nulle part`).toBe(true);
+      }
+      for (const label of enQuoted) {
+        expect(shownToEnglish.has(label), `${kind}: “${label}” is not shown anywhere`).toBe(true);
+      }
+    });
+  }
+});

@@ -212,6 +212,10 @@ function ledgerOf(over: Partial<Parameters<typeof buildSideCourseLedger>[0]>) {
     allergens: [],
     language: "fr",
     kcalWithheldMemberIds: new Set(),
+    // ⟳ 2026-09-24 — aucun plat raboté: le registre d'avant, à l'octet.
+    extraDeficitByKey: new Map(),
+    breadAllowed: () => true,
+    mealKcalByKey: new Map(),
     ...over,
   });
 }
@@ -402,18 +406,18 @@ Deno.test("perte — fenêtre de 5 jours: 1 fromage le soir; de 7 jours: 2 (le c
 Deno.test("maintien — fromage/dessert en alternance, entrée à d%3=0 au midi, soir inversé", () => {
   const p = plan("maintenance");
   assertEquals(kindsAt(p, "mon", "lunch"), ["cheese:110", "starter:60"]);
-  assertEquals(kindsAt(p, "tue", "lunch"), ["dessert:110"]);
+  assertEquals(kindsAt(p, "tue", "lunch"), ["dessert:90"]);
   assertEquals(kindsAt(p, "wed", "lunch"), ["cheese:110"]);
-  assertEquals(kindsAt(p, "thu", "lunch"), ["dessert:110", "starter:60"]);
-  assertEquals(kindsAt(p, "mon", "dinner"), ["dessert:110"]);
+  assertEquals(kindsAt(p, "thu", "lunch"), ["dessert:90", "starter:60"]);
+  assertEquals(kindsAt(p, "mon", "dinner"), ["dessert:90"]);
   assertEquals(kindsAt(p, "tue", "dinner"), ["cheese:110"]);
   assertEquals(p.get("mon")!.get("lunch")!.growKinds, ["cheese", "starter", "bread"]);
 });
 
 Deno.test("prise — fromage + dessert midi et soir, croissance pain → dessert → fromage", () => {
   const p = plan("muscle_gain");
-  assertEquals(kindsAt(p, "wed", "lunch"), ["cheese:130", "dessert:180"]);
-  assertEquals(kindsAt(p, "wed", "dinner"), ["cheese:130", "dessert:180"]);
+  assertEquals(kindsAt(p, "wed", "lunch"), ["cheese:130", "dessert:110"]);
+  assertEquals(kindsAt(p, "wed", "dinner"), ["cheese:130", "dessert:110"]);
   assertEquals(p.get("wed")!.get("dinner")!.growKinds, ["bread", "dessert", "cheese"]);
 });
 
@@ -439,14 +443,14 @@ Deno.test("réglages — les quatre à false ⇒ refused, aucun à-côté, aucun
     light: false,
   });
   // Le dîner n'est pas touché par le réglage du déjeuner.
-  assertEquals(kindsAt(p, "mon", "dinner"), ["cheese:130", "dessert:180"]);
+  assertEquals(kindsAt(p, "mon", "dinner"), ["cheese:130", "dessert:110"]);
 });
 
 Deno.test("réglages — false retire, une liste vidée est re-remplie par l'ordre de l'objectif", () => {
   const p = plan("maintenance", { prefsBySlot: { lunch: { cheese: false } } });
   assertEquals(kindsAt(p, "mon", "lunch"), ["starter:60"]);
   // d=2: la rotation ne portait que du fromage ⇒ re-remplie par le dessert.
-  assertEquals(kindsAt(p, "wed", "lunch"), ["dessert:110"]);
+  assertEquals(kindsAt(p, "wed", "lunch"), ["dessert:90"]);
   assertEquals(p.get("wed")!.get("lunch")!.growKinds, ["dessert", "bread"]);
   const noBread = plan("maintenance", { prefsBySlot: { lunch: { bread: false } } });
   assertEquals(noBread.get("wed")!.get("lunch")!.growKinds, ["cheese"]);
@@ -457,8 +461,8 @@ Deno.test("impossible — un type impossible gagne sur un réglage true; tout im
     prefsBySlot: { dinner: { cheese: true } },
     impossibleKinds: new Map([["dinner", new Set<SideCourseKind>(["cheese"])]]),
   });
-  assertEquals(kindsAt(p, "tue", "dinner"), ["dessert:110"]);
-  assertEquals(kindsAt(p, "mon", "dinner"), ["dessert:110"]);
+  assertEquals(kindsAt(p, "tue", "dinner"), ["dessert:90"]);
+  assertEquals(kindsAt(p, "mon", "dinner"), ["dessert:90"]);
   const all = plan("fat_loss", {
     impossibleKinds: new Map([[
       "lunch",
@@ -1488,6 +1492,13 @@ Deno.test("⟳ 2026-09-23 — registre: `variety` porte toutes ses clés, même 
     deficit_to_dish_kcal: 0,
     regrown_entries: 0,
     deficit_kcal_withheld: 0,
+    // ⟳ 2026-09-24 — le manque venu de la borne d'assiette.
+    boundary_meals: 0,
+    boundary_deficit_kcal: 0,
+    boundary_regrown_kcal: 0,
+    boundary_bread_added: 0,
+    boundary_lost_kcal: 0,
+    boundary_kcal_withheld: 0,
   });
 });
 
@@ -1924,4 +1935,226 @@ Deno.test("⟳ v40 — table: trois jours du même pain ⇒ streak_over_2 = 0; t
       .streak_over_2,
     1,
   );
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-24 — LE MANQUE VENU DE LA BORNE D'ASSIETTE (`extraDeficitByKey`)
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Le plat raboté à son plafond (`fitPortionsToBounds`) ou coupé au
+// dimensionnement (`clampToBounds`, personne seule) perdait son énergie. Le
+// registre la rend: le pain puis le fromage DÉJÀ servis grossissent
+// (`SIDE_COURSE_REGROW_ORDER`, sous la part maximale du repas), un pain est
+// AJOUTÉ s'il n'y en a pas (maintien et prise, jamais contre un refus), et le
+// reste est compté perdu. Tous les nombres attendus sont écrits EN DUR.
+//
+// Référentiel de ces cas (`BASE_REFS`): comté 413 kcal/100 g, baguette 287,
+// pain complet (`bread_wholemeal_integral_bread`) 244, pomme 47,6 (150 g).
+
+/** Un repas avec son manque de borne et l'énergie du repas entier. */
+function boundaryMeal(
+  memberId: string,
+  extra: number,
+  meal: number,
+  over: Partial<Parameters<typeof buildSideCourseLedger>[0]>,
+) {
+  const key = sideCourseKey(memberId, "mon", "lunch");
+  return ledgerOf({
+    extraDeficitByKey: new Map([[key, extra]]),
+    mealKcalByKey: new Map([[key, meal]]),
+    ...over,
+  });
+}
+const boundaryOf = (l: ReturnType<typeof ledgerOf>) => [
+  l.variety.boundary_meals,
+  l.variety.boundary_bread_added,
+  l.variety.boundary_kcal_withheld,
+];
+
+Deno.test("⟳ 2026-09-24 — borne: maintien avec son fromage ⇒ le comté passe de 25 à 35 g (+41,3 kcal), rien de perdu", () => {
+  // Comté prévu 103,25 = 25 g exactement. Manque de borne 40; part maximale
+  // 0,35 × 768 = 268,8. Visé 143,25 ⇒ 34,7 g arrondis à 35 g = 144,55 kcal.
+  const l = boundaryMeal(CHRIS, 40, 768, {
+    asks: [ask(CHRIS, "mon", 0, "lunch", "maintenance", [["cheese", 103.25]])],
+    raw: [raw(CHRIS, "mon", "lunch", "cheese", "comté", { ref: "comte" })],
+  });
+  assertEquals(l.entries.map(line), ["cheese:comte:35:null"]);
+  assertAlmostEquals(l.entries[0].kcal, 144.55, 1e-9);
+  assertEquals(boundaryOf(l), [1, 0, 0]);
+  assertAlmostEquals(l.variety.boundary_deficit_kcal, 40, 1e-9);
+  assertAlmostEquals(l.variety.boundary_regrown_kcal, 41.3, 1e-9);
+  assertAlmostEquals(l.variety.boundary_lost_kcal, 0, 1e-9);
+  // Le plat rend ce que le fromage a repris: prévu − servi = −41,3.
+  assertAlmostEquals(snapDeltaKcal(l, CHRIS, "mon", "lunch"), -41.3, 1e-9);
+  // LE CAS QUI PASSE À CÔTÉ: sans manque de borne, le comté reste à 25 g.
+  const sans = ledgerOf({
+    asks: [ask(CHRIS, "mon", 0, "lunch", "maintenance", [["cheese", 103.25]])],
+    raw: [raw(CHRIS, "mon", "lunch", "cheese", "comté", { ref: "comte" })],
+  });
+  assertEquals(sans.entries.map(line), ["cheese:comte:25:null"]);
+  assertEquals(boundaryOf(sans), [0, 0, 0]);
+});
+
+Deno.test("⟳ 2026-09-24 — borne: prise avec son pain ⇒ la baguette passe de 40 à 60 g (+57,4), 2,6 kcal perdus à l'arrondi", () => {
+  // Baguette prévue 114,8 = 40 g. Manque 60 ⇒ visé 174,8 ⇒ 60,9 g arrondis à
+  // 60 g = 172,2 kcal. Pas de fromage servi: 60 − 57,4 = 2,6 perdus.
+  const l = boundaryMeal(THOMAS, 60, 1128.667, {
+    asks: [ask(THOMAS, "mon", 0, "lunch", "muscle_gain", [["dessert", 71.4], ["bread", 114.8]])],
+    raw: [
+      raw(THOMAS, "mon", "lunch", "dessert", "pomme", { ref: "apple" }),
+      raw(THOMAS, "mon", "lunch", "bread", "baguette", { ref: "bread_french_bread_baguette" }),
+    ],
+  });
+  assertEquals(l.entries.map(line), ["dessert:apple:150:1", "bread:bread_french_bread_baguette:60:null"]);
+  assertAlmostEquals(l.entries[1].kcal, 172.2, 1e-9);
+  assertEquals(boundaryOf(l), [1, 0, 0]);
+  assertAlmostEquals(l.variety.boundary_regrown_kcal, 57.4, 1e-9);
+  assertAlmostEquals(l.variety.boundary_lost_kcal, 2.6, 1e-9);
+});
+
+Deno.test("⟳ 2026-09-24 — borne: maintien avec un fruit seul, pain permis ⇒ un PAIN AJOUTÉ (liste de secours), 45 g", () => {
+  // Rien à faire grossir (ni pain ni fromage servi). Pain visé
+  // min(106 ; 268,8 − 71,4 ; 200) = 106 ⇒ pain complet 43,4 g ⇒ 45 g = 109,8.
+  const l = boundaryMeal(CHRIS, 106, 768, {
+    asks: [ask(CHRIS, "mon", 0, "lunch", "maintenance", [["dessert", 71.4]])],
+    raw: [raw(CHRIS, "mon", "lunch", "dessert", "pomme", { ref: "apple" })],
+  });
+  assertEquals(l.entries.map(line), [
+    "dessert:apple:150:1",
+    "bread:bread_wholemeal_integral_bread:45:null",
+  ]);
+  const pain = l.entries[1];
+  assertEquals([pain.term, pain.source, pain.plannedKcal], ["pain complet", "engine_fallback", 0]);
+  assertAlmostEquals(pain.kcal, 109.8, 1e-9);
+  assertEquals(boundaryOf(l), [1, 1, 0]);
+  assertAlmostEquals(l.variety.boundary_regrown_kcal, 109.8, 1e-9);
+  assertAlmostEquals(l.variety.boundary_lost_kcal, 0, 1e-9);
+  // ⛔ UN PAIN AJOUTÉ N'ÉTAIT PAS DEMANDÉ: les compteurs du modèle n'ont pas bougé.
+  assertEquals(
+    [l.counters.asked, l.counters.valid, l.counters.filled_by_engine, l.counters.dropped],
+    [1, 1, 0, 0],
+  );
+  // Le plat rend le pain: prévu 71,4 − servi 181,2.
+  assertAlmostEquals(snapDeltaKcal(l, CHRIS, "mon", "lunch"), -109.8, 1e-9);
+  // Et il part aux courses avec le reste.
+  assertEquals(sideShoppingLines(l)[0].ingredients.map((i) => `${i.ref}:${i.amount}${i.unit}`), [
+    "apple:1unit",
+    "bread_wholemeal_integral_bread:45g",
+  ]);
+});
+
+Deno.test("⟳ 2026-09-24 — borne: le pain ajouté est celui de la TABLE (la baguette de Thomas), pas le secours", () => {
+  // Christèle n'a qu'un fruit; Thomas a une baguette au même repas. Pain visé
+  // 106 ⇒ baguette 36,9 g ⇒ 35 g = 100,45 kcal; 5,55 perdus.
+  const l = ledgerOf({
+    asks: [
+      ask(THOMAS, "mon", 0, "lunch", "muscle_gain", [["dessert", 71.4], ["bread", 114.8]]),
+      ask(CHRIS, "mon", 0, "lunch", "maintenance", [["dessert", 71.4]]),
+    ],
+    raw: [
+      raw(THOMAS, "mon", "lunch", "dessert", "pomme", { ref: "apple" }),
+      raw(THOMAS, "mon", "lunch", "bread", "baguette", { ref: "bread_french_bread_baguette" }),
+      raw(CHRIS, "mon", "lunch", "dessert", "pomme", { ref: "apple" }),
+    ],
+    extraDeficitByKey: new Map([[sideCourseKey(CHRIS, "mon", "lunch"), 106]]),
+    mealKcalByKey: new Map([[sideCourseKey(CHRIS, "mon", "lunch"), 768]]),
+  });
+  const pain = l.entries.find((e) => e.memberId === CHRIS && e.kind === "bread");
+  assert(pain !== undefined);
+  assertEquals([line(pain), pain.term], ["bread:bread_french_bread_baguette:35:null", "baguette"]);
+  assertAlmostEquals(pain.kcal, 100.45, 1e-9);
+  assertAlmostEquals(l.variety.boundary_lost_kcal, 5.55, 1e-9);
+  // Le pain de Thomas n'a pas bougé: il n'avait aucun manque.
+  assertEquals(line(l.entries.find((e) => e.memberId === THOMAS && e.kind === "bread")!), "bread:bread_french_bread_baguette:40:null");
+});
+
+Deno.test("⟳ 2026-09-24 — borne: pain REFUSÉ (réglage, impossible, moment léger) ⇒ rien n'est ajouté, 106 perdus", () => {
+  const l = boundaryMeal(CHRIS, 106, 768, {
+    asks: [ask(CHRIS, "mon", 0, "lunch", "maintenance", [["dessert", 71.4]])],
+    raw: [raw(CHRIS, "mon", "lunch", "dessert", "pomme", { ref: "apple" })],
+    breadAllowed: (memberId, slot) => !(memberId === CHRIS && slot === "lunch"),
+  });
+  assertEquals(l.entries.map(line), ["dessert:apple:150:1"]);
+  assertEquals(boundaryOf(l), [1, 0, 0]);
+  assertAlmostEquals(l.variety.boundary_regrown_kcal, 0, 1e-9);
+  assertAlmostEquals(l.variety.boundary_lost_kcal, 106, 1e-9);
+});
+
+Deno.test("⟳ 2026-09-24 — borne: perte de poids et mineur ⇒ rien ne grossit, rien n'est ajouté, tout est perdu", () => {
+  for (const goal of ["fat_loss", "minor"] as const) {
+    const l = boundaryMeal(FAB, 80, 700, {
+      asks: [ask(FAB, "mon", 0, "lunch", goal, [["dessert", 71.4]])],
+      raw: [raw(FAB, "mon", "lunch", "dessert", "pomme", { ref: "apple" })],
+    });
+    assertEquals(l.entries.map(line), ["dessert:apple:150:1"], goal);
+    assertEquals(boundaryOf(l), [1, 0, 0], goal);
+    assertAlmostEquals(l.variety.boundary_lost_kcal, 80, 1e-9);
+  }
+});
+
+Deno.test("⟳ 2026-09-24 — borne: la part maximale du repas arrête la croissance (repas de 400 kcal), pas celui de 768", () => {
+  // Comté 25 g (103,25), manque 100.
+  //   repas 400: part max max(103,25 ; 140) = 140 ⇒ le comté vise 140 ⇒ 35 g
+  //     (144,55, l'arrondi dépasse de 4,55); plus de place ⇒ pas de pain;
+  //     perdu 100 − 41,3 = 58,7.
+  //   repas 768: part max 268,8 ⇒ comté 35 g (plafond du fromage 160 atteint à
+  //     l'arrondi), reste 58,7 ≥ 50 ⇒ pain complet 24,1 g ⇒ 25 g = 61 kcal.
+  const repas = (meal: number) =>
+    boundaryMeal(CHRIS, 100, meal, {
+      asks: [ask(CHRIS, "mon", 0, "lunch", "maintenance", [["cheese", 103.25]])],
+      raw: [raw(CHRIS, "mon", "lunch", "cheese", "comté", { ref: "comte" })],
+    });
+  const petit = repas(400);
+  assertEquals(petit.entries.map(line), ["cheese:comte:35:null"]);
+  assertAlmostEquals(petit.variety.boundary_lost_kcal, 58.7, 1e-9);
+  assertEquals(boundaryOf(petit), [1, 0, 0]);
+  const grand = repas(768);
+  assertEquals(grand.entries.map(line), [
+    "cheese:comte:35:null",
+    "bread:bread_wholemeal_integral_bread:25:null",
+  ]);
+  assertAlmostEquals(grand.variety.boundary_regrown_kcal, 102.3, 1e-9);
+  assertAlmostEquals(grand.variety.boundary_lost_kcal, 0, 1e-9);
+  assertEquals(boundaryOf(grand), [1, 1, 0]);
+});
+
+Deno.test("⟳ 2026-09-24 — borne: sous plancher TCA, le pain est ajouté pareil, ses kcal ne sont PAS sommées", () => {
+  const l = boundaryMeal(CHRIS, 106, 768, {
+    asks: [ask(CHRIS, "mon", 0, "lunch", "maintenance", [["dessert", 71.4]])],
+    raw: [raw(CHRIS, "mon", "lunch", "dessert", "pomme", { ref: "apple" })],
+    kcalWithheldMemberIds: new Set([CHRIS]),
+  });
+  assertEquals(l.entries.map(line), [
+    "dessert:apple:150:1",
+    "bread:bread_wholemeal_integral_bread:45:null",
+  ]);
+  assertEquals(boundaryOf(l), [1, 1, 1]);
+  assertEquals(
+    [l.variety.boundary_deficit_kcal, l.variety.boundary_regrown_kcal, l.variety.boundary_lost_kcal],
+    [0, 0, 0],
+  );
+});
+
+Deno.test("⟳ 2026-09-24 — borne: un manque sans demande d'à-côté (petit-déjeuner) est perdu, et compté", () => {
+  const l = ledgerOf({
+    asks: [ask(CHRIS, "mon", 0, "lunch", "maintenance", [["dessert", 71.4]])],
+    raw: [raw(CHRIS, "mon", "lunch", "dessert", "pomme", { ref: "apple" })],
+    extraDeficitByKey: new Map([[sideCourseKey(CHRIS, "mon", "breakfast"), 50]]),
+    mealKcalByKey: new Map([[sideCourseKey(CHRIS, "mon", "lunch"), 768]]),
+  });
+  assertEquals(l.entries.map(line), ["dessert:apple:150:1"]);
+  assertEquals(boundaryOf(l), [1, 0, 0]);
+  assertAlmostEquals(l.variety.boundary_deficit_kcal, 50, 1e-9);
+  assertAlmostEquals(l.variety.boundary_lost_kcal, 50, 1e-9);
+});
+
+Deno.test("⟳ 2026-09-24 — borne: sous 50 kcal, pas de pain ajouté (un bout de croûte), le manque est perdu", () => {
+  // `SIDE_COURSE_MIN_ADDED_KCAL`, la règle de `sideBudgetFor`: 40 < 50.
+  const l = boundaryMeal(CHRIS, 40, 768, {
+    asks: [ask(CHRIS, "mon", 0, "lunch", "maintenance", [["dessert", 71.4]])],
+    raw: [raw(CHRIS, "mon", "lunch", "dessert", "pomme", { ref: "apple" })],
+  });
+  assertEquals(l.entries.map(line), ["dessert:apple:150:1"]);
+  assertEquals(boundaryOf(l), [1, 0, 0]);
+  assertAlmostEquals(l.variety.boundary_lost_kcal, 40, 1e-9);
 });

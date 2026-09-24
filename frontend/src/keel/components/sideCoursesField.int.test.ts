@@ -41,11 +41,15 @@ afterEach(() => setChosenUiLocaleForTest("en"));
 
 function fieldHtml(
   value: SideCoursesDraft,
-  { locale = "fr", disabled = false }: { locale?: "en" | "fr"; disabled?: boolean } = {},
+  { locale = "fr", disabled = false, voice = "self" }: {
+    locale?: "en" | "fr";
+    disabled?: boolean;
+    voice?: "self" | "other";
+  } = {},
 ): string {
   atLocale(locale);
   return renderToStaticMarkup(
-    createElement(SideCoursesField, { value, onChange: () => {}, disabled }),
+    createElement(SideCoursesField, { value, onChange: () => {}, disabled, voice, who: "Alex" }),
   );
 }
 
@@ -84,7 +88,7 @@ describe("le champ rend quatre lignes et trois réponses par ligne", () => {
   it("les quatre types, dans l'ordre, avec les mots de l'écran (fr)", () => {
     const markup = fieldHtml({});
     const body = text(markup);
-    expect(body).toContain(fr["household.mouth.side_courses.title"]);
+    expect(body).toContain(fr["household.mouth.side_courses.title_you"]);
     expect(body).toContain(decode(fr["household.mouth.side_courses.hint"]));
     const rows = [...markup.matchAll(/data-side-course="([a-z]+)"/g)].map((m) => m[1]);
     expect(rows).toEqual(["starter", "cheese", "dessert", "bread"]);
@@ -104,10 +108,23 @@ describe("le champ rend quatre lignes et trois réponses par ligne", () => {
 
   it("les mêmes lignes en anglais", () => {
     const body = text(fieldHtml({}, { locale: "en" }));
-    expect(body).toContain(en["household.mouth.side_courses.title"]);
+    expect(body).toContain(en["household.mouth.side_courses.title_you"]);
     for (const word of ["Starter", "Cheese", "Dessert", "Bread", "Yes", "No", "Based on the goal"]) {
       expect(body).toContain(word);
     }
+  });
+
+  it("⟳ 2026-09-24 — la question est posée à quelqu'un: « tu » chez soi, le prénom chez un autre", () => {
+    // Demandé: « Est-ce que tu manges entrée, fromage, dessert, pain ? ». La
+    // même fiche se règle pour un tiers: « tu » s'y adresserait au maître.
+    const mine = text(fieldHtml({}, { voice: "self" }));
+    expect(mine).toContain("Est-ce que tu manges entrée, fromage, dessert, pain ?");
+    const theirs = text(fieldHtml({}, { voice: "other" }));
+    expect(theirs).toContain("Est-ce que Alex mange entrée, fromage, dessert, pain ?");
+    expect(theirs).not.toContain("tu manges");
+    // L'ancien titre et l'ancienne aide ne se rendent plus.
+    expect(mine).not.toContain("Ce qu'on sert à côté du plat");
+    expect(mine).toContain("tu laisses Sophia décider de leur présence ou non");
   });
 
   it("⛔ une fiche vierge montre « Selon l'objectif » — l'état réel, rien d'écrit", () => {
@@ -187,7 +204,13 @@ function click(
 ): SideCoursesDraft | undefined {
   atLocale("fr");
   let got: SideCoursesDraft | undefined;
-  const tree = SideCoursesField({ value, onChange: (next) => { got = next; }, disabled: false });
+  const tree = SideCoursesField({
+    value,
+    onChange: (next) => { got = next; },
+    disabled: false,
+    voice: "self",
+    who: "Alex",
+  });
   const rows = walk(tree).filter((el) =>
     (el.props as Record<string, unknown>)["data-side-course"] === kind
   );
@@ -238,7 +261,9 @@ describe("le champ est monté là où la personne règle sa fiche", () => {
     atLocale("fr");
     return renderToStaticMarkup(
       createElement(MouthPreferencesFields, {
-        draft: { ...emptyMouthDraft(), sideCourses },
+        // `muscle_gain`: le shaker n'a sa section qu'à la prise de muscle
+        // (2026-09-24), et ce cas compte les six.
+        draft: { ...emptyMouthDraft(), goal: "muscle_gain", sideCourses },
         onChange: () => {},
         subject: { existing: true, hasAccount: false, isSelf: false },
         busy: false,

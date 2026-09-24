@@ -226,6 +226,7 @@ function bornes(slotTargetKcal: number | null): PlateBounds {
     slotTargetKcal,
     light: false,
     appetite: null,
+    personal: null,
   });
 }
 
@@ -434,8 +435,8 @@ Deno.test("B6 — PERTE: cible 2 454, bande 2 454–2 602, et 2 528 n'est PAS la
     `couloir sur cible ${cCible.minPer100G}–${cCible.preferredPer100G}, sur milieu ${cMilieu.minPer100G}–${cMilieu.preferredPer100G}`,
   );
   // Et là où la table ne mord pas, les BORNES bougent aussi.
-  const petitCible = plateBoundsFor({ ageYears: 35, slot: "snack", slotTargetKcal: 200, light: false, appetite: null });
-  const petitMilieu = plateBoundsFor({ ageYears: 35, slot: "snack", slotTargetKcal: 206, light: false, appetite: null });
+  const petitCible = plateBoundsFor({ ageYears: 35, slot: "snack", slotTargetKcal: 200, light: false, appetite: null, personal: null });
+  const petitMilieu = plateBoundsFor({ ageYears: 35, slot: "snack", slotTargetKcal: 206, light: false, appetite: null, personal: null });
   assert(petitCible.max < petitMilieu.max, "une part plus grosse ouvre une assiette plus grosse");
 
   // Et la part du moment somme la CIBLE, pas le milieu: `slotPlanTargets` fait
@@ -479,6 +480,7 @@ Deno.test("B7 — la visée d'un repas vaut max(125 ; Dmin); `100 × E / Gpréf`
     slotTargetKcal: 1120,
     light: false,
     appetite: null,
+    personal: null,
   });
   assertEquals([b.min, b.max, b.preferred], [250, 550, 400]);
   const c = densityCorridorFor({ targetKcal: 1120, bounds: b })!;
@@ -514,6 +516,7 @@ Deno.test("B7 — la visée d'un repas vaut max(125 ; Dmin); `100 × E / Gpréf`
     slotTargetKcal: 200,
     light: false,
     appetite: null,
+    personal: null,
   });
   const cPetit = densityCorridorFor({ targetKcal: 200, bounds: petit })!;
   assert(

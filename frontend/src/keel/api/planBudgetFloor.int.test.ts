@@ -150,39 +150,48 @@ describe("le câblage des deux écrans qui composent", () => {
     "src/keel/pages/SetupPage.tsx",
   ];
 
-  it("⛔ les deux écrans REFUSENT sous le plancher, avec le montant qui le lève", () => {
+  // ⟳ 2026-09-23 — LE CHAMP ET SES DEUX PHRASES VIVENT DANS LE FORMULAIRE
+  // COMMUN (`PlanRequestFields`). Chaque écran CALCULE son verdict (ses
+  // bouches et ses absences n'y arrivent pas de la même façon) et le passe;
+  // le formulaire le rend sous le champ.
+  const FIELDS = "src/keel/components/PlanRequestFields.tsx";
+
+  it("⛔ les deux écrans calculent le verdict et le passent au formulaire commun", () => {
     for (const screen of SCREENS) {
       const code = source(screen);
-      expect(code, screen).toContain('budgetVerdict.kind === "below_floor"');
-      expect(code, screen).toContain("plan.cooking.budget_below_floor");
-      expect(code, screen).toContain("formatBudgetAmount(");
+      expect(code, screen).toContain("<PlanRequestFields");
+      expect(code, screen).toContain("budgetVerdict={budgetVerdict}");
+      expect(code, screen).toContain("assessBudget(");
     }
+  });
+
+  it("⛔ le formulaire REFUSE sous le plancher, avec le montant qui le lève", () => {
+    const code = source(FIELDS);
+    expect(code).toContain('props.budgetVerdict.kind === "below_floor"');
+    expect(code).toContain("plan.cooking.budget_below_floor");
+    expect(code).toContain("formatBudgetAmount(");
   });
 
   it("⛔ le refus est RENDU, pas seulement levé au clic", () => {
     // Mesuré le 2026-09-11 sur un run réel: écrit uniquement dans l'erreur du
-    // formulaire, le refus survivait à sa cause — il disait encore « il faut au
-    // moins 92,75 » devant un champ corrigé à 150, parce que cette erreur-là
-    // n'est remise à `null` qu'à l'envoi suivant. Il se rend donc à côté du
+    // formulaire, le refus survivait à sa cause. Il se rend donc à côté du
     // champ, calculé sur ce que le champ porte MAINTENANT.
-    for (const screen of SCREENS) {
-      const code = source(screen);
-      const rendu = code.indexOf('{budgetVerdict.kind === "below_floor" && (');
-      expect(rendu, `${screen}: le refus n'est pas rendu sous le champ`)
-        .toBeGreaterThan(0);
-    }
-    // ⛔ ET IL NE S'ÉCRIT PLUS DEUX FOIS SUR LE MÊME ÉCRAN. La même phrase
-    // rendue sous le champ ET au pied du formulaire se lit comme une panne.
-    const builder = source("src/keel/components/MealBuilder.tsx");
-    expect(builder.split("plan.cooking.budget_below_floor").length - 1).toBe(1);
+    const code = source(FIELDS);
+    const rendu = code.indexOf('{props.budgetVerdict.kind === "below_floor" && (');
+    expect(rendu, "le refus n'est pas rendu sous le champ").toBeGreaterThan(0);
+    // ⛔ ET IL NE S'ÉCRIT PAS DEUX FOIS SUR LE MÊME ÉCRAN. `/app/plan` ne le
+    // rend nulle part ailleurs; l'entonnoir le rend une seconde fois, mais au
+    // BOUT du parcours, sur des faits relus (le cas suivant) — pas sous le
+    // champ.
+    expect(source("src/keel/components/MealBuilder.tsx"))
+      .not.toContain("plan.cooking.budget_below_floor");
+    expect(code.split("plan.cooking.budget_below_floor").length - 1).toBe(1);
   });
 
-  it("les deux écrans DISENT ce qu'un budget serré va changer, sans retenir", () => {
-    for (const screen of SCREENS) {
-      const code = source(screen);
-      expect(code, screen).toContain('budgetVerdict.kind === "tight"');
-      expect(code, screen).toContain("plan.cooking.budget_tight");
-    }
+  it("le formulaire DIT ce qu'un budget serré va changer, sans retenir", () => {
+    const code = source(FIELDS);
+    expect(code).toContain('props.budgetVerdict.kind === "tight"');
+    expect(code).toContain("plan.cooking.budget_tight");
   });
 
   it("⛔ l'entonnoir retient AUSSI au bout du parcours, sur des faits relus", () => {

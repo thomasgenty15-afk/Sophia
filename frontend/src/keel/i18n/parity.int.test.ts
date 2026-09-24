@@ -328,6 +328,11 @@ describe("pack français de la vitrine", () => {
       // traduit pas. La phrase qui dit D'OÙ VIENT ce chiffre, elle, est bien
       // rédigée dans les deux langues (`home.plan.summary.energy`).
       "home.flow.energy",
+      // ⟳ 2026-09-24 — « {name} (kcal) », l'en-tête d'une ligne du tableau de
+      // la semaine: un prénom (jamais traduit) et le symbole d'énergie. Même
+      // raison que `meals.energy.dish`. Les autres libellés du tableau, eux,
+      // sont rédigés dans chaque langue (« Courses » / « Groceries »).
+      "meals.week_table.person_kcal",
       // LOT 2 — « {n} min », la durée du geste du jour J, seule avec son
       // nombre. Même raison que `meals.energy.dish` et que les vingt-deux
       // `unit.*`: « min » est le symbole international de la minute, et il

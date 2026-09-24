@@ -511,6 +511,95 @@ export function plateBandOf(ageYears: number | null): {
   return { band: "adult", known: true };
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-24 — LE PLAFOND D'ASSIETTE PROPRE À CHAQUE ADULTE (« l'assiette
+// suit l'entretien »)
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// ── LE DÉFAUT, AVEC SON CHIFFRE ──────────────────────────────────────────
+// `PLATE_MASS_BOUNDS_G.adult.meal` vaut 550 g pour TOUS les adultes. Dès qu'un
+// repas dépasse 550 kcal, le plafond est donc le même pour tout le monde, et
+// le seuil où l'à-côté grossit (`sideBudgetFor`, 550 × 1,15 = 632,5 kcal) aussi.
+// Christèle (maintien, entretien 1 920) a un plat de 658 kcal au déjeuner: il
+// ne déclenche jamais ce seuil, et son plat pèse 516 g en médiane.
+//
+// ── LA RÈGLE, DÉCIDÉE PAR LE PROPRIÉTAIRE ────────────────────────────────
+//     plafond = 25 % de l'ENTRETIEN (en grammes) × appétit, entre 400 et 550 g
+//     plancher = la moitié du plafond, entre 220 et 250 g
+//
+// ⛔ L'ENTRETIEN, PAS LA CIBLE. L'objectif ne rapetisse pas l'assiette de qui
+// perd du poids (les légumes font le volume), et n'agrandit pas celle de qui en
+// prend (son surplus va aux à-côtés et aux collations). L'entretien porte déjà
+// le corps entier: poids, taille, sexe, âge exact, activité.
+//
+// ⚠️ LE PLANCHER NE MONTE JAMAIS au-dessus de celui de la table (250 g). Il
+// reste ce qu'il est: « ça ne ressemble pas à un repas ».
+//
+// ⚠️ CE N'EST QU'UNE BORNE DE REPAS D'ADULTE. Mineur, âge inconnu ou entretien
+// inconnu ⇒ `null`, et la table d'âge s'applique seule, comme avant.
+
+/** ⟳ 2026-09-24 — la part de l'entretien qui fait le plafond: 0,25 g par kcal. */
+export const PERSONAL_PLATE_MAX_G_PER_KCAL = 0.25;
+/** ⟳ 2026-09-24 — le plafond personnel ne descend jamais sous 400 g. */
+export const PERSONAL_PLATE_MAX_LOWEST_G = 400;
+/**
+ * ⟳ 2026-09-24 — le plafond personnel ne monte jamais au-dessus de 550 g.
+ * ⚠️ C'est aujourd'hui le plafond du repas adulte de la table
+ * (`PLATE_MASS_BOUNDS_G.adult.meal.max`); ce sont deux décisions, épinglées
+ * séparément.
+ */
+export const PERSONAL_PLATE_MAX_HIGHEST_G = 550;
+/** ⟳ 2026-09-24 — le plancher personnel est la moitié du plafond… */
+export const PERSONAL_PLATE_MIN_SHARE_OF_MAX = 0.5;
+/** ⟳ 2026-09-24 — …jamais sous 220 g… */
+export const PERSONAL_PLATE_MIN_LOWEST_G = 220;
+/** ⟳ 2026-09-24 — …et jamais au-dessus de 250 g, le plancher de la table. */
+export const PERSONAL_PLATE_MIN_HIGHEST_G = 250;
+
+/** ⟳ 2026-09-24 — les bornes d'assiette d'un adulte, en grammes servis. */
+export interface PersonalPlateBounds {
+  maxG: number;
+  minG: number;
+}
+
+/**
+ * ⟳ 2026-09-24 — LE PLAFOND ET LE PLANCHER D'ASSIETTE D'UN ADULTE, depuis son
+ * entretien. `null` pour un mineur, un âge inconnu ou un entretien inconnu.
+ *
+ * ⚠️ L'APPÉTIT EST DANS LE PLAFOND (0,9 / 1 / 1,1, `appetiteFactorOf`).
+ * `plateBoundsFor` l'applique donc APRÈS le facteur d'appétit de la table,
+ * jamais une seconde fois: 1 900 kcal à petit appétit font 428 g, pas
+ * 428 × 0,9.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function personalPlateBoundsFor(args: {
+  ageYears: number | null;
+  /** L'entretien de la personne (`maintenanceKcalOf`), jamais sa cible. */
+  maintenanceKcal: number | null;
+  appetite: AppetiteLevel | null;
+}): PersonalPlateBounds | null {
+  const { band, known } = plateBandOf(args.ageYears);
+  if (!known || band !== "adult") return null;
+  const maintenance = Number(args.maintenanceKcal);
+  if (args.maintenanceKcal === null || !Number.isFinite(maintenance) || maintenance <= 0) {
+    return null;
+  }
+  const appetite = appetiteFactorOf(args.appetite).factor;
+  const maxG = Math.min(
+    PERSONAL_PLATE_MAX_HIGHEST_G,
+    Math.max(
+      PERSONAL_PLATE_MAX_LOWEST_G,
+      Math.round(PERSONAL_PLATE_MAX_G_PER_KCAL * maintenance * appetite),
+    ),
+  );
+  const minG = Math.min(
+    PERSONAL_PLATE_MIN_HIGHEST_G,
+    Math.max(PERSONAL_PLATE_MIN_LOWEST_G, Math.round(PERSONAL_PLATE_MIN_SHARE_OF_MAX * maxG)),
+  );
+  return { maxG, minG };
+}
+
 /**
  * ⟳ 2026-09-10 — QUI A DÉCIDÉ DU PLAFOND DE MASSE, ET IL EST COMPTÉ.
  *
@@ -521,10 +610,13 @@ export function plateBandOf(ageYears: number | null): {
  *
  *   `target`   la part kcal de ce moment a décidé — le cas nominal;
  *   `table`    la capacité d'estomac de la tranche d'âge a rabattu le plafond;
+ *   `personal` ⟳ 2026-09-24 — le plafond de la PERSONNE (25 % de son entretien,
+ *              `personalPlateBoundsFor`) a rabattu le plafond, plus bas que la
+ *              table. À égalité avec la table, c'est `table`: rien n'a changé;
  *   `no_target`  aucune part lisible: la table est la SEULE source, comme avant
  *                ce lot.
  */
-export const PLATE_BOUND_SOURCES = ["target", "table", "no_target"] as const;
+export const PLATE_BOUND_SOURCES = ["target", "table", "personal", "no_target"] as const;
 export type PlateBoundSource = (typeof PLATE_BOUND_SOURCES)[number];
 
 export interface PlateBounds {
@@ -653,8 +745,24 @@ export function plateBoundsFor(args: {
    * ⛔ REQUIS ET NULLABLE. `null` = non renseigné = ×1,00, un neutre VRAI.
    */
   appetite: AppetiteLevel | null;
+  /**
+   * ⟳ 2026-09-24 — LES BORNES D'ASSIETTE DE CETTE PERSONNE
+   * (`personalPlateBoundsFor`), ou `null`: la table d'âge seule, comme avant.
+   *
+   * ⛔ REQUIS ET NULLABLE, jamais `?`: c'est la casse de compilation qui
+   * recense les appelants. Un défaut à `null` aurait laissé le plafond
+   * personnel construit et désarmé chez tous ceux qu'on a oubliés.
+   *
+   * Pour un REPAS: plafond = min(table, plafond personnel), plancher =
+   * min(table, plancher personnel). Une collation ne le lit pas.
+   */
+  personal: PersonalPlateBounds | null;
 }): PlateBounds {
-  return plateBoundsUnder(args, (band, slotClass) => PLATE_MASS_BOUNDS_G[band][slotClass]);
+  return plateBoundsUnder(
+    args,
+    (band, slotClass) => PLATE_MASS_BOUNDS_G[band][slotClass],
+    true,
+  );
 }
 
 /**
@@ -673,24 +781,37 @@ export function plateBoundsFor(args: {
  * Appelée par `slotContractsFor` quand un moment garde un débordement que
  * les collations n'ont pas pu prendre (`overflow: "hard_ceiling"`).
  *
+ * ⟳ 2026-09-24 — ⚠️ LE REPLI GARDE SA TABLE POUR LE PLAFOND: le plafond
+ * personnel ne s'y applique pas (l'énergie de la journée reste un contrat, et
+ * c'est ce plafond-ci qui la laisse passer). Le plancher personnel, lui,
+ * s'applique.
+ *
  * PURE: no I/O, no clock, no randomness.
  */
 export function hardCeilingBoundsFor(
   args: Parameters<typeof plateBoundsFor>[0],
 ): PlateBounds {
-  return plateBoundsUnder(args, (band, slotClass) => {
-    const table = PLATE_MASS_BOUNDS_G[band][slotClass];
-    return {
-      min: table.min,
-      max: PLATE_HARD_CEILING_G[band]?.[slotClass] ?? table.max,
-    };
-  });
+  return plateBoundsUnder(
+    args,
+    (band, slotClass) => {
+      const table = PLATE_MASS_BOUNDS_G[band][slotClass];
+      return {
+        min: table.min,
+        max: PLATE_HARD_CEILING_G[band]?.[slotClass] ?? table.max,
+      };
+    },
+    false,
+  );
 }
 
 /**
  * LE COULOIR DE MASSE SOUS UNE TABLE DONNÉE — le corps commun de
  * `plateBoundsFor` et de `hardCeilingBoundsFor`. Voir le pavé de
  * `plateBoundsFor` pour la règle; rien d'autre ne change que `tableOf`.
+ *
+ * ⟳ 2026-09-24 — et le plafond personnel (`args.personal`), sur un REPAS:
+ * son plancher s'applique toujours, son plafond seulement quand
+ * `personalCeiling` le dit (`false` au repli à 700 g).
  */
 function plateBoundsUnder(
   args: Parameters<typeof plateBoundsFor>[0],
@@ -698,10 +819,20 @@ function plateBoundsUnder(
     band: PlateBoundBand,
     slotClass: PlateSlotClass,
   ) => { readonly min: number; readonly max: number },
+  personalCeiling: boolean,
 ): PlateBounds {
   const { band, known } = plateBandOf(args.ageYears);
   const slotClass = plateSlotClassOf(args.slot);
   const table = tableOf(band, slotClass);
+  // ⟳ 2026-09-24 — LES BORNES DE LA PERSONNE, sur un REPAS seulement.
+  // `Infinity` = rien de plus que la table: le `Math.min` la rend telle quelle.
+  // ⛔ ELLES PORTENT DÉJÀ L'APPÉTIT (`personalPlateBoundsFor`). Elles
+  // bornent donc APRÈS le facteur d'appétit, jamais multipliées par lui: sinon
+  // un petit appétit compterait deux fois (428 g × 0,9 = 385 g, sous les 400 g
+  // décidés).
+  const personal = slotClass === "meal" ? args.personal : null;
+  const personalMax = personal !== null && personalCeiling ? personal.maxG : Infinity;
+  const personalMin = personal !== null ? personal.minG : Infinity;
   const kcal = Number(args.slotTargetKcal);
   // ⛔ PAS D'APPÉTIT SUR UN MINEUR. La table pédiatrique est une capacité
   // d'estomac d'enfant; l'élargir de 10 % parce qu'il « mange bien » servirait
@@ -713,10 +844,14 @@ function plateBoundsUnder(
     ? LIGHT_MEAL_KCAL_PER_G_FLOOR
     : MEAL_KCAL_PER_G_FLOOR;
   if (args.slotTargetKcal === null || !Number.isFinite(kcal) || kcal <= 0) {
+    // ⟳ 2026-09-24 — sans part lisible, la table de la personne: les deux
+    // `Math.min` rendent la table telle quelle quand `personal` est `null`.
+    const min = Math.min(table.min, personalMin);
+    const max = Math.min(table.max, personalMax);
     return {
-      min: table.min,
-      max: table.max,
-      preferred: Math.round((table.min + table.max) / 2),
+      min,
+      max,
+      preferred: Math.round((min + max) / 2),
       appetiteFactor: 1,
       densityFloorPerG,
       band,
@@ -750,8 +885,11 @@ function plateBoundsUnder(
   const bMax = Math.min(bMaxRaw, table.max);
   const bMin = Math.min(bMinRaw, table.min);
   const appetiteFactor = isMinor ? 1 : appetiteFactorOf(args.appetite).factor;
-  const gMax = Math.min(appetiteFactor * bMax, table.max);
-  const gMin = Math.min(appetiteFactor * bMin, gMax);
+  const tableMax = Math.min(appetiteFactor * bMax, table.max);
+  // ⟳ 2026-09-24 — ④ le plafond et le plancher de la PERSONNE, en dernier:
+  // ils portent déjà l'appétit (voir `personal` plus haut).
+  const gMax = Math.min(tableMax, personalMax);
+  const gMin = Math.min(appetiteFactor * bMin, personalMin, gMax);
   const gPref = Math.min(
     Math.max(appetiteFactor * ((bMin + bMax) / 2), gMin),
     gMax,
@@ -767,7 +905,11 @@ function plateBoundsUnder(
     source: known ? "age_known" : "age_unknown",
     // ⚠️ LE MOTIF SE LIT SUR LA BORNE NON ARRONDIE, et l'appétit en fait
     // partie: c'est bien la TABLE qui décide quand `A × bmax` la dépasse.
-    boundSource: gMax < appetiteFactor * bMaxRaw ? "table" : "target",
+    // ⟳ 2026-09-24 — et la PERSONNE quand son plafond passe sous celui de la
+    // table; à égalité, rien n'a changé et le motif reste `table`.
+    boundSource: gMax < appetiteFactor * bMaxRaw
+      ? (personalMax < tableMax ? "personal" : "table")
+      : "target",
     physicalMax: table.max,
   };
 }

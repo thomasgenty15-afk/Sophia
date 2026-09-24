@@ -108,6 +108,7 @@ import {
 // objectifs, motifs) dans /app/plan — la garde de coutures l'a attrapé.
 export { COOKING_SESSION_MINUTES, cookingTimeParts } from "./planBudget";
 import { mergePracticalConstraints } from "./practicalConstraints";
+import { type KitchenTool, readKitchenEquipment } from "./kitchenEquipment";
 import {
   declareConstraint,
   DuplicateConstraintError,
@@ -184,6 +185,7 @@ export type FunnelQuestionId =
   | "cooking_style"
   | "grocery_runs"
   | "budget_amount"
+  | "kitchen_equipment"
   // ── LES `better`: DÉCLARÉES ICI, JAMAIS RENDUES PAR `funnelSteps` ────────
   // Elles ne sont pas du décor. Ce tableau est la LISTE DE CE QUI SE DEMANDERA
   // APRÈS le plan, et l'avoir écrite au même endroit que le reste est ce qui
@@ -639,6 +641,22 @@ export const FUNNEL_QUESTIONS: readonly FunnelQuestion[] = Object.freeze([
     step: "request",
     scope: "household",
   },
+  // ⟳ 2026-09-24 — « AVEC QUOI TU CUISINES » RETIENT LA GÉNÉRATION. Demandé:
+  // bloquer le plan tant qu'elle n'est pas renseignée. Sans elle, le moteur
+  // compose pour une cuisine qu'il ne connaît pas (four, congélateur,
+  // micro-ondes décident de ce qui se cuit et de ce qui se garde).
+  //
+  // ⚠️ CETTE PAGE NE L'ÉCRIT PAS. `savePlanAnswers` ne la touche pas: c'est
+  // `KitchenEquipmentCard`, repliée dans `PlanRequestFields`, qui écrit la
+  // clé, et l'étape relit les faits après son enregistrement.
+  {
+    id: "kitchen_equipment",
+    consumer: "supabase/functions/_shared/keel/kitchen_equipment.ts#readKitchenEquipment",
+    weight: "wrong",
+    branches: ALL_BRANCHES,
+    step: "request",
+    scope: "household",
+  },
 
   // ── CE QUI SE DEMANDE APRÈS LE PLAN ───────────────────────────────────────
   {
@@ -912,6 +930,16 @@ export interface FunnelState {
   /** Les AUTRES bouches. Moi n'y suis pas: je suis la première, dans `self`. */
   others: readonly FunnelPerson[];
   plan: FunnelPlanAnswers;
+  /**
+   * ⟳ 2026-09-24 — CE QUE LA CUISINE PERMET, lu par `readKitchenEquipment`.
+   * `null` = rien de déclaré, et l'étape 3 retient (`kitchen_equipment`).
+   *
+   * ⚠️ HORS DE `plan`, ET C'EST VOULU: `plan` est le brouillon que l'écran
+   * édite et que `savePlanAnswers` réécrit; celle-ci a son propre écrivain
+   * (`KitchenEquipmentCard`) et se relit sur les faits, jamais sur le
+   * brouillon — sinon l'étape resterait bloquée après l'enregistrement.
+   */
+  kitchenEquipment: readonly KitchenTool[] | null;
 }
 
 
@@ -1354,6 +1382,7 @@ function canGenerateMisses(
   // ⚠️ LE CHIFFRE, PAS LA PRÉSENCE DE LA CLÉ. `0` est un budget que personne
   // n'a, et un `NaN` venu d'un champ à moitié tapé passerait un `!== null`.
   if (!isUsableBudget(state.plan.budgetAmount)) missing.push("budget_amount");
+  if (state.kitchenEquipment === null) missing.push("kitchen_equipment");
 
   // Dédoublonné en gardant l'ORDRE: N bouches sans prénom rendent un seul
   // `member_first_name`. L'écran renvoie vers une étape, pas vers une ligne, et
@@ -1522,6 +1551,7 @@ export function emptyFunnelState(): FunnelState {
       groceryRuns: null,
       budgetAmount: null,
     },
+    kitchenEquipment: null,
   };
 }
 
@@ -1968,6 +1998,7 @@ export async function readFunnelFacts(userId: string): Promise<FunnelFacts> {
     },
     others: mouths,
     plan: readPlanAnswers(pc),
+    kitchenEquipment: readKitchenEquipment(pc),
   };
 
   return {

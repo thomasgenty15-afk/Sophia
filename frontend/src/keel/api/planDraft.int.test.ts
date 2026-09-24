@@ -27,6 +27,7 @@ import {
   noteOverflows,
   readDraftEnvelope,
   readDraftPlan,
+  noteIsExclusionOnly,
 } from "./planDraft";
 
 /**
@@ -331,5 +332,20 @@ describe("le plan du brouillon", () => {
     expect(plan.dishes).toEqual([]);
     expect(plan.preparations).toEqual([]);
     expect(plan.durationDays).toBe(7);
+  });
+});
+
+// ⟳ 2026-09-24 — QUAND UNE NOTE MODIFIE LE BROUILLON AU LIEU DE LE RECOMPOSER.
+describe("noteIsExclusionOnly", () => {
+  const line = (kind: string, sense: string | null) => ({ text: "tofu", who: null, kind, sense });
+  it("vrai seulement si TOUT ce qui a été rangé est une exclusion", () => {
+    expect(noteIsExclusionOnly({ announced: [line("preference", "food.exclude"), line("next_plan", "food.exclude")] })).toBe(true);
+    // Un goût à côté : la semaine entière peut changer, on recompose.
+    expect(noteIsExclusionOnly({ announced: [line("preference", "food.exclude"), line("preference", "food.prefer")] })).toBe(false);
+    // Un mémo, un réglage, la santé : jamais une simple exclusion.
+    expect(noteIsExclusionOnly({ announced: [line("note", null)] })).toBe(false);
+    expect(noteIsExclusionOnly({ announced: [line("safety", "food.exclude")] })).toBe(false);
+    // Rien de rangé : rien à retirer, et surtout pas « vrai » par défaut.
+    expect(noteIsExclusionOnly({ announced: [] })).toBe(false);
   });
 });

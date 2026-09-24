@@ -777,8 +777,19 @@ Deno.test("PROPERTY: a closed gate sends no number at all", () => {
   const soft = fn.indexOf("if (readerClosedByDefault) {");
   assertEquals(soft >= 0, true, "la fermeture douce a bougé — relis ce garde");
   const softBody = fn.slice(soft, fn.indexOf("\n    }\n", soft));
+  // ⟳ 2026-09-24 — UNE SEULE EXCEPTION, NOMMÉE: `member_days`, le total du
+  // jour de chaque bouche À OBJECTIF (le tableau de la semaine). C'est la SOMME
+  // des `boxes:` ci-dessous, déjà jugées bouche par bouche — aucun chiffre neuf
+  // ne franchit le fil, et le lecteur fermé par défaut n'a lui-même aucune
+  // boîte émise (sans direction, son interrupteur est fermé). On la retire
+  // AVANT de chercher `days:`, et on exige qu'elle vienne des boîtes.
+  const memberDays = "member_days: memberDaysOf(row),";
+  assertStringIncludes(softBody, memberDays);
+  const helper = fn.slice(fn.indexOf("const memberDaysOf ="), fn.indexOf("if (readerClosedByDefault) {"));
+  assertStringIncludes(helper, "boxes: boxesByPlan.get(row.id)?.boxes ?? [],");
+  const softRest = softBody.replace(memberDays, "");
   for (const banned of ["dishes:", "days:", "target:", "basis:", "kcal:", "_kcal", "eating_out_advice"]) {
-    assertEquals(softBody.includes(banned), false, `la fermeture douce porte "${banned}"`);
+    assertEquals(softRest.includes(banned), false, `la fermeture douce porte "${banned}"`);
   }
   assertStringIncludes(softBody, "boxes:");
   assertStringIncludes(softBody, "boxes_gate:");

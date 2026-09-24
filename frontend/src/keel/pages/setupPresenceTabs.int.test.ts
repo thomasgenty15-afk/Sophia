@@ -2,20 +2,20 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 
 // ===========================================================================
-// « QUI EST LÀ ? JOUR PAR JOUR » — UNE ENTRÉE PAR BOUCHE, 2026-09-20
+// « QUI MANGE À LA MAISON » À L'ÉTAPE 3 — UNE LIGNE PAR BOUCHE
 // ===========================================================================
 //
-// ── LE DÉFAUT, SIGNALÉ À L'ÉCRAN ──────────────────────────────────────────
-// « J'ai renseigné 3 personnes, et sur l'étape 3, quand je clique sur "Qui est
-// là ? Jour par jour", je ne vois que le planning du compte maître. » C'était
-// exact: ce lien n'a jamais ouvert que `practical_constraints.away_days`, la
-// grille du titulaire. Les deux autres bouches n'avaient aucune entrée.
+// ── L'HISTOIRE ─────────────────────────────────────────────────────────────
+// 2026-09-20: « j'ai renseigné 3 personnes, et sur l'étape 3 je ne vois que le
+// planning du compte maître ». Réparé par une pastille par bouche.
+// ⟳ 2026-09-23: les pastilles laissent la place à la liste de `/app/plan`
+// (une ligne par personne, son état, « Absence », « Modifier »), montée par
+// le formulaire commun `PlanRequestFields`. Le rendu de la liste est testé
+// dans `components/planRequestPresence.int.test.ts`; ici, on lit comment
+// l'entonnoir construit ses lignes.
 //
 // ⚠️ ON LIT LA SOURCE, ET C'EST ASSUMÉ. `SetupPage` entier ne se monte pas
-// sous `renderToStaticMarkup` (voir `ownAccountCards.int.test.ts`), et c'est
-// le seul moyen d'attraper un DÉBRANCHEMENT: trois props parfaitement typées
-// que plus personne ne lit restent vertes pour toujours — elles l'ont d'ailleurs
-// été du 2026-09-08 à ce lot.
+// sous `renderToStaticMarkup` (voir `ownAccountCards.int.test.ts`).
 // ===========================================================================
 
 const SRC = readFileSync(new URL("./SetupPage.tsx", import.meta.url), "utf8");
@@ -27,72 +27,47 @@ const CODE = SRC
   .filter((l) => !l.trim().startsWith("//"))
   .join("\n");
 
+const STEP = CODE.slice(CODE.indexOf("function RequestStep({"));
+
 describe("l'étape 3 ouvre la présence de CHAQUE bouche", () => {
-  it("les trois props du roster sont LUES, pas seulement passées", () => {
-    // Elles étaient déjà dans le type et dans le montage; la destructuration
-    // les ignorait. C'est exactement à quoi ressemble un bloc retiré dont
-    // personne n'a nettoyé les fils — et c'est pour ça que le rebrancher n'a
-    // demandé aucune nouvelle plomberie.
-    const step = CODE.slice(CODE.indexOf("function RequestStep({"));
-    const head = step.slice(0, step.indexOf("}: {"));
-    for (const prop of ["awayFor", "onAwayFor", "onAwaySaved"]) {
+  it("les deux écrivains sont LUS, pas seulement passés", () => {
+    const head = STEP.slice(0, STEP.indexOf("}: {"));
+    for (const prop of ["selfAway", "onSelfAwaySave", "onMouthAwaySave"]) {
       expect(head, `\`${prop}\` n'est pas destructurée`).toContain(prop);
     }
+    expect(STEP).toContain("presence={presence}");
   });
 
-  it("une bouche a sa PROPRE grille, et elle écrit dans SA colonne", () => {
-    // ⛔ D14 — DEUX SOURCES QUI NE FUSIONNENT JAMAIS. Le titulaire déclare pour
-    // lui-même (`practical_constraints.away_days`, `onSelfAwaySaved`); une
-    // autre bouche est déclarée PAR le maître (`household_members.away_days`,
-    // `onAwaySaved`). Une grille nourrie de l'union recopierait la déclaration
-    // de l'un dans la colonne de l'autre, où elle survivrait à sa rétractation.
-    expect(CODE).toContain("onSave={(next) => onAwaySaved(m, next)}");
-    expect(CODE).toContain("away={m.away}");
-    // ET LE COMPTEUR SUIT LA MÊME SÉPARATION: `selfAway` pour le titulaire,
-    // sa ligne du roster pour les autres. Le confondre afficherait sous la
-    // pastille « moi » un nombre que sa propre grille ne montre pas.
-    expect(CODE).toContain("const marks = isSelf ? selfAway : m.away;");
+  it("⛔ D14 — une bouche écrit dans SA colonne, le titulaire dans la sienne", () => {
+    // Le titulaire déclare pour lui-même (`practical_constraints.away_days`);
+    // une autre bouche est déclarée PAR le maître (`household_members.
+    // away_days`). Une ligne nourrie de l'union recopierait la déclaration de
+    // l'un dans la colonne de l'autre, où elle survivrait à sa rétractation.
+    expect(STEP).toContain("save: (next) => onMouthAwaySave(m, next),");
+    expect(STEP).toContain("away: m.away,");
+    expect(STEP).toMatch(/away: selfAway,\n\s+save: onSelfAwaySave,/);
+    expect(CODE).toContain("onSelfAwaySave={saveSelfAway}");
+    expect(CODE).toMatch(/onMouthAwaySave=\{async \(m, next\) => \{\n\s+const result = await setMemberAway\(/);
   });
 
   it("⛔ les moments d'une bouche, sinon ceux de la maison — jamais `[]`", () => {
-    // `eatingSlots === null` veut dire « aux moments de la maison », jamais
-    // « ne mange pas ». Passer `[]` rendrait une grille SANS LIGNE: un contrôle
-    // ouvert sur du vide, qu'on ne peut ni lire ni utiliser.
-    expect(CODE).toContain("const slots = m.eatingSlots ?? rhythm;");
+    expect(STEP).toContain("slots: m.eatingSlots ?? rhythm,");
   });
 
-  it("⛔ À UNE SEULE BOUCHE, LE LIEN D'AVANT — et c'est la moitié du lot", () => {
-    // Le bloc par bouche avait été retiré le 2026-09-08 parce qu'en solo il
-    // rendait UNE ligne ouvrant la MÊME grille que le lien: deux entrées pour
-    // un geste. Ce motif ne vaut que pour le solo; la condition est donc ce
-    // qui empêche ce lot de rouvrir le défaut qu'on avait fermé.
-    expect(CODE).toContain("{mouths.length > 1 && (");
-    expect(CODE).toContain("onClick={() => onSelfPicker(true)}");
+  it("⛔ LE TITULAIRE GARDE SA LIGNE MÊME QUAND LE ROSTER NE LE PORTE PAS", () => {
+    // `presenceRoster` ne l'ajoute que si `ownMemberId` est lu. Sans cette
+    // ligne, la personne qui remplit le formulaire n'aurait aucun geste pour
+    // ouvrir sa propre semaine.
+    expect(STEP).toContain("return hasSelf ? rows : [selfRow(selfName), ...rows];");
+    // ⛔ ET LA SENTINELLE EXIGE UN `memberId` NON NUL: `null === null` ferait
+    // d'une bouche pas encore inscrite le titulaire.
+    expect(STEP).toContain("m.memberId !== null && m.memberId === selfMemberId");
   });
 
-  it("⛔ LE TITULAIRE GARDE UNE PORTE MÊME SANS PASTILLE", () => {
-    // `presenceRoster` ne l'ajoute que si `ownMemberId` est lu. Écrit en
-    // ternaire — rangée OU lien —, le cas « roster à plusieurs, titulaire pas
-    // encore dedans » laissait la personne qui remplit le formulaire sans
-    // aucun geste pour ouvrir sa propre semaine.
-    expect(CODE).toContain("{selfHasTab ? null : (");
-    // ⛔ ET LA SENTINELLE EXIGE UN `memberId` NON NUL. Une bouche pas encore
-    // inscrite en porte un `null`; `null === null` en ferait le titulaire,
-    // donc deux grilles sur la même colonne pour deux personnes.
-    expect(CODE).toContain("m.memberId !== null && m.memberId === selfMemberId");
-  });
-
-  it("UN SEUL COMPTEUR pour la pastille et pour le lien", () => {
+  it("UN SEUL COMPTEUR, dans `lib/presenceAbsence.ts`", () => {
     // Deux corps de calcul écrits séparément finissent par afficher deux
-    // nombres pour la même semaine — c'est écrit dans ce fichier depuis que le
-    // lien existe, et ça reste vrai maintenant qu'il y a N pastilles.
-    expect(CODE).toContain("function awayMomentsIn(");
-    expect(
-      (CODE.match(/awayMomentsIn\(/g) ?? []).length,
-      "le compteur est appelé ailleurs qu'aux deux endroits attendus",
-    ).toBe(3); // la déclaration, la pastille, le lien du solo
-    // ⛔ ET PLUS AUCUNE FORMULE EN LIGNE: l'ancienne vivait dans le `useMemo`
-    // du lien, et c'est elle qu'on vient de remplacer.
+    // nombres pour la même semaine.
+    expect(CODE).not.toContain("function awayMomentsIn(");
     expect(CODE).not.toContain("a.slots.length === 0 ? rhythm.length");
   });
 });

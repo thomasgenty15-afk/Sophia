@@ -65,6 +65,7 @@ export const SETUP_MISS_KEYS: Record<FunnelMissId, MessageKey> = {
   cooking_style: "setup.missing.cooking_style",
   grocery_runs: "setup.missing.grocery_runs",
   budget_amount: "setup.missing.budget_amount",
+  kitchen_equipment: "setup.missing.kitchen_equipment",
   // ⚠️ UNE PHRASE POUR UN MOTIF QUI NE SORT JAMAIS, et c'est voulu.
   // `member_eating_rhythm` est `better`: son absence ne rend aucun plan FAUX,
   // donc `canGenerateMisses` ne l'émet pas. Le `Record` est complet PAR TYPE —

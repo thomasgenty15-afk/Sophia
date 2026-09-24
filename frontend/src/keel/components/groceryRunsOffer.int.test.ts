@@ -35,6 +35,7 @@ const read = (rel: string) => readFileSync(resolve(__dirname, rel), "utf8");
 const FIELD = read("./GroceryRunsField.tsx");
 const BUILDER = read("./MealBuilder.tsx");
 const SETUP = read("../pages/SetupPage.tsx");
+const FIELDS = readFileSync(resolve(__dirname, "./PlanRequestFields.tsx"), "utf8");
 
 const html = (over: {
   value?: GroceryRunsAnswer | null;
@@ -53,7 +54,10 @@ const html = (over: {
       oneCookingSession: over.oneCookingSession ?? false,
       daysToEat: over.daysToEat ?? 7,
       // ⟳ 2026-09-21 — le congélateur entre dans l'offre; `null` = jamais demandé.
-      freezer: over.freezer ?? null,
+      // ⟳ 2026-09-24 — AVEC par défaut: sans lui, « une course » sort au-delà de
+      // trois jours, et les cas de fenêtre et de style perdraient leur sens.
+      // Les cas sans congélateur le disent explicitement.
+      freezer: over.freezer === undefined ? true : over.freezer,
     }),
   );
 
@@ -97,7 +101,7 @@ describe("l'écran ne propose que ce que le plan fera", () => {
     // bien le style qui plafonne — et le motif le nomme.
     // ⟳ 2026-09-21 — sept jours SANS congélateur font trois sessions, donc
     // trois courses; AVEC, deux — et c'est le style qui retire la troisième.
-    expect(offered(html({ style: "minimal", daysToEat: 7 }))).toEqual([1, 2, 3]);
+    expect(offered(html({ style: "minimal", daysToEat: 7, freezer: false }))).toEqual([2, 3]);
     const markup = html({ style: "minimal", daysToEat: 7, freezer: true });
     expect(offered(markup)).toEqual([1, 2]);
     // ⛔ LA PHRASE EST LA MOITIÉ QUI COMPTE. Une option qui s'évapore sans
@@ -142,6 +146,62 @@ describe("l'écran ne propose que ce que le plan fera", () => {
     expect(html({ style: "minimal", daysToEat: 7, freezer: true })).toContain(
       say(en["plan.cooking.runs_capped_style"]),
     );
+  });
+});
+
+// ===========================================================================
+// ⟳ 2026-09-24 — SANS CONGÉLATEUR, « UNE FOIS » N'EST PLUS PROPOSÉE AU-DELÀ DE
+// TROIS JOURS
+//
+// Décision produit. Avant, l'écran la proposait, le moteur la passait à deux
+// courses (`runs_1_needs_freezer`), et rien ne le disait.
+// ===========================================================================
+describe("sans congélateur, « Une fois » ne couvre pas un plan long", () => {
+  const needsFreezer = (dict: typeof en, n: number) =>
+    say(dict["plan.cooking.runs_needs_freezer"]).replace("{d}", "3").replace(
+      "{n}",
+      String(n),
+    );
+
+  it("sept jours: « Une fois » sort de la liste, et la phrase dit pourquoi", () => {
+    for (const freezer of [false, null] as const) {
+      const markup = html({ freezer, daysToEat: 7 });
+      expect(offered(markup), String(freezer)).toEqual([2, 3]);
+      expect(markup).toContain(needsFreezer(en, 7));
+    }
+  });
+
+  it("quatre à six jours: plus de question, la phrase à la place du contrôle", () => {
+    for (const daysToEat of [4, 5, 6]) {
+      const markup = html({ freezer: false, daysToEat });
+      expect(markup, `${daysToEat} jours: un contrôle est resté`).not.toContain("<select");
+      expect(markup).toContain(needsFreezer(en, daysToEat));
+      expect(markup).toContain(say(en["plan.cooking.runs_label"]));
+    }
+  });
+
+  it("jusqu'à trois jours, un seul lot suffit, avec ou sans congélateur", () => {
+    const markup = html({ freezer: false, daysToEat: 3 });
+    expect(markup).toContain(say(en["plan.cooking.runs_only_one_batch"]));
+    expect(markup).not.toContain(needsFreezer(en, 3));
+  });
+
+  it("le congélateur coché rend « Une fois »", () => {
+    expect(offered(html({ freezer: true, daysToEat: 7 }))).toEqual([1, 2, 3]);
+    expect(html({ freezer: true, daysToEat: 7 })).not.toContain(needsFreezer(en, 7));
+  });
+
+  it("⛔ une réponse « Une fois » déjà donnée reste visible, grisée", () => {
+    const markup = html({ value: 1, freezer: false, daysToEat: 7 });
+    expect(offered(markup)).toEqual([2, 3]);
+    expect(markup).toMatch(/<option value="1"[^>]*disabled/);
+    expect(markup).toContain(needsFreezer(en, 7));
+  });
+
+  it("la phrase nomme la carte où on lève le refus, dans les deux langues", () => {
+    expect(fr["plan.cooking.runs_needs_freezer"]).toContain(fr["setup.equipment.title"]);
+    expect(en["plan.cooking.runs_needs_freezer"]).toContain(en["setup.equipment.title"]);
+    expect(fr["plan.cooking.runs_needs_freezer"]).not.toBe(en["plan.cooking.runs_needs_freezer"]);
   });
 });
 
@@ -232,8 +292,17 @@ describe("les deux écrans nourrissent l'offre, et avec LES MÊMES trois entrée
   // Une seule qui manquerait ferait proposer sur un écran une cadence que
   // l'autre refuse — et c'est celui qu'on regarde le moins qui garderait
   // l'ancienne offre.
-  it("`/app/plan` et l'entonnoir passent style, case et fenêtre", () => {
+  it("`/app/plan` et l'entonnoir montent le MÊME formulaire", () => {
+    // ⟳ 2026-09-23 — le champ vit dans `PlanRequestFields`; les deux écrans le
+    // montent, et aucun ne remonte le champ à côté.
     for (const [name, src] of [["MealBuilder", BUILDER], ["SetupPage", SETUP]] as const) {
+      expect(src, name).toMatch(/<PlanRequestFields/);
+      expect(src, name).not.toMatch(/<GroceryRunsField/);
+    }
+  });
+
+  it("le formulaire commun passe style, case et fenêtre", () => {
+    for (const [name, src] of [["PlanRequestFields", FIELDS]] as const) {
       const at = src.indexOf("<GroceryRunsField");
       expect(at, `${name}: le champ a disparu`).toBeGreaterThan(-1);
       const mount = src.slice(at, src.indexOf("/>", at));
@@ -249,7 +318,7 @@ describe("les deux écrans nourrissent l'offre, et avec LES MÊMES trois entrée
     // L'ordre du formulaire EST l'ordre de la dérivation: on lit les causes
     // avant l'effet. Une case posée SOUS la liste ferait bouger la liste
     // au-dessus du geste qui la change.
-    for (const [name, src] of [["MealBuilder", BUILDER], ["SetupPage", SETUP]] as const) {
+    for (const [name, src] of [["PlanRequestFields", FIELDS]] as const) {
       expect(src.indexOf("<OneCookingSessionField"), name).toBeLessThan(
         src.indexOf("<GroceryRunsField"),
       );
@@ -338,7 +407,9 @@ describe("les mots existent dans les deux langues", () => {
       freezer: true,
     });
     if (froid.limit !== null) seen.add(froid.limit);
-    expect([...seen].sort()).toEqual(["days", "one_session", "style"]);
+    // ⟳ 2026-09-24 — « freezer »: sans congélateur, « une course » sort
+    // au-delà de trois jours (la boucle ci-dessus tourne avec `freezer: null`).
+    expect([...seen].sort()).toEqual(["days", "freezer", "one_session", "style"]);
     for (const limit of seen) {
       expect(FIELD, `motif sans phrase: ${limit}`).toContain(`${limit}:`);
     }

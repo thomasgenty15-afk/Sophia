@@ -279,7 +279,7 @@ Deno.test("A1 — l'enveloppe du FOYER ne bouge pas d'un octet", () => {
   // (message byte-identique à v25), v26 avec.
   // ⟳ 2026-09-23 — v39: les à-côtés en familles (`side_courses_prompt.ts`).
   // ⟳ 2026-09-23 — v40: la table partage ses à-côtés (`side_courses_prompt.ts`).
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v41_what_came_back_is_named");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v42_what_they_turned_down");
 });
 
 // ---------------------------------------------------------------------------

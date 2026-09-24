@@ -634,7 +634,8 @@ const AFTER = {
   TABLE_TERMS: "const householdExclusionTerms = exclusionTermsFor({",
   LOOP: "for (let c4Round = 0;; c4Round++) {",
   ENTRY: "const c4Entry: typeof meal = structuredClone(meal);",
-  REBUILD: "sideLedger = buildSideLedgerFor(meal);",
+  // ⟳ 2026-09-24 — la reconstruction de tête de tour passe le relevé VIDE.
+  REBUILD: "sideLedger = buildSideLedgerFor(meal, NO_BOUNDARY_DEFICIT);",
   ATTACH: "attachSideCourses(mealDishesPayload(meal), sideLedger)",
   SIDE_ATTACH: "const sideAttach = attachSideCourses(",
   LOCK: "const lock = applyHouseRuleLock(",
@@ -832,7 +833,9 @@ function verdictAfter(code: string): string[] {
   if (!code.includes(A.REPAIR_NOTES)) missing.push("repair_notes_reason_missing");
   // la trace
   if (
-    !code.includes(A.TRACE_ATTACH) || !code.includes(A.TRACE_POTS) || count(code, A.TRACE_MODEL) !== 2
+    // ⟳ 2026-09-24 — TROIS reconstructions: avant la boucle, en tête de
+    // tour, et après le rabotage (le manque de la borne d'assiette).
+    !code.includes(A.TRACE_ATTACH) || !code.includes(A.TRACE_POTS) || count(code, A.TRACE_MODEL) !== 3
   ) missing.push("trace_after_model");
   // ⟳ 2026-09-23 — LA TABLE ET LA SEMAINE (`variety`), recopiées à côté de
   // `model` aux DEUX reconstructions du registre: une seule, et la trace dirait
@@ -840,7 +843,7 @@ function verdictAfter(code: string): string[] {
   const varietyPairs = code.match(
     /sideCoursesTrace\.model = sideLedger\.counters;\s*sideCoursesTrace\.variety = sideLedger\.variety;/g,
   ) ?? [];
-  if (varietyPairs.length !== 2 || count(code, A.TRACE_VARIETY) !== 2) missing.push("variety_not_traced");
+  if (varietyPairs.length !== 3 || count(code, A.TRACE_VARIETY) !== 3) missing.push("variety_not_traced");
   return missing;
 }
 

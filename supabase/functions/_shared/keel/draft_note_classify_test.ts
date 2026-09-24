@@ -353,9 +353,9 @@ Deno.test("⟳ 2026-09-23 — la sécurité a SA liste (⑩), jamais une famille
 });
 
 Deno.test("le rôle vide se DIT, il ne s'omet pas", () => {
-  const solo = buildDraftNoteClassifyPrompt({ note: NOTE, contentLocale: "fr-FR", members: [], planFoods: PLAN_FOODS });
+  const solo = buildDraftNoteClassifyPrompt({ note: NOTE, contentLocale: "fr-FR", members: [], planFoods: PLAN_FOODS, rejectedDishes: [] });
   assert(solo.includes("There is nobody else at this table"));
-  const foyer = buildDraftNoteClassifyPrompt({ note: NOTE, contentLocale: "fr-FR", members: MEMBERS, planFoods: PLAN_FOODS });
+  const foyer = buildDraftNoteClassifyPrompt({ note: NOTE, contentLocale: "fr-FR", members: MEMBERS, planFoods: PLAN_FOODS, rejectedDishes: [] });
   assert(foyer.includes(`"member_id":"${ZOE}"`));
   assert(foyer.includes('"age":"minor"') && foyer.includes('"sex":"female"'));
   assert(foyer.includes(`They write in fr-FR`));
@@ -1307,6 +1307,7 @@ Deno.test("⛔ LE ROSTER PORTE L'ÂGE ET LE SEXE — sans eux, aucune parenté n
     contentLocale: "fr-FR",
     planFoods: PLAN_FOODS,
     members: [mouth(), mouth({ memberId: "22222222-2222-4333-8444-555555555555", label: "Léa", sex: "female" })],
+    rejectedDishes: [],
   });
   assert(prompt.includes('"age":"minor"'));
   assert(prompt.includes('"sex":"male"'));
@@ -1319,6 +1320,7 @@ Deno.test("⛔ LES CLÉS SONT ÉCRITES MÊME À `null` — « on ne sait pas » 
     contentLocale: "fr-FR",
     planFoods: PLAN_FOODS,
     members: [mouth({ ageState: null, sex: null })],
+    rejectedDishes: [],
   });
   assert(prompt.includes('"age":null'));
   assert(prompt.includes('"sex":null'));
@@ -1677,6 +1679,7 @@ Deno.test("⑤ le tour utilisateur dit les aliments — et dit quand il n'y en a
     contentLocale: "fr-FR",
     members: MEMBERS,
     planFoods: PLAN_FOODS,
+    rejectedDishes: [],
   });
   assert(withFoods.includes("poulet rôti"));
   const without = buildDraftNoteClassifyPrompt({
@@ -1684,6 +1687,7 @@ Deno.test("⑤ le tour utilisateur dit les aliments — et dit quand il n'y en a
     contentLocale: "fr-FR",
     members: MEMBERS,
     planFoods: [],
+    rejectedDishes: [],
   });
   // ⚠️ DIT, PAS OMIS. Une liste absente laisserait le modèle supposer qu'il
   // existe des plats qu'on ne lui a pas donnés.
@@ -3108,4 +3112,32 @@ Deno.test("⑪ câblage — le VRAI fichier est câblé, et chaque moitié retir
     assertNotEquals(mutated, real);
     assertEquals(sideWiringVerdict(mutated), [name], `la mutation « ${name} » n'a PAS fait rougir l'assertion.`);
   }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-24 — LES RAISONS DE « REMPLACER »: le plat, et qui le mange
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("⟳ 2026-09-24 — sans plat barré, le tour utilisateur est identique à l'octet près", () => {
+  const before = [
+    `The note, exactly as they typed it: ${JSON.stringify(NOTE)}`,
+  ];
+  const prompt = buildDraftNoteClassifyPrompt({
+    note: NOTE, contentLocale: "fr-FR", members: MEMBERS, planFoods: PLAN_FOODS, rejectedDishes: [],
+  });
+  assert(prompt.startsWith(before[0]));
+  assert(!prompt.includes("turned down"));
+});
+
+Deno.test("⟳ 2026-09-24 — les plats barrés arrivent avec leurs mangeurs, la règle sur la MÊME ligne", () => {
+  const prompt = buildDraftNoteClassifyPrompt({
+    note: "«Lait, pêche et avoine» : trop sucré",
+    contentLocale: "fr-FR",
+    members: MEMBERS,
+    planFoods: [],
+    rejectedDishes: [{ title: "Lait, pêche et avoine", eaterIds: ["m-paul"] }],
+  });
+  const line = prompt.split("\n").find((l) => l.includes("turned down")) ?? "";
+  assert(line.includes("names nobody is about the people who eat that dish"), line);
+  assert(line.includes('{"dish":"Lait, pêche et avoine","eaten_by":["m-paul"]}'), line);
 });

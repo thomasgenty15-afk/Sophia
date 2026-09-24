@@ -263,6 +263,19 @@ describe("LOT 3 · le cas majoritaire ne paie rien", () => {
     expect(occurrences(html, TABLE_DISH), "un plat s'est perdu").toBe(2);
   });
 
+  it("⛔ plan solo: la collation attribuée à la seule bouche ne porte pas « Pour {prénom} »", () => {
+    // Vu à l'écran le 2026-09-24: « Pour Paul » sur un plan d'une personne.
+    // Depuis `generate-household-meal-v1`, un plan solo a UNE part, pas `[]`.
+    const snack = dish({ title: "Peach and oat shake", slot: "snack_pm", member_id: "mem-zoe" });
+    const alone = textOf({ dishes: [snack], portions: [ZOE] });
+    expect(alone, "un en-tête nomme la seule personne du plan").not.toContain("For Zoé");
+    expect(alone, "la collation a disparu").toContain("Peach and oat shake");
+    // LE CAS QUI MORD: à deux, la même collation est à elle seule, et le dire
+    // est une information.
+    const pair = textOf({ dishes: [snack], portions: [ZOE, KID] });
+    expect(pair).toContain("For Zoé");
+  });
+
   it("aucun plat n'est perdu quand une bouche n'est plus nommée", () => {
     const html = textOf({
       dishes: [dish(), dish({ member_id: "mem-parti" })],
@@ -272,6 +285,91 @@ describe("LOT 3 · le cas majoritaire ne paie rien", () => {
     // Et il n'est pas rangé sous « pour la table », ce qui serait faux: rien
     // n'est séparé du tout ici, puisqu'aucune bouche nommée n'a de plat.
     expect(html).not.toContain("For the table");
+  });
+});
+
+describe("2026-09-24 · l'en-tête suit qui mange, pas seulement `member_id`", () => {
+  // Vu sur un foyer de trois où seul Thomas prend les collations: le matin (un
+  // plat à lui) disait « Pour Thomas », l'après-midi (le plat de la table,
+  // qu'il mange seul) ne disait rien.
+  const THOMAS = person({
+    memberId: "mem-t",
+    displayName: "Thomas",
+    eatingSlots: ["breakfast", "snack_am", "lunch", "snack_pm", "dinner"],
+  });
+  const FABRICE = person({
+    memberId: "mem-f",
+    displayName: "Fabrice",
+    eatingSlots: ["breakfast", "lunch", "dinner"],
+  });
+  const CHRISTELE = person({
+    memberId: "mem-c",
+    displayName: "Christèle",
+    eatingSlots: ["breakfast", "lunch", "dinner"],
+  });
+
+  /** Le jour rendu AVEC un kcal par plat: celui de la recette divisée par le foyer. */
+  function textWithEnergy(args: {
+    dishes: readonly GeneratedDish[];
+    portions: readonly MemberPortionView[];
+  }): string {
+    return decode(renderToStaticMarkup(createElement(PlanDayBlock, {
+      group: { day: "fri", dishes: args.dishes },
+      date: "2026-08-21",
+      today: "2026-08-21",
+      preparations: [],
+      allDishes: args.dishes,
+      cookingSessions: [],
+      wave: null,
+      shoppingList: [],
+      timingLine: null,
+      portions: args.portions,
+      dishLayout: "full",
+      energy: () => ({ kcal: 893, basis: "recipe", complete: true, gaps: [] }),
+    }))).replace(/<[^>]*>/g, "");
+  }
+
+  it("⛔ les deux collations que Thomas mange seul portent « For Thomas », pas le dîner commun", () => {
+    const text = textOf({
+      dishes: [
+        dish({ title: "Morning shake", slot: "snack_am", member_id: "mem-t" }),
+        dish({ title: "Afternoon yogurt", slot: "snack_pm" }),
+        dish({ title: DINNER, slot: "dinner" }),
+      ],
+      portions: [THOMAS, FABRICE, CHRISTELE],
+    });
+    expect(occurrences(text, "For Thomas")).toBe(2);
+    expect(text.indexOf("For Thomas", text.indexOf("Morning shake")))
+      .toBeLessThan(text.indexOf("Afternoon yogurt"));
+    // Le dîner, que tout le foyer mange, n'a pas d'en-tête.
+    expect(text.lastIndexOf("For Thomas")).toBeLessThan(text.indexOf(DINNER));
+    expect(text).not.toContain("For the table");
+  });
+
+  it("⛔ sous un en-tête à PLUSIEURS prénoms, pas de kcal global — la carte garde ses mangeurs", () => {
+    // Fabrice ne dîne pas: le dîner commun ne nourrit que Thomas et Christèle.
+    const noDinner = person({
+      memberId: "mem-f",
+      displayName: "Fabrice",
+      eatingSlots: ["breakfast", "lunch"],
+    });
+    const text = textWithEnergy({
+      dishes: [dish({ title: DINNER, slot: "dinner" })],
+      portions: [THOMAS, noDinner, CHRISTELE],
+    });
+    expect(text).toContain("For Thomas and Christèle");
+    expect(text, "le kcal de la recette divisée par le foyer s'affiche sous deux mangeurs")
+      .not.toContain("893 kcal");
+  });
+
+  it("⚠️ LE CAS QUI PASSE — le kcal s'affiche bien dans ce montage", () => {
+    // Sans ce cas, le test du dessus resterait vert si le kcal ne se rendait
+    // jamais ici.
+    const text = textWithEnergy({
+      dishes: [dish({ title: DINNER, slot: "dinner" })],
+      portions: [THOMAS],
+    });
+    expect(text).toContain("893 kcal");
   });
 });
 
@@ -473,6 +571,7 @@ describe("LOT 3 · le câblage, de la ligne jusqu'à l'écran", () => {
   it("⛔ le RENDU DU PLAN descend les parts jusqu'au jour — chaîne entière", () => {
     const html = renderToStaticMarkup(createElement(PlanResult, {
       dishes: [dish(), dish({ member_id: "mem-zoe" })],
+      dishLayout: "full",
       preparations: [],
       cookingSessions: [],
       shoppingList: [],

@@ -2,6 +2,7 @@ import { assert, assertEquals } from "jsr:@std/assert@1";
 import {
   CELL_EDIT_MAX,
   cellEditInstruction,
+  exclusionEditCells,
   mergeCellEdit,
   readCellEdits,
 } from "./cell_edit.ts";
@@ -61,7 +62,7 @@ Deno.test("readCellEdits — une case lisible passe ; jour, créneau, texte, dou
 });
 
 Deno.test("cellEditInstruction — la promesse « ONLY » touche la liste des cases, et le plan entier suit", () => {
-  const p = cellEditInstruction({ planSourceText: '{"dishes":[]}', cells: [CELL] });
+  const p = cellEditInstruction({ planSourceText: '{"dishes":[]}', cells: [CELL], returns: "full_plan" });
   const only = p.indexOf("ONLY these cells");
   const cell = p.indexOf('- fri dinner — they wrote: "plutôt du poulet"');
   assert(only >= 0 && cell >= 0 && cell - only < 200, "la promesse et la case ne se touchent pas");
@@ -70,7 +71,7 @@ Deno.test("cellEditInstruction — la promesse « ONLY » touche la liste des ca
   assert(p.includes("NO dish in THE PLAN below is an EMPTY cell") && p.includes("An empty cell is never an answer"));
   assert(p.endsWith('{"dishes":[]}'));
   // Les guillemets de la phrase ne cassent pas la ligne.
-  assert(cellEditInstruction({ planSourceText: "", cells: [{ ...CELL, text: 'du "poulet"' }] }).includes("they wrote: \"du 'poulet'\""));
+  assert(cellEditInstruction({ planSourceText: "", cells: [{ ...CELL, text: 'du "poulet"' }], returns: "full_plan" }).includes("they wrote: \"du 'poulet'\""));
 });
 
 Deno.test("⛔ mergeCellEdit — SEULE la case demandée est prise ; une case non demandée que le modèle a réécrite est IGNORÉE par construction", () => {
@@ -149,4 +150,94 @@ Deno.test("⛔ mergeCellEdit — une case que le CALENDRIER sert mais que le pla
   assertEquals(silent.unknown, []);
   // Sans le calendrier, la même case reste inconnue : la garde tient à l'argument.
   assertEquals(mergeCellEdit({ base: b, retry: rendered, cells: [ask], index: null, calendar: [] }).unknown, ["sat/lunch"]);
+});
+
+// ⟳ 2026-09-24 — L'AJUSTEMENT PAR EXCLUSION (`cells_from: "exclusions"`).
+
+Deno.test("cellEditInstruction `cells_only` — ne redemande que les cases, et lève le plancher du calendrier", () => {
+  const p = cellEditInstruction({ planSourceText: '{"dishes":[]}', cells: [CELL], returns: "cells_only" });
+  assert(!p.includes("Return the FULL plan"), "le plan entier est encore redemandé");
+  assert(p.includes("Return ONLY the listed cells"));
+  // Le plancher « 35 cells » du brief ne vaut pas pour cette réponse : sans
+  // cette phrase, les deux consignes se contredisent.
+  assert(p.includes("it does not apply to this answer"));
+  // Chaque plat de la case revient, sinon la fusion perd le plat non touché.
+  assert(p.includes("every dish of each listed cell"));
+  assert(p.endsWith('{"dishes":[]}'));
+});
+
+Deno.test("exclusionEditCells — une case par jour/moment mordu, dans l'ordre de la semaine, les plats nommés", () => {
+  const cells = exclusionEditCells([
+    { dish: "Tofu, pâtes", matched: "Tofu", because: "tofu", day: "wed", slot: "dinner", who: null },
+    { dish: "Yaourt, tofu", matched: "tofu", because: "tofu", day: "sat", slot: "snack_am", who: null },
+    { dish: "Tofu, seigle", matched: "Tofu", because: "tofu", day: "sat", slot: "snack_am", who: null },
+    { dish: "Dinde, orge", matched: "orge", because: "orge perlée", day: "sat", slot: "lunch", who: null },
+    // Illisibles : jamais une case devinée.
+    { dish: "X", matched: "tofu", because: "tofu", day: null, slot: "lunch", who: null },
+    { dish: "Y", matched: "tofu", because: "tofu", day: "sat", slot: "goûter", who: null },
+  ]);
+  assertEquals(cells.map((c) => `${c.day}/${c.slot}`).sort(), ["sat/lunch", "sat/snack_am", "wed/dinner"]);
+  const at = (k: string) => cells.find((c) => `${c.day}/${c.slot}` === k)!;
+  // Deux plats mordus sur la même case : une seule case, les deux nommés.
+  assert(at("sat/snack_am").text.includes("«Yaourt, tofu»") && at("sat/snack_am").text.includes("«Tofu, seigle»"));
+  assert(at("sat/lunch").text.includes("«orge perlée»"));
+  assert(at("sat/lunch").text.includes("the household no longer eats «orge perlée»"));
+  // Pas de guillemet droit : la ligne de consigne les remplace, et le texte
+  // resterait lisible de toute façon.
+  assert(cells.every((c) => !c.text.includes('"')));
+  assertEquals(exclusionEditCells([]), []);
+});
+
+// ⟳ 2026-09-24 — LE DÉROULÉ D'UNE SESSION SUIT SES CASSEROLES APRÈS LA FUSION.
+// Lu sur l'ajustement « plus de tofu » : la session du mercredi cuisait une
+// autre casserole et disait encore « enfourner le tofu ».
+function baseWithRunThrough() {
+  const b = base();
+  b.cooking_sessions = [{ day: "wed", preparationIds: ["prep_chicken", "prep_lentils"], runThrough: "Rôtir le poulet 40 min. Cuire les lentilles 25 min.", totalMinutes: 45 }] as never;
+  return b;
+}
+const THU_LUNCH = { day: "thu" as const, slot: "lunch" as const, text: "plus de poulet" };
+
+Deno.test("⛔ fusion — la session change de casseroles ET la relance la décrit entière ⇒ son déroulé est pris", () => {
+  const retry = meal({
+    dishes: [dish("thu", "lunch", "Dinde, riz", "prep_turkey")],
+    preparations: [prep("prep_turkey", "Dinde rôtie", "wed"), prep("prep_lentils", "Lentilles", "wed")],
+    cooking_sessions: [{ day: "wed", preparationIds: ["prep_turkey", "prep_lentils"], runThrough: "Rôtir la dinde 35 min. Cuire les lentilles 25 min.", totalMinutes: 40 }] as never,
+  });
+  const out = mergeCellEdit({ base: baseWithRunThrough(), retry, cells: [THU_LUNCH], index: null, calendar: [] });
+  const wed = out.meal.cooking_sessions.find((s) => s.day === "wed")!;
+  assertEquals([...wed.preparationIds].sort(), ["prep_lentils", "prep_turkey"]);
+  assertEquals(wed.runThrough, "Rôtir la dinde 35 min. Cuire les lentilles 25 min.");
+  assertEquals(out.merge.runThroughsReplaced, 1);
+});
+
+Deno.test("⛔ fusion — la relance ne décrit pas toute la session ⇒ la phrase de la casserole partie tombe, la sienne s'ajoute", () => {
+  const retry = meal({
+    dishes: [dish("thu", "lunch", "Dinde, riz", "prep_turkey")],
+    preparations: [prep("prep_turkey", "Dinde rôtie", "wed")],
+    cooking_sessions: [{ day: "wed", preparationIds: ["prep_turkey"], runThrough: "Rôtir la dinde 35 min.", totalMinutes: 35 }] as never,
+  });
+  const out = mergeCellEdit({ base: baseWithRunThrough(), retry, cells: [THU_LUNCH], index: null, calendar: [] });
+  const wed = out.meal.cooking_sessions.find((s) => s.day === "wed")!;
+  assert(!/poulet/i.test(wed.runThrough), `le poulet retiré est encore dans le déroulé : ${wed.runThrough}`);
+  assert(wed.runThrough.includes("Cuire les lentilles 25 min."), "la casserole gardée a perdu sa phrase");
+  assert(wed.runThrough.includes("Rôtir la dinde 35 min."), "la casserole ajoutée n'est pas décrite");
+  assertEquals(out.merge.runThroughsTrimmed, 1);
+});
+
+Deno.test("fusion — LE CAS QUI PASSE : une session dont les casseroles ne bougent pas garde son texte au mot près", () => {
+  const retry = meal({ dishes: [dish("fri", "dinner", "Poulet, riz")] });
+  const out = mergeCellEdit({ base: baseWithRunThrough(), retry, cells: [CELL], index: null, calendar: [] });
+  assertEquals(out.meal.cooking_sessions[0].runThrough, "Rôtir le poulet 40 min. Cuire les lentilles 25 min.");
+  assertEquals(out.merge.runThroughsReplaced + out.merge.runThroughsTrimmed, 0);
+});
+
+Deno.test("exclusionEditCells — une exclusion d'UNE personne nomme la personne, pas la maison", () => {
+  const cells = exclusionEditCells([
+    { dish: "Saumon, semoule", matched: "Saumon", because: "saumon", day: "sun", slot: "lunch", who: "Christèle" },
+    { dish: "Tofu, riz", matched: "Tofu", because: "tofu", day: "sun", slot: "lunch", who: null },
+  ]);
+  assertEquals(cells.length, 1);
+  assert(cells[0].text.includes("Christèle no longer eats «saumon»"));
+  assert(cells[0].text.includes("the household no longer eats «tofu»"));
 });

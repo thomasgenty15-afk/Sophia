@@ -28,6 +28,7 @@
  * resterait vert le jour où une consigne contradictoire rentre par le message
  * système, et inversement.
  */
+import { rawProteinRepairInstruction } from "./raw_protein_cooking.ts";
 import { assert, assertEquals } from "jsr:@std/assert@1";
 
 import {
@@ -1313,6 +1314,12 @@ const ORDRES_INTERDITS: readonly string[] = [
 const PRODUCTEURS: readonly { readonly nom: string; readonly texte: string }[] =
   [
     {
+      // ⟳ 2026-09-24 — la viande ou le poisson cru que rien ne cuit
+      // (`raw_protein_cooking.ts`), poussé en amont par la lane.
+      nom: "rawProteinRepairInstruction",
+      texte: rawProteinRepairInstruction(),
+    },
+    {
       nom: "proteinAnchorRetryInstruction",
       texte: proteinAnchorRetryInstruction(["Assiette sat/dinner"]),
     },
@@ -1440,6 +1447,12 @@ const HORS_REPARATION: readonly { readonly nom: string; readonly pourquoi: strin
     pourquoi:
       "c'est la chirurgie locale d'une case demandée par la personne — un autre " +
       "appel, avec son propre schéma de sortie",
+  },
+  {
+    nom: "rejectedDishesLine",
+    pourquoi:
+      "elle s'ajoute au brief de COMPOSITION (la liste des plats refusés, " +
+      "« Remplacer » sur un aperçu), pas au message de réparation",
   },
   {
     nom: "resolveCompositionLine",

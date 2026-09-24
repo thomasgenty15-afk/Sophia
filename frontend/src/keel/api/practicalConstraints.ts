@@ -41,6 +41,12 @@ export type PracticalConstraints = Record<string, unknown>;
  * UPDATE et pas UPSERT: un upsert partiel écraserait `goal` et
  * `content_locale`, qui sont NOT NULL et n'ont rien à faire ici.
  *
+ * ⚠️ `current` PEUT DATER (une page qui ne relit pas après un geste serveur).
+ * ⟳ 2026-09-24 — `rejected_dishes` n'en souffre plus: le déclencheur
+ * `student_goals_keep_rejected_dishes` remet la valeur de la ligne à toute
+ * écriture du navigateur. Les autres clés écrites par le serveur, elles,
+ * restent exposées à une copie périmée.
+ *
  * @throws si l'écriture échoue, ou si elle n'a touché aucune ligne.
  */
 export async function mergePracticalConstraints(args: {

@@ -290,11 +290,25 @@ Deno.test("CÂBLAGE — la lane foyer DÉRIVE les moments, et ne remplit QUE LE 
   // LA GARDE, JUSTE AU-DESSUS DE L'ÉCRITURE — et « juste » se mesure: un
   // `if` posé 200 lignes plus haut, sur une autre variable, laisserait ce
   // test vert pendant que le générateur écrase une déclaration.
-  const guard = src.lastIndexOf("if (m.eatingSlots === null) {", write);
+  //
+  // ⟳ 2026-09-23 — la garde s'appelle `silent`, et elle est définie par
+  // `m.eatingSlots === null`: les deux se vérifient.
+  const guard = src.lastIndexOf("if (silent) {", write);
   assert(
-    guard > 0 && write - guard < 120,
-    "l'injection n'est plus gardée par `m.eatingSlots === null`: le " +
+    guard > 0 && write - guard < 400,
+    "l'injection n'est plus gardée par `silent`: le " +
       "générateur écrit par-dessus ce que la personne a déclaré",
+  );
+  assert(
+    src.includes("const silent = m.eatingSlots === null;"),
+    "`silent` ne dit plus « elle n'a rien déclaré »",
+  );
+  // ⟳ 2026-09-23 — UNE BOUCHE MUETTE PART DE SON CORPS, PAS DE LA MAISON.
+  // Foyer `326427ff…` (staging): Christèle, muette, partait des cinq moments
+  // de la maison et héritait du milieu de matinée de Thomas.
+  assert(
+    src.includes("declaredSlots: silent ? [] :"),
+    "une bouche muette repart des moments de la maison au lieu des siens",
   );
   // ET LE SHAKER SUIT: posé sur une collation que `m.eatingSlots` porte —
   // déclarée par elle, ou remplie par la ligne ci-dessus. Jamais sur `opened`,

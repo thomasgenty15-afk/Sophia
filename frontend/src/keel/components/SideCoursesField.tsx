@@ -1,6 +1,7 @@
 import React from "react";
 
 import { type MessageKey, t } from "../i18n/t";
+import { type MouthVoice, voiced } from "../lib/mouthVoice";
 import {
   SIDE_COURSE_CHOICES,
   SIDE_COURSE_KINDS,
@@ -72,18 +73,26 @@ const CHOICE_LABELS: Readonly<Record<SideCourseChoice, MessageKey>> = {
 };
 
 export default function SideCoursesField(
-  { value, onChange, disabled }: {
+  { value, onChange, disabled, voice, who }: {
     /** Le réglage LU (ou le brouillon qui l'a semé). `{}` = tout « selon l'objectif ». */
     value: SideCoursesDraft;
     /** Le réglage entier après le clic — les autres types inchangés. */
     onChange: (next: SideCoursesDraft) => void;
     disabled: boolean;
+    /**
+     * ⟳ 2026-09-24 — LE TITRE EST UNE QUESTION POSÉE À QUELQU'UN: « Est-ce que
+     * tu manges… » sur sa propre fiche, « Est-ce que {prénom} mange… » sur
+     * celle d'un autre. REQUIS: sans voix, la fiche d'une autre personne
+     * dirait « tu » au maître.
+     */
+    voice: MouthVoice;
+    who: string;
   },
 ): React.ReactElement {
   return (
     <div data-side-courses="">
       <p className="text-sm font-medium text-ink">
-        {t("household.mouth.side_courses.title")}
+        {t(voiced("household.mouth.side_courses.title", voice), { who })}
       </p>
       <p className="mt-1 text-xs leading-5 text-ink-soft">
         {t("household.mouth.side_courses.hint")}

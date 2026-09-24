@@ -113,6 +113,13 @@ export const APP_HELP_TOPIC_IDS = [
   "household_allergy_rule",
   "household_remove",
   "household_paused",
+  // Ma fiche — ⟳ 2026-09-24: manquaient au premier catalogue. « comment je
+  // modifie les créneaux des repas ? » tombait sur `plan_settings` (budget,
+  // courses), et Sophia répondait n'avoir rien sous la main.
+  "meal_slots",
+  "food_preferences_self",
+  "body_details",
+  "goal_change",
   // Sophia
   "notifications_off",
   "sophia_evening_messages",
@@ -162,6 +169,8 @@ export const APP_HELP_NUMBER_TOPICS: readonly AppHelpTopicId[] = [
   "meal_photo_counted",
   "weight_entry",
   "progress_page",
+  "body_details",
+  "goal_change",
 ];
 
 export const APP_HELP_CARDS: readonly AppHelpCard[] = [
@@ -1454,6 +1463,124 @@ export const APP_HELP_CARDS: readonly AppHelpCard[] = [
       { key: "app.paywall.account", fr: "Mon compte", en: "My account" },
     ],
     routes: ["/app/billing", "/account"],
+  },
+  {
+    id: "meal_slots",
+    title: { fr: "Choisir ses moments de repas", en: "Choosing your meal times" },
+    dispatcherHint: "moments ou creneaux de repas: retirer ou ajouter un repas (apres-midi, petit-dejeuner), un repas que je ne prends pas",
+    answer: {
+      fr: [
+        "Les moments de repas des plans viennent de ta fiche : menu → « Foyer » → ta ligne → « Préférences alimentaires » → « Quand tu manges, et quoi ».",
+        "Décoche un moment que tu ne prends jamais (par exemple « Après-midi ») : les prochains plans ne le composent plus. Coché avec « repas léger », il reste, en plus léger.",
+        "Pour un seul jour, pas besoin de toucher à ta fiche : dans le formulaire de composition, ouvre « Qui est là ? Jour par jour » (ou « Modifier » sur ta ligne de « Qui mange à la maison ») et décoche ce repas-là.",
+        "Ça vaut pour le prochain plan composé ; un plan déjà adopté ne change pas. Pour une autre personne du foyer, même chose sur sa ligne.",
+      ],
+      en: [
+        "The meal times in your plans come from your details: menu → “Household” → your line → “Food preferences” → “When you eat, and what”.",
+        "Untick a time you never eat (for example “Afternoon”): the next plans stop composing it. Ticked with “light meal”, it stays, lighter.",
+        "For a single day, no need to touch your details: in the composition form, open “Who's in? Day by day” (or “Edit” on your “Who eats at home” line) and untick that meal.",
+        "It applies to the next plan composed; a plan already adopted does not change. For someone else in the household, same thing on their line.",
+      ],
+    },
+    labels: [
+      { key: "app.nav.household", fr: "Foyer", en: "Household" },
+      { key: "household.member.frame_preferences", fr: "Préférences alimentaires", en: "Food preferences" },
+      { key: "household.mouth.eating_you", fr: "Quand tu manges, et quoi", en: "When you eat, and what" },
+      { key: "meals.slot.snack_pm", fr: "Après-midi", en: "Afternoon" },
+      { key: "household.mouth.light", fr: "repas léger", en: "light meal" },
+      { key: "meals.picker.open", fr: "Qui est là ? Jour par jour", en: "Who's in? Day by day" },
+      { key: "plan.request.presence_open", fr: "Modifier", en: "Edit" },
+      { key: "plan.request.presence_title", fr: "Qui mange à la maison", en: "Who eats at home" },
+    ],
+    routes: ["/app/household", "/app/plan"],
+  },
+  {
+    id: "food_preferences_self",
+    title: { fr: "Mon régime, ce que je n'aime pas, mes allergies", en: "My diet, dislikes and allergies" },
+    dispatcherHint: "dire ce que je n'aime pas, que je suis vegetarien, mon regime alimentaire, mes propres allergies ou intolerances",
+    answer: {
+      fr: [
+        "Menu → « Foyer » → ta ligne → « Préférences alimentaires » : ton régime, « Ce que tu n'aimes pas » et tes allergies.",
+        "Les prochains plans en tiennent compte ; une allergie vaut pour toute la casserole du foyer.",
+        "Une allergie ou une intolérance peut aussi se dire à Sophia dans la conversation : elle est enregistrée tout de suite.",
+        "Ce que Sophia retient de tes messages apparaît dans « Ce que Sophia sait », où tu peux le corriger ou l'enlever.",
+      ],
+      en: [
+        "Menu → “Household” → your line → “Food preferences”: your diet, “What you will not eat” and your allergies.",
+        "The next plans take it into account; an allergy rules the whole household pot.",
+        "An allergy or intolerance can also be told to Sophia in the chat: it is recorded straight away.",
+        "What Sophia keeps from your messages shows in “What Sophia knows”, where you can correct or remove it.",
+      ],
+    },
+    labels: [
+      { key: "app.nav.household", fr: "Foyer", en: "Household" },
+      { key: "household.member.frame_preferences", fr: "Préférences alimentaires", en: "Food preferences" },
+      { key: "household.mouth.tastes_you", fr: "Ce que tu n'aimes pas", en: "What you will not eat" },
+      { key: "app.nav.about_you", fr: "Ce que Sophia sait", en: "What Sophia knows" },
+    ],
+    routes: ["/app/household", "/app/about-you"],
+  },
+  {
+    id: "body_details",
+    title: { fr: "Mes informations : taille, poids, date de naissance", en: "My details: height, weight, date of birth" },
+    dispatcherHint: "changer sa taille, son poids de reference, son sexe, sa date de naissance ou son prenom",
+    answer: {
+      fr: [
+        "Menu → « Foyer » → ta ligne → « Informations personnelles » : prénom, date de naissance et « Ton corps » (taille, poids, sexe), puis « Enregistrer ».",
+        "Ces chiffres servent à calculer tes parts dans les prochains plans.",
+        "Pour suivre ton poids au fil du temps, c'est à part : écris-le à Sophia ou réponds quand elle le demande ; la courbe est dans « Suivi ».",
+      ],
+      en: [
+        "Menu → “Household” → your line → “Personal details”: first name, date of birth and “Your body” (height, weight, sex), then “Save”.",
+        "These figures size your servings in the next plans.",
+        "To track your weight over time, that is separate: tell Sophia, or answer when she asks; the curve is in “Tracking”.",
+      ],
+    },
+    labels: [
+      { key: "app.nav.household", fr: "Foyer", en: "Household" },
+      { key: "household.member.frame_identity", fr: "Informations personnelles", en: "Personal details" },
+      { key: "household.mouth.body_you", fr: "Ton corps", en: "Your body" },
+      { key: "household.mouth.save", fr: "Enregistrer", en: "Save" },
+      { key: "app.nav.progress", fr: "Suivi", en: "Tracking" },
+    ],
+    routes: ["/app/household", "/app/progress"],
+  },
+  {
+    id: "goal_change",
+    title: { fr: "Changer d'objectif", en: "Changing your goal" },
+    dispatcherHint: "changer d'objectif (perdre du poids, prendre du muscle, maintenir), de poids vise ou de rythme",
+    answer: {
+      fr: [
+        "Menu → « Foyer » → ta ligne → « Informations personnelles » → « Ce que tu vises » : choisis la direction, puis le poids visé et le rythme si tu en veux, et « Enregistrer ».",
+        "Le prochain plan composé en tient compte ; le plan en cours ne change pas.",
+        "L'objectif décide aussi de ce que l'app propose par défaut : l'affichage des calories, les questions de Sophia sur les repas et le bouton +.",
+      ],
+      en: [
+        "Menu → “Household” → your line → “Personal details” → “What you are after”: pick the direction, then the target weight and pace if you want one, and “Save”.",
+        "The next plan composed takes it into account; the current plan does not change.",
+        "The goal also decides what the app offers by default: calorie display, Sophia's meal questions and the + button.",
+      ],
+    },
+    variants: [
+      {
+        when: { roles: ["member"] },
+        answer: {
+          fr: [
+            "Dans un foyer, la personne qui le tient ne peut pas changer ton objectif à ta place : il se pose depuis ton propre compte, à ta première configuration.",
+          ],
+          en: [
+            "In a household, the person who runs it cannot change your goal for you: it is set from your own account, at your first setup.",
+          ],
+        },
+      },
+    ],
+    labels: [
+      { key: "app.nav.household", fr: "Foyer", en: "Household" },
+      { key: "household.member.frame_identity", fr: "Informations personnelles", en: "Personal details" },
+      { key: "household.mouth.direction_you", fr: "Ce que tu vises", en: "What you are after" },
+      { key: "household.mouth.save", fr: "Enregistrer", en: "Save" },
+    ],
+    routes: ["/app/household"],
   },
   {
     id: "notifications_off",

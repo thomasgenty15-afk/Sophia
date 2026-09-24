@@ -492,6 +492,15 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       // réécrire `declared_by` et fabriquer une contrainte attribuée au coach,
       // sur la table qui décide de ce que Sophia refuse de dire.
       "student_safety_constraints_retraction_only",
+      // 2026-09-24 (20260924150000) — LA LISTE DES PLATS REFUSÉS N'APPARTIENT
+      // QU'AU SERVEUR. Le navigateur réécrit `practical_constraints` entière
+      // depuis sa copie (`mergePracticalConstraints`, « Défaire »): une page
+      // qui ne relit pas effaçait les plats que « Remplacer » venait de ranger.
+      // Sous `authenticated`/`anon`, le trigger remet `rejected_dishes` de la
+      // ligne; les deux fonctions `security definer` de la liste passent.
+      // Prouvé par le bloc `do $$` de la migration (joué sous `authenticated`,
+      // puis annulé).
+      "student_goals_keep_rejected_dishes",
       // Cocher un repas du plan écrit un FAIT (`quick_tap`); décocher pose
       // `disqualified_reason` au lieu de supprimer — la table est append-only.
       // Le trigger borne la bascule à cette seule colonne: sans lui, la policy

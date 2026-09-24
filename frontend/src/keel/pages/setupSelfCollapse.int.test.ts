@@ -1,5 +1,6 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import { SelfStep } from "./SetupPage";
@@ -299,5 +300,26 @@ describe("la carte du titulaire, repliée", () => {
     const out = html({ editing: false, saved: false });
     expect(out).not.toContain(FIRST_NAME_INPUT);
     expect(out).not.toContain("170 cm");
+  });
+});
+
+// ===========================================================================
+// ⟳ 2026-09-24 — « IL Y A UN BOUTON ENREGISTRER PAR FICHE », SOLO COMPRIS
+// ===========================================================================
+describe("la fiche du titulaire a son « Enregistrer » dans toutes les branches", () => {
+  it("la page ne retire plus le geste en solo", () => {
+    // ⚠️ SOURCE, COMMENTAIRES RETIRÉS: la page entière ne se monte pas sous
+    // `renderToStaticMarkup`. `onSave` à `null` est ce qui retirait le bouton
+    // (et forçait l'édition): la page ne doit plus le passer pour une branche.
+    const src = readFileSync(new URL("./SetupPage.tsx", import.meta.url), "utf8")
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .split("\n")
+      .filter((l) => !l.trim().startsWith("//"))
+      .join("\n");
+    const self = src.indexOf("<SelfStep");
+    expect(self).toBeGreaterThan(-1);
+    const mount = src.slice(self, src.indexOf("/>", src.indexOf("onToggleEdit", self)));
+    expect(mount).toMatch(/onSave=\{\(\) =>/);
+    expect(mount).not.toMatch(/onSave=\{branch === "solo" \? null/);
   });
 });

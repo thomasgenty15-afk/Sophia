@@ -620,7 +620,7 @@ Deno.test("⟳ 2026-09-23 — LE RÔLE DIT QUI ÉCRIT, et « moi » se résout d
   // référent de « moi », avec l'exemple mesuré et ce que coûte l'erreur ;
   // ③ elle ne défait pas la règle de la RAISON à la première personne.
   const prompt = buildDraftNoteClassifyPrompt({
-    note: "x", contentLocale: "fr-FR", members: CORPUS_MEMBERS, planFoods: [],
+    note: "x", contentLocale: "fr-FR", members: CORPUS_MEMBERS, planFoods: [], rejectedDishes: [],
   });
   const trues = (prompt.match(/"writes":true/g) ?? []).length;
   const falses = (prompt.match(/"writes":false/g) ?? []).length;

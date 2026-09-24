@@ -281,6 +281,31 @@ export interface PortionBoundaryCounts {
   items_missing_shave_facts: number;
 }
 
+/**
+ * ⟳ 2026-09-24 — CE QUE LE RABOTAGE A RETIRÉ À UN REPAS, en kcal (grammes
+ * retirés × `kcalPerG`, les items sans densité comptant zéro, comme dans
+ * `kcal_shaved`).
+ *
+ * ⛔ EN MÉMOIRE SEULEMENT, ET CE N'EST PAS UN COMPTEUR: il porte un `memberId`
+ * à côté de kcal. Il sert au registre des à-côtés, qui rend cette énergie au
+ * pain et au fromage (`buildSideCourseLedger`, `extraDeficitByKey`). Jamais
+ * journalisé tel quel.
+ */
+export interface ShavedMealKcal {
+  memberId: string;
+  day: string | null;
+  slot: string | null;
+  kcal: number;
+}
+
+/**
+ * ⟳ 2026-09-24 — CE QUE REND `fitPortionsToBounds`: les compteurs, plus le
+ * relevé des repas rabotés (`shavedByMeal`), un par repas raboté.
+ */
+export interface PortionBoundaryResult extends PortionBoundaryCounts {
+  shavedByMeal: ShavedMealKcal[];
+}
+
 export function emptyPortionBoundaryCounts(): PortionBoundaryCounts {
   return {
     boxes: 0,
@@ -360,8 +385,10 @@ export function fitPortionsToBounds(args: {
    * désarmée ». Le compteur `shave_order` dit s'il rend quelque chose.
    */
   goalOf: (memberId: string) => StarchGoal | null;
-}): PortionBoundaryCounts {
+}): PortionBoundaryResult {
   const counts = emptyPortionBoundaryCounts();
+  /** ⟳ 2026-09-24 — les repas rabotés et leurs kcal. En mémoire seulement. */
+  const shavedByMeal: ShavedMealKcal[] = [];
 
   // ── CE QUE LES CONTENANTS TIRENT DÉJÀ DE CHAQUE CASSEROLE ───────────────
   // Relevé sur TOUS les contenants avant de bouger quoi que ce soit: la marge
@@ -464,6 +491,7 @@ export function fitPortionsToBounds(args: {
       member.meals += 1;
       member.grams += excess;
       member.kcal += kcal;
+      shavedByMeal.push({ memberId: meal.memberId, day: meal.day, slot: meal.slot, kcal });
       continue;
     }
 
@@ -485,7 +513,7 @@ export function fitPortionsToBounds(args: {
     counts.raised += 1;
     counts.grams_raised += missing;
   }
-  return counts;
+  return { ...counts, shavedByMeal };
 }
 
 /**

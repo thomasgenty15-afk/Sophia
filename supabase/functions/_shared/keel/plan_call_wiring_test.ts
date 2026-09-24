@@ -249,7 +249,7 @@ Deno.test("⛔ le palier `fast` ne déborde PAS sur le reste du produit", async 
 // ⛔ ET AUCUN AUTRE MODULE PARTAGÉ NE S'EN EST SAISI. Le palier vit sur trois
 // fichiers, nommément; un quatrième qui apparaît sans être lu est le début
 // d'un réglage global déguisé.
-Deno.test("le palier vit sur DEUX fichiers de `_shared/keel`, et la liste ne grandit pas", async () => {
+Deno.test("le palier vit sur TROIS fichiers de `_shared/keel`, et la liste ne grandit pas", async () => {
   const dir = new URL("_shared/keel/", FUNCTIONS_DIR);
   const porteurs: string[] = [];
   for await (const entry of Deno.readDir(dir)) {
@@ -268,6 +268,9 @@ Deno.test("le palier vit sur DEUX fichiers de `_shared/keel`, et la liste ne gra
   assertEquals(porteurs, [
     // ⟳ 2026-09-10 · § 9 — l'appel auxiliaire d'un plan.
     "composition_fill_io.ts",
+    // ⟳ 2026-09-24 — le second appel auxiliaire d'un plan : l'identification
+    // des aliments mal nommés, même construction que le sas.
+    "composition_identify_io.ts",
     // La table des natures d'appel de plan.
     "plan_budget.ts",
   ]);

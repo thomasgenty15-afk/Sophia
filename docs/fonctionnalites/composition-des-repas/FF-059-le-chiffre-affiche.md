@@ -334,5 +334,16 @@ l'interdiction d'origine voulait éviter.
 4. **Le foyer** : les chiffres des autres bouches sont-ils visibles du maître ?
    La règle existante dit *ce qui touche le corps est à soi* — un chiffre par
    portion est-il « le corps » ou « le repas » ?
+   ⟳ **2026-09-24 ([FF-067](FF-067-remplacer-un-plat-de-l-apercu.md)) — le tableau de la semaine
+   affiche un total du jour par personne, à celui qui compose.** Ce total
+   (`memberDayEnergy`, `served_final.ts` ; `plans[].member_days` de `meal-energy-v1`)
+   est **la somme des boîtes que la réponse portait déjà**, une à une : chacune a
+   passé `decideBoxEnergy` (plancher TCA, âge, doctrine, interrupteur). Il ne fait
+   donc sortir aucun chiffre neuf. Une personne sans boîte chiffrée (enfant, sans
+   objectif de poids, interrupteur éteint) n'a aucun total — jamais un zéro — et
+   sa case du tableau dit « — » ; tant qu'aucune personne n'a de chiffre, le
+   tableau n'affiche aucune ligne de personne. La
+   question de fond — un chiffre par portion est-il « le corps » ou « le repas » —
+   reste ouverte : le tableau suit la réponse que les boîtes avaient déjà donnée.
 5. **Le B2B** : le coach voit-il les chiffres de ses élèves ? `coachStartingNumbers`
    existe déjà pour lui, mais c'est une fourchette de départ, pas un suivi.

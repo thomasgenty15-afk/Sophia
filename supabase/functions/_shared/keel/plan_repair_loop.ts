@@ -1055,6 +1055,9 @@ export const CHASED_CAUSES: ReadonlySet<string> = Object.freeze(
     "mouth_unfed",
     "cell_without_portion",
     "cell_two_table_dishes",
+    // ⟳ 2026-09-24 — de la viande ou du poisson cru qu'aucune cuisson ne
+    // touche (`raw_protein_cooking.ts`). Non réparé, il interdit la livraison.
+    "raw_protein_uncooked",
   ]),
 );
 
@@ -1152,13 +1155,20 @@ function outputContractDetail(finding: OutputContractFinding): string {
     ? `preparation "${finding.site.preparationId}"`
     : "this dish";
   switch (finding.verdict) {
+    // ⟳ 2026-09-24 — LES DEUX PHRASES SUIVENT LA CONSIGNE DU CATALOGUE : un
+    // aliment hors liste s'écrit par son nom, et l'app l'identifie. Une ligne
+    // n'arrive ici que si PERSONNE n'a su l'identifier — ni son code, ni son
+    // nom, ni l'appel d'identification. Redemander « l'id de la liste »
+    // pousserait le modèle vers le voisin le plus proche, c'est-à-dire la
+    // courgette pesée comme un poivron.
     case "ref_missing":
-      return `"${finding.term}" in ${where} carries a weight but no "ref". ` +
-        `Give it the id from the food list, spelled exactly as listed, or make ` +
-        `it a dash with no amount.`;
+      return `"${finding.term}" in ${where} carries a weight, but the app cannot ` +
+        `tell which food it is. Name one single food precisely in "term" (fresh, ` +
+        `tinned, dried, wholemeal…), or make it a dash with no amount.`;
     case "ref_refused":
-      return `"${finding.term}" in ${where} carries a "ref" that is not on the ` +
-        `food list. Use one that is, spelled exactly as listed.`;
+      return `"${finding.term}" in ${where} carries a "ref" that does not exist. ` +
+        `Use an id spelled exactly as on the food list, or drop "ref" and name ` +
+        `the food plainly in "term".`;
     case "quantity_missing":
       return `"${finding.term}" in ${where} has an id but no "amount"/"unit", ` +
         `and it is not a dash. Write how much of it goes in.`;

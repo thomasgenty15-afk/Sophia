@@ -91,6 +91,7 @@ Deno.test("CE-1 — le couloir d'un petit créneau est calculable, ET il est dit
     slotTargetKcal: 250,
     light: false,
     appetite: null,
+    personal: null,
   });
   const corridor = densityCorridorFor({ targetKcal: 250, bounds })!;
   assertEquals(corridor.minPer100G, 100);

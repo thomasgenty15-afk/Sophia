@@ -333,6 +333,7 @@ Deno.test("ALLOCATION — l'appétit ouvre la bande de masse, et il se DIT", () 
       slotTargetKcal: 500,
       light: false,
       appetite,
+      personal: null,
     });
   assertEquals([adulte("small").min, adulte("small").max], [225, 450]);
   assertEquals([adulte("average").min, adulte("average").max], [250, 500]);
@@ -364,6 +365,7 @@ Deno.test("⛔ ALLOCATION — PAS D'APPÉTIT SUR UN MINEUR, et ce n'est pas un o
       slotTargetKcal: 300,
       light: false,
       appetite,
+      personal: null,
     });
   for (const a of ["small", "average", "large", null] as const) {
     assertEquals(enfant(a).appetiteFactor, 1, `l'appétit ${a} a mordu sur un enfant`);
@@ -381,6 +383,7 @@ Deno.test("⛔ ALLOCATION — PAS D'APPÉTIT SUR UN MINEUR, et ce n'est pas un o
       slotTargetKcal: 300,
       light: false,
       appetite: "large",
+      personal: null,
     }).appetiteFactor,
     1.1,
   );
@@ -395,6 +398,7 @@ Deno.test("⛔ ALLOCATION — PAS D'APPÉTIT SUR UN MINEUR, et ce n'est pas un o
       slotTargetKcal: 300,
       light: false,
       appetite: "large",
+      personal: null,
     }).appetiteFactor,
     1,
   );
@@ -420,6 +424,7 @@ Deno.test("⛔ ALLOCATION — E = 0 : l'AVAL ne fabrique ni bande ni couloir", (
     slotTargetKcal: 0,
     light: false,
     appetite: "large",
+    personal: null,
   });
   assertEquals(b.boundSource, "no_target");
   assertEquals([b.min, b.max], [80, 300], "la table de collation adulte, et rien d'autre");

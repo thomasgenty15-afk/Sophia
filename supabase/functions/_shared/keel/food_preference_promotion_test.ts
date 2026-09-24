@@ -1641,6 +1641,12 @@ Deno.test("B8 — TOUTE CLÉ DE `practical_constraints` EST CLASSÉE, servie ou 
     // Il est fait pour un ÉCRAN — le fil « ce qui vient de changer » — pas pour
     // un prompt.
     "field_changes",
+    // ⟳ 2026-09-24 — `rejected_dishes`, la liste des plats refusés
+    // (« Remplacer » sur un aperçu). Même raison que `retained_items`: le
+    // jsonb brut ne part JAMAIS au modèle; la consigne est une ligne CONSTRUITE
+    // à partir de ses entrées (`rejectedDishesLine`: les prénoms du roster, les
+    // personnes parties retirées, 60 entrées au plus).
+    "rejected_dishes",
   ];
   // ⚠️ LA SOUPAPE. Un `…_KEY` capté par le scan qui ne désigne PAS une clé de
   // `practical_constraints` se range ici, AVEC SON MOTIF. La remplir pour faire

@@ -853,13 +853,15 @@ describe("le shaker demande CE QU'IL APPORTE", () => {
     // ⚠️ CE QUI DÉCIDE EST LE PORT, PAS LE COMPTE: `onSaveShaker` à `null`
     // retire le bloc — c'est le cas de la fiche d'AJOUT, dont la ligne n'existe
     // pas encore. Le cas est gardé plus bas.
-    expect(text(html({ subject: WITH_ACCOUNT })))
+    const gaining = { goal: "muscle_gain" } as const;
+    expect(text(html({ draft: gaining, subject: WITH_ACCOUNT })))
       .toContain(decode(en["household.mouth.shaker_add"]));
-    expect(text(html({ subject: NO_ACCOUNT })))
+    expect(text(html({ draft: gaining, subject: NO_ACCOUNT })))
       .toContain(decode(en["household.mouth.shaker_add"]));
   });
 
-  it("mis en AVANT pour qui prend du poids, proposé aux autres", () => {
+  it("⟳ 2026-09-24 — il n'apparaît qu'à la prise de muscle", () => {
+    // Demandé: « pour le reste pas besoin, ça va ramener de la confusion ».
     const gaining = text(
       html({ draft: { goal: "muscle_gain" }, subject: WITH_ACCOUNT }),
     );
@@ -867,6 +869,33 @@ describe("le shaker demande CE QU'IL APPORTE", () => {
     expect(gaining).not.toContain(
       decode(en["household.mouth.shaker_background"]),
     );
+    for (const goal of ["fat_loss", "maintenance", ""] as const) {
+      const other = text(html({ draft: { goal }, subject: WITH_ACCOUNT }));
+      expect(other, goal).not.toContain(decode(en["household.mouth.shaker_add"]));
+      expect(other, goal).not.toContain(decode(en["household.mouth.shaker_title_you"]));
+      expect(other, goal).not.toContain(
+        decode(en["household.mouth.shaker_background"]),
+      );
+    }
+  });
+
+  it("⚠️ un shaker DÉJÀ enregistré reste visible hors prise de muscle", () => {
+    // Le moteur le compte quel que soit l'objectif: le cacher laisserait un
+    // apport compté qu'on ne peut plus ni voir ni retirer.
+    const kept = text(html({
+      draft: {
+        goal: "fat_loss",
+        shaker: {
+          label: "Whey",
+          servingGrams: "30",
+          proteinGPerServing: "24",
+          energyKcalPerServing: "120",
+          slot: "",
+        },
+      },
+      subject: WITH_ACCOUNT,
+    }));
+    expect(kept).toContain("Whey");
   });
 
   it("⚠️ il demande LES DEUX NOMBRES: protéines ET calories", () => {
@@ -1635,7 +1664,10 @@ describe("la fiche est la MÊME pour tout le monde", () => {
    * dépend d'aucune langue ni d'aucune voix.
    */
   function shape(over: Parameters<typeof scene>[0]) {
-    const html = prefsHtml(over);
+    // ⟳ 2026-09-24 — `muscle_gain` PAR DÉFAUT: le shaker n'a sa section qu'à
+    // la prise de muscle (décision produit). Ce cas compare des SUJETS, pas
+    // des objectifs — il doit donc partir de la fiche entière.
+    const html = prefsHtml({ ...over, draft: { goal: "muscle_gain", ...over.draft } });
     return {
       cadres: countOf(html, "data-sheet-section"),
       controles: [...html.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]).sort(),
@@ -1760,7 +1792,7 @@ const SHAKER_DRAFT = {
 
 describe("l'apport chiffré se lit", () => {
   it("replié: il porte un NOM, pas juste un bouton", () => {
-    const markup = html({ subject: WITH_ACCOUNT });
+    const markup = html({ subject: WITH_ACCOUNT, draft: { goal: "muscle_gain" } });
     expect(markup).toContain(en["household.mouth.shaker_title"]);
     expect(markup).toContain(en["household.mouth.shaker_add"]);
   });
@@ -1901,8 +1933,14 @@ describe("2026-09-01 · les trois états du port du shaker", () => {
     for (const id of ["mouth-shaker-grams", "mouth-shaker-protein", "mouth-shaker-kcal"]) {
       expect(markup, `${id} manque`).toContain(`id="${id}"`);
     }
+    // ⚠️ DANS LE BLOC SEULEMENT: depuis le 2026-09-24 le bouton de fin de la
+    // fiche dit aussi « Save » (`preferences_done`), et il DOIT y être.
+    const block = markup.slice(
+      markup.indexOf('id="mouth-shaker-label"'),
+      markup.indexOf("data-sheet-done"),
+    );
     expect(
-      text(markup),
+      text(block),
       "un bouton qui échouerait à tous les coups est revenu",
     ).not.toContain(decode(en["household.mouth.shaker_save"]));
   });
@@ -2055,7 +2093,10 @@ describe("2026-08-20 · toutes les sections de la fiche ont le même cadre", () 
     // rédaction cherchait le cadre le plus proche EN AMONT du contrôle: elle
     // trouvait celui de la section PRÉCÉDENTE et restait verte quand le bloc
     // redevenait nu. Mutation faite, mutation non mordue, assertion refaite.
-    const frames = countOf(prefsHtml({}), "data-sheet-section");
+    const frames = countOf(
+      prefsHtml({ draft: { goal: "muscle_gain" } }),
+      "data-sheet-section",
+    );
     // Régime · allergies · dégoûts · « quand elle mange » · appétit · shaker.
     //
     // ⟳ 2026-09-01 — SIX, ET DEUX MOUVEMENTS L'EXPLIQUENT. « Ce qu'il y a
@@ -2200,9 +2241,17 @@ describe("le shaker a quitté « ce qu'elle mange déjà »", () => {
     // fusionné (−1), le shaker est devenu une section (+1), et « ce qu'il y a
     // d'autre dans l'assiette » a disparu (−1). D'où les deux assertions qui
     // l'encadrent, et celle du bloc précédent.
-    expect(countOf(prefsHtml({}), "data-sheet-section")).toBe(6);
+    const gaining = { goal: "muscle_gain" } as const;
+    expect(countOf(prefsHtml({ draft: gaining }), "data-sheet-section")).toBe(6);
     // Sans port d'écriture, le shaker ne se rend pas: cinq sections.
-    expect(countOf(prefsHtml({ shakerPort: { kind: "none" } }), "data-sheet-section"))
+    expect(
+      countOf(
+        prefsHtml({ draft: gaining, shakerPort: { kind: "none" } }),
+        "data-sheet-section",
+      ),
+    ).toBe(5);
+    // ⟳ 2026-09-24 — ni hors prise de muscle, quand rien n'est enregistré.
+    expect(countOf(prefsHtml({ draft: { goal: "fat_loss" } }), "data-sheet-section"))
       .toBe(5);
   });
 

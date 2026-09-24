@@ -144,6 +144,9 @@ export const EDGE_REFUSAL_KEYS: Record<string, MessageKey> = {
   // aucun de ces refus n'a composé quoi que ce soit à la place.
   cell_not_rendered: "plan.refusal.cell_not_rendered",
   cell_unknown: "plan.refusal.cell_unknown",
+  // ⟳ 2026-09-24 — l'ajustement par exclusion : aucun plat du brouillon ne
+  // contenait l'aliment. Rien n'a été composé, l'aperçu reste.
+  edit_nothing_to_change: "plan.refusal.edit_nothing_to_change",
   draft_has_no_source: "plan.refusal.draft_has_no_source",
   draft_mismatch: "plan.refusal.draft_mismatch",
   draft_not_done: "plan.refusal.draft_mismatch",
@@ -152,6 +155,13 @@ export const EDGE_REFUSAL_KEYS: Record<string, MessageKey> = {
   // le front ne les construit jamais ; s'il les reçoit, il les nomme.
   draft_id_required: "plan.refusal.unknown_operation",
   cells_required: "plan.refusal.unknown_operation",
+  // ⟳ 2026-09-24 — « REMPLACER » (des plats barrés). L'aperçu courant reste, et
+  // les plats restent barrés: on peut relancer.
+  dish_unknown: "plan.refusal.dish_unknown",
+  dish_not_rendered: "plan.refusal.dish_not_rendered",
+  // Une erreur de programme (aucun plat lisible dans `rejections`): le front
+  // ne la construit jamais; s'il la reçoit, il la nomme.
+  rejections_required: "plan.refusal.unknown_operation",
 
   // ── CE QUI TOMBE APRÈS LE MODÈLE ────────────────────────────────────────
   // Chacune de ces phrases dit « ton plan précédent est intact », parce que

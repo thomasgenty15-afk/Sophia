@@ -45,18 +45,20 @@ function dish(over: Partial<GeneratedDish> = {}): GeneratedDish {
   } as GeneratedDish;
 }
 
-function textOf(timing: PlanTimingView | null): string {
+function textOf(timing: PlanTimingView | null, today: string = STARTS_ON): string {
   return renderToStaticMarkup(createElement(PlanResult, {
     dishes: [dish(), dish({ day: "tue", title: "Lentil soup" })],
+    dishLayout: "full",
     preparations: [],
     cookingSessions: [],
     shoppingList: [],
     portions: [],
     startsOn: STARTS_ON,
     durationDays: 3,
-    today: STARTS_ON,
+    // ⟳ 2026-09-24 — plus de vue semaine: le rendu lit UN jour, celui de
+    // `today` (le premier du plan par défaut).
+    today,
     emptyLabel: "Tell me where to start above.",
-    defaultView: "week",
     timing,
   })).replace(/<[^>]*>/g, " ");
 }
@@ -69,9 +71,12 @@ describe("la phrase de timing appartient à un jour", () => {
     // ⛔ L'ASSERTION QUI TIENT LE LOT. Avant, la phrase précédait le titre du
     // premier jour — elle était au-dessus du rail. Elle le suit maintenant.
     expect(text.indexOf(sentence)).toBeGreaterThan(text.indexOf(FIRST_DAY));
-    // Et elle ne se répète pas sous les autres jours.
-    expect(text.indexOf(sentence)).toBeLessThan(text.indexOf(SECOND_DAY));
     expect(text.split(sentence).length - 1).toBe(1);
+    // Et elle ne se répète pas sous les autres jours: le mardi, lu seul, ne la
+    // porte pas.
+    const tuesday = textOf({ kind: "same_morning", reason: "starts_today", leadDay: null }, "2026-08-18");
+    expect(tuesday).toContain(SECOND_DAY);
+    expect(tuesday).not.toContain(sentence);
   });
 
   it("« la veille » nomme son jour ET se rend dedans", () => {

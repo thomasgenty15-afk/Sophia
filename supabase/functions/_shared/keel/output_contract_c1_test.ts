@@ -185,7 +185,9 @@ Deno.test("⛔ C1 · une omission ne devient PAS une réussite à cinq sur six",
   // ET LA PHRASE PART EN ANGLAIS, SANS CODE INTERNE.
   const detail = defauts[0].detail;
   assert(!detail.includes("ref_missing"), "un code interne n'est pas une consigne");
-  assert(detail.includes('"ref"'));
+  // ⟳ 2026-09-24 — la phrase fait NOMMER l'aliment (`"term"`), elle ne
+  // réclame plus d'identifiant : le modèle nomme, la lane identifie.
+  assert(detail.includes('"term"'));
 });
 
 // ---------------------------------------------------------------------------

@@ -33,8 +33,11 @@ import {
   composeDraft,
   discardDraft,
   editCells,
+  editExclusions,
   type PlanDraft,
   readNote,
+  readRejections,
+  replaceDishes,
   DRAFT_ORIGIN_PATH,
   recoverLatestDraft,
   windowFromToday,
@@ -2806,6 +2809,39 @@ export default function StudentWeekPlanPage() {
               setDraft(await editCells(windowFromToday(draftSource?.input ?? draftInput(), todayIso()), id, cells, {
                 // ⟳ 2026-09-21 — même plan remplacé que la composition du
                 // brouillon, sinon la garde de chevauchement refuse la case.
+                replaces: draftSource?.intent === "replace_current"
+                  ? draftSource.replaces
+                  : null,
+              }));
+            } catch (e) {
+              throw new Error(draftRefusal(e));
+            }
+          }}
+          // ⟳ 2026-09-24 — la note n'est qu'une exclusion : seuls les plats
+          // qui contiennent l'aliment sont refaits, même plan remplacé.
+          onEditExclusions={async (id) => {
+            try {
+              setDraft(await editExclusions(windowFromToday(draftSource?.input ?? draftInput(), todayIso()), id, {
+                replaces: draftSource?.intent === "replace_current"
+                  ? draftSource.replaces
+                  : null,
+              }));
+            } catch (e) {
+              throw new Error(draftRefusal(e));
+            }
+          }}
+          // ⟳ 2026-09-24 — « REMPLACER »: même fenêtre et même plan remplacé
+          // que les deux reprises locales juste au-dessus.
+          onReadRejections={async (id, rejections) => {
+            try {
+              return await readRejections(id, rejections, (draftSource?.input ?? draftInput()).window);
+            } catch (e) {
+              throw new Error(draftRefusal(e));
+            }
+          }}
+          onReplaceDishes={async (id, rejections) => {
+            try {
+              setDraft(await replaceDishes(windowFromToday(draftSource?.input ?? draftInput(), todayIso()), id, rejections, {
                 replaces: draftSource?.intent === "replace_current"
                   ? draftSource.replaces
                   : null,

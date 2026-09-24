@@ -960,6 +960,7 @@ describe("le jour suit l'ordre des gestes", () => {
   const thursday = twoBoxDish({ day: "thu" });
   const dayBlock = createElement(PlanDayBlock, {
     group: { day: "thu", dishes: [thursday] },
+    dishLayout: "full",
     date: "2026-08-20",
     today: "2026-08-20",
     preparations: [prep(), prep({ id: "prep_rice", title: "Rice" })],

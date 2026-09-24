@@ -223,6 +223,14 @@ export const HOUSEHOLD_ARBITRATION_BY_VERSION: Readonly<Record<string, string>> 
   // ⟳ Le jeton de la structure v34, bumpé le même jour pour la même raison.
   v34_what_came_back_is_named:
     "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
+  // ⟳ v42 (2026-09-24) — MÊME EMPREINTE, ET C'EST L'AFFIRMATION. v42 ajoute la
+  // ligne des plats refusés juste après la ligne « à éviter », dans le message
+  // utilisateur, hors du texte d'arbitrage; aucun en-tête de verrou ne bouge.
+  v42_what_they_turned_down:
+    "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
+  // ⟳ Le jeton de la structure v34, bumpé le même jour pour la même raison.
+  v34_what_they_turned_down:
+    "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
 };
 
 /** SHA-256 hexadécimal — `crypto.subtle`, standard web, présent en edge. */

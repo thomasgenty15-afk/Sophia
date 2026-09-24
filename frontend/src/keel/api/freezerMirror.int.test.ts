@@ -68,10 +68,22 @@ describe("l'entonnoir annonce ce que le moteur fera", () => {
     // « ce foyer a-t-il un congélateur ? » par la MÊME fonction que le moteur.
     // C'est elle qui décide si l'option « tout cuisiner en une fois » est
     // proposée, et une divergence promettrait un geste que le moteur refuse.
-    expect(SOURCE).toMatch(/hasFreezerDeclared\(/);
-    expect(SOURCE).toMatch(/readKitchenEquipment\(/);
-    // ⛔ ET AUCUN CALCUL DE PORTÉE RECOPIÉ N'EST REVENU EN DOUCE.
-    expect(SOURCE).not.toMatch(/MAX_FRIDGE_DAYS/);
+    //
+    // ⟳ 2026-09-23 — LA LECTURE VIT DANS LE FORMULAIRE COMMUN
+    // (`PlanRequestFields`), que l'entonnoir monte avec la photo de la colonne.
+    const FIELDS = readFileSync(
+      resolve(__dirname, "../components/PlanRequestFields.tsx"),
+      "utf8",
+    );
+    expect(SOURCE).toMatch(/<PlanRequestFields/);
+    expect(SOURCE).toMatch(/practicalConstraints=\{facts\.practicalConstraints\}/);
+    expect(FIELDS).toMatch(/hasFreezerDeclared\(/);
+    expect(FIELDS).toMatch(/readKitchenEquipment\(/);
+    for (const src of [SOURCE, FIELDS]) {
+      expect(src).not.toMatch(/includes\(["']freezer["']\)/);
+      // ⛔ ET AUCUN CALCUL DE PORTÉE RECOPIÉ N'EST REVENU EN DOUCE.
+      expect(src).not.toMatch(/MAX_FRIDGE_DAYS/);
+    }
   });
 
   it("⛔ IL PRÉVIENT, IL NE RETIENT PAS l'étape", () => {

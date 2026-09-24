@@ -267,7 +267,13 @@ export interface DraftEnvelope {
 export interface NoteOutcome {
   ok: boolean;
   reason: string;
-  announced: ReadonlyArray<{ text: string; who: string | null; kind: string }>;
+  /**
+   * ⟳ 2026-09-24 — `sense` : le genre de l'item rangé (`food.exclude`,
+   * `food.prefer`…), `null` pour une ligne qui n'en a pas. C'est lui qui dit
+   * qu'une note n'est QU'UNE exclusion (`noteIsExclusionOnly`), et donc qu'on
+   * modifie le brouillon au lieu de le recomposer.
+   */
+  announced: ReadonlyArray<{ text: string; who: string | null; kind: string; sense: string | null }>;
   /** Combien d'entrées le modèle a proposées, et combien ont été gardées. */
   proposed: number;
   kept: number;
@@ -305,6 +311,11 @@ export interface NoteOutcome {
    * commun sur 6 entre deux runs identiques).
    */
   cells: ReadonlyArray<NoteCell>;
+  /**
+   * ⟳ 2026-09-24 — COMBIEN DE PLATS ONT REJOINT LA LISTE DES PLATS REFUSÉS
+   * (lecture des raisons de « Remplacer »). `0` sur une note.
+   */
+  rejectedFiled: number;
 }
 
 export interface NoteCell {
@@ -315,12 +326,67 @@ export interface NoteCell {
 
 /** Ce qu'une reprise locale a pris et laissé — `DraftEnvelope.edit`. */
 export interface DraftEdit {
-  /** Les cases refaites, `day/slot`. */
+  /**
+   * ⟳ 2026-09-24 — QUELLE REPRISE: des CASES désignées par une phrase
+   * (`edit_cells`, « refais le vendredi soir »), ou des PLATS barrés
+   * (`replace_dishes`, le geste « Remplacer »). Absent du serveur ⇒
+   * `edit_cells`, la seule qui existait avant.
+   */
+  operation: "edit_cells" | "replace_dishes";
+  /** Les cases refaites (`day/slot`), ou les plats refaits (clé de plat). */
   taken: ReadonlyArray<string>;
   notRendered: ReadonlyArray<string>;
   unknown: ReadonlyArray<string>;
   /** Les plats du plan de départ gardés tels quels. */
   untouched: number;
+  /**
+   * ⟳ 2026-09-24 — LES PLATS REFAITS EN PLUS DE CEUX QU'ON A BARRÉS: ils
+   * contenaient un aliment qu'une raison vient d'écarter pour quelqu'un qui
+   * les mange. Sans eux, la garde d'exclusion aurait retiré cette personne du
+   * plat sans rien lui reposer. `[]` sur `edit_cells`.
+   */
+  extended: ReadonlyArray<{ title: string }>;
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ 2026-09-24 — « REMPLACER » UN PLAT DE L'APERÇU.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * Une OCCURRENCE d'un plat barré: la case où il est servi, pour qui, son titre
+ * tel qu'affiché, et la raison écrite. Toutes les occurrences d'un même titre
+ * partent ensemble, avec la même raison.
+ *
+ * ⛔ AUCUNE DÉCISION ICI SUR QUI MANGE LE PLAT: le serveur relit le brouillon
+ * rangé et prend les mangeurs dans ses boîtes. Le navigateur ne dit que la
+ * case et le titre — ce qu'il a sous les yeux.
+ */
+export interface DishRejection {
+  day: string;
+  slot: string;
+  /** `null` = le plat de la table. */
+  memberId: string | null;
+  title: string;
+  reason: string;
+}
+
+/**
+ * LE PLAFOND D'UN REMPLACEMENT, EN OCCURRENCES. Au-delà, ce n'est plus refaire
+ * des plats, c'est recomposer le plan en le faisant passer pour une retouche.
+ * ⚠️ Même valeur que `DISH_REPLACE_MAX` côté serveur (`dish_replace.ts`).
+ */
+export const DISH_REPLACE_MAX = 24;
+
+/** Les questions de précision posées en une fois (`DRAFT_NOTE_QUESTIONS_MAX` côté serveur). */
+export const NOTE_QUESTIONS_MAX = 3;
+
+/**
+ * LA CLÉ D'UN TITRE — ce qui fait que deux plats sont « le même repas » pour
+ * « Remplacer ». Même règle que `dishTitleKey` côté serveur: NFC, espaces
+ * repliés, minuscules. Les ACCENTS RESTENT: « pâtes » n'est pas « pâté ».
+ */
+export function dishTitleKey(title: string): string {
+  return title.normalize("NFC").trim().replace(/\s+/g, " ").toLowerCase();
 }
 
 export interface NotePortionQuestion {
@@ -660,9 +726,13 @@ export interface DraftProgress {
  * avant de dire `plan_expired`.
  */
 function relaunchable(row: Record<string, unknown>): boolean {
+  // ⟳ 2026-09-24 — `replace_dishes` est une reprise locale aussi: le relanceur
+  // SQL l'exclut de la même façon (migration du 2026-09-24).
+  const operation = String(row.operation ?? "compose");
   return String(row.mode ?? "") === "async" &&
     Number(row.attempt ?? 1) === 1 &&
-    String(row.operation ?? "compose") !== "edit_cells";
+    operation !== "edit_cells" &&
+    operation !== "replace_dishes";
 }
 
 /** L'instant où la grâce de relance expire, pour une ligne morte. */
@@ -830,11 +900,19 @@ function readDraftEdit(raw: unknown): DraftEdit | null {
   if (!raw || typeof raw !== "object") return null;
   const e = raw as Record<string, unknown>;
   const list = (v: unknown) => Array.isArray(v) ? v.map((x) => String(x ?? "")).filter((x) => x !== "") : [];
+  const extended = Array.isArray(e.extended)
+    ? e.extended
+      .map((x) => String(((x ?? {}) as Record<string, unknown>).title ?? "").trim())
+      .filter((title) => title !== "")
+      .map((title) => ({ title }))
+    : [];
   return {
+    operation: e.operation === "replace_dishes" ? "replace_dishes" : "edit_cells",
     taken: list(e.taken),
     notRendered: list(e.not_rendered),
     unknown: list(e.unknown),
     untouched: Number(e.untouched_dishes) || 0,
+    extended,
   };
 }
 
@@ -1207,6 +1285,43 @@ export async function readNote(
 }
 
 /**
+ * ⟳ 2026-09-24 — LIRE LES RAISONS DES PLATS BARRÉS (« Remplacer »).
+ *
+ * Même fonction edge que la note, en mode « plats refusés »: le serveur relit
+ * le brouillon `draftId`, range la liste des plats refusés AVEC ceux qui les
+ * mangeaient (pris dans les boîtes du brouillon, jamais ici), puis classe
+ * chaque raison comme une phrase de note — un goût, une allergie dite, ce que
+ * Sophia sait. Rend la même issue que `readNote`, questions comprises.
+ *
+ * ⛔ AUCUNE RECOMPOSITION ICI: c'est `replaceDishes` qui refait les plats,
+ * une fois les questions répondues.
+ */
+export async function readRejections(
+  draftId: string,
+  rejections: ReadonlyArray<DishRejection>,
+  window: MealWindowRequest,
+): Promise<NoteOutcome> {
+  const startsOn = window.kind === "exact" ? window.startsOn : null;
+  const { data, error } = await supabase.functions.invoke("keel-read-note-v1", {
+    body: {
+      draft_id: draftId,
+      rejections: rejections.map(rejectionBody),
+      today: localTodayIso(),
+      ...(startsOn ? { starts_on: startsOn } : {}),
+    },
+  });
+  if (error) {
+    throw new Error(await refusalOf(error, "composition_unavailable"));
+  }
+  return readNoteOutcome((data ?? {}) as Record<string, unknown>);
+}
+
+/** Le corps d'une occurrence, en clés serveur — le même pour les deux appels. */
+function rejectionBody(r: DishRejection): Record<string, unknown> {
+  return { day: r.day, slot: r.slot, member_id: r.memberId, title: r.title, reason: r.reason };
+}
+
+/**
  * ⟳ 2026-09-08 (lot 4) — RÉPONDRE À « C'EST POUR QUI ? ». Même fonction edge,
  * sans `draft_note` et sans appel modèle: la phrase a déjà été lue, il ne
  * manquait que la bouche. Rend la même issue que `readNote`, donc les mêmes
@@ -1245,6 +1360,7 @@ function readNoteOutcome(raw: Record<string, unknown>): NoteOutcome {
         text: String(row.text ?? ""),
         who: row.who === null || row.who === undefined ? null : String(row.who),
         kind: String(row.kind ?? ""),
+        sense: row.sense === null || row.sense === undefined ? null : String(row.sense),
       };
     }).filter((a) => a.text !== "")
     : [];
@@ -1318,6 +1434,7 @@ function readNoteOutcome(raw: Record<string, unknown>): NoteOutcome {
     questions,
     safetyNotWritten,
     cells,
+    rejectedFiled: Number(raw.rejected_filed) || 0,
   };
 }
 
@@ -1369,6 +1486,39 @@ export async function composeDraft(
 }
 
 /**
+ * ⟳ 2026-09-24 — REMPLACER LES PLATS BARRÉS, ET SEULEMENT EUX.
+ *
+ * La reprise locale (`operation: "edit_cells"`) en mode `cells_from:
+ * "rejections"`: le serveur retrouve les plats barrés sur le brouillon
+ * `draftId`, ne demande au modèle que leurs cases, ne prend de sa réponse que
+ * CES PLATS (plus ceux qu'une exclusion toute neuve aurait vidés —
+ * `envelope.edit.extended`), recopie tout le reste, rejoue ses ceintures, et
+ * range un nouveau brouillon. Une reprise locale n'est jamais relancée.
+ *
+ * ⛔ UN REFUS LÈVE (`dish_unknown`, `dish_not_rendered`, `draft_mismatch`…) et
+ * l'aperçu courant reste, plats toujours barrés: on peut relancer.
+ */
+export async function replaceDishes(
+  input: ComposeDraftInput,
+  draftId: string,
+  rejections: ReadonlyArray<DishRejection>,
+  opts: WaitForDraftOptions = {},
+): Promise<PlanDraft> {
+  // Même corps que `editCells`: le plan remplacé voyage (`replaces`), sinon la
+  // garde de chevauchement refuserait avant tout tour de modèle.
+  const payload = await callGenerator(input, "draft", opts.replaces ?? null, {
+    operation: "edit_cells",
+    draft_id: draftId,
+    cells_from: "rejections",
+    rejections: rejections.map(rejectionBody),
+  }, opts.onProgress);
+  return {
+    plan: { ...readDraftPlan(payload), planKind: "household" as const },
+    envelope: readDraftEnvelope(payload),
+  };
+}
+
+/**
  * ⟳ 2026-09-09 — LA REPRISE LOCALE : une case refaite, le reste intact.
  *
  * `operation: "edit_cells"` sur le brouillon `draftId`, avec les cases que la
@@ -1403,6 +1553,46 @@ export async function editCells(
     operation: "edit_cells",
     draft_id: draftId,
     cells: cells.map((c) => ({ day: c.day, slot: c.slot, text: c.text })),
+  }, opts.onProgress);
+  return {
+    plan: { ...readDraftPlan(payload), planKind: "household" },
+    envelope: readDraftEnvelope(payload),
+  };
+}
+
+/**
+ * ⟳ 2026-09-24 — LA NOTE N'EST QU'UNE EXCLUSION : on MODIFIE le brouillon.
+ *
+ * « Je n'aime pas le tofu » ne nomme aucune case. Elle partait donc en
+ * recomposition complète : un autre plan, rien de gardé, et sur le foyer
+ * `326427ff…` (staging, 2026-09-23) un plan vide 5 fois sur 8. Ici le
+ * serveur relit le brouillon, trouve lui-même les plats qui servent un
+ * aliment exclu (`cells_from: "exclusions"`), ne refait que ceux-là et garde
+ * le reste à l'identique. Aucun plat concerné ⇒ `edit_nothing_to_change`,
+ * sans appel au modèle.
+ *
+ * ⚠️ Seulement quand TOUT ce que la note a rangé est une exclusion
+ * (`noteIsExclusionOnly`). Un goût, une envie, un mémo changent la
+ * composition de toute la semaine : ceux-là recomposent.
+ */
+export function noteIsExclusionOnly(outcome: Pick<NoteOutcome, "announced">): boolean {
+  return outcome.announced.length > 0 &&
+    outcome.announced.every((a) =>
+      (a.kind === "preference" || a.kind === "next_plan") && a.sense === "food.exclude"
+    );
+}
+
+export async function editExclusions(
+  input: ComposeDraftInput,
+  draftId: string,
+  opts: WaitForDraftOptions = {},
+): Promise<PlanDraft> {
+  // Même corps que `editCells` (plan remplacé compris), sans case nommée.
+  const payload = await callGenerator(input, "draft", opts.replaces ?? null, {
+    operation: "edit_cells",
+    draft_id: draftId,
+    cells: [],
+    cells_from: "exclusions",
   }, opts.onProgress);
   return {
     plan: { ...readDraftPlan(payload), planKind: "household" },

@@ -16,6 +16,8 @@ import {
   dishBitesExclusion,
   exclusionRetryInstruction,
   exclusionTermsFor,
+  memberServedExclusionBites,
+  servedExclusionBites,
 } from "./food_exclusion_belt.ts";
 import type { RetainedItem } from "./retained_item.ts";
 
@@ -350,17 +352,25 @@ Deno.test("⛔ UN PLAT QUE PERSONNE NE SE VOIT ATTRIBUER passe la ligne de CHACU
     "l'union des lignes de la table a disparu: un plat non ventilé redevient " +
       "servi à tous sans que personne ne le vérifie",
   );
+  // ⟳ 2026-09-24 — LA RÈGLE A DÉMÉNAGÉ dans `servedExclusionBites`
+  // (ce module), appelée par `bitesOf` ET par l'ajustement par exclusion.
+  // On vérifie donc les DEUX bouts : la règle ici, le câblage là-bas.
+  const belt = await Deno.readTextFile(new URL("./food_exclusion_belt.ts", import.meta.url));
   assert(
-    /const allocated = \(d\.boxes \?\? \[\]\)\.some\(/.test(src),
+    /const allocated = \(d\.boxes \?\? \[\]\)\.some\(/.test(belt),
     "la ventilation ne décide plus quel jeu de mots s'applique",
   );
   // ⛔ ET SEULEMENT POUR LES PLATS NON VENTILÉS. Appliquer l'union à un plat
   // découpé retirerait un aliment à toute la table pour la ligne d'UNE bouche
   // — exactement ce que l'axe 3 de la nomenclature interdit.
   assert(
-    /allocated \? householdExclusionTerms : unallocatedTerms/.test(src),
+    /allocated \? args\.householdTerms : args\.unallocatedTerms/.test(belt),
     "l'union s'applique aussi aux plats VENTILÉS: la règle d'une bouche " +
       "retirerait un aliment à toute la table",
+  );
+  assert(
+    /servedExclusionBites\(\{\s*meal: m as never,\s*householdTerms: householdExclusionTerms,\s*unallocatedTerms,/.test(src),
+    "`bitesOf` ne passe plus la table ET l'union à la règle commune",
   );
 });
 
@@ -647,4 +657,64 @@ Deno.test("⛔ UNE LIGNE « moins » ET UNE LIGNE « jamais » COEXISTENT SANS S
     subject: TOM,
   });
   assertEquals(terms.map((t) => t.because), ["saumon"]);
+});
+
+// ⟳ 2026-09-24 — LA QUESTION « CE PLAN SERT-IL UN ALIMENT EXCLU ? », UNE FOIS.
+// La ceinture de composition (`bitesOf`) et l'ajustement par exclusion
+// (`exclusionEditCells`) l'appellent tous les deux.
+Deno.test("servedExclusionBites — casserole commune lue, table vs tous selon la ventilation, cas propre vide", () => {
+  const house = exclusionTermsFor({ items: [{ ...item("tofu", "household"), force: "never" } as RetainedItem], subject: "household" });
+  const tomOnly = exclusionTermsFor({ items: [{ ...item("saumon", TOM), force: "never" } as RetainedItem], subject: TOM });
+  assert(house.length > 0 && tomOnly.length > 0);
+  const d = (title: string, day: string, slot: string, extra: Record<string, unknown> = {}) => ({
+    title, method: "Cuire.", ingredients: [{ term: title.split(",")[0].toLowerCase() }],
+    uses: [], boxes: [], day, slot, ...extra,
+  });
+  const meal = {
+    dishes: [
+      // L'aliment dans le plat lui-même.
+      d("Tofu, riz", "sat", "lunch"),
+      // L'aliment seulement dans la casserole citée : le plat mord quand même.
+      d("Pâtes, légumes", "sun", "dinner", { uses: [{ preparationId: "prep_tofu" }] }),
+      // Plat ventilé par bouche : seuls les mots de la TABLE valent.
+      d("Saumon, riz", "mon", "lunch", { boxes: [{ memberIds: ["x"] }] }),
+      // Plat servi à tous : les mots de CHACUN valent.
+      d("Saumon, pâtes", "tue", "lunch"),
+      d("Poulet, riz", "wed", "lunch"),
+    ],
+    preparations: [{ id: "prep_tofu", title: "Tofu rôti", method: "Rôtir.", ingredients: [{ term: "tofu" }] }],
+  };
+  const bites = servedExclusionBites({ meal, householdTerms: house, unallocatedTerms: [...house, ...tomOnly] });
+  assertEquals(bites.map((b) => `${b.day}/${b.slot}`), ["sat/lunch", "sun/dinner", "tue/lunch"]);
+  // Le cas qui passe : aucun mot, aucune morsure.
+  assertEquals(servedExclusionBites({ meal, householdTerms: [], unallocatedTerms: [] }), []);
+});
+
+// ⟳ 2026-09-24 — CE QU'UNE PERSONNE NE MANGE PLUS, SUR LES PLATS QU'ELLE MANGE.
+// Banc du 2026-09-24, test 11 : « Christèle n'aime pas le saumon » rendait
+// « rien à changer » avec du saumon dans sa boîte du dimanche midi.
+Deno.test("memberServedExclusionBites — sa boîte ou son plat mordent ; le plat d'un autre, jamais", () => {
+  const CHR = "479cd74a";
+  const TOMID = "23582c87";
+  const own = exclusionTermsFor({ items: [{ ...item("saumon", "member:" + CHR), force: "never" } as RetainedItem], subject: "member:" + CHR });
+  assert(own.length > 0);
+  const d = (title: string, day: string, slot: string, extra: Record<string, unknown> = {}) => ({
+    title, method: "Cuire.", ingredients: [{ term: title.split(",")[0].toLowerCase() }],
+    uses: [], boxes: [], day, slot, ...extra,
+  });
+  const meal = {
+    dishes: [
+      // Plat partagé, elle a une boîte : il mord.
+      d("Saumon, semoule", "sun", "lunch", { boxes: [{ memberIds: [TOMID] }, { memberIds: [CHR] }] }),
+      // Plat partagé SANS elle : c'est l'assiette d'un autre, rien.
+      d("Saumon, riz", "sat", "dinner", { boxes: [{ memberIds: [TOMID] }] }),
+      // Son plat dédié : il mord.
+      d("Saumon, pâtes", "mon", "dinner", { memberId: CHR }),
+      // Chez elle, mais sans l'aliment : le cas qui passe.
+      d("Poulet, riz", "tue", "lunch", { boxes: [{ memberIds: [CHR] }] }),
+    ],
+    preparations: [],
+  };
+  const bites = memberServedExclusionBites({ meal, members: [{ memberId: CHR, terms: own }, { memberId: TOMID, terms: [] }] });
+  assertEquals(bites.map((b) => `${b.day}/${b.slot}:${b.memberId}`), ["sun/lunch:" + CHR, "mon/dinner:" + CHR]);
 });

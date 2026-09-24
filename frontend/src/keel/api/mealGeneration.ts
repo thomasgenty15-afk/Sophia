@@ -727,6 +727,13 @@ export interface GeneratedDish {
    * table » — ce que ces plans-là étaient déjà pour tout le monde.
    */
   member_id: string | null;
+  /**
+   * ⟳ 2026-09-24 — CE PLAT COMPLÈTE UNE ASSIETTE COMMUNE, il ne la remplace
+   * pas (entrée de dernier recours, `complements_shared` écrit par le moteur).
+   * L'aperçu n'offre pas « Remplacer » sur lui: le serveur refuse de refaire
+   * un complément seul. Absent ⇒ faux.
+   */
+  complements_shared?: boolean;
 }
 
 /**
@@ -1265,6 +1272,7 @@ export function readDishes(raw: unknown): GeneratedDish[] {
       member_id: typeof d.member_id === "string" && d.member_id.trim() !== ""
         ? d.member_id.trim()
         : null,
+      complements_shared: d.complements_shared === true,
     };
   });
 }

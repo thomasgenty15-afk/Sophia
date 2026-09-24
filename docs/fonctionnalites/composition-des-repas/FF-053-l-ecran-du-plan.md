@@ -10,6 +10,18 @@
 | **Voisine de** | [FF-054](FF-054-le-retour-de-fin-de-plan.md) — même rendu, monté dans la pop-up |
 | **Effort estimé** | 5 étapes, front + 2 champs renvoyés par la fonction |
 
+> ⟳ **2026-09-24 — « Toute la semaine » est retirée, un tableau de la semaine la remplace en tête**
+> ([FF-067](FF-067-remplacer-un-plat-de-l-apercu.md), décision du propriétaire).
+> - La rangée de jours ne porte plus que des jours (`DaySelection` n'a plus de valeur `"all"`,
+>   `lib/planDayView.ts`) ; elle ouvre sur aujourd'hui s'il est dans le plan, sinon sur son premier jour
+>   (`defaultSelectedDay`).
+> - Au-dessus d'elle, `PlanWeekTable` (plan adopté **et** aperçu) : une colonne par jour ; lignes
+>   Courses, Cuisine (durée des sessions), puis une ligne par personne avec les calories du jour — **seulement
+>   pour un adulte qui vise une perte ou une prise** ; « — » pour les autres. C'est le sommaire de la
+>   semaine : R6 et R8 valent pour lui (il défile dans son conteneur).
+> - L'aperçu rend chaque plat en une ligne (titre + kcal), dépliable vers la carte complète ;
+>   `/app/plan` garde la carte complète (`dishLayout="full"`).
+
 ---
 
 ## 1. Le problème

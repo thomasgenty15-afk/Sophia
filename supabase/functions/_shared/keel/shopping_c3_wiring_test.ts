@@ -237,6 +237,11 @@ Deno.test("C3 CÂBLAGE ⑧ — chaque USAGE est vérifié, pas seulement la prem
   const bloc = HANDLER.slice(at, at + 2600);
   // ⛔ LA FENÊTRE VIENT DE LA MÊME LECTURE QUE LA DATATION ET QUE LA GARDE.
   assert(bloc.includes("keepingOf({"), "la scission lit une autre conservation");
+  // ⟳ 2026-09-24 — un achat scindé se range sur une course déjà posée.
+  assert(
+    bloc.includes("shopDays: rangsDeCourses,"),
+    "la scission ne voit plus les jours de courses déjà posés",
+  );
   assert(
     bloc.includes("frozen: l.freeze_on_purchase === true,"),
     "une ligne destinée au congélateur serait scindée pour rien",
@@ -252,5 +257,22 @@ Deno.test("C3 CÂBLAGE ⑧ — chaque USAGE est vérifié, pas seulement la prem
   assert(
     bloc.includes("Math.round(l.amount * share)"),
     "la part n'est plus calculée depuis le besoin",
+  );
+});
+
+Deno.test("C3 CÂBLAGE ⑨ — deux jours au moins entre deux courses, APRÈS la scission et AVANT la prose", () => {
+  // ⟳ 2026-09-24 — la règle lit les usages de CHAQUE ligne rendue par la
+  // scission (`covers`), et la prose se recompose sur ses dates.
+  const scission = HANDLER.indexOf("const scission = splitShoppingByUses({");
+  const espacement = HANDLER.indexOf("const espacement = spaceShoppingDays({");
+  const prose = HANDLER.indexOf("const joursApres = [");
+  assert(espacement > scission, "la règle des deux jours tourne avant la scission");
+  assert(prose > espacement, "la prose se recompose avant la règle des deux jours");
+  const bloc = HANDLER.slice(espacement, espacement + 900);
+  assert(bloc.includes("covers: scission.covers,"), "la règle ne lit plus les usages de chaque ligne");
+  assert(bloc.includes("keepingOf({"), "la règle lit une autre conservation");
+  assert(
+    HANDLER.includes("espacement.counts.lines_moved > 0;"),
+    "un déplacement ne recompose plus la prose",
   );
 });
