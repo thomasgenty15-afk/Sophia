@@ -1,5 +1,12 @@
 {
-  "supabase/functions/generate-household-meal-v1/index.ts": [],
+  "supabase/functions/generate-household-meal-v1/index.ts": [
+    "supabase/functions/generate-household-meal-v1/constants.ts",
+    "supabase/functions/generate-household-meal-v1/env.ts",
+    "supabase/functions/generate-household-meal-v1/request_readers.ts",
+    "supabase/functions/generate-household-meal-v1/types.ts",
+    "supabase/functions/generate-household-meal-v1/merge_request.ts",
+    "supabase/functions/generate-household-meal-v1/late_outcome.ts"
+  ],
   "supabase/functions/_shared/keel/meal_generation.ts": [
     "supabase/functions/_shared/keel/meal_vocabulary.ts",
     "supabase/functions/_shared/keel/meal_types.ts",

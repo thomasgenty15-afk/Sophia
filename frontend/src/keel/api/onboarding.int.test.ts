@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { resolve } from "node:path";
+import { sourceFamily } from "../../test/sourceFamily";
 
 import {
   branchForMouths,
@@ -219,7 +220,13 @@ describe("le catalogue des questions", () => {
         broken.push(`${question.id}: fichier absent — ${rel}`);
         continue;
       }
-      if (symbol && !readFileSync(abs, "utf8").includes(symbol)) {
+      // ⟳ 2026-09-24 · LOT 3a — LA FAMILLE, PAS LE FICHIER SEUL. `readCookingCapacity`
+      // (qui lit `cooking_time_min`, `budget_amount`, `recipe_difficulty`) est
+      // sortie de `generate-household-meal-v1/index.ts` dans `request_readers.ts`,
+      // que `index.ts` importe. Le consommateur n'a pas changé : c'est toujours
+      // cette fonction edge qui lit la colonne. Un fichier hors registre rend son
+      // seul texte (voir `frontend/src/test/sourceFamily.ts`).
+      if (symbol && !sourceFamily(abs).includes(symbol)) {
         broken.push(`${question.id}: « ${symbol} » introuvable dans ${rel}`);
       }
     }

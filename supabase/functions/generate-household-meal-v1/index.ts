@@ -1,7 +1,7 @@
 /// <reference path="../tsserver-shims.d.ts" />
 import { memoFrom, memoLinesForPrompt } from "../_shared/keel/memo.ts";
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient, type SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3";
+import { createClient } from "jsr:@supabase/supabase-js@2.87.3";
 
 import { envelopeDirectionFor } from "../_shared/keel/weight_pace.ts";
 import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
@@ -149,7 +149,6 @@ import {
   firstBlockingPlan,
   type PlanTiming,
   planTimingOf,
-  type MealWindowRequest,
   dayTokenOf,
   resolveRequestedWindow,
   withCookDayBefore,
@@ -199,7 +198,6 @@ import {
   // ⟳ 2026-09-12 · C1 — toutes les lignes du plan, à plat et situées.
   outputContractLinesOf,
   regramMeal,
-  usableBudget,
   // L8 — CE QUE LA CASSEROLE PRODUIT VRAIMENT, et la tolerance de somme du
   // parseur. Les DEUX sont importees plutot que recopiees: le redimensionnement
   // des boites doit comparer a la MEME production et avec la MEME bande
@@ -218,7 +216,6 @@ import {
   resolveArtifactLocale,
 } from "../_shared/keel/locale.ts";
 import {
-  type MemberAway,
   memberMealCells,
   parseMemberAway,
   parseWorkLunch,
@@ -244,24 +241,18 @@ import {
   PORTION_V34_MIN_MOUTHS,
 } from "../_shared/keel/household_prompt_v34.ts";
 import {
-  type MemberOwnPlan,
   parseOwnPlans,
   plansOverlap,
   resolveHandOff,
 } from "../_shared/keel/household_hand.ts";
 import {
-  bestMergePair,
   MERGE_MEMBER_AWAY_ALL_WINDOW,
   MERGE_SHAPE_NOT_HONOURED,
-  MERGE_WINDOW_ALL_PAST,
-  MERGE_WINDOW_UNREADABLE,
   type MergedFromEntry,
-  type MergeWindow,
   mergedFromEntry,
   mergeLadder,
   mergeMaterialShown,
   observeMergeShape,
-  type PlanSpan,
 } from "../_shared/keel/household_merge.ts";
 import {
   carryMergedFrom,
@@ -270,10 +261,7 @@ import {
   mergeStandings,
 } from "../_shared/keel/household_merge_notice.ts";
 import {
-  type LiveHouseholdPlan,
   loadLiveHouseholdPlans,
-  storedCookingDays,
-  storedDishes,
 } from "../_shared/keel/household_merge_notice_io.ts";
 // L7/D11 — LE PLAFOND. Ce module ne compte RIEN: `N`, le `+ 3` et le lundi ISO
 // vivent en base (migration 20260812170000), et il n'en relit que le verdict.
@@ -564,7 +552,6 @@ import {
   memberRegime,
   strictestRegimeAt,
 } from "../_shared/keel/household_diet.ts";
-import type { DietaryRegime } from "../_shared/keel/dietary_regime.ts";
 import {
   type HouseholdAllergyRow,
   householdConstraintMouths,
@@ -631,7 +618,6 @@ import {
 // contrairement à `readCookingCapacity` qui vit en double dans ces deux
 // fichiers depuis toujours.
 import {
-  readCookingStyle,
   readGroceryRuns,
   readGroceryRunsAnswer,
   resolveCookingCapacity,
@@ -665,7 +651,6 @@ import {
   memberPortionsPayload,
   type MemberGoal,
   MEMBER_GOALS,
-  type PortionMember,
   reconcilePortions,
   servingDemandsFor,
   // G5 — LE TEMPS PLAFONNE, LA DIVERGENCE DÉCLENCHE (arbitrage B1).
@@ -1079,6 +1064,18 @@ import {
   type SportFrequency,
 } from "../_shared/keel/tokens.ts";
 import { weekStartOf } from "../_shared/keel/weekly_flow_io.ts";
+// ⟳ 2026-09-24 · LOT 3a — les helpers de module de ce fichier, sortis tels quels.
+import { DRAFT_ADOPTION_MODEL_TIMEOUT_MS, FN_NAME } from "./constants.ts";
+import { adminClient, requireEnv } from "./env.ts";
+import { num, readCookingCapacity, readWindowRequest } from "./request_readers.ts";
+import type { HabitRow, LoadedMember, RosterRow } from "./types.ts";
+import {
+  type ResolvedMerge,
+  type ResolvedUnmerge,
+  resolveMergeRequest,
+  resolveUnmergeRequest,
+} from "./merge_request.ts";
+import { foldLateOutcome } from "./late_outcome.ts";
 
 /**
  * `generate-household-meal-v1` — UNE cuisson, des portions qui divergent.
@@ -1162,483 +1159,6 @@ import { weekStartOf } from "../_shared/keel/weekly_flow_io.ts";
  * n'est plus une source de portion.
  */
 
-const FN_NAME = "generate-household-meal-v1";
-const DRAFT_ADOPTION_MODEL_TIMEOUT_MS = 100_000;
-
-function requireEnv(name: string): string {
-  const v = Deno.env.get(name);
-  if (!v) throw new Error(`[${FN_NAME}] missing env ${name}`);
-  return v;
-}
-
-function adminClient(): SupabaseClient {
-  return createClient(requireEnv("SUPABASE_URL"), requireEnv("SUPABASE_SERVICE_ROLE_KEY"), {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-}
-
-/** Même lecture défensive que le chemin individuel. */
-function readWindowRequest(raw: unknown): MealWindowRequest | null {
-  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
-  const w = raw as Record<string, unknown>;
-  const kind = String(w.kind ?? "").trim();
-  if (kind === "until_sunday") return { kind: "until_sunday" };
-  if (kind === "days") {
-    const count = Number(w.count);
-    return Number.isFinite(count) ? { kind: "days", count } : null;
-  }
-  if (kind === "exact") {
-    const startsOn = String(w.starts_on ?? "").trim();
-    const durationDays = Number(w.duration_days);
-    if (!startsOn || !Number.isFinite(durationDays)) return null;
-    return { kind: "exact", startsOn, durationDays };
-  }
-  return null;
-}
-
-function readCookingCapacity(pc: Record<string, unknown> | null) {
-  const DAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
-  const pick = (value: unknown, allowed: readonly string[]): string | null => {
-    const raw = String(value ?? "").trim();
-    return allowed.includes(raw) ? raw : null;
-  };
-  const time = Number(pc?.cooking_time_min);
-  return {
-    cookDays: Array.isArray(pc?.cook_days)
-      ? (pc!.cook_days as unknown[]).map(String).filter((d) => DAYS.includes(d))
-      : [],
-    cookingTimeMin: Number.isFinite(time) && time > 0 ? Math.min(240, Math.round(time)) : null,
-    recipeDifficulty: pick(pc?.recipe_difficulty, ["simple", "normal", "keen"]),
-    variety: pick(pc?.variety, ["repeat", "some", "varied"]),
-    // LE BUDGET EST UN MONTANT, ET IL EST RELU ICI PLUTÔT QUE REÇU DANS LA
-    // REQUÊTE. L'écran qui compose l'écrit dans `practical_constraints`
-    // juste avant d'appeler — la même route que le rythme et les jours de
-    // cuisine. Deux chemins pour un seul chiffre, et c'est toujours celui
-    // que l'écran ne montre pas qui gagne.
-    //
-    // `null` quand il est absent, à zéro, illisible ou absurde: aucune de
-    // ces formes ne devient une consigne. `Number(null)` vaut 0 ET est
-    // fini — un `!= null` laisserait passer « budget: 0 ».
-    budgetAmount: usableBudget(pc?.budget_amount),
-    // ⟳ A2 — LUES ICI, RÉSOLUES AILLEURS. Cette fonction ne fait que LIRE la
-    // colonne; la dérivation (sessions, jours, minutes) vit dans
-    // `resolveCookingCapacity` (`_shared/keel/cooking_plan.ts`), appelée par
-    // les DEUX lanes. `readCookingCapacity`, elle, est dupliquée entre les deux
-    // fichiers depuis toujours et sans test qui les compare — la dérivation ne
-    // le sera pas, et un test lit les deux sources pour le prouver.
-    //
-    // ⛔ `null` = LA QUESTION N'A JAMAIS ÉTÉ POSÉE, jamais « le moins
-    // possible »: cicatrice `20260818110000:48-51`.
-    cookingStyle: readCookingStyle(pc),
-    groceryRuns: readGroceryRuns(pc),
-  };
-}
-
-interface LoadedMember extends PortionMember {
-  /**
-   * `null` pour une bouche sans compte. Sert UNIQUEMENT à savoir où chercher
-   * ses contraintes de sécurité et son corps, qui restent clés sur
-   * `auth.users`. Ce n'est PAS son identité: `memberId` l'est.
-   */
-  userId: string | null;
-  /** Pour l'union des contraintes de sécurité du foyer. */
-  isOwner: boolean;
-  /**
-   * D14 — QUAND CETTE BOUCHE N'EST PAS LÀ, les deux sources résolues.
-   *
-   * `effective` est ce qui compte; `self` et `household` ne servent qu'à la
-   * trace du plan — sans elles, « pourquoi manque-t-il une assiette ? » n'a
-   * pas de réponse trois jours plus tard.
-   */
-  away: MemberAway;
-  /**
-   * D2/D7 — LES PLANS QUI POURRAIENT RETIRER CETTE BOUCHE DE LA TABLE.
-   *
-   * « Pourraient »: la base a filtré (personnel · vivant · validé · ce foyer),
-   * la fenêtre n'est pas encore comparée. `resolveHandOff` s'en charge, et lui
-   * seul.
-   */
-  ownPlans: MemberOwnPlan[];
-  /**
-   * R1/R2 — LE RÉGIME DE CETTE BOUCHE, déjà tranché en base entre son « about
-   * you » (si elle a un compte) et sa ligne (sinon), exactement comme `goal` et
-   * `eating_rhythm`. `null` = personne n'a rien déclaré, OU « je mange de
-   * tout »: ce module ne raisonne que sur des RESTRICTIONS, et les deux n'en
-   * posent aucune (voir `memberRegime`).
-   *
-   * ⚠️ IL N'EST PAS SUR `PortionMember`, ET C'EST VOULU. Un régime gouverne ce
-   * qu'il y a DANS la casserole, jamais la taille d'une part: le mettre sur le
-   * brief de portions inviterait le modèle à écrire « ta part végétarienne »
-   * dans une consigne lue à voix haute à table, ce que `FORBIDDEN_PORTION_TERMS`
-   * n'attrape pas.
-   */
-  diet: DietaryRegime | null;
-  /**
-   * ⟳ 2026-09-07 — LES MOMENTS QU'ELLE A MARQUÉS « LÉGER ».
-   *
-   * ⛔ REQUIS, jamais `?`. Un défaut silencieux ferait peser un dîner léger
-   * comme un dîner ordinaire chez tout appelant qui l'oublie — c'est-à-dire
-   * annulerait la déclaration sans que rien ne le dise. `{}` = « la question
-   * n'a été posée à aucun moment », et c'est le cas de toute la base d'avant
-   * ce lot.
-   *
-   * ⚠️ TROIS ÉTATS: clé absente / `false` / `true`. Voir `parseMemberLight`.
-   */
-  mealLight: Record<string, boolean>;
-}
-// ⛔ `lightSlots` (hérité de `PortionMember`) et `mealLight` DISENT LA MÊME
-// CHOSE SOUS DEUX FORMES, et les deux sont nécessaires:
-//   · `mealLight` garde les TROIS états (absent / false / true) — c'est ce que
-//     l'écran doit relire pour ne pas reposer une question déjà répondue;
-//   · `lightSlots` est la liste des moments marqués — c'est ce que le prompt et
-//     `slotPlanTargets` consomment.
-// ⚠️ LA DÉRIVATION EST FAITE UNE SEULE FOIS, à la construction du membre. La
-// refaire au point d'usage a été écrit puis retiré: deux dérivations d'un même
-// fait finissent par diverger, et c'est celle qu'on regarde le moins qui garde
-// l'ancienne règle.
-
-/**
- * Un nombre de PostgREST, ou `null`.
- *
- * `numeric` arrive en CHAÎNE (« 26.5 ») par la couche JSON de PostgREST, pas en
- * nombre: un `typeof === "number"` aurait rendu `null` sur chaque corps saisi,
- * et le lot serait inerte sans qu'aucun test de module ne le voie.
- */
-function num(raw: unknown): number | null {
-  if (raw === null || raw === undefined || raw === "") return null;
-  const n = Number(raw);
-  return Number.isFinite(n) ? n : null;
-}
-
-/** Une ligne de `keel_household_roster_for`, telle que la base la rend. */
-interface RosterRow {
-  member_id: string;
-  user_id: string | null;
-  first_name: string;
-  age_state: string;
-  role: string;
-  goal: string | null;
-  // D14 — L'UNION DES DEUX SOURCES, DÉJÀ FAITE EN BASE. Chaque entrée porte
-  // sa `source` (`self` | `household`); `parseMemberAway` la relit sans
-  // jamais refaire la fusion (voir `household_presence.ts`).
-  away_days: unknown;
-  // D2/D7 — LES PLANS PERSONNELS VIVANTS ET VALIDÉS de cette bouche, DANS
-  // CE FOYER. Déjà filtrés par la base sur tout ce qu'elle peut voir seule;
-  // ce qui reste à décider est le RECOUVREMENT de la fenêtre, et il est
-  // décidé dans `household_hand.ts`, jamais ici.
-  own_plans: unknown;
-  // LES MOMENTS OÙ CETTE BOUCHE MANGE, déjà tranchés en base entre son
-  // « about you » (si elle a un compte) et sa ligne (sinon) — exactement comme
-  // `goal` au-dessus. `null` = personne ne l'a dit.
-  eating_rhythm: unknown;
-  // R2 — SON RÉGIME, tranché en base par la MÊME règle: une bouche avec compte
-  // le porte dans son « about you » (`student_safety_constraints.diet_ref`, ou
-  // `practical_constraints.diet_asked` pour l'omnivore), une bouche sans compte
-  // sur sa ligne. `null` = personne n'a demandé.
-  diet: unknown;
-}
-
-/** Une ligne de `keel_household_habits_for`, telle que la base la rend (G1). */
-interface HabitRow {
-  member_id: string;
-  slots: unknown;
-  note: string | null;
-}
-
-// ===========================================================================
-// L4 · D6 · D15 · D16 — LA FUSION, RÉSOLUE AVANT TOUTE DÉPENSE
-//
-// Tout ce bloc s'exécute AVANT le premier appel modèle, et c'est sa raison
-// d'être autant que sa position: chacun de ses refus se tranche sur deux
-// fenêtres, un roster et une date. L1 a mesuré 28,6 s et 225 s de génération
-// brûlées sur des refus de cette nature; le test de POSITION est dans
-// `_shared/keel/household_merge_test.ts` (« AUCUN REFUS DE FUSION NE SE PAIE AU
-// PRIX D'UNE GÉNÉRATION »), et il garde la position PAR LA SOURCE parce qu'en
-// HTTP un refus tardif est indiscernable d'un refus précoce.
-//
-// ⚠️ JUSQU'AU 2026-08-12, CE COMMENTAIRE NOMMAIT UN FICHIER DE TEST QUI N'A
-// JAMAIS EXISTÉ. Un commentaire qui ment sur l'existence de sa propre garde est
-// pire qu'une absence de commentaire: il fait croire la garde posée à qui vient
-// vérifier, et c'est le seul lecteur qui compte. Le nom fautif n'est pas répété
-// ici — un test (« AUCUN COMMENTAIRE DU GÉNÉRATEUR NE NOMME UN TEST QUI
-// N'EXISTE PAS ») refuse désormais TOUT nom de fichier de test introuvable dans
-// ce fichier, y compris cité en exemple.
-// ===========================================================================
-
-/**
- * Un plan déjà écrit, relu pour la fusion. Jamais le `why` d'un plat.
- *
- * ⚠️ LA LECTURE VIT DÉSORMAIS DANS `household_merge_notice_io.ts` (L5), et pas
- * ici. Le lecteur de propositions a besoin EXACTEMENT du même plan du foyer,
- * avec le même prédicat: deux `select` écrits séparément auraient divergé, et
- * ce dépôt a mesuré deux fois le 2026-08-12 ce que coûte un lecteur du plan du
- * foyer qui ne filtre pas comme les autres.
- */
-type StoredPlan = LiveHouseholdPlan;
-
-interface ResolvedMerge {
-  member: RosterRow;
-  /** Le plan personnel repris. UN seul par appel — voir plus bas. */
-  personalPlan: StoredPlan;
-  /** Le plan du foyer dans lequel on le reprend. */
-  householdPlan: StoredPlan;
-  window: MergeWindow;
-  /**
-   * O1 — LES AUTRES PLANS PERSONNELS QUI MORDENT SUR LA FENÊTRE FUSIONNÉE.
-   *
-   * Une fusion reprend UN plan. Deux plans personnels adjacents qui couvrent
-   * ensemble la fenêtre demanderaient deux gestes du maître, et c'est l'option
-   * la plus réversible: fusionner les deux d'un coup déciderait à la place de
-   * D10 (« la fusion est manuelle, sur proposition »), et rien ne dit que la
-   * proposition doit les grouper. Ce qui n'est PAS acceptable, c'est le
-   * silence: les autres plans sont tracés en `issues`, donc visibles.
-   */
-  otherOverlappingPlanIds: string[];
-}
-
-interface MergeRefusal {
-  refusal: string;
-  detail: string;
-}
-
-async function resolveMergeRequest(args: {
-  admin: SupabaseClient;
-  roster: readonly RosterRow[];
-  memberId: string;
-  todayDate: string;
-  /**
-   * Les plans du foyer vivants, déjà lus une fois pour tout ce fichier.
-   *
-   * ⚠️ PASSÉS PLUTÔT QUE RELUS (L5). Cette fonction faisait son propre `select`;
-   * le lecteur de propositions en aurait fait un second, avec son propre
-   * prédicat, et ce dépôt a mesuré deux fois le 2026-08-12 ce que coûte un
-   * lecteur du plan du foyer qui ne filtre pas comme les autres. Le propriétaire
-   * et le foyer ne sont donc plus des arguments d'ici: ils appartiennent à la
-   * lecture, qui vit dans `household_merge_notice_io.ts`.
-   */
-  householdPlans: readonly StoredPlan[];
-}): Promise<ResolvedMerge | MergeRefusal> {
-  const member = args.roster.find((r) => r.member_id === args.memberId);
-  if (!member) {
-    return {
-      refusal: "merge_member_not_in_household",
-      detail: "That person is not in this household.",
-    };
-  }
-  // D2 — LE MAÎTRE N'EST JAMAIS EXCLU, donc il n'y a jamais rien à reprendre
-  // pour lui. Son plan du foyer EST son plan. Sans ce refus, une fusion sur
-  // lui-même irait jusqu'à `merge_member_has_no_plan`, qui serait un
-  // diagnostic faux.
-  if (member.role === "owner") {
-    return {
-      refusal: "merge_member_is_owner",
-      detail: "The household plan is already yours: there is nothing to bring back.",
-    };
-  }
-
-  const ownPlans = parseOwnPlans(member.own_plans);
-  if (ownPlans.length === 0) {
-    return {
-      refusal: "merge_member_has_no_plan",
-      detail: "That person has no validated plan of their own, so they are " +
-        "already being cooked for.",
-    };
-  }
-
-  // LE PLAN DU FOYER, VIVANT. Lu UNE fois par requête, par le lecteur partagé
-  // (`household_merge_notice_io.ts`), et passé ici: `plan_kind = 'household'`
-  // y est obligatoire et ce n'est pas une précaution — un plan PERSONNEL porte
-  // aussi `household_id`, et deux lecteurs indépendants sont déjà tombés dedans
-  // le 2026-08-12.
-  const householdPlans = args.householdPlans;
-  if (householdPlans.length === 0) {
-    return {
-      refusal: "merge_no_household_plan",
-      detail: "There is no live household plan to merge into. Compose one first.",
-    };
-  }
-
-  // ── LA MEILLEURE PAIRE (plan du foyer, plan personnel) ──────────────────
-  // Au plus deux plans du foyer sont vivants à la fois (la contrainte
-  // d'exclusion le garantit: le courant et le suivant), et un membre peut
-  // porter plusieurs plans personnels adjacents. On garde la paire dont la
-  // fenêtre FUSIONNABLE — intersection coupée au pivot — est la plus longue:
-  // c'est la seule mesure qui parle de jours réellement repris.
-  //
-  // ⚠️ LE CHOIX EST FAIT PAR `bestMergePair`, ET PAS ICI (L5). La PROPOSITION
-  // de D10 doit annoncer exactement ce que cette fusion-ci fera; une seconde
-  // arithmétique dans le lecteur aurait promis des jours que la fusion ne prend
-  // pas, et les deux nombres auraient été plausibles.
-  const best = bestMergePair({
-    householdPlans,
-    personalPlans: ownPlans,
-    today: args.todayDate,
-  });
-  if (!best.ok) {
-    return {
-      refusal: best.refusal,
-      detail: best.refusal === MERGE_WINDOW_ALL_PAST
-        ? "Everything those two plans share is already behind us. A merge only " +
-          "touches days nobody has eaten yet."
-        : best.refusal === MERGE_WINDOW_UNREADABLE
-        ? "One of those two plans does not carry a readable window."
-        : "That person's plan and the household plan do not share a single day.",
-    };
-  }
-
-  // LE PLAN PERSONNEL, EN ENTIER. Le roster n'en rend que la FENÊTRE (id,
-  // dates, validation): il n'a jamais eu à porter des plats, et l'élargir pour
-  // ce lot ferait grossir la lecture que le chat fait à chaque tour.
-  const personalRes = await args.admin
-    .from("student_generated_meals")
-    .select("id, starts_on, duration_days, lead_days, validated_at, cooking_sessions, dishes")
-    .eq("id", best.personal.id)
-    .maybeSingle();
-  if (personalRes.error) throw personalRes.error;
-  const personalRow = (personalRes.data ?? null) as Record<string, unknown> | null;
-  if (!personalRow) {
-    // La ligne était là quand le roster l'a vue, et elle ne l'est plus. On
-    // refuse plutôt que de fusionner un plan qu'on n'a pas relu.
-    return {
-      refusal: "merge_plan_vanished",
-      detail: "That plan is no longer readable. Try again.",
-    };
-  }
-
-  // ⚠️ `recomposed`, ET SURTOUT PAS `window` — C5 ②, LE JUMEAU DU P0 DE L10 ①.
-  //
-  // MESURÉ EN HTTP RÉEL LE 2026-08-12. Plan du foyer `[2026-08-12 +3]`, il
-  // cuisine VENDREDI 14 pour Iris; le plan personnel VALIDÉ ET VIVANT d'Iris
-  // `[2026-08-14 +1]` couvre exactement ce jour-là. `other_overlapping_plan_ids`
-  // est rendu `[]`, aucune `issue`: le maître cuisinait une assiette pour
-  // quelqu'un qui avait son plan ce jour-là, et RIEN ne le disait.
-  //
-  // La cause est la même confusion que le P0 de L10 ①, à un site de plus: ce
-  // contrôle interrogeait `window` — les jours de SON plan qui reviennent —
-  // alors que ce qu'on ÉCRIT est `recomposed`, la queue du plan du foyer. Quand
-  // `recomposed` est plus LONGUE (le plan personnel finit avant la fin de la
-  // semaine du foyer), les jours en trop ne sont contrôlés par personne.
-  //
-  // ⚠️ C3 ⑤ REND CE CAS ATTEIGNABLE: c'est lui qui autorise deux plans
-  // personnels adjacents. Avant lui, un second plan mordant était rare.
-  //
-  // RETOUR ARRIÈRE: cette ligne. Son prix est le silence ci-dessus.
-  const mergedSpan: PlanSpan = best.window.recomposed;
-  return {
-    member,
-    householdPlan: best.household,
-    personalPlan: {
-      id: String(personalRow.id),
-      startsOn: String(personalRow.starts_on ?? best.personal.startsOn),
-      durationDays: Number(personalRow.duration_days ?? best.personal.durationDays),
-      // ⟳ A1 (2026-09-03) — la veille de la ligne PERSONNELLE reprise. Elle
-      // sort du même `select` que le reste (`personalRow`); `?? 0` couvre une
-      // base non migrée, où « pas de veille » est ce que la ligne porte.
-      leadDays: Number(personalRow.lead_days ?? 0),
-      validatedAt: personalRow.validated_at == null
-        ? null
-        : String(personalRow.validated_at),
-      cookingDays: storedCookingDays(personalRow.cooking_sessions),
-      dishes: storedDishes(personalRow.dishes),
-      generatedFrom: null,
-    },
-    window: best.window,
-    otherOverlappingPlanIds: ownPlans
-      .filter((p) => p.id !== best.personal.id && plansOverlap(p, mergedSpan))
-      .map((p) => p.id),
-  };
-}
-
-// ===========================================================================
-// L5 · D8 — LA DÉFUSION, RÉSOLUE AVANT TOUTE DÉPENSE ELLE AUSSI
-//
-// « Refaire le plan du foyer SANS user X » est la première des trois sorties de
-// D8, et c'est celle qui préserve les courses déjà faites. Elle recompose la
-// QUEUE du plan du foyer vivant — ce qu'il lui reste à partir d'aujourd'hui
-// (D16) — sans la personne, et avec la consigne écrite mot pour mot dans le
-// registre (`buildUnmergeBlock`).
-//
-// ⚠️ ON NE DÉFUSIONNE QUE CE QUI A ÉTÉ FUSIONNÉ. Le refus
-// `unmerge_member_not_merged` n'est pas une formalité: sans lui, cette
-// opération deviendrait « retire n'importe qui de la table », c'est-à-dire une
-// exclusion permanente que rien dans ce chantier n'autorise — D8 parle d'une
-// personne QUE LE MAÎTRE A REPRISE et qui vient de valider autre chose.
-//
-// ⚠️ ELLE N'ÉCRIT RIEN SUR LE COMPTE DU SECONDAIRE, exactement comme la fusion:
-// « dans tous les cas, X garde son plan » est l'invariant du modèle, et il est
-// STRUCTUREL — `write_student_meal_plan` ne touche que les lignes de
-// `p_user_id` (le maître) et de la même nature.
-// ===========================================================================
-
-interface ResolvedUnmerge {
-  member: RosterRow;
-  /** Le plan du foyer qu'on recompose. C'est LUI, « le plan de base » (D8). */
-  basePlan: StoredPlan;
-  /** Ce qu'il reste de ce plan à partir d'aujourd'hui. */
-  window: MergeWindow;
-}
-
-function resolveUnmergeRequest(args: {
-  roster: readonly RosterRow[];
-  memberId: string;
-  todayDate: string;
-  householdPlans: readonly StoredPlan[];
-}): ResolvedUnmerge | MergeRefusal {
-  const member = args.roster.find((r) => r.member_id === args.memberId);
-  if (!member) {
-    return {
-      refusal: "unmerge_member_not_in_household",
-      detail: "That person is not in this household.",
-    };
-  }
-  if (member.role === "owner") {
-    return {
-      refusal: "unmerge_member_is_owner",
-      detail: "The household plan is theirs: there is nobody to take out of it.",
-    };
-  }
-
-  // LE PLAN DE BASE EST LE PLAN VIVANT QUI PORTE LA REPRISE. Pas le plan
-  // d'avant la fusion: les courses se font sur le plan que l'écran montre, et
-  // c'est celui-là. Voir le long commentaire de `buildUnmergeBlock`.
-  //
-  // ⚠️ ET « LE PLAN VIVANT » N'EST PAS « LE PREMIER DE LA LISTE ». Jusqu'au
-  // 2026-08-12 cette ligne était un `.find(...)` sur une liste triée par
-  // `starts_on` CROISSANT: elle prenait donc le plan du foyer le PLUS ANCIEN,
-  // alors que deux sont vivants en même temps par contrat (le courant et le
-  // suivant, ce que `prepare_next` produit). Mesuré en HTTP: un plan 08-05/4 j
-  // périmé portant la reprise à côté du plan courant 08-12/5 j qui la portait
-  // aussi, et `operation: "unmerge"` rendait 409 `unmerge_window_all_past`
-  // pendant que le lecteur offrait le bouton — le maître n'avait alors AUCUN
-  // moyen de défaire la reprise sur le plan qu'il est en train de manger.
-  //
-  // `mergeCarriers` est la même fonction que celle du lecteur de propositions,
-  // exactement comme `bestMergePair` l'est pour la fusion: la proposition et le
-  // geste choisissent la même ligne, ou ils divergent.
-  const carrier = mergeCarriers({
-    householdPlans: args.householdPlans,
-    today: args.todayDate,
-  }).get(args.memberId) ?? null;
-  if (!carrier) {
-    return {
-      refusal: "unmerge_member_not_merged",
-      detail: "No live household plan has brought that person back to this " +
-        "table, so there is nothing to undo.",
-    };
-  }
-  if (carrier.tail === null) {
-    return {
-      refusal: carrier.tailRefusal === MERGE_WINDOW_UNREADABLE
-        ? "unmerge_window_unreadable"
-        : "unmerge_window_all_past",
-      detail: "That household plan has no day left ahead of it. There is " +
-        "nothing left to cook differently.",
-    };
-  }
-
-  return { member, basePlan: carrier.plan, window: carrier.tail };
-}
-
 // ═══════════════════════════════════════════════════════════════════════════
 // ⟳ 2026-09-15 · LOT A — ACCEPTER TÔT, FINIR DANS LE WORKER
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1690,39 +1210,6 @@ interface HandlerContext {
 
 /** Un uuid, et rien d'autre — pour les en-têtes du relanceur (lot C). */
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-/**
- * LE REFUS TARDIF, PLIÉ DANS LA LIGNE. Un 2xx ne touche à rien: la RPC a écrit
- * `done`. Au-delà de 400, le jeton du corps devient `error_code` — `failDraft`
- * refuse d'écraser `done`/`adopted`, donc un refus arrivé après l'écriture ne
- * défait rien.
- */
-async function foldLateOutcome(draftId: string, late: Response, wallMs: number): Promise<void> {
-  if (late.status < 400) return;
-  const body = await late.clone().json().catch(() => ({})) as Record<string, unknown>;
-  const token = typeof body.error === "string" ? body.error.trim() : "";
-  const errorCode = token !== "" ? token : "compose_failed";
-  // ⚠️ LE POURQUOI, PAS SEULEMENT LE JETON. Mesuré le 2026-09-15 sur staging :
-  // un `plan_not_deliverable` plié avec `error: null` — le 422 ne porte pas de
-  // `detail`, il porte `refusals`/`unevaluated`/`incomplete`. Sans eux, la
-  // ligne dit « refusé » et personne ne sait par quel contrôle.
-  const why: Record<string, unknown> = {};
-  for (const key of ["detail", "refusals", "unevaluated", "incomplete"]) {
-    if (body[key] != null) why[key] = body[key];
-  }
-  const detail = typeof body.detail === "string" && Object.keys(why).length === 1
-    ? body.detail
-    : Object.keys(why).length === 0
-    ? null
-    : JSON.stringify(why);
-  await failDraft(adminClient(), draftId, { errorCode, error: detail, wallMs });
-  console.log(JSON.stringify({
-    tag: "keel.household_meal.late_outcome",
-    draft_id: draftId,
-    status: late.status,
-    error: errorCode,
-  }));
-}
 
 Deno.serve((req) => {
   const wrapperT0 = performance.now();

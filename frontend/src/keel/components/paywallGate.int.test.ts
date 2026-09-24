@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { sourceFamily } from "../../test/sourceFamily";
 
 import { paywallDecision } from "./paywallDecision";
 import type { HouseholdCoverage } from "../api/household";
@@ -97,7 +98,9 @@ describe("le mur n'a pas remplacé la garde du serveur", () => {
   it("les deux générateurs refusent toujours `household_frozen`", () => {
     const root = resolve(__dirname, "../../../../supabase/functions");
     for (const fn of ["generate-household-meal-v1"]) {
-      const src = readFileSync(resolve(root, fn, "index.ts"), "utf8");
+      // ⟳ 2026-09-24 · LOT 3a — la famille de `index.ts` (ses modules sortis,
+      // puis lui), pas le fichier seul : le refus peut vivre dans un module.
+      const src = sourceFamily(resolve(root, fn, "index.ts"));
       expect(src, `${fn} a perdu son refus de gel`).toContain('"household_frozen"');
     }
   });
