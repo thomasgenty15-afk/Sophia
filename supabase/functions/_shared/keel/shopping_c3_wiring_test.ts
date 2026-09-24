@@ -78,7 +78,10 @@ Deno.test("C3 CÂBLAGE ② — la reconstruction tourne APRÈS l'arrondi et AVAN
   // ⛔ L'ORDRE EST LA MOITIÉ DE LA RÈGLE (C2 l'a écrit avant nous) : « recalculer
   // ensuite les calories, protéines, masses et densités, puis les courses et la
   // prose DEPUIS CETTE VERSION ».
-  const arrondi = HANDLER.indexOf("const quantityRounding = (() => {");
+  // ⟳ 2026-09-24 · LOT 3b — l'arrondi est APPELÉ depuis `handle`, son corps vit
+  // dans `finishing.ts` (`quantityRoundingOf`). La position est celle de
+  // l'appel, dans `handle` comme les quatre autres ancres.
+  const arrondi = HANDLER.indexOf("const quantityRounding = quantityRoundingOf({");
   const releve = HANDLER.indexOf("const identitiesBefore = new Set(");
   const rebuild = HANDLER.indexOf("const rebuilt = rebuildShoppingQuantities({");
   const prose = HANDLER.indexOf("const quantityFinal = finalizeQuantityProse(");

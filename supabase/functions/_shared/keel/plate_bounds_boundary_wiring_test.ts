@@ -117,11 +117,18 @@ const A = {
   MAP_DECL: "const boundaryDeficitByKey = new Map<string, number>();",
   PORTION_SIZING: "const portionSizing = await (async () => {",
   SOLO_CLAMP: "addBoundaryDeficit( mouth.memberId, day, slot, (sized.factor - bounded.factor) * standard.kcal, );",
-  FIT: "const portionBoundary = fitPortionsToBounds({",
+  // ⟳ 2026-09-24 · LOT 3b — le rabotage et le contrôle final sont APPELÉS depuis
+  // `handle` et leurs corps vivent dans `finishing.ts`. Les POSITIONS (⑤ ⑥) se
+  // lisent sur les appels, dans `handle` ; `FIT_BODY` vérifie que le corps
+  // appelle toujours `fitPortionsToBounds`. (Comparer le corps, placé AVANT
+  // `index.ts` dans le texte de famille, à une ancre de `handle` serait
+  // toujours vrai.)
+  FIT: "const portionBoundary = portionBoundaryOf({",
+  FIT_BODY: "const portionBoundary = fitPortionsToBounds({",
   SHAVED_LOOP: "for (const shaved of portionBoundary.shavedByMeal) {",
   SHAVED_ADD: "addBoundaryDeficit(shaved.memberId, shaved.day, shaved.slot, shaved.kcal);",
   REBUILD: "sideLedger = buildSideLedgerFor(meal, boundaryDeficitByKey);",
-  FINAL_SIZING: "const finalSizing = (() => {",
+  FINAL_SIZING: "const finalSizing = finalSizingOf({",
   SHOP: "const sideShopping = sideShoppingLines(sideLedger);",
   // ⑦ le pain
   BREAD_FN: "const sideBreadAllowed = (memberId: string, slot: SideCourseSlot): boolean =>",
@@ -191,7 +198,7 @@ function verdict(handler: string, contract: string): string[] {
   ) missing.push("shaved_meals_not_collected");
   // ⑥ le registre reconstruit, avant le contrôle final, les casseroles, les courses
   if (
-    fit < 0 || !(rebuild > fit && rebuild < shop) ||
+    fit < 0 || !handler.includes(A.FIT_BODY) || !(rebuild > fit && rebuild < shop) ||
     rebuild > handler.indexOf(A.FINAL_SIZING)
   ) missing.push("boundary_ledger_not_rebuilt");
   // ⑦ le pain ajouté

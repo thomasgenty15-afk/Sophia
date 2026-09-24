@@ -468,9 +468,18 @@ Deno.test("LOT 5 — LA MESURE FINALE PÈSE LES GRAMMES ÉCRITS, SANS EXCEPTION 
   // seules abstentions sont NOMMÉES par `reason` (`composition_unavailable`,
   // `no_box`).
   const src = await source(FOYER);
-  const at = src.indexOf("const finalSizing = (() => {");
+  // ⟳ 2026-09-24 · LOT 3b — LE CONTRÔLE FINAL A QUITTÉ `handle` POUR
+  // `finishing.ts` (`finalSizingOf`), corps identique. Le bloc lu était
+  // « `const finalSizing = (() => {` et les 2 600 caractères qui suivent » :
+  // le corps de l'IIFE puis le journal `final_sizing` de `handle`. Il est
+  // reconstitué en deux morceaux : le corps de `finalSizingOf` jusqu'à sa
+  // dernière ligne, puis l'appel dans `handle` et le journal qui le suit.
+  const at = src.indexOf("export function finalSizingOf({");
   assert(at >= 0, "`finalSizing` a disparu");
-  const bloc = src.slice(at, at + 2600);
+  const end = src.indexOf("\n}\n", at);
+  const call = src.indexOf("const finalSizing = finalSizingOf({");
+  assert(end > at && call >= 0, "`finalSizingOf` n'est plus appelée depuis `handle`");
+  const bloc = src.slice(at, end) + src.slice(call, call + 600);
   assert(
     bloc.includes("finalPortionCheck({"),
     "la mesure finale ne repèse plus les grammes écrits",

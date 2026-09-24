@@ -202,9 +202,18 @@ Deno.test("⛔ LOT E / P0-b — LE CONTRÔLE FINAL PÈSE LES GRAMMES ÉCRITS, `s
     "l'abstention de l'ombre a été retirée: elle ferait de l'ombre au chemin armé",
   );
   assert(SRC.includes("finalPortionCheck({"), "le contrôle final ne repèse plus rien");
-  const final = SRC.indexOf("const finalSizing = (() => {");
+  // ⟳ 2026-09-24 · LOT 3b — le contrôle final est APPELÉ depuis `handle`
+  // (`finalSizingOf`), et son corps vit dans `finishing.ts`. Les deux moitiés :
+  // `handle` l'appelle, et le corps appelle la mesure du lot B dès sa première
+  // instruction (la fenêtre de 600 caractères part de la fin de la signature).
+  assert(SRC.includes("const finalSizing = finalSizingOf({"), "`handle` n'appelle plus le contrôle final");
+  const signature = SRC.indexOf("export function finalSizingOf({");
+  const final = SRC.indexOf("}) {", signature);
   const check = SRC.indexOf("finalPortionCheck({", final);
-  assert(final > 0 && check > final && check < final + 600, "le contrôle final n'appelle pas la mesure du lot B");
+  assert(
+    signature > 0 && final > signature && check > final && check < final + 600,
+    "le contrôle final n'appelle pas la mesure du lot B",
+  );
 
   // ⛔ LES BORNES SONT CELLES QUI ONT DÉCIDÉ DU FACTEUR, retenues aux DEUX sites
   // de dimensionnement — sinon un troisième calcul divergerait.

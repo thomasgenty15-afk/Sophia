@@ -166,7 +166,16 @@ Deno.test("BÊTA 1C ④⑪ — la casserole est réconciliée APRÈS les bornes 
   // tournait, et comptait — 400 lignes trop tôt, sur les tirages d'avant le
   // dimensionnement. Après le rabotage des bornes, 277 g restaient achetés,
   // cuisinés, servis à personne (`pot_attribution 1 → 0,85`, tir `sna1`).
-  const bornes = HANDLER.indexOf("const portionBoundary = fitPortionsToBounds({");
+  // ⟳ 2026-09-24 · LOT 3b — LE RABOTAGE EST APPELÉ DEPUIS `handle`, SON CORPS
+  // VIT DANS `finishing.ts` (`portionBoundaryOf`). Le texte de famille met ce
+  // module AVANT `index.ts` : garder l'ancre du corps rendrait `bornes <
+  // reconcile` toujours vrai, et ce test d'ORDRE ne garderait plus rien. La
+  // position est donc celle de l'APPEL ; le corps doit toujours raboter.
+  assert(
+    HANDLER.includes("const portionBoundary = fitPortionsToBounds({"),
+    "`portionBoundaryOf` n'appelle plus `fitPortionsToBounds`",
+  );
+  const bornes = HANDLER.indexOf("const portionBoundary = portionBoundaryOf({");
   const reconcile = HANDLER.indexOf("const potReconcile = {");
   const courses = HANDLER.indexOf("const shoppingRebuild = (() => {");
   assert(bornes > 0 && reconcile > 0 && courses > 0, "un des trois blocs a disparu");

@@ -70,9 +70,27 @@ Deno.test("LOT 1 CÂBLAGE ② — les trois compteurs d'achat sortent, et ils ne
 });
 
 Deno.test("LOT 1 CÂBLAGE ③ — la frontière d'arrondi tourne APRÈS l'arrondi et AVANT le contrôle final", () => {
-  const arrondi = HANDLER.indexOf("roundQuantityLines(");
-  const frontiere = HANDLER.indexOf("fitPortionsToBounds({");
-  const controle = HANDLER.indexOf("finalPortionCheck({");
+  // ⟳ 2026-09-24 · LOT 3b — LES TROIS GESTES SONT APPELÉS DEPUIS `handle`, ET
+  // LEURS CORPS VIVENT DANS `finishing.ts`. Le texte de famille met ce module
+  // AVANT `index.ts` : les ancres des corps (`roundQuantityLines(`,
+  // `fitPortionsToBounds({`, `finalPortionCheck({`) précéderaient toujours les
+  // courses de `handle`, et `frontiere < courses` ne garderait plus rien. Les
+  // positions se lisent donc sur les APPELS ; chaque corps doit toujours faire
+  // son geste.
+  for (
+    const [corps, geste] of [
+      ["export function quantityRoundingOf({", "roundQuantityLines("],
+      ["export function portionBoundaryOf({", "fitPortionsToBounds({"],
+      ["export function finalSizingOf({", "finalPortionCheck({"],
+    ]
+  ) {
+    const at = HANDLER.indexOf(corps);
+    const fin = HANDLER.indexOf("\n}\n", at);
+    assert(at > 0 && HANDLER.slice(at, fin).includes(geste), `\`${corps}\` ne fait plus \`${geste}\``);
+  }
+  const arrondi = HANDLER.indexOf("const quantityRounding = quantityRoundingOf({");
+  const frontiere = HANDLER.indexOf("const portionBoundary = portionBoundaryOf({");
+  const controle = HANDLER.indexOf("const finalSizing = finalSizingOf({");
   // ⟳ 2026-09-12 · LOT 3 — `lastIndexOf`, ET C'EST LE POINT. Il y a désormais
   // DEUX reconstructions : le SEMIS, qui produit la liste avant la datation des
   // vagues, et la REQUANTIFICATION finale, qui la réécrit depuis le plan

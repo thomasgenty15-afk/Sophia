@@ -48,7 +48,19 @@ function stripComments(src: string): string {
 const REL = "generate-household-meal-v1/index.ts";
 const SRC = stripComments(await sourceFamily(new URL(REL, FUNCTIONS_DIR)));
 
-const ROUND = "const quantityRounding = (() => {";
+// ⟳ 2026-09-24 · LOT 3b — L'ARRONDI A QUITTÉ `handle` POUR `finishing.ts`
+// (`quantityRoundingOf`), texte identique. Deux ancres au lieu d'une :
+//   · `ROUND` est l'APPEL dans `handle` — c'est lui qui porte la POSITION
+//     (épingles ② et ③), comme l'ancienne ligne `(() => {` la portait ;
+//   · `ROUND_BODY` ouvre le CORPS dans `finishing.ts` — c'est lui qui porte le
+//     CONTENU (épingles ④ ⑤ ⑥).
+// Le texte de famille met les modules AVANT `index.ts` : comparer une ancre du
+// corps à une ancre de `handle` serait toujours vrai et ne garderait plus rien.
+// `FINAL_CALL` est l'appel du contrôle final dans `handle` ; `FINAL_CHECK`
+// reste le premier geste de son corps (`finalSizingOf`, même module).
+const ROUND = "const quantityRounding = quantityRoundingOf({";
+const ROUND_BODY = "export function quantityRoundingOf({";
+const FINAL_CALL = "const finalSizing = finalSizingOf({";
 const ROUND_CALL = "const rounded = roundQuantityLines(";
 const SIZING_EATERS = "const appliedN = applySizingForEaters({";
 const SIZING_SOLO = "const applied = applySizing({";
@@ -62,12 +74,32 @@ const FINAL_CHECK = "const check = finalPortionCheck({";
 const SHOPPING = "const rebuilt = rebuildShoppingQuantities({";
 const PROSE = "const quantityFinal = finalizeQuantityProse(";
 
+/**
+ * ⟳ 2026-09-24 · LOT 3b — « le bloc entre l'arrondi et le contrôle final »,
+ * reconstitué. Avant le lot, c'était `SRC.slice(ROUND, FINAL_CHECK)` dans
+ * `handle`. C'est maintenant : les corps de `quantityRoundingOf` et de
+ * `portionBoundaryOf` (tout ce qui précède `finalSizingOf` dans
+ * `finishing.ts`), PLUS le texte de `handle` entre l'appel de l'arrondi et
+ * celui du contrôle final. Même étendue de code, deux morceaux.
+ */
+function roundingBlock(): string {
+  const body = SRC.indexOf(ROUND_BODY);
+  const bodyEnd = SRC.indexOf("export function finalSizingOf({", body);
+  const call = SRC.indexOf(ROUND);
+  const callEnd = SRC.indexOf(FINAL_CALL, call);
+  assert(body > 0 && bodyEnd > body, "le corps de l'arrondi est introuvable dans `finishing.ts`");
+  assert(call > 0 && callEnd > call, "l'appel de l'arrondi ne précède plus le contrôle final dans `handle`");
+  return SRC.slice(body, bodyEnd) + SRC.slice(call, callEnd);
+}
+
 Deno.test("CÂBLAGE ① l'arrondi existe, une seule fois, et c'est CELUI du module", () => {
   assertEquals(
     SRC.split(ROUND).length - 1,
     1,
     "deux sites d'arrondi finiraient par diverger",
   );
+  // ⟳ 2026-09-24 · LOT 3b — et un seul corps.
+  assertEquals(SRC.split(ROUND_BODY).length - 1, 1, "deux corps d'arrondi finiraient par diverger");
   assertEquals(SRC.split(ROUND_CALL).length - 1, 1);
   // La coupe: la fonction vient du module commun — celui que le navigateur
   // importe aussi — et pas d'une copie locale.
@@ -94,18 +126,24 @@ Deno.test("CÂBLAGE ② il vient APRÈS le dimensionnement et après les cassero
 
 Deno.test("CÂBLAGE ③ il vient AVANT la mesure, les courses et la prose", () => {
   const r = SRC.indexOf(ROUND);
-  const c = SRC.indexOf(FINAL_CHECK);
+  // ⟳ 2026-09-24 · LOT 3b — la POSITION du contrôle final est celle de son
+  // APPEL dans `handle` (`FINAL_CALL`); `FINAL_CHECK` doit rester son corps.
+  const c = SRC.indexOf(FINAL_CALL);
   const a = SRC.indexOf(SHOPPING);
   const p = SRC.indexOf(PROSE);
   assert(r > 0 && c > 0 && a > 0 && p > 0, "les quatre ancres existent");
+  const finalBody = SRC.indexOf("export function finalSizingOf({");
+  assert(
+    finalBody > 0 && SRC.indexOf(FINAL_CHECK, finalBody) > finalBody,
+    "`finalSizingOf` n'appelle plus `finalPortionCheck`",
+  );
   assert(r < c, "`finalPortionCheck` doit juger le plan ARRONDI");
   assert(r < a, "les courses se reconstruisent depuis la version arrondie");
   assert(r < p, "la prose se dérive de la donnée arrondie, jamais l'inverse");
 });
 
 Deno.test("CÂBLAGE ④ `regramMeal` suit l'arrondi, dans le même bloc", () => {
-  const r = SRC.indexOf(ROUND);
-  const bloc = SRC.slice(r, SRC.indexOf(FINAL_CHECK));
+  const bloc = roundingBlock(); // ⟳ 2026-09-24 · LOT 3b — voir `roundingBlock`
   assert(
     bloc.includes("regramMeal(meal, composition)"),
     "sans regrammage, toute casserole touchée devient immesurable",
@@ -117,8 +155,7 @@ Deno.test("CÂBLAGE ④ `regramMeal` suit l'arrondi, dans le même bloc", () => 
 });
 
 Deno.test("CÂBLAGE ⑤ le poids d'une pièce vient du RÉSOLVEUR DE PRODUCTION", () => {
-  const r = SRC.indexOf(ROUND);
-  const bloc = SRC.slice(r, SRC.indexOf(FINAL_CHECK));
+  const bloc = roundingBlock(); // ⟳ 2026-09-24 · LOT 3b — voir `roundingBlock`
   assert(
     bloc.includes("resolveCompositionLine(composition, {"),
     "le cas zéro doit passer par le résolveur du lot A, pas par un second",
@@ -140,8 +177,7 @@ Deno.test("CÂBLAGE ⑥ les défauts partent à la réparation, ils ne disparais
   assert(SRC.includes("issues.push(`rounding_pot_overdrawn:${potsOverdrawn}`)"));
   // La coupe: le contrôle de somme lit bien les grammes des CONTENANTS contre
   // la masse REGRAMMÉE de la casserole, et pas deux fois la même grandeur.
-  const r = SRC.indexOf(ROUND);
-  const bloc = SRC.slice(r, SRC.indexOf(FINAL_CHECK));
+  const bloc = roundingBlock(); // ⟳ 2026-09-24 · LOT 3b — voir `roundingBlock`
   assert(
     bloc.includes("measurePreparation(composition, {"),
     "la masse de la casserole doit venir de la MÊME fonction que les grammes des contenants",
