@@ -15,7 +15,7 @@
 // ══════════════════════════════════════════════════════════════════════════
 
 import { assert, assertEquals } from "jsr:@std/assert@1";
-import { sourceFamily } from "./source_family.ts";
+import { sourceFamily, sourceFamilySync } from "./source_family.ts";
 
 const FUNCTIONS_DIR = new URL("../../", import.meta.url);
 // La racine du dépôt — `supabase/functions/` remonte de deux crans de plus.
@@ -467,7 +467,8 @@ Deno.test("BÊTA 2B — la phrase existe dans les deux langues, et ne nomme aucu
   );
   assert(copy.includes('composition_unavailable: "plan.refusal.composition_unavailable"'));
   for (const lang of ["fr", "en"]) {
-    const src = Deno.readTextFileSync(
+    // ⟳ 2026-09-24 — le pack est découpé par namespace: on lit sa FAMILLE.
+    const src = sourceFamilySync(
       new URL(`frontend/src/keel/i18n/${lang}.ts`, REPO),
     );
     const at = src.indexOf('"plan.refusal.composition_unavailable":');

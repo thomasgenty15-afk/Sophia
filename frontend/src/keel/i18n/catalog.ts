@@ -1124,6 +1124,18 @@ export type TranslatedMessageKey = Extract<
 export type TranslatedMessages = Record<TranslatedMessageKey, string>;
 
 /**
+ * ⟳ 2026-09-24 — La part de `TranslatedMessages` d'UN namespace (le préfixe
+ * avant le premier point). Chaque morceau `fr/<namespace>.ts` s'en sert avec
+ * `satisfies`: il doit porter toutes les clés traduites de son namespace, et
+ * aucune clé inconnue ni d'un autre namespace — l'erreur tombe dans le fichier
+ * du namespace, pas au bout de l'assemblage.
+ */
+export type TranslatedMessagesOf<Namespace extends string> = Pick<
+  TranslatedMessages,
+  Extract<TranslatedMessageKey, `${Namespace}.${string}`>
+>;
+
+/**
  * Les clés traduites présentes dans le seed, à l'exécution.
  *
  * Le type ci-dessus est effacé à la compilation; `t()` a besoin de savoir, à

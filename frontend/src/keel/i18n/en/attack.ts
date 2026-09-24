@@ -1,0 +1,80 @@
+// Seed anglais — le namespace `attack`, et lui seul.
+// Assemblé dans `../en.ts`; une clé `attack.*` ne vit qu'ici (`dictionaryChunks.int.test.ts`).
+
+export const enAttack = {
+  // Attack cards (extracted from the legacy LabCardsPanel in W2.B)
+  "attack.section.title": "Attack",
+  "attack.section.subtitle":
+    "Cards that make action feel more natural, less costly, and less dependent on raw willpower.",
+  "attack.how_it_works.label": "How does it work?",
+  "attack.how_it_works.body":
+    "An attack card is not there to push you harder at the last second. It works upstream, so the right behaviour is already easier when the moment arrives. In practice you prepare the ground — mentally or materially — to cut friction and hesitation, so you need less force on the day. A visual anchor can put you back on track without renegotiating with yourself; a start ritual can make beginning far simpler.",
+  "attack.techniques.label": "Which techniques?",
+  "attack.techniques.all_created": "Every technique has already been created.",
+  "attack.preview.generates": "Generates: {output}",
+  "attack.free.title": "Free attack cards",
+  "attack.free.subtitle": "For actions that can help you but are not part of the plan.",
+  "attack.free.loading": "Loading...",
+  "attack.free.add": "Add a card",
+  "attack.free.preparing": "Preparing...",
+  "attack.free.empty": "You do not have a free attack card in this section yet.",
+  "attack.free.create_first": "Create my first card",
+  "attack.free.all_created": "All 6 cards have already been created.",
+  "attack.free.remaining_one": "{count} technique left.",
+  "attack.free.remaining_many": "{count} techniques left.",
+  "attack.plan.title": "Plan attack cards",
+  "attack.plan.subtitle":
+    "They are filed here, level by level, when you choose to prepare one for a plan action.",
+  "attack.card.created_badge": "Created",
+  "attack.card.keyword_label": "Keyword",
+  "attack.card.supporting_points": "Supporting points",
+  "attack.card.how_to_use": "How to use it",
+  "attack.card.adjust": "I tried it, it is not working",
+  "attack.card.analyzing": "Analyzing...",
+
+  // Attack card creation flow
+  "attack.flow.eyebrow": "Attack card",
+  "attack.flow.title_choose": "Choose the technique",
+  "attack.flow.title_questions": "Questionnaire",
+  "attack.flow.title_result": "Your card is ready",
+  "attack.flow.help_choose": "Pick one of the 6 techniques, then follow its short path.",
+  "attack.flow.help_questions": "Answer the questions so the card fits you.",
+  "attack.flow.help_result": "You can close this. The card now lives in your space.",
+  "attack.flow.none_left": "All 6 attack cards already exist for this space.",
+  "attack.flow.change_technique": "Change technique",
+  "attack.flow.generate": "Generate the card",
+  "attack.flow.generating": "Generating...",
+  "attack.flow.generated_eyebrow": "Generated card",
+  "attack.flow.error_missing_answers": "Answer the questions to generate this card.",
+  "attack.flow.error_generate_failed": "This card cannot be generated right now.",
+
+  // Attack card adjustment flow
+  "attack.adjust.eyebrow": "Adjust an attack card",
+  "attack.adjust.title_feedback": "What did not land?",
+  "attack.adjust.title_choose": "Proposed new direction",
+  "attack.adjust.title_result": "Your new version is ready",
+  "attack.adjust.help_feedback":
+    "We keep the context, understand what got stuck, then refine or switch technique.",
+  "attack.adjust.help_choose":
+    "Here is the direction that looks most suitable — you can change it.",
+  "attack.adjust.help_questions": "A few more answers so we can generate something sharper.",
+  "attack.adjust.help_result": "The card has been recalibrated from your feedback.",
+  "attack.adjust.current_technique": "Current technique",
+  "attack.adjust.why_question": "Why do you feel it did not work?",
+  "attack.adjust.notes_label": "You can add anything else here",
+  "attack.adjust.reason.forgot": "I did not think of it at the right moment",
+  "attack.adjust.reason.too_abstract": "It was too abstract",
+  "attack.adjust.reason.too_hard": "It was too hard to do",
+  "attack.adjust.reason.did_not_resonate": "It did not speak to me",
+  "attack.adjust.reason.wrong_problem": "The real problem was not that one",
+  "attack.adjust.reason.other": "Other",
+  "attack.adjust.proposal": "Suggestion",
+  "attack.adjust.decision_change": "Switching technique looks like the better move.",
+  "attack.adjust.decision_refine": "Refining this technique looks like the better move.",
+  "attack.adjust.new_version": "New version",
+  "attack.adjust.regenerate": "Regenerate something better suited",
+  "attack.adjust.regenerating": "Regenerating...",
+  "attack.adjust.error_analyze": "This card cannot be analysed right now.",
+  "attack.adjust.error_missing_answers": "Answer the questions to recalibrate this card.",
+  "attack.adjust.error_regenerate": "This card cannot be regenerated right now.",
+} as const

@@ -1,0 +1,50 @@
+// Seed anglais — le namespace `editor`, et lui seul.
+// Assemblé dans `../en.ts`; une clé `editor.*` ne vit qu'ici (`dictionaryChunks.int.test.ts`).
+
+export const enEditor = {
+  // Commitment editor — one control per axis of plan_commitments
+  "editor.axis_identity": "What it is",
+  "editor.axis_anchor": "When",
+  "editor.axis_level": "How much",
+  "editor.axis_evidence": "How it is evidenced",
+  "editor.axis_cadence": "How often",
+  "editor.axis_governance": "How strict",
+  "editor.title": "Title",
+  "editor.template_key": "Template key",
+  "editor.student_instruction": "Instruction to the student (kept verbatim)",
+  "editor.content_locale": "Language of this text",
+  "editor.polarity": "Polarity",
+  "editor.activity_class": "Class",
+  "editor.anchor_kind": "Anchor",
+  "editor.slot_key": "Slot",
+  "editor.clock_local": "Time",
+  "editor.tolerance_minutes": "Tolerance (min)",
+  "editor.window_start_local": "Window from",
+  "editor.window_end_local": "Window to",
+  "editor.measure": "Measure",
+  "editor.unit": "Unit",
+  "editor.target_op": "Comparator",
+  "editor.target_min": "Min",
+  "editor.target_max": "Max",
+  "editor.substance_ref": "Substance",
+  "editor.food_group_ref": "Food group",
+  "editor.evidence_kind": "Evidence",
+  "editor.evidence_required": "Evidence required",
+  "editor.auto_source": "Device feed",
+  "editor.counts_toward_adherence": "Counts toward adherence",
+  "editor.counts_hint": "Off means it is tracked as an outcome, never scored.",
+  "editor.evaluation_grain": "Grain",
+  "editor.slot_kind": "Slot kind",
+  "editor.scheduled_days": "Days",
+  "editor.required_days_per_week": "Days required per week",
+  "editor.required_days_hint": "This is the denominator of adherence.",
+  "editor.expected_occasions_per_day": "Occasions per day",
+  "editor.priority": "Priority",
+  "editor.autonomy": "Autonomy",
+  "editor.flex_eligible": "Flex eligible",
+  // "Provenance" and "Needs clinician sign-off" were removed with the gate they
+  // fed (2026-07-28). Both columns still exist; nothing asks the coach to
+  // classify their own prescription before the software will carry it.
+  "editor.none_option": "— none —",
+  "editor.vocabulary_error": "The vocabularies could not be loaded, so no selector can be trusted. {message}",
+} as const

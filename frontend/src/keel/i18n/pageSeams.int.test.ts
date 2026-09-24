@@ -149,7 +149,9 @@ function reachableNamespaces(entries: string[]): Map<string, string[]> {
     if (seen.has(file)) continue;
     seen.add(file);
     // Le seed lui-même et le catalogue sont des TABLES de clés, pas des rendus.
+    // ⟳ 2026-09-24 — et leurs morceaux par namespace (`i18n/en/*.ts`, `i18n/fr/*.ts`).
     if (/i18n[/\\](en|fr|catalog)\.ts$/.test(file)) continue;
+    if (/i18n[/\\](en|fr)[/\\][^/\\]+\.ts$/.test(file)) continue;
     let raw: string;
     try {
       raw = fs.readFileSync(file, "utf8");

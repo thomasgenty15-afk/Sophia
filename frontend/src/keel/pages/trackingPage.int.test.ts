@@ -304,6 +304,10 @@ describe("A7 — une clé du suivi qui n'est pas rendue est une clé qui peut me
 
   const CODE = sources(resolve(__dirname, ".."))
     .filter((f) => !/[\\/]i18n[\\/](en|fr|catalog)\.ts$/.test(f))
+    // ⟳ 2026-09-24 — les packs sont découpés en `i18n/en/*.ts` et `i18n/fr/*.ts`.
+    // Sans cette ligne, chaque clé `tracking.*` se trouvait un « appelant » dans
+    // son propre morceau, et le test ci-dessous ne pouvait plus rougir.
+    .filter((f) => !/[\\/]i18n[\\/](en|fr)[\\/][^\\/]+\.ts$/.test(f))
     .map((f) => readFileSync(f, "utf8"))
     .join("\n");
 

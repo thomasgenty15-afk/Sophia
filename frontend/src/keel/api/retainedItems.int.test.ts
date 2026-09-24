@@ -18,6 +18,9 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+// ⟳ 2026-09-24 — les packs `en.ts`/`fr.ts` sont découpés par namespace: les
+// clés se cherchent dans leur FAMILLE (le fichier d'assemblage et ses morceaux).
+import { sourceFamily } from "../../test/sourceFamily";
 
 /**
  * LE PORT D'ÉCRITURE, INTERCEPTÉ — et c'est ce qui rend le défaut MESURABLE.
@@ -1536,8 +1539,8 @@ describe("`stale_snapshot` n'accuse plus une concurrence imaginaire", () => {
       resolve(__dirname, "../components/KnownAboutYouCard.tsx"),
       "utf8",
     );
-    const en = readFileSync(resolve(__dirname, "../i18n/en.ts"), "utf8");
-    const fr = readFileSync(resolve(__dirname, "../i18n/fr.ts"), "utf8");
+    const en = sourceFamily(resolve(__dirname, "../i18n/en.ts"));
+    const fr = sourceFamily(resolve(__dirname, "../i18n/fr.ts"));
     const missing: string[] = [];
     for (const refusal of KNOWN_WRITE_REFUSALS) {
       const line = stripComments(card).match(
@@ -2174,8 +2177,8 @@ describe("⟳ LOT C — la carte dit « moins souvent », elle ne l'affiche plus
   });
 
   it("la clé existe dans LES DEUX langues", () => {
-    const fr = readFileSync(resolve(__dirname, "../i18n/fr.ts"), "utf8");
-    const en = readFileSync(resolve(__dirname, "../i18n/en.ts"), "utf8");
+    const fr = sourceFamily(resolve(__dirname, "../i18n/fr.ts"));
+    const en = sourceFamily(resolve(__dirname, "../i18n/en.ts"));
     expect(fr).toContain('"known.force.less"');
     expect(en).toContain('"known.force.less"');
   });
@@ -2234,8 +2237,8 @@ describe("⟳ LOT D — une bouche ne pèse pas sur le menu", () => {
       "utf8",
     );
     expect(card).toContain('not_owner: "known.error.not_owner"');
-    const fr = readFileSync(resolve(__dirname, "../i18n/fr.ts"), "utf8");
-    const en = readFileSync(resolve(__dirname, "../i18n/en.ts"), "utf8");
+    const fr = sourceFamily(resolve(__dirname, "../i18n/fr.ts"));
+    const en = sourceFamily(resolve(__dirname, "../i18n/en.ts"));
     expect(fr).toContain('"known.error.not_owner"');
     expect(en).toContain('"known.error.not_owner"');
   });
@@ -2243,7 +2246,7 @@ describe("⟳ LOT D — une bouche ne pèse pas sur le menu", () => {
   it("la phrase DIT où le geste se fait, elle ne dit pas seulement non", () => {
     // Un refus qui ne dit pas où aller est un mur. Celui-ci nomme le compte
     // qui tient la maison, et promet que ça remontera ici.
-    const fr = readFileSync(resolve(__dirname, "../i18n/fr.ts"), "utf8");
+    const fr = sourceFamily(resolve(__dirname, "../i18n/fr.ts"));
     const line = fr.split("\n").find((l) => l.includes('"known.error.not_owner"'))!;
     expect(line).toMatch(/compte qui tient la maison/);
     expect(line).toMatch(/Rien n'a été écrit/);

@@ -57,12 +57,17 @@ const FRONTEND = path.resolve(HERE, "..");
 const FONT_DIR = path.join(FRONTEND, "src/assets/fonts");
 const OUT = path.join(FRONTEND, "public/og-image.png");
 
-// ── LA COPIE, LUE DE `i18n/fr.ts` ──────────────────────────────────────────
-const FR = fs.readFileSync(path.join(FRONTEND, "src/keel/i18n/fr.ts"), "utf8");
+// ── LA COPIE, LUE DE `i18n/fr/<namespace>.ts` ──────────────────────────────
+// ⟳ 2026-09-24 — `fr.ts` n'assemble plus que des morceaux, un par namespace:
+// la clé `home.hero.title_1` vit dans `i18n/fr/home.ts`. Le fichier lu se
+// déduit de la clé, et un morceau absent fait échouer le script comme une clé
+// absente.
 /** La valeur d'une clé du pack français, ou un échec bruyant. */
 function message(key) {
+  const file = `src/keel/i18n/fr/${key.split(".")[0]}.ts`;
+  const FR = fs.readFileSync(path.join(FRONTEND, file), "utf8");
   const m = FR.match(new RegExp(`"${key.replace(/\./g, "\\.")}":\\s*\n?\\s*"([^"]*)"`));
-  if (!m) throw new Error(`clé absente de i18n/fr.ts: ${key}`);
+  if (!m) throw new Error(`clé absente de ${file}: ${key}`);
   return m[1];
 }
 const TITLE_1 = message("home.hero.title_1");

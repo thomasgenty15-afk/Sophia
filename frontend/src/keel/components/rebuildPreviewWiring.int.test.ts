@@ -16,8 +16,10 @@ import { sourceFamily } from "../../test/sourceFamily";
 const BUILDER = readFileSync(new URL("./MealBuilder.tsx", import.meta.url), "utf8");
 const PAGE = sourceFamily(new URL("../pages/StudentWeekPlanPage.tsx", import.meta.url));
 const DIALOG = readFileSync(new URL("./plan/PlanDraftDialog.tsx", import.meta.url), "utf8");
-const FR = readFileSync(new URL("../i18n/fr.ts", import.meta.url), "utf8");
-const EN = readFileSync(new URL("../i18n/en.ts", import.meta.url), "utf8");
+// ⟳ 2026-09-24 — les packs sont découpés par namespace (`i18n/en/`, `i18n/fr/`):
+// on lit la FAMILLE de chaque pack, pas le seul fichier d'assemblage.
+const FR = sourceFamily(new URL("../i18n/fr.ts", import.meta.url));
+const EN = sourceFamily(new URL("../i18n/en.ts", import.meta.url));
 const API = readFileSync(new URL("../api/planDraft.ts", import.meta.url), "utf8");
 
 describe("① remplacer se confirme avant de composer", () => {

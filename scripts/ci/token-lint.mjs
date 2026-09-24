@@ -75,6 +75,9 @@ function isI18nExempt(file) {
   const r = rel(file);
   return (
     /^frontend\/src\/keel\/i18n\/[^/]+\.ts$/.test(r) ||
+    // ⟳ 2026-09-24 — les morceaux du seed et du pack (`i18n/en/<namespace>.ts`,
+    // `i18n/fr/<namespace>.ts`): le même contenu qu'`en.ts`/`fr.ts`, découpé.
+    /^frontend\/src\/keel\/i18n\/(en|fr)\/[^/]+\.ts$/.test(r) ||
     /^supabase\/functions\/_shared\/keel\/locale[^/]*\.ts$/.test(r) ||
     // Les PACKS DE LIBELLÉS côté serveur (`labels.en.ts`, `labels.fr.ts`, et
     // l'accesseur `labels.ts`). L'exemption ne couvrait que le seed du front,
@@ -445,10 +448,18 @@ const INTERNAL_IN_PROSE = [
 // ⚠️ `fr.public.ts` A ÉTÉ RENOMMÉ `fr.ts` (lot 2): le pack ne couvre plus la
 // seule vitrine. Le nom vivait ici ET dans `i18n/`, et l'oublier de ce côté
 // aurait fait scanner le pack français comme du code ordinaire.
+//
+// ⟳ 2026-09-24 — `en.ts` et `fr.ts` n'assemblent plus que des morceaux, un par
+// namespace, dans `i18n/en/` et `i18n/fr/`. Les valeurs vivent LÀ: les deux
+// dossiers sont nommés ici au même titre que les deux fichiers, et rien d'autre
+// de `i18n/` n'y entre.
 const LOCALE_SEED_BASENAMES = new Set(["en.ts", "fr.ts"]);
+const LOCALE_SEED_DIRS = new Set(["en", "fr"]);
 const localeSeeds = files.filter((f) =>
-  /^frontend\/src\/keel\/i18n\/[^/]+\.ts$/.test(rel(f)) &&
-  LOCALE_SEED_BASENAMES.has(path.basename(f))
+  (/^frontend\/src\/keel\/i18n\/[^/]+\.ts$/.test(rel(f)) &&
+    LOCALE_SEED_BASENAMES.has(path.basename(f))) ||
+  (/^frontend\/src\/keel\/i18n\/[^/]+\/[^/]+\.ts$/.test(rel(f)) &&
+    LOCALE_SEED_DIRS.has(path.basename(path.dirname(f))))
 );
 
 // LES CLÉS DONT LA VALEUR *EST* UN JETON, ET PAS DE LA PROSE.
@@ -481,6 +492,17 @@ for (const file of localeSeeds) {
       lastKey = m[1];
       continue;
     }
+    // ⟳ 2026-09-24 — UNE VALEUR SUIT `:` (ou le `+` d'une concaténation). Depuis
+    // le découpage, les fichiers du seed portent aussi des littéraux qui ne sont
+    // pas du texte lu: les chemins d'import d'`en.ts`/`fr.ts`
+    // (`"./fr/food_group.ts"`) et le namespace du `satisfies` de chaque morceau
+    // (`TranslatedMessagesOf<"food_group">`). Mesuré sur `en.ts` et `fr.ts`
+    // d'avant le découpage: 8 287 valeurs, TOUTES précédées de `:` ou `+` — la
+    // seule autre était l'import `"./catalog"`. Ce filtre ne retire donc aucune
+    // valeur du scan.
+    let before = m.index - 1;
+    while (before >= 0 && /\s/.test(stripped[before])) before--;
+    if (stripped[before] !== ":" && stripped[before] !== "+") continue;
     if (lastKey !== null && TOKEN_SHAPED_KEYS.has(lastKey)) continue;
     for (const rule of INTERNAL_IN_PROSE) {
       const hit = rule.re.exec(m[1]);
