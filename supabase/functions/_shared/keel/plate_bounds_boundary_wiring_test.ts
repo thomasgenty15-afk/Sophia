@@ -142,11 +142,17 @@ const A = {
   RELOCK_GLUE: "payload.side_courses = relocked.side_courses",
   FINAL: "const finalServed = finalServedByMouthDay({",
   // ⑩ ⑪ les traces
-  BOUNDARY_TRACE: "const portionBoundaryTrace = (() => {",
+  // ⟳ 2026-09-24 · LOT 3b — les deux traces sont sorties de `handle` dans
+  // `traces.ts`, corps identiques. L'ancre est la signature de la fonction,
+  // écrite sur une ligne qui finit par l'accolade du CORPS : `blockAt` rend le
+  // même bloc qu'avant (le corps de l'ex-IIFE).
+  BOUNDARY_TRACE:
+    "export function portionBoundaryTraceOf({ portionBoundary, withheldMemberIds, mouthBucketOf }: PortionBoundaryTraceInput) {",
   SHAVED_OUT: "shavedByMeal: _shavedByMeal,",
   PROMPT_TRACE: "const promptTrace = {",
   PLATE_TRACE: "plate_bounds: plateBoundsTrace,",
-  PLATE_TRACE_BLOCK: "const plateBoundsTrace = (() => {",
+  PLATE_TRACE_BLOCK:
+    "export function plateBoundsTraceOf({ platedMembers, withheldMemberIds, bodyOfMouth, personalPlateBoundsByMember, mouthBucketOf }: PlateBoundsTraceInput) {",
 } as const;
 
 /** CE QUI MANQUE, jonction par jonction. `[]` = tout est branché. */

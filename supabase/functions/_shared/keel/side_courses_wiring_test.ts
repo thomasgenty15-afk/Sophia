@@ -660,7 +660,13 @@ const AFTER = {
   BOX_TRACE: "const boxTrace = {",
   DAY_KCAL: '...("day_kcal" in histogrammes ? { day_kcal: finalDayKcal } : {}),',
   FINAL_TRACE: "final_served: { ...finalServed.counters, per_mouth: finalDayKcal.per_mouth },",
-  DAY_KCAL_BLOCK: "const finalDayKcal = (() => {",
+  // ⟳ 2026-09-24 · LOT 3b — `finalDayKcal` et `portionBoundaryTrace` sont sortis
+  // de `handle` dans `traces.ts`, corps identiques. L'ancre est la signature,
+  // écrite sur une ligne qui finit par l'accolade du CORPS : `blockAt` rend le
+  // même bloc qu'avant, et les coupes qui partent de cette ancre visent le même
+  // texte.
+  DAY_KCAL_BLOCK: "export function finalDayKcalOf({ finalServed, mouthBucketOf }: FinalDayKcalInput) {",
+  BOUNDARY_TRACE_BLOCK: "export function portionBoundaryTraceOf({ portionBoundary, withheldMemberIds, mouthBucketOf }: PortionBoundaryTraceInput) {",
   PLATE_LOAD_BLOCK: "const plateLoad = composition === null ? null : (() => {",
   PLATE_LOAD_TRACE: "plate_load: plateLoad,",
   REPAIR_CALL: ": planRepairMessage({",
@@ -793,7 +799,7 @@ function verdictAfter(code: string): string[] {
   // personne sous plancher TCA dans ses seaux.
   if (
     !/if \(withheldMemberIds\.has\(memberId\)\) \{\s*kcalWithheldMouths\+\+;\s*continue;\s*\}/.test(
-      blockAt(code, "const portionBoundaryTrace = (() => {"),
+      blockAt(code, A.BOUNDARY_TRACE_BLOCK),
     )
   ) missing.push("boundary_speaks_under_floor");
   if (
@@ -895,7 +901,7 @@ Deno.test("CÂBLAGE — chaque jonction d'après le modèle coupée fait ROUGIR,
     ["starch_goal_ungated", (s) => replaceAt(s, A.STARCH_GOAL_GATED, "goal: m.goal,")],
     [
       "boundary_speaks_under_floor",
-      (s) => replaceAt(s, "if (withheldMemberIds.has(memberId)) {", "if (false) {", s.indexOf("const portionBoundaryTrace = (() => {")),
+      (s) => replaceAt(s, "if (withheldMemberIds.has(memberId)) {", "if (false) {", s.indexOf(A.BOUNDARY_TRACE_BLOCK)),
     ],
     ["boundary_by_member_logged", (s) => replaceAt(s, A.BOUNDARY_LOG, "...portionBoundary,")],
     ["final_served_misplaced", (s) => replaceAt(s, A.FINAL_DISHES, "const finalEnergyDishes = readEnergyBoxDishes(meal.dishes);")],

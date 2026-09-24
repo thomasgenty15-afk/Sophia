@@ -43,7 +43,14 @@ const PASS_ONE = 'runProteinCeilingPass(\n          "one_mouth",';
 const ADJUST_TABLE = 'logProportionAdjust("table", adjustment,';
 const ADJUST_ONE = 'logProportionAdjust("one_mouth", adjustment,';
 const GATE = "finalPlanGate(asGatePlan(writePayload), gateContext)";
-const TRACE = "const proteinCeilingTrace = (() => {";
+// ⟳ 2026-09-24 · LOT 3b — la trace est sortie de `handle` dans `traces.ts`
+// (`proteinCeilingTraceOf`), corps identique. `TRACE` est l'APPEL dans
+// `handle` (il porte la position : construite avant d'être écrite) ;
+// `TRACE_BODY` ouvre le corps, qui doit porter la passe. Le texte de famille
+// met `traces.ts` AVANT `index.ts` : lire le corps entre deux ancres de
+// `handle` ne trouverait plus rien.
+const TRACE = "const proteinCeilingTrace = proteinCeilingTraceOf({";
+const TRACE_BODY = "export function proteinCeilingTraceOf(";
 const WRITE = "unknown>).protein_ceiling =\n      proteinCeilingTrace;";
 
 Deno.test("⟳ 2026-09-22 — LA PASSE EST ÉTEINTE: le plafond est une mesure, et la trace le dit", () => {
@@ -146,7 +153,9 @@ Deno.test("CÂBLAGE ⑦ les trois compteurs atteignent `generated_from.protein_c
   const write = SRC.indexOf(WRITE);
   assert(trace > 0 && write > 0, "la trace et son écriture existent");
   assert(trace < write, "la trace est construite avant d'être écrite");
-  const traceBody = SRC.slice(trace, write);
+  const traceStart = SRC.indexOf(TRACE_BODY);
+  const traceBody = SRC.slice(traceStart, SRC.indexOf("\n}\n", traceStart));
+  assert(traceStart >= 0, "le corps de la trace a disparu de `traces.ts`");
   assert(
     traceBody.includes("adjust: proteinCeilingPass"),
     "`generated_from.protein_ceiling.adjust` doit porter la passe",

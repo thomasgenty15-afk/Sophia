@@ -6,7 +6,8 @@
     "supabase/functions/generate-household-meal-v1/types.ts",
     "supabase/functions/generate-household-meal-v1/merge_request.ts",
     "supabase/functions/generate-household-meal-v1/late_outcome.ts",
-    "supabase/functions/generate-household-meal-v1/finishing.ts"
+    "supabase/functions/generate-household-meal-v1/finishing.ts",
+    "supabase/functions/generate-household-meal-v1/traces.ts"
   ],
   "supabase/functions/_shared/keel/meal_generation.ts": [
     "supabase/functions/_shared/keel/meal_vocabulary.ts",

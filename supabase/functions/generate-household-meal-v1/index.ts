@@ -419,8 +419,6 @@ import {
   // entretien), et la table d'âge qu'il remplace pour la trace `plate_bounds`.
   type PersonalPlateBounds,
   personalPlateBoundsFor,
-  PLATE_MASS_BOUNDS_G,
-  plateBandOf,
   lidPlanFor,
   potFactorAcross,
   SHADOW_SIZING_AT_N,
@@ -1013,7 +1011,6 @@ import {
 import {
   type Envelope,
   envelopeFor,
-  PROTEIN_CEILING_G_PER_KG,
   proteinCeilingGFor,
   ACTIVITY_ANSWER_STATES,
   ACTIVITY_FACTOR_SOURCES,
@@ -1063,6 +1060,12 @@ import {
 } from "./merge_request.ts";
 import { foldLateOutcome } from "./late_outcome.ts";
 import { finalSizingOf, portionBoundaryOf, quantityRoundingOf } from "./finishing.ts";
+import {
+  finalDayKcalOf,
+  plateBoundsTraceOf,
+  portionBoundaryTraceOf,
+  proteinCeilingTraceOf,
+} from "./traces.ts";
 
 /**
  * `generate-household-meal-v1` — UNE cuisson, des portions qui divergent.
@@ -17684,40 +17687,12 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
     // ⛔ `by_member` NE SORT PAS TEL QUEL: il porte un `member_id` à côté de
     // kcal. Rangé par seau (la règle du journal, précédent `residualGaps`), et
     // sous plancher TCA la bouche ne verse aucun kcal dans aucune somme.
-    const portionBoundaryTrace = (() => {
-      // ⟳ 2026-09-24 — `shavedByMeal` non plus: un `member_id` à côté de kcal,
-      // lu par le registre juste en dessous, jamais par un journal.
-      const {
-        by_member: byMember,
-        kcal_shaved: _kcalShavedAll,
-        shavedByMeal: _shavedByMeal,
-        ...counts
-      } = portionBoundary;
-      const byBucket: Record<string, { mouths: number; meals: number; grams: number; kcal: number }> =
-        {};
-      let kcalShaved = 0;
-      let kcalWithheldMouths = 0;
-      for (const [memberId, row] of Object.entries(byMember).sort(([a], [b]) => a < b ? -1 : 1)) {
-        if (withheldMemberIds.has(memberId)) {
-          kcalWithheldMouths++;
-          continue;
-        }
-        const bucket = mouthBucketOf(memberId);
-        const acc = byBucket[bucket] ?? { mouths: 0, meals: 0, grams: 0, kcal: 0 };
-        acc.mouths++;
-        acc.meals += row.meals;
-        acc.grams += Math.round(row.grams);
-        acc.kcal += Math.round(row.kcal);
-        byBucket[bucket] = acc;
-        kcalShaved += row.kcal;
-      }
-      return {
-        ...counts,
-        kcal_shaved: Math.round(kcalShaved),
-        kcal_withheld_mouths: kcalWithheldMouths,
-        by_bucket: byBucket,
-      };
-    })();
+    // ⟳ 2026-09-24 · LOT 3b — le corps est dans `traces.ts` (`portionBoundaryTraceOf`), tel quel.
+    const portionBoundaryTrace = portionBoundaryTraceOf({
+      portionBoundary,
+      withheldMemberIds,
+      mouthBucketOf,
+    });
     console.log(JSON.stringify({
       tag: "keel.household_meal.portion_boundary",
       user_id: userId,
@@ -19551,52 +19526,11 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
      * `within_5pct` / `over_5pct` recalculés sur ce qui part. `unreadable`
      * compte les journées dont une part ne se lit pas: jamais un zéro.
      */
-    const finalDayKcal = (() => {
-      const out = {
-        rows: 0,
-        within_5pct: 0,
-        over_5pct: 0,
-        unreadable: 0,
-        per_mouth: [] as {
-          day: string;
-          eater_bucket: string;
-          n: number;
-          served: number | null;
-          served_before_bounds: number | null;
-          shaved_kcal: number | null;
-          sides_kcal: number | null;
-          target: number;
-          pct: number | null;
-        }[],
-      };
-      const rank = new Map<string, number>();
-      const keyOf = (r: { memberId: string; day: string }) => `${r.memberId} ${r.day}`;
-      const sorted = [...finalServed.rows].sort((a, b) =>
-        keyOf(a) < keyOf(b) ? -1 : keyOf(a) > keyOf(b) ? 1 : 0
-      );
-      for (const r of sorted) {
-        if (r.targetKcal === null || !(r.targetKcal > 0)) continue;
-        out.rows++;
-        if (r.servedKcal === null) out.unreadable++;
-        else if (Math.abs(r.servedKcal - r.targetKcal) / r.targetKcal <= 0.05) out.within_5pct++;
-        else out.over_5pct++;
-        const bucket = mouthBucketOf(r.memberId);
-        const n = (rank.get(bucket) ?? 0) + 1;
-        rank.set(bucket, n);
-        out.per_mouth.push({
-          day: r.day,
-          eater_bucket: bucket,
-          n,
-          served: r.servedKcal,
-          served_before_bounds: r.servedBeforeBoundsKcal,
-          shaved_kcal: r.shavedKcal,
-          sides_kcal: r.sidesKcal,
-          target: Math.round(r.targetKcal),
-          pct: r.pct,
-        });
-      }
-      return out;
-    })();
+    // ⟳ 2026-09-24 · LOT 3b — le corps est dans `traces.ts` (`finalDayKcalOf`), tel quel.
+    const finalDayKcal = finalDayKcalOf({
+      finalServed,
+      mouthBucketOf,
+    });
     /**
      * LA CHARGE DE L'ASSIETTE (plat, céréale sèche, légumes, part du féculent,
      * à-côtés, fruits, repas complet). ⛔ `member_id` REMPLACÉ PAR SEAU + RANG:
@@ -19998,40 +19932,14 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
      * des identifiants, par seau). Sous plancher TCA, aucune ligne: la bouche
      * est comptée dans `withheld_mouths`.
      */
-    const plateBoundsTrace = (() => {
-      const out = {
-        withheld_mouths: 0,
-        per_mouth: [] as {
-          eater_bucket: string;
-          n: number;
-          max_g: number;
-          min_g: number;
-          source: "personal" | "table";
-        }[],
-      };
-      const rank = new Map<string, number>();
-      const ids = platedMembers.map((x) => x.memberId).sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
-      for (const memberId of ids) {
-        if (withheldMemberIds.has(memberId)) {
-          out.withheld_mouths++;
-          continue;
-        }
-        const table =
-          PLATE_MASS_BOUNDS_G[plateBandOf(bodyOfMouth(memberId)?.ageYears ?? null).band].meal;
-        const personal = personalPlateBoundsByMember.get(memberId) ?? null;
-        const bucket = mouthBucketOf(memberId);
-        const n = (rank.get(bucket) ?? 0) + 1;
-        rank.set(bucket, n);
-        out.per_mouth.push({
-          eater_bucket: bucket,
-          n,
-          max_g: personal === null ? table.max : Math.min(table.max, personal.maxG),
-          min_g: personal === null ? table.min : Math.min(table.min, personal.minG),
-          source: personal === null ? "table" : "personal",
-        });
-      }
-      return out;
-    })();
+    // ⟳ 2026-09-24 · LOT 3b — le corps est dans `traces.ts` (`plateBoundsTraceOf`), tel quel.
+    const plateBoundsTrace = plateBoundsTraceOf({
+      platedMembers,
+      withheldMemberIds,
+      bodyOfMouth,
+      personalPlateBoundsByMember,
+      mouthBucketOf,
+    });
     const promptTrace = {
       // ⟳ 2026-09-20 — ce que le plancher protéique a demandé au modèle, et ce
       // que le plafond de la table lui a retiré. Voir `sharedProteinCaps`.
@@ -21295,48 +21203,12 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
     // ⟳ 2026-09-20 — LE PLAFOND PROTÉIQUE, MESURÉ SUR LA MÊME TABLE QUE LE
     // PLANCHER. ⛔ COMPTÉ, JAMAIS BLOQUANT, et `mouth_days` est le
     // dénominateur: « zéro dépassement » sur zéro journée mesurée ne dit rien.
-    const proteinCeilingTrace = (() => {
-      let mouthDays = 0;
-      let measured = 0;
-      let over = 0;
-      let worstOverPct = 0;
-      for (const d of auditDayRows) {
-        mouthDays += 1;
-        const ceiling = proteinCeilingByMouth.get(d.memberId) ?? null;
-        if (ceiling === null || d.proteinG === null) continue;
-        measured += 1;
-        if (d.proteinG > ceiling) {
-          over += 1;
-          worstOverPct = Math.max(
-            worstOverPct,
-            Math.round(((d.proteinG - ceiling) / ceiling) * 100),
-          );
-        }
-      }
-      return {
-        per_kg: PROTEIN_CEILING_G_PER_KG,
-        mouth_days: mouthDays,
-        measured,
-        over,
-        worst_over_pct: worstOverPct,
-        // ══════════════════════════════════════════════════════════════════
-        // ⟳ 2026-09-22 · LOT B — CE QUE LA PASSE ARITHMÉTIQUE A FAIT
-        // ══════════════════════════════════════════════════════════════════
-        //
-        // ⛔ `null` = LA PASSE N'A PAS TOURNÉ (référentiel absent, chemin sans
-        // dimensionnement). Un objet à zéros dirait « elle a tourné et n'a rien
-        // trouvé », ce qui est une affirmation; `null` dit « elle n'a pas
-        // tourné », ce qui est la vérité. Un champ sans compteur est un lot
-        // désarmé qui ressemble à un lot qui marche.
-        //
-        // ⚠️ `adjust.residual_over` ET `over` NE COMPTENT PAS LA MÊME CHOSE, et
-        // c'est écrit ici pour que personne ne les additionne: `over` pèse les
-        // BOÎTES écrites (`auditDayRows` → `boxNutrition`), `residual_over` pèse
-        // la part standard × le facteur, au moment du dimensionnement. Deux
-        // bases, deux nombres, tous les deux vrais.
-        adjust: proteinCeilingPass,
-      };
-    })();
+    // ⟳ 2026-09-24 · LOT 3b — le corps est dans `traces.ts` (`proteinCeilingTraceOf`), tel quel.
+    const proteinCeilingTrace = proteinCeilingTraceOf({
+      auditDayRows,
+      proteinCeilingByMouth,
+      proteinCeilingPass,
+    });
     const c4ProteinContexts = (): RepairDayContext[] =>
       auditDayRows
         .filter((d) =>
