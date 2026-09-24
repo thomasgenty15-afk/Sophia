@@ -99,9 +99,16 @@ describe("une seule fenêtre, et les préférences dedans", () => {
   });
 
   it("⛔ aucun second `Modal` n'est monté dans la fenêtre d'ajout", () => {
-    const at = src.indexOf("export function AddMouthForm(");
+    // ⟳ 2026-09-24 (lot 4c) — LA FENÊTRE VIT DANS `household/AddMouth.tsx`, où
+    // elle est la DERNIÈRE fonction. Dans le texte de la famille, « jusqu'à la
+    // prochaine `\nfunction ` » courait dans les modules suivants, puis dans la
+    // page. On découpe dans le module seul (hors registre, `source` le rend tel
+    // quel), jusqu'à la fonction suivante ou jusqu'à sa fin.
+    const mod = source("./household/AddMouth.tsx");
+    const at = mod.indexOf("export function AddMouthForm(");
     expect(at, "le corps de la fenêtre a disparu").toBeGreaterThan(0);
-    const body = src.slice(at, src.indexOf("\nfunction ", at + 10));
+    const next = mod.indexOf("\nfunction ", at + 10);
+    const body = mod.slice(at, next === -1 ? mod.length : next);
     expect(body, "un `Modal` est imbriqué dans la fenêtre d'ajout")
       .not.toContain("<Modal");
     expect(body, "l'ancienne fenêtre des goûts est encore montée")

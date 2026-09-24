@@ -193,10 +193,20 @@ describe("la fiche du titulaire — un résumé, et une seule porte", () => {
     const src = sourceFamily(
       new URL("./HouseholdPage.tsx", import.meta.url),
     );
+    // ⟳ 2026-09-24 (lot 4c) — LES DEUX CORPS VIVENT DANS `household/MeFiche.tsx`,
+    // et `MePrefsForm` y est la DERNIÈRE fonction. Dans le texte de la famille,
+    // « jusqu'au prochain `/**` » courait donc dans le module suivant
+    // (`AddMouth.tsx`, ses imports compris). On découpe dans le module seul
+    // (hors registre, `sourceFamily` le rend tel quel), jusqu'au prochain `/**`
+    // ou jusqu'à sa fin.
+    const fiche = sourceFamily(
+      new URL("./household/MeFiche.tsx", import.meta.url),
+    );
     for (const fn of ["export function MeSheetForm(", "export function MePrefsForm("]) {
-      const at = src.indexOf(fn);
+      const at = fiche.indexOf(fn);
       expect(at, `${fn} a disparu`).toBeGreaterThan(0);
-      const body = src.slice(at, src.indexOf("\n/**", at));
+      const next = fiche.indexOf("\n/**", at);
+      const body = fiche.slice(at, next === -1 ? fiche.length : next);
       expect(body, "une fenêtre est imbriquée dans la fiche")
         .not.toContain("<Modal");
       expect(body, "l'ancienne fenêtre des goûts est encore montée")
