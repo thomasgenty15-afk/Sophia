@@ -10,18 +10,6 @@ import { MouthPreferencesFields } from "./mouthFormDialog/MouthPreferencesFields
 // cadres, leurs libellés et leurs types ont été déplacés À L'IDENTIQUE dans
 // `mouthFormDialog/`, et ce fichier RÉ-EXPORTE ce qu'il exportait: les imports
 // de `SetupPage`, `HouseholdPage` et des tests ne changent pas.
-//
-// ⚠️ LES QUATRE IMPORTS SANS NOM, JUSTE EN DESSOUS, SONT VOULUS. Ces modules ne
-// servent pas à la fenêtre elle-même, mais ils sont sortis de ce fichier: ils
-// figurent dans sa famille (`scripts/source-families.json`), que les tests
-// lisent à la place du fichier seul. Le test Deno
-// `source_family_registry_test.ts` exige que chaque module de la famille soit
-// importé DIRECTEMENT par le fichier d'origine. Ils sont de toute façon chargés
-// par les champs qui s'en servent: ces lignes ne changent rien au rendu.
-import "./mouthFormDialog/labels.ts";
-import "./mouthFormDialog/blocks.tsx";
-import "./mouthFormDialog/TermsEntry.tsx";
-import "./mouthFormDialog/ShakerFields.tsx";
 
 export type {
   MouthCoreFieldsProps,

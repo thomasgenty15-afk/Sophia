@@ -148,7 +148,14 @@ Deno.test("C3 CÂBLAGE ④ — la ligne écrite porte `ref`, `amount`, `unit`, `
   // sans elle **26 identités sur 26 de GAIN restaient incontrôlables en
   // quantité** — l'audit rendait « incomplet », honnêtement, sans rien
   // contrôler.
-  const projection = PARSER.slice(PARSER.indexOf("export function mealShoppingPayload("));
+  // ⟳ 2026-09-24 — BORNÉE À LA FONCTION. `PARSER` est la famille de
+  // `meal_generation.ts` (lot 2d) : « jusqu'à la fin » couvrait neuf fichiers,
+  // et un champ parti dans un autre module aurait laissé ce cas vert.
+  const debut = PARSER.indexOf("export function mealShoppingPayload(");
+  assert(debut >= 0, "`mealShoppingPayload` a disparu");
+  const fin = PARSER.indexOf("\n}\n", debut);
+  assert(fin > debut, "fin de `mealShoppingPayload` introuvable");
+  const projection = PARSER.slice(debut, fin);
   for (const champ of ["ref: s.ref ?? null,", "amount: s.amount ?? null,", "unit: s.unit ?? null,", "state: s.state ?? null,"]) {
     assert(projection.includes(champ), `la projection n'écrit pas \`${champ}\``);
   }

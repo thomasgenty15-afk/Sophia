@@ -31,9 +31,38 @@ function relativeImportsOf(originRel: string, text: string): Set<string> {
   const out = new Set<string>();
   const re = /(?:\bfrom|\bimport)\s*\(?\s*["'](\.{1,2}\/[^"']+)["']/g;
   for (const m of text.matchAll(re)) {
-    out.add(repoRelativePath(new URL(m[1], base)));
+    const rel = repoRelativePath(new URL(m[1], base));
+    // Un import sans extension (front) vise `x.ts` ou `x.tsx`.
+    const hit = [rel, `${rel}.ts`, `${rel}.tsx`].find(fileExists);
+    out.add(hit ?? rel);
   }
   return out;
+}
+
+/**
+ * ⟳ 2026-09-24 — ATTEIGNABLE, PAS « DIRECTEMENT IMPORTÉ ». Un module sorti
+ * d'un fichier peut ne servir qu'à un autre module sorti du même fichier
+ * (`ShakerFields` n'est monté que par `MouthCoreFields`). Exiger un import
+ * direct forçait des `import "./x"` sans nom dans le code de production, pour
+ * le seul confort de ce test. La règle garde son sens: on part de l'origine et
+ * on suit les imports relatifs, EN RESTANT DANS LA FAMILLE ; un module listé
+ * que ce chemin n'atteint pas n'a rien à faire dans le registre.
+ */
+function reachableWithinFamily(origin: string, modules: readonly string[]): Set<string> {
+  const family = new Set(modules);
+  const reached = new Set<string>();
+  const queue = [origin];
+  while (queue.length > 0) {
+    const current = queue.shift()!;
+    if (!fileExists(current)) continue;
+    for (const next of relativeImportsOf(current, Deno.readTextFileSync(new URL(current, REPO_ROOT)))) {
+      if (family.has(next) && !reached.has(next)) {
+        reached.add(next);
+        queue.push(next);
+      }
+    }
+  }
+  return reached;
 }
 
 function fileExists(rel: string): boolean {
@@ -44,7 +73,7 @@ function fileExists(rel: string): boolean {
   }
 }
 
-Deno.test("registre des familles — chaque origine existe, chaque module existe et est importé par son origine", () => {
+Deno.test("registre des familles — chaque origine existe, chaque module existe et est atteint depuis son origine", () => {
   const families = readSourceFamilies();
   const problems: string[] = [];
   const seen = new Map<string, string>();
@@ -53,7 +82,7 @@ Deno.test("registre des familles — chaque origine existe, chaque module existe
       problems.push(`« ${origin} »: le fichier d'origine n'existe pas`);
       continue;
     }
-    const imported = relativeImportsOf(origin, Deno.readTextFileSync(new URL(origin, REPO_ROOT)));
+    const imported = reachableWithinFamily(origin, modules);
     for (const module of modules) {
       if (module === origin) problems.push(`« ${origin} »: se liste lui-même comme module`);
       const before = seen.get(module);
@@ -67,8 +96,8 @@ Deno.test("registre des familles — chaque origine existe, chaque module existe
       }
       if (!imported.has(module)) {
         problems.push(
-          `« ${origin} »: le module « ${module} » n'est ni importé ni ré-exporté directement ` +
-            `par le fichier d'origine`,
+          `« ${origin} »: le module « ${module} » n'est atteint par aucun import ` +
+            `depuis le fichier d'origine (en suivant les modules de la famille)`,
         );
       }
     }

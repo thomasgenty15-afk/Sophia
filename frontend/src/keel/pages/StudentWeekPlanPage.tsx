@@ -125,13 +125,10 @@ import { buildMeasuresToken } from "../../../../supabase/functions/_shared/keel/
 // les infos de base avec les mesures (`PersonalNumbers.tsx`). Ils font partie
 // de la famille de ce fichier (`scripts/source-families.json`), que les tests
 // lisent à la place du fichier seul. `CellActions` ne sert plus qu'à
-// `PersonalNumbers`: son import sans nom ci-dessous est là parce que
-// `source_family_registry_test.ts` exige que chaque module de la famille soit
-// importé directement par ce fichier. Il ne change rien au rendu.
+// `PersonalNumbers`.
 import type { Basics } from "./weekPlan/types.ts";
 import { ageFrom, currentMonday, todayIso } from "./weekPlan/dates.ts";
 import { GoalTargetField } from "./weekPlan/GoalTargetField.tsx";
-import "./weekPlan/CellActions.tsx";
 import { PersonalNumbers } from "./weekPlan/PersonalNumbers.tsx";
 
 export type { Basics } from "./weekPlan/types.ts";
