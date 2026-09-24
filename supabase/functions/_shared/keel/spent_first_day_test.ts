@@ -22,6 +22,7 @@ import {
  */
 
 import { slotsUnservableToday } from "./plan_hours.ts";
+import { sourceFamily } from "./source_family.ts";
 
 const LUNDI = "2026-09-07";
 const MARDI = "2026-09-08";
@@ -242,7 +243,7 @@ async function laneSource(rel: string): Promise<string> {
   // SANS SES COMMENTAIRES: ces fichiers RACONTENT le défaut qu'ils ferment en
   // nommant `dropped` et `planTimingOf` dans des pavés entiers. Un grep naïf y
   // verrait le câblage qu'il cherche et resterait vert le jour où il part.
-  const src = await Deno.readTextFile(new URL(rel, import.meta.url));
+  const src = await sourceFamily(new URL(rel, import.meta.url));
   return src
     .split("\n")
     .map((l) => (l.trimStart().startsWith("//") ? "" : l))

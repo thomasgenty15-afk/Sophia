@@ -15,6 +15,7 @@ import {
   weighedReadyGrams,
 } from "./box_densify.ts";
 import { buildCompositionIndex, type CompositionRef } from "./food_composition.ts";
+import { sourceFamily } from "./source_family.ts";
 
 const LEA = "m-lea";
 
@@ -261,7 +262,7 @@ Deno.test("densityFromComposition: un terme résolu a sa densité et son groupe;
 
 // ── LE CÂBLAGE: un module pur qui n'est pas appelé est un module qui ne densifie rien ──
 Deno.test("CÂBLAGE — le générateur densifie APRÈS unmetDemand, sur les seuls écarts plafonnés, et le compte sur les deux surfaces", async () => {
-  const src = await Deno.readTextFile(new URL("../../generate-household-meal-v1/index.ts", import.meta.url));
+  const src = await sourceFamily(new URL("../../generate-household-meal-v1/index.ts", import.meta.url));
   const unmetAt = src.indexOf("const unmet = unmetDemand(");
   const densifyAt = src.indexOf("densifyBoxes({");
   const logAt = src.indexOf('tag: "keel.household_meal.box_sizing"');

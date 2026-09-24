@@ -5,6 +5,7 @@ import { type MealBodyContext, mealBodyBlocks } from "./meal_body.ts";
 import { mealBodyContextFrom } from "./student_body_io.ts";
 import { assessBirthDate } from "./student_age.ts";
 import type { StudentSafetyConstraint } from "./safety_constraints.ts";
+import { sourceFamilySync } from "./source_family.ts";
 
 /**
  * FF-030 (volet élève) — UN TEST PAR GARANTIE.
@@ -238,13 +239,13 @@ Deno.test("la CIBLE CHIFFRÉE n'a aucun chemin jusqu'à la consigne", () => {
   // Le test lit la SOURCE plutôt que la sortie, parce que c'est la seule façon
   // de tester une absence d'entrée: une fois la colonne dans le `select`, plus
   // rien n'empêcherait quelqu'un de la passer.
-  const caller = Deno.readTextFileSync(
+  const caller = sourceFamilySync(
     new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
   );
   assert(!caller.includes("target_weight_kg"), "target_weight_kg a été ajouté au lecteur");
   assert(!caller.includes("target_waist_cm"), "target_waist_cm a été ajouté au lecteur");
 
-  const prompt = Deno.readTextFileSync(new URL("./meal_generation.ts", import.meta.url));
+  const prompt = sourceFamilySync(new URL("./meal_generation.ts", import.meta.url));
   assert(!prompt.includes("target_weight"), "une cible chiffrée est entrée dans le prompt");
 });
 
@@ -375,7 +376,7 @@ Deno.test("un corps entièrement inconnu SOUS plancher rend la même chose encor
 // ---------------------------------------------------------------------------
 
 Deno.test("la lane foyer passe les contraintes dures et AUCUN corps global", () => {
-  const caller = Deno.readTextFileSync(
+  const caller = sourceFamilySync(
     new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
   );
   // Les contraintes de TOUS les membres entrent dans la consigne: c'est le
@@ -392,7 +393,7 @@ Deno.test("LOT 3B — la lane foyer charge bien un corps PAR MEMBRE", () => {
   // aucun appelant. Le test précédent prouve une ABSENCE (`body: null`), et une
   // absence prouvée sans sa contrepartie laisserait le lot 3B passer pour livré
   // alors qu'il ne serait que compilé.
-  const caller = Deno.readTextFileSync(
+  const caller = sourceFamilySync(
     new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
   );
   assertStringIncludes(caller, "loadHouseholdMemberBodies(admin");

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { sourceFamily } from "../../test/sourceFamily";
 
 // ===========================================================================
 // 2026-08-20 — « CE DONT LA MAISON A ENVIE » ARRIVE JUSQU'AU PLAN.
@@ -22,7 +23,7 @@ import { resolve } from "node:path";
 const ROOT = resolve(__dirname, "../../../..");
 
 function code(rel: string): string {
-  return readFileSync(resolve(ROOT, rel), "utf8")
+  return sourceFamily(resolve(ROOT, rel))
     // ⚠️ COMMENTAIRES RETIRÉS — cicatrice `caller-audit-must-strip-comments`:
     // les en-têtes de ce dépôt citent longuement ce qu'ils s'interdisent, et
     // un grep naïf compte les morts.

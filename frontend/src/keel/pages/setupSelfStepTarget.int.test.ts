@@ -1,12 +1,12 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import { SelfStep } from "./SetupPage";
 import { emptyMouthDraft, type MouthFormDraft } from "../lib/mouthForm";
 import { en } from "../i18n/en";
 import { setChosenUiLocaleForTest } from "../i18n/runtime";
+import { sourceFamily } from "../../test/sourceFamily";
 
 // ===========================================================================
 // D7 (2026-08-18) — LE POIDS VISÉ ET LE RYTHME SONT SOUS LA DIRECTION
@@ -203,7 +203,7 @@ describe("l'étape « moi » porte le poids visé et le curseur de rythme", () =
  * dans ses en-têtes, et un grep naïf compterait ces morts-là comme des vivants.
  */
 describe("et ce que l'étape 2 collecte, elle l'écrit", () => {
-  const src = readFileSync(new URL("./SetupPage.tsx", import.meta.url), "utf-8")
+  const src = sourceFamily(new URL("./SetupPage.tsx", import.meta.url))
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
     .split("\n")

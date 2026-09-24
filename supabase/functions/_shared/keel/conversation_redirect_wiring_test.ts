@@ -38,6 +38,7 @@
 // ═══════════════════════════════════════════════════════════════════════════
 
 import { assert, assertEquals, assertThrows } from "jsr:@std/assert@1";
+import { sourceFamily } from "./source_family.ts";
 
 const RUN_TS = new URL("../../sophia-brain/router/run.ts", import.meta.url);
 
@@ -296,7 +297,7 @@ export function assertRedirectWiring(
 // ═══════════════════════════════════════════════════════════════════════════
 
 Deno.test("LE CÂBLAGE — `run.ts` arme LES DEUX renvois et les DIT", async () => {
-  const src = await Deno.readTextFile(RUN_TS);
+  const src = await sourceFamily(RUN_TS);
   assertRedirectWiring(src, SIZING_SPEC);
   // ⚠️ LE SECOND N'EST PAS UNE FORMALITÉ. Le renvoi vers un champ est celui
   // qui REMPLACE un producteur retiré: s'il est débranché, le chat ne range
@@ -314,7 +315,7 @@ Deno.test("ET L'ASSERTION MORD — quatorze mutations, quatorze rouges", async (
   // VERTES parce qu'elles se doublaient l'une l'autre: seule la troisième
   // mordait, et aucune des deux premières n'était donc prouvée. Une mutation
   // par propriété, et chacune doit rougir toute seule.
-  const src = await Deno.readTextFile(RUN_TS);
+  const src = await sourceFamily(RUN_TS);
 
   // ⚠️ CHAQUE MUTATION EST JOUÉE CONTRE **SA** SPEC. Une mutation du renvoi du
   // sizing ne doit pas rougir sur l'assertion du renvoi vers un champ: si elle
@@ -579,7 +580,7 @@ Deno.test("ET L'ORDRE MORD AUSSI — l'armement déplacé sous une sortie est RO
   // La mutation la plus perverse, et celle que ③ seul ne verrait pas: le
   // câblage reste EN PLACE, mais il est lu trop tard. Le fichier compilerait
   // (le champ existe), et la phrase ne sortirait jamais.
-  const src = await Deno.readTextFile(RUN_TS);
+  const src = await sourceFamily(RUN_TS);
   const arming = "keelTurn.sizing_redirect = sizingRedirectFor({";
   const at = src.indexOf(arming);
   assert(at !== -1, "l'armement a disparu — voir le test de câblage");

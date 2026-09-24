@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { sourceFamily } from "../../test/sourceFamily";
 
 /**
  * LOT A — LA SORTIE DE L'ENTONNOIR PASSE PAR L'APERÇU, ET ON LE PROUVE.
@@ -32,7 +32,7 @@ import { resolve } from "node:path";
 const ROOT = resolve(__dirname, "../../../..");
 
 function code(rel: string): string {
-  return readFileSync(resolve(ROOT, rel), "utf8")
+  return sourceFamily(resolve(ROOT, rel))
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
     .split("\n")

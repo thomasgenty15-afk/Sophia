@@ -14,6 +14,7 @@ import {
   QUESTION_READERS,
   questionsFor,
 } from "../../../../supabase/functions/_shared/keel/plan_feedback.ts";
+import { sourceFamily } from "../../test/sourceFamily";
 
 /**
  * LOT D — L'ÉCRAN DE FIN DE PLAN, ET CE QUI L'EMPÊCHE DE REDEVENIR LE POINT DU
@@ -36,7 +37,7 @@ const ROOT = resolve(__dirname, "../../../..");
 
 /** ⚠️ COMMENTAIRES RETIRÉS — cicatrice `caller-audit-must-strip-comments`. */
 function code(rel: string): string {
-  return readFileSync(resolve(ROOT, rel), "utf8")
+  return sourceFamily(resolve(ROOT, rel))
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
     .split("\n")

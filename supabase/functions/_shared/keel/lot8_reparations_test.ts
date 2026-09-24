@@ -17,6 +17,7 @@ import { assert, assertEquals } from "jsr:@std/assert@1";
 import { createPlanBudget, planCallMeta } from "./plan_budget.ts";
 import { PLAN_MODEL_MAX_RETRIES } from "./generation_model.ts";
 import { envelopeDirectionFor } from "./weight_pace.ts";
+import { sourceFamily } from "./source_family.ts";
 
 const FUNCTIONS_DIR = new URL("../../", import.meta.url);
 
@@ -168,7 +169,7 @@ Deno.test("RÉPARATIONS ⑥ — LA GARDE FINALE LIT LA CHARGE ÉCRITE, pas un ob
   // jugerait un plan d'avant le regrammage des casseroles — c'est-à-dire un
   // plan que personne ne reçoit.
   const src = stripComments(
-    await Deno.readTextFile(
+    await sourceFamily(
       new URL("generate-household-meal-v1/index.ts", FUNCTIONS_DIR),
     ),
   );
@@ -187,7 +188,7 @@ Deno.test("RÉPARATIONS ⑦ — LA REMESURE SUIT LA DERNIÈRE MUTATION", async (
   // ⛔ Le regrammage des casseroles est la DERNIÈRE mutation avant l'écriture.
   // Une mesure qui la précède décrit un plan qui n'existe plus.
   const src = stripComments(
-    await Deno.readTextFile(
+    await sourceFamily(
       new URL("generate-household-meal-v1/index.ts", FUNCTIONS_DIR),
     ),
   );
@@ -219,7 +220,7 @@ Deno.test("RÉPARATIONS ⑧ — UNE RÉFÉRENCE MANQUANTE NE SE « RÉPARE » PA
   // ⚠️ ET L'INCOMPLÉTUDE RESTE VISIBLE. `unmeasurable` est un verdict, pas un
   // silence: un plat qu'on ne sait pas peser se COMPTE.
   const sizing = stripComments(
-    await Deno.readTextFile(
+    await sourceFamily(
       new URL("generate-household-meal-v1/index.ts", FUNCTIONS_DIR),
     ),
   );
@@ -300,7 +301,7 @@ Deno.test("CONDITION ③ — l'appelant de production DIT la condition, en plus 
   // ⚠️ CE N'EST PAS UNE REDONDANCE, C'EST UNE CEINTURE. `goalUnderConditionGate`
   // coerce l'objectif; ce drapeau redit la même chose au plus près du NOMBRE.
   // L'un des deux oublié, l'autre tient.
-  const src = await Deno.readTextFile(
+  const src = await sourceFamily(
     new URL("generate-household-meal-v1/index.ts", FUNCTIONS_DIR),
   );
   assert(

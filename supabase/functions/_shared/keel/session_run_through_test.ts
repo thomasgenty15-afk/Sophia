@@ -1,5 +1,6 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
 import { needlesOf, runThroughWithoutPreparations, splitSentences } from "./session_run_through.ts";
+import { sourceFamily } from "./source_family.ts";
 
 const CABILLAUD = {
   id: "prep_cod_barley",
@@ -63,7 +64,7 @@ Deno.test("les mots-clés : titre et ingrédients pliés, cinq lettres et plus, 
 });
 
 Deno.test("⛔ CÂBLAGE — la casserole retirée est retirée du déroulé de sa session, au même endroit", async () => {
-  const src = await Deno.readTextFile(
+  const src = await sourceFamily(
     new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
   );
   const retrait = src.indexOf("no box draws on any more -- not cooked, not bought");

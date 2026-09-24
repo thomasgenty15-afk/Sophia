@@ -44,6 +44,7 @@ import { resolveWindowPresence } from "./household_presence.ts";
 import { parseMemberAway } from "./household_presence.ts";
 import type { SideCourseAsk } from "./side_courses_types.ts";
 import { avoidLineOf } from "./plan_avoid_list.ts";
+import { sourceFamily } from "./source_family.ts";
 
 // ---------------------------------------------------------------------------
 // Fabriques
@@ -449,7 +450,7 @@ Deno.test("la borne de bouches est une CONSTANTE épinglée", () => {
 // ---------------------------------------------------------------------------
 
 Deno.test("CÂBLAGE — v34 est servi sur le chemin armé, et UNE SEULE liste de porteurs", async () => {
-  const src = await Deno.readTextFile(
+  const src = await sourceFamily(
     new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
   );
   const verdictAt = src.indexOf("const useV34 = sizing.path === \"portion_v1\" &&");

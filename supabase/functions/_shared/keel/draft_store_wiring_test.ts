@@ -12,8 +12,9 @@
  * teste QUE la jointure avec la lane du foyer.
  */
 import { assert, assertEquals } from "jsr:@std/assert@1";
+import { sourceFamilySync } from "./source_family.ts";
 
-const SRC = Deno.readTextFileSync(
+const SRC = sourceFamilySync(
   new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
 );
 

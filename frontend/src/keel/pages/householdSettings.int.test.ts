@@ -9,6 +9,7 @@ import { PAGE_NAMESPACES } from "../i18n/catalog";
 import { en } from "../i18n/en";
 import { fr } from "../i18n/fr";
 import { setChosenUiLocaleForTest } from "../i18n/runtime";
+import { sourceFamily } from "../../test/sourceFamily";
 
 // ===========================================================================
 // A5 (2026-09-03) — « PARAMÈTRES DU FOYER », ET CE QUI RESTE DANS L'ENTONNOIR
@@ -77,7 +78,7 @@ function equipmentHtml(props: {
 }
 
 function source(rel: string): string {
-  return readFileSync(new URL(rel, import.meta.url), "utf8")
+  return sourceFamily(new URL(rel, import.meta.url))
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .split("\n")
     .filter((l) => !l.trim().startsWith("//") && !l.trim().startsWith("*"))

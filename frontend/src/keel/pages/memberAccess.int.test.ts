@@ -1,4 +1,3 @@
-import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -9,6 +8,7 @@ import { PAGE_NAMESPACES } from "../i18n/catalog";
 import { en } from "../i18n/en";
 import { fr } from "../i18n/fr";
 import { setChosenUiLocaleForTest } from "../i18n/runtime";
+import { sourceFamily } from "../../test/sourceFamily";
 
 // ===========================================================================
 // A5 §5.5 (2026-09-03) — L'ACCÈS SE LIT ET SE DONNE DEPUIS LA LIGNE
@@ -93,7 +93,7 @@ function html(patch: Partial<Parameters<typeof MemberAccess>[0]> = {}): string {
 }
 
 function source(rel: string): string {
-  return readFileSync(new URL(rel, import.meta.url), "utf8")
+  return sourceFamily(new URL(rel, import.meta.url))
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .split("\n")
     .filter((l) => !l.trim().startsWith("//") && !l.trim().startsWith("*"))

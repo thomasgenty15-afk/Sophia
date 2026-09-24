@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { assessBudget, budgetMouthsFor } from "./planBudget";
@@ -10,6 +9,7 @@ import {
 } from "../../../../supabase/functions/_shared/keel/budget_floor.ts";
 import type { EatingOccasionSlot } from "./mealGeneration";
 import type { AwayMark } from "../lib/presenceMarks";
+import { sourceFamily } from "../../test/sourceFamily";
 
 // ===========================================================================
 // LE PLANCHER DU BUDGET, CÔTÉ ÉCRAN — 2026-09-11
@@ -36,7 +36,7 @@ const THREE_MEALS: EatingOccasionSlot[] = [
 const WEEK = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
 
 function source(relative: string): string {
-  return readFileSync(resolve(__dirname, "..", "..", "..", relative), "utf8");
+  return sourceFamily(resolve(__dirname, "..", "..", "..", relative));
 }
 
 describe("le vocabulaire des régimes est le MÊME des deux côtés", () => {

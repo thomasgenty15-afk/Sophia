@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { rhythmPrefillFor, rhythmPrefillLatches } from "./rhythmPrefill";
@@ -7,6 +6,7 @@ import type { EatingOccasion, EatingOccasionSlot } from "../api/mealGeneration";
 import { fr } from "../i18n/fr";
 import { en } from "../i18n/en";
 import { eatingStructureFor } from "../../../../supabase/functions/_shared/keel/eating_structure.ts";
+import { sourceFamily } from "../../test/sourceFamily";
 
 // ===========================================================================
 // FF-060 — LES MOMENTS DÉRIVÉS SONT PROPOSÉS COCHÉS (⟳ 2026-09-08)
@@ -19,7 +19,7 @@ import { eatingStructureFor } from "../../../../supabase/functions/_shared/keel/
 // qu'une fois, sinon « tout décocher » devient inatteignable.
 // ===========================================================================
 
-const read = (rel: string) => readFileSync(resolve(__dirname, rel), "utf8");
+const read = (rel: string) => sourceFamily(resolve(__dirname, rel));
 const bare = (src: string) =>
   src
     .replace(/\{\/\*[\s\S]*?\*\/\}/g, "")

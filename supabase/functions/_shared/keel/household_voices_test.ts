@@ -14,6 +14,7 @@ import {
   VOICE_TOKEN_CAP_PER_MEMBER,
 } from "./household_voices.ts";
 import { FORBIDDEN_PORTION_TERMS } from "./household_portions.ts";
+import { sourceFamily } from "./source_family.ts";
 
 // ───────────────────────────────────────────────────────────────────────────
 // D4 — CHAQUE TITULAIRE EST LU
@@ -649,7 +650,7 @@ function stripComments(src: string): string {
 }
 
 async function source(rel: string): Promise<string> {
-  return stripComments(await Deno.readTextFile(new URL(rel, FUNCTIONS_DIR)));
+  return stripComments(await sourceFamily(new URL(rel, FUNCTIONS_DIR)));
 }
 
 Deno.test("SUR LA LANE FOYER, LES PRÉFÉRENCES N'ONT QU'UN CHEMIN — ET IL GARDE", async () => {

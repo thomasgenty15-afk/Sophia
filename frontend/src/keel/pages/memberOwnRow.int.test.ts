@@ -1,5 +1,5 @@
-import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { sourceFamily } from "../../test/sourceFamily";
 
 // ===========================================================================
 // A5 POINT 6 (2026-09-03) — LA LIGNE D'UN MEMBRE RÉCLAMÉ S'ÉDITE
@@ -33,7 +33,7 @@ import { describe, expect, it } from "vitest";
 // ===========================================================================
 
 function source(rel: string): string {
-  return readFileSync(new URL(rel, import.meta.url), "utf8")
+  return sourceFamily(new URL(rel, import.meta.url))
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .split("\n")
     .filter((l) => !l.trim().startsWith("//") && !l.trim().startsWith("*"))

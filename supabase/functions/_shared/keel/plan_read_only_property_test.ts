@@ -37,6 +37,7 @@ import {
   type PlanScope,
   type PlanWindow,
 } from "./household_turn_context.ts";
+import { sourceFamily } from "./source_family.ts";
 
 const WINDOWS: readonly PlanWindow[] = Object.freeze([
   { state: "current" },
@@ -307,7 +308,7 @@ Deno.test("P7 — `plan_question` est FERMÉE quand il n'y a pas de plan de coac
   // dit déjà en toutes lettres — et une consigne de prompt n'est pas une garde:
   // la lane capture une part importante des tours, et un signal émis quand même
   // faisait répondre SANS le bloc du plan composé, qui, lui, est là.
-  const src = (await Deno.readTextFile(
+  const src = (await sourceFamily(
     new URL("../../sophia-brain/router/run.ts", import.meta.url),
   ))
     .replace(/\/\*[\s\S]*?\*\//g, "")

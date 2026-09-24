@@ -22,6 +22,7 @@
  * qui n'avait coché que plaque, micro-ondes et blender (run `798c5cd6-…`).
  */
 import { assert, assertEquals } from "jsr:@std/assert@1";
+import { sourceFamily } from "./source_family.ts";
 
 const FUNCTIONS_DIR = new URL("../../", import.meta.url);
 const FOYER = "generate-household-meal-v1/index.ts";
@@ -34,10 +35,10 @@ function stripComments(src: string): string {
 }
 
 const SRC = stripComments(
-  await Deno.readTextFile(new URL(FOYER, FUNCTIONS_DIR)),
+  await sourceFamily(new URL(FOYER, FUNCTIONS_DIR)),
 );
 const PROMPT = stripComments(
-  await Deno.readTextFile(
+  await sourceFamily(
     new URL("_shared/keel/meal_generation.ts", FUNCTIONS_DIR),
   ),
 );

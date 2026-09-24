@@ -8,6 +8,7 @@ import {
 } from "./meals_delivered.ts";
 import { memberMealCells } from "./household_presence.ts";
 import type { EatingOccasion } from "./meal_generation.ts";
+import { sourceFamily } from "./source_family.ts";
 
 const CLAIRE = "m-claire";
 const MARC = "m-marc";
@@ -399,7 +400,7 @@ function stripComments(src: string): string {
 
 async function generatorSource(): Promise<string> {
   return stripComments(
-    await Deno.readTextFile(
+    await sourceFamily(
       new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
     ),
   );
@@ -644,7 +645,7 @@ Deno.test("CÂBLAGE — `box_counts.meals_delivered` se RELIT après la pose des
 
 Deno.test("CÂBLAGE — le compteur « sans boîte » ne saute plus les bouches retirées", async () => {
   const src = stripComments(
-    await Deno.readTextFile(new URL("./meal_generation.ts", import.meta.url)),
+    await sourceFamily(new URL("./meal_generation.ts", import.meta.url)),
   );
   assert(
     !/heldOff\.has\(memberId\)\) continue/.test(src),
@@ -896,7 +897,7 @@ Deno.test("⛔ LE DERNIER RECOURS NE REMET PAS LA BOUCHE SUR CE QU'ELLE ÉVITE (
 });
 
 Deno.test("CÂBLAGE — le recours de la lane foyer passe une ceinture (régime ET exclusion)", async () => {
-  const src = await Deno.readTextFile(
+  const src = await sourceFamily(
     new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
   );
   const at = src.indexOf("const outcome = restoreHeldOff(");

@@ -1,6 +1,5 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import { MouthsStep, SelfStep } from "./SetupPage";
@@ -9,6 +8,7 @@ import { emptyMouthDraft } from "../lib/mouthForm";
 import { en } from "../i18n/en";
 import { setChosenUiLocaleForTest } from "../i18n/runtime";
 import { GOAL_TOKENS } from "../../../../supabase/functions/_shared/keel/tokens.ts";
+import { sourceFamily } from "../../test/sourceFamily";
 
 // ===========================================================================
 // D6 (2026-08-18) — « C'EST UN ADULTE OU UN ENFANT ? » N'EST PLUS POSÉE
@@ -120,7 +120,7 @@ function decode(markup: string): string {
 
 /** La source, PRIVÉE DE SES COMMENTAIRES. */
 function code(rel: string): string {
-  return readFileSync(new URL(rel, import.meta.url), "utf-8")
+  return sourceFamily(new URL(rel, import.meta.url))
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
     .split("\n")

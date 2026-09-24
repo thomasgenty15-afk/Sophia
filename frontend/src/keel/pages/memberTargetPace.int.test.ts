@@ -1,4 +1,3 @@
-import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -9,6 +8,7 @@ import { PAGE_NAMESPACES } from "../i18n/catalog";
 import { en } from "../i18n/en";
 import { fr } from "../i18n/fr";
 import { setChosenUiLocaleForTest } from "../i18n/runtime";
+import { sourceFamily } from "../../test/sourceFamily";
 
 // ===========================================================================
 // LOT A2 (2026-09-22) — LE RYTHME SUR LA FICHE D'UNE BOUCHE DÉJÀ INSCRITE
@@ -208,7 +208,7 @@ describe("la ligne qui relie le cran enregistré au cran cuisiné", () => {
  * `TargetAndPaceFields` dans ses pavés d'explication.
  */
 function page(): string {
-  return readFileSync(new URL("./HouseholdPage.tsx", import.meta.url), "utf8")
+  return sourceFamily(new URL("./HouseholdPage.tsx", import.meta.url))
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .split("\n")
     .filter((l) => !l.trim().startsWith("//") && !l.trim().startsWith("*"))

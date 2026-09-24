@@ -3,6 +3,7 @@
 // taire un rouge: chacun avait son jumeau FOYER, qui reste. Le détail de
 // l'audit est dans `scratchpad/2026-09-11-LOT7-SUPPRESSION/`.
 import { assert, assertEquals } from "jsr:@std/assert@^1.0.0";
+import { sourceFamily } from "./source_family.ts";
 
 /**
  * FF-A2 — LES TROIS FILS DE SÉCURITÉ, TENUS PAR CE QU'ILS FONT.
@@ -93,7 +94,7 @@ const TOKENS = new URL("./tokens.ts", import.meta.url).href;
 const FLOOR = new URL("./medical_condition_floor.ts", import.meta.url).href;
 
 async function sourceLines(url: URL): Promise<string[]> {
-  return (await Deno.readTextFile(url)).split("\n");
+  return (await sourceFamily(url)).split("\n");
 }
 
 const isBlank = (l: string) => l.trim() === "";

@@ -39,6 +39,7 @@ import {
   resolveGenerationAdmission,
   type RosterSeat,
 } from "./generation_context.ts";
+import { sourceFamily } from "./source_family.ts";
 
 const ALICE: string = "00000000-0000-4000-8000-000000000502";
 const MAX: string = "00000000-0000-4000-8000-000000000501";
@@ -59,7 +60,7 @@ function stripComments(src: string): string {
 }
 
 async function source(rel: string): Promise<string> {
-  return stripComments(await Deno.readTextFile(new URL(rel, FUNCTIONS_DIR)));
+  return stripComments(await sourceFamily(new URL(rel, FUNCTIONS_DIR)));
 }
 
 const FOYER = "generate-household-meal-v1/index.ts";

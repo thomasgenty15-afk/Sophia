@@ -28,6 +28,7 @@
  */
 import { assert, assertEquals } from "jsr:@std/assert@1";
 import { STANDARD_RECIPE_BLOCK } from "./household_meal_generation.ts";
+import { sourceFamily } from "./source_family.ts";
 
 const FUNCTIONS_DIR = new URL("../../", import.meta.url);
 
@@ -35,7 +36,7 @@ function stripComments(src: string): string {
   return src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/[^\n]*/g, "$1");
 }
 const SRC = stripComments(
-  await Deno.readTextFile(new URL("generate-household-meal-v1/index.ts", FUNCTIONS_DIR)),
+  await sourceFamily(new URL("generate-household-meal-v1/index.ts", FUNCTIONS_DIR)),
 );
 
 const COMPLEMENT_WRITE = "Object.assign(cRow, { factor: split.complementFactor";

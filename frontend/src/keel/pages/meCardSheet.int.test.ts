@@ -1,4 +1,3 @@
-import { readFileSync } from "node:fs";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
@@ -11,6 +10,7 @@ import {
 } from "../lib/mouthForm";
 import type { HouseholdMemberView } from "../api/household";
 import { en } from "../i18n/en";
+import { sourceFamily } from "../../test/sourceFamily";
 
 // ===========================================================================
 // D5 (2026-08-18) — LA FICHE DU MAÎTRE EST UNE FENÊTRE, SUR LA VALEUR RENDUE
@@ -190,9 +190,8 @@ describe("la fiche du titulaire — un résumé, et une seule porte", () => {
    * des deux corps ne monte de `Modal`, et `sheet` n'en ouvre qu'un.
    */
   it("⛔ AUCUN DES DEUX CORPS N'EMPILE UNE FENÊTRE", () => {
-    const src = readFileSync(
+    const src = sourceFamily(
       new URL("./HouseholdPage.tsx", import.meta.url),
-      "utf8",
     );
     for (const fn of ["export function MeSheetForm(", "export function MePrefsForm("]) {
       const at = src.indexOf(fn);

@@ -9,6 +9,7 @@
  * verrou. Ce test épingle les trois — et ce qui NE doit PAS prendre la main.
  */
 import { assert, assertEquals } from "jsr:@std/assert@1";
+import { sourceFamily } from "./source_family.ts";
 
 const ROOT = new URL("../../../", import.meta.url);
 const REPO = new URL("../../../../", import.meta.url);
@@ -18,7 +19,7 @@ const SQL = await Deno.readTextFile(
 const RELAUNCH_SQL = await Deno.readTextFile(
   new URL("migrations/20260915183000_une_relance_et_une_seule.sql", ROOT),
 );
-const HANDLER = await Deno.readTextFile(
+const HANDLER = await sourceFamily(
   new URL("functions/generate-household-meal-v1/index.ts", ROOT),
 );
 const FRONT = await Deno.readTextFile(

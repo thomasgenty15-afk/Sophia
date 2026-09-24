@@ -22,6 +22,7 @@ import {
   SLOT_OPENING_ORDER,
   STRUCTURE_REASONS,
 } from "./eating_structure.ts";
+import { sourceFamily } from "./source_family.ts";
 
 const THREE = ["breakfast", "lunch", "dinner"] as const;
 
@@ -256,7 +257,7 @@ function stripComments(src: string): string {
 
 async function householdSource(): Promise<string> {
   return stripComments(
-    await Deno.readTextFile(
+    await sourceFamily(
       new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
     ),
   );

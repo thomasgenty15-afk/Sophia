@@ -7,6 +7,7 @@ import {
   stripTemplatePlaceholders,
 } from "./router.ts";
 import { hasAdditiveReminderMarker } from "./instruction_parser.ts";
+import { sourceFamily } from "../../../../_shared/keel/source_family.ts";
 
 function fakeSupabase(options?: {
   pending?: Array<{ id: string; scheduled_for: string }>;
@@ -534,7 +535,7 @@ Deno.test("legacy_tool_not_used_by_prod_runtime", async () => {
   ];
   for (const file of files) {
     const url = new URL(file, import.meta.url);
-    const text = await Deno.readTextFile(url);
+    const text = await sourceFamily(url);
     assert(!text.includes("one_shot_reminder_tool.ts"), file);
   }
 });

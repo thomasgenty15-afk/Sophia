@@ -30,6 +30,7 @@
  * (`caller-audit-must-strip-comments`): un commentaire ne câble rien.
  */
 import { assert, assertEquals, assertNotEquals } from "jsr:@std/assert@1";
+import { sourceFamily } from "./source_family.ts";
 
 const FUNCTIONS_DIR = new URL("../../", import.meta.url);
 
@@ -37,7 +38,7 @@ function stripComments(src: string): string {
   return src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/[^\n]*/g, "$1");
 }
 
-const RAW_HANDLER = await Deno.readTextFile(
+const RAW_HANDLER = await sourceFamily(
   new URL("generate-household-meal-v1/index.ts", FUNCTIONS_DIR),
 );
 const RAW_CONTRACT = await Deno.readTextFile(

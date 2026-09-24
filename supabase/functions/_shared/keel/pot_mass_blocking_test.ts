@@ -13,6 +13,7 @@ import { assertEquals, assertStringIncludes } from "jsr:@std/assert@1";
 import { collectPlanDefects, POT_MASS_UNRECONCILED_CAUSE } from "./plan_defect_pass.ts";
 import type { PlanControlFindings } from "./plan_defect_pass.ts";
 import { PLAN_REPAIR_MAX_CALLS, planRepairDecision } from "./plan_repair_loop.ts";
+import { sourceFamilySync } from "./source_family.ts";
 
 function constats(o: Partial<PlanControlFindings> = {}): PlanControlFindings {
   return {
@@ -55,7 +56,7 @@ Deno.test("le refus de masse — LE CAS QUI PASSE: sans dépassement, rien n'est
 });
 
 Deno.test("le mot du constat est le mot du 422 du handler, littéralement", () => {
-  const src = Deno.readTextFileSync(
+  const src = sourceFamilySync(
     new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
   );
   assertStringIncludes(src, `detail: ["${POT_MASS_UNRECONCILED_CAUSE}"]`);

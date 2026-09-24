@@ -20,6 +20,7 @@ import {
   wavesAreMeaningful,
   describeWrittenWaves,
 } from "./grocery_waves.ts";
+import { sourceFamily } from "./source_family.ts";
 
 // Lundi 2026-08-03. Les jetons de jour suivent donc: mon=03 … sun=09.
 const MONDAY = "2026-08-03";
@@ -1039,7 +1040,7 @@ Deno.test("⟳ 2026-09-19 — un pseudo-besoin de plat ne se confond avec AUCUNE
 });
 
 Deno.test("⛔ CÂBLAGE — le handler date les courses avec les besoins du PLAN, plus seulement des casseroles", async () => {
-  const src = await Deno.readTextFile(
+  const src = await sourceFamily(
     new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
   );
   assert(src.includes("waveNeedsFromPlan({"), "la datation ne lit plus les plats sans casserole");

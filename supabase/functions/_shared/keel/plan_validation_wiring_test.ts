@@ -15,13 +15,14 @@
  */
 import { assert, assertEquals } from "jsr:@std/assert@1";
 import { CALORIE_PROTECTED_CAUSES } from "./plan_validation.ts";
+import { sourceFamily, sourceFamilySync } from "./source_family.ts";
 
 const FUNCTIONS_DIR = new URL("../../", import.meta.url);
 function stripComments(src: string): string {
   return src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/[^\n]*/g, "$1");
 }
 const SRC = stripComments(
-  await Deno.readTextFile(
+  await sourceFamily(
     new URL("generate-household-meal-v1/index.ts", FUNCTIONS_DIR),
   ),
 );
@@ -331,7 +332,7 @@ Deno.test("C5 ⑥ Z3 — `empty_intersection` a un producteur ET un agrégateur"
   // `mergeCorridors`, appelée par `slot_nutrition_contract.ts`, elle-même
   // importée par le handler — et le handler la SOMME dans son journal.
   const SIZING = stripComments(
-    Deno.readTextFileSync(new URL("_shared/keel/portion_sizing.ts", FUNCTIONS_DIR)),
+    sourceFamilySync(new URL("_shared/keel/portion_sizing.ts", FUNCTIONS_DIR)),
   );
   const CONTRAT = stripComments(
     Deno.readTextFileSync(
@@ -369,7 +370,7 @@ Deno.test("C5 ⑥ Z1 — la garde par LIBELLÉ reste morte, et on le PROUVE", ()
     if (!entry.isDirectory || entry.name.startsWith("_")) continue;
     const index = new URL(`${entry.name}/index.ts`, FUNCTIONS_DIR);
     try {
-      edges.push(stripComments(Deno.readTextFileSync(index)));
+      edges.push(stripComments(sourceFamilySync(index)));
     } catch { /* pas de handler dans ce dossier */ }
   }
   assert(edges.length > 0, "des fonctions edge ont été lues");

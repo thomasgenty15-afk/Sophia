@@ -48,6 +48,7 @@ import {
 import { householdDietBlock } from "./household_diet.ts";
 import { exclusionTermsFor } from "./food_exclusion_belt.ts";
 import type { RetainedItem } from "./retained_item.ts";
+import { sourceFamily } from "./source_family.ts";
 
 // Les quatre bouches du foyer réel, ids raccourcis mais distincts.
 const AURELE = "c278b5dc-680f-43f1-b54f-f9da630fcb2f";
@@ -767,7 +768,7 @@ Deno.test("BRANCHEMENT — la lane foyer passe les VRAIS régimes, pas un tablea
   // désarme la ceinture entière en silence. C'est le patron de
   // `dietary_regime_solo_lane_test.ts`, appliqué à la lane où la brèche a été
   // mesurée.
-  const src = await Deno.readTextFile(
+  const src = await sourceFamily(
     new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
   );
   assert(

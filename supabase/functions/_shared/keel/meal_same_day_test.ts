@@ -34,6 +34,7 @@ import {
 } from "./meal_generation.ts";
 import { HOUSEHOLD_PROMPT_VERSION } from "./household_meal_generation.ts";
 import type { StudentSafetyConstraint } from "./safety_constraints.ts";
+import { sourceFamily } from "./source_family.ts";
 
 function parse(payload: Record<string, unknown>, over: Record<string, unknown> = {}) {
   return parseGeneratedMeal(payload, {
@@ -664,7 +665,7 @@ function stripComments(src: string): string {
 
 async function functionSource(name: string): Promise<string> {
   return stripComments(
-    await Deno.readTextFile(new URL(`${name}/index.ts`, FUNCTIONS_DIR)),
+    await sourceFamily(new URL(`${name}/index.ts`, FUNCTIONS_DIR)),
   );
 }
 
@@ -698,7 +699,7 @@ Deno.test("LOT 2 — l'enveloppe FOYER ne connaît pas le geste du jour", async 
   // est demandé par le TRONC, donc le fichier de l'enveloppe ne doit pas en
   // porter une seule occurrence. Le jour où quelqu'un l'y écrira, la version du
   // foyer devra bouger — et ce test tombera d'abord.
-  const envelope = await Deno.readTextFile(
+  const envelope = await sourceFamily(
     new URL("household_meal_generation.ts", import.meta.url),
   );
   assert(

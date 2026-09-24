@@ -26,6 +26,7 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
 
 import { HOUSEHOLD_TRIAL_DAYS } from "../billing-tier.ts";
+import { sourceFamily } from "./source_family.ts";
 
 const MIGRATIONS_DIR = new URL("../../../migrations/", import.meta.url);
 const FUNCTIONS_DIR = new URL("../../", import.meta.url);
@@ -152,7 +153,7 @@ function returnsFrozenReason(src: string): boolean {
 }
 
 Deno.test("la génération de repas de foyer interroge la couverture", async () => {
-  const src = await Deno.readTextFile(
+  const src = await sourceFamily(
     new URL("generate-household-meal-v1/index.ts", FUNCTIONS_DIR),
   );
   assert(
@@ -172,7 +173,7 @@ Deno.test("la génération de repas PERSONNELLE interroge la couverture", async 
   // refuser `generate-household-meal-v1`, puis obtenait 200 ici, et le plan
   // écrit portait quand même le `household_id` de ce foyer. Un 402 qui se
   // contourne par une porte voisine n'est pas un 402.
-  const src = await Deno.readTextFile(
+  const src = await sourceFamily(
     new URL("generate-household-meal-v1/index.ts", FUNCTIONS_DIR),
   );
   assert(
@@ -197,7 +198,7 @@ Deno.test("le gel personnel ne coûte pas un appel modèle", async () => {
     const fn of ["generate-household-meal-v1/index.ts"]
   ) {
     const src = stripComments(
-      await Deno.readTextFile(new URL(fn, FUNCTIONS_DIR)),
+      await sourceFamily(new URL(fn, FUNCTIONS_DIR)),
     );
     const guard = src.search(/rpc\(\s*["']keel_household_is_covered["']/);
     const model = src.indexOf("generateWithGemini(");
@@ -229,7 +230,7 @@ Deno.test("un impayé n'écrit pas dans le journal d'incidents", async () => {
     const fn of ["generate-household-meal-v1/index.ts"]
   ) {
     const src = stripComments(
-      await Deno.readTextFile(new URL(fn, FUNCTIONS_DIR)),
+      await sourceFamily(new URL(fn, FUNCTIONS_DIR)),
     );
     const at = src.search(/["']household_frozen["']/);
     assert(at >= 0, `${fn}: le motif nommé a disparu — test à réviser`);
@@ -343,7 +344,7 @@ Deno.test("C5 ⑥ — aucun générateur ne rend `[object Object]` dans son corp
     ]
   ) {
     const src = stripComments(
-      await Deno.readTextFile(new URL(fn, FUNCTIONS_DIR)),
+      await sourceFamily(new URL(fn, FUNCTIONS_DIR)),
     );
     assert(
       !/instanceof Error \? \w+\.message : String\(/.test(src),

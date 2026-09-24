@@ -19,6 +19,7 @@ import {
   sessionsFedFromFreezer,
 } from "./raw_keeping.ts";
 import { buyDatesByIndex } from "./grocery_waves.ts";
+import { sourceFamily } from "./source_family.ts";
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -396,7 +397,7 @@ for (
   ] as const
 ) {
   Deno.test(`la lane ${name} POSE la date sur chaque ligne de courses`, async () => {
-    const src = await Deno.readTextFile(new URL(rel, import.meta.url));
+    const src = await sourceFamily(new URL(rel, import.meta.url));
     assertStringIncludes(src, "const buyDates = buyDatesByIndex({");
     // ⟳ LOT C (2026-09-04) — `buyDatesByIndex` REND DEUX TABLEAUX. La date, et
     // la marque « à congeler à l'achat ». Un seul parcours les produit tous
@@ -413,7 +414,7 @@ for (
   });
 
   Deno.test(`la lane ${name} CONSTATE la fenêtre crue et la DIT`, async () => {
-    const src = await Deno.readTextFile(new URL(rel, import.meta.url));
+    const src = await sourceFamily(new URL(rel, import.meta.url));
     assertStringIncludes(src, "const rawKeeping = rawKeepingBreaches({");
     assertStringIncludes(src, "raw_keeping_needs_later_shop:");
     // ⟳ 2026-09-12 · FERMETURE LOT 2 — LE FAIT PASSE PAR UNE FERMETURE, parce
@@ -642,7 +643,7 @@ for (
   ] as const
 ) {
   Deno.test(`⛔ la lane ${name} DONNE la cadence à la consigne et LIT les vagues écrites`, async () => {
-    const src = await Deno.readTextFile(new URL(rel, import.meta.url));
+    const src = await sourceFamily(new URL(rel, import.meta.url));
     // La consigne reçoit la lecture de `capacity.plan`, jamais un second calcul.
     assertStringIncludes(src, "groceryCadence: capacity.plan === null ? null : {");
     assertStringIncludes(src, "usesFreezer: capacity.plan.usesFreezer,");
@@ -704,7 +705,7 @@ for (
   ] as const
 ) {
   Deno.test(`la lane ${name} passe le RAYON au constat et compte les vagues survivantes`, async () => {
-    const src = await Deno.readTextFile(new URL(rel, import.meta.url));
+    const src = await sourceFamily(new URL(rel, import.meta.url));
     assertStringIncludes(src, "perishable: PERISHABLE_AISLES.has(String(line.aisle)),");
     assertStringIncludes(src, "waves_kept_for_freshness:");
   });

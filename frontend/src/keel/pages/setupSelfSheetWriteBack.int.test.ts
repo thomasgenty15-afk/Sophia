@@ -1,7 +1,7 @@
-import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import { SELF_SHEET_FIELDS } from "../lib/mouthForm";
+import { sourceFamily } from "../../test/sourceFamily";
 
 // ===========================================================================
 // LE BROUILLON DU TITULAIRE REMONTE TOUT CE QUE SA FENÊTRE ÉDITE
@@ -37,9 +37,8 @@ import { SELF_SHEET_FIELDS } from "../lib/mouthForm";
 
 /** La source de `setSelfMouthDraft`, privée de ses commentaires. */
 function writeBackBody(): string {
-  const src = readFileSync(
+  const src = sourceFamily(
     new URL("./SetupPage.tsx", import.meta.url),
-    "utf8",
   );
   const start = src.indexOf("const setSelfMouthDraft");
   expect(start).toBeGreaterThan(-1);
@@ -91,9 +90,8 @@ describe("la fenêtre du titulaire ne perd aucun de ses champs", () => {
    * les colonnes restent en base et personne n'y touche.
    */
   it("⛔ LA LISTE COUVRE TOUT CE QUE LA FENÊTRE ÉCRIT", () => {
-    const dialog = readFileSync(
+    const dialog = sourceFamily(
       new URL("../components/MouthFormDialog.tsx", import.meta.url),
-      "utf8",
     );
     const start = dialog.indexOf("export function MouthPreferencesFields(");
     expect(start).toBeGreaterThan(-1);

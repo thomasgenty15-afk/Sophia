@@ -1,7 +1,8 @@
 import { assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
+import { sourceFamily } from "../../_shared/keel/source_family.ts";
 
 Deno.test("run_ts_does_not_add_inline_business_success_blocks", async () => {
-  const runText = await Deno.readTextFile(new URL("./run.ts", import.meta.url));
+  const runText = await sourceFamily(new URL("./run.ts", import.meta.url));
   const knownLegacy = [{
     name: "short technical fallback content strings",
     reason:
@@ -56,7 +57,7 @@ Deno.test("turn_intent_arbitrator stays deleted (its visible-reply guard has no 
 });
 
 Deno.test("migrated_tool_recommendation_copy_is_owned_outside_run_ts", async () => {
-  const runText = await Deno.readTextFile(new URL("./run.ts", import.meta.url));
+  const runText = await sourceFamily(new URL("./run.ts", import.meta.url));
   // The invariant that still has a subject: run.ts must not author this copy.
   assertEquals(runText.includes("Tu veux qu'on l'utilise pour alléger"), false);
   // The renderer that used to own it was deleted with the feature; the copy exists nowhere

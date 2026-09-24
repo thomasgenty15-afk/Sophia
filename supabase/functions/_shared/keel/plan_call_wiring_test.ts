@@ -38,6 +38,7 @@ import {
   PLAN_REPAIR_REASONING_EFFORT,
   PLAN_SERVICE_TIER,
 } from "./generation_model.ts";
+import { sourceFamily } from "./source_family.ts";
 
 const FUNCTIONS_DIR = new URL("../../", import.meta.url);
 
@@ -46,7 +47,7 @@ function stripComments(src: string): string {
 }
 
 const HOUSE = stripComments(
-  await Deno.readTextFile(
+  await sourceFamily(
     new URL("generate-household-meal-v1/index.ts", FUNCTIONS_DIR),
   ),
 );

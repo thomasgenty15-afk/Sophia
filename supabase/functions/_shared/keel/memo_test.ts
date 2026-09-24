@@ -42,6 +42,7 @@ import {
   withMemoLine,
   withoutMemoLine,
 } from "./memo.ts";
+import { sourceFamily } from "./source_family.ts";
 
 const LEA = "member:aaaaaaaa-0000-4000-8000-000000000001";
 const TOM = "member:bbbbbbbb-0000-4000-8000-000000000002";
@@ -289,7 +290,7 @@ Deno.test("LE CÂBLAGE — les DEUX lanes lisent le mémo AVEC UN SUJET, et le c
       ["../../generate-household-meal-v1/index.ts", "keel.household_meal.notes"],
     ] as const
   ) {
-    const src = (await Deno.readTextFile(new URL(rel, import.meta.url)))
+    const src = (await sourceFamily(new URL(rel, import.meta.url)))
       .replace(/\/\*[\s\S]*?\*\//g, "")
       .split("\n")
       .map((l) => l.replace(/(^|[^:])\/\/.*$/, "$1"))
@@ -312,13 +313,13 @@ Deno.test("LE CÂBLAGE — les DEUX lanes lisent le mémo AVEC UN SUJET, et le c
     );
   }
   // La lane foyer passe AUSSI les notes par bouche au bloc du foyer.
-  const household = await Deno.readTextFile(
+  const household = await sourceFamily(
     new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
   );
   assert(/notes: memberNoteLines/.test(household), "la lane foyer ne passe plus les notes par bouche au bloc du foyer");
 
   // Et le prompt le REND.
-  const prompt = await Deno.readTextFile(new URL("./meal_generation.ts", import.meta.url));
+  const prompt = await sourceFamily(new URL("./meal_generation.ts", import.meta.url));
   assert(prompt.includes("memo?: readonly string[];"), "le paramètre a disparu");
   assert(
     prompt.includes("...(args.memo ?? []).map((p) => `- ${p}`)"),

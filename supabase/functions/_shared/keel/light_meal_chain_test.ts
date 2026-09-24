@@ -26,6 +26,7 @@ import { assert, assertEquals } from "jsr:@std/assert@1";
 
 import { habitEntriesToWrite } from "../../../../frontend/src/keel/lib/mealExtras.ts";
 import { parseMemberLight, parseMemberHabits } from "./household_habits.ts";
+import { sourceFamily } from "./source_family.ts";
 
 // ⛔ LA RÉPONSE, POSÉE UNE FOIS. Tout le fichier la suit; aucune étape n'a le
 // droit de la réécrire pour s'arranger.
@@ -80,7 +81,7 @@ Deno.test("③bis la dérivation du handler ne garde que les moments COCHÉS", (
 });
 
 Deno.test("⛔ LE CÂBLAGE DU HANDLER: une seule dérivation, depuis CETTE lecture", async () => {
-  const src = await Deno.readTextFile(
+  const src = await sourceFamily(
     new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
   );
   // La RPC qui rend la colonne, le parseur, puis les deux champs qui en

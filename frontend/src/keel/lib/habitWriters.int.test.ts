@@ -2,6 +2,7 @@ import { globSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { sourceFamily } from "../../test/sourceFamily";
 
 // ===========================================================================
 // UN SEUL SÉRIALISEUR POUR `household_member_habits.slots`
@@ -355,7 +356,7 @@ describe("les à-côtés traversent CHAQUE écrivain", () => {
     // `set({ sideCourses })` dans la fenêtre, et le nom dans
     // `SELF_SHEET_FIELDS`: sans lui, le brouillon DÉRIVÉ du titulaire
     // rallumerait « Selon l'objectif » dans la même image.
-    const dialog = strip(readFileSync(resolve(root, "components/MouthFormDialog.tsx"), "utf8"));
+    const dialog = strip(sourceFamily(resolve(root, "components/MouthFormDialog.tsx")));
     expect(dialog).toMatch(/<SideCoursesField[\s\S]*?set\(\{\s*sideCourses:\s*next\s*\}\)/);
     const form = strip(readFileSync(resolve(root, "lib/mouthForm.ts"), "utf8"));
     const list = form.slice(form.indexOf("export const SELF_SHEET_FIELDS"));

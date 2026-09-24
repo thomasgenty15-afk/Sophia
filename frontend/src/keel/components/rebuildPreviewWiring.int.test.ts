@@ -11,9 +11,10 @@
  */
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { sourceFamily } from "../../test/sourceFamily";
 
 const BUILDER = readFileSync(new URL("./MealBuilder.tsx", import.meta.url), "utf8");
-const PAGE = readFileSync(new URL("../pages/StudentWeekPlanPage.tsx", import.meta.url), "utf8");
+const PAGE = sourceFamily(new URL("../pages/StudentWeekPlanPage.tsx", import.meta.url));
 const DIALOG = readFileSync(new URL("./plan/PlanDraftDialog.tsx", import.meta.url), "utf8");
 const FR = readFileSync(new URL("../i18n/fr.ts", import.meta.url), "utf8");
 const EN = readFileSync(new URL("../i18n/en.ts", import.meta.url), "utf8");

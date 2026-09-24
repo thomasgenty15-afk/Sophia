@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { sourceFamily } from "../../test/sourceFamily";
 
 // ===========================================================================
 // LE MOMENT DU SHAKER TRAVERSE DEUX CHEMINS D'ÉCRITURE — 2026-09-01
@@ -30,10 +30,9 @@ import { resolve } from "node:path";
 // existe.
 // ===========================================================================
 
-const DIALOG = readFileSync(resolve(__dirname, "./MouthFormDialog.tsx"), "utf8");
-const SETUP = readFileSync(
+const DIALOG = sourceFamily(resolve(__dirname, "./MouthFormDialog.tsx"));
+const SETUP = sourceFamily(
   resolve(__dirname, "../pages/SetupPage.tsx"),
-  "utf8",
 );
 
 describe("le bloc du shaker rend les deux faits", () => {

@@ -12,6 +12,7 @@ import { assert, assertEquals } from "jsr:@std/assert@1";
 import { mouthEnergyTable } from "./final_plan_audit.ts";
 import type { DayNutritionRow } from "./final_plan_audit.ts";
 import { ENERGY_SHORT_RATIO } from "./final_plan_gate.ts";
+import { sourceFamily } from "./source_family.ts";
 
 const LEA = "m-lea";
 const NILS = "m-nils";
@@ -93,7 +94,7 @@ Deno.test("une bouche QUI A un budget et dont rien n'est lisible est rendue à z
 });
 
 Deno.test("⛔ LE CÂBLAGE: le handler ne passe plus `energy: null` en dur", async () => {
-  const src = await Deno.readTextFile(
+  const src = await sourceFamily(
     new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
   );
   assert(

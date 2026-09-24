@@ -22,14 +22,14 @@
 // fronton » — pas visuel. Le rendu, lui, a été vérifié dans la vraie UI.
 
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 import { en } from "../i18n/en";
 import { fr } from "../i18n/fr";
+import { sourceFamily } from "../../test/sourceFamily";
 
 const read = (rel: string) =>
-  readFileSync(fileURLToPath(new URL(rel, import.meta.url)), "utf8");
+  sourceFamily(fileURLToPath(new URL(rel, import.meta.url)));
 
 const READOUT = read("./plan/EnergyReadout.tsx");
 const BUILDER = read("./MealBuilder.tsx");

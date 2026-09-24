@@ -22,6 +22,7 @@ import {
 import type { MealBodyContext } from "./meal_body.ts";
 import { mouthEnvelope } from "./household_composition.ts";
 import { goalApplies } from "./household.ts";
+import { sourceFamily } from "./source_family.ts";
 
 const CORPS: MealBodyContext = {
   heightCm: 175,
@@ -101,7 +102,7 @@ Deno.test("BÊTA 1B ② — CÂBLAGE: le handler passe l'objectif par `goalAppli
   // ⛔ UN TEST DE SOURCE, PARCE QUE LE SITE VIT DANS UN `map` AU MILIEU DE
   // 19 000 LIGNES et qu'aucun appel ne peut l'atteindre sans base ni modèle.
   // Il ne prouve pas que le plan est juste; il prouve que la porte est posée.
-  const src = await Deno.readTextFile(
+  const src = await sourceFamily(
     new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
   );
   assert(

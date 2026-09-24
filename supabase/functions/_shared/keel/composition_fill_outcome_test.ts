@@ -11,6 +11,7 @@ import {
 } from "./composition_fill_io.ts";
 import { buildCompositionIndex } from "./food_composition.ts";
 import type { EnergySourceShares } from "./composition_fill.ts";
+import { sourceFamily } from "./source_family.ts";
 
 /**
  * V0-B-bis · « PAS MESURÉ » ET « MESURÉ À ZÉRO » NE SONT PLUS LE MÊME OCTET.
@@ -210,7 +211,7 @@ const withoutComments = (src: string) =>
 
 Deno.test("⑥ aucune lane n'initialise les compteurs à un zéro mesuré", async () => {
   for (const lane of LANES) {
-    const src = await Deno.readTextFile(new URL(lane, import.meta.url));
+    const src = await sourceFamily(new URL(lane, import.meta.url));
     const flat = withoutComments(src).replace(/\s+/g, " ");
     assert(
       !flat.includes("{ unknowns: 0, shares: {}, counts: {} }"),

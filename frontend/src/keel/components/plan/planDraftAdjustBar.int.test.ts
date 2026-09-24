@@ -16,6 +16,7 @@ import { describe, expect, it } from "vitest";
 
 import { en } from "../../i18n/en";
 import { fr } from "../../i18n/fr";
+import { sourceFamily } from "../../../test/sourceFamily";
 
 const RAW = readFileSync(new URL("./PlanDraftDialog.tsx", import.meta.url), "utf8");
 const SRC = RAW
@@ -153,9 +154,8 @@ describe("la barre d'ajustement du brouillon", () => {
     expect(adjust, "« Ajuster » a quitté le pied").toBeGreaterThan(0);
     expect(adjust, "« Adopter » est repassé à gauche").toBeLessThan(adopt);
 
-    const setup = readFileSync(
+    const setup = sourceFamily(
       new URL("../../pages/SetupPage.tsx", import.meta.url),
-      "utf8",
     );
     const next = setup.indexOf('{t("setup.next")}');
     expect(next, "l'avance de l'entonnoir a changé de nom").toBeGreaterThan(0);

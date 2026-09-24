@@ -2,7 +2,6 @@ import { afterEach, describe, expect, it } from "vitest";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import type { EatingStructure } from "../api/eatingStructure";
-import { readFileSync } from "node:fs";
 
 import MouthFormDialog, {
   MouthCoreFields,
@@ -31,6 +30,7 @@ import {
   SPORT_FREQUENCIES,
 } from "../../../../supabase/functions/_shared/keel/tokens.ts";
 import { GOAL_TOKENS } from "../../../../supabase/functions/_shared/keel/tokens.ts";
+import { sourceFamily } from "../../test/sourceFamily";
 
 // ===========================================================================
 // L5-A (2026-08-18) — LE POP-UP « UNE BOUCHE », SUR LA VALEUR RENDUE
@@ -61,9 +61,8 @@ const MINOR_BIRTH = "2016-05-04";
 const PATH = "/app/household";
 
 /** Le wrapper, lu sur le disque — voir la seule assertion de source, plus bas. */
-const dialogSource = readFileSync(
+const dialogSource = sourceFamily(
   new URL("./MouthFormDialog.tsx", import.meta.url),
-  "utf-8",
 );
 
 const NO_ACCOUNT: MouthSubject = { existing: false, hasAccount: false, isSelf: false };
@@ -1702,9 +1701,8 @@ describe("la fiche est la MÊME pour tout le monde", () => {
     // au-dessus compare des rendus: il ne verrait PAS une section neuve qu'on
     // ajouterait derrière une garde neuve, puisqu'elle manquerait des deux
     // côtés du même brouillon. Celui-ci refuse la garde elle-même.
-    const src = readFileSync(
+    const src = sourceFamily(
       new URL("./MouthFormDialog.tsx", import.meta.url),
-      "utf8",
     )
       .replace(/\/\*[\s\S]*?\*\//g, "")
       .split("\n")

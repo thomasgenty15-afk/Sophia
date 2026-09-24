@@ -21,6 +21,7 @@
  * resterait vert sur du code mort (`caller-audit-must-strip-comments`).
  */
 import { assert, assertEquals } from "jsr:@std/assert@1";
+import { sourceFamily } from "./source_family.ts";
 
 const FUNCTIONS_DIR = new URL("../../", import.meta.url);
 
@@ -29,13 +30,13 @@ function stripComments(src: string): string {
 }
 
 const HANDLER = stripComments(
-  await Deno.readTextFile(new URL("generate-household-meal-v1/index.ts", FUNCTIONS_DIR)),
+  await sourceFamily(new URL("generate-household-meal-v1/index.ts", FUNCTIONS_DIR)),
 );
 const MERGE = stripComments(
   await Deno.readTextFile(new URL("_shared/keel/retry_merge.ts", FUNCTIONS_DIR)),
 );
 const PARSER = stripComments(
-  await Deno.readTextFile(new URL("_shared/keel/meal_generation.ts", FUNCTIONS_DIR)),
+  await sourceFamily(new URL("_shared/keel/meal_generation.ts", FUNCTIONS_DIR)),
 );
 const AUDIT = stripComments(
   await Deno.readTextFile(new URL("_shared/keel/final_plan_audit.ts", FUNCTIONS_DIR)),

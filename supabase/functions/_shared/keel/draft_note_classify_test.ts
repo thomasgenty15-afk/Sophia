@@ -71,6 +71,7 @@ import {
   DRAFT_NOTE_CORPUS,
   SIDE_COURSE_NOTE_CORPUS,
 } from "./draft_note_corpus.ts";
+import { sourceFamily } from "./source_family.ts";
 
 // ---------------------------------------------------------------------------
 // LE DÉCOR
@@ -1327,7 +1328,7 @@ Deno.test("⛔ LES CLÉS SONT ÉCRITES MÊME À `null` — « on ne sait pas » 
 });
 
 Deno.test("LE CÂBLAGE — la lane foyer passe l'âge et le sexe, et PAS `ageBand`", async () => {
-  const src = await Deno.readTextFile(
+  const src = await sourceFamily(
     new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
   );
   assert(/sex: m\.body\?\.gender \?\? null/.test(src), "la lane foyer ne passe plus le sexe");

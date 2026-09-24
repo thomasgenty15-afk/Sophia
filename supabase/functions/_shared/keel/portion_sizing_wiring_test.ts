@@ -28,6 +28,7 @@
 // taire un rouge: chacun avait son jumeau FOYER, qui reste. Le détail de
 // l'audit est dans `scratchpad/2026-09-11-LOT7-SUPPRESSION/`.
 import { assert, assertEquals } from "jsr:@std/assert@1";
+import { sourceFamily, sourceFamilySync } from "./source_family.ts";
 
 const FUNCTIONS_DIR = new URL("../../", import.meta.url);
 
@@ -35,7 +36,7 @@ function stripComments(src: string): string {
   return src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/[^\n]*/g, "$1");
 }
 const REL = "generate-household-meal-v1/index.ts";
-const SRC = stripComments(await Deno.readTextFile(new URL(REL, FUNCTIONS_DIR)));
+const SRC = stripComments(await sourceFamily(new URL(REL, FUNCTIONS_DIR)));
 
 const GUARD = "const sizing = sizingPathFor({";
 const PROMPT = "buildHouseholdPromptBlocks(";
@@ -468,7 +469,7 @@ Deno.test("CÂBLAGE ⑳ — le plancher du bloc SUIT les bouches, il n'est plus 
   // ⛔ SANS CE CÂBLAGE, UNE BOUCHE SOUS PLANCHER TCA EST SOUS-NOURRIE POUR LA
   // PROTÉGER D'UN CHIFFRE: sa densité ne peut pas être nommée sur sa ligne, et
   // si le plancher commun reste à 100, personne ne la transmet.
-  const gen = Deno.readTextFileSync(
+  const gen = sourceFamilySync(
     new URL("./household_meal_generation.ts", import.meta.url),
   );
   assert(

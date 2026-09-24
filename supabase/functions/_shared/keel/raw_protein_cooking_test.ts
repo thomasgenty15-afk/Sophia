@@ -10,6 +10,7 @@ import {
   rawProteinRepairInstruction,
   uncookedRawProteins,
 } from "./raw_protein_cooking.ts";
+import { sourceFamily } from "./source_family.ts";
 
 function ref(over: Partial<CompositionRef> & { slug: string }): CompositionRef {
   return {
@@ -126,7 +127,7 @@ function stripComments(src: string): string {
 
 Deno.test("la lane la pousse à la réparation, et refuse la livraison si elle survit", async () => {
   const handler = stripComments(
-    await Deno.readTextFile(new URL("../../generate-household-meal-v1/index.ts", import.meta.url)),
+    await sourceFamily(new URL("../../generate-household-meal-v1/index.ts", import.meta.url)),
   );
   const upstream = handler.indexOf('cause: "raw_protein_uncooked",');
   const refusal = handler.indexOf("const crusRestants = uncookedRawProteins({");

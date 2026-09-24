@@ -1,4 +1,3 @@
-import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -8,6 +7,7 @@ import { PAGE_NAMESPACES } from "../i18n/catalog";
 import { en } from "../i18n/en";
 import { fr } from "../i18n/fr";
 import { setChosenUiLocaleForTest } from "../i18n/runtime";
+import { sourceFamily } from "../../test/sourceFamily";
 
 // ===========================================================================
 // A5 (2026-09-03) — LA FICHE D'UNE BOUCHE A DEUX CADRES NOMMÉS
@@ -74,7 +74,7 @@ function frame(patch: Partial<Parameters<typeof SheetFrame>[0]> = {}): string {
 }
 
 function source(rel: string): string {
-  return readFileSync(new URL(rel, import.meta.url), "utf8")
+  return sourceFamily(new URL(rel, import.meta.url))
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .split("\n")
     .filter((l) => !l.trim().startsWith("//") && !l.trim().startsWith("*"))
@@ -303,9 +303,8 @@ describe("les deux cadres de la fiche, et ce qui reste dehors", () => {
 
 describe("le renversement est écrit là où vit la phrase inverse", () => {
   it("`MouthFormDialog` porte le renversement, daté et borné", () => {
-    const raw = readFileSync(
+    const raw = sourceFamily(
       new URL("../components/MouthFormDialog.tsx", import.meta.url),
-      "utf8",
     );
     expect(raw, "le renversement n'est pas écrit là où vit la décision d'avant")
       .toContain("RENVERSEMENT PARTIEL — A5 (D5.1), 2026-09-03");

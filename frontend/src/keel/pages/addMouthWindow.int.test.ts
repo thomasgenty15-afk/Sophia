@@ -1,4 +1,3 @@
-import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -9,6 +8,7 @@ import { HOUSEHOLD_MAX_MOUTHS } from "../api/onboarding";
 import { en } from "../i18n/en";
 import { fr } from "../i18n/fr";
 import { setChosenUiLocaleForTest } from "../i18n/runtime";
+import { sourceFamily } from "../../test/sourceFamily";
 
 // ===========================================================================
 // A5 POINT 3 (2026-09-03) — UNE SEULE FENÊTRE POUR AJOUTER QUELQU'UN
@@ -57,7 +57,7 @@ function html(prefsOpen: boolean): string {
 }
 
 function source(rel: string): string {
-  return readFileSync(new URL(rel, import.meta.url), "utf8")
+  return sourceFamily(new URL(rel, import.meta.url))
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .split("\n")
     .filter((l) => !l.trim().startsWith("//") && !l.trim().startsWith("*"))

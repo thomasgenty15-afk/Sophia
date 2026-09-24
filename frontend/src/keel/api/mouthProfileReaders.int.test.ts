@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync, readdirSync, existsSync } from "node:fs";
+import { readdirSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
+import { sourceFamily } from "../../test/sourceFamily";
 
 /**
  * LOT D — TROIS CHAMPS COLLECTÉS, ET CE QUI LES LIT VRAIMENT.
@@ -30,7 +31,7 @@ const ROOT = resolve(__dirname, "../../../..");
 
 /** ⚠️ COMMENTAIRES RETIRÉS — ce dépôt nomme ces champs des dizaines de fois en prose. */
 function code(rel: string): string {
-  return readFileSync(resolve(ROOT, rel), "utf8")
+  return sourceFamily(resolve(ROOT, rel))
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .split("\n")
     .map((line) => {

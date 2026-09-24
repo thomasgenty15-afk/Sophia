@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { createElement, type ReactElement, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { readFileSync } from "node:fs";
 
 import SideCoursesField from "./SideCoursesField";
 import { MouthPreferencesFields } from "./MouthFormDialog";
@@ -11,6 +10,7 @@ import { EATING_OCCASIONS } from "../api/mealGeneration";
 import { setChosenUiLocaleForTest } from "../i18n/runtime";
 import { en } from "../i18n/en";
 import { fr } from "../i18n/fr";
+import { sourceFamily } from "../../test/sourceFamily";
 
 // ===========================================================================
 // ⟳ 2026-09-23 — LE CHAMP DES À-CÔTÉS: ENTRÉE, FROMAGE, DESSERT, PAIN
@@ -315,7 +315,7 @@ describe("le champ est monté là où la personne règle sa fiche", () => {
     // `renderToStaticMarkup` (session, routeur). Ce qui est vérifié est la
     // place (la branche du membre, juste après la carte), la garde de lecture
     // et l'écrivain (le seul sérialiseur, avec le réglage cliqué).
-    const src = readFileSync(new URL("../pages/HouseholdPage.tsx", import.meta.url), "utf8")
+    const src = sourceFamily(new URL("../pages/HouseholdPage.tsx", import.meta.url))
       .replace(/\/\*[\s\S]*?\*\//g, "")
       .split("\n")
       .filter((l) => !l.trim().startsWith("//"))

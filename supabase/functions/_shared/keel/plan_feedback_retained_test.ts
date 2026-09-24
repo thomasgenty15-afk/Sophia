@@ -41,6 +41,7 @@ import {
   routeRetainedItems,
 } from "./retained_items_routing.ts";
 import { buildMealPrompt } from "./meal_generation.ts";
+import { sourceFamily } from "./source_family.ts";
 
 /**
  * LOT 2A — LE QUESTIONNAIRE DE FIN DE PLAN, ET SON LECTEUR.
@@ -1256,7 +1257,7 @@ Deno.test("⛔ …et le maillon de SOURCE: les deux lanes lisent bien `pc.variet
   // générateur ne relit pas est exactement le défaut que ce chantier ferme.
   const lanes = ["generate-household-meal-v1"];
   for (const lane of lanes) {
-    const src = await Deno.readTextFile(
+    const src = await sourceFamily(
       new URL(`../../${lane}/index.ts`, import.meta.url),
     );
     const code = stripComments(src);

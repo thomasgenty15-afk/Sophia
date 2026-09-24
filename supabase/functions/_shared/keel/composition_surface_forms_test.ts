@@ -38,6 +38,7 @@ import {
   repairPlanComposition,
 } from "./composition_fill_io.ts";
 import type { FoodGroupRef } from "./tokens.ts";
+import { sourceFamily } from "./source_family.ts";
 
 // ---------------------------------------------------------------------------
 // LE DÉCOR — un référentiel minuscule, mais avec de VRAIES bandes
@@ -478,7 +479,7 @@ Deno.test("aucune lane de génération n'écrit le référentiel", async () => {
     src.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/(^|[^:])\/\/[^\n]*/g, "$1 ");
   for (const lane of lanes) {
     const src = stripComments(
-      await Deno.readTextFile(new URL(lane, import.meta.url)),
+      await sourceFamily(new URL(lane, import.meta.url)),
     );
     assertEquals(
       src.includes("food_composition_refs"),

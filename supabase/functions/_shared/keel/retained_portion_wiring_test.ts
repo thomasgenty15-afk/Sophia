@@ -50,6 +50,7 @@ import {
 import type { MealBodyContext } from "./meal_body.ts";
 import { parseRetainedItem, type PortionAdjustItem } from "./retained_item.ts";
 import { ageStateFromVerdict, type MemberAgeState } from "./household.ts";
+import { sourceFamily } from "./source_family.ts";
 
 // ---------------------------------------------------------------------------
 // LES SOURCES — lues, décommentées, puis interrogées
@@ -72,7 +73,7 @@ function stripComments(src: string): string {
 }
 
 async function source(rel: string): Promise<string> {
-  return stripComments(await Deno.readTextFile(new URL(rel, FUNCTIONS_DIR)));
+  return stripComments(await sourceFamily(new URL(rel, FUNCTIONS_DIR)));
 }
 
 /**

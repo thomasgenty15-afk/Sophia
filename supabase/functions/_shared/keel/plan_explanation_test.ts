@@ -7,6 +7,7 @@ import {
   reconcileExplanationAfterMerge,
 } from "./plan_explanation.ts";
 import { HOUSEHOLD_PROMPT_VERSION } from "./household_meal_generation.ts";
+import { sourceFamily } from "./source_family.ts";
 
 // ===========================================================================
 // LA GARDE DE L'EXPLICATION — un cas qui PASSE et un cas qui REFUSE par porte
@@ -230,7 +231,7 @@ Deno.test("sans terme, rien ne bouge ; le plafond de huit lignes tient", () => {
 });
 
 Deno.test("CÂBLAGE — la lane foyer retire les phrases qui décrivent un plat remplacé", async () => {
-  const src = await Deno.readTextFile(new URL("../../generate-household-meal-v1/index.ts", import.meta.url));
+  const src = await sourceFamily(new URL("../../generate-household-meal-v1/index.ts", import.meta.url));
   // ⛔ LE DÉFAUT MESURÉ (ASP6, 2026-09-06): l'explication de la base
   // contredisait le plan — « les asperges n'ont pas été retenues » sous trois
   // boîtes d'asperges.

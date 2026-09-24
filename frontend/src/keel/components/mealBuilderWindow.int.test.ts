@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { addDays, assertIsoDate, daysBetween, isIsoDate } from "../api/dates";
+import { sourceFamily } from "../../test/sourceFamily";
 
 // ===========================================================================
 // LA FENÊTRE DU PLAN, ET LA DEMI-DATE QUI EMPORTAIT LA PAGE
@@ -52,9 +53,8 @@ const SOURCE = readFileSync(
 // Les deux sources sont relues par le même bloc plus bas: un correctif porté à
 // un seul des deux écrans est précisément ce que ce fichier existe pour
 // attraper.
-const SETUP_SOURCE = readFileSync(
+const SETUP_SOURCE = sourceFamily(
   resolve(__dirname, "../pages/SetupPage.tsx"),
-  "utf8",
 );
 
 describe("le contrat de dates.ts", () => {

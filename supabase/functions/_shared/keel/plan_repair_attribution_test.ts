@@ -61,6 +61,7 @@ import { unfedRetryInstruction } from "./meals_delivered.ts";
 import { preferenceSplitRetryInstruction } from "./preference_split_retry.ts";
 import { swapRetryInstruction } from "./swap_presence.ts";
 import type { RepairHouseholdContext } from "./side_courses_types.ts";
+import { sourceFamilySync } from "./source_family.ts";
 
 // ⟳ 2026-09-23 — `planRepairMessage` exige le foyer (`household` : fiches,
 // notes, recette de référence, à-côtés), requis depuis le flux G du chantier
@@ -1467,7 +1468,7 @@ Deno.test("⑨ bis — la lane du foyer n'appelle AUCUN producteur non couvert i
   // AU-DESSUS : il dit seulement que la LISTE est complète. Sans lui, ajouter
   // un huitième producteur au générateur passerait sans qu'aucun test final ne
   // le voie ; sans les sept, ce test-ci ne dirait rien de ce qui est envoyé.
-  const src = Deno.readTextFileSync(
+  const src = sourceFamilySync(
     new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
   );
   const couverts = new Set(PRODUCTEURS.map((p) => p.nom));
@@ -1610,7 +1611,7 @@ Deno.test("⑪ la lane passe l'index RÉEL, celui du périmètre et de la projec
   // aucun test de forme ne le verrait — l'adresse serait juste plus pauvre.
   // On épingle donc que la MÊME table sert les trois : la table des unités, le
   // périmètre et le message.
-  const src = Deno.readTextFileSync(
+  const src = sourceFamilySync(
     new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
   );
   const at = src.indexOf("const c4Units = buildRepairUnits({");
@@ -1626,7 +1627,7 @@ Deno.test("⑪ la lane passe l'index RÉEL, celui du périmètre et de la projec
 });
 
 Deno.test("⑪ bis — un contexte incomplet ARRÊTE la lane avant de consommer le budget", () => {
-  const src = Deno.readTextFileSync(
+  const src = sourceFamilySync(
     new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
   );
   const garde = src.indexOf("} else if (c4Composed.contextIncomplete) {");
@@ -1979,7 +1980,7 @@ Deno.test("⑫ câblage — la lane passe les DEUX tables, et jamais `null` quan
   // passerait `null` en permanence composerait un message sans un seul contrat
   // de bouche saine, et aucun test de forme ne le verrait — le bloc se
   // tairait, exactement comme avant le lot.
-  const src = Deno.readTextFileSync(
+  const src = sourceFamilySync(
     new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
   );
   const appel = src.indexOf(": planRepairMessage({");

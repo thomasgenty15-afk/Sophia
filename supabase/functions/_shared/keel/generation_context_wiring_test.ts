@@ -11,6 +11,7 @@
 // taire un rouge: chacun avait son jumeau FOYER, qui reste. Le détail de
 // l'audit est dans `scratchpad/2026-09-11-LOT7-SUPPRESSION/`.
 import { assert, assertEquals } from "jsr:@std/assert@1";
+import { sourceFamily } from "./source_family.ts";
 
 const FUNCTIONS_DIR = new URL("../../", import.meta.url);
 
@@ -22,7 +23,7 @@ function stripComments(src: string): string {
 }
 
 async function source(rel: string): Promise<string> {
-  return stripComments(await Deno.readTextFile(new URL(rel, FUNCTIONS_DIR)));
+  return stripComments(await sourceFamily(new URL(rel, FUNCTIONS_DIR)));
 }
 
 const FOYER = "generate-household-meal-v1/index.ts";
@@ -317,7 +318,7 @@ Deno.test("LOT 6 — `asGatePlan` est PUBLIC, pour que la génération l'atteign
   // ⚠️ C'EST CE QUI RENDAIT LA GARDE INATTEIGNABLE: l'adaptateur était privé
   // dans `draft_adopt.ts`, donc le seul chemin vers la garde passait par
   // l'adoption — qui n'a pas d'appelant.
-  const gateSrc = await Deno.readTextFile(
+  const gateSrc = await sourceFamily(
     new URL("_shared/keel/final_plan_gate.ts", FUNCTIONS_DIR),
   );
   assert(

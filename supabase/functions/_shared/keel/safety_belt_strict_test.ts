@@ -38,6 +38,7 @@ import {
   MEDICAL_BLOCK_FALLBACK_EN,
   STRICT_BLOCK_FALLBACK_EN,
 } from "../../sophia-brain/skills/_shared/keel_output_locks.ts";
+import { sourceFamily } from "./source_family.ts";
 
 function constraint(
   patch: Partial<StudentSafetyConstraint> = {},
@@ -179,7 +180,7 @@ Deno.test("⛔ ① le CÂBLAGE: les trois lanes appellent le verrou, table en ma
   let vus = 0;
   for (const { fichier, quoi } of lanes) {
     const src = stripComments(
-      await Deno.readTextFile(new URL(fichier, import.meta.url)),
+      await sourceFamily(new URL(fichier, import.meta.url)),
     );
     const at = src.indexOf("applyKeelOutputLocks({");
     assert(at > 0, `${quoi}: n'appelle plus le verrou (${fichier})`);

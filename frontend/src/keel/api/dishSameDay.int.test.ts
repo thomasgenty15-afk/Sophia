@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { en } from "../i18n/en";
 import { fr } from "../i18n/fr";
 import { SAME_DAY_KINDS } from "./mealGeneration";
+import { sourceFamily } from "../../test/sourceFamily";
 
 // ===========================================================================
 // LOT 2 — LE COMMENTAIRE DE PRÉPARATION DU JOUR J, CÔTÉ ÉCRAN
@@ -27,7 +27,7 @@ import { SAME_DAY_KINDS } from "./mealGeneration";
 const ROOT = resolve(__dirname, "../../../..");
 
 function code(rel: string): string {
-  return readFileSync(resolve(ROOT, rel), "utf8")
+  return sourceFamily(resolve(ROOT, rel))
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
     .split("\n")

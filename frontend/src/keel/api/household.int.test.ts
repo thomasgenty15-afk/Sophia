@@ -15,6 +15,7 @@ import {
   readHouseholdDishes,
   restrictionNotice,
 } from "./household";
+import { sourceFamily } from "../../test/sourceFamily";
 
 /**
  * ── CE QUE CE FICHIER NE TESTE PLUS (lots 1 et 2, 2026-08-10) ───────────────
@@ -232,7 +233,7 @@ describe("la carte de fusion est gatée sur un profil réclamé (câblage)", () 
   const ROOT = resolve(__dirname, "../../../..");
 
   function code(rel: string): string {
-    return readFileSync(resolve(ROOT, rel), "utf8")
+    return sourceFamily(resolve(ROOT, rel))
       .replace(/\/\*[\s\S]*?\*\//g, "")
       .replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
       .split("\n")

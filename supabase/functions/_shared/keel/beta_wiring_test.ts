@@ -15,14 +15,15 @@
 // ══════════════════════════════════════════════════════════════════════════
 
 import { assert, assertEquals } from "jsr:@std/assert@1";
+import { sourceFamily } from "./source_family.ts";
 
 const FUNCTIONS_DIR = new URL("../../", import.meta.url);
 // La racine du dépôt — `supabase/functions/` remonte de deux crans de plus.
 const REPO = new URL("../../", FUNCTIONS_DIR);
-const HANDLER = await Deno.readTextFile(
+const HANDLER = await sourceFamily(
   new URL("generate-household-meal-v1/index.ts", FUNCTIONS_DIR),
 );
-const PROMPT = await Deno.readTextFile(
+const PROMPT = await sourceFamily(
   new URL("_shared/keel/household_meal_generation.ts", FUNCTIONS_DIR),
 );
 

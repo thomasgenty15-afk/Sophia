@@ -11,6 +11,7 @@ import {
 } from "../../../../supabase/functions/_shared/keel/plan_feasibility.ts";
 import { FREEZER_WINDOW_DAYS } from "../../../../supabase/functions/_shared/keel/fridge_window.ts";
 import { MAX_FRIDGE_DAYS } from "./groceryWaves";
+import { sourceFamily } from "../../test/sourceFamily";
 
 // ===========================================================================
 // « AVOIR UN CONGÉLATEUR » SE DIT DEUX FOIS — ET LES DEUX DOIVENT S'ACCORDER
@@ -52,9 +53,8 @@ describe("le miroir du congélateur", () => {
 });
 
 describe("l'entonnoir annonce ce que le moteur fera", () => {
-  const SOURCE = readFileSync(
+  const SOURCE = sourceFamily(
     resolve(__dirname, "../pages/SetupPage.tsx"),
-    "utf8",
   );
 
   it("le congélateur passe par le MIROIR, jamais par un `includes` écrit là", () => {

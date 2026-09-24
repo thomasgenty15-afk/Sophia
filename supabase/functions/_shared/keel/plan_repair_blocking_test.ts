@@ -27,6 +27,7 @@ import {
   REPAIR_PASS_REFUSALS,
   repairRoundOutcome,
 } from "./plan_repair_loop.ts";
+import { sourceFamily } from "./source_family.ts";
 
 // ⛔ LA SÉVÉRITÉ VIENT DE LA POLITIQUE LIVRÉE, JAMAIS D'UNE VALEUR POSÉE À LA
 // MAIN : si un jour `protein_floor_short` passe en `refuse`, ces épreuves
@@ -189,7 +190,7 @@ Deno.test("le motif est dans le vocabulaire de la DÉCISION, pas dans celui de l
 });
 
 Deno.test("⛔ LE CÂBLAGE : le handler passe le compte À RÉPARER aux deux décisions, et note le refus", async () => {
-  const src = await Deno.readTextFile(
+  const src = await sourceFamily(
     new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
   );
   // ⟳ 2026-09-19 — `mustRepair`, plus `blocking` : bloquants ∪ chassés.

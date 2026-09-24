@@ -60,6 +60,7 @@ import {
   requestsWithPendingGroups,
 } from "./composition_fill_io.ts";
 import type { FoodGroupRef } from "./tokens.ts";
+import { sourceFamilySync } from "./source_family.ts";
 
 // ---------------------------------------------------------------------------
 // LE DÉCOR — un référentiel minuscule, mais avec de VRAIES bandes
@@ -529,7 +530,7 @@ Deno.test("L18b ⑪bis aucune lane de génération ne passe de couture", () => {
       "../../generate-household-meal-v1/index.ts",
     ]
   ) {
-    const src = Deno.readTextFileSync(new URL(lane, import.meta.url));
+    const src = sourceFamilySync(new URL(lane, import.meta.url));
     const i = src.indexOf("repairPlanComposition({");
     assert(i > 0, `${lane}: la lane doit appeler repairPlanComposition`);
     const bloc = src.slice(i, i + 2000);

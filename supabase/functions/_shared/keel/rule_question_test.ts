@@ -31,6 +31,7 @@ import {
   ruleQuestionRedirectFor,
 } from "./conversation_redirect.ts";
 import { ruleQuestionContextBlock } from "./rule_question.ts";
+import { sourceFamily } from "./source_family.ts";
 
 function rule(text: string, over: Partial<StoredRule> = {}): StoredRule {
   return {
@@ -242,7 +243,7 @@ Deno.test("⛔ `isKeelStudent` est une GARDE, pas une décoration", () => {
 // ===========================================================================
 
 Deno.test("LE CÂBLAGE — `run.ts` charge, cherche, arme et DIT", async () => {
-  const src = (await Deno.readTextFile(
+  const src = (await sourceFamily(
     new URL("../../sophia-brain/router/run.ts", import.meta.url),
   ))
     .replace(/\/\*[\s\S]*?\*\//g, "")
@@ -366,7 +367,7 @@ Deno.test("⛔ CE BLOC N'EST PAS UNE PHRASE VISIBLE", () => {
 });
 
 Deno.test("LE CÂBLAGE — le bloc est CONSTRUIT, INJECTÉ et COMPTÉ", async () => {
-  const src = (await Deno.readTextFile(
+  const src = (await sourceFamily(
     new URL("../../sophia-brain/router/run.ts", import.meta.url),
   ))
     .replace(/\/\*[\s\S]*?\*\//g, "")

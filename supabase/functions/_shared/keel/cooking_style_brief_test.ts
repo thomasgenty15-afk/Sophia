@@ -1,6 +1,7 @@
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { buildMealPrompt, MAX_FRIDGE_DAYS } from "./meal_generation.ts";
 import { resolveCookingCapacity } from "./cooking_plan.ts";
+import { sourceFamily } from "./source_family.ts";
 
 // ⟳ 2026-09-05 — LE STYLE N'ATTEIGNAIT PAS LE BRIEF. Mesuré sur un foyer
 // « keen » (120 min, recettes soignées, variété): 3 casseroles pour 13 repas
@@ -85,7 +86,7 @@ Deno.test("le style DÉRIVE la difficulté et la variété — c'est ce que le f
 
 const stripComments = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 Deno.test("CÂBLAGE — la lane foyer passe la difficulté et la variété DU STYLE au brief", async () => {
-  const src = stripComments(await Deno.readTextFile(new URL("../../generate-household-meal-v1/index.ts", import.meta.url)));
+  const src = stripComments(await sourceFamily(new URL("../../generate-household-meal-v1/index.ts", import.meta.url)));
   const at = src.indexOf("const built = buildMealPrompt({");
   assert(at > -1);
   // Les arguments du brief courent sur des centaines de lignes: on lit une fenêtre large, pas jusqu'au premier `});`.

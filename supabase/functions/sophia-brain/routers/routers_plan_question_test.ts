@@ -11,6 +11,7 @@
 import { assertEquals } from "jsr:@std/assert@1";
 import type { TurnFrame } from "../contracts/turn_frame.v1.ts";
 import { runConversationRouters } from "./routers.ts";
+import { sourceFamily } from "../../_shared/keel/source_family.ts";
 
 function frame(patch: Partial<TurnFrame> = {}): TurnFrame {
   return {
@@ -150,7 +151,7 @@ Deno.test("routing — plan_question is ARMED and EXECUTED, never served as a no
   //      swap rice for pasta?" has one correct answer, already written by the
   //      coach in `autonomy` + `swap_policy`; a model improvising a "yes" that
   //      the evaluator grades `missed` at 23:59 is worse than having no lane.
-  const runSource = await Deno.readTextFile(
+  const runSource = await sourceFamily(
     new URL("../router/run.ts", import.meta.url),
   );
 

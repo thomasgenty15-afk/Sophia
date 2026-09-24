@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { sourceFamily } from "../../test/sourceFamily";
 
 /**
  * LOT D — L'ENVIE TAPÉE AU MOMENT DE COMPOSER, DE L'ÉCRAN JUSQU'AU MOTEUR.
@@ -40,7 +40,7 @@ const ROOT = resolve(__dirname, "../../../..");
  * lecteurs vivants. Copié tel quel de `api/cookingShape.int.test.ts`.
  */
 function code(rel: string): string {
-  return readFileSync(resolve(ROOT, rel), "utf8")
+  return sourceFamily(resolve(ROOT, rel))
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
     .split("\n")

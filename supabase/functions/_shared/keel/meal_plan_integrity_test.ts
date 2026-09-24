@@ -12,6 +12,7 @@ import {
   emptySlotsLine,
   parseGeneratedMeal,
 } from "./meal_generation.ts";
+import { sourceFamily } from "./source_family.ts";
 
 /**
  * LE MESSAGE NU — tout à vide, pour que les trois cas ② ne mesurent QUE la
@@ -567,7 +568,7 @@ Deno.test("④ la FUSION dit aussi le trou de son ANCRE", () => {
 // ===========================================================================
 
 async function edgeSource(fn: string): Promise<string> {
-  return await Deno.readTextFile(
+  return await sourceFamily(
     new URL(`../../${fn}/index.ts`, import.meta.url),
   );
 }

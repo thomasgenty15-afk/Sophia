@@ -30,6 +30,7 @@ import {
   retainedHonoured,
 } from "./retained_honoured.ts";
 import { CORPUS_MEMBER_IDS } from "./draft_note_corpus.ts";
+import { sourceFamily } from "./source_family.ts";
 
 const CHRISTELE = CORPUS_MEMBER_IDS.christele;
 const LEA = CORPUS_MEMBER_IDS.lea;
@@ -327,7 +328,7 @@ function stripComments(src: string): string {
 }
 
 Deno.test("câblage — le constat tourne sur le plan livré et entre dans `generated_from`", async () => {
-  const code = stripComments(await Deno.readTextFile(LANE));
+  const code = stripComments(await sourceFamily(LANE));
   const missing: string[] = [];
 
   // ① L'ENTRÉE: les souvenirs lus sont ceux de la ceinture — `beltItems`, qui
@@ -390,7 +391,7 @@ Deno.test("câblage — ET L'ÉPINGLE ROUGIT QUAND ON RETIRE LA SORTIE", async (
   // Avec un `replace` simple — qui ne remplace que la première — la seconde
   // survivait et la mutation ne prouvait plus rien: c'est très exactement
   // « une mention n'est pas un câblage », vu depuis le test.
-  const raw = stripComments(await Deno.readTextFile(LANE));
+  const raw = stripComments(await sourceFamily(LANE));
   assertEquals(
     (raw.match(/retained_honoured: retainedHonouredTrace,/g) ?? []).length,
     2,

@@ -40,6 +40,7 @@ import {
   readHouseholdPromptVersion,
   sha256Hex,
 } from "./precedence_binding.ts";
+import { sourceFamily } from "./source_family.ts";
 
 /**
  * ⛔ LE JETON SE LIT DANS LA SOURCE, IL NE S'IMPORTE PAS — et ce n'est pas un
@@ -51,7 +52,7 @@ import {
  */
 const SOURCE_FOYER = new URL("./household_meal_generation.ts", import.meta.url);
 const HOUSEHOLD_PROMPT_VERSION = readHouseholdPromptVersion(
-  await Deno.readTextFile(SOURCE_FOYER),
+  await sourceFamily(SOURCE_FOYER),
 );
 
 // ---------------------------------------------------------------------------

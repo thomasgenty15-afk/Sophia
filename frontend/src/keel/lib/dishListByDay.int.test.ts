@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { groupDishListByDay } from "./dishListByDay";
+import { sourceFamily } from "../../test/sourceFamily";
 
 /**
  * LOT 1 — LES LISTES PLATES DEVIENNENT PAR JOUR. Ce que ces tests protègent:
@@ -133,7 +133,7 @@ describe("les montages de la liste par jour", () => {
   const ROOT = resolve(__dirname, "../../../..");
 
   function code(rel: string): string {
-    return readFileSync(resolve(ROOT, rel), "utf8")
+    return sourceFamily(resolve(ROOT, rel))
       .replace(/\/\*[\s\S]*?\*\//g, "")
       .replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
       .split("\n")

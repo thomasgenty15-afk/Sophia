@@ -12,6 +12,7 @@ import {
   slotIsTaken,
 } from "./fixed_intakes.ts";
 import { buildMealPrompt } from "./meal_generation.ts";
+import { sourceFamilySync } from "./source_family.ts";
 
 /**
  * FF-051 AU FOYER — LE LECTEUR QUI MANQUAIT.
@@ -533,7 +534,7 @@ Deno.test("un foyer où PERSONNE n'a déclaré rend le prompt de v16, au caract�
  * déclarerait mort un câblage vivant — ou vivant un câblage mort.
  */
 function codeOf(url: URL): string {
-  return Deno.readTextFileSync(url)
+  return sourceFamilySync(url)
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .split("\n")
     .map((line) => line.replace(/^\s*\/\/.*$/, ""))

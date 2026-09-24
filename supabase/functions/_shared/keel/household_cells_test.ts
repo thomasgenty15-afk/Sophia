@@ -47,6 +47,7 @@ import {
 import { memberMealCells } from "./household_presence.ts";
 import type { ServingAxisDemands } from "./household_portions.ts";
 import type { EatingOccasionSlot } from "./meal_generation.ts";
+import { sourceFamily } from "./source_family.ts";
 
 // ---------------------------------------------------------------------------
 // Fabriques
@@ -845,7 +846,7 @@ Deno.test("les compteurs de partition ont un DÉNOMINATEUR non nul sur un vrai p
 // ---------------------------------------------------------------------------
 
 Deno.test("CÂBLAGE — la grille est calculée AVANT le prompt, et `mouthCells` en est la projection", async () => {
-  const src = await Deno.readTextFile(
+  const src = await sourceFamily(
     new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
   );
   const gridAt = src.indexOf("const householdGrid = householdCells({");

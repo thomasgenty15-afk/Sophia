@@ -28,6 +28,7 @@
  * qu'un pavé explicatif cite pour dire qu'il est mort.
  */
 import { assert, assertEquals } from "jsr:@std/assert@1";
+import { sourceFamily } from "./source_family.ts";
 
 const FUNCTIONS_DIR = new URL("../../", import.meta.url);
 
@@ -35,7 +36,7 @@ function stripComments(src: string): string {
   return src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/[^\n]*/g, "$1");
 }
 const REL = "generate-household-meal-v1/index.ts";
-const SRC = stripComments(await Deno.readTextFile(new URL(REL, FUNCTIONS_DIR)));
+const SRC = stripComments(await sourceFamily(new URL(REL, FUNCTIONS_DIR)));
 
 const CONTRAT = "checkOutputContract({";
 const SIZING = "const portionSizing = await (async () => {";

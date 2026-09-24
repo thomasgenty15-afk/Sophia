@@ -36,6 +36,7 @@ import {
   guardKeelAckWithoutCommittedEffect,
 } from "../../skills/_shared/keel_ack_without_effect_guard.ts";
 import { PERSONAS } from "../personas/personas.ts";
+import { sourceFamily } from "../../../_shared/keel/source_family.ts";
 
 // ---------------------------------------------------------------------------
 // Corpora
@@ -360,7 +361,7 @@ Deno.test("PINNED DEFECT: 'not enough logged this week' is misread as an acknowl
 });
 
 Deno.test("wiring: the router actually calls the guard", async () => {
-  const source = await Deno.readTextFile(
+  const source = await sourceFamily(
     fromFileUrl(new URL("../../router/run.ts", import.meta.url)),
   );
   assertEquals(

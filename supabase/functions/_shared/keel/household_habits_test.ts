@@ -35,6 +35,7 @@ import {
   timeAllowsASecondDish,
   weeklyCookingMinutes,
 } from "./household_portions.ts";
+import { sourceFamily } from "./source_family.ts";
 
 // ───────────────────────────────────────────────────────────────────────────
 // LA RECOPIE DU VOCABULAIRE — PROUVÉE ÉGALE
@@ -722,7 +723,7 @@ Deno.test("⟳ 2026-09-19 — en perte de poids, l'habitude vaut deux jours rép
 });
 
 Deno.test("⛔ CÂBLAGE — les jours plafonnés sont calculés UNE fois et lus par la grille ET par les porteurs", async () => {
-  const src = await Deno.readTextFile(
+  const src = await sourceFamily(
     new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
   );
   assert(src.includes("ownUsualDaysFor(m.goal, eatingDayTokens)"), "le plafond n'est plus calculé depuis l'objectif de la bouche");

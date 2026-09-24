@@ -13,12 +13,13 @@ import {
   PLAN_REQUEST_BUDGET_MS,
 } from "./generation_model.ts";
 import { DRAFT_STUCK_AFTER_MS } from "./draft_store.ts";
+import { sourceFamily } from "./source_family.ts";
 
 const ROOT = new URL("../../../", import.meta.url);
 const SQL = await Deno.readTextFile(
   new URL("migrations/20260915100000_l_echeance_est_lue.sql", ROOT),
 );
-const HANDLER = await Deno.readTextFile(
+const HANDLER = await sourceFamily(
   new URL("functions/generate-household-meal-v1/index.ts", ROOT),
 );
 const SWEEPER_SQL = await Deno.readTextFile(

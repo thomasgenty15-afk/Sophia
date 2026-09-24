@@ -19,6 +19,7 @@
  * pas le contraire.
  */
 import { assert } from "jsr:@std/assert@1";
+import { sourceFamilySync } from "./source_family.ts";
 
 const FUNCTIONS_DIR = new URL("../../", import.meta.url);
 
@@ -28,7 +29,7 @@ function stripComments(src: string): string {
 
 const FOYER = "generate-household-meal-v1/index.ts";
 const SRC = stripComments(
-  Deno.readTextFileSync(new URL(FOYER, FUNCTIONS_DIR)),
+  sourceFamilySync(new URL(FOYER, FUNCTIONS_DIR)),
 );
 
 // ═══════════════════════════════════════════════════════════════════════════

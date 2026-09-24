@@ -44,6 +44,7 @@ import {
 } from "./meal_envelope.ts";
 import { mouthEnvelope } from "./household_composition.ts";
 import type { MealBodyContext } from "./meal_body.ts";
+import { sourceFamily } from "./source_family.ts";
 
 const NO_AXES = { day: null, sport: null, asked: false } as const;
 
@@ -372,7 +373,7 @@ Deno.test("④ une enveloppe de compte DÉGRADÉE gagne toujours sur la fiche", 
  * quoi retirer `!m.userId` laisserait l'épingle verte.
  */
 async function handlerSource(): Promise<string> {
-  const src = await Deno.readTextFile(
+  const src = await sourceFamily(
     new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
   );
   // ⛔ LES COMMENTAIRES SONT RETIRÉS: ce fichier EXPLIQUE la règle juste

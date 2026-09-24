@@ -25,6 +25,7 @@
 // AVEC LA LANE. La propriété est CONSERVÉE, sur la lane qui reste: c'est un
 // second exemplaire du contrôle qui disparaît, pas le contrôle.
 import { assert, assertEquals } from "jsr:@std/assert@1";
+import { sourceFamily } from "./source_family.ts";
 
 const FUNCTIONS_DIR = new URL("../../", import.meta.url);
 
@@ -33,7 +34,7 @@ function stripComments(src: string): string {
 }
 
 async function source(rel: string): Promise<string> {
-  return stripComments(await Deno.readTextFile(new URL(rel, FUNCTIONS_DIR)));
+  return stripComments(await sourceFamily(new URL(rel, FUNCTIONS_DIR)));
 }
 
 const HOIST = "const writePayload = {";

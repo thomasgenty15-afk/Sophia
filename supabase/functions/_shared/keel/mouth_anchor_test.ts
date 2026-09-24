@@ -38,6 +38,7 @@ import { PORTION_ADJUST_STEP } from "./meal_envelope.ts";
 import { portionIndexFor } from "./feedback_index.ts";
 import { memberSubject } from "./retained_item.ts";
 import { energyFloorFor } from "./weight_pace.ts";
+import { sourceFamily } from "./source_family.ts";
 
 // ---------------------------------------------------------------------------
 // LE BANC — les corps RÉELS du foyer `5600347f`, lus en base le 2026-08-19
@@ -1043,7 +1044,7 @@ Deno.test("householdAnchors porte la note par (bouche, jour) et rien d'autre", (
 });
 
 Deno.test("CÂBLAGE — la lane foyer lit la note datée d'une bouche et la passe à l'ancre", async () => {
-  const src = await Deno.readTextFile(new URL("../../generate-household-meal-v1/index.ts", import.meta.url));
+  const src = await sourceFamily(new URL("../../generate-household-meal-v1/index.ts", import.meta.url));
   // ⟳ la table est HISSÉE hors du bloc d'ancrage (le bac la lit aussi, arbitrage 3
   // par le bac) : on cherche l'affectation, avec ou sans `const`.
   const at = src.indexOf("noteBoostByKey = new Map<string, number>();");

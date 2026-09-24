@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { parseEatingRhythm } from "./mealGeneration";
+import { sourceFamily } from "../../test/sourceFamily";
 
 // LES MÊMES CAS que `supabase/functions/_shared/keel/eating_rhythm_test.ts`,
 // nommés pareil. C'est le seul garde-fou honnête d'une duplication assumée:
@@ -162,9 +163,8 @@ describe("2026-08-19 · la frontière d'écriture du rythme", () => {
   });
 
   it("⛔ l'écran n'écrit le rythme que là où il MONTRE la question", () => {
-    const src = readFileSync(
+    const src = sourceFamily(
       resolve(ROOT, "frontend/src/keel/pages/SetupPage.tsx"),
-      "utf8",
     );
     // ⟳ 2026-09-01 — DE UN APPELANT À DEUX, ET LA GARDE SE RESSERRE PLUTÔT
     // QUE DE S'OUVRIR.

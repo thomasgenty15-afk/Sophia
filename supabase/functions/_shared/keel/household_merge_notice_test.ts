@@ -50,6 +50,7 @@ import {
 import type { MergeQuotaState } from "./household_merge_quota.ts";
 import type { MemberAway } from "./household_presence.ts";
 import type { EatingOccasionSlot } from "./meal_generation.ts";
+import { sourceFamily } from "./source_family.ts";
 
 const FUNCTIONS_DIR = new URL("../../", import.meta.url);
 
@@ -747,7 +748,7 @@ function stripComments(src: string): string {
 }
 
 async function source(rel: string): Promise<string> {
-  return stripComments(await Deno.readTextFile(new URL(rel, FUNCTIONS_DIR)));
+  return stripComments(await sourceFamily(new URL(rel, FUNCTIONS_DIR)));
 }
 
 Deno.test("D17 — LE RÉGLAGE NE PEUT PAS BLOQUER LA FUSION", async () => {

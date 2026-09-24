@@ -30,6 +30,7 @@ import {
   FINAL_GATE_CAUSES,
   FINAL_GATE_POLICY_LOT_4,
 } from "./final_plan_gate.ts";
+import { sourceFamily } from "./source_family.ts";
 
 function ref(over: Partial<CompositionRef> & { slug: string }): CompositionRef {
   return {
@@ -137,7 +138,7 @@ Deno.test("la cause existe, et elle est `count` — jamais un 422", () => {
 });
 
 Deno.test("⛔ LE CÂBLAGE: la garde refuse bien sur cet état", async () => {
-  const src = await Deno.readTextFile(new URL("./final_plan_gate.ts", import.meta.url));
+  const src = await sourceFamily(new URL("./final_plan_gate.ts", import.meta.url));
   assert(src.includes('if (row.state === "bought_unused") {'));
   assert(src.includes('refuse("ingredient_bought_unused", {'));
 });

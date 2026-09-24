@@ -5,6 +5,7 @@ import { resolve } from "node:path";
 import { readDraftEnvelope } from "../api/planDraft";
 import { fr } from "../i18n/fr";
 import { en } from "../i18n/en";
+import { sourceFamily } from "../../test/sourceFamily";
 
 // ===========================================================================
 // L'EXPLICATION DU MODÈLE, CÔTÉ ÉCRAN — 2026-09-04
@@ -28,10 +29,9 @@ const DIALOG = readFileSync(
   resolve(__dirname, "./plan/PlanDraftDialog.tsx"),
   "utf8",
 );
-const SETUP = readFileSync(resolve(__dirname, "../pages/SetupPage.tsx"), "utf8");
-const WEEK = readFileSync(
+const SETUP = sourceFamily(resolve(__dirname, "../pages/SetupPage.tsx"));
+const WEEK = sourceFamily(
   resolve(__dirname, "../pages/StudentWeekPlanPage.tsx"),
-  "utf8",
 );
 
 describe("l'enveloppe lit l'explication du modèle", () => {

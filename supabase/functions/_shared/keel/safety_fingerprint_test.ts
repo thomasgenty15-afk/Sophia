@@ -19,6 +19,7 @@ import {
   safetyFingerprintOf,
 } from "./safety_fingerprint.ts";
 import type { SafetyFingerprintInput } from "./safety_fingerprint.ts";
+import { sourceFamily } from "./source_family.ts";
 
 const LEA = "11111111-1111-4111-8111-111111111111";
 const MARC = "22222222-2222-4222-8222-222222222222";
@@ -230,7 +231,7 @@ Deno.test(
 Deno.test(
   "⛔ LE CÂBLAGE: le handler passe `paceByMember` à l'empreinte, pas une seconde lecture",
   async () => {
-    const src = await Deno.readTextFile(
+    const src = await sourceFamily(
       new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
     );
     // Le constructeur `liveSafety` est le SEUL objet rangé avec le brouillon

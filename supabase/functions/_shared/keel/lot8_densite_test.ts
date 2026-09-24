@@ -62,6 +62,7 @@ import {
 import { densityFragment } from "./household_portions.ts";
 import type { AnchorMouth } from "./mouth_anchor.ts";
 import type { AppetiteLevel } from "./tokens.ts";
+import { sourceFamily } from "./source_family.ts";
 
 /** Voir `lot8_allocation_test.ts` pour la dérivation de sa cible : 3 542
  * (⟳ 2026-09-23 — âge exact 28 ans ; 3 578 au milieu de la tranche). */
@@ -979,7 +980,7 @@ Deno.test("⟳ FERMÉ — `incompatible` A UN LECTEUR, et la relâche est branch
   // cas, **sans aucun appelant** — est branchée par `relaxDayForCorridors`.
   // ══════════════════════════════════════════════════════════════════════════
   const rendu = sansCommentaires(
-    await Deno.readTextFile(
+    await sourceFamily(
       new URL("./household_portions.ts", import.meta.url),
     ),
   );
@@ -996,7 +997,7 @@ Deno.test("⟳ FERMÉ — `incompatible` A UN LECTEUR, et la relâche est branch
   );
 
   const handler = sansCommentaires(
-    await Deno.readTextFile(
+    await sourceFamily(
       new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
     ),
   );
@@ -1045,7 +1046,7 @@ Deno.test("⟳ FERMÉ — `incompatible` A UN LECTEUR, et la relâche est branch
   // ⚠️ LA CONTRE-ÉPREUVE DE L'ADRESSE: la fonction appelée est bien celle de
   // `portion_sizing.ts`, pas une seconde écriture dans le module du contrat.
   const moteur = sansCommentaires(
-    await Deno.readTextFile(new URL("./portion_sizing.ts", import.meta.url)),
+    await sourceFamily(new URL("./portion_sizing.ts", import.meta.url)),
   );
   assert(
     moteur.includes("export function relaxDayForCorridors("),

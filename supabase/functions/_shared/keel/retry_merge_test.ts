@@ -2,6 +2,7 @@ import { assert, assertEquals } from "jsr:@std/assert@1";
 import { mergeRetryByCell, mergeRetryCells, summedShoppingQuantity, unforkReworkedPots } from "./retry_merge.ts";
 import { mealsDelivered } from "./meals_delivered.ts";
 import type { GeneratedMeal } from "./meal_generation.ts";
+import { sourceFamily } from "./source_family.ts";
 
 const CLAIRE = "m-claire", LEA = "m-lea", ZOE = "m-zoe";
 const MOUTHS = [CLAIRE, LEA, ZOE].map((memberId) => ({ memberId, cells: [{ day: "sat", slot: "dinner" }, { day: "sun", slot: "lunch" }] }));
@@ -144,7 +145,7 @@ const merge = (b: GeneratedMeal, r: GeneratedMeal) =>
   mergeRetryByCell({ base: b, retry: r, before: mealsDelivered(view(b), MOUTHS), after: mealsDelivered(view(r), MOUTHS), index: null });
 
 Deno.test("CÂBLAGE — la fusion par cellule N'A PLUS D'APPELANT, et ce qui la remplace est plus strict", async () => {
-  const src = await Deno.readTextFile(new URL("../../generate-household-meal-v1/index.ts", import.meta.url));
+  const src = await sourceFamily(new URL("../../generate-household-meal-v1/index.ts", import.meta.url));
   // ══════════════════════════════════════════════════════════════════════
   // ⟳ 2026-09-12 · FERMETURE LOT 1 — CE QUE CE TEST ÉPINGLAIT A ÉTÉ REMPLACÉ
   // ══════════════════════════════════════════════════════════════════════
@@ -354,7 +355,7 @@ function relanceRiz() {
 }
 
 Deno.test("la lane foyer n'a plus de fusion de relance, donc plus de trou périmé à retirer", async () => {
-  const src = (await Deno.readTextFile(
+  const src = (await sourceFamily(
     new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
   ))
     .replace(/\/\*[\s\S]*?\*\//g, "")

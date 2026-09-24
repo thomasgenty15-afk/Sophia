@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import {
@@ -13,6 +12,7 @@ import {
   takeKnownShape,
   writeSetupDraft,
 } from "./setupDraftCache";
+import { sourceFamily } from "../../test/sourceFamily";
 
 // ===========================================================================
 // LE BROUILLON DE L'ENTONNOIR — CE QU'IL RESTAURE, ET SURTOUT CE QU'IL REFUSE
@@ -411,7 +411,7 @@ describe("le stockage — et les quatre façons de ne rien rendre", () => {
 const ROOT = resolve(__dirname, "../../../..");
 
 function code(rel: string): string {
-  return readFileSync(resolve(ROOT, rel), "utf8")
+  return sourceFamily(resolve(ROOT, rel))
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
     .split("\n")

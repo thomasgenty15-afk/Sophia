@@ -24,6 +24,7 @@
  * d'attendre.
  */
 import { assert } from "jsr:@std/assert@1";
+import { sourceFamily } from "./source_family.ts";
 
 const ROOT = new URL("../../../../", import.meta.url);
 
@@ -161,7 +162,7 @@ Deno.test("le générateur du foyer écrit bien plan_kind=household", async () =
   // LE CAS QUI PASSE, et sans lui le test ci-dessus garde une porte qui ne
   // s'ouvre sur rien: si l'écrivain cessait d'estamper `household`, les deux
   // lecteurs seraient corrects ET vides.
-  const src = await Deno.readTextFile(
+  const src = await sourceFamily(
     new URL("supabase/functions/generate-household-meal-v1/index.ts", ROOT),
   );
   assert(

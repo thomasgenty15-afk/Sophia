@@ -10,6 +10,7 @@
  * (`caller-audit-must-strip-comments`).
  */
 import { assert } from "jsr:@std/assert@1";
+import { sourceFamily } from "./source_family.ts";
 
 const FUNCTIONS_DIR = new URL("../../", import.meta.url);
 
@@ -18,7 +19,7 @@ function stripComments(src: string): string {
 }
 
 const HANDLER = stripComments(
-  await Deno.readTextFile(new URL("generate-household-meal-v1/index.ts", FUNCTIONS_DIR)),
+  await sourceFamily(new URL("generate-household-meal-v1/index.ts", FUNCTIONS_DIR)),
 );
 const CATALOG = stripComments(
   await Deno.readTextFile(new URL("_shared/keel/composition_contract.ts", FUNCTIONS_DIR)),

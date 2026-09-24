@@ -6,6 +6,7 @@ import { assert, assertEquals, assertStringIncludes } from "jsr:@std/assert@^1.0
 
 import { workLunchBlock } from "./household_meal_generation.ts";
 import { parseWorkLunch } from "./household_presence.ts";
+import { sourceFamily } from "./source_family.ts";
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -43,7 +44,7 @@ const LANES: readonly [string, string][] = [
  * vivants et resterait vert le jour où le câblage part.
  */
 async function codeOf(rel: string): Promise<string> {
-  const src = await Deno.readTextFile(new URL(rel, import.meta.url));
+  const src = await sourceFamily(new URL(rel, import.meta.url));
   return src
     .split("\n")
     .map((line) => (line.trimStart().startsWith("//") ? "" : line))

@@ -51,6 +51,7 @@ import {
 } from "./household_portions.ts";
 import type { MouthBody } from "./meal_envelope.ts";
 import type { MemberAgeState } from "./household.ts";
+import { sourceFamily } from "./source_family.ts";
 
 // ---------------------------------------------------------------------------
 // LE FOYER DE LA MESURE — les quatre corps du run 1V, à l'unité près
@@ -990,7 +991,7 @@ function withoutComments(src: string): string {
 }
 
 Deno.test("⛔ LE GÉNÉRATEUR DIMENSIONNE LES REPAS, ET MESURE LA PHRASE SANS CONDITION", async () => {
-  const src = withoutComments(await Deno.readTextFile(GENERATOR));
+  const src = withoutComments(await sourceFamily(GENERATOR));
 
   // ── PRÉMISSE: la source a bien été lue ────────────────────────────────
   // Un extracteur cassé rend `""` et tous les `assert` ci-dessous passeraient
@@ -1198,7 +1199,7 @@ Deno.test("⚠️ LE CAS QUI PASSE — un corps connu partout rend bien un nombr
 // ═══════════════════════════════════════════════════════════════════════════
 
 Deno.test("⛔ CÂBLAGE — l'index écrit le brief avec UN poids servi, jamais le compte mesuré", async () => {
-  const src = withoutComments(await Deno.readTextFile(GENERATOR));
+  const src = withoutComments(await sourceFamily(GENERATOR));
   assert(src.includes("const ENGINE_SERVES_ONE_WEIGHT = 1;"), "la constante de doctrine a disparu");
   assert(
     /const promptWeightGroups = ENGINE_SERVES_ONE_WEIGHT;/.test(src),

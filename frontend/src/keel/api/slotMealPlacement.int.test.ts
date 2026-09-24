@@ -1,11 +1,11 @@
-import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { describeSlotFromTap } from "./slotMeal";
+import { sourceFamily } from "../../test/sourceFamily";
 
 const ROOT = resolve(__dirname, "../../../..");
-const read = (rel: string) => readFileSync(resolve(ROOT, rel), "utf8");
+const read = (rel: string) => sourceFamily(resolve(ROOT, rel));
 
 /**
  * ⚠️ LES COMMENTAIRES PARTENT D'ABORD. Les fichiers visés CITENT

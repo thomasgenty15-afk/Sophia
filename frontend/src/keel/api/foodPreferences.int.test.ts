@@ -28,6 +28,7 @@ import {
   PROMOTABLE_DOMAIN_KEYS,
   PROPOSABLE_STATUSES,
 } from "./foodPreferences";
+import { sourceFamily } from "../../test/sourceFamily";
 
 const BACKEND = readFileSync(
   resolve(
@@ -133,7 +134,7 @@ describe("le pont mémoire → plan ne peut pas dériver entre les deux runtimes
 import { writtenFoodLine } from "./retainedItems";
 
 describe("« Garder » → ligne retenue (arbitrage 2)", () => {
-  const src = (p: string) => readFileSync(resolve(__dirname, p), "utf8");
+  const src = (p: string) => sourceFamily(resolve(__dirname, p));
 
   it("la ligne écrite a la forme de l'écran « Ce que Sophia sait » : written, durable, le sujet donné, le texte tel quel", () => {
     const like = writtenFoodLine({ text: "  le saumon fumé ", kind: "food.prefer", subject: "member:11111111-1111-4111-8111-111111111111", todayLocalIso: "2026-09-06" });

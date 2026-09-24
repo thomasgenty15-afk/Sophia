@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { fr } from "../i18n/fr";
 import { readDishes } from "../api/mealGeneration";
 import { boxLinesForDish } from "../lib/mealBoxes";
 import { en } from "../i18n/en";
+import { sourceFamily } from "../../test/sourceFamily";
 
 // ===========================================================================
 // « TOUT CUISINER EN UNE SEULE FOIS » — LE CÂBLAGE DES DEUX ÉCRANS
@@ -24,7 +24,7 @@ import { en } from "../i18n/en";
 // atteignable pour le dire: la cicatrice « port à null = champ incollectable ».
 // ===========================================================================
 
-const read = (rel: string) => readFileSync(resolve(__dirname, rel), "utf8");
+const read = (rel: string) => sourceFamily(resolve(__dirname, rel));
 const BUILDER = read("./MealBuilder.tsx");
 const SETUP = read("../pages/SetupPage.tsx");
 // ⟳ 2026-09-23 — LES CHAMPS VIVENT ICI, et les deux écrans montent ce

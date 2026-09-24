@@ -34,6 +34,7 @@ import {
 import { ALLERGEN_CATALOG } from "./allergen_catalog.ts";
 import { surfaceFormsFor } from "./allergen_surface_forms.ts";
 import { findForbiddenMatches } from "./forbidden_matcher.ts";
+import { sourceFamilySync } from "./source_family.ts";
 
 // ===========================================================================
 // 1. CE QU'IL VOIT — et dans les DEUX langues
@@ -278,7 +279,7 @@ const SURFACES = [
 ] as const;
 
 function sourceOf(rel: string): string {
-  return Deno.readTextFileSync(new URL(rel, import.meta.url))
+  return sourceFamilySync(new URL(rel, import.meta.url))
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .split("\n")
     .map((line) => line.replace(/(^|[^:])\/\/.*$/, "$1"))

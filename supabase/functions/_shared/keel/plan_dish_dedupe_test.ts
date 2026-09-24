@@ -1,5 +1,6 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
 import { dishDedupeIssue, foldDuplicateDishes } from "./plan_dish_dedupe.ts";
+import { sourceFamily } from "./source_family.ts";
 
 const plat = (day: string | null, slot: string | null, memberId: string | null, title: string) => ({
   day,
@@ -78,7 +79,7 @@ Deno.test("l'ORDRE est le seul départage, et il est stable : le même plan repl
 Deno.test("⛔ CÂBLAGE — le pli tourne en tête de CHAQUE tour, avant l'instantané de la candidate", async () => {
   // Sans ça, un doublon rendu par une RÉPARATION empoisonnerait l'adresse du
   // tour suivant exactement comme celui du premier jet a empoisonné le sien.
-  const src = await Deno.readTextFile(
+  const src = await sourceFamily(
     new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
   );
   const pli = src.indexOf("foldDuplicateDishes(meal.dishes)");
@@ -93,7 +94,7 @@ Deno.test("⛔ CÂBLAGE — après le pli, les cases vides sont relues sur le pl
   // Lu sur le plan adopté du 2026-09-19 : « 11 repas n'ont pas été composés »
   // pendant que la grille portait des plats sur ces onze cases, ajoutés par une
   // réparation adoptée. `meal.empty_slots` venait du premier jet.
-  const src = await Deno.readTextFile(
+  const src = await sourceFamily(
     new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
   );
   const pli = src.indexOf("foldDuplicateDishes(meal.dishes)");

@@ -1,12 +1,12 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import { SelfStep } from "./SetupPage";
 import { emptyMouthDraft, type MouthFormDraft } from "../lib/mouthForm";
 import { en } from "../i18n/en";
 import { setChosenUiLocaleForTest } from "../i18n/runtime";
+import { sourceFamily } from "../../test/sourceFamily";
 
 // ===========================================================================
 // 2026-09-20 — LA CARTE DU TITULAIRE SE REPLIE UNE FOIS ENREGISTRÉE
@@ -311,7 +311,7 @@ describe("la fiche du titulaire a son « Enregistrer » dans toutes les branches
     // ⚠️ SOURCE, COMMENTAIRES RETIRÉS: la page entière ne se monte pas sous
     // `renderToStaticMarkup`. `onSave` à `null` est ce qui retirait le bouton
     // (et forçait l'édition): la page ne doit plus le passer pour une branche.
-    const src = readFileSync(new URL("./SetupPage.tsx", import.meta.url), "utf8")
+    const src = sourceFamily(new URL("./SetupPage.tsx", import.meta.url))
       .replace(/\/\*[\s\S]*?\*\//g, "")
       .split("\n")
       .filter((l) => !l.trim().startsWith("//"))

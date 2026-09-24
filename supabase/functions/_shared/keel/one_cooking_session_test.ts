@@ -11,6 +11,7 @@ import {
   singleSessionCookDay,
 } from "./plan_feasibility.ts";
 import { hasFreezerDeclared } from "./kitchen_equipment.ts";
+import { sourceFamily } from "./source_family.ts";
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -293,7 +294,7 @@ const LANES: readonly [string, string][] = [
 
 for (const [name, rel] of LANES) {
   Deno.test(`la lane ${name} LIT \`one_cooking_session\` dans le corps`, async () => {
-    const src = await Deno.readTextFile(new URL(rel, import.meta.url));
+    const src = await sourceFamily(new URL(rel, import.meta.url));
     // ⚠️ `=== true`, ET LA COMPARAISON EST LA GARDE. Le corps vient du réseau:
     // `"false"`, `0` et `{}` sont truthy ou falsy pour de mauvaises raisons.
     assertStringIncludes(
@@ -303,7 +304,7 @@ for (const [name, rel] of LANES) {
   });
 
   Deno.test(`la lane ${name} passe la demande par la PORTE du congélateur`, async () => {
-    const src = await Deno.readTextFile(new URL(rel, import.meta.url));
+    const src = await sourceFamily(new URL(rel, import.meta.url));
     // ⛔ `hasFreezerDeclared`, jamais `!== false`: « pas de congélateur » et
     // « jamais demandé » doivent rendre le même refus.
     // ⟳ LOT C (2026-09-04) — LA DEMANDE N'A PLUS QU'UNE ORIGINE, ET C'EST UN
@@ -344,7 +345,7 @@ for (const [name, rel] of LANES) {
   });
 
   Deno.test(`la lane ${name} COMPTE ce que l'option a donné`, async () => {
-    const src = await Deno.readTextFile(new URL(rel, import.meta.url));
+    const src = await sourceFamily(new URL(rel, import.meta.url));
     // Sans dénominateur, un lot désarmé ressemble à un lot qui marche. Les
     // deux compteurs du congélateur ont déjà payé cette leçon.
     assertStringIncludes(src, "one_cooking_session: ${meal.cooking_sessions.length}/1");

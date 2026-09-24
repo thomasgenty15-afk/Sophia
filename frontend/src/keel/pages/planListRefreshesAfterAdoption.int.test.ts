@@ -12,12 +12,12 @@
  * câblage absent — c'est ce qu'on fige.
  */
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { sourceFamily } from "../../test/sourceFamily";
 
 const ROOT = resolve(__dirname, "../../../..");
 const code = (rel: string) =>
-  readFileSync(resolve(ROOT, rel), "utf8").replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+  sourceFamily(resolve(ROOT, rel)).replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 
 describe("l'adoption sur /app/plan rafraîchit aussi « Tes repas »", () => {
   const page = code("frontend/src/keel/pages/StudentWeekPlanPage.tsx");

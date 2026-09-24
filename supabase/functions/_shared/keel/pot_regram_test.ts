@@ -1,4 +1,5 @@
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { sourceFamily } from "./source_family.ts";
 
 // ⟳ 2026-09-05 — REGRAMMER APRÈS AVOIR GROSSI. `scaleIngredients` remet
 // `gramsRaw` à null par contrat; mesuré sur C03: 13 lignes de casserole sur
@@ -7,7 +8,7 @@ import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.t
 const strip = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 
 Deno.test("CÂBLAGE — la lane foyer regramme ses casseroles APRÈS la croissance des pots, et le compte", async () => {
-  const src = strip(await Deno.readTextFile(new URL("../../generate-household-meal-v1/index.ts", import.meta.url)));
+  const src = strip(await sourceFamily(new URL("../../generate-household-meal-v1/index.ts", import.meta.url)));
   const growthAt = src.indexOf("const growth = { scaled: 0, capped: 0, shopping: 0, unrewritable: 0, regrammed: 0, passes: 0, short_after: 0 };");
   assert(growthAt > -1, "le compteur regrammed a disparu de pot_growth");
   const spliceAt = src.indexOf("prep.ingredients.splice(0, prep.ingredients.length, ...grown.items);", growthAt);
@@ -21,7 +22,7 @@ Deno.test("CÂBLAGE — la lane foyer regramme ses casseroles APRÈS la croissan
 });
 
 Deno.test("CÂBLAGE — la croissance des pots reçoit la MASSE de chaque casserole (regrammée avant)", async () => {
-  const src = strip(await Deno.readTextFile(new URL("../../generate-household-meal-v1/index.ts", import.meta.url)));
+  const src = strip(await sourceFamily(new URL("../../generate-household-meal-v1/index.ts", import.meta.url)));
   // ⟳ 2026-09-07 — UNE PASSE D'IDENTITÉ + un recalcul pour `short_after`.
   const calls = [...src.matchAll(/potGrowth = neededPotFactor\(/g)];
   assert(calls.length === 2, `attendu 2 appels (identité + recalcul), trouvé ${calls.length}`);
@@ -35,7 +36,7 @@ Deno.test("CÂBLAGE — la croissance des pots reçoit la MASSE de chaque casser
 Deno.test("⛔ CÂBLAGE — la casserole est l'IDENTITÉ Σ(tirages): ni marge, ni plafond, ni seconde passe, ni ancre", async () => {
   // Décision produit du 2026-09-07 (« il faut que ça matche »): la portion
   // servie est celle du modèle, et la casserole vaut la somme des boîtes.
-  const src = strip(await Deno.readTextFile(new URL("../../generate-household-meal-v1/index.ts", import.meta.url)));
+  const src = strip(await sourceFamily(new URL("../../generate-household-meal-v1/index.ts", import.meta.url)));
   assert(!src.includes("POT_GROWTH_MARGIN") && !src.includes("POT_GROWTH_PASSES"), "la marge ou les passes de croissance sont revenues");
   assert(src.includes("const POT_IDENTITY_MARGIN = 1;"), "le rétrécissement ne reçoit plus la marge d'identité");
   assert(/const factor = rawFactor;/.test(src), "un facteur de croissance est multiplié par autre chose que 1");
@@ -50,7 +51,7 @@ Deno.test("⛔ CÂBLAGE — la casserole est l'IDENTITÉ Σ(tirages): ni marge, 
 });
 
 Deno.test("CÂBLAGE — la croissance des pots attribue les tirages PAR ITEM (une boîte, une casserole), plus par `uses.servings`", async () => {
-  const src = await Deno.readTextFile(new URL("../../generate-household-meal-v1/index.ts", import.meta.url));
+  const src = await sourceFamily(new URL("../../generate-household-meal-v1/index.ts", import.meta.url));
   // Le patron d'avant — la boîte entière répartie sur les `uses` du plat — a disparu.
   assert(!src.includes("shares: [{ key: box.boxId, grams: box.items.reduce("), "les tirages suivaient encore `uses.servings`");
   // Les deux appels (passes de croissance, puis `short_after`) lisent les items.

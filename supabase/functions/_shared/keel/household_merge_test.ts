@@ -55,6 +55,7 @@ import {
   servingDemandsFor,
   servingDirectionFor,
 } from "./household_portions.ts";
+import { sourceFamily } from "./source_family.ts";
 
 const FUNCTIONS_DIR = new URL("../../", import.meta.url);
 
@@ -1139,7 +1140,7 @@ function stripComments(src: string): string {
 
 async function generatorSource(): Promise<string> {
   return stripComments(
-    await Deno.readTextFile(
+    await sourceFamily(
       new URL("generate-household-meal-v1/index.ts", FUNCTIONS_DIR),
     ),
   );
@@ -2198,7 +2199,7 @@ Deno.test("AUCUN COMMENTAIRE DU GÉNÉRATEUR NE NOMME UN TEST QUI N'EXISTE PAS",
   // garde posée à qui vient vérifier, et c'est le seul lecteur qui compte.
   //
   // LA SOURCE EST LUE AVEC SES COMMENTAIRES, exprès: c'est EUX qu'on audite.
-  const raw = await Deno.readTextFile(
+  const raw = await sourceFamily(
     new URL("generate-household-meal-v1/index.ts", FUNCTIONS_DIR),
   );
   const named = new Set(raw.match(/[A-Za-z0-9_]+_test\.ts/g) ?? []);

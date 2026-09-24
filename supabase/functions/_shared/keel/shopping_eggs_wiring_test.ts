@@ -4,8 +4,9 @@
  * pliée), avec un journal qui s'écrit même sans blancs.
  */
 import { assert } from "jsr:@std/assert@1";
+import { sourceFamily } from "./source_family.ts";
 
-const HANDLER = await Deno.readTextFile(
+const HANDLER = await sourceFamily(
   new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
 );
 

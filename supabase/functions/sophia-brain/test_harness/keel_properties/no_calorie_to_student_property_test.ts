@@ -98,6 +98,7 @@ import {
   renderSlotReminder,
   renderSundayDigest,
 } from "../../../_shared/keel/render.ts";
+import { sourceFamilySync } from "../../../_shared/keel/source_family.ts";
 
 // ---------------------------------------------------------------------------
 // The detector — one place, used by every layer below
@@ -691,7 +692,7 @@ Deno.test("PROPERTY: MealAnalysis carries at most ONE energy field, and it carri
 
 /** Read a source file next to `_shared/keel/`, comments stripped. */
 function keelSource(file: string): string {
-  return Deno.readTextFileSync(
+  return sourceFamilySync(
     fromFileUrl(new URL(`../../../_shared/keel/${file}`, import.meta.url)),
   );
 }
@@ -832,7 +833,7 @@ Deno.test("PROPERTY: the target reaches a generator ONLY through the gate, and o
     ]
   ) {
     const source = stripComments(
-      Deno.readTextFileSync(
+      sourceFamilySync(
         fromFileUrl(new URL(`../../../${fn}/index.ts`, import.meta.url)),
       ),
     );

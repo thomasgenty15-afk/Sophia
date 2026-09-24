@@ -4,9 +4,10 @@
 // l'est pas ressemble exactement à un journal branché — jusqu'au prochain
 // « pourquoi ce plan a été refusé ? » sans réponse (mesuré le 2026-09-15).
 import { assert, assertEquals } from "jsr:@std/assert@1";
+import { sourceFamily } from "./source_family.ts";
 
 const ROOT = new URL("../../../", import.meta.url);
-const HANDLER = await Deno.readTextFile(
+const HANDLER = await sourceFamily(
   new URL("functions/generate-household-meal-v1/index.ts", ROOT),
 );
 const EXPORT = await Deno.readTextFile(

@@ -23,6 +23,7 @@
  * câble rien.
  */
 import { assertEquals } from "jsr:@std/assert@1";
+import { sourceFamily } from "./source_family.ts";
 
 const FUNCTIONS_DIR = new URL("../../", import.meta.url);
 
@@ -31,7 +32,7 @@ function stripComments(src: string): string {
 }
 
 const SRC = stripComments(
-  await Deno.readTextFile(new URL("generate-household-meal-v1/index.ts", FUNCTIONS_DIR)),
+  await sourceFamily(new URL("generate-household-meal-v1/index.ts", FUNCTIONS_DIR)),
 );
 
 function after(src: string, anchor: string, length = 600): string {

@@ -21,6 +21,7 @@ import {
   withCookDayBefore,
 } from "./meal_plan_window.ts";
 import { leadDayFor, SHOPPING_CUTOFF_HOUR } from "./plan_hours.ts";
+import { sourceFamily } from "./source_family.ts";
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -297,7 +298,7 @@ for (const [name, rel] of LANES) {
     // true;`. La veille n'est plus une case: ce qu'il faut tenir maintenant,
     // c'est que la lane DÉRIVE (`leadDayFor`) et que le corps HTTP ne peut plus
     // décider.
-    const src = await Deno.readTextFile(new URL(rel, import.meta.url));
+    const src = await sourceFamily(new URL(rel, import.meta.url));
     assertStringIncludes(
       src,
       "const lead = leadDayFor({ startsOn, today: todayDate, hourNow });",
@@ -333,7 +334,7 @@ for (const [name, rel] of LANES) {
     // la coupure de 18 h et le prompt lisent tous la fenêtre SERVIE. Une
     // fenêtre corrigée après coup laisserait la moitié du moteur sur
     // l'ancienne — et c'est le genre de défaut qui ne casse aucun test.
-    const src = await Deno.readTextFile(new URL(rel, import.meta.url));
+    const src = await sourceFamily(new URL(rel, import.meta.url));
     const shift = src.indexOf("const cookAhead = withCookDayBefore(");
     // ⚠️ LA PREMIÈRE OCCURRENCE, et pas une déclaration nommée: les deux lanes
     // n'écrivent pas `daysToFill` pareil (`const daysToFill: string[] =` d'un
@@ -354,7 +355,7 @@ for (const [name, rel] of LANES) {
     // de jours de cuisine était calculée sans la veille. Deux calculs du même
     // fait, et c'est l'explication qui avait tort: la troisième fois que ce
     // dépôt paie cette forme après `usableCookDays` et `addedCookDays`.
-    const src = await Deno.readTextFile(new URL(rel, import.meta.url));
+    const src = await sourceFamily(new URL(rel, import.meta.url));
     const at = src.indexOf("const rationaleCookDays = [");
     assert(at >= 0, `${name}: pas de liste d'explication`);
     const head = src.slice(at, at + 900);
@@ -362,7 +363,7 @@ for (const [name, rel] of LANES) {
   });
 
   Deno.test(`la lane ${name} passe \`cookOnlyDay\` au prompt ET au parseur`, async () => {
-    const src = await Deno.readTextFile(new URL(rel, import.meta.url));
+    const src = await sourceFamily(new URL(rel, import.meta.url));
     // Deux sites: `buildMealPrompt` et `parseArgs`. Un seul câblé laisserait
     // soit un plat écrit sur le jour de cuisine, soit une journée entière
     // comptée comme un trou.

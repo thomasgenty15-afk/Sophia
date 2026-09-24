@@ -36,13 +36,13 @@
 // il prouve qu'ils partent des mêmes tables. Un défaut d'algorithme y
 // survivrait; un défaut de DONNÉE, qui est ce que le dépôt a déjà payé, non.
 
-import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 import { en } from "./en";
 import { fr } from "./fr";
+import { sourceFamily } from "../../test/sourceFamily";
 
 const I18N_DIR = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(I18N_DIR, "..", "..", "..", "..");
@@ -116,7 +116,7 @@ function servingDirections(source: string): Record<string, string> {
  * sans importer quoi que ce soit. Les commentaires ne matchent pas.
  */
 
-const source = fs.readFileSync(MODULE, "utf8");
+const source = sourceFamily(MODULE);
 const goals = memberGoals(source);
 const directions = servingDirections(source);
 

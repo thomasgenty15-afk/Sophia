@@ -32,6 +32,7 @@ import {
   disorderedEatingPackKey,
   validateVisibleMessage,
 } from "./visible_agent.ts";
+import { sourceFamily } from "../../../_shared/keel/source_family.ts";
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -656,7 +657,7 @@ Deno.test("routing — the floor is ARMED and EXECUTED in conversation, never se
   //      and the fall-through into the generic companion composer stays
   //      closed. Degrading a suspension of adherence pressure into a normal
   //      adherence reply is the harm, not a shortfall.
-  const runSource = await Deno.readTextFile(
+  const runSource = await sourceFamily(
     new URL("../../router/run.ts", import.meta.url),
   );
 

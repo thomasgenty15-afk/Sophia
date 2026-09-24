@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
+import { sourceFamily } from "../../test/sourceFamily";
 
 // ===========================================================================
 // « QUI MANGE À LA MAISON » À L'ÉTAPE 3 — UNE LIGNE PAR BOUCHE
@@ -18,7 +18,7 @@ import { readFileSync } from "node:fs";
 // sous `renderToStaticMarkup` (voir `ownAccountCards.int.test.ts`).
 // ===========================================================================
 
-const SRC = readFileSync(new URL("./SetupPage.tsx", import.meta.url), "utf8");
+const SRC = sourceFamily(new URL("./SetupPage.tsx", import.meta.url));
 
 /** La source SANS ses commentaires: le dépôt en écrit plus que de code. */
 const CODE = SRC

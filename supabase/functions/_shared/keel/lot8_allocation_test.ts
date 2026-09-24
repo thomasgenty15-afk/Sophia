@@ -44,6 +44,7 @@ import {
   slotPlanTargets,
   SLOT_DAY_WEIGHT,
 } from "./mouth_anchor.ts";
+import { sourceFamily } from "./source_family.ts";
 
 /**
  * LE CORPS DU TIR DU 2026-09-07 — 187 cm, 72 kg, 28 ans, prise de masse.
@@ -606,7 +607,7 @@ Deno.test("⛔ DÉFAUT ÉPINGLÉ — `redistributeDayBudget` n'a AUCUN appelant 
   ];
   for (const f of fichiers) {
     const src = sansCommentaires(
-      await Deno.readTextFile(new URL(f, import.meta.url)),
+      await sourceFamily(new URL(f, import.meta.url)),
     );
     assertEquals(
       src.includes("redistributeDayBudget"),
@@ -620,7 +621,7 @@ Deno.test("⛔ DÉFAUT ÉPINGLÉ — `redistributeDayBudget` n'a AUCUN appelant 
   // chemin, un `readTextFile` qui rendrait du vide — aurait exactement la même
   // allure qu'un audit qui conclut « aucun appelant ».
   const source = sansCommentaires(
-    await Deno.readTextFile(new URL("./portion_sizing.ts", import.meta.url)),
+    await sourceFamily(new URL("./portion_sizing.ts", import.meta.url)),
   );
   assert(
     source.includes("export function redistributeDayBudget"),

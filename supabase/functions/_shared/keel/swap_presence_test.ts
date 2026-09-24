@@ -4,6 +4,7 @@ import {
   swapPresence,
   swapRetryInstruction,
 } from "./swap_presence.ts";
+import { sourceFamily } from "./source_family.ts";
 
 const LEA = "lea", MARC = "marc", TOM = "tom";
 const days = ["mon", "tue", "wed"];
@@ -128,7 +129,7 @@ Deno.test("LA RELANCE se tait quand elle n'a personne à nommer", () => {
 
 // ── CÂBLAGE ──────────────────────────────────────────────────────────────────
 const stripComments = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
-const read = async (rel: string) => stripComments(await Deno.readTextFile(new URL(rel, import.meta.url)));
+const read = async (rel: string) => stripComments(await sourceFamily(new URL(rel, import.meta.url)));
 
 Deno.test("CÂBLAGE — la ceinture pose regimeBites sur le plat, au niveau PLAT, avant de sortir", async () => {
   const src = await read("./meal_generation.ts");
@@ -200,7 +201,7 @@ Deno.test("CÂBLAGE — le générateur compte le flagrant, archive, journalise 
 });
 
 Deno.test("CÂBLAGE — v28: l'échappatoire « nothing clashes » nomme la sortie, à côté de la clé \"boxes\"", async () => {
-  const src = await Deno.readTextFile(new URL("./household_meal_generation.ts", import.meta.url));
+  const src = await sourceFamily(new URL("./household_meal_generation.ts", import.meta.url));
   const version = src.match(/HOUSEHOLD_PROMPT_VERSION = "v(\d+)_/);
   assert(version !== null && Number(version[1]) >= 28, "version");
   assert(src.includes("That preparation is NEVER cited by the box of the person that line binds"), "v29: à qui ne PAS servir le composant");

@@ -20,6 +20,7 @@ import {
   servedExclusionBites,
 } from "./food_exclusion_belt.ts";
 import type { RetainedItem } from "./retained_item.ts";
+import { sourceFamily } from "./source_family.ts";
 
 const TOM = "member:7b17ae2c-dd85-4d27-b8f2-4c52dbfc0828";
 
@@ -165,7 +166,7 @@ Deno.test("⛔ LA RELANCE NOMME LE PLAT, ET INTERDIT DE LE SUPPRIMER", () => {
 // ===========================================================================
 
 Deno.test("LA LANE FOYER passe les exclusions PAR BOUCHE au parseur", async () => {
-  const src = (await Deno.readTextFile(
+  const src = (await sourceFamily(
     new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
   ))
     .replace(/\/\*[\s\S]*?\*\//g, "")
@@ -191,7 +192,7 @@ Deno.test("LA LANE FOYER passe les exclusions PAR BOUCHE au parseur", async () =
 });
 
 Deno.test("⛔ LE PARSEUR RETIRE LA BOUCHE, jamais le plat ni le plan", async () => {
-  const src = await Deno.readTextFile(
+  const src = await sourceFamily(
     new URL("./meal_generation.ts", import.meta.url),
   );
   assert(
@@ -216,7 +217,7 @@ Deno.test("⛔ LE PARSEUR RETIRE LA BOUCHE, jamais le plat ni le plan", async ()
 });
 
 Deno.test("⛔ LA LANE FOYER CONSTATE, et une morsure survivante est DITE", async () => {
-  const src = await Deno.readTextFile(
+  const src = await sourceFamily(
     new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
   );
   // ══════════════════════════════════════════════════════════════════════
@@ -344,7 +345,7 @@ Deno.test("⛔ UN PLAT QUE PERSONNE NE SE VOIT ATTRIBUER passe la ligne de CHACU
   // ceinture par bouche n'avait aucune appartenance à retirer — et le saumon
   // partait chez l'enfant qui a écrit « pas de poisson ». On ne peut pas
   // exclure quelqu'un d'un plat qui n'est pas découpé: il faut le RÉÉCRIRE.
-  const src = await Deno.readTextFile(
+  const src = await sourceFamily(
     new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
   );
   assert(
@@ -380,7 +381,7 @@ Deno.test("⟳ 2026-09-06 — CE QUE LA TABLE ÉVITE EST LA LIGNE DE CHAQUE BOUC
   // n'atteignait la ceinture par bouche pour PERSONNE (`mouths: 0`), seule une
   // relance modèle la tenait, refusée à chaque fois, et le saumon partait chez
   // tout le monde. Les termes de la table rejoignent ceux de chaque bouche.
-  const src = (await Deno.readTextFile(
+  const src = (await sourceFamily(
     new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
   )).replace(/\/\*[\s\S]*?\*\//g, "");
   const at = src.indexOf("const memberExclusionTerms = members.map(");

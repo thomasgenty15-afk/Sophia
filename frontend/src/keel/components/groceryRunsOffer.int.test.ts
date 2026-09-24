@@ -14,6 +14,7 @@ import {
 } from "../api/cookingPlan";
 import { fr } from "../i18n/fr";
 import { en } from "../i18n/en";
+import { sourceFamily } from "../../test/sourceFamily";
 
 // ===========================================================================
 // « COMBIEN DE COURSES ? » — L'OFFRE, 2026-09-04
@@ -31,7 +32,7 @@ import { en } from "../i18n/en";
 // rabais ici.
 // ===========================================================================
 
-const read = (rel: string) => readFileSync(resolve(__dirname, rel), "utf8");
+const read = (rel: string) => sourceFamily(resolve(__dirname, rel));
 const FIELD = read("./GroceryRunsField.tsx");
 const BUILDER = read("./MealBuilder.tsx");
 const SETUP = read("../pages/SetupPage.tsx");

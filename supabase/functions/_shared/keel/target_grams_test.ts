@@ -65,6 +65,7 @@ import {
   type MouthBody,
 } from "./meal_envelope.ts";
 import { EATING_OCCASIONS, type EatingOccasion } from "./meal_generation.ts";
+import { sourceFamilySync } from "./source_family.ts";
 
 // ---------------------------------------------------------------------------
 // LES CORPS — réels, pas des littéraux ronds
@@ -1399,7 +1400,7 @@ Deno.test("L8 — un corps qu'on ne sait pas estimer ne rend AUCUN rythme exécu
 // LES GARDES LUES SUR LA SOURCE
 // ---------------------------------------------------------------------------
 
-const SOURCE = Deno.readTextFileSync(
+const SOURCE = sourceFamilySync(
   fromFileUrl(new URL("./household_portions.ts", import.meta.url)),
 );
 

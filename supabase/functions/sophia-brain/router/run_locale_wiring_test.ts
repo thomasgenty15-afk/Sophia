@@ -16,6 +16,7 @@
 
 import { assert, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import { fromFileUrl } from "https://deno.land/std@0.208.0/path/mod.ts";
+import { sourceFamily } from "../../_shared/keel/source_family.ts";
 
 // `fromFileUrl` et pas `.pathname`: le dépôt vit dans « Sophia 2 », et un
 // `.pathname` rend l'espace en `%20` — chemin introuvable, test qui « échoue »
@@ -149,7 +150,7 @@ Deno.test("R3 — le routeur RÉSOUT puis ANCRE, sur le chemin de tous les tours
   // sortie serait légitime SI tous étaient couverts — il y en a huit, et c'est
   // précisément l'oubli qu'on répare.
   const code = stripCommentsAndStrings(
-    await Deno.readTextFile(fromFileUrl(new URL("./run.ts", import.meta.url))),
+    await sourceFamily(fromFileUrl(new URL("./run.ts", import.meta.url))),
   );
   const resolveAt = code.indexOf("resolveResponseLocale({");
   const persistAt = code.indexOf("withPersistedConversationLocale(");
@@ -234,7 +235,7 @@ Deno.test(
     // C'est aussi le maillon serveur de la chaîne que
     // `frontend/src/keel/i18n/signupLanguageChain.int.test.ts` tient côté front:
     //     champ « Langue » -> profiles.locale -> ICI -> resolveResponseLocale
-    const source = await Deno.readTextFile(
+    const source = await sourceFamily(
       `${FUNCTIONS_DIR}/sophia-brain/router/run.ts`,
     );
     const code = stripCommentsAndStrings(source);

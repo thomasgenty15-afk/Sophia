@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import {
@@ -17,6 +16,7 @@ import {
   capCookingShape,
   COOKING_SHAPES as SERVER_COOKING_SHAPES,
 } from "../../../../supabase/functions/_shared/keel/household_portions.ts";
+import { sourceFamily } from "../../test/sourceFamily";
 
 /**
  * LOT B — LE MODE DE CUISSON, DU CHAMP JUSQU'AU MOTEUR.
@@ -39,7 +39,7 @@ const ROOT = resolve(__dirname, "../../../..");
 
 /** ⚠️ COMMENTAIRES RETIRÉS — cicatrice `caller-audit-must-strip-comments`. */
 function code(rel: string): string {
-  return readFileSync(resolve(ROOT, rel), "utf8")
+  return sourceFamily(resolve(ROOT, rel))
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
     .split("\n")

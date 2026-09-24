@@ -35,6 +35,7 @@ import {
   describeAccess,
   readAccessFacts,
 } from "./solo_access.ts";
+import { sourceFamily } from "./source_family.ts";
 
 const FUNCTIONS_DIR = new URL("../../", import.meta.url);
 
@@ -195,7 +196,7 @@ Deno.test("C3 ① — UNE LECTURE QUI ÉCHOUE NE LÈVE JAMAIS", async () => {
 // ---------------------------------------------------------------------------
 
 async function generatorSource(fn: string): Promise<string> {
-  return await Deno.readTextFile(new URL(`${fn}/index.ts`, FUNCTIONS_DIR));
+  return await sourceFamily(new URL(`${fn}/index.ts`, FUNCTIONS_DIR));
 }
 
 Deno.test("C3 ① — LE MODULE N'ÉCRIT RIEN, ET NE RÉÉCRIT AUCUNE RÈGLE", async () => {

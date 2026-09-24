@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { referenceMemberId } from "../../../../supabase/functions/_shared/keel/household_composition.ts";
+import { sourceFamily } from "../../test/sourceFamily";
 
 /**
  * LA CARTE EST PARTIE, LE MOTEUR RESTE — ET ON LE PROUVE, ON NE LE RAISONNE PAS.
@@ -76,7 +77,7 @@ describe("plus aucun écrivain de la référence côté navigateur (câblage)", 
 
   /** ⚠️ COMMENTAIRES RETIRÉS — cicatrice `caller-audit-must-strip-comments`. */
   function code(rel: string): string {
-    return readFileSync(resolve(ROOT, rel), "utf8")
+    return sourceFamily(resolve(ROOT, rel))
       .replace(/\/\*[\s\S]*?\*\//g, "")
       .replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
       .split("\n")

@@ -78,6 +78,7 @@ import {
   SLOT_DAY_WEIGHT,
 } from "./mouth_anchor.ts";
 import { LIGHT_BEARING_SLOTS } from "./meal_extras.ts";
+import { sourceFamily } from "./source_family.ts";
 
 // ---------------------------------------------------------------------------
 // UN RÉFÉRENTIEL MINIMAL, monté à la main
@@ -1697,7 +1698,7 @@ Deno.test("LOT 10 — les deux constantes de la table sont épinglées", () => {
 });
 
 Deno.test("CÂBLAGE — l'ombre tourne à plusieurs bouches, et ne pose RIEN", async () => {
-  const src = await Deno.readTextFile(
+  const src = await sourceFamily(
     new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
   );
   const shadowAt = src.indexOf("const shadowSizing = (): Record<string, unknown> =>");
@@ -2634,7 +2635,7 @@ Deno.test("LOT 12 — un plat qu'aucun mangeur ne dimensionne n'est pas touché"
 });
 
 Deno.test("CÂBLAGE — à plusieurs bouches, le chemin armé APPLIQUE, et par mangeur", async () => {
-  const src = await Deno.readTextFile(
+  const src = await sourceFamily(
     new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
   );
   const branchAt = src.indexOf("      if (platedMembers.length > 1) {");

@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import {
@@ -23,6 +22,7 @@ import {
   KITCHEN_TOOLS as SERVER_KITCHEN_TOOLS,
   readKitchenEquipment as serverReadKitchenEquipment,
 } from "../../../../supabase/functions/_shared/keel/kitchen_equipment.ts";
+import { sourceFamily } from "../../test/sourceFamily";
 
 /**
  * L2-A — LES MOYENS DE CUISSON, DE L'ÉCRAN JUSQU'À LA COLONNE.
@@ -46,7 +46,7 @@ const ROOT = resolve(__dirname, "../../../..");
 
 /** ⚠️ COMMENTAIRES RETIRÉS — cicatrice `caller-audit-must-strip-comments`. */
 function code(rel: string): string {
-  return readFileSync(resolve(ROOT, rel), "utf8")
+  return sourceFamily(resolve(ROOT, rel))
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
     .split("\n")

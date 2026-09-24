@@ -29,6 +29,7 @@ import { readDraftEnvelope } from "../../api/planDraft";
 import type { BoxEnergyView, DishEnergyView } from "../../api/mealEnergy";
 import type { GeneratedDish } from "../../api/mealGeneration";
 import { en } from "../../i18n/en";
+import { sourceFamily } from "../../../test/sourceFamily";
 
 const PATH = "/app/plan";
 function markup(node: Parameters<typeof renderToStaticMarkup>[0]): string {
@@ -172,7 +173,7 @@ describe("la jointure — l'identifiant du brouillon, puis les trois props", () 
   it("⛔ les deux écrans qui montrent un aperçu passent son identifiant", () => {
     // Un seul des deux câblé, et la moitié des gens verrait les chiffres.
     for (const page of ["../../pages/StudentWeekPlanPage.tsx", "../../pages/SetupPage.tsx"]) {
-      const src = readFileSync(new URL(page, import.meta.url), "utf-8");
+      const src = sourceFamily(new URL(page, import.meta.url));
       expect(src).toContain("draftId={draft?.envelope.draftId ?? null}");
     }
   });

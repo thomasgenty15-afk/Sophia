@@ -15,6 +15,7 @@ import {
   STARCH_PART_GROUPS,
   VEGETABLE_PART_GROUPS,
 } from "./pot_share_parts.ts";
+import { sourceFamily } from "./source_family.ts";
 
 function ref(over: Partial<CompositionRef> & { slug: string }): CompositionRef {
   return {
@@ -140,7 +141,7 @@ Deno.test("deux lignes du même terme sont fusionnées", () => {
 // l'aperçu et disparaît une fois le plan adopté. Commentaires retirés avant la
 // recherche (`caller-audit-must-strip-comments`).
 Deno.test("CÂBLAGE — la réponse et le plan écrit passent tous deux par `withShareParts`", async () => {
-  const raw = await Deno.readTextFile(new URL("../../generate-household-meal-v1/index.ts", import.meta.url));
+  const raw = await sourceFamily(new URL("../../generate-household-meal-v1/index.ts", import.meta.url));
   const src = raw.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/[^\n]*/g, "$1");
   assertEquals(src.split("mealPreparationsPayload(meal)").length - 1, 2);
   assertEquals(src.split("withShareParts(mealPreparationsPayload(meal))").length - 1, 2);

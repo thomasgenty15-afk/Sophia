@@ -6,6 +6,7 @@ import {
   MEAL_UNTICK_FORM_REASONS,
   MEAL_UNTICK_REASONS,
 } from "./mealTicks";
+import { sourceFamily } from "../../test/sourceFamily";
 
 /**
  * FF-057 §3.A — LA LISTE DES MOTIFS EST ÉCRITE TROIS FOIS, ET LES TROIS SONT
@@ -217,7 +218,7 @@ describe("la liaison unique porte le formulaire, pas les deux écrans", () => {
         "../components/MealsTrackingDialog.tsx",
       ]
     ) {
-      const src = readFileSync(new URL(page, import.meta.url), "utf8")
+      const src = sourceFamily(new URL(page, import.meta.url))
         .replace(/\{\s*\/\*[\s\S]*?\*\/\s*\}/g, "")
         .replace(/\/\*[\s\S]*?\*\//g, "")
         .replace(/^\s*\/\/.*$/gm, "");
@@ -250,9 +251,8 @@ describe("la liaison unique porte le formulaire, pas les deux écrans", () => {
     // `userId={householdMeal?.mealId ?? null}` — ou n'importe quoi de dérivé
     // du plan — à la place de `userId={userId}`.
     // ══════════════════════════════════════════════════════════════════════
-    const page = readFileSync(
+    const page = sourceFamily(
       new URL("../pages/StudentWeekPlanPage.tsx", import.meta.url),
-      "utf8",
     )
       .replace(/\{\s*\/\*[\s\S]*?\*\/\s*\}/g, "")
       .replace(/\/\*[\s\S]*?\*\//g, "")

@@ -1,10 +1,11 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
+import { sourceFamily } from "./source_family.ts";
 
 const ROOT = new URL("../../../", import.meta.url);
 const SQL = await Deno.readTextFile(
   new URL("migrations/20260914150000_generation_lease_fence.sql", ROOT),
 );
-const HANDLER = await Deno.readTextFile(
+const HANDLER = await sourceFamily(
   new URL("generate-household-meal-v1/index.ts", new URL("../../", import.meta.url)),
 );
 

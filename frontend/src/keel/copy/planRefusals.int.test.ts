@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { en } from "../i18n/en";
@@ -17,6 +16,7 @@ import {
   validationRefusalKey,
   VALIDATION_REFUSAL_KEYS,
 } from "./planRefusals";
+import { sourceFamily } from "../../test/sourceFamily";
 
 /**
  * LE TEST DE DÉRIVE — le seul lien entre les refus du serveur et leurs mots.
@@ -36,7 +36,7 @@ import {
 const ROOT = resolve(__dirname, "../../../..");
 
 function source(rel: string): string {
-  return readFileSync(resolve(ROOT, rel), "utf8");
+  return sourceFamily(resolve(ROOT, rel));
 }
 
 /**

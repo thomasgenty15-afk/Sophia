@@ -1,5 +1,6 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
 import { preferenceSplitRetryInstruction, SPLIT_RETRY_MIN_CELLS } from "./preference_split_retry.ts";
+import { sourceFamily } from "./source_family.ts";
 
 Deno.test("la relance nomme le mot, la bouche qui le veut, le plancher de repas, et interdit la boîte de l'autre", () => {
   const text = preferenceSplitRetryInstruction([{ term: "asperges", wanter: "Paul", refusers: ["Claire"] }], 13, "boxes") ?? "";
@@ -36,7 +37,7 @@ Deno.test("le plancher ne dépasse jamais les cellules vérifiées", () => {
 });
 
 async function generatorSource(): Promise<string> {
-  return await Deno.readTextFile(new URL("../../generate-household-meal-v1/index.ts", import.meta.url));
+  return await sourceFamily(new URL("../../generate-household-meal-v1/index.ts", import.meta.url));
 }
 
 Deno.test("CÂBLAGE — le constat de préférence part dans la décision commune, adressé", async () => {

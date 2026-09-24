@@ -1,8 +1,9 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { PAGE_NAMESPACES } from "../i18n/catalog";
+import { sourceFamily } from "../../test/sourceFamily";
 
 // ===========================================================================
 // A5 POINT 7 (2026-09-03) — LES DEUX CARTES DU COMPTE, SUR SA PROPRE LIGNE
@@ -31,7 +32,7 @@ import { PAGE_NAMESPACES } from "../i18n/catalog";
 // ===========================================================================
 
 function source(rel: string): string {
-  return readFileSync(new URL(rel, import.meta.url), "utf8")
+  return sourceFamily(new URL(rel, import.meta.url))
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .split("\n")
     .filter((l) => !l.trim().startsWith("//") && !l.trim().startsWith("*"))

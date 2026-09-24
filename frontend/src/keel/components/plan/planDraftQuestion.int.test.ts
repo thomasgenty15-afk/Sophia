@@ -12,13 +12,13 @@
  *      donc relire c'est un cran d'appétit appliqué deux fois. Mesuré par
  *      lecture des deux pages le 2026-09-08: `writeFromDraft` relisait.
  */
-import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { sourceFamily } from "../../../test/sourceFamily";
 
 function stripComments(src: string): string {
   return src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/[^\n]*/g, "$1");
 }
-const read = (rel: string) => stripComments(readFileSync(new URL(rel, import.meta.url), "utf8"));
+const read = (rel: string) => stripComments(sourceFamily(new URL(rel, import.meta.url)));
 
 describe("PlanDraftDialog — la question avant la composition", () => {
   const src = read("./PlanDraftDialog.tsx");

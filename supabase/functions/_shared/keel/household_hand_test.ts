@@ -26,6 +26,7 @@ import {
   plansOverlap,
   resolveHandOff,
 } from "./household_hand.ts";
+import { sourceFamily } from "./source_family.ts";
 
 const FUNCTIONS_DIR = new URL("../../", import.meta.url);
 
@@ -462,7 +463,7 @@ function stripComments(src: string): string {
 
 async function householdGeneratorSource(): Promise<string> {
   return stripComments(
-    await Deno.readTextFile(
+    await sourceFamily(
       new URL("generate-household-meal-v1/index.ts", FUNCTIONS_DIR),
     ),
   );
@@ -861,7 +862,7 @@ Deno.test("C3 ⑤ — LE GÉNÉRATEUR NE COMPTE QU'UNE `issue` PAR PERSONNE", as
   // par entrée aurait fait lire « Zoé a pris la main » deux fois dans la même
   // réponse, et tout décompte de `member_took_the_hand` aurait compté des plans
   // en croyant compter des gens.
-  const src = await Deno.readTextFile(
+  const src = await sourceFamily(
     new URL("generate-household-meal-v1/index.ts", FUNCTIONS_DIR),
   );
   assert(
