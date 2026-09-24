@@ -51,7 +51,15 @@
   ],
   "supabase/functions/sophia-brain/router/run.ts": [],
   "supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/router.ts": [],
-  "frontend/src/keel/pages/SetupPage.tsx": [],
+  "frontend/src/keel/pages/SetupPage.tsx": [
+    "frontend/src/keel/pages/setup/types.ts",
+    "frontend/src/keel/pages/setup/mouthDraft.ts",
+    "frontend/src/keel/pages/setup/labels.ts",
+    "frontend/src/keel/pages/setup/FunnelShell.tsx",
+    "frontend/src/keel/pages/setup/SituateStep.tsx",
+    "frontend/src/keel/pages/setup/SelfStep.tsx",
+    "frontend/src/keel/pages/setup/MouthRowSummary.tsx"
+  ],
   "frontend/src/keel/pages/HouseholdPage.tsx": [],
   "frontend/src/keel/pages/StudentWeekPlanPage.tsx": [
     "frontend/src/keel/pages/weekPlan/types.ts",
