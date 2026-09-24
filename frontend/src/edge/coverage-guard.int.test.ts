@@ -360,7 +360,12 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       // 20260615133000 / 20260803030000 sont l'historique, pas des appelants.
       "trigger-synthesizer-batch",
       "trigger-topic-compaction",
-      "trigger-watcher-batch",
+      // `trigger-watcher-batch` A ÉTÉ SUPPRIMÉE le 2026-09-24 (lot 1 du
+      // découpage). Son cron était déprogrammé depuis le 2026-08-03
+      // (20260803030000) ; elle portait seule l'écriture de l'état momentum.
+      // ⚠️ Les références qui SURVIVENT : `_shared/llm-usage.ts` classe
+      // encore sa source à la LECTURE (historique de coût), et
+      // `pivot_nutrition_tables_test.sql` affirme que son cron est ABSENT.
     ].sort();
 
     expect(discovered).toEqual(expected);

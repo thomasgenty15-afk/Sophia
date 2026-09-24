@@ -445,9 +445,6 @@ verify_jwt = false
 # comment in scripts/ci/wiring-check.mjs): the declaration has to be here.
 [functions.stripe-webhook]
 verify_jwt = false
-[functions.trigger-watcher-batch]
-verify_jwt = false
-
 [functions.send-welcome-email]
 verify_jwt = false
 

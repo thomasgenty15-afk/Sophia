@@ -31,9 +31,14 @@ import {
   birthdayMatchesLocalDate,
   buildBirthdayGreetingMessage,
 } from "../_shared/birthday_checkins.ts";
-import {
-  listMorningNudgeEventContexts,
-} from "../sophia-brain/momentum_morning_nudge.ts";
+// ⟳ 2026-09-24 — les deux contextes du nudge du matin momentum, recopiés de
+// `sophia-brain/momentum_morning_nudge.ts` (retiré avec la chaîne momentum).
+// Liste d'ANNULATION : elle draine les lignes encore en base, elle ne produit
+// rien.
+const LEGACY_MORNING_NUDGE_EVENT_CONTEXTS = [
+  "morning_active_actions_nudge",
+  "morning_nudge_v2",
+];
 // RETRAIT RÉSIDUS (2026-08-08): la revue hebdo du plan V2 est partie avec
 // le système de plan. Les deux contexts restent pour que les annulations
 // (pause, mute, reset) continuent de drainer les lignes encore en base.
@@ -121,7 +126,7 @@ async function cancelFutureMorningCheckins(params: {
     .delete()
     .eq("user_id", params.userId)
     .in("event_context", [
-      ...listMorningNudgeEventContexts(),
+      ...LEGACY_MORNING_NUDGE_EVENT_CONTEXTS,
       ACTION_MORNING_EVENT_CONTEXT,
       LEGACY_ACTION_MORNING_FOLLOWUP_EVENT_CONTEXT,
       MORNING_LIGHT_GREETING_EVENT_CONTEXT,

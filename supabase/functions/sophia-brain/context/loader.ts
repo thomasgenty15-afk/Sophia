@@ -88,10 +88,6 @@ import type {
   OnDemandTriggers,
 } from "./types.ts";
 import { getContextProfile } from "./types.ts";
-import {
-  readMomentumStateV2,
-  summarizeMomentumBlockersForPrompt,
-} from "../momentum_state.ts";
 import { formatCoachingInterventionAddon } from "../coaching_intervention_selector.ts";
 
 const IDENTITY_MAX_ITEMS = 2;
@@ -905,15 +901,6 @@ export async function loadContextForMode(
     if (context.trackProgressAddon) elementsLoaded.push("track_progress_addon");
   }
 
-  if (opts.tempMemory && opts.mode === "companion") {
-    context.momentumBlockersAddon = formatMomentumBlockersAddon(
-      opts.tempMemory,
-    );
-    if (context.momentumBlockersAddon) {
-      elementsLoaded.push("momentum_blockers_addon");
-    }
-  }
-
   const coachingInterventionAddon = (opts.tempMemory as any)
     ?.__coaching_intervention_addon;
   const planFeedbackAddon = (opts.tempMemory as any)?.__plan_feedback_addon;
@@ -1057,7 +1044,6 @@ export async function loadContextForMode(
     }
     if (
       context.shortTerm ||
-      context.momentumBlockersAddon ||
       context.coachingInterventionAddon
     ) {
       v2LayersLoaded.add("coaching");
@@ -1247,7 +1233,6 @@ export function buildContextString(loaded: LoadedContext): string {
   if (loaded.surfaceOpportunityAddon) ctx += loaded.surfaceOpportunityAddon;
   if (loaded.onboardingAddon) ctx += loaded.onboardingAddon;
   if (loaded.trackProgressAddon) ctx += loaded.trackProgressAddon;
-  if (loaded.momentumBlockersAddon) ctx += loaded.momentumBlockersAddon;
   if (loaded.coachingInterventionAddon) ctx += loaded.coachingInterventionAddon;
   if (loaded.planFeedbackAddon) ctx += loaded.planFeedbackAddon;
   if (loaded.dashboardRedirectAddon) ctx += loaded.dashboardRedirectAddon;
@@ -1521,20 +1506,6 @@ function formatPlanFeedbackAddon(addon: any): string {
     (fromBilan
       ? `- Le bilan reste prioritaire: intègre ce feedback brièvement puis reprends le fil.\n`
       : "")
-  );
-}
-
-function formatMomentumBlockersAddon(tempMemory: any): string {
-  const momentum = readMomentumStateV2(tempMemory);
-  const lines = summarizeMomentumBlockersForPrompt(momentum, 3);
-  if (lines.length === 0) return "";
-  return (
-    `\n\n=== ADDON BLOCKERS MOMENTUM ===\n` +
-    `- Blockers connus récents sur actions:\n` +
-    lines.map((line) => `  - ${line}\n`).join("") +
-    `- Si un blocker est déjà connu, ne repose pas la question depuis zéro.\n` +
-    `- Utilise ce contexte pour confirmer, nuancer ou préparer une redirection dashboard si un ajustement d'action devient nécessaire.\n` +
-    `- Rappel produit à formuler en première personne si nécessaire: dans le chat, je peux comprendre, clarifier et aider l'exécution. Je ne crée pas, ne modifie pas et ne reconfigure pas une action dans le chat.\n`
   );
 }
 

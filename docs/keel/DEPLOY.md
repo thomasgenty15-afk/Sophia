@@ -366,7 +366,6 @@ stripe-webhook
 trigger-memorizer-daily
 trigger-synthesizer-batch
 trigger-topic-compaction
-trigger-watcher-batch
 update-defense-card-v3
 whatsapp-optin
 whatsapp-send
@@ -422,7 +421,6 @@ promote-candidate-memory-items
 provision-day-v1
 purge-deleted-accounts
 send-welcome-email
-trigger-watcher-batch
 whatsapp-send
 whatsapp-webhook
 stripe-webhook
