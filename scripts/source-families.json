@@ -1,6 +1,15 @@
 {
   "supabase/functions/generate-household-meal-v1/index.ts": [],
-  "supabase/functions/_shared/keel/meal_generation.ts": [],
+  "supabase/functions/_shared/keel/meal_generation.ts": [
+    "supabase/functions/_shared/keel/meal_vocabulary.ts",
+    "supabase/functions/_shared/keel/meal_types.ts",
+    "supabase/functions/_shared/keel/meal_payloads.ts",
+    "supabase/functions/_shared/keel/meal_pantry.ts",
+    "supabase/functions/_shared/keel/meal_budget.ts",
+    "supabase/functions/_shared/keel/meal_grams.ts",
+    "supabase/functions/_shared/keel/meal_regime_scan.ts",
+    "supabase/functions/_shared/keel/meal_slots.ts"
+  ],
   "supabase/functions/_shared/keel/household_meal_generation.ts": [
     "supabase/functions/_shared/keel/household_standard_recipe.ts",
     "supabase/functions/_shared/keel/household_prompt_types.ts",

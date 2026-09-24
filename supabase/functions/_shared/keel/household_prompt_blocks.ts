@@ -26,7 +26,10 @@ import type { MealCell } from "./household_presence.ts";
 // L7 ① — LA PROSE DES JOURS ET DES MOMENTS VIENT DU TRONC, comme dans
 // `household_presence.ts` (D14). Une seconde table dirait « Saturday » ici et
 // « Sat » là, dans deux blocs que le modèle lit à la suite.
-import { dayProse, OCCASION_PROSE } from "./meal_generation.ts";
+// ⟳ 2026-09-24 (lot 2d-1) — le tronc a découpé ce vocabulaire dans
+// `meal_vocabulary.ts` ; on l'importe de là, et non plus de tout
+// `meal_generation.ts`.
+import { dayProse, OCCASION_PROSE } from "./meal_vocabulary.ts";
 import {
   type KitchenTool,
   missingKitchenTools,

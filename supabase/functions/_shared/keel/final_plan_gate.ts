@@ -102,7 +102,9 @@ import {
 import { applyHouseRuleLock } from "./household_restriction_lock.ts";
 import { PERISHABLE_AISLES } from "./grocery_waves.ts";
 import { keepingOf } from "./food_keeping.ts";
-import { normalizePantryTerm } from "./meal_generation.ts";
+// ⟳ 2026-09-24 (lot 2d-1) — importé du module du garde-manger, et non plus de
+// tout `meal_generation.ts`.
+import { normalizePantryTerm } from "./meal_pantry.ts";
 import { addDays } from "./meal_plan_window.ts";
 import { FOOD_GROUP_REFS, type FoodGroupRef } from "./tokens.ts";
 
