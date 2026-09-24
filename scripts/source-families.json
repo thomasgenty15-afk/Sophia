@@ -58,7 +58,10 @@
     "frontend/src/keel/pages/setup/FunnelShell.tsx",
     "frontend/src/keel/pages/setup/SituateStep.tsx",
     "frontend/src/keel/pages/setup/SelfStep.tsx",
-    "frontend/src/keel/pages/setup/MouthRowSummary.tsx"
+    "frontend/src/keel/pages/setup/MouthRowSummary.tsx",
+    "frontend/src/keel/pages/setup/TableStep.tsx",
+    "frontend/src/keel/pages/setup/RequestStep.tsx",
+    "frontend/src/keel/pages/setup/MissCards.tsx"
   ],
   "frontend/src/keel/pages/HouseholdPage.tsx": [],
   "frontend/src/keel/pages/StudentWeekPlanPage.tsx": [

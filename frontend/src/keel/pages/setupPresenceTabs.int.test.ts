@@ -27,7 +27,15 @@ const CODE = SRC
   .filter((l) => !l.trim().startsWith("//"))
   .join("\n");
 
-const STEP = CODE.slice(CODE.indexOf("function RequestStep({"));
+// ⟳ 2026-09-24 (lot 4b) — LA TRANCHE S'ARRÊTE À LA FIN DE LA FONCTION. Elle
+// allait « jusqu'à la fin du fichier », ce qui ne prenait que l'étape et deux
+// cartes. `RequestStep` vit maintenant dans `setup/RequestStep.tsx`, et
+// `sourceFamily` range les modules AVANT la page: la même tranche aurait couru
+// sur toute la page, où `away: m.away,` existe aussi — le cas D14 serait resté
+// vert sans rien lire de l'étape. Tous les marqueurs cherchés dans `STEP` sont
+// dans le corps de la fonction, avant comme après la découpe.
+const STEP_AT = CODE.indexOf("function RequestStep({");
+const STEP = CODE.slice(STEP_AT, CODE.indexOf("\n}\n", STEP_AT) + 2);
 
 describe("l'étape 3 ouvre la présence de CHAQUE bouche", () => {
   it("les deux écrivains sont LUS, pas seulement passés", () => {
