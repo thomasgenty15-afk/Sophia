@@ -28,7 +28,13 @@
     "supabase/functions/_shared/keel/household_eating_out.ts",
     "supabase/functions/_shared/keel/portion_note_terms.ts"
   ],
-  "supabase/functions/_shared/keel/portion_sizing.ts": [],
+  "supabase/functions/_shared/keel/portion_sizing.ts": [
+    "supabase/functions/_shared/keel/portion_plate_bounds.ts",
+    "supabase/functions/_shared/keel/portion_density_corridor.ts",
+    "supabase/functions/_shared/keel/portion_sizing_core.ts",
+    "supabase/functions/_shared/keel/portion_sizing_apply.ts",
+    "supabase/functions/_shared/keel/portion_sizing_repair.ts"
+  ],
   "supabase/functions/_shared/keel/final_plan_gate.ts": [
     "supabase/functions/_shared/keel/final_plan_gate_types.ts",
     "supabase/functions/_shared/keel/final_plan_gate_policy.ts",
