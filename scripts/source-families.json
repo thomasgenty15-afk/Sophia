@@ -53,7 +53,13 @@
   "supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/router.ts": [],
   "frontend/src/keel/pages/SetupPage.tsx": [],
   "frontend/src/keel/pages/HouseholdPage.tsx": [],
-  "frontend/src/keel/pages/StudentWeekPlanPage.tsx": [],
+  "frontend/src/keel/pages/StudentWeekPlanPage.tsx": [
+    "frontend/src/keel/pages/weekPlan/types.ts",
+    "frontend/src/keel/pages/weekPlan/dates.ts",
+    "frontend/src/keel/pages/weekPlan/GoalTargetField.tsx",
+    "frontend/src/keel/pages/weekPlan/CellActions.tsx",
+    "frontend/src/keel/pages/weekPlan/PersonalNumbers.tsx"
+  ],
   "frontend/src/keel/components/MouthFormDialog.tsx": [
     "frontend/src/keel/components/mouthFormDialog/types.ts",
     "frontend/src/keel/components/mouthFormDialog/labels.ts",
