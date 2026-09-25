@@ -91,7 +91,9 @@ Deno.test("B3 — la casserole a UNE masse et UNE densité dans tout le moteur",
   const measures = pots.map((p) => measurePreparation(INDEX, p));
   assertEquals(measures[0].water, "kept");
   assertEquals(measures[1].water, "absorbed");
-  assertEquals(measures[0].readyG, 200 * 2.4 + 400 + 20);
+  // ⟳ 2026-09-25 — l'eau gardée, moins ce que les lentilles sèches boivent déjà
+  // (200 g × 1,4 = 280 g): 400 − 280 = 120 g d'eau en plus des lentilles cuites.
+  assertEquals(measures[0].readyG, 200 * 2.4 + (400 - 200 * 1.4) + 20);
   assertEquals(measures[1].readyG, 260);
 
   // ① `potDensities` — l'applicateur de boîtes (`mouth_energy.ts`).

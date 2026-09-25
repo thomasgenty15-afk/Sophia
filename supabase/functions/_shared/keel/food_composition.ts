@@ -163,6 +163,41 @@ export function isEggsBoiledInWater(
   return eggs && water;
 }
 
+/**
+ * ⟳ 2026-09-25 — L'EAU QUE LES LÉGUMINEUSES SÈCHES BOIVENT DÉJÀ, EN GRAMMES.
+ *
+ * ── LE DÉFAUT, MESURÉ ─────────────────────────────────────────────────────
+ * Une légumineuse sèche (`legume_absorbs`, lentilles ×2,4) porte déjà dans son
+ * rendement l'eau qu'elle boit : 600 g de lentilles sèches pèsent 1 440 g
+ * cuites, dont 840 g d'eau. La ligne d'eau listée à côté, gardée entière
+ * (`kept`), comptait ces 840 g une SECONDE fois. Banc des trois foyers, plan C :
+ * 600 g de lentilles + 1,8 L d'eau pesés comme si toute l'eau restait en plus —
+ * une casserole surévaluée de 840 g, une densité sous-estimée d'un bon quart,
+ * et des assiettes de lentilles rognées au plafond de poids avant d'avoir porté
+ * leur énergie (Thomas à 700 g pour 573 kcal).
+ *
+ * ── LA RÈGLE ─────────────────────────────────────────────────────────────
+ * On retire de la ligne d'eau ce que les légumineuses sèches boivent (grammes
+ * secs × (rendement − 1)), sans jamais descendre sous zéro. Ce qui dépasse
+ * reste : une soupe de lentilles reste une soupe. Ce n'est PAS la règle du
+ * grain (`grain_absorbs`, toute l'eau retirée) : des lentilles mijotées dans une
+ * eau qui reste au fond de la casserole ne sont pas du riz pilaf
+ * (`preparation_mass.ts`, en-tête).
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function waterDrunkByDryLegumesG(
+  lines: readonly { ref: CompositionRef; gramsRaw: number }[],
+): number {
+  let total = 0;
+  for (const { ref, gramsRaw } of lines) {
+    if (!(gramsRaw > 0) || ref.yieldClass !== "legume_absorbs") continue;
+    const factor = yieldFactorOf(ref);
+    if (factor > 1) total += gramsRaw * (factor - 1);
+  }
+  return total;
+}
+
 // ---------------------------------------------------------------------------
 // LES UNITÉS
 // ---------------------------------------------------------------------------

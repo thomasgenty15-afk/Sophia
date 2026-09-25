@@ -70,6 +70,7 @@ import {
   nutrientsOf,
   type ResolutionResult,
   resolveIngredients,
+  waterDrunkByDryLegumesG,
   yieldFactorOf,
 } from "./food_composition.ts";
 import {
@@ -252,13 +253,22 @@ function readyGramsFrom(r: ResolutionResult, water: WaterTreatment): number | nu
   if (water === "undetermined") return null;
   const dropWater = water === "absorbed" || water === "discarded";
   let total = 0;
+  let waterG = 0;
   let any = false;
   for (const { ref, gramsRaw } of r.resolved) {
     if (!(gramsRaw > 0)) continue;
-    if (dropWater && ref.foodGroupRef === WATER_GROUP) continue;
+    if (ref.foodGroupRef === WATER_GROUP) {
+      if (dropWater) continue;
+      waterG += gramsRaw * yieldFactorOf(ref);
+      any = true;
+      continue;
+    }
     total += gramsRaw * yieldFactorOf(ref);
     any = true;
   }
+  // ⟳ 2026-09-25 — l'eau gardée, moins ce que les légumineuses sèches ont déjà
+  // bu dans leur rendement (`waterDrunkByDryLegumesG`): jamais deux fois.
+  total += Math.max(0, waterG - waterDrunkByDryLegumesG(r.resolved));
   return any ? total : null;
 }
 

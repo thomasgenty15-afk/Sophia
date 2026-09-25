@@ -23,6 +23,7 @@ import {
   gramsRawOf,
   isEggsBoiledInWater,
   resolveCompositionLine,
+  waterDrunkByDryLegumesG,
   yieldFactorOf,
 } from "./food_composition.ts";
 import { weighableQuantityOf } from "./quantity_from_prose.ts";
@@ -227,11 +228,17 @@ export function preparationReadyGrams(
   const dropWater = refs.some(({ ref }) => ref.yieldClass === "grain_absorbs") ||
     isEggsBoiledInWater(refs);
   let total = 0;
+  let waterG = 0;
   for (const { ref, gramsRaw } of refs) {
-    if (dropWater && ref.foodGroupRef === "water") continue;
+    if (ref.foodGroupRef === "water") {
+      if (!dropWater) waterG += gramsRaw * yieldFactorOf(ref);
+      continue;
+    }
     total += gramsRaw * yieldFactorOf(ref);
   }
-  return total;
+  // ⟳ 2026-09-25 — et jamais deux fois l'eau que les légumineuses sèches ont bue
+  // (`waterDrunkByDryLegumesG`), comme `preparation_mass.ts`.
+  return total + Math.max(0, waterG - waterDrunkByDryLegumesG(refs));
 }
 
 /**

@@ -173,7 +173,11 @@ Deno.test("① LA FIXTURE **EST** LE CAS DE L'ENQUÊTE — 20 · 548,5 · 332,5 
   // se compte pas deux fois. Deux casseroles, deux décisions.
   assertEquals(lentils.water, "kept");
   assertEquals(couscous.water, "absorbed");
-  assertEquals(lentils.readyG, 548.5, "la part de lentilles, eau comprise");
+  // ⟳ 2026-09-25 — L'ENQUÊTE MESURAIT 548,5 g, EAU COMPRISE. Les lentilles
+  // sèches boivent désormais leur eau (`waterDrunkByDryLegumesG`): 120 g secs ×
+  // (2,4 − 1) = 168 g, plus que les 90 ml de la part — l'eau ne pèse plus une
+  // seconde fois. La part pèse 548,5 − 90 = 458,5 g.
+  assertEquals(lentils.readyG, 548.5 - 90, "la part de lentilles, l'eau bue comptée une seule fois");
   assertEquals(couscous.readyG, 332.5, "la part de couscous, eau déjà dans le ×2,6");
   assertEquals(measureFresh(INDEX, SAT_LUNCH).readyG, 20, "le frais du plat");
   assertEquals(20 + 548.5 + 332.5, 901, "la somme des composants de l'enquête");
@@ -188,6 +192,9 @@ Deno.test("① LA FIXTURE **EST** LE CAS DE L'ENQUÊTE — 20 · 548,5 · 332,5 
   // deno-lint-ignore no-explicit-any
   assertEquals(weighedReadyGrams(aplati as any, INDEX), 811);
   assertEquals(901 - 811, 90, "les 90 g sont l'eau des lentilles: 180 ml ÷ 2 tirages");
+  // ⟳ 2026-09-25 — et ces 90 g sont précisément l'eau que les lentilles boivent:
+  // mesurées par casserole, les composants retombent sur les 811 g aplatis.
+  assertEquals(20 + lentils.readyG! + couscous.readyG!, 811);
 });
 
 Deno.test("① LA SOMME DES COMPOSANTS EST LA MESURE DE L'ASSIETTE — la preuve du lot B", () => {
@@ -198,7 +205,8 @@ Deno.test("① LA SOMME DES COMPOSANTS EST LA MESURE DE L'ASSIETTE — la preuve
   const fresh = measureFresh(INDEX, SAT_LUNCH).readyG!;
   const lentils = measurePreparation(INDEX, LENTIL_POT).readyG! / 2;
   const couscous = measurePreparation(INDEX, COUSCOUS_POT).readyG! / 3;
-  assertEquals(lentils, 548, "1 096 g ÷ 2 tirages");
+  // ⟳ 2026-09-25 — 1 096 − 180 (l'eau que les lentilles boivent déjà) = 916 g.
+  assertEquals(lentils, 458, "916 g ÷ 2 tirages");
   assertEquals(Math.round(couscous * 100) / 100, 328.83, "986,5 g ÷ 3 tirages");
 
   const plate = measurePlate({
@@ -222,10 +230,13 @@ Deno.test("① LA SOMME DES COMPOSANTS EST LA MESURE DE L'ASSIETTE — la preuve
     preparations: [LENTIL_POT, COUSCOUS_POT],
     drawsByPrep: DRAWS,
   });
-  assertEquals(std.cookedG, 897, "`standardPortionOf` mesurait 811 g avant le lot B");
+  // ⟳ 2026-09-25 — 897 g au lot B, dont 90 g d'eau que les lentilles boivent
+  // déjà: 807 g. Les 4 g d'écart avec la liste aplatie (811) sont les
+  // condiments qu'elle comptait encore en double.
+  assertEquals(std.cookedG, 807, "`standardPortionOf` mesurait 811 g avant le lot B, 897 g avant le 2026-09-25");
   assert(
-    std.cookedG! - 811 === 86,
-    "les 86 g retrouvés sont l'eau des lentilles, moins les condiments qui ne se comptent plus en double",
+    811 - std.cookedG! === 4,
+    "il ne reste que les condiments que la liste aplatie compte en double",
   );
 });
 
@@ -354,12 +365,13 @@ Deno.test("③ le biais de la pincée est CORRIGÉ — la part est la casserole 
   // brin de persil, pesés par convention). Chaque part portait donc TOUS les
   // condiments de la casserole.
   const entier = measurePreparation(INDEX, LENTIL_POT).readyG!;
-  assertEquals(entier, 1096, "1 095 g de lignes pesées + 1 g de condiments");
+  // ⟳ 2026-09-25 — 1 096 g avant, moins les 180 ml que les lentilles boivent.
+  assertEquals(entier, 916, "915 g de lignes pesées + 1 g de condiments");
   const biaisee = measurePreparation(INDEX, {
     ...LENTIL_POT,
     ingredients: perDraw(LENTIL_POT.ingredients, 2),
   }).readyG!;
-  assertEquals(biaisee, 548.5, "1 095 ÷ 2 + 1 — l'arithmétique d'avant");
+  assertEquals(biaisee, 458.5, "915 ÷ 2 + 1 — l'arithmétique d'avant");
 
   // ⛔ ET CE QUE LE LOT B POSE: la même division que `applySizing` écrit dans la
   // boîte (`readyG ÷ draws`), condiments compris. Les deux côtés du moteur ne
@@ -388,7 +400,8 @@ Deno.test("③ une casserole citée mais absente éteint le plat, et le trou est
   assert(plate.gaps.includes("missing_preparation"));
   // La MASSE des composants connus reste lisible: elle ne prétend rien sur le
   // contenu absent, et `standardPortionOf` la rendait déjà.
-  assertEquals(Math.round(plate.readyG!), 897);
+  // ⟳ 2026-09-25 — 897 g avant que l'eau bue par les lentilles ne pèse plus.
+  assertEquals(Math.round(plate.readyG!), 807);
 });
 
 Deno.test("③ `readyGramsOfUnit` et `weighedReadyGrams` sont la MÊME règle", () => {
@@ -531,4 +544,36 @@ Deno.test("⑥ la même casserole pèse pareil pour les deux mesures (croissance
   assertEquals(preparationReadyGrams(lignes, OEUFS_INDEX), 55);
   assertEquals(preparationReadyKcal(lignes, OEUFS_INDEX), (55 * 145) / 100);
   assertEquals(measurePreparation(OEUFS_INDEX, OEUFS_DURS).readyG, preparationReadyGrams(lignes, OEUFS_INDEX));
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⑦ ⟳ 2026-09-25 — L'EAU QUE LES LÉGUMINEUSES SÈCHES BOIVENT NE PÈSE QU'UNE FOIS
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Banc des trois foyers, plan C : 600 g de lentilles sèches + 1,8 L d'eau pesés
+// comme si toute l'eau restait EN PLUS des lentilles cuites (×2,4) — 840 g de
+// trop, et des assiettes de lentilles rognées au plafond de poids.
+
+Deno.test("⑦ une soupe de lentilles garde l'eau qu'elles n'ont pas bue, pas plus", () => {
+  const soupe = {
+    id: "p_soupe_lentilles",
+    ingredients: [
+      { term: "lentilles vertes", amount: 100, unit: "g", state: "raw" },
+      { term: "eau", amount: 800, unit: "ml", state: null },
+    ],
+  };
+  assertEquals(waterTreatmentOf(INDEX, soupe), "kept", "une soupe reste une soupe");
+  // Nombres dérivés à la main : 100 × 2,4 cuites + (800 − 100 × 1,4) d'eau restante.
+  assertEquals(measurePreparation(INDEX, soupe).readyG, 240 + 660);
+});
+
+Deno.test("⑦ moins d'eau que ce que les lentilles boivent : aucune eau en plus, jamais négatif", () => {
+  const peu = {
+    id: "p_lentilles_peu_d_eau",
+    ingredients: [
+      { term: "lentilles vertes", amount: 100, unit: "g", state: "raw" },
+      { term: "eau", amount: 50, unit: "ml", state: null },
+    ],
+  };
+  assertEquals(measurePreparation(INDEX, peu).readyG, 240);
 });
