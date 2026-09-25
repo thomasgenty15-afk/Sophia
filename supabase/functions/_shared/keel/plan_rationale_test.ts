@@ -324,7 +324,18 @@ Deno.test("le budget se dit AVEC ce qui a cédé, dans l'ordre", () => {
   const saison = said.indexOf("hors saison");
   const variete = said.indexOf("variété");
   assert(proteines > 0 && proteines < saison && saison < variete, said);
-  assert(said.includes("jamais les portions"));
+  // ⟳ 2026-09-25 — une promesse que rien ne vérifie ne se dit plus.
+  assert(!said.includes("portions"), said);
+});
+
+Deno.test("⟳ 2026-09-25 — EN: le budget ne promet plus « never the portions »", () => {
+  const out = explainPlanChoices({
+    facts: { ...nominalFacts(), budgetAmount: 90 },
+    locale: "en",
+  });
+  const said = out.lines.join(" ");
+  assert(said.includes("90"), said);
+  assert(!said.includes("portions"), said);
 });
 
 Deno.test("`budgetAmount: null` ne produit AUCUNE ligne de budget", () => {
@@ -2507,3 +2518,23 @@ Deno.test("la phrase du matin distingue les courses de la cuisine", () => {
   const en = explainPlanChoices({ facts: { ...base, firstDayLunchNeedsCooking: false }, locale: "en" }).lines.join("\n");
   assertStringIncludes(en, "lunch needs no cooking");
 });
+
+// ⟳ 2026-09-25 — « Le plan pose 1 sessions de cuisine » (plan C du banc).
+Deno.test("une seule session de cuisine se dit au singulier, en français et en anglais", () => {
+  type Jour = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
+  const dire = (locale: "fr" | "en", sessions: number, cookDays: Jour[]) =>
+    explainPlanChoices({
+      facts: {
+        ...nominalFacts(),
+        cookingPlan: { sessions, runs: 1, cookDays, unusedRuns: 0, sessionMinutes: 120, notes: [] },
+      },
+      locale,
+    }).lines.join(" ");
+  const fr = dire("fr", 1, ["mon"]);
+  assert(fr.includes("Le plan pose 1 session de cuisine"), fr);
+  assert(!fr.includes("1 sessions"), fr);
+  const en = dire("en", 1, ["mon"]);
+  assert(en.includes("The plan sets 1 cooking session:"), en);
+  assert(dire("fr", 2, ["mon", "thu"]).includes("2 sessions de cuisine"));
+});
+

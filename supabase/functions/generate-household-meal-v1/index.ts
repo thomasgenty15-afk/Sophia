@@ -324,6 +324,8 @@ import {
 } from "../_shared/keel/plan_proportion_units.ts";
 // ⟳ 2026-09-25 — le plafond de temps de l'ajustement des proportions.
 import { ADJUST_TIME_BUDGET_MS } from "../_shared/keel/proportion_adjust.ts";
+// ⟳ 2026-09-25 — le budget que la consigne a reçu: une décision, deux lecteurs.
+import { budgetReachesPrompt } from "../_shared/keel/meal_prompt.ts";
 // ⟳ 2026-09-25 — le travail de la composition, hors attente du modèle.
 import {
   markWorkPhase,
@@ -16772,6 +16774,18 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
     // calcul, deux lecteurs: la consigne et l'explication.
     let rationaleLines: string[] = [];
     let rationaleRefusal: string | null = null;
+    // ⟳ 2026-09-25 — CE QUE LA RECOMPOSITION DOIT GARDER. Les phrases de
+    // compromis (`plan_tradeoffs.ts`) sont ajoutées APRÈS la première
+    // composition: une recomposition (jours de courses changés, ou la phrase
+    // d'énergie posée après la garde) les effaçait. Et les faits de courses de
+    // la dernière composition, pour recomposer sans les recalculer.
+    let tradeoffLines: string[] = [];
+    let rationaleEnergyBelow: boolean | null = null;
+    let lastRationaleCourses: {
+      readonly days: readonly string[];
+      readonly later: typeof shopLaterDays;
+      readonly frozen: typeof writtenWaves.frozenAtPurchase;
+    } | null = null;
     /**
      * ══════════════════════════════════════════════════════════════════════
      * ⟳ 2026-09-12 · FERMETURE LOT 2 — L'EXPLICATION SE RECOMPOSE
@@ -16794,6 +16808,7 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
       readonly later: typeof shopLaterDays;
       readonly frozen: typeof writtenWaves.frozenAtPurchase;
     }): void => {
+    lastRationaleCourses = courses;
     /** ⟳ 2026-09-24 — les jours des sessions RÉELLEMENT écrites, dans l'ordre du plan. */
     const sessionsLivrees = daysToFill.filter((d) =>
       meal.cooking_sessions.some((session) => session.day === d)
@@ -16821,7 +16836,14 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
           // phrase sans sujet: plus léger POUR QUI ? La question a une réponse
           // par bouche, aucune pour la casserole. Elle se taira ici tant que le
           // foyer n'aura pas de verdict de table — c'est le lot du bac.
-          energyBelowBand: null,
+          //
+          // ⟳ 2026-09-25 — SAUF POUR UNE PERSONNE SEULE: là, « plus léger pour
+          // qui » a une réponse. `null` à la première composition; posé à
+          // `true` APRÈS la garde finale, quand elle compte
+          // `mouth_energy_short` pour cette personne et que son drapeau de
+          // restriction est lu et baissé (voir la recomposition après
+          // `planValidation`). Jamais pour une bouche protégée.
+          energyBelowBand: rationaleEnergyBelow,
           // ⛔ VIDE QUAND LES JOURS SONT DÉRIVÉS, ET C'EST UN CORRECTIF.
           //
           // Ce fait-là est documenté « les jours que l'élève a COCHÉS », et son
@@ -16968,7 +16990,12 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
           // AUTORISE le débordement; savoir s'il a eu lieu, et de combien, ne
           // se sait qu'après.
           sessionOverruns: meal.session_overruns as never,
-          budgetAmount: capacity.budgetAmount,
+          // ⟳ 2026-09-25 — LE BUDGET QUE LA CONSIGNE A REÇU, pas celui saisi:
+          // sous le plancher, le bloc budget n'est pas parti au modèle, et
+          // « pour y tenir, les protéines chères cèdent » serait faux.
+          budgetAmount: budgetReachesPrompt(capacity.budgetAmount, budgetBounds?.floor ?? null)
+            ? capacity.budgetAmount
+            : null,
           // D14 — LA CASSEROLE, et pas le foyer. C'est le nombre qui a
           // réellement dimensionné les quantités.
           mouthsServed: Math.min(12, Math.max(1, presence.servings)),
@@ -17045,7 +17072,7 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
           },
         },
       });
-      rationaleLines = explained.lines;
+      rationaleLines = [...explained.lines, ...tradeoffLines];
       rationaleRefusal = explained.refusal;
     } catch (error) {
       console.error(`[${FN_NAME}] plan rationale unavailable`, error);
@@ -17171,7 +17198,8 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
           laneMode: resolution.mode,
         },
       });
-      rationaleLines = [...rationaleLines, ...tradeoffs.lines];
+      tradeoffLines = [...tradeoffs.lines];
+      rationaleLines = [...rationaleLines, ...tradeoffLines];
       // ⛔ LE COMPTEUR, ET IL EST OBLIGATOIRE. « Un champ déclaré sans compteur
       // ressemble trait pour trait à un lot qui marche »: sans cette ligne, une
       // famille qui cesse de mordre est indiscernable d'un foyer sans
@@ -19623,6 +19651,9 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
       household_id: householdId,
       intent,
       ...boxSizing.counts,
+      // ⟳ 2026-09-25 — le calcul fantôme, lisible ici seulement: ces lignes
+      // ne partent plus dans les `issues` du plan (voir plus bas).
+      measured_lines: boxSizing.issues,
       mouths: sizingReasons,
       share: shareReasons,
       share_clamped: shareClamped,
@@ -19880,14 +19911,15 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
         quantity_relinked: quantityRelinked,
       }));
     }
-    // ⟳ 2026-09-25 — CES LIGNES DÉCRIVENT UNE MESURE, PAS UN GESTE. Rien de
-    // `boxSizing` n'est recopié sur les boîtes depuis le 2026-09-07 (voir
-    // `wouldResize` plus haut), mais « every share … scaled back to fit » se
-    // lisait comme une assiette rabotée: sur `54aec009`, 7 lignes pour une
-    // personne servie à 99,4–99,8 % de sa cible. Le calcul ne voit pas les
-    // à-côtés (`side_courses`), d'où des facteurs de 1,11 à 1,19 et des
-    // casseroles « trop petites » qui ne le sont pas.
-    issues.push(...boxSizing.issues.map((line) => `measured, not applied: ${line}`));
+    // ⟳ 2026-09-25 — CES LIGNES DÉCRIVENT UNE MESURE, PAS UN GESTE, ET ELLES
+    // NE VONT PLUS DANS `issues`. Rien de `boxSizing` n'est recopié sur les
+    // boîtes depuis le 2026-09-07 (voir `wouldResize` plus haut), mais « every
+    // share … scaled back to fit » se lisait comme une assiette rabotée: sur
+    // `54aec009`, 7 lignes pour une personne servie à 99,4–99,8 % de sa cible;
+    // banc des trois foyers, plan A, des casseroles « trop petites » qui ne
+    // l'étaient pas. Le calcul ne voit pas les à-côtés (`side_courses`). Les
+    // lignes restent au journal (`keel.household_meal.box_sizing`,
+    // `measured_lines`).
 
     // ══════════════════════════════════════════════════════════════════════
     // ⟳ 2026-09-24 — LES À-CÔTÉS RATTACHÉS DE NOUVEAU AU PLAN ÉCRIT
@@ -20761,8 +20793,7 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
         plausible: budgetBounds.plausible,
         // CE QUE LE PROMPT A FAIT, dit ici plutôt que déduit d'une
         // comparaison refaite trois mois plus tard par quelqu'un d'autre.
-        ceiling_sent: capacity.budgetAmount !== null &&
-          capacity.budgetAmount >= budgetBounds.floor,
+        ceiling_sent: budgetReachesPrompt(capacity.budgetAmount, budgetBounds.floor),
         // ⟳ 2026-09-25 — combien de bouches composées ont porté leur propre
         // besoin; les autres ont compté pour la journée de référence.
         sized_mouths: budgetSizedMouths,
@@ -22959,6 +22990,42 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
       });
     (writePayload.generated_from as Record<string, unknown>).validation =
       planValidation;
+    // ⟳ 2026-09-25 — UNE PERSONNE SEULE SOUS SON ENVELOPPE, DITE APRÈS LA GARDE.
+    //
+    // Banc des trois foyers, plan A: Camille, seule, servie à 73–92 % de sa
+    // journée, et le texte du plan ne le disait pas (`energyBelowBand: null`
+    // en dur sur cette lane, écrit pour la table). À UNE bouche, la garde
+    // mesure l'écart (`mouth_energy_short`, en comptage): on le dit avec la
+    // phrase existante, sans chiffre (« ressers-toi si tu as encore faim »).
+    // ⛔ JAMAIS pour une bouche protégée: drapeau de restriction lu ET baissé
+    // (`=== false`, fail-closed — `null` se tait). Même mutation après la
+    // garde que `validation` juste au-dessus: les corps de réponse et de
+    // brouillon, construits plus bas, relisent `rationaleLines`.
+    const rationaleSolo = composedMembers.length === 1 ? composedMembers[0] : null;
+    if (
+      rationaleSolo !== null && rationaleSolo.body?.restrictionFlag === false &&
+      gateOut !== null && lastRationaleCourses !== null &&
+      gateOut.refusals.some((r) =>
+        r.cause === "mouth_energy_short" && r.member_id === rationaleSolo.memberId
+      )
+    ) {
+      rationaleEnergyBelow = true;
+      composeRationale(lastRationaleCourses);
+      (writePayload.generated_from as Record<string, unknown>).rationale = {
+        lines: rationaleLines,
+        refusal: rationaleRefusal,
+      };
+    }
+    console.log(JSON.stringify({
+      tag: "keel.household_meal.rationale_energy",
+      request_id: requestId,
+      solo: rationaleSolo !== null,
+      restriction: rationaleSolo === null ? null : rationaleSolo.body?.restrictionFlag ?? null,
+      short: gateOut === null
+        ? null
+        : gateOut.refusals.filter((r) => r.cause === "mouth_energy_short").length,
+      said: rationaleEnergyBelow === true,
+    }));
     // ⟳ 2026-09-20 — les journées au-dessus du plafond protéique, comptées
     // sur la ligne écrite. Voir `PROTEIN_CEILING_G_PER_KG`.
     (writePayload.generated_from as Record<string, unknown>).protein_ceiling =

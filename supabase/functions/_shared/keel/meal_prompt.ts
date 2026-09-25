@@ -1027,8 +1027,7 @@ export function buildMealPrompt(args: {
     // demanderait au modèle de renoncer à la viande sans lui dire pourquoi,
     // c'est-à-dire d'appauvrir un plan au nom d'une contrainte qu'on vient de
     // juger inapplicable.
-    ...(args.budgetAmount !== null &&
-        (args.budgetFloor === null || args.budgetAmount >= args.budgetFloor)
+    ...(budgetReachesPrompt(args.budgetAmount, args.budgetFloor)
       ? [
         `budget for this plan: ${args.budgetAmount}, in the local currency of ` +
         "their country. It covers the WHOLE shopping list for this stretch, " +
@@ -1770,3 +1769,21 @@ export function buildMealPrompt(args: {
     contentLocale: args.contentLocale,
   };
 }
+
+/**
+ * ⟳ 2026-09-25 — LE BUDGET ENTRE-T-IL DANS LA CONSIGNE ? Une seule décision,
+ * lue par la consigne (le bloc budget ci-dessus) ET par le texte d'explication
+ * du plan (`budgetAmount` de `explainPlanChoices`, lane du foyer).
+ *
+ * Banc des trois foyers : sous le plancher, le bloc disparaissait de la
+ * consigne, mais le texte lu par la personne disait encore « Le budget des
+ * courses est X. Pour y tenir, ce sont d'abord les protéines chères… » — un
+ * arbitrage que le modèle n'avait jamais reçu.
+ */
+export function budgetReachesPrompt(
+  amount: number | null,
+  floor: number | null,
+): amount is number {
+  return amount !== null && (floor === null || amount >= floor);
+}
+

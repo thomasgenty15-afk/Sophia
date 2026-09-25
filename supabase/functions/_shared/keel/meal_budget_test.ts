@@ -31,6 +31,7 @@
 
 import { assert, assertEquals, assertStringIncludes } from "jsr:@std/assert@1";
 import { BUDGET_MAX, buildMealPrompt, usableBudget } from "./meal_generation.ts";
+import { budgetReachesPrompt } from "./meal_prompt.ts";
 
 function mealArgs(budgetAmount: number | null, budgetFloor: number | null = null) {
   return {
@@ -200,3 +201,15 @@ Deno.test("sans plancher (hors marché), le plafond part comme avant", () => {
   const text = JSON.stringify(buildMealPrompt(mealArgs(1, null)));
   assertStringIncludes(text, "budget for this plan: 1");
 });
+
+// ⟳ 2026-09-25 — UNE DÉCISION, DEUX LECTEURS: la consigne et le texte
+// d'explication du plan. Sous le plancher, ni l'un ni l'autre ne parle du budget.
+Deno.test("budgetReachesPrompt — aucun budget, sous le plancher: non; sans plancher ou au-dessus: oui", () => {
+  assertEquals(budgetReachesPrompt(null, null), false);
+  assertEquals(budgetReachesPrompt(null, 40), false);
+  assertEquals(budgetReachesPrompt(30, 40), false, "sous le plancher");
+  assertEquals(budgetReachesPrompt(40, 40), true, "au plancher, il part");
+  assertEquals(budgetReachesPrompt(90, 40), true);
+  assertEquals(budgetReachesPrompt(90, null), true, "sans plancher (hors des deux marchés)");
+});
+

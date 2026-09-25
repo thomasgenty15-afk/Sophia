@@ -727,8 +727,12 @@ const COPY = {
     // formulation appartient aux jours COCHÉS; celle-ci décrit une dérivation,
     // et la confondre avec un choix est très exactement le défaut qu'elle
     // remplace.
+    // ⟳ 2026-09-25 — le singulier: « 1 sessions de cuisine » sortait tel quel
+    // sur le plan C du banc des trois foyers.
     cookingSessionsPlanned: (n: number, days: string) =>
-      `Le plan pose ${n} sessions de cuisine : ${days}.`,
+      n === 1
+        ? `Le plan pose 1 session de cuisine : ${days}.`
+        : `Le plan pose ${n} sessions de cuisine : ${days}.`,
     // ── ⟳ 2026-09-25 · LES DEUX RELÈVEMENTS ───────────────────────────────
     // L'écran ne propose ni l'un ni l'autre; ils existent pour une demande
     // arrivée par le réseau. Chacun dit la CAUSE avant la conséquence: un
@@ -855,9 +859,12 @@ const COPY = {
       "Ce plan est plus léger que ce que ton corps demande sur ces journées : " +
       "ressers-toi si tu as encore faim.",
     budget: (amount: number) => `Le budget des courses est ${amount}.`,
+    // ⟳ 2026-09-25 — « — jamais les portions » RETIRÉ: une promesse absolue
+    // que rien ne vérifie (les parts suivent les corps et les plafonds
+    // d'assiette, pas le budget), lue comme une garantie.
     budgetCuts:
       "Pour y tenir, ce sont d'abord les protéines chères, puis les produits " +
-      "hors saison, puis la variété qui cèdent — jamais les portions.",
+      "hors saison, puis la variété qui cèdent.",
     mouths: (n: number) => `Les quantités sont faites pour ${n} bouches.`,
     // ── G5 · LE TEMPS A PLAFONNÉ LA FORME ────────────────────────────────
     // ⚠️ UN FAIT, JAMAIS UN REPROCHE. « Tu n'as pas assez de temps pour deux
@@ -1026,7 +1033,9 @@ const COPY = {
       `Cooking the day before would have started the plan yesterday. It ` +
       `starts on its first day, and the cooking happens there.`,
     cookingSessionsPlanned: (n: number, days: string) =>
-      `The plan sets ${n} cooking sessions: ${days}.`,
+      n === 1
+        ? `The plan sets 1 cooking session: ${days}.`
+        : `The plan sets ${n} cooking sessions: ${days}.`,
     sessionsNeedFreezer: (sessions: number) =>
       `Without a freezer, a single session cannot cover the whole plan: the ` +
       `plan cooks ${sessions} times, so every dish is eaten in time.`,
@@ -1104,7 +1113,7 @@ const COPY = {
     budget: (amount: number) => `The shopping budget is ${amount}.`,
     budgetCuts:
       "To stay inside it, expensive proteins give first, then out-of-season " +
-      "produce, then variety — never the portions.",
+      "produce, then variety.",
     mouths: (n: number) => `Quantities are made for ${n} people.`,
     // Même posture qu'en français: un fait, jamais un reproche. « only 1 hour »
     // serait déjà un jugement — l'adverbe est ce qui transforme une mesure en
@@ -1814,9 +1823,11 @@ export function explainPlanChoices(input: {
   }
 
   // ── ⑥ LE BUDGET, ET CE QUI A CÉDÉ POUR Y TENIR, DANS L'ORDRE ────────────
-  // L'ordre est celui de la consigne servie au modèle (`meal_generation.ts`):
-  // protéines chères, puis hors saison, puis variété, jamais les portions.
-  // Le dire ici, c'est rendre relisible ce que le plan a réellement demandé.
+  // L'ordre est celui de la consigne servie au modèle (`meal_prompt.ts`):
+  // protéines chères, puis hors saison, puis variété. Le dire ici, c'est
+  // rendre relisible ce que le plan a réellement demandé — ⟳ 2026-09-25: et
+  // seulement quand la consigne l'a reçu (`budgetReachesPrompt`, décidé par
+  // l'appelant: sous le plancher, `budgetAmount` arrive `null`).
   // ── ⑤bis · LE PLAN PLUS LÉGER QUE LE CORPS ──────────────────────────────
   //
   // ⛔ AVANT LE BUDGET, ET C'EST DÉLIBÉRÉ. Quand les deux sortent, le budget
