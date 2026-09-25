@@ -410,6 +410,29 @@ export function plateBoundsFor(args: {
    * min(table, plancher personnel). Une collation ne le lit pas.
    */
   personal: PersonalPlateBounds | null;
+  /**
+   * ⟳ 2026-09-25 — L'ÉNERGIE QUI DIMENSIONNE LA MASSE DE L'ASSIETTE, quand
+   * l'objectif abaisse la cible : la part de ce moment À L'ENTRETIEN
+   * (`slotContractsFor`, part × entretien ÷ cible). Jamais sous
+   * `slotTargetKcal` : elle n'agrandit l'assiette que de ce que l'objectif lui
+   * avait retiré. Absente ou `null` = la part de la cible, la règle d'avant.
+   *
+   * ── LE DÉFAUT, MESURÉ ────────────────────────────────────────────────
+   * La règle du 2026-09-24 dit « l'entretien, pas la cible : l'objectif ne
+   * rapetisse pas l'assiette de qui perd du poids ». Le plafond personnel la
+   * tenait, mais la borne `E / ρ` la défaisait : calculée sur l'énergie de la
+   * CIBLE, elle rendait l'assiette petite. Banc des trois foyers, plan A
+   * (Camille, perte, petit appétit) : déjeuner de 416 kcal plafonné à 375 g,
+   * collation de 139 kcal à 125 g ; ~16 % de sa journée rognée, que rien ne
+   * rattrape en perte de poids. Décision du propriétaire, 2026-09-25 : « le
+   * poids max d'un repas vient de sa taille à l'entretien ».
+   *
+   * ⚠️ FACULTATIVE, ET C'EST ASSUMÉ : son absence rend la règle d'avant, à
+   * l'octet, pour la soixantaine d'appels de tests et les replis sans contrat.
+   * Les appels de PRODUCTION qui ont un contrat la passent
+   * (`slot_nutrition_contract.ts`).
+   */
+  massKcal?: number | null;
 }): PlateBounds {
   return plateBoundsUnder(
     args,
@@ -533,7 +556,14 @@ function plateBoundsUnder(
   // `…Raw` est ce que la PART demande; `b…` est ce qui reste après la table.
   // Sans la brute, comparer « le plafond final » à « le plafond dérivé » revient
   // à comparer un nombre à lui-même: la table aurait mordu sans jamais se dire.
-  const bMaxRaw = kcal / densityFloorPerG;
+  // ⟳ 2026-09-25 — la MASSE se dimensionne sur l'énergie à l'entretien quand
+  // l'objectif l'abaisse (`massKcal`), jamais en dessous de la cible. Le
+  // plancher, lui, reste celui de la part.
+  const massKcal = Number(args.massKcal);
+  const massBase = args.massKcal != null && Number.isFinite(massKcal) && massKcal > kcal
+    ? massKcal
+    : kcal;
+  const bMaxRaw = massBase / densityFloorPerG;
   const bMinRaw = kcal / MEAL_KCAL_PER_G_COMPOSED;
   const bMax = Math.min(bMaxRaw, table.max);
   const bMin = Math.min(bMinRaw, table.min);

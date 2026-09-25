@@ -386,3 +386,54 @@ Deno.test("contrat — ⛔ le plafond suit l'ENTRETIEN, pas la cible: en perte, 
   assertAlmostEquals(dej.composeKcal!, 562.4, 1e-9);
   assertEquals([dej.bounds!.min, dej.bounds!.max, dej.bounds!.boundSource], [245, 489, "personal"]);
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-25 — L'OBJECTIF NE RAPETISSE PLUS L'ASSIETTE: LA MASSE SUIT LA PART
+//                À L'ENTRETIEN (`massKcal`)
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("bornes — `massKcal` n'agrandit l'assiette que de ce que l'objectif lui retirait", () => {
+  const base = { ageYears: 55, slot: "breakfast", slotTargetKcal: 300, light: false, appetite: null, personal: CHRISTELE_PLATE };
+  assertEquals(plateBoundsFor(base).max, 300, "sans elle: la part de la cible, la règle d'avant");
+  assertEquals(plateBoundsFor({ ...base, massKcal: null }).max, 300);
+  assertEquals(plateBoundsFor({ ...base, massKcal: 450 }).max, 450, "la part à l'entretien");
+  assertEquals(plateBoundsFor({ ...base, massKcal: 900 }).max, 480, "jamais au-delà du plafond personnel");
+  assertEquals(plateBoundsFor({ ...base, massKcal: 200 }).max, 300, "jamais EN DESSOUS de la part de la cible");
+  assertEquals(plateBoundsFor({ ...base, massKcal: 450 }).min, plateBoundsFor(base).min, "le plancher reste celui de la part");
+});
+
+Deno.test("contrats — Christèle en perte: son petit-déjeuner se dimensionne sur sa part À L'ENTRETIEN", () => {
+  const perte = christele({ direction: "down", paceKgPerWeek: 0.5 });
+  const cible = dayTargetFor(perte, "no_position").kcal!;
+  const entretienKcal = maintenanceKcalOf(perte).kcal!;
+  const plafond = personalPlateBoundsFor({ ageYears: 55, maintenanceKcal: entretienKcal, appetite: null })!.maxG;
+  assert(cible < entretienKcal, `prémisse: la cible (${cible}) est sous l'entretien (${entretienKcal})`);
+  const set = slotContractsFor({
+    mouth: perte,
+    coachCounting: "no_position",
+    rhythmSlots: ["breakfast", "lunch", "dinner"],
+    days: [vendredi(null)],
+    lightSlots: [],
+    ageYears: 55,
+  });
+  const matin = set.contracts.find((c) => c.slot === "breakfast")!;
+  const part = matin.composeKcal!;
+  const alEntretien = (part * entretienKcal) / cible;
+  assertEquals(matin.bounds!.max, Math.round(Math.min(alEntretien, plafond)));
+  assert(matin.bounds!.max > Math.round(part), "l'assiette n'est plus rapetissée par l'objectif");
+  // ⛔ ET À L'ENTRETIEN, RIEN NE BOUGE: la part EST la part à l'entretien.
+  const entretien = slotContractsFor({
+    mouth: christele(),
+    coachCounting: "no_position",
+    rhythmSlots: ["breakfast", "lunch", "dinner"],
+    days: [vendredi(null)],
+    lightSlots: [],
+    ageYears: 55,
+  }).contracts.find((c) => c.slot === "breakfast")!;
+  const plafondEntretien = personalPlateBoundsFor({
+    ageYears: 55,
+    maintenanceKcal: maintenanceKcalOf(christele()).kcal,
+    appetite: null,
+  })!.maxG;
+  assertEquals(entretien.bounds!.max, Math.round(Math.min(entretien.composeKcal!, plafondEntretien)));
+});

@@ -789,6 +789,17 @@ export function slotContractsFor(args: {
     maintenanceKcal: maintenanceKcalOf(args.mouth).kcal,
     appetite: args.mouth.body?.appetite ?? null,
   });
+  const maintenance = maintenanceKcalOf(args.mouth).kcal;
+  // ⟳ 2026-09-25 — « l'objectif ne rapetisse pas l'assiette » (`massKcal` de
+  // `plateBoundsFor`): pour un adulte dont la cible est sous l'entretien, la
+  // masse d'un moment se dimensionne sur sa part À L'ENTRETIEN. Mineur ou
+  // entretien inconnu (`personal === null`), ou cible au-dessus: la règle
+  // d'avant.
+  const massRatio = personal !== null && maintenance !== null && day.kcal !== null &&
+      day.kcal > 0 && maintenance > day.kcal
+    ? maintenance / day.kcal
+    : 1;
+  const massOf = (kcal: number): number | null => massRatio > 1 ? kcal * massRatio : null;
 
   for (const d of args.days) {
     // ⟳ 2026-09-25 — UN MOMENT DÉCLARÉ VIDE SORT DE LA COUVERTURE ET DU RYTHME
@@ -942,6 +953,7 @@ export function slotContractsFor(args: {
           light: light.has(slot),
           appetite: args.mouth.body?.appetite ?? null,
           personal,
+          massKcal: massOf(t),
         });
         const budget = sideBudgetFor({
           mealKcal: t,
@@ -965,6 +977,7 @@ export function slotContractsFor(args: {
         light: light.has(slot),
         appetite: args.mouth.body?.appetite ?? null,
         personal,
+        massKcal: massOf(dish),
       });
       if (b.physicalMax > 0) maxGrams.set(slot, b.max);
     }
@@ -987,6 +1000,7 @@ export function slotContractsFor(args: {
           light: light.has(slot),
           appetite: args.mouth.body?.appetite ?? null,
           personal,
+          massKcal: massOf(t),
         }),
       });
       return c !== null && c.incompatible === "above_askable_cap";
@@ -1145,6 +1159,7 @@ export function slotContractsFor(args: {
         light: light.has(slot),
         appetite: args.mouth.body?.appetite ?? null,
         personal,
+        massKcal: massOf(target),
       });
       if (!(bounds.physicalMax > 0)) {
         contracts.push({
