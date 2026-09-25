@@ -12,6 +12,7 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
 import {
   eatingStructureFor,
+  FAT_LOSS_MIN_SLOTS,
   MAX_DAY_SLOTS,
   MEAL_KCAL_PER_G_COMPOSED,
   mealMaxKcalFor,
@@ -31,12 +32,14 @@ function derive(
   weightKg: number | null,
   declared: readonly string[] = THREE,
   blocked: readonly string[] = [],
+  direction: "up" | "down" | null = null,
 ) {
   return eatingStructureFor({
     targetKcal,
     weightKg,
     declaredSlots: declared,
     blockedSlots: blocked,
+    direction,
   });
 }
 
@@ -206,6 +209,35 @@ Deno.test("⛔ ON N'OUVRE JAMAIS LE JETON LEGACY `snack`", () => {
   assert(!SLOT_OPENING_ORDER.includes("snack"));
   const s = derive(4226, 84);
   assert(!s.opened.includes("snack"));
+});
+
+// ─── EN PERTE DE POIDS, JAMAIS MOINS DE TROIS MOMENTS (2026-09-25) ─────────
+
+Deno.test("⛔ PERTE DE POIDS, RIEN DE COCHÉ: les trois repas, dîner compris — Fabrice, prod", () => {
+  // 94 kg ⇒ 1 015 kcal par repas; 1 989 kcal ⇒ compte physique de 2. Avant ce
+  // plancher: petit-déjeuner et déjeuner, aucun dîner sur cinq jours.
+  const s = derive(1989, 94, [], [], "down");
+  assertEquals(s.requiredCount, 3);
+  assertEquals(s.slots, ["breakfast", "lunch", "dinner"]);
+  assertEquals(s.opened, ["breakfast", "lunch", "dinner"]);
+  assertEquals(s.reason, "derived");
+});
+
+Deno.test("le même corps HORS perte de poids garde le compte physique", () => {
+  // La décision porte sur la perte de poids, et sur elle seule.
+  assertEquals(derive(1989, 94, [], [], null).slots, ["breakfast", "lunch"]);
+  assertEquals(derive(1989, 94, [], [], "up").slots, ["breakfast", "lunch"]);
+});
+
+Deno.test("en perte de poids, un besoin physique au-dessus de trois l'emporte", () => {
+  // Un plancher, pas un plafond: 75 kg à 3 056 kcal demande quatre moments.
+  const s = derive(3056, 75, [], [], "down");
+  assertEquals(s.requiredCount, 4);
+  assertEquals(s.slots, ["breakfast", "lunch", "snack_pm", "dinner"]);
+});
+
+Deno.test("épinglage — FAT_LOSS_MIN_SLOTS vaut 3 moments", () => {
+  assertEquals(FAT_LOSS_MIN_SLOTS, 3);
 });
 
 // ─── LA CONSTANTE, ET LA FORME QUI LA RENDRAIT COMPLICE ─────────────────────

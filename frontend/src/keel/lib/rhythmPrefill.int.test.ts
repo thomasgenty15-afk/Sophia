@@ -136,6 +136,7 @@ describe("⛔ AUCUNE FORMULE DANS LE FRONT: la liste vient du module serveur", (
       weightKg: 84,
       declaredSlots: [],
       blockedSlots: [],
+      direction: "up",
     });
     expect(structure.requiredCount).toBeGreaterThan(3);
     const next = rhythmPrefillFor({
@@ -155,6 +156,7 @@ describe("⛔ AUCUNE FORMULE DANS LE FRONT: la liste vient du module serveur", (
       weightKg: 75,
       declaredSlots: [],
       blockedSlots: ["breakfast"],
+      direction: null,
     });
     const next = rhythmPrefillFor({
       declared: null,

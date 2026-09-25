@@ -221,6 +221,9 @@ Deno.serve(async (req) => {
       // L'écran n'a pas de « moment nommé absent »: c'est une correction
       // retenue de conversation, et elle vit côté foyer.
       blockedSlots: [],
+      // La MÊME direction que le générateur: sans elle, la fiche pré-cocherait
+      // deux moments là où le plan en ouvre trois (`FAT_LOSS_MIN_SLOTS`).
+      direction: goal === null ? null : scaleDirectionOf(goal as never),
     });
     const shake: ShakeState = shakeDecisionFor({
       direction: goal === null ? null : scaleDirectionOf(goal as never),

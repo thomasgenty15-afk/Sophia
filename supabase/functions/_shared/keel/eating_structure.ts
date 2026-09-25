@@ -38,6 +38,10 @@
  * Le verrou suit le BESOIN. Le shaker, lui, ne suit que la prise de poids —
  * c'est `shakeDecisionFor`, et les deux décisions sont séparées exprès.
  *
+ * ⟳ 2026-09-25 — UNE SEULE EXCEPTION, ET C'EST UN PLANCHER: en perte de poids,
+ * jamais moins de trois moments (`FAT_LOSS_MIN_SLOTS`). L'objectif ne retire
+ * rien; il empêche seulement le compte de tomber sous les trois repas.
+ *
  * ── CE QUE CE MODULE NE FAIT PAS ──────────────────────────────────────────
  * Il ne lit aucune base, ne décide d'aucun gramme, et **ne rend jamais un
  * kcal**. Il rend une STRUCTURE — des jetons de moment — parce que c'est ce
@@ -61,6 +65,25 @@ export function mealMaxKcalFor(weightKg: number): number {
 
 /** Le plus de moments qu'une journée peut porter — les six déclarables. */
 export const MAX_DAY_SLOTS = 6;
+
+/**
+ * ⟳ 2026-09-25 — EN PERTE DE POIDS, JAMAIS MOINS DE TROIS MOMENTS.
+ *
+ * Décision produit, mot pour mot: « pour les personnes en perte de poids il
+ * faut minimum 3 repas si rien n'est coché ».
+ *
+ * Mesuré en prod le même jour (brouillon `41b3bd42…`): Fabrice, 94 kg,
+ * `fat_loss`, 1 989 kcal, aucun moment coché. Un repas porte 1 015 kcal pour
+ * ce corps, donc le compte physique valait 2 — petit-déjeuner et déjeuner,
+ * AUCUN DÎNER sur cinq jours. Et ses dix repas butaient quand même sur le
+ * plafond de taille (`hard_ceiling_cells`), servis à 82–95 % de sa cible.
+ *
+ * ⚠️ CE PLANCHER NE RÉÉCRIT AUCUNE DÉCLARATION. Le générateur n'applique la
+ * dérivation qu'à une bouche qui n'a rien coché (`silent`); qui a coché deux
+ * moments garde ses deux moments. Les trois ouverts sont les trois premiers de
+ * `SLOT_OPENING_ORDER`: petit-déjeuner, déjeuner, dîner.
+ */
+export const FAT_LOSS_MIN_SLOTS = 3;
 
 /**
  * DANS QUEL ORDRE ON OUVRE — et pourquoi celui-là.
@@ -154,6 +177,13 @@ export function eatingStructureFor(args: {
   declaredSlots: readonly string[];
   /** Les moments nommés absents. Jamais rouverts. */
   blockedSlots: readonly string[];
+  /**
+   * De `scaleDirectionOf(goal)`. `"down"` pose `FAT_LOSS_MIN_SLOTS`.
+   *
+   * ⚠️ REQUIS, jamais optionnel: un appelant qui l'oublierait rendrait deux
+   * repas à une personne en perte de poids sans qu'aucun test ne rougisse.
+   */
+  direction: "up" | "down" | null;
 }): EatingStructure {
   const declared = inDayOrder(args.declaredSlots);
 
@@ -177,7 +207,10 @@ export function eatingStructureFor(args: {
   const perMeal = mealMaxKcalFor(args.weightKg);
   const required = Math.min(
     MAX_DAY_SLOTS,
-    Math.max(1, Math.ceil(args.targetKcal / perMeal)),
+    Math.max(
+      args.direction === "down" ? FAT_LOSS_MIN_SLOTS : 1,
+      Math.ceil(args.targetKcal / perMeal),
+    ),
   );
 
   if (declared.length >= required) {

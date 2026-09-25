@@ -4976,6 +4976,10 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
         weightKg: body?.weightKg ?? null,
         declaredSlots: silent ? [] : m.eatingSlots!.map((o) => o.slot),
         blockedSlots: [],
+        // ⟳ 2026-09-25 — en perte de poids, une bouche muette reçoit au moins
+        // ses trois repas (`FAT_LOSS_MIN_SLOTS`). Mesuré en prod: Fabrice,
+        // 94 kg à 1 989 kcal, sortait sans dîner.
+        direction: m.goal === null ? null : scaleDirectionOf(m.goal),
       });
       structureByMember.set(m.memberId, structure);
       structureTally[structure.reason] += 1;
