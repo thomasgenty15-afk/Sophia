@@ -1924,7 +1924,7 @@ Deno.test("LOT 4 — la version de la lane foyer a bougé d'UN cran", () => {
   // ⟳ 2026-09-23 — `v39_side_courses_come_in_families`: le bloc SIDE COURSES
   // dit la table, son exception, les deux jours et le dessert d'un aliment.
   // ⟳ 2026-09-23 — v40: la table partage ses à-côtés (`side_courses_prompt.ts`).
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v42_what_they_turned_down");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v48_off_the_table_not_at");
 });
 
 // ===========================================================================
@@ -2089,10 +2089,13 @@ Deno.test("L7 ① — la cuisine est APRÈS l'envie, et AVANT le régime et les 
 });
 
 // ===========================================================================
-// L7 ② — UN REPAS PRIS DEHORS N'EST PAS UNE ABSENCE
+// ⟳ 2026-09-24 — L'ÉTAT « DEHORS » EST RETIRÉ, ET SON BLOC DE PROMPT AVEC LUI
+//
+// Le bloc `A MEAL EATEN OUT IS NOT AN ABSENCE` (L7 ②) n'existe plus. Une ligne
+// qui porterait encore l'ancien jeton rend EXACTEMENT le prompt d'une absence.
 // ===========================================================================
 
-/** Nina mange dehors mardi midi; Marc est là tout le temps. */
+/** Un ANCIEN jeton « dehors » sur le mardi midi de Tom. */
 const NINA_OUT: WindowPresence = resolveWindowPresence({
   members: [
     { memberId: "m-dad", displayName: "Marc", away: parseMemberAway([]) },
@@ -2130,16 +2133,7 @@ const TOM_AWAY: WindowPresence = resolveWindowPresence({
   windowDays: ["mon", "tue"],
 });
 
-Deno.test("L7 ② — personne dehors: prompt BYTE-IDENTIQUE, et c'est le cas nominal", () => {
-  const rien = buildHouseholdPromptBlocks(KITCHEN_BASE);
-  assert(!rien.userSuffix.includes("EATEN OUT"), rien.userSuffix);
-  assertEquals(rien.eatingOut, { mouths: 0, cells: 0 });
-});
-
-Deno.test("L7 ② — « dehors » et « absent » ne rendent PLUS le même prompt", () => {
-  // ⛔ C'EST TOUT LE LOT, EN UN TEST. Les deux états retirent la part et font
-  // descendre la casserole de la même façon — `presence.block` est identique.
-  // Ce qui les sépare est ce que le produit DIT.
+Deno.test("⟳ 2026-09-24 — un ancien « dehors » rend le prompt d'une absence, au caractère près", () => {
   const dehors = buildHouseholdPromptBlocks({
     ...KITCHEN_BASE,
     presence: NINA_OUT,
@@ -2148,135 +2142,10 @@ Deno.test("L7 ② — « dehors » et « absent » ne rendent PLUS le même prom
     ...KITCHEN_BASE,
     presence: TOM_AWAY,
   });
-  assertEquals(
-    NINA_OUT.block,
-    TOM_AWAY.block,
-    "la présence elle-même distingue déjà les deux: ce test ne mesure plus rien",
-  );
-  assert(dehors.userSuffix.includes("== A MEAL EATEN OUT IS NOT AN ABSENCE =="));
-  assert(!absent.userSuffix.includes("EATEN OUT"), absent.userSuffix);
-  assertEquals(dehors.eatingOut, { mouths: 1, cells: 1 });
-  assertEquals(absent.eatingOut, { mouths: 0, cells: 0 });
-});
-
-Deno.test("L7 ② — le bloc est COLLÉ à la présence, et la position est la moitié du lot", () => {
-  // La phrase que ce bloc corrige (« Tom not eating here -- cook for 1 instead
-  // of 2 ») vient d'être écrite juste au-dessus. Les séparer remettrait la
-  // promesse et sa correction à deux endroits du prompt — l'état exact que 3C a
-  // mesuré à zéro effet.
-  const out = buildHouseholdPromptBlocks({
-    ...KITCHEN_BASE,
-    presence: NINA_OUT,
-  });
-  // ⚠️ ON MESURE SUR LES OCTETS, pas sur un `split("\n\n")`: le bloc de présence
-  // porte lui-même une ligne vide (en-tête, puis les lignes par jour), donc un
-  // découpage par paragraphe le compterait pour deux et la garde se
-  // décalerait sans rien prouver.
-  const presenceAt = out.userSuffix.indexOf(NINA_OUT.block);
-  const outAt = out.userSuffix.indexOf("== A MEAL EATEN OUT");
-  assert(presenceAt >= 0 && outAt >= 0, out.userSuffix);
-  assertEquals(
-    outAt,
-    presenceAt + NINA_OUT.block.length + 2,
-    `le bloc « dehors » n'est plus collé à la présence — il y a ` +
-      `${outAt - presenceAt - NINA_OUT.block.length - 2} octets entre les ` +
-      `deux. Bumpe HOUSEHOLD_PROMPT_VERSION (actuellement ` +
-      `${HOUSEHOLD_PROMPT_VERSION}).`,
-  );
-});
-
-Deno.test("L7 ② — la case est nommée en PROSE, jour et moment", () => {
-  const out = buildHouseholdPromptBlocks({
-    ...KITCHEN_BASE,
-    presence: NINA_OUT,
-  });
-  assert(out.userSuffix.includes("- Tom: Tuesday lunch"), out.userSuffix);
-  // ET LA CONSIGNE DIT LES DEUX MOITIÉS: ne compose rien, et ce n'est pas une
-  // absence.
-  assert(out.userSuffix.includes("Compose NOTHING there"), out.userSuffix);
-  assert(out.userSuffix.includes("these people are not away"), out.userSuffix);
-});
-
-Deno.test("L7 ② — ⛔ AUCUN CHIFFRE: le conseil chiffré n'est pas de ce lot", () => {
-  // ⛔ CLAUSE C5 DU CONTRAT TCA. « Vise autour de 700 » appartient au lot qui
-  // sait le calculer et aux cinq portes de `energy_gate.ts`. Un kcal écrit ici
-  // traverserait le prompt sans qu'aucune porte n'ait tourné.
-  const out = buildHouseholdPromptBlocks({
-    ...KITCHEN_BASE,
-    presence: NINA_OUT,
-  });
-  const start = out.userSuffix.indexOf("== A MEAL EATEN OUT");
-  const block = out.userSuffix.slice(
-    start,
-    out.userSuffix.indexOf("\n\n", start),
-  );
-  assert(!/\d/.test(block), `un chiffre est entré dans le bloc:\n${block}`);
-  assert(!/kcal|calorie/i.test(block), block);
-});
-
-Deno.test("L7 ② — une bouche que le prompt ne nomme pas n'est ni écrite ni comptée", () => {
-  // ⚠️ SINON « le modèle a ignoré la consigne » et « la consigne ne la nommait
-  // pas » se liraient pareil — le zéro ambigu que 3C a payé. `members` ne porte
-  // ici que Marc: Tom mange son propre plan, ou il est absent toute la fenêtre.
-  const out = buildHouseholdPromptBlocks({
-    ...KITCHEN_BASE,
-    members: [DAD],
-    presence: NINA_OUT,
-  });
-  assert(!out.userSuffix.includes("EATEN OUT"), out.userSuffix);
-  assertEquals(out.eatingOut, { mouths: 0, cells: 0 });
-
-  // ⛔ ET LE CAS MIXTE, QUI EST LE SEUL À MESURER LE COMPTEUR. Le cas ci-dessus
-  // sort par le retour anticipé « aucune ligne écrite »: il resterait vert si
-  // le compteur se remettait à compter la SOURCE au lieu des lignes. Il faut
-  // donc une bouche nommée ET une bouche ignorée dans le même prompt.
-  const mixte = buildHouseholdPromptBlocks({
-    ...KITCHEN_BASE,
-    members: [DAD, SON],
-    presence: resolveWindowPresence({
-      members: [
-        {
-          memberId: "m-dad",
-          displayName: "Marc",
-          away: parseMemberAway([
-            { day: "mon", slots: ["lunch"], kind: "eating_out" },
-          ]),
-        },
-        {
-          memberId: "m-son",
-          displayName: "Tom",
-          away: parseMemberAway([]),
-        },
-        {
-          // Cette bouche-là n'est PAS dans `members`: le prompt ne la nomme
-          // nulle part, donc la consigne ne lui promet rien.
-          memberId: "m-ghost",
-          displayName: "Nina",
-          away: parseMemberAway([
-            { day: "tue", slots: ["lunch"], kind: "eating_out" },
-          ]),
-        },
-      ],
-      rhythm: [
-        { slot: "breakfast", size: null },
-        { slot: "lunch", size: null },
-        { slot: "dinner", size: null },
-      ],
-      windowDays: ["mon", "tue"],
-    }),
-  });
-  // ⚠️ ON LIT LE BLOC, PAS TOUT LE SUFFIXE. Le bloc de PRÉSENCE nomme déjà les
-  // absents par leur prénom (« Marc, Nina not eating here »), donc chercher
-  // « Nina » dans tout le prompt accuserait le mauvais bloc.
-  const start = mixte.userSuffix.indexOf("== A MEAL EATEN OUT");
-  const block = mixte.userSuffix.slice(
-    start,
-    mixte.userSuffix.indexOf("\n\n", start),
-  );
-  assert(block.includes("- Marc: Monday lunch"), block);
-  assert(!block.includes("Nina"), block);
-  assert(!block.includes("m-ghost"), block);
-  assertEquals(mixte.eatingOut, { mouths: 1, cells: 1 });
+  // PRÉMISSE: la case est bien retirée de la table dans les deux cas.
+  assert(TOM_AWAY.block.includes("Tom"), TOM_AWAY.block);
+  assertEquals(dehors.userSuffix, absent.userSuffix);
+  assert(!dehors.userSuffix.includes("EATEN OUT"), dehors.userSuffix);
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -2684,7 +2553,7 @@ Deno.test("v41 — la ligne « à éviter » suit l'envie, et précède les règ
   const rule = u.indexOf("- Léa: never serve nutella");
   assert(rule > 0 && u.indexOf(AVOID_LINE) < rule, "la ligne passe après une règle de maison");
   assertEquals(b.avoidLineUsed, true);
-  assertEquals(b.promptVersion, "v42_what_they_turned_down");
+  assertEquals(b.promptVersion, "v48_off_the_table_not_at");
 });
 
 Deno.test("v41 — sans liste, la consigne est celle d'avant à l'octet près", () => {

@@ -45,7 +45,8 @@
  * PURE MODULE: no I/O, no clock, no randomness.
  */
 
-import { RAW_WINDOW_DAYS, rawWindowDaysFor } from "./fridge_window.ts";
+import { PLATE_WINDOW_DAYS, RAW_WINDOW_DAYS, rawWindowDaysFor } from "./fridge_window.ts";
+import { plannedShopRanks } from "./shopping_purchases.ts";
 
 /**
  * LES FAMILLES QUE LA CONSIGNE NOMME, ET RIEN QUE CELLES-LÀ.
@@ -147,6 +148,9 @@ export function rawReachLines(
         "une garde désarmée",
     );
   }
+  if (cadence !== null && cadence.usesFreezer === false) {
+    return plannedShopLines(window, cadence);
+  }
   const rows: string[] = [];
   for (const family of RAW_FAMILIES) {
     const last = lastDayReachedFromFirstShop(window, RAW_WINDOW_DAYS[family.ref]);
@@ -197,6 +201,68 @@ export function rawReachLines(
 }
 
 /**
+ * ⟳ 2026-09-25 — LES COURSES CHOISIES, DITES AU MODÈLE AVANT QU'IL COMPOSE.
+ *
+ * ⛔ LE DÉFAUT, SUR LE BROUILLON `54aec009`: deux courses choisies, quatre
+ * faites. La consigne ne donnait pas le nombre au modèle, et lui disait au
+ * contraire « the app schedules a later shop for it »: il a mis du poulet frais
+ * dans les trois sessions et du merlu le mardi, et le moteur a ouvert une
+ * course pour chacun. Décision du propriétaire: « si le user dit 3, c'est 3 ».
+ *
+ * La consigne dit maintenant les jours de courses (`plannedShopRanks`, la
+ * même règle que le moteur), la course qui nourrit chaque session (la
+ * dernière course à son jour ou avant), et, pour chaque session, jusqu'à quel
+ * repas une viande, une volaille, un poisson ou une salade de cette course
+ * reste bon: la fenêtre crue (`RAW_WINDOW_DAYS`, achat → cuisson) et la limite
+ * achat → assiette (`PLATE_WINDOW_DAYS`). Au-delà, rien de frais: œufs,
+ * légumineuses, tofu, poisson en conserve ou fromage.
+ *
+ * Seulement quand le plan ne s'appuie pas sur le congélateur: sinon la
+ * consigne du congélateur (`rawReachLines`) garde la main.
+ */
+function plannedShopLines(window: readonly string[], cadence: RawReachCadence): string[] {
+  if (window.length === 0) return [];
+  const lastRank = window.length - 1;
+  const sessionRanks = cadence.cookDays
+    .map((token) => window.indexOf(token))
+    .filter((rank) => rank >= 0);
+  const shopRanks = plannedShopRanks({ sessionRanks, runs: cadence.runs });
+  const shopDays = shopRanks.map((rank) => window[rank]);
+  const sessionLines: string[] = [];
+  for (const session of [...new Set(sessionRanks)].sort((a, b) => a - b)) {
+    const shop = [...shopRanks].filter((rank) => rank <= session).pop() ?? 0;
+    const limits: string[] = [];
+    for (const family of RAW_FAMILIES) {
+      const raw = RAW_WINDOW_DAYS[family.ref];
+      if (session - shop > raw) {
+        limits.push(`no fresh ${family.said}`);
+        continue;
+      }
+      const plate = PLATE_WINDOW_DAYS[family.ref] ?? raw;
+      const lastMeal = shop + plate;
+      if (lastMeal >= lastRank) continue;
+      limits.push(`${family.said} only for meals up to ${window[lastMeal]}`);
+    }
+    sessionLines.push(
+      `- the ${window[session]} session is fed by the ${window[shop]} shop: ` +
+        (limits.length === 0 ? "its fresh food keeps for every meal of the plan." : `${limits.join("; ")}.`),
+    );
+  }
+  const shopList = shopDays.length === 1
+    ? shopDays[0]
+    : `${shopDays.slice(0, -1).join(", ")} and ${shopDays[shopDays.length - 1]}`;
+  return [
+    `their food shops: exactly ${shopDays.length} -- the number they chose -- on ${shopList}, and ` +
+    "on no other day. A shop on a cooking day is done that morning, before the session. " +
+    "Each session cooks from the last shop on or before its day.",
+    "what each session can cook FRESH -- raw fish, meat and salad leaves do not wait:",
+    ...sessionLines,
+    "Past those days there is NO shop to buy them fresh: build those meals on eggs, " +
+    "pulses, tofu, tinned fish or cheese instead. " + NO_PURCHASE_TIMING,
+  ];
+}
+
+/**
  * ═══════════════════════════════════════════════════════════════════════════
  * LA CADENCE DE COURSES, TELLE QUE LA CONSIGNE DOIT LA DIRE — 2026-09-09.
  * ═══════════════════════════════════════════════════════════════════════════
@@ -224,6 +290,13 @@ export interface RawReachCadence {
   readonly runs: number;
   readonly sessions: number;
   readonly usesFreezer: boolean;
+  /**
+   * ⟳ 2026-09-25 — LES JOURS DE CUISINE PRÉVUS (`CookingPlan.cookDays`),
+   * jetons de la fenêtre. REQUIS: c'est d'eux que viennent les jours de
+   * courses dits au modèle (`plannedShopRanks`), les mêmes que le moteur
+   * pose ensuite.
+   */
+  readonly cookDays: readonly string[];
 }
 
 /**

@@ -8,27 +8,19 @@
  * LE TROU, ET IL EST LARGE
  * ══════════════════════════════════════════════════════════════════════════
  *
- * Quelqu'un qui déjeune dehors cinq midis par semaine a cinq repas qui
- * n'existent NULLE PART. Le plan ne les compose pas — c'est le sens même de
- * `eating_out` — et rien ne les demande. Un objectif de poids piloté sur les
- * deux tiers de la journée est un objectif piloté sur du bruit.
+ * Quelqu'un qui déjeune au travail cinq midis par semaine a cinq repas qui
+ * n'existent NULLE PART. Le plan ne les compose pas, et rien ne les demande. Un
+ * objectif de poids piloté sur les deux tiers de la journée est un objectif
+ * piloté sur du bruit.
  *
- * ── LE DÉCLENCHEUR EST `eating_out`, PAS LE RYTHME (R5) ──────────────────
- * Le produit porte TROIS états de présence, et le deuxième dit exactement ce
- * que ce canal cherche:
- *
- *   `at_table`   — le plan compose. Rien à demander.
- *   `eating_out` — le plan ne compose pas, MAIS il a le droit de dire un
- *                  nombre. C'est ce canal.
- *   `away`       — le plan ne compose pas et ne dit rien. La personne n'est pas
- *                  dans sa semaine; lui demander ce qu'elle a mangé pendant ses
- *                  vacances est du bruit.
- *
- * ⛔ « rythme déclaré ∖ plan composé » aurait fait partir C1 PENDANT DES
- * VACANCES: le rythme seul ne distingue pas « je mange ailleurs » de « je ne
- * mange pas ». Et lire `work_lunch` raterait l'autre moitié des cas — c'est un
- * PRÉ-REMPLISSAGE des cinq midis, pas la source. La grille (`MealPickerGrid`)
- * est l'autorité; une entrée sans `kind` vaut `away`, la direction sûre.
+ * ── LE DÉCLENCHEUR: UN MOMENT DU RYTHME QUE LE PLAN NE COMPOSE PAS ───────
+ * ⟳ 2026-09-24 — le troisième état de présence (« dehors », `eating_out`) n'a
+ * plus d'écran qui l'écrive: la grille (`MealPickerGrid`) ne propose plus que
+ * « à table » / « absent ». Sa branche est retirée d'ici. `slot_meal_io.ts` ne
+ * garde que les moments que le journal rend (`promptEligibleJournalSlots`), et
+ * le journal (`tracking_v2_io.ts`) ne rend une ligne que pour un moment DÉCLARÉ,
+ * non composé, non absent, sur un jour COUVERT PAR UN PLAN: pas de question
+ * pendant des vacances, ni sur une semaine sans plan.
  *
  * ── R3, ET C'EST UNE DÉCISION CONTRE L'AVIS RÉDIGÉ ───────────────────────
  * C1 part à CHAQUE occurrence, sans plafond quotidien ni hebdomadaire. Cinq
@@ -88,9 +80,12 @@ export const SLOT_MEAL_BUTTON_PREFIX = "KEEL_SLOTMEAL_";
 /**
  * Les issues offertes. Vocabulaire FERMÉ.
  *
- * ⟳ `mute` REJOINT LES TROIS LE 2026-09-08, et il voyage AVEC la question —
- * donc il est présent sous CHAQUE bulle, quelle que soit sa forme. C'est ce qui
- * fait qu'on éteint là où l'agacement naît, plutôt qu'en cherchant un réglage.
+ * ⟳ `mute` A REJOINT LES TROIS LE 2026-09-08, sous chaque bulle. ⟳ 2026-09-24 —
+ * IL N'EST PLUS OFFERT (décision du propriétaire): son libellé promettait
+ * « à chaque repas » alors que la question ne part que sur un moment non
+ * prévu, il éteignait AUSSI la question du soir (même colonne), et rallumer
+ * demande d'aller dans « Notifications ». Il reste LU, pour les bulles déjà
+ * envoyées qui le portent.
  *
  * ⛔ PAS UN VOCABULAIRE DE PLUS. Un neuvième préfixe pour un seul bouton
  * ajouterait une famille à `DETERMINISTIC_BUTTON_PREFIXES`, un lecteur, et une
@@ -264,16 +259,6 @@ export type SlotMealSkip = (typeof SLOT_MEAL_SKIPS)[number];
 /**
  * D'OÙ VIENT LA QUESTION — ET IL N'Y A QU'UN SEUL AXE: LE PLAN COUVRE-T-IL CE
  * CRÉNEAU ?
- *
- * ⚠️ `eating_out` N'EST PAS UNE ORIGINE, ET C'ÉTAIT LE PIÈGE. C'est une NUANCE
- * DE COPIE sur `uncovered`: « tu manges dehors ce midi » plutôt que « rien
- * n'était prévu ce midi ». En faire une troisième origine multiplierait les
- * branches sans rien changer à la question posée ni aux boutons offerts.
- *
- * ⛔ ET UN CRÉNEAU MARQUÉ « DEHORS » **ET** COMPOSÉ EST `uncovered`. La
- * personne a DIT qu'elle mangeait dehors; le plat composé pour ce moment-là
- * est un reste de composition, pas une prévision. Lui demander « tu as mangé
- * ton poulet prévu ? » serait lui opposer une consigne qu'elle a déjà annulée.
  */
 export const SLOT_MEAL_ORIGINS = ["planned", "uncovered"] as const;
 export type SlotMealOrigin = (typeof SLOT_MEAL_ORIGINS)[number];
@@ -294,8 +279,6 @@ export type SlotMealVerdict =
     slot: EatingOccasion;
     elapsedAtHour: number;
     origin: "uncovered";
-    /** `true` quand la personne a déclaré manger dehors: la copie change. */
-    eatingOut: boolean;
   }
   | {
     ask: true;
@@ -305,12 +288,6 @@ export type SlotMealVerdict =
     planned: PlannedSlot;
   }
   | { ask: false; reason: SlotMealSkip };
-
-/** Une case « dehors »: un jour de semaine et un moment. */
-export interface EatingOutCell {
-  day: string;
-  slots: readonly string[];
-}
 
 /**
  * La question du créneau part-elle maintenant ?
@@ -381,11 +358,7 @@ export function decideSlotMealAsk(args: {
    * l'appelant serait la deuxième écriture de la règle.
    */
   askEnabled: boolean | null;
-  /** Le jeton du jour local (`mon`…`sun`). */
-  dayToken: string;
   localHour: number;
-  /** Les cases marquées `kind: "eating_out"`, jour + moments. */
-  eatingOut: readonly EatingOutCell[];
   /**
    * Les créneaux que le PLAN compose aujourd'hui, avec leurs plats non cochés.
    *
@@ -414,14 +387,13 @@ export function decideSlotMealAsk(args: {
     return { ask: false, reason: "ask_muted" };
   }
 
-  const day = String(args.dayToken ?? "").trim().toLowerCase();
   const declaredSlots = new Set<EatingOccasion>();
   for (const r of rhythmClockFrom(args.rhythmRaw)) declaredSlots.add(r.slot);
 
-  // ── LES TROIS SOURCES, DANS CET ORDRE, ET L'ORDRE EST LE CONTRAT ────────
+  // ── LES DEUX SOURCES, DANS CET ORDRE, ET L'ORDRE EST LE CONTRAT ─────────
   type Mark =
     | { origin: "planned"; planned: PlannedSlot }
-    | { origin: "uncovered"; eatingOut: boolean };
+    | { origin: "uncovered" };
   const marked = new Map<EatingOccasion, Mark>();
 
   // ① CE QUE LE PLAN COMPOSE. « Tu as mangé le plat prévu ? »
@@ -442,20 +414,7 @@ export function decideSlotMealAsk(args: {
   // avait mangé.
   for (const slot of declaredSlots) {
     if (marked.has(slot)) continue;
-    marked.set(slot, { origin: "uncovered", eatingOut: false });
-  }
-
-  // ③ CE QUI EST MARQUÉ « DEHORS » — ET QUI ÉCRASE ①.
-  for (const cell of args.eatingOut) {
-    if (String(cell.day ?? "").trim().toLowerCase() !== day) continue;
-    for (const s of cell.slots ?? []) {
-      const slot = String(s ?? "").trim().toLowerCase();
-      if (!(EATING_OCCASIONS as readonly string[]).includes(slot)) continue;
-      marked.set(slot as EatingOccasion, {
-        origin: "uncovered",
-        eatingOut: true,
-      });
-    }
+    marked.set(slot, { origin: "uncovered" });
   }
 
   if (marked.size === 0) return { ask: false, reason: "nothing_to_ask" };
@@ -526,7 +485,6 @@ export function decideSlotMealAsk(args: {
         slot: best.slot,
         elapsedAtHour: best.at,
         origin: "uncovered",
-        eatingOut: best.mark.eatingOut,
       };
   }
   // L'ordre des motifs de refus dit ce qui s'est passé de plus proche d'un
@@ -558,8 +516,6 @@ export function decideSlotMealAsk(args: {
 const SLOT_MEAL_COPY: Record<LocalePackKey, {
   /** « Rien n'était prévu ce midi — tu as mangé quoi ? » */
   ask: (slot: string) => string;
-  /** La même, quand la personne a DÉCLARÉ manger dehors ce jour-là. */
-  askEatingOut: (slot: string) => string;
   /**
    * « Tu as mangé le « X » prévu à midi ? »
    *
@@ -604,7 +560,8 @@ const SLOT_MEAL_COPY: Record<LocalePackKey, {
   /** L'accusé de « Photo »: l'écran prend le relais. */
   photoAsked: string;
   /**
-   * ⟳ 2026-09-08 — LE BOUTON QUI ÉTEINT, ET SON ACCUSÉ.
+   * ⟳ 2026-09-08 — L'ACCUSÉ DU BOUTON QUI ÉTEINT. ⟳ 2026-09-24 — le bouton
+   * n'est plus offert; l'accusé sert encore aux bulles déjà envoyées.
    *
    * ⛔ LE LIBELLÉ NE PROMET QUE CE QU'IL FAIT. Pas « arrêter le suivi », pas
    * « ne plus me suivre »: il éteint une QUESTION. Les repas restent cochables,
@@ -618,15 +575,12 @@ const SLOT_MEAL_COPY: Record<LocalePackKey, {
    * accusé qui prétend. Les deux existent maintenant, et l'accusé les nomme —
    * c'est ce qui distingue « je me tais » de « j'ai coupé ton suivi ».
    */
-  mute: string;
   muted: string;
   /** L'extinction n'a PAS pu s'écrire: on ne prétend pas, et on le dit. */
   muteFailed: string;
 }> = {
   en: {
     ask: (slot) => `Nothing was planned for ${slot} today — what did you have?`,
-    askEatingOut: (slot) =>
-      `You are eating out for ${slot} today — what did you have?`,
     askPlanned: (slot, dish) =>
       `Did you have the "${dish}" planned for ${slot}?`,
     yes: "Yes",
@@ -649,16 +603,13 @@ const SLOT_MEAL_COPY: Record<LocalePackKey, {
     describing: "Noted. Tell me what it was in the field that just opened.",
     describingUnwritten: "Tell me what it was in the field that just opened.",
     photoAsked: "Send it over whenever you are ready.",
-    mute: "Stop asking me at each meal",
     muted:
-      "Turned off. I will not ask at each meal any more — your meals stay tickable on your day, and the “+” next to the message box is still there for a photo, a description or your weight. You can turn it back on in your chat settings.",
+      "Turned off. I will not ask about your meals any more, including the evening question — your meals stay tickable on your day, and the “+” next to the message box is still there for a photo, a description or your weight. You can turn it back on with “Notifications” above the conversation.",
     muteFailed:
       "I could not turn that off just now, so the question may come back. Try again, and if it keeps coming back tell me.",
   },
   fr: {
     ask: (slot) => `Rien n'était prévu pour ${slot} aujourd'hui — tu as mangé quoi ?`,
-    askEatingOut: (slot) =>
-      `Tu manges dehors pour ${slot} aujourd'hui — tu as pris quoi ?`,
     askPlanned: (slot, dish) =>
       `Tu as mangé le « ${dish} » prévu pour ${slot} ?`,
     yes: "Oui",
@@ -681,9 +632,8 @@ const SLOT_MEAL_COPY: Record<LocalePackKey, {
     describing: "C'est noté. Dis-moi ce que c'était dans le champ qui vient de s'ouvrir.",
     describingUnwritten: "Dis-moi ce que c'était dans le champ qui vient de s'ouvrir.",
     photoAsked: "Envoie-la-moi quand tu veux.",
-    mute: "Ne plus me demander à chaque repas",
     muted:
-      "C'est éteint. Je ne poserai plus la question à chaque repas — tes repas restent cochables sur ta journée, et le « + » à côté du champ de message reste là pour une photo, une description ou ton poids. Tu peux rallumer dans tes réglages de conversation.",
+      "C'est éteint. Je ne te poserai plus de questions sur tes repas, y compris celle du soir — tes repas restent cochables sur ta journée, et le « + » à côté du champ de message reste là pour une photo, une description ou ton poids. Tu peux rallumer avec « Notifications », au-dessus de la conversation.",
     muteFailed:
       "Je n'ai pas réussi à l'éteindre à l'instant, donc la question peut revenir. Retente, et si elle revient quand même dis-le-moi.",
   },
@@ -707,8 +657,6 @@ export function renderSlotMealAsk(args: {
   origin: SlotMealOrigin;
   /** REQUIS si `origin === "planned"`. */
   planned?: PlannedSlot | null;
-  /** Nuance de copie sur `uncovered`. */
-  eatingOut?: boolean;
 }): SlotMealMessage {
   const copy = SLOT_MEAL_COPY[localePackKey(String(args.locale ?? ""))];
   const slotName = copy.slotName[args.slot];
@@ -730,16 +678,11 @@ export function renderSlotMealAsk(args: {
         slot: args.slot,
         plan,
       });
-    const mkBare = (action: SlotMealAction) =>
-      slotMealButtonId({ action, localDate: args.localDate, slot: args.slot });
     return {
       body: copy.askPlanned(slotName, planned.title),
       buttons: [
         { payload: mkPlan("ate"), label: copy.yes },
         { payload: mkPlan("notplanned"), label: copy.no },
-        // L'extinction voyage avec CHAQUE question, quelle que soit sa forme —
-        // et elle ne porte pas de segment de plan: elle ne coche rien.
-        { payload: mkBare("mute"), label: copy.mute },
       ],
     };
   }
@@ -747,18 +690,12 @@ export function renderSlotMealAsk(args: {
   const mk = (action: SlotMealAction) =>
     slotMealButtonId({ action, localDate: args.localDate, slot: args.slot });
   return {
-    body: args.eatingOut ? copy.askEatingOut(slotName) : copy.ask(slotName),
+    body: copy.ask(slotName),
     buttons: [
       { payload: mk("photo"), label: copy.photo },
       { payload: mk("describe"), label: copy.describe },
       { payload: mk("skip"), label: copy.skip },
-      // ⛔ EN DERNIER, ET SOUS CHAQUE QUESTION. En dernier parce qu'éteindre
-      // n'est pas une réponse à « tu as mangé quoi ? » — le proposer avant
-      // « Passer » ferait de l'extinction la sortie évidente. Et sous CHAQUE
-      // question parce que c'est là que l'agacement naît: un réglage qu'il faut
-      // aller chercher n'est pas un réglage, c'est un obstacle, et la personne
-      // coupe alors tout le proactif à la place.
-      { payload: mk("mute"), label: copy.mute },
+      // ⟳ 2026-09-24 — PAS DE BOUTON D'EXTINCTION: voir `SLOT_MEAL_ACTIONS`.
     ],
   };
 }

@@ -183,6 +183,24 @@ export interface PlanResultProps {
   dishReplace?: (dish: GeneratedDish) => DishReplaceControl | null;
 }
 
+/**
+ * ⟳ 2026-09-25 — LE BANDEAU D'UNE SECTION (« Récapitulatif », « Plan »).
+ *
+ * Un titre nu ne se détachait pas (« pas hyper ouf niveau design »): un fond
+ * `fig-100` — le lavis de la charte —, un filet `fig-700` à gauche, le titre en
+ * `fig-900` et une phrase qui dit à quoi sert la section. Sans serif: le serif
+ * `text-sub` est celui des jours, un cran en dessous. `ink-soft` sur `fig-100`
+ * reste au-dessus de 4,5:1.
+ */
+function SectionBand({ title, hint }: { title: string; hint: string }) {
+  return (
+    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5 rounded-part border-l-4 border-fig-700 bg-fig-100 px-3 py-2">
+      <h3 className="text-base font-semibold text-fig-900">{title}</h3>
+      <p className="text-xs text-ink-soft">{hint}</p>
+    </div>
+  );
+}
+
 export default function PlanResult(props: PlanResultProps) {
   const dayDates = windowDates(props.startsOn, props.durationDays);
   const dayOrder = windowDayOrder(props.startsOn, props.durationDays);
@@ -390,7 +408,20 @@ export default function PlanResult(props: PlanResultProps) {
           24 px de `space-y-6` du parent les séparent du premier jour. Ce sont
           les commandes du plan qu'on regarde — quels jours, et ses deux
           fenêtres —, pas trois blocs indépendants. */}
-      <div className="space-y-3">
+      {/* ══════════════════════════════════════════════════════════════════
+          ⟳ 2026-09-25 — DEUX SECTIONS NOMMÉES: « Récapitulatif » (le tableau
+          de la semaine) puis « Plan » (le rail des jours, ses deux outils, et
+          les jours en dessous). Demandé tel quel. Des titres en sans-serif
+          gras: le serif `text-sub` est celui des jours, un cran en dessous.
+          Le récapitulatif se tait avec son tableau (fenêtre sans jour). */}
+      {dayOrder.length > 0 && (
+      // `data-tour`: les repères de la visite guidée du plan de démonstration
+      // (`DemoPlanTour`). Aucun style, aucun comportement.
+      <section data-tour="recap" className="space-y-3">
+      <SectionBand
+        title={mealCopy("meals.result.recap_title")}
+        hint={mealCopy("meals.result.recap_hint")}
+      />
       {/* ⟳ 2026-09-24 — LE TABLEAU EN TÊTE: la semaine se juge ici, le rail en
           dessous choisit le jour qu'on lit. */}
       <PlanWeekTable
@@ -403,9 +434,21 @@ export default function PlanResult(props: PlanResultProps) {
         people={props.portions.map((p) => ({ memberId: p.memberId, name: p.displayName }))}
         memberDayEnergy={props.memberDayEnergy}
       />
+      </section>
+      )}
+      <div className="space-y-3">
+      <SectionBand
+        title={mealCopy("meals.result.plan_title")}
+        hint={mealCopy("meals.result.plan_hint")}
+      />
+      {/* ⟳ 2026-09-25 — LE RAIL EST CENTRÉ sous la grille (demandé: « centrés,
+          pas collés à gauche »). `mx-auto` sur un bloc `w-max`: plus large que
+          l'écran, ses marges automatiques valent 0 et le défilement repart du
+          premier jour. */}
       <div className="overflow-x-auto">
         <div
-          className="flex w-max gap-2"
+          data-tour="day-rail"
+          className="mx-auto flex w-max gap-2"
           role="group"
           aria-label={mealCopy("meals.result.day_rail")}
         >
@@ -418,7 +461,7 @@ export default function PlanResult(props: PlanResultProps) {
                 type="button"
                 aria-pressed={on}
                 onClick={() => setSelectedDay(day)}
-                className={`min-h-6 rounded-part border px-2.5 py-0.5 text-left text-xs ${
+                className={`min-h-6 rounded-part border px-2.5 py-0.5 text-center text-xs ${
                   on
                     ? "border-line-strong bg-fig-50 font-semibold text-ink"
                     : `border-line-strong bg-paper hover:bg-fig-50 ${

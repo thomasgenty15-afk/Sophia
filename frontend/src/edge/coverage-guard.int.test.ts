@@ -306,6 +306,13 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       // des corps, les 256 combinaisons de régime et d'allergène du shaker, et
       // trois gardes lues sur la source du générateur).
       "eating-structure-v1",
+      // 2026-09-25 — LE COÛT PAR JOUR DE CHAQUE BOUCHE, pour le curseur de
+      // budget. Elle ne rend AUCUN kcal: de l'argent, converti par
+      // `budgetDayRatesOf`. Le besoin vient de `loadBudgetMouthKcal`, le même
+      // chargeur que la porte du budget de `generate-household-meal-v1`.
+      // Couverte par _shared/keel/budget_mouth_kcal_io_test.ts et
+      // _shared/keel/budget_floor_test.ts.
+      "budget-rates-v1",
       // 2026-09-20 — DU TEXTE LIBRE AUX BULLES (allergies et dégoûts). Un
       // appel modèle court, effort bas, puis le dépôt des termes inconnus au
       // sas APRÈS la réponse (`keepWorking`). Le prompt, la relecture et le

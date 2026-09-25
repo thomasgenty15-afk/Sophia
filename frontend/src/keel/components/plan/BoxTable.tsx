@@ -157,25 +157,8 @@ export function BoxTable(
         )}
       </div>
       )}
-      {/* ══════════════════════════════════════════════════════════════════
-          DE QUEL GRAMME ON PARLE — UNE FOIS, EN TÊTE DU BOXING.
-          ══════════════════════════════════════════════════════════════════
-          Trois centimètres plus haut, la carte de session affiche déjà les
-          quantités de chaque casserole: ce sont des grammes de CRU, pour la
-          fournée entière, ceux qu'on achète. Ceux d'ici sont du PRÊT, par
-          contenant. Deux séries de nombres voisines sans une ligne qui les
-          distingue, c'est le prochain « on comprend pas à quoi ça correspond »
-          (le défaut exact du 2026-08-19, pris par l'autre bout).
-
-          ⚠️ EN TÊTE, PAS SOUS CHAQUE LIGNE: c'est une clé de lecture pour tout
-          le bloc, et la répéter six fois la ferait cesser d'être lue.
-          ⚠️ `text-ink-soft` et pas une couleur d'état: une précision de lecture
-          n'est ni un verdict ni une alerte. */}
-      {context === "session" && (
-        <p className="mt-1 max-w-[52ch] break-words text-xs leading-5 text-ink-soft">
-          {mealCopy("meals.boxes.ready_not_raw")}
-        </p>
-      )}
+      {/* ⛔ 2026-09-25 — LA CLÉ DE LECTURE « Grammes d'aliment cuit, par
+          contenant… » EST RETIRÉE, sur demande du propriétaire. */}
       {/* ══════════════════════════════════════════════════════════════════
           UN FILET ENTRE DEUX CONTENANTS — VU À L'ÉCRAN LE 2026-08-20.
           ══════════════════════════════════════════════════════════════════
@@ -212,7 +195,8 @@ export function BoxTable(
  * dans le Boxing et sur la carte du repas — et cette égalité-là n'est pas une
  * élégance: on tient un bac dans la main et on cherche la même suite de mots à
  * l'écran. `lib/mealBoxes.ts` le construit une fois; ce fichier ne fait que
- * l'afficher.
+ * l'afficher. (⟳ 2026-09-25 — un essai sur trois lignes a été défait, sur
+ * demande: le couvercle reste sur UNE ligne, des deux côtés.)
  *
  * ⚠️ ET IL SE REDIT SUR LA CARTE DU REPAS, QUI PORTE DÉJÀ SON JOUR, SON MOMENT
  * ET SON TITRE. La redondance est le point: le couvercle n'informe pas, il se
@@ -261,11 +245,6 @@ function BoxRow(
         {energy !== null && !line.partial && (
           <span className="text-label tabular-nums text-ink-soft">
             {mealCopy("meals.boxes.energy", { n: energy.kcal })}
-          </span>
-        )}
-        {context === "session" && line.restOnTheDay && (
-          <span className="text-label text-ink-soft">
-            {mealCopy("meals.boxes.rest_on_the_day")}
           </span>
         )}
         {/* ⟳ 2026-09-23 — CE QUI COMPLÈTE LA BOÎTE DANS UNE AUTRE SESSION,
@@ -396,14 +375,17 @@ function BoxRow(
           {mealCopy("meals.boxes.grams", { n: line.total })}
         </span>
       )}
-      {/* ⟳ 2026-09-23 — LES À-CÔTÉS, APRÈS CE QU'ON MET DANS LE PLAT. */}
-      <SideCourseBlock
-        // ⚠️ `?? []` POUR LES MONTAGES DE TEST SEULEMENT: `oneLine` pose
-        // toujours `sides`, mais des `BoxLine` fabriquées par `as` dans des
-        // tests hors `tsc` n'ont pas la clé. Voir `sidesOfDish`.
-        sides={line.sides ?? []}
-        context={context}
-      />
+      {/* ⟳ 2026-09-23 — LES À-CÔTÉS, APRÈS CE QU'ON MET DANS LE PLAT.
+          ⟳ 2026-09-25 — AU BOXING SEULEMENT: sur la carte d'un repas (boîtes
+          ou doses), ils sont montés sous le titre du plat (`DishCard`). */}
+      {context === "session" && (
+        <SideCourseBlock
+          // ⚠️ `?? []` POUR LES MONTAGES DE TEST SEULEMENT: `oneLine` pose
+          // toujours `sides`, mais des `BoxLine` fabriquées par `as` dans des
+          // tests hors `tsc` n'ont pas la clé. Voir `sidesOfDish`.
+          sides={line.sides ?? []}
+        />
+      )}
     </li>
   );
 }
@@ -417,11 +399,10 @@ function BoxRow(
  * le plat. Une ligne par personne — « 1 × pomme, comté ~30 g » sous sa boîte à
  * elle, « Christèle : 1 × yaourt nature » sous un bac commun.
  *
- * ⛔ SUR LES TROIS SURFACES, ET C'EST UN ARBITRAGE. La carte du repas ne montre
- * aucun gramme de contenant (le contenant EST la portion); mais l'à-côté n'est
- * pas dans le contenant — c'est le jour même, devant la carte, qu'on prend la
- * pomme ou qu'on coupe les 30 g de fromage. Le taire là, c'était ne le dire
- * nulle part où il se mange.
+ * ⟳ 2026-09-25 — AU BOXING SEULEMENT. Sur la carte d'un repas, les à-côtés
+ * sont la deuxième ligne du titre (`DishCard`, `dishSideSummary`): c'est le
+ * jour même, devant la carte, qu'on prend la pomme ou qu'on coupe les 30 g de
+ * fromage, et on le lit sans ouvrir le détail.
  *
  * ⚠️ AU BOXING (`session`), ce sont des parts de CASSEROLE (une soupe), et
  * elles se pèsent comme les autres: le terme à gauche, le gramme exact aligné à
@@ -432,12 +413,7 @@ function BoxRow(
  *
  * MUETTE SUR `[]`: un plan d'avant ce lot rend exactement le HTML d'avant.
  */
-function SideCourseBlock(
-  { sides, context }: {
-    sides: readonly BoxSideLine[];
-    context: "session" | "dish" | "doses";
-  },
-) {
+function SideCourseBlock({ sides }: { sides: readonly BoxSideLine[] }) {
   if (sides.length === 0) return null;
   return (
     <div data-box-sides className="flex flex-col gap-0.5">
@@ -453,32 +429,26 @@ function SideCourseBlock(
             data-side-member-id={side.memberId}
             className="flex flex-col text-ink-soft"
           >
-            {context === "session"
-              ? (
-                <>
-                  {side.name !== null && (
-                    <span className="break-words font-medium text-ink">{side.name}</span>
-                  )}
-                  {side.items.map((item, i) => (
-                    <span
-                      key={`${item.term}-${i}`}
-                      className="flex items-baseline justify-between gap-3"
-                    >
-                      {item.unitCount === null
-                        ? (
-                          <>
-                            <span className="min-w-0 break-words">{item.term}</span>
-                            <span className="shrink-0 tabular-nums">
-                              {mealCopy("meals.boxes.grams", { n: item.grams })}
-                            </span>
-                          </>
-                        )
-                        : <span className="min-w-0 break-words">{item.label}</span>}
-                    </span>
-                  ))}
-                </>
-              )
-              : <span className="break-words">{side.text}</span>}
+            {side.name !== null && (
+              <span className="break-words font-medium text-ink">{side.name}</span>
+            )}
+            {side.items.map((item, i) => (
+              <span
+                key={`${item.term}-${i}`}
+                className="flex items-baseline justify-between gap-3"
+              >
+                {item.unitCount === null
+                  ? (
+                    <>
+                      <span className="min-w-0 break-words">{item.term}</span>
+                      <span className="shrink-0 tabular-nums">
+                        {mealCopy("meals.boxes.grams", { n: item.grams })}
+                      </span>
+                    </>
+                  )
+                  : <span className="min-w-0 break-words">{item.label}</span>}
+              </span>
+            ))}
           </li>
         ))}
       </ul>

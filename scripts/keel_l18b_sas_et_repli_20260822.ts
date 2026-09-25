@@ -284,7 +284,6 @@ async function main() {
         preparations,
         servings,
         addons: [],
-        mealsOutByDay: new Map<string | null, number>(),
       }, UNRESOLVED_ENERGY_TOLERANCE);
       for (const t of isLive ? [pass.all[lane], pass.live[lane]] : [pass.all[lane]]) {
         t.plans++;

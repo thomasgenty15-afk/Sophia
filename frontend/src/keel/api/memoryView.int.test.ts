@@ -36,6 +36,7 @@ const readSource = (path: string): string =>
   readFileSync(resolve(__dirname, path), "utf8");
 
 const CHAT_PAGE = readSource("../pages/ChatPage.tsx");
+const CHAT_QUESTIONS = readSource("../lib/chatQuestions.ts");
 const KNOWN_PAGE = readSource("../pages/StudentKnownPage.tsx");
 const CARD = readSource("../components/KnownAboutYouCard.tsx");
 const CHAT_API = readSource("./chat.ts");
@@ -164,12 +165,14 @@ describe("③ `ChatPage` intercepte avant d'envoyer", () => {
     expect(view).toBeLessThan(other);
   });
 
-  it("la dernière bulle armée passe par `armsQuestion`", () => {
-    // « a des boutons » ferait de la bulle « J'ai noté … · Voir » la dernière
-    // armée: elle désarmerait la question qu'elle suit.
-    expect(CHAT_PAGE).toMatch(
-      /lastAssistantId[\s\S]{0,200}armsQuestion\(m\.buttons\)/,
-    );
+  it("la question en cours passe par `armsQuestion`", () => {
+    // « a des boutons » ferait de la bulle « J'ai noté … · Voir » la question
+    // en cours: elle désarmerait la question qu'elle suit.
+    // ⟳ 2026-09-25 — la règle vit dans `lib/chatQuestions.ts`, que la page
+    // appelle pour l'encadré de réponse et pour effacer les questions laissées.
+    expect(CHAT_QUESTIONS).toMatch(/armsQuestion\(m\.buttons\)/);
+    expect(CHAT_PAGE).toMatch(/openQuestionId\(messages\)/);
+    expect(CHAT_PAGE).toMatch(/unansweredSupersededIds\(messages\)/);
     expect(CHAT_PAGE).toMatch(/isNavigationOnly\(message\.buttons\)/);
   });
 });

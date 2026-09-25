@@ -340,6 +340,85 @@ export function rawWindowDaysFor(group: string | null | undefined): number | nul
   return typeof days === "number" ? days : null;
 }
 
+// ---------------------------------------------------------------------------
+// ③ ⟳ 2026-09-25 — LA FENÊTRE ACHAT → ASSIETTE
+// ---------------------------------------------------------------------------
+
+/**
+ * COMBIEN DE JOURS AU PLUS ENTRE L'ACHAT D'UN ALIMENT CRU ET LE DERNIER REPAS
+ * QUI LE MANGE, CUISINÉ.
+ *
+ * ── LE DÉFAUT QU'ELLE FERME, RAPPORTÉ SUR UN PLAN RÉEL (brouillon `a0481b9c`) ─
+ * Les deux autres fenêtres se vérifiaient chacune de son côté, jamais bout à
+ * bout: le cru (achat → cuisson, ② ci-dessus) et le cuit (cuisson → repas,
+ * `MAX_FRIDGE_DAYS`). Chacune poussée à sa limite, un filet de porc était
+ * acheté vendredi, cuisiné dimanche et mangé mardi — « consommé 5 jours après
+ * l'achat ». Aucune garde ne mesurait la chaîne entière.
+ *
+ * ── LE SENS ───────────────────────────────────────────────────────────────
+ * Un ÉCART MAXIMAL, comme ②: `3` veut dire « acheté vendredi, dernier repas au
+ * plus tard lundi ». Seuls les groupes où la chaîne compte sont ici — la chair
+ * animale. Un groupe absent n'a pas de limite de chaîne: ses deux fenêtres
+ * séparées suffisent (un légume cuit mardi pour jeudi ne pose pas la question).
+ *
+ * ⚠️ DES ORDRES DE GRANDEUR ASSUMÉS, posés le 2026-09-25 à la demande du
+ * propriétaire — même posture que ②, et ils se révisent ici. Ce tableau n'a
+ * PAS de miroir en base: seul le moteur le lit.
+ */
+export const PLATE_WINDOW_DAYS: Readonly<Partial<Record<FoodGroupRef, number>>> = {
+  /** Poisson et fruits de mer: acheté lundi, dernier repas mercredi. */
+  fatty_fish: 2,
+  white_fish: 2,
+  shellfish: 2,
+  /** Volaille, viande maigre ou hachée, viande en pièce: lundi → jeudi. */
+  poultry: 3,
+  lean_protein: 3,
+  red_meat: 3,
+};
+
+/** La limite achat → assiette du groupe, ou `null` quand il n'en a pas. */
+export function plateWindowDaysFor(group: string | null | undefined): number | null {
+  if (!group) return null;
+  const days = (PLATE_WINDOW_DAYS as Record<string, number | undefined>)[group];
+  return typeof days === "number" ? days : null;
+}
+
+/**
+ * LA FENÊTRE CRUE QUI RESTE, UNE FOIS LA CHAÎNE COMPTÉE.
+ *
+ * Un aliment cuisiné au jour C et mangé jusqu'au jour C + `eatSpan` doit être
+ * acheté au plus tôt à `C − cru` (②) ET à `C + eatSpan − assiette` (③). Les
+ * deux se disent en une seule fenêtre relative à la cuisson:
+ *
+ *   `min(cru, assiette − eatSpan)`, jamais sous zéro
+ *
+ * C'est ce nombre que lisent TOUS les calculs de date d'achat — les vagues
+ * (`planGroceryWaves`), la scission par usage et l'écart entre deux courses
+ * (`shopping_purchases.ts`, par le `windowOf` de l'appelant). Une seule
+ * fonction, pour qu'aucune étape ne ramène le porc au vendredi derrière une
+ * autre.
+ *
+ * ⚠️ `raw === null` RESTE `null`: « rien ne fait attendre » (conserve,
+ * congelé à l'achat) — le congélateur absorbe la chaîne, et la limite ne
+ * s'applique pas. `eatSpan === null` (jours de repas inconnus) rend la fenêtre
+ * crue telle quelle: on ne suppose pas un repas qu'on ne connaît pas.
+ *
+ * PURE.
+ */
+export function effectiveRawWindowDays(args: {
+  raw: number | null;
+  group: string | null | undefined;
+  /** Jours entre la cuisson et le dernier repas qui en mange. `null` = inconnu. */
+  eatSpan: number | null;
+}): number | null {
+  if (args.raw === null) return null;
+  const plate = plateWindowDaysFor(args.group);
+  if (plate === null || args.eatSpan === null || !Number.isFinite(args.eatSpan)) {
+    return args.raw;
+  }
+  return Math.max(0, Math.min(args.raw, plate - Math.max(0, args.eatSpan)));
+}
+
 /**
  * CE QUE LA FENÊTRE CRUE A RÉELLEMENT GOUVERNÉ, sur une liste de courses.
  *

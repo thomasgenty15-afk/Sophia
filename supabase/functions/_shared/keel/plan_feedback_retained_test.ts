@@ -36,7 +36,7 @@ import {
 import type { MealBodyContext } from "./meal_body.ts";
 import type { MemberAgeState } from "./household.ts";
 import { questionsFor } from "./plan_feedback.ts";
-import { cookingStyleStepFrom } from "./plan_feedback_retained.ts";
+import { COOKING_SESSION_LADDER, cookingTimeStepFrom } from "./plan_feedback_retained.ts";
 import {
   routeRetainedItems,
 } from "./retained_items_routing.ts";
@@ -70,12 +70,10 @@ const CTX: PlanFeedbackContext = {
   // Les préparations sont pliées dedans par l'appelant (`foodTermsOf`): en
   // cuisine par lots, la protéine vit dans la préparation, pas dans le plat.
   planFoodTerms: ["lentils", "chicken", "rice", "salmon"],
-  // ⟳ D2.5 (2026-09-03, A2) — `null` = la question de P2 n'a pas été posée à
-  // ce compte, et c'est le cas NOMINAL de ce fichier: les deux crans
-  // s'appliquent alors aux deux champs sous-jacents, exactement comme avant.
-  // Les cas qui exercent le style le posent eux-mêmes.
-  cookingStyle: null,
-  cookingTimeMin: 45,
+  // ⟳ 2026-09-25 — la plage « 30 min à 1 h »: un cran en dessous, un cran
+  // au-dessus, donc un test qui ne produit rien ne peut pas se cacher derrière
+  // un bord. `cookingStyle` a quitté le contexte avec le style.
+  cookingTimeMin: 60,
   recipeDifficulty: "normal",
   // Le cran DU MILIEU: il laisse la place de monter, donc un test qui ne
   // produit rien sur l'axe ne peut pas se cacher derrière un plafond.
@@ -113,17 +111,13 @@ Deno.test("épingle: le producteur est `questionnaire`, jamais `written`", () =>
   assertEquals(canProduce("questionnaire", "craving"), false);
 });
 
-Deno.test("épingle: le plancher des sessions est CELUI DE L'ÉCRAN", async () => {
+Deno.test("épingle: l'échelle des sessions est CELLE DE L'ÉCRAN, et son plancher aussi", () => {
   // §7.4 du contrat: « toute constante qui a un jumeau ailleurs s'épingle à son
-  // littéral par un test ». Sans ça, on invente une borne — ce que le contrat
-  // interdit explicitement sur `cooking_time_min` — et personne ne le voit.
-  const src = await Deno.readTextFile(
-    new URL("../../../../frontend/src/keel/api/planBudget.ts", import.meta.url),
-  );
-  const m = /COOKING_SESSION_MINUTES: readonly number\[\] = \[([^\]]+)\]/.exec(src);
-  assert(m, "la liste des durées de session a changé de forme ou de nom");
-  const minutes = m[1].split(",").map((n) => Number(n.trim()));
-  assertEquals(Math.min(...minutes), COOKING_TIME_FLOOR_MIN);
+  // littéral par un test ». ⟳ 2026-09-25 — l'échelle n'est plus une recopie du
+  // front: ce sont les durées de `cooking_plan.ts`, que l'écran propose aussi.
+  // ⟳ 2026-09-25 (soir) — cinq durées « environ », 2 h 30 au plus.
+  assertEquals([...COOKING_SESSION_LADDER], [30, 60, 90, 120, 150]);
+  assertEquals(COOKING_SESSION_LADDER[0], COOKING_TIME_FLOOR_MIN);
   assertEquals(COOKING_TIME_FLOOR_MIN, 30);
 });
 
@@ -594,18 +588,21 @@ Deno.test("⛔ LOT B — « non » NE DÉPLACE PLUS RIEN: on demande au lieu de 
 });
 
 Deno.test("LOT B — `difficulty` bouge d'UN CRAN, dans les deux sens, avec sa cause", () => {
+  // ⟳ 2026-09-25 — LE CRAN PORTE SUR LA PLAGE DE TEMPS. La difficulté se
+  // déduit de la marge au-dessus du minimum (`cookingEffort`): écrire
+  // `recipe_difficulty` serait écrire ce que la dérivation écrase.
   const down = retainedItemsFromPlanFeedback(
     row({ cooked: "yes", difficulty: "too_hard" }),
     CTX,
   );
   assertEquals(down.items.length, 0, "un item retenu subsiste");
   assertEquals(down.fieldChanges.length, 1);
-  assertEquals(down.fieldChanges[0].field, "recipe_difficulty");
-  assertEquals(down.fieldChanges[0].next, "simple");
+  assertEquals(down.fieldChanges[0].field, "cooking_time_min");
+  assertEquals(down.fieldChanges[0].next, 30);
   // ⛔ `previous` EST CE QUI REND « DÉFAIRE » POSSIBLE. Un scalaire ne se
   // retire pas: sans la valeur d'avant, défaire voudrait dire « retape ce que
   // tu avais », c'est-à-dire réclamer un nombre que le produit vient d'effacer.
-  assertEquals(down.fieldChanges[0].previous, "normal");
+  assertEquals(down.fieldChanges[0].previous, 60);
   assertEquals(down.fieldChanges[0].source, "questionnaire");
   assert(down.fieldChanges[0].quote.length > 0, "un changement sans cause");
 
@@ -616,8 +613,8 @@ Deno.test("LOT B — `difficulty` bouge d'UN CRAN, dans les deux sens, avec sa c
     CTX,
   );
   assertEquals(up.fieldChanges.length, 1);
-  assertEquals(up.fieldChanges[0].next, "keen");
-  assertEquals(up.fieldChanges[0].previous, "normal");
+  assertEquals(up.fieldChanges[0].next, 90);
+  assertEquals(up.fieldChanges[0].previous, 60);
 
   // Le cran du milieu est une RÉPONSE: « c'était bien » veut dire « ne change
   // rien », pas « je n'ai pas répondu ».
@@ -630,34 +627,37 @@ Deno.test("LOT B — `difficulty` bouge d'UN CRAN, dans les deux sens, avec sa c
 
 Deno.test("LOT B — `speed` bouge d'UN BARREAU de l'échelle, jamais d'un delta de minutes", () => {
   // ⛔ LE POINT DU LOT: 45 − 10 = 35, un nombre que l'écran ne propose pas.
-  // Un barreau de `COOKING_SESSION_MINUTES` = [30, 45, 60, 90, 120, 180], et
-  // la personne le reconnaît dans son formulaire.
+  // ⟳ 2026-09-25 — un barreau des durées [30, 60, 90, 120, 150], et la
+  // personne le reconnaît dans son formulaire.
   const down = retainedItemsFromPlanFeedback(
     row({ cooked: "yes", speed: "too_long" }),
     CTX,
   );
   assertEquals(down.fieldChanges.length, 1);
   assertEquals(down.fieldChanges[0].field, "cooking_time_min");
-  assertEquals(down.fieldChanges[0].next, 30, "45 doit descendre à 30, pas à 35");
-  assertEquals(down.fieldChanges[0].previous, 45);
+  assertEquals(down.fieldChanges[0].next, 30, "60 doit descendre à 30, pas à 50");
+  assertEquals(down.fieldChanges[0].previous, 60);
   // ⚠️ UN NOMBRE, PAS UNE CHAÎNE: `parseLogisticsSetValue` refuse une chaîne à
   // la lecture — la ligne serait écrite puis invisible, le pire des deux.
   assertEquals(typeof down.fieldChanges[0].next, "number");
 
   const up = retainedItemsFromPlanFeedback(
     row({ cooked: "yes", speed: "had_more_time" }),
-    { ...CTX, cookingTimeMin: 60 },
+    { ...CTX, cookingTimeMin: 120 },
   );
-  assertEquals(up.fieldChanges[0].next, 90, "60 doit monter à 90, le barreau suivant");
+  assertEquals(up.fieldChanges[0].next, 150, "120 doit monter à 150, le barreau suivant");
 
-  // ⛔ UNE VALEUR HORS ÉCHELLE N'A PAS DE BARREAU VOISIN: on ne devine pas
-  // lequel des six elle vise. C'est `noBaseline`, comme une valeur absente.
+  // ⟳ 2026-09-25 — UNE VALEUR D'AVANT LES PLAGES EST RAMENÉE À LA SIENNE, pas
+  // jetée: 47 est lu « 1 h », et le cran part de là. Sans cette lecture, tous
+  // les comptes à 45 tomberaient en `noBaseline`.
   const offLadder = retainedItemsFromPlanFeedback(
     row({ cooked: "yes", speed: "too_long" }),
     { ...CTX, cookingTimeMin: 47 },
   );
-  assertEquals(offLadder.fieldChanges.length, 0);
-  assertEquals(offLadder.refused.noBaseline, 1);
+  assertEquals(offLadder.fieldChanges.length, 1);
+  assertEquals(offLadder.fieldChanges[0].next, 30);
+  // ⛔ MAIS « DÉFAIRE » REMET 47, la valeur de la base — pas sa plage.
+  assertEquals(offLadder.fieldChanges[0].previous, 47);
 });
 
 Deno.test("« oui » ne retient rien", () => {
@@ -670,12 +670,14 @@ Deno.test("⛔ on ne dépasse pas les bords, et on ne suppose pas une valeur", (
   // épuisé. Écrire `previous === next` mettrait dans le fil « ce qui vient de
   // changer » une ligne qui n'a rien changé, avec un bouton « défaire » qui ne
   // défait rien.
+  // ⟳ 2026-09-25 — UN SEUL CADRAN, DONC UN SEUL BORD COMPTÉ: les deux
+  // réponses d'accord font un cran, pas deux.
   const floor = retainedItemsFromPlanFeedback(
     row({ cooked: "yes", difficulty: "too_hard", speed: "too_long" }),
-    { ...CTX, cookingTimeMin: 30, recipeDifficulty: "simple" },
+    { ...CTX, cookingTimeMin: 30 },
   );
   assertEquals(floor.fieldChanges.length, 0);
-  assertEquals(floor.refused.atFloor, 2);
+  assertEquals(floor.refused.atFloor, 1);
 
   // ⚠️ ET LE PLAFOND EST COMPTÉ À PART, pas fondu dans le plancher: « déjà au
   // plus simple et ça ne suffit pas » et « déjà au maximum du vocabulaire » ne
@@ -683,20 +685,20 @@ Deno.test("⛔ on ne dépasse pas les bords, et on ne suppose pas une valeur", (
   // produit.
   const ceiling = retainedItemsFromPlanFeedback(
     row({ cooked: "yes", difficulty: "could_do_more", speed: "had_more_time" }),
-    { ...CTX, cookingTimeMin: 180, recipeDifficulty: "keen" },
+    { ...CTX, cookingTimeMin: 240 },
   );
   assertEquals(ceiling.fieldChanges.length, 0);
-  assertEquals(ceiling.refused.atCeiling, 2);
+  assertEquals(ceiling.refused.atCeiling, 1);
 
   // Sans valeur courante, « un cran plus court » n'a pas de résultat:
   // `logistics.set` porte une valeur ABSOLUE. Supposer 30, 45 ou 60 écrirait
   // un réglage que personne n'a choisi.
   const blind = retainedItemsFromPlanFeedback(
     row({ cooked: "yes", difficulty: "too_hard", speed: "too_long" }),
-    { ...CTX, cookingTimeMin: null, recipeDifficulty: null },
+    { ...CTX, cookingTimeMin: null },
   );
   assertEquals(blind.items.length, 0);
-  assertEquals(blind.refused.noBaseline, 2);
+  assertEquals(blind.refused.noBaseline, 1);
 });
 
 // ===========================================================================
@@ -958,11 +960,12 @@ Deno.test("⛔ LOT 4C — `noBaseline` compte TOUJOURS la cuisine, et plus la va
     // calculable, et supposer une valeur écrirait un réglage que personne n'a
     // choisi.
     row({ cooked: "yes", difficulty: "too_hard", speed: "too_long" }),
-    { ...CTX, cookingTimeMin: null, recipeDifficulty: null },
+    { ...CTX, cookingTimeMin: null },
   );
   assertEquals(cooking.fieldChanges.length, 0);
   assertEquals(cooking.items.length, 0);
-  assertEquals(cooking.refused.noBaseline, 2);
+  // ⟳ 2026-09-25 — un seul cadran: une seule absence de base.
+  assertEquals(cooking.refused.noBaseline, 1);
 
   const variety = retainedItemsFromPlanFeedback(
     row({ variety: "no" }),
@@ -1462,127 +1465,68 @@ Deno.test("⛔ LOT 4C — LES DEUX JETONS NEUFS EXISTENT EN BASE, PAS SEULEMENT 
 });
 
 // ---------------------------------------------------------------------------
-// D2.5 (chantier-0903/CUISINE, A2) — LES DEUX CRANS SUR UN SEUL CADRAN
+// D2.5 — LES DEUX CRANS SUR UN SEUL CADRAN · ⟳ 2026-09-25, LA PLAGE DE TEMPS
 // ---------------------------------------------------------------------------
 //
-// ⛔ CE QUE CE LOT CORRIGE, ET C'EST LE DÉFAUT DU LOT B UN CRAN PLUS LOIN.
-// Le lot B a cessé d'écrire « 35 minutes », un nombre que l'écran ne propose
-// pas. P2 va plus loin: l'écran ne propose plus AUCUN nombre de minutes, et
-// `recipe_difficulty` n'a aucun lecteur dans les deux générateurs. Pire,
-// `cooking_time_min` est ÉCRASÉ à la composition par la dérivation du style.
-// Sur un compte qui a répondu à P2, déplacer ces deux champs-là écrit deux
-// réglages que personne ne lit et que personne ne voit.
+// Le cadran était le style; il est parti. C'est maintenant la plage de temps
+// (`cooking_time_min`): elle porte la durée des sessions ET, par la marge
+// qu'elle laisse au-dessus du minimum du plan, la difficulté des recettes.
+// `recipe_difficulty` est écrasé par la dérivation: l'écrire serait écrire ce
+// que personne ne lit.
 //
-// ⚠️ ET « PAS EU LE TEMPS » N'EST PLUS L'ENTRÉE. `cookingQuestionsAreAsked`
-// n'ouvre les deux questions que sur `yes` et `partly`: on ne demande pas si
-// c'était trop long à quelqu'un qui n'a pas cuisiné. Ce qui déplace le style,
-// ce sont les réponses EXPLICITES aux deux axes.
+// ⚠️ « PAS EU LE TEMPS » N'EST PAS L'ENTRÉE. `cookingQuestionsAreAsked`
+// n'ouvre les deux questions que sur `yes` et `partly`.
 
 Deno.test("D2.5 — le pur: deux crans sur un cadran, et le conflit se NOMME", () => {
-  assertEquals(cookingStyleStepFrom(null, null), null);
-  assertEquals(cookingStyleStepFrom("down", null), "down");
-  assertEquals(cookingStyleStepFrom(null, "up"), "up");
+  assertEquals(cookingTimeStepFrom(null, null), null);
+  assertEquals(cookingTimeStepFrom("down", null), "down");
+  assertEquals(cookingTimeStepFrom(null, "up"), "up");
   // ⛔ D'ACCORD ⇒ UN SEUL CRAN. Marcher l'échelle deux fois ferait sauter
-  // `keen` → `minimal` sur un seul questionnaire.
-  assertEquals(cookingStyleStepFrom("down", "down"), "down");
-  assertEquals(cookingStyleStepFrom("up", "up"), "up");
+  // deux plages sur un seul questionnaire.
+  assertEquals(cookingTimeStepFrom("down", "down"), "down");
+  assertEquals(cookingTimeStepFrom("up", "up"), "up");
   // ⛔ EN SENS OPPOSÉS ⇒ le cadran unique ne sait pas l'écrire.
-  assertEquals(cookingStyleStepFrom("down", "up"), "conflict");
-  assertEquals(cookingStyleStepFrom("up", "down"), "conflict");
+  assertEquals(cookingTimeStepFrom("down", "up"), "conflict");
+  assertEquals(cookingTimeStepFrom("up", "down"), "conflict");
 });
 
-Deno.test("D2.5 — avec un style déclaré, c'est LUI qui bouge, et lui seul", () => {
+Deno.test("D2.5 — la plage bouge, et elle seule", () => {
   const out = retainedItemsFromPlanFeedback(
-    row({ cooked: "partly", difficulty: "too_hard" }),
-    { ...CTX, cookingStyle: "keen" },
+    row({ cooked: "partly", difficulty: "too_hard", speed: "too_long" }),
+    { ...CTX, cookingTimeMin: 180 },
   );
-  const style = out.fieldChanges.filter((f) => f.field === "cooking_style");
-  assertEquals(style.length, 1);
-  assertEquals(style[0].previous, "keen");
-  assertEquals(style[0].next, "balanced");
-  // ⛔ ET LES DEUX CHAMPS SOUS-JACENTS NE BOUGENT PAS: les écrire serait
-  // écrire ce que personne ne lit (`recipe_difficulty`) et ce que la
-  // dérivation écrase (`cooking_time_min`).
-  for (const dead of ["recipe_difficulty", "cooking_time_min"]) {
-    assertEquals(
-      out.fieldChanges.filter((f) => f.field === dead).length,
-      0,
-      `${dead} a bougé alors qu'un style est déclaré`,
-    );
+  const time = out.fieldChanges.filter((f) => f.field === "cooking_time_min");
+  assertEquals(time.length, 1);
+  assertEquals(time[0].previous, 180);
+  assertEquals(time[0].next, 120, "d'accord ⇒ UN cran, pas deux");
+  // ⛔ NI LE STYLE NI LA DIFFICULTÉ NE BOUGENT.
+  for (const dead of ["cooking_style", "recipe_difficulty"]) {
+    assertEquals(out.fieldChanges.filter((f) => f.field === dead).length, 0, dead);
   }
-});
-
-Deno.test("D2.5 — les deux sens existent, et les deux bords sont comptés", () => {
-  // Le sens MONTANT est la condition du lot B, et il vaut pour le style aussi:
-  // un cadran qui ne fait que descendre finit au plancher et n'en remonte pas.
-  const up = retainedItemsFromPlanFeedback(
-    row({ cooked: "yes", speed: "had_more_time" }),
-    { ...CTX, cookingStyle: "minimal" },
-  );
-  assertEquals(up.fieldChanges.filter((f) => f.field === "cooking_style")[0].next, "balanced");
-
-  // ⛔ LE PLANCHER EST UN PLANCHER: un plan sans cuisine n'est pas un plan.
-  const floor = retainedItemsFromPlanFeedback(
-    row({ cooked: "yes", difficulty: "too_hard" }),
-    { ...CTX, cookingStyle: "minimal" },
-  );
-  assertEquals(floor.fieldChanges.filter((f) => f.field === "cooking_style").length, 0);
-  assert(floor.refused.atFloor >= 1);
-
-  // Et le plafond a son compteur À PART — c'est le seul des deux qui demande
-  // une décision produit.
-  const ceiling = retainedItemsFromPlanFeedback(
-    row({ cooked: "yes", speed: "had_more_time" }),
-    { ...CTX, cookingStyle: "keen" },
-  );
-  assertEquals(ceiling.fieldChanges.filter((f) => f.field === "cooking_style").length, 0);
-  assert(ceiling.refused.atCeiling >= 1);
+  // La question citée est celle qui a produit le cran: `difficulty`, la
+  // première des deux que le questionnaire pose.
+  assert(time[0].quote.length > 0);
 });
 
 Deno.test("D2.5 — deux axes en sens opposés: RIEN ne bouge, et ça se compte", () => {
-  // « Des recettes plus simples, mais j'avais plus de temps » est cohérent, et
-  // le cadran unique ne sait pas l'écrire. En choisir un des deux inventerait
-  // une préférence.
   const out = retainedItemsFromPlanFeedback(
     row({ cooked: "yes", difficulty: "too_hard", speed: "had_more_time" }),
-    { ...CTX, cookingStyle: "balanced" },
+    { ...CTX, cookingTimeMin: 120 },
   );
-  assertEquals(out.fieldChanges.filter((f) => f.field === "cooking_style").length, 0);
-  assert(out.refused.bothPolarities >= 1);
+  assertEquals(out.fieldChanges.filter((f) => f.field === "cooking_time_min").length, 0);
+  assertEquals(out.refused.bothPolarities, 1);
 });
 
-Deno.test("D2.5 — sans style déclaré, les deux champs bougent comme AVANT", () => {
-  // La population qui n'a jamais vu la question de P2 — c'est-à-dire, le jour
-  // de ce lot, tout le monde. Son comportement ne bouge pas d'un octet.
-  const answers = row({ cooked: "yes", difficulty: "too_hard", speed: "too_long" });
-  const before = retainedItemsFromPlanFeedback(answers, CTX);
-  assertEquals(before.fieldChanges.filter((f) => f.field === "recipe_difficulty").length, 1);
-  assertEquals(before.fieldChanges.filter((f) => f.field === "cooking_time_min").length, 1);
-  assertEquals(before.fieldChanges.filter((f) => f.field === "cooking_style").length, 0);
-  // ⛔ ET UN STYLE HORS VOCABULAIRE RETOMBE AUSSI: on ne descend pas d'un cran
-  // à partir d'un mot qu'on ne sait pas placer sur l'échelle.
-  const junk = retainedItemsFromPlanFeedback(answers, { ...CTX, cookingStyle: "lazy" });
-  assertEquals(junk.fieldChanges.filter((f) => f.field === "cooking_style").length, 0);
-  assertEquals(junk.fieldChanges.filter((f) => f.field === "recipe_difficulty").length, 1);
-});
-
-Deno.test("D2.5 — `cooked: no` ne déplace RIEN, style ou pas", () => {
-  // ⚠️ CE CAS EST LE DEUIL DE MON PROPRE LOT, ET IL EST JUSTE. D2.5 était écrit
-  // sur `cooked: no` (« je n'ai pas eu le temps ») parce que l'ancien modèle en
-  // DÉDUISAIT deux corrections. Le lot B a fermé cette déduction: on ne demande
-  // pas si c'était trop long à quelqu'un qui n'a pas cuisiné, et `cooked` est
-  // redevenu une garde. Le style ne bouge donc que sur une réponse EXPLICITE.
-  for (const style of [null, "balanced"]) {
-    const out = retainedItemsFromPlanFeedback(
-      row({ cooked: "no", difficulty: "too_hard", speed: "too_long" }),
-      { ...CTX, cookingStyle: style },
+Deno.test("D2.5 — `cooked: no` ne déplace RIEN", () => {
+  const out = retainedItemsFromPlanFeedback(
+    row({ cooked: "no", difficulty: "too_hard", speed: "too_long" }),
+    CTX,
+  );
+  for (const f of ["cooking_style", "recipe_difficulty", "cooking_time_min"]) {
+    assertEquals(
+      out.fieldChanges.filter((c) => c.field === f).length,
+      0,
+      `${f} a bougé sur un plan qui n'a pas été cuisiné`,
     );
-    for (const f of ["cooking_style", "recipe_difficulty", "cooking_time_min"]) {
-      assertEquals(
-        out.fieldChanges.filter((c) => c.field === f).length,
-        0,
-        `${f} a bougé sur un plan qui n'a pas été cuisiné (style=${style})`,
-      );
-    }
   }
 });

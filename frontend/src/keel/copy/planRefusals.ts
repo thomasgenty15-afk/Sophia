@@ -147,10 +147,14 @@ export const EDGE_REFUSAL_KEYS: Record<string, MessageKey> = {
   // ⟳ 2026-09-24 — l'ajustement par exclusion : aucun plat du brouillon ne
   // contenait l'aliment. Rien n'a été composé, l'aperçu reste.
   edit_nothing_to_change: "plan.refusal.edit_nothing_to_change",
+  // ⟳ 2026-09-25 — `draft_mismatch` et `draft_day_passed` sont partis : une
+  // retouche garde la fenêtre de son aperçu et ne relit pas l'heure. Les trois
+  // refus d'un aperçu de départ inutilisable font recomposer le front de
+  // lui-même (`editOrRecompose`) ; ces mots ne servent qu'à un cas restant
+  // (`keel-read-note-v1`), et ne demandent jamais de « refaire ».
   draft_has_no_source: "plan.refusal.draft_has_no_source",
-  draft_mismatch: "plan.refusal.draft_mismatch",
-  draft_not_done: "plan.refusal.draft_mismatch",
-  draft_not_found: "plan.refusal.draft_mismatch",
+  draft_not_done: "plan.refusal.draft_has_no_source",
+  draft_not_found: "plan.refusal.draft_has_no_source",
   // Deux erreurs de programme (un corps sans `draft_id` ou sans case lisible) :
   // le front ne les construit jamais ; s'il les reçoit, il les nomme.
   draft_id_required: "plan.refusal.unknown_operation",

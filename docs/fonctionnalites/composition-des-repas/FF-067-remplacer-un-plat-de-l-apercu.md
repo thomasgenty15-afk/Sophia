@@ -67,6 +67,35 @@ suivante.
    par jour » écrit comme raison partait tel quel au modèle avant ce correctif.
 8. Quand les reprises sont épuisées, le pied le dit (« Plus de reprise… ») : sinon « Ajuster » et tous les
    « Remplacer » s'éteignaient sans explication.
+9. ⟳ **2026-09-24 — « ça vaut aussi pour… »** (demande du propriétaire : trois matins aux œufs, la même
+   raison tapée trois fois). Après « Valider », `keel-read-note-v1` (mode `match`) passe la raison par la
+   garde de la note, puis demande au **modèle du chat** (`getGlobalAiModel`, rapide) à quels autres plats du
+   brouillon elle s'applique — titre, moment, pour qui, ingrédients principaux (`dish_match.ts`). La bulle
+   `SameReasonPanel` les **propose, cochés** (dans la limite du plafond de 24) ; « Barrer aussi » les barre
+   avec la même raison, « Non merci » ne barre rien de plus. Rien n'est écrit par ce mode, et une panne ne
+   bloque rien (liste vide).
+   ⟳ même jour — **une bulle sous le bouton, plus de couche plein cadre** (retour du propriétaire : « on ne
+   sait pas ce qui se passe pendant la recherche, la fenêtre fait vide »). La raison (`ReplaceReasonPanel`)
+   puis la proposition sortent du bouton « Changer » du plat cliqué (`AnchoredPanel`, pointe vers le bouton,
+   Échap ou clic ailleurs pour fermer) ; pendant l'appel, un indicateur qui tourne et la place des plats à
+   venir. La couche plein cadre ne porte plus que les questions de précision.
+10. ⟳ **2026-09-24 — la fenêtre d'une reprise.** Mesuré : un brouillon de 3 jours composé la veille,
+    repris à la réouverture de l'entonnoir, recevait « Changer » avec la fenêtre par défaut de la page
+    (7 jours) — refus `draft_mismatch`. L'entonnoir reprend désormais la fenêtre de **la demande** du
+    brouillon (`recoverable.input`, comme `/app/plan`) — jamais sa fenêtre rangée, où le serveur a pu
+    ajouter la veille de cuisine.
+11. ~~⟳ 2026-09-24 — un aperçu que l'heure a périmé se refait (`draft_day_passed` + bouton « Refaire
+    tout le plan »).~~ **Retiré le 2026-09-25, décision produit** : il n'y a pas de « refaire le plan ».
+    Un ajustement se fait en local, ou le système recompose de lui-même. Mesuré : « J'aime pas le tofu »
+    sur un aperçu fait la veille à 23 h, envoyé à 1 h, était refusé. Désormais :
+    - une retouche (`edit_cells`, toutes variantes) garde la fenêtre **de son aperçu** (`editPinnedWindow`
+      dans `generate-household-meal-v1`) : ni la veille de cuisine, ni la journée entamée, ni la fenêtre
+      envoyée par la page ne sont relues à l'heure qu'il est ; `draft_day_passed` et `draft_mismatch`
+      n'existent plus ;
+    - quand la retouche ne peut pas aboutir (aperçu de départ absent, fermé ou sans plan rangé, ou plan
+      retouché refusé par la porte finale — `plan_not_deliverable`), `planDraft.ts` recompose de lui-même
+      (`editOrRecompose`), sans bouton ni phrase qui renvoie la décision à la personne.
+
 
 ### La liste des plats refusés
 - `student_goals.practical_constraints.rejected_dishes` : `{key, title, name, household, member_ids,

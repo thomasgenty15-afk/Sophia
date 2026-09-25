@@ -3016,7 +3016,7 @@ Deno.test("C8 ③ — LA LANE INDIVIDUELLE GARDE SA VERSION DE PROMPT", () => {
   // ⟳ LOT C (2026-09-11) — v31: le prompt système ne dit plus le POIDS d'une
   // assiette (« roughly 600 to 750 g »), il dit sa FORME. La version avance avec
   // son texte, sinon un cache servirait l'ancienne consigne sous le nouveau nom.
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v34_the_grid_is_a_checklist");
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v42_off_the_table_not_at");
   // ⚠️ v10 DEPUIS LE LOT G (2026-08-14), ET C'EST LA MOITIÉ DU LOT QUI COMPTE
   // ICI: le TRONC ne bouge toujours pas (la ligne au-dessus le tient), la lane
   // du FOYER si. Deux populations neuves y voient une consigne différente —
@@ -3097,7 +3097,7 @@ Deno.test("C8 ③ — LA LANE INDIVIDUELLE GARDE SA VERSION DE PROMPT", () => {
   // (message byte-identique à v25), v26 avec.
   // ⟳ 2026-09-23 — v39: les à-côtés en familles (`side_courses_prompt.ts`).
   // ⟳ 2026-09-23 — v40: la table partage ses à-côtés (`side_courses_prompt.ts`).
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v42_what_they_turned_down");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v48_off_the_table_not_at");
 });
 
 Deno.test("C7 ③ — LA LIGNE DE COURSES D'UN PLAT JETÉ NE PART PLUS AU MAGASIN", () => {
@@ -3742,16 +3742,17 @@ Deno.test("LOT B — le mode demandé est LU, et le plafond est appliqué à UN 
     /const askedCookingShape = readCookingShape\(body\.cooking_shape\)/.test(src),
     "le mode de cuisson n'est plus lu de la demande.",
   );
-  // ⟳ A2 (2026-09-03) — LE CHOIX ENTRE PAR UN PLAFOND DE STYLE, ET LA PORTE
-  // RESTE LA MÊME. « Le moins possible — je réchauffe » et « chacun le sien »
-  // se contredisent: deux plats par repas ne se réchauffent pas en trente
-  // minutes. Le style plafonne donc le CHOIX avant que `capCookingShape` le
-  // compare au calcul — plutôt qu'une seconde comparaison à côté, qui serait
-  // le second avis que ce test existe pour interdire.
+  // ⟳ A2 (2026-09-03) — LE CHOIX ENTRE PAR UN PLAFOND, ET LA PORTE RESTE LA
+  // MÊME. ⟳ 2026-09-25 — le plafond n'est plus le style « le moins possible »
+  // mais l'effort `simple` (peu de temps au-dessus du minimum): deux plats par
+  // repas ne tiennent pas dans une session au ras. Il plafonne le CHOIX avant
+  // que `capCookingShape` le compare au calcul — plutôt qu'une seconde
+  // comparaison à côté, qui serait le second avis que ce test existe pour
+  // interdire.
   assert(
-    /const styleCappedShape: CookingShape \| null =\n\s+declaredCapacity\.cookingStyle === "minimal"\n\s+\? "one_dish"\n\s+: askedCookingShape;/
+    /const styleCappedShape: CookingShape \| null =\n\s+capacity\.plan\?\.effort === "simple"\n\s+\? "one_dish"\n\s+: askedCookingShape;/
       .test(src),
-    "le style ne plafonne plus le choix, ou il le fait ailleurs.",
+    "l'effort ne plafonne plus le choix, ou il le fait ailleurs.",
   );
   assert(
     /const shapeCap = capCookingShape\(computedShape, styleCappedShape\)/.test(src),

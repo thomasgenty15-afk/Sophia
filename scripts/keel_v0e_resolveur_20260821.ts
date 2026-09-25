@@ -320,7 +320,6 @@ async function main() {
       preparations,
       servings,
       addons: [],
-      mealsOutByDay: new Map<string | null, number>(),
     });
     for (const d of energy.dishes) {
       dishesTotal++;

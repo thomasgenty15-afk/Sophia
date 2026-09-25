@@ -6,14 +6,13 @@ import type { TranslatedMessagesOf } from "../catalog";
 
 export const frServerUnreachable = {
   // ── L'ÉCRAN « ON NE JOINT PAS LE SERVEUR » ────────────────────────────────
-  // ⚠️ VOUVOIEMENT ICI, ET C'EST DÉLIBÉRÉ. Ces quatre phrases ne sont rendues
-  // que par `<ServerUnreachable />`, monté par `/start` — une page qui vouvoie —
-  // et leur jumelle `auth.error.server_unreachable` dit déjà « Vous êtes bien
-  // connecté ». Les tutoyer aurait créé la couture qu'on vient de fermer.
+  // ⚠️ TUTOIEMENT, comme `/start` qui monte `<ServerUnreachable />`, et comme
+  // leur jumelle `auth.error.server_unreachable` (« Tu es bien connecté »).
+  // Les deux changent de registre ensemble, ou la couture revient.
   "server_unreachable.title": "Le serveur ne répond pas.",
   "server_unreachable.body":
-    "Votre compte et vos données sont intacts — c’est l’application qui n’arrive à rien lire pour l’instant. En général, ça dure quelques secondes.",
+    "Ton compte et tes données sont intacts — c’est l’application qui n’arrive à rien lire pour l’instant. En général, ça dure quelques secondes.",
   "server_unreachable.retry": "Réessayer",
   "server_unreachable.after_signin":
-    "Vous êtes bien connecté, mais le serveur ne répond pas pour ouvrir votre espace. Réessayez dans un instant.",
+    "Tu es bien connecté, mais le serveur ne répond pas pour ouvrir ton espace. Réessaie dans un instant.",
 } satisfies TranslatedMessagesOf<"server_unreachable">;

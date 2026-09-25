@@ -606,7 +606,76 @@ export const SOLO_BOX_BLOCK = [
 // ⚠️ LA LECTURE RESTE. `parseGeneratedMeal` lit toujours `root.shopping_list`
 // quand elle est là: les réponses d'archive et les plans déjà écrits la
 // portent, et la refuser les rendrait illisibles.
-export const MEAL_PROMPT_VERSION = "meal.en.v34_the_grid_is_a_checklist";
+// ⟳ v35 (2026-09-25) — LA BOÎTE EST DÉJÀ FAITE. Le bloc `same_day` dit que
+// le plat qui tire sur des casseroles sort d'UNE boîte remplie à la session
+// (plat et féculent côte à côte): sa `method` dit chaud ou froid et ce qu'on
+// ajoute, jamais ce qui est déjà dedans. Le déroulé de session s'arrête à la
+// cuisson (le Boxing liste les boîtes), l'exemple « reheat a portion » et les
+// deux lignes du schéma (`method`, `run_through`) suivent. Mesuré avant, 7
+// derniers plans: 59 repas en boîte sur deux casseroles, 59 méthodes qui
+// réunissent ou réchauffent séparément la viande et le féculent (« Assembler
+// le porc et les pâtes », « dans deux poêles couvertes »). Population: TOUTE.
+// ⟳ v36 (2026-09-25) — CHAUD OU FROID, PLAT PAR PLAT. La consigne v35 citait
+// une phrase de repli entière (« Eat it cold, straight from the container. »):
+// au premier run qui l'a servie, 14 méthodes sur 14 la recopiaient mot pour
+// mot, dîners de bœuf et de lentilles compris (brouillon `6b9be1e0`). Le run
+// d'avant avait tout réchauffé (14 sur 14, `299f5f82`): le choix n'était pas
+// fait par plat. La phrase citée est retirée; le bloc dit ce qui se réchauffe,
+// ce qui peut se manger froid, et qu'une même phrase partout est un choix non
+// fait.
+// ⟳ v37 (2026-09-25) — AUCUN ALIMENT DANS LES EXEMPLES, ET LES MINUTES DANS
+// LE DÉROULÉ. Mesuré sur les 3 plans servis en v35/v36 contre les 42 d'avant:
+// l'huile ajoutée sous 2,5 ml passe de 3/305 lignes à 10/13 — les exemples
+// « drizzle the olive oil and grate the parmesan », « squeeze the lemon » et
+// « add the salad and the lemon » étaient recopiés, puis l'huile réduite à
+// 0,3 ml pour tenir « never both at full size ». Les déroulés qui renvoient à
+// un temps non dit (« selon son temps indiqué ») passent de 0/116 à 4/12:
+// la ligne de schéma `run_through` exige désormais la chaleur ET les minutes,
+// et le bloc des sessions le redit, féculent compris.
+// ⟳ v38 (2026-09-25) — LE DÎNER SE RÉCHAUFFE TOUJOURS. En v37, « a dinner is
+// reheated unless the dish itself is meant cold » laissait une porte: sur
+// `ffad99ae`, 4 dîners sur 7 servis froids « comme une salade de riz et de
+// saumon » — le modèle rebaptisait le plat pour passer. Le froid n'est plus
+// permis qu'au DÉJEUNER, sur un plat aussi bon froid que chaud, et la phrase
+// du froid ne nomme pas le contenu de la boîte.
+// ⟳ v39 (2026-09-25) — LES SESSIONS QU'ILS ONT CHOISIES. Quand la personne a
+// choisi un nombre de sessions et une plage de temps (`cooking_plan.ts`), le
+// message dit « cooking sessions: exactly N … on fri, sun » au lieu de « at
+// most 7 », et « at most N minutes — the top of the range they chose » au lieu
+// de « about N minutes ». Mesuré sur `a0481b9c`: deux sessions demandées, et
+// trois nombres dans la consigne (les jours, « at most 7 », le conseil système
+// « two or three »). Population: les plans à cadence dérivée; les autres
+// reçoivent les phrases d'avant, au caractère près.
+// Le soir même, MÊME VERSION: « the top of the range they chose » devient « the
+// time they chose » (les plages sont remplacées par des durées « environ »).
+// Aucune génération n'avait encore tourné sous v39.
+// ⟳ v40 (2026-09-25) — TOUT PLAT EN BOÎTE SE RÉCHAUFFE. v38 permettait le
+// froid au DÉJEUNER « quand le plat est aussi bon froid », avec « a grain
+// salad » en exemple: sur `a0481b9c` puis `54aec009`, 5 et 7 déjeuners sur
+// 5 et 7 servis froids « comme une salade de céréales », poulet mijoté
+// compris, et le même plat froid à midi puis chaud le soir. Le froid n'est
+// plus permis qu'à un plat composé comme une salade froide, et son titre le
+// dit — l'écart se voit. La phrase « one sentence repeated… » est retirée:
+// un réchauffage identique sur chaque plat est juste, pas un choix manqué.
+// Même version, même jour (écrit avant le bump): quand la personne a choisi
+// son nombre de courses sans s'appuyer sur le congélateur, `rawReachLines`
+// dit les jours de courses et ce que chaque session peut cuisiner frais
+// (`plannedShopLines`), au lieu de « the app schedules a later shop ».
+// Mesuré sur `54aec009`: deux courses choisies, quatre faites.
+// ⟳ v41 (2026-09-25) — LE POISSON CUIT SUIT LA RÈGLE COMMUNE. La phrase
+// « cooked rice and cooked seafood … same day or the day after » posait pour
+// le poisson une limite que rien ne vérifiait et qui contredisait le code:
+// décision produit n° 14 (« conservation = jour de cuisson + 2 »,
+// `MAX_FRIDGE_DAYS`) et `PLATE_WINDOW_DAYS` (poisson: 2 jours de l'achat au
+// dernier repas). Décision du propriétaire le 2026-09-25: « garde J+2 et
+// retire la phrase du prompt ». Le riz, qui n'était pas dans la question,
+// garde sa ligne.
+// ⟳ v42 (2026-09-25) — UNE EXCLUSION AU MOMENT DIT « NOT at », PLUS « ONLY AT ».
+// `retained_items_routing.ts#occasionSuffix`: « OFF the table: œufs -- ONLY AT
+// breakfast » a été lu « des œufs, seulement au petit-déjeuner » (`31aef694`,
+// trois petits-déjeuners aux œufs; `6ef02747`, trois au tofu). La ligne dit
+// maintenant « -- NOT at breakfast; the other meals may keep it ».
+export const MEAL_PROMPT_VERSION = "meal.en.v42_off_the_table_not_at";
 
 /**
  * ③ — CE QUE `severity` VEUT DIRE, posé JUSTE SOUS la liste qui le porte.
@@ -955,7 +1024,8 @@ Rules that follow:
     nuts — are plain dishes with no \`uses\`, made fresh, quantities for one
     plate.
   - a dish that draws on a preparation does NOT repeat its recipe. Its method is
-    what you do at that meal: "reheat a portion, add the salad and the lemon".
+    what you do at that meal: "tip the container into a covered pan, 8 min on
+    low", then what the dish adds fresh.
   - vary what you build from the same preparation. Same protein, different meal.`,
   },
   {
@@ -964,7 +1034,12 @@ Rules that follow:
 
 Give \`cooking_sessions\`: the days on which the student actually cooks, which
 preparations get made in each, and the ORDER of the gestures — "oven on for the
-tray, rice on while it roasts, chilli simmering next to it, box four portions".
+tray, rice on while it roasts, chilli simmering next to it". Every gesture that
+heats says its minutes as a number, the starch pot included.
+
+The run-through ends when the cooking does. Right under it, the app lists every
+container to fill and what goes in each: do not write how to portion, split or
+box, because a second version of that list is one they have to reconcile.
 
 Aim for two or three sessions in a week, not seven. Every preparation belongs to
 exactly one session: a preparation nobody cooks is a plan the student cannot
@@ -978,7 +1053,7 @@ A cooked batch is eaten within THREE DAYS of the day it was cooked. Cooked on
 Thursday means eaten by Sunday, and that is the end of it. Beyond that it is not
 a meal plan, it is a plan to throw food away or to get somebody ill.
 
-Cooked rice and cooked seafood are tighter still: same day or the day after.
+Cooked rice is tighter still: same day or the day after.
 Rice left sitting is the classic way to make somebody sick, and no amount of
 convenience is worth it.
 
@@ -1075,7 +1150,24 @@ somebody with ten minutes that dinner is out of reach, and they skip it.
 Say it on EVERY dish, including the ones where the answer is nothing. "none" and
 "cook_fresh" are answers; a missing line is a plate somebody stands in front of
 without knowing what to do. If the dish reheats, the word reheat is what they
-need to read, so write "reheat_only" and say it again plainly in "method".`,
+need to read, so write "reheat_only" and say it again plainly in "method".
+
+A dish with "uses" comes out of ONE container. At the cooking session, every
+preparation that dish draws on -- the main and its starch -- goes into the same
+container, side by side. On the day that container comes out whole: nothing
+cooked is left to bring together. So the "method" of a dish with "uses" says
+two things and only two:
+  - hot or cold. EVERY DISH WITH "uses" IS REHEATED, at lunch as at dinner:
+    say how and how long ("tip it into a covered pan, 8 min on low, with a
+    spoon of water"). The one exception is a dish composed as a cold salad from
+    the start, and then its title says it is a salad. Say it is eaten cold, and
+    nothing about what is in the container;
+  - what to do with each food the dish adds fresh that day, if it adds any:
+    how it is prepared and when it goes on the plate.
+Never name what is already in the container, and never split it again: "put
+the pork and the pasta together" or "reheat the rice in a separate pan" makes
+them redo what the session did. Eaten cold with nothing added, "same_day" is
+"none".`,
   },
   {
     key: "no_nutrition_numbers",
@@ -1251,7 +1343,7 @@ a "name" identical to the title is a line that says nothing.`,
                         "state": "raw"|"cooked"|null,
                         "part": "<id from this dish's components>" }],
       "components": [{ "id": "sauce", "role": "sauce", "part_of": "main" }],
-      "method": "how to make it, plainly, in a short paragraph",
+      "method": "how to make it, plainly, in a short paragraph; with uses: heated or cold, and what is added fresh -- the container holds the rest",
       "why": "one sentence: why THIS dish for THIS student this week",
       "density_check": <REQUIRED. kcal per 100 g you computed for this dish, cooked>,
       "uses": [{ "preparation_id": "prep_chicken", "servings": 1,
@@ -1278,7 +1370,7 @@ a "name" identical to the title is a line that says nothing.`,
   "cooking_sessions": [
     { "day": "sun", "preparation_ids": ["prep_chicken", "prep_rice"],
       "total_minutes": <minutes the whole session takes, start to finish>,
-      "run_through": "the order of the gestures, plainly" }
+      "run_through": "the order of the cooking gestures, each with its heat and its minutes; it ends when the cooking does" }
   ]
 }
 

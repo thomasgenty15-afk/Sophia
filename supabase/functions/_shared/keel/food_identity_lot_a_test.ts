@@ -589,6 +589,7 @@ Deno.test("⑤ l'ajusteur mesure ses candidates sur la MÊME identité que le mo
     }],
     baselineOf: () => null,
     now: () => 0,
+    budgetMs: 150,
   })!;
   // ⛔ LA PITA N'EST PAS VERROUILLÉE `unresolved` — elle l'était avant le lot, et
   // l'ajusteur travaillait alors sur une assiette amputée de son pain.

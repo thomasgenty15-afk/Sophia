@@ -43,63 +43,70 @@ import type {
  * PURE MODULE: aucune I/O, aucune horloge, aucun aléa, aucun `t()`.
  */
 
-/** La session dont un plat tire son lot, résolue pour l'écran. */
+/** Une session dont un plat tire au moins un lot, résolue pour l'écran. */
 export interface DishSessionView {
   /** Le jeton de jour de la session (`wed`, `sat`…). L'écran le traduit. */
   day: string;
-  /** Le déroulé de la session, tel que le modèle l'a écrit. */
-  runThrough: string;
   /**
-   * Les titres des préparations faites DANS cette session, dans son ordre.
-   * C'est ce que le plat n'avait nulle part: « le poulet, le riz et les
-   * légumes sont sortis de la même casserolée ».
-   */
-  preparations: string[];
-  /**
-   * ⚠️ L'IDENTIFIANT QUI A FAIT LE LIEN, GARDÉ ET JAMAIS AFFICHÉ.
+   * LES LOTS DE CE PLAT CUITS DANS CETTE SESSION, dans l'ordre du plat. C'est
+   * la réponse à « Quelles cuissons ? ».
    *
-   * Il ne sert pas à l'écran — un slug de lot ne veut rien dire à table — mais
-   * il rend la jointure AUDITABLE: l'écran le pose en `data-preparation-id`,
-   * donc « quelle préparation a relié ce plat à cette session » se lit dans le
-   * DOM sans relire le code. Une jointure invisible est une jointure qu'on ne
-   * sait pas prouver juste.
+   * ⚠️ `id` N'EST JAMAIS AFFICHÉ — un slug de lot ne veut rien dire à table —
+   * mais l'écran le pose en `data-preparation-id`: la jointure plat → session
+   * se lit dans le DOM sans relire le code.
    */
-  viaPreparationId: string;
+  dishPreparations: { id: string; title: string }[];
+  /**
+   * Les AUTRES préparations de la même session, dans son ordre: « le poulet,
+   * le riz et les légumes sont sortis de la même casserolée ».
+   */
+  alsoMade: string[];
 }
 
 /**
- * LA SESSION D'UN PLAT — ou `null`, et `null` est le cas COURANT.
+ * ⟳ 2026-09-25 — TOUTES LES SESSIONS D'UN PLAT, PLUS SEULEMENT LA PREMIÈRE.
  *
- * `null` pour un plat cuisiné de zéro: il n'a pas de lot, donc pas de session,
- * et son bouton ne doit pas exister. Un bouton qui ouvre un vide est pire que
- * pas de bouton.
+ * La carte portait un dépliant « La session de cuisine » qui ne nommait que la
+ * session du premier lot cité. Il est devenu un bouton « Quelles cuissons ? »
+ * qui ouvre une bulle: une bulle a la place de lister deux sessions quand le
+ * plat tire le riz du mercredi et le poulet du samedi.
  *
- * ⚠️ LA PREMIÈRE SESSION QUI CONTIENT UN DES LOTS DU PLAT, dans l'ordre du
- * PLAT. Un plat qui puise dans trois lots cuits dans DEUX sessions existe (le
- * riz du mercredi, le poulet du samedi); en nommer deux sous un plat ferait de
- * la carte une liste de sessions, ce que « discret par défaut » interdit. On
- * nomme celle du premier lot cité, qui est l'ordre dans lequel le modèle a
- * écrit le plat.
+ * `[]` pour un plat cuisiné de zéro: pas de lot, pas de session, pas de bouton.
+ *
+ * ⚠️ LES `id` INCONNUS SONT ÉCARTÉS, PAS RENDUS TELS QUELS. Un lot absent de
+ * `preparations` (plan tronqué, donnée ancienne) ne s'affiche pas en slug; un
+ * lot qu'aucune session ne revendique ne fabrique pas de session.
  */
-export function sessionForDish(
+export function sessionsForDish(
   dish: Pick<GeneratedDish, "uses">,
   sessions: readonly CookingSession[],
   preparations: readonly Pick<MealPreparation, "id" | "title">[],
-): DishSessionView | null {
+): DishSessionView[] {
+  const titleOf = (id: string) => preparations.find((p) => p.id === id)?.title ?? "";
+  const usedIds = new Set(dish.uses.map((u) => u.preparation_id));
+  const views: { session: CookingSession; view: DishSessionView }[] = [];
   for (const use of dish.uses) {
     const session = sessions.find((s) => s.preparation_ids.includes(use.preparation_id));
-    if (!session) continue;
-    return {
-      day: session.day,
-      runThrough: session.run_through,
-      // ⚠️ LES `id` INCONNUS SONT ÉCARTÉS, PAS RENDUS TELS QUELS. Une session
-      // peut citer un lot absent de `preparations` (plan tronqué, donnée
-      // ancienne): afficher `prep_chicken_bowls` à table ne veut rien dire.
-      preparations: session.preparation_ids
-        .map((id) => preparations.find((p) => p.id === id)?.title ?? "")
-        .filter((title) => title !== ""),
-      viaPreparationId: use.preparation_id,
-    };
+    const title = titleOf(use.preparation_id);
+    if (!session || title === "") continue;
+    let entry = views.find((v) => v.session === session);
+    if (!entry) {
+      entry = {
+        session,
+        view: {
+          day: session.day,
+          dishPreparations: [],
+          alsoMade: session.preparation_ids
+            .filter((id) => !usedIds.has(id))
+            .map(titleOf)
+            .filter((t) => t !== ""),
+        },
+      };
+      views.push(entry);
+    }
+    if (!entry.view.dishPreparations.some((p) => p.id === use.preparation_id)) {
+      entry.view.dishPreparations.push({ id: use.preparation_id, title });
+    }
   }
-  return null;
+  return views.map((v) => v.view);
 }

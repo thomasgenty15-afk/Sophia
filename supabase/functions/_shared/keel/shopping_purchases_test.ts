@@ -13,7 +13,9 @@
 import { assert, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import {
   MIN_DAYS_BETWEEN_SHOPS,
+  plannedShopRanks,
   purchasesForNeed,
+  shopRankFor,
   spaceShoppingDays,
   splitShoppingByUses,
 } from "./shopping_purchases.ts";
@@ -24,7 +26,7 @@ const use = (rank: number | null, gramsRaw: number | null = 100) => ({
 });
 
 Deno.test("① un usage: un achat, au plus tard possible", () => {
-  const p = purchasesForNeed({ uses: [use(4)], window: 1, lastRank: 6, shopDays: [] });
+  const p = purchasesForNeed({ uses: [use(4)], window: 1, lastRank: 6, shopDays: [], onlyShopDays: false });
   assertEquals(p.purchases.length, 1);
   assertEquals(p.purchases[0].rank, 3, "la veille de la cuisson");
   assertEquals(p.purchases[0].share, 1);
@@ -34,7 +36,7 @@ Deno.test("① un usage: un achat, au plus tard possible", () => {
 Deno.test("① bis — jamais avant le début du plan", () => {
   // ⛔ « ON N'ENVOIE PERSONNE FAIRE LES COURSES LA SEMAINE D'AVANT » — la même
   // borne que `planGroceryWaves`.
-  const p = purchasesForNeed({ uses: [use(0)], window: 3, lastRank: 6, shopDays: [] });
+  const p = purchasesForNeed({ uses: [use(0)], window: 3, lastRank: 6, shopDays: [], onlyShopDays: false });
   assertEquals(p.purchases[0].rank, 0);
 });
 
@@ -45,6 +47,7 @@ Deno.test("② DEUX cuissons éloignées: DEUX achats, et la somme des parts vau
     window: 1,
     lastRank: 6,
     shopDays: [],
+    onlyShopDays: false,
   });
   assertEquals(p.purchases.length, 2);
   assertEquals(p.counts.splits, 1);
@@ -68,6 +71,7 @@ Deno.test("② bis — DEUX cuissons PROCHES: UN seul achat les couvre", () => {
     window: 3,
     lastRank: 6,
     shopDays: [],
+    onlyShopDays: false,
   });
   assertEquals(p.purchases.length, 1);
   // ⛔ LA DATE EST CELLE DU DERNIER USAGE MOINS LA FENÊTRE: c'est le plus TÔT
@@ -92,6 +96,7 @@ Deno.test("② ter — TROIS cuissons: l'achat glouton en ouvre le moins possibl
     window: 2,
     lastRank: 6,
     shopDays: [],
+    onlyShopDays: false,
   });
   assertEquals(p.purchases.map((x) => x.rank), [0, 1, 4]);
   assertEquals(p.purchases.map((x) => x.coversRanks), [[1], [3], [6]]);
@@ -104,6 +109,7 @@ Deno.test("③ sans fenêtre (conserve, congelé): UN achat, au premier jour", (
     window: null,
     lastRank: 6,
     shopDays: [],
+    onlyShopDays: false,
   });
   assertEquals(p.purchases.length, 1);
   assertEquals(p.purchases[0].rank, 0);
@@ -117,6 +123,7 @@ Deno.test("④ un usage SANS date ne contraint rien, et il se compte", () => {
     window: 1,
     lastRank: 6,
     shopDays: [],
+    onlyShopDays: false,
   });
   assertEquals(p.counts.undated_uses, 1);
   assertEquals(p.purchases.length, 1);
@@ -129,6 +136,7 @@ Deno.test("④ bis — AUCUN usage daté: un achat au premier jour, et on le DIT
     window: 1,
     lastRank: 6,
     shopDays: [],
+    onlyShopDays: false,
   });
   assertEquals(p.purchases, [{ rank: 0, coversRanks: [], share: 1 }]);
   assertEquals(p.counts.undated_uses, 2);
@@ -142,6 +150,7 @@ Deno.test("⑤ des usages NON PESÉS répartissent à parts égales, et ça se c
     window: 1,
     lastRank: 6,
     shopDays: [],
+    onlyShopDays: false,
   });
   assertEquals(p.counts.unweighed_uses, 2);
   assertEquals(p.purchases.map((x) => x.share), [0.5, 0.5]);
@@ -155,6 +164,7 @@ Deno.test("⑥ la somme des parts vaut EXACTEMENT 1, même sur trois tiers", () 
     window: 0,
     lastRank: 6,
     shopDays: [],
+    onlyShopDays: false,
   });
   assertEquals(p.purchases.length, 3);
   assertEquals(p.purchases.reduce((n, x) => n + x.share, 0), 1);
@@ -193,6 +203,7 @@ function scinde(lignes: readonly Ligne[]) {
     splittable: (l) => l.amount !== null,
     lastRank: 6,
     shopDays: [],
+    onlyShopDays: false,
     rankOf: (l) => l.buy_on,
     withShare: (l, share, rank) => ({
       ...l,
@@ -242,6 +253,7 @@ Deno.test("⑧ les épinards du lundi vont sur la course du samedi, pas sur un v
     window: 3,
     lastRank: 5,
     shopDays: [0, 2],
+    onlyShopDays: false,
   });
   assertEquals(p.purchases.map((x) => x.rank), [0, 2]);
   assertEquals(p.purchases.map((x) => x.coversRanks), [[0], [4]]);
@@ -254,6 +266,7 @@ Deno.test("⑧ bis — sans course posée dans la fenêtre, la date d'avant", ()
     window: 1,
     lastRank: 5,
     shopDays: [0, 2],
+    onlyShopDays: false,
   });
   assertEquals(p.purchases.map((x) => x.rank), [0, 3]);
 });
@@ -267,6 +280,7 @@ Deno.test("⑧ quater — une course posée LE JOUR MÊME de l'usage ne le couvr
     window: 3,
     lastRank: 5,
     shopDays: [0, 4],
+    onlyShopDays: false,
   });
   assertEquals(p.purchases.map((x) => x.rank), [0, 1]);
 });
@@ -279,6 +293,7 @@ Deno.test("⑧ ter — une course posée APRÈS le premier usage ne le couvre pa
     window: 3,
     lastRank: 6,
     shopDays: [0, 2, 5],
+    onlyShopDays: false,
   });
   assertEquals(p.purchases.map((x) => x.rank), [2]);
 });
@@ -414,6 +429,7 @@ Deno.test("⑩ le poulet mangé dimanche ET mardi n'est plus acheté vendredi po
     splittable: () => true,
     lastRank: 5,
     shopDays: [0, 1],
+    onlyShopDays: false,
     rankOf: (l) => l.buy_on,
     withShare: (l, share, rank) => ({ ...l, amount: Math.round(l.amount * share), buy_on: rank }),
   });
@@ -432,6 +448,7 @@ Deno.test("⑩ bis — un achat unique trop tôt pour son dernier usage est REDA
     splittable: () => true,
     lastRank: 6,
     shopDays: [0],
+    onlyShopDays: false,
     rankOf: (l) => l.buy_on,
     withShare: (l, share, rank) => ({ ...l, amount: Math.round(l.amount * share), buy_on: rank }),
   });
@@ -449,9 +466,58 @@ Deno.test("⑩ ter — une ligne sans fenêtre (conserve, congelée) n'est jamai
     splittable: () => true,
     lastRank: 6,
     shopDays: [0],
+    onlyShopDays: false,
     rankOf: (l) => l.buy_on,
     withShare: (l, share, rank) => ({ ...l, amount: Math.round(l.amount * share), buy_on: rank }),
   });
   assertEquals(out.lines.map((l) => l.buy_on), [0]);
   assertEquals(out.counts.redated_single, 0);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-25 — LES COURSES CHOISIES: AUCUN JOUR NE S'AJOUTE
+//
+// Le brouillon `54aec009`: deux courses choisies, quatre faites — la scission
+// avait ouvert un lundi pour le poulet de la session de mardi. « Si le user
+// dit 3, c'est 3. »
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("⛔ `54aec009` — le poulet des trois sessions se range sur les courses choisies", () => {
+  // Rangs: 0 = vendredi, 2 = dimanche, 4 = mardi (les trois sessions).
+  const uses = [use(0, 200), use(2, 200), use(4, 200)];
+  const sessions = { sessionRanks: [0, 2, 4] };
+  const three = purchasesForNeed({ uses, window: 1, lastRank: 6, shopDays: [0, 2, 4], onlyShopDays: sessions });
+  // Chaque session achète SON poulet le matin même.
+  assertEquals(three.purchases.map((p) => p.rank), [0, 2, 4]);
+  const two = purchasesForNeed({ uses, window: 1, lastRank: 6, shopDays: [0, 2], onlyShopDays: sessions });
+  // Deux courses: le poulet de mardi vient de dimanche, dans le MÊME achat
+  // que celui de dimanche — jamais un lundi ouvert pour lui.
+  assertEquals(two.purchases.map((p) => p.rank), [0, 2]);
+  assertEquals(two.purchases.map((p) => Math.round(p.share * 3)), [1, 2]);
+  // La règle d'avant, elle, ouvrait des jours.
+  const before = purchasesForNeed({ uses, window: 1, lastRank: 6, shopDays: [0, 2], onlyShopDays: false });
+  assert(before.purchases.some((p) => ![0, 2].includes(p.rank)), JSON.stringify(before.purchases));
+});
+
+Deno.test("les jours de courses choisis: la veille, ou le matin de la session quand la veille est trop proche", () => {
+  // Sessions ven., dim., mar. (rangs 0, 2, 4).
+  assertEquals(plannedShopRanks({ sessionRanks: [0, 2, 4], runs: 3 }), [0, 2, 4]);
+  assertEquals(plannedShopRanks({ sessionRanks: [0, 2, 4], runs: 2 }), [0, 2]);
+  assertEquals(plannedShopRanks({ sessionRanks: [0, 2, 4], runs: 1 }), [0]);
+  // Sessions lun., jeu. (0, 3): la veille de jeudi, mercredi, est assez loin.
+  assertEquals(plannedShopRanks({ sessionRanks: [0, 3], runs: 2 }), [0, 2]);
+  // Deux sessions collées: une seule course possible, jamais le lendemain.
+  assertEquals(plannedShopRanks({ sessionRanks: [0, 1], runs: 2 }), [0]);
+});
+
+Deno.test("un achat rangé sur un jour imposé ne sort jamais de ces jours", () => {
+  for (const hi of [0, 1, 2, 3, 4, 5, 6]) {
+    for (const lo of [0, 1, 2, 3]) {
+      for (const sameDay of [true, false]) {
+        const out = shopRankFor({ lo: Math.min(lo, hi), hi, shopRanks: [0, 3], sameDay });
+        assert([0, 3].includes(out.rank), `${lo}/${hi}/${sameDay}`);
+        assert(out.rank <= hi || hi < 0, `acheté après son usage: ${lo}/${hi}`);
+      }
+    }
+  }
 });

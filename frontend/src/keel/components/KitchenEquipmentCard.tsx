@@ -77,7 +77,6 @@ export default function KitchenEquipmentCard(props: KitchenEquipmentCardProps) {
   );
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const [flash, setFlash] = React.useState<string | null>(null);
 
   const loaded = props.practicalConstraints !== null;
 
@@ -92,7 +91,6 @@ export default function KitchenEquipmentCard(props: KitchenEquipmentCardProps) {
    */
   async function save(next: readonly KitchenTool[]) {
     setError(null);
-    setFlash(null);
     // LE REFUS AVANT LE RÉSEAU, ET SOUS LE GESTE QUI L'A DÉCLENCHÉ.
     const plan = planKitchenEquipmentWrite(next);
     if (!plan.ok) {
@@ -110,7 +108,8 @@ export default function KitchenEquipmentCard(props: KitchenEquipmentCardProps) {
       // cette étape, le « Continuer » écrit `diet_asked` dans la MÊME colonne,
       // et fusionner sur une photo périmée l'efface — mesuré deux fois.
       await saveKitchenEquipment({ userId: uid, selection: next });
-      setFlash(t("setup.equipment.saved"));
+      // ⛔ 2026-09-25 — plus de « Enregistré. Le prochain plan est bâti
+      // là-dessus. » après l'enregistrement (retiré sur demande).
       await props.onSaved();
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -179,7 +178,6 @@ export default function KitchenEquipmentCard(props: KitchenEquipmentCardProps) {
       {/* ROUGE = ÉCHEC OU REFUS, et c'est la seule teinte d'état qui parle ici.
           `red-700` sur `paper` = 6,13:1, la valeur de `Field`. */}
       {error && <p className="text-sm text-red-700">{error}</p>}
-      {flash && <p className="text-sm text-emerald-700">{flash}</p>}
 
       {/* ⛔ ICI SE TENAIT « ENREGISTRER ». Retiré le 2026-08-19: c'était le
           dernier bouton d'enregistrement de l'entonnoir, et il ne gardait plus

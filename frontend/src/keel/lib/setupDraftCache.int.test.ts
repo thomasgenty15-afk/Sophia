@@ -83,7 +83,7 @@ function payload(over: Record<string, unknown> = {}) {
     stepIndex: 0,
     householdSize: null,
     cookingShape: null,
-    oneCookingSession: false,
+    cookingSessions: null,
     envy: "",
     envyWeek: "2026-08-31",
     ...over,

@@ -956,7 +956,7 @@ export function executedPaceFor(
  * entretien.
  *
  * ── POURQUOI CETTE FONCTION EXISTE, ET CE QU'ELLE N'AUTORISE PAS ──────────
- * `eatingOutAdvice` accepte `direction: null` en toutes lettres — « `null` =
+ * `eatingOutAdvice` (retiré le 2026-09-24) acceptait `direction: null` — « `null` =
  * maintenance: la cible EST l'entretien » — mais il exige un `ExecutedPace`, et
  * `executedPaceFor` ne peut pas en produire un sans direction NI cran. Sans ce
  * chemin-ci, le conseil du midi ne parlerait qu'aux gens qui ont un objectif ET

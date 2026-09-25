@@ -168,7 +168,6 @@ describe("MORD — la session de mercredi ne met aucun saumon en boîte", () => 
     expect(grams(l)).toEqual([["Couscous complet", 398]]);
     expect(l.total).toBe(398);
     expect(l.partial).toBe(true);
-    expect(l.restOnTheDay).toBe(false);
     expect(l.fromOtherSessions).toEqual([{ term: "Saumon, brocoli et carotte", dayLabel: "Friday" }]);
   });
 
@@ -260,10 +259,6 @@ describe("à l'écran", () => {
     const t = text(WED_POTS);
     expect(t).toContain("with Saumon, brocoli et carotte, cooked on Friday");
     expect(t).not.toContain("278");
-  });
-
-  it("la mention du jour même reste réservée aux accompagnements frais", () => {
-    expect(text(WED_POTS)).not.toContain(en["meals.boxes.rest_on_the_day"]);
   });
 
   it("les deux langues portent la mention", () => {

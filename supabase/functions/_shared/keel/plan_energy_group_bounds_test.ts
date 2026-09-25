@@ -354,7 +354,6 @@ Deno.test("L17 — `boundedKcal` est dans `kcal`, et il remonte à la journée",
       ingredients: [RICE, { term: UNKNOWN, amount: 2, unit: "g", state: "raw" }],
     }],
     preparations: [],
-    mealsOutByDay: new Map<string | null, number>(),
   });
   assertEquals(plan.dishes[0].boundedKcal, 9);
   assertEquals(plan.days[0].kcal, KNOWN_KCAL + 9);
@@ -375,7 +374,6 @@ Deno.test("L17 — `boundedKcal` se divise par `servings`, comme le total qui le
       ingredients: [RICE, { term: UNKNOWN, amount: 2, unit: "g" as const, state: "raw" as const }],
     }],
     preparations: [],
-    mealsOutByDay: new Map<string | null, number>(),
   };
   const one = planEnergy({ ...args, servings: 1 });
   const two = planEnergy({ ...args, servings: 2 });
@@ -393,7 +391,6 @@ Deno.test("L17 — une journée SANS borne porte `boundedKcal: 0`, jamais `undef
     servings: 1,
     dishes: [{ day: "mon", method: "Cook it.", uses: [], ingredients: [RICE] }],
     preparations: [],
-    mealsOutByDay: new Map<string | null, number>(),
   });
   assertEquals(plan.days[0].boundedKcal, 0);
   assertEquals(plan.dishes[0].boundedKcal, 0);
@@ -418,7 +415,6 @@ Deno.test("L17 — `planEnergyAtTolerance(…, 0)` rend l'état d'AVANT le lot",
       { day: "tue", method: "Cook it.", uses: [], ingredients: [RICE] },
     ],
     preparations: [],
-    mealsOutByDay: new Map<string | null, number>(),
   };
   const armed = planEnergyAtTolerance(args, 0.05);
   const before = planEnergyAtTolerance(args, 0);

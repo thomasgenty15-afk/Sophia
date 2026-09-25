@@ -722,11 +722,13 @@ Deno.test("⛔ LOT C — UNE course + congélateur: UNE vague, et le poulet est 
   assertEquals(waves[0].freezeOnPurchase.map((i) => i.term), ["poulet"]);
 });
 
-Deno.test("⛔ LOT C — LA CONTRE-ÉPREUVE: sans congélateur, on ne replie PAS", () => {
-  // Replier ici ferait acheter lundi un poulet cuisiné samedi, sans rien pour
-  // le garder. La cadence demandée cède devant la conservation, et c'est le bon
-  // ordre: un plan qui tient sur le papier et pourrit dans le frigo est pire
-  // qu'une course de plus.
+Deno.test("⛔ LOT C — sans congélateur, rien n'est congelé, et le nombre choisi tient", () => {
+  // ⟳ 2026-09-25 (soir) — RENVERSÉ par le propriétaire: « si le user dit 3,
+  // c'est 3 ». La cadence ne cède plus devant la conservation: c'est la
+  // CONSIGNE qui empêche en amont un poulet frais loin de sa course
+  // (`raw_keeping.ts`), et la garde achat → assiette qui compte le reste. Une
+  // seule course sur sept jours sans congélateur n'est de toute façon ni
+  // proposée ni dérivée (`runs_1_needs_freezer`).
   const waves = planGroceryWaves({
     startsOn: MONDAY,
     durationDays: 7,
@@ -735,7 +737,7 @@ Deno.test("⛔ LOT C — LA CONTRE-ÉPREUVE: sans congélateur, on ne replie PAS
     shoppingList: TWO_LINES,
     preparations: LATE_COOK,
   });
-  assertEquals(waves.length, 2);
+  assertEquals(waves.length, 1);
   for (const w of waves) assertEquals(w.freezeOnPurchase, []);
 });
 
@@ -1005,7 +1007,15 @@ Deno.test("⟳ 2026-09-19 — un ingrédient d'un plat SANS casserole est daté 
     ],
   });
   assertEquals(needs.map((n) => n.id), ["p1", "dish:0"]);
-  assertEquals(needs[1], { id: "dish:0", cookOn: "fri", ingredientTerms: ["mûres", "yaourt"] });
+  // ⟳ 2026-09-25 — les jours de repas voyagent avec le besoin: la casserole
+  // p1 est mangée samedi, le bol se mange le jour où il est assemblé.
+  assertEquals(needs[0].eatenOn, ["sat"]);
+  assertEquals(needs[1], {
+    id: "dish:0",
+    cookOn: "fri",
+    ingredientTerms: ["mûres", "yaourt"],
+    eatenOn: ["fri"],
+  });
 
   const waves = planGroceryWaves({
     startsOn: MONDAY,
@@ -1048,7 +1058,11 @@ Deno.test("⛔ CÂBLAGE — le handler date les courses avec les besoins du PLAN
   // Et la RE-datation après réparation relit le plan COURANT, pas celui du
   // premier jet : une réparation qui ajoute un bol du vendredi doit dater ses
   // mûres comme le premier jet aurait daté les siennes.
-  assertEquals((src.match(/preparations: waveNeedsNow\(\),/g) ?? []).length, 2);
+  // ⟳ 2026-09-25 — CINQ: les deux datations, la chaîne cuisson → repas des
+  // deux passes finales (`mealChainsByTerm`), la garde achat → assiette
+  // (`plateWindowReport`) et les jours de courses choisis
+  // (`plannedShopDatesForPlan`). Toutes lisent les MÊMES besoins.
+  assertEquals((src.match(/preparations: waveNeedsNow\(\),/g) ?? []).length, 5);
 });
 
 
@@ -1147,15 +1161,15 @@ Deno.test("repli — à égalité de couverture, la date qui n'abandonne aucun i
       { id: "p3", cookOn: "sun", ingredientTerms: ["laitue"] },
     ],
   });
-  // Poulet (fenêtre 2, cuisson mercredi): lundi..mercredi — il tient au frais
-  // depuis la première course. Laitue (fenêtre 5 depuis le 2026-09-24,
-  // cuisson dimanche): mardi..dimanche, incongelable. La seule date en plus va
-  // donc à la laitue, la plus tôt: deux courses, rien au congélateur, aucune
-  // vague à part. (La lane l'éloigne ensuite d'un jour: `spaceShoppingDays`.)
-  assertEquals(waves.map((w) => w.buyOn), ["2026-09-21", "2026-09-22"]);
-  assertEquals(waves[0].items.map((i) => i.term).sort(), ["poulet", "riz"]);
+  // ⟳ 2026-09-25 (soir) — LA CONSERVATION TIENT EN DEUX COURSES, donc il n'y
+  // a pas de repli: ce sont les deux courses choisies, aux jours que la
+  // consigne dit au modèle (`plannedShopDatesForPlan`) — lundi, et mercredi
+  // matin (mardi est à moins de deux jours de lundi). Le poulet de mercredi et
+  // la laitue de dimanche y sont frais; rien au congélateur.
+  assertEquals(waves.map((w) => w.buyOn), ["2026-09-21", "2026-09-23"]);
+  assertEquals(waves[0].items.map((i) => i.term), ["riz"]);
   assertEquals(waves.flatMap((w) => w.freezeOnPurchase), []);
-  assertEquals(waves[1].items.map((i) => i.term), ["laitue"]);
+  assertEquals(waves[1].items.map((i) => i.term).sort(), ["laitue", "poulet"]);
   assertEquals(waves.flatMap((w) => w.keptForFreshness), []);
 });
 

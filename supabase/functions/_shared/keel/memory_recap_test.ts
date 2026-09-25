@@ -20,7 +20,7 @@ import {
   settingRecapLine,
 } from "./memory_recap.ts";
 // ⛔ LES VOCABULAIRES VIENNENT DE LEUR PROPRE MODULE, jamais recopiés ici.
-import { COOKING_STYLES } from "./cooking_plan.ts";
+import { SESSION_TIME_BOUNDS } from "./cooking_plan.ts";
 import { RECIPE_DIFFICULTIES, VARIETY_LEVELS } from "./retained_item.ts";
 import { APPETITE_LEVELS } from "./tokens.ts";
 import { SIDE_COURSE_KINDS, SIDE_COURSE_SLOTS } from "./side_courses_types.ts";
@@ -409,16 +409,18 @@ Deno.test("CÂBLAGE — les deux producteurs d'un accusé de préférence passen
 // jetons anglais imprimés tels quels dans une phrase française.
 // ═══════════════════════════════════════════════════════════════════════════
 
-Deno.test("⛔ `cooking_style` N'EST PLUS TU — c'est le champ que le bilan déplace le plus", () => {
-  const line = settingRecapLine(
-    { field: "cooking_style", previous: "balanced", next: "keen" },
-    "fr",
+Deno.test("⟳ 2026-09-25 — `cooking_style` RETOMBE dans le silence: son écran est parti", () => {
+  // Le bilan ne le déplace plus (c'est la plage de temps qui bouge), et un
+  // ancien déplacement annoncé mènerait sur un écran où la ligne n'est pas.
+  assertEquals(
+    settingRecapLine({ field: "cooking_style", previous: "balanced", next: "keen" }, "fr"),
+    null,
   );
-  assert(
-    line !== null,
-    "le champ le plus fréquemment déplacé retombe encore sur `field_not_announced`",
+  // Le champ qui le remplace, lui, se dit — avec son unité.
+  assertEquals(
+    settingRecapLine({ field: "cooking_time_min", previous: 120, next: 60 }, "fr"),
+    "Temps de cuisine : de 2 h à 1 h",
   );
-  assert(line!.includes("Style de cuisine"), line!);
 });
 
 Deno.test("une échelle fermée se dit dans la langue de qui lit", () => {
@@ -441,7 +443,8 @@ Deno.test("une échelle fermée se dit dans la langue de qui lit", () => {
 // deviner dans la phrase: en anglais le libellé est souvent le jeton lui-même.
 Deno.test("CÂBLAGE — chaque jeton des trois échelles a son libellé, fr ET en", () => {
   const scales: ReadonlyArray<[string, readonly string[]]> = [
-    ["cooking_style", COOKING_STYLES],
+    // ⟳ 2026-09-25 — la plage de temps remplace le style: ses cinq bornes.
+    ["cooking_time_min", SESSION_TIME_BOUNDS.map(String)],
     ["recipe_difficulty", RECIPE_DIFFICULTIES],
     ["variety", VARIETY_LEVELS],
     // ⟳ 2026-09-08 — la quatrième échelle: une phrase la déplace d'un cran.
@@ -467,14 +470,16 @@ Deno.test("CÂBLAGE — chaque jeton des trois échelles a son libellé, fr ET e
 // l'assertion précédente sait dire non. Sans elle, elle pourrait être vraie par
 // construction et ne rien mesurer.
 Deno.test("un cran inconnu n'a aucun libellé — et retombe sur lui-même dans la phrase", () => {
-  assertEquals(fieldValueLabel("cooking_style", "obsessive", "fr"), null);
+  assertEquals(fieldValueLabel("recipe_difficulty", "obsessive", "fr"), null);
   assertEquals(
     settingRecapLine(
-      { field: "cooking_style", previous: "balanced", next: "obsessive" },
+      { field: "recipe_difficulty", previous: "normal", next: "obsessive" },
       "fr",
     ),
-    "Style de cuisine : d'équilibré à obsessive",
+    "Difficulté des recettes : de normale à obsessive",
   );
+  // Une durée d'avant les plages n'est pas un barreau: elle sort telle quelle.
+  assertEquals(fieldValueLabel("cooking_time_min", 45, "fr"), null);
 });
 
 Deno.test("⛔ UN CHAMP SANS ÉCRAN RESTE TU — la garde n'a pas été désarmée", () => {
@@ -496,16 +501,18 @@ Deno.test("un nombre traverse inchangé, et une absence d'avant ne se dit pas �
     settingRecapLine({ field: "variety", previous: "", next: "varied" }, "fr"),
     "Variété : variée",
   );
+  // ⟳ 2026-09-25 — une borne de plage porte son unité; une valeur d'avant les
+  // plages traverse inchangée.
   assertEquals(
     settingRecapLine({ field: "cooking_time_min", previous: 30, next: 45 }, "fr"),
-    "Temps de cuisine : de 30 à 45",
+    "Temps de cuisine : de 30 min à 45",
   );
 });
 
 Deno.test("« de » s'élide devant une voyelle — mesuré: « de équilibré à minimal »", () => {
   assertEquals(
-    settingRecapLine({ field: "cooking_style", previous: "balanced", next: "minimal" }, "fr"),
-    "Style de cuisine : d'équilibré à minimal",
+    settingRecapLine({ field: "recipe_difficulty", previous: "keen", next: "normal" }, "fr"),
+    "Difficulté des recettes : d'ambitieuse à normale",
   );
   assertEquals(
     settingRecapLine({ field: "appetite", previous: "average", next: "small" }, "fr"),
@@ -513,8 +520,8 @@ Deno.test("« de » s'élide devant une voyelle — mesuré: « de équilibré �
   );
   // L'anglais n'élide pas.
   assertEquals(
-    settingRecapLine({ field: "cooking_style", previous: "balanced", next: "minimal" }, "en"),
-    "Cooking style: from balanced to minimal",
+    settingRecapLine({ field: "recipe_difficulty", previous: "keen", next: "normal" }, "en"),
+    "Recipe difficulty: from keen to normal",
   );
 });
 

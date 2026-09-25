@@ -1,18 +1,25 @@
 import React from "react";
 
-import { type DishSameDay, type GeneratedDish } from "../api/mealGeneration";
+import {
+  type DishIngredient,
+  type DishSameDay,
+  type DishSideCourseKind,
+  type GeneratedDish,
+} from "../api/mealGeneration";
 import { type BoxEnergyView, type DishEnergyView } from "../api/mealEnergy";
 import { dishDayLabel, dishSlotLabel, mealCopy } from "../api/mealLabels";
 import { MEAL_UNTICK_FORM_REASONS } from "../api/mealTicks";
 import { type DishSessionView } from "../lib/dishSession";
-import { type BoxLine, looseSideLinesForDish } from "../lib/mealBoxes";
+import { type BoxLine, dishSideSummary, looseSideLinesForDish } from "../lib/mealBoxes";
 // ⟳ LOT C (2026-09-11) — la quantité vient de la donnée structurée finale.
 // Ici le périmètre est le PLAT: ce sont les lignes fraîches de l'assiette,
 // pas le lot d'une casserole. Voir `lib/ingredientQuantity.ts`.
+import { foodIconOf } from "../lib/foodIcon";
 import { ingredientQuantityText } from "../lib/ingredientQuantity";
 import { type DishTick, type UntickPrompt } from "../lib/useMealTicks";
 import { BoxTable } from "./plan/BoxTable";
 import { DishEnergyLine } from "./plan/EnergyReadout";
+import AnchoredPanel from "./ui/AnchoredPanel";
 import { Badge } from "./ui/Badge";
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
@@ -99,6 +106,12 @@ export interface DishReplaceControl {
   canReplace: boolean;
   onReplace: () => void;
   onKeep: () => void;
+  /**
+   * ⟳ 2026-09-24 — LA BULLE DE CE PLAT (raison, puis « ça vaut aussi
+   * pour… »), rendue sous son bouton. `null`/absent = fermée. Une seule carte
+   * la porte à la fois: celle dont on a cliqué le bouton.
+   */
+  panel?: React.ReactNode;
 }
 
 /** Le kcal d'un contenant à UN nom, lu comme celui du plat quand cette personne est seule à table. */
@@ -114,12 +127,11 @@ export default function DishCard(
     sources = [],
     energy = null,
     boxEnergy,
-    session = null,
+    sessions = [],
     slotBadge,
     boxes = [],
     eaters = [],
     shares = [],
-    collapsible = false,
     compact = false,
     replace = null,
   }: {
@@ -201,16 +213,17 @@ export default function DishCard(
     eaters?: readonly { memberId: string; name: string }[];
     shares?: readonly { memberId: string; name: string | null; note: string }[];
     /**
-     * LA SESSION DE CUISINE DONT CE PLAT TIRE SON LOT — résolue par l'appelant.
+     * LES SESSIONS DE CUISINE DONT CE PLAT TIRE SES LOTS — résolues par
+     * l'appelant (`sessionsForDish`).
      *
-     * `null` est le défaut ET le cas le plus fréquent: un plat cuisiné de zéro
-     * n'a pas de lot, donc pas de session, donc pas de bouton. C'est aussi ce
-     * que reçoit tout appelant qui ne tient pas les sessions (`/app/today`,
-     * qui rend la journée et non le planning) — la carte ne va PAS les
-     * chercher elle-même: elle serait alors un second lecteur du même plan,
-     * et deux lecteurs finissent par se contredire.
+     * `[]` est le défaut ET le cas le plus fréquent: un plat cuisiné de zéro
+     * n'a pas de lot, donc pas de session, donc pas de bouton « Quelles
+     * cuissons ? ». C'est aussi ce que reçoit tout appelant qui ne tient pas
+     * les sessions (`/app/today`, qui rend la journée et non le planning) — la
+     * carte ne va PAS les chercher elle-même: elle serait alors un second
+     * lecteur du même plan, et deux lecteurs finissent par se contredire.
      */
-    session?: DishSessionView | null;
+    sessions?: readonly DishSessionView[];
     /**
      * FF-059 — L'ÉNERGIE DE CE PLAT, quand les quatre portes sont ouvertes.
      *
@@ -226,32 +239,10 @@ export default function DishCard(
     energy?: DishEnergyView | null;
     /** ⟳ 2026-09-04 — le kcal d'un contenant à UN nom, rendu par `BoxTable`. */
     boxEnergy?: (boxId: string) => BoxEnergyView | null;
-    /**
-     * ══════════════════════════════════════════════════════════════════════
-     * LA CARTE SE REPLIE — sur `/app/plan` et sur l'aperçu, jamais ailleurs.
-     * ══════════════════════════════════════════════════════════════════════
-     *
-     * ── LE DÉFAUT (2026-09-22) ───────────────────────────────────────────
-     * Un plan de sept jours empile jusqu'à vingt-six de ces cartes, et chacune
-     * rend désormais ses contenants, ses doses par personne, ses ingrédients et
-     * sa provenance. La page se lit au défilement: pour savoir ce qu'on mange
-     * jeudi il faut traverser les grammages de lundi.
-     *
-     * Ce qui reste à découvert est ce qu'on lit pour SAVOIR CE QU'ON MANGE: le
-     * titre, le geste du jour et sa durée, la part à sortir du congélateur.
-     * Ce qui se replie est ce qu'on lit pour CUISINER — on l'ouvre devant le
-     * plan de travail, pas en balayant la semaine.
-     *
-     * ⚠️ FAUX PAR DÉFAUT, et c'est `/app/today` qui le veut: cette page-là rend
-     * LA journée, le détail y est le sujet, et un pli y ferait cliquer trois
-     * fois pour lire trois plats.
-     *
-     * ⚠️ LE PLI CACHE, IL NE DÉMONTE PAS. Le détail reste dans le DOM sous
-     * `hidden` — l'idiome natif du dépliant, qui le retire aussi de l'arbre
-     * d'accessibilité. Un rendu conditionnel aurait fait disparaître du DOM des
-     * grammages que ce dépôt vérifie justement par le DOM.
-     */
-    collapsible?: boolean;
+    // ⛔ 2026-09-25 — `collapsible` (« Voir le détail » / « Masquer le
+    // détail ») EST RETIRÉ, sur demande: « l'étape "Voir détail" sur les
+    // cartes de repas n'est pas nécessaire ». La carte rend tout son détail;
+    // sur l'aperçu, c'est la ligne compacte qui s'ouvre (`compact`).
     /**
      * ══════════════════════════════════════════════════════════════════════
      * ⟳ 2026-09-24 — UNE LIGNE PAR PLAT, SUR L'APERÇU.
@@ -261,10 +252,11 @@ export default function DishCard(
      * grammages — le but est une lecture rapide du plan, parfois à huit
      * personnes ». Fermée, la carte ne rend que son titre (qui porte déjà les
      * ingrédients), son chiffre et « Remplacer ». Ouverte, elle redevient la
-     * carte d'avant — geste du jour, puis « Voir le détail » (`collapsible`).
+     * carte entière — geste du jour, contenants, ingrédients.
      *
      * ⚠️ FAUX PAR DÉFAUT: `/app/plan` et `/app/today` ne changent pas.
-     * ⚠️ LE PLI CACHE, IL NE DÉMONTE PAS — même règle que `collapsible`.
+     * ⚠️ LE PLI CACHE, IL NE DÉMONTE PAS: le corps reste dans le DOM sous
+     * `hidden`, qui le retire aussi de l'arbre d'accessibilité.
      */
     compact?: boolean;
     /** Voir `DishReplaceControl`. `null` = pas de remplacement ici (le défaut). */
@@ -299,30 +291,12 @@ export default function DishCard(
    * cas du plan solo, où la division vaut 1 — sauf si les mangeurs nommés
    * sont plusieurs.
    */
-  /**
-   * ⟳ 2026-09-22 — L'ÉTAT DU PLI VIT ICI, et pas dans un sous-composant comme
-   * `SessionLink`. La raison qui a sorti l'état de la session ne vaut pas ici:
-   * elle n'existait que sur les plats QUI ONT une session, donc sur une
-   * minorité de cartes, alors que le pli existe sur toutes celles de `/app/plan`.
-   * Un booléen par carte, c'est exactement ce que la page a besoin de retenir —
-   * et chaque carte garde le sien, sinon ouvrir jeudi ouvrirait lundi.
-   */
-  const [detailOpen, setDetailOpen] = React.useState(false);
-  const detailId = React.useId();
   const soloLine = boxes.length === 1 && !boxes[0].shared ? boxes[0] : null;
   const titleEnergy: DishEnergyView | null = boxes.length === 0
     ? (eaters.length > 1 ? null : energy)
     : soloLine !== null && boxEnergy
     ? energyOfBox(boxEnergy(soloLine.id))
     : null;
-  /**
-   * Y A-T-IL SEULEMENT QUELQUE CHOSE À OUVRIR ?
-   *
-   * Un plat sans provenance, sans contenant, sans ingrédient ajouté et sans
-   * session n'a RIEN sous le pli: un bouton « voir le détail » y ouvrirait du
-   * vide, ce qui est la même faute qu'un libellé au-dessus du vide ailleurs
-   * sur cette carte.
-   */
   /**
    * ══════════════════════════════════════════════════════════════════════
    * ⟳ 2026-09-22 — LA LISTE DU BAS EST LE TOTAL DE LA TABLE, PAS UNE PART.
@@ -346,8 +320,60 @@ export default function DishCard(
    * ⛔ RIEN NE CHANGE SUR UN PLAT EN BOÎTES (`uses` non vide). Là, la liste
    * du bas porte déjà son titre « en plus du lot » et dit autre chose que les
    * couvercles: ce qu'on AJOUTE le jour même. Elle n'a jamais été un doublon.
+   * (⟳ 2026-09-25 — sur une boîte à un nom, elle monte dans le geste du jour:
+   * voir `takeOut` juste en dessous.)
    */
   const doses = dish.uses.length === 0 && boxes.length > 0;
+  /**
+   * ══════════════════════════════════════════════════════════════════════
+   * ⟳ 2026-09-25 — UN REPAS SORTI D'UNE BOÎTE: SORTIR LA BOÎTE, PUIS AJOUTER.
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * ── LE DÉFAUT, LU SUR LE PLAN DE mathilde (brouillon `8ad9dec6`) ──────
+   * Samedi, le Boxing remplit la boîte « Lundi Déjeuner » avec le porc ET les
+   * pâtes. Lundi, la carte disait « À assembler — Assembler froids le filet
+   * de porc aux légumes et les pâtes. Ajouter l'huile d'olive et le parmesan
+   * râpé », puis « Les boîtes à sortir » avec le couvercle, puis « À ajouter
+   * au moment de servir » avec l'huile et le parmesan. Le plat et le féculent
+   * étaient réunis deux fois, l'huile et le parmesan dits deux fois, et la
+   * seule consigne utile — sortir CETTE boîte — était à part, en bas.
+   *
+   * ── CE QUI CHANGE ────────────────────────────────────────────────────
+   * `boxedMeal`: le repas tire sur des casseroles ET porte une boîte. Le
+   * libellé `assemble` y devient « À compléter » (des ajouts frais) ou « À
+   * servir » (aucun): la boîte est déjà assemblée. Vrai pour une boîte comme
+   * pour plusieurs.
+   * `takeOut`: UNE boîte à UN nom, et un geste déclaré. Le geste du jour dit
+   * alors, dans l'ordre, la boîte à sortir, la phrase du modèle, puis les
+   * ajouts avec leurs quantités — et le bloc « Les boîtes à sortir » et la
+   * liste du bas ne se rendent plus: ils diraient la même chose une seconde
+   * fois. Le kcal de cette boîte est déjà sous le titre (`titleEnergy`).
+   *
+   * ⚠️ PLUSIEURS BOÎTES, OU UN BAC À PLUSIEURS NOMS: rien ne monte. Les
+   * couvercles y portent les prénoms et « pour n », que le geste du jour ne
+   * dirait pas.
+   * ⚠️ `same_day: null` (plan d'avant le 2026-08-17): rien ne monte non plus,
+   * faute de geste où monter.
+   * ⚠️ `meal` vide (plat sans jour ni moment): pas de nom à citer, le
+   * couvercle reste à sa place.
+   */
+  const boxedMeal = dish.uses.length > 0 && boxes.length > 0;
+  // ⚠️ LA MÊME GARDE QUE LE RENDU DU GESTE (`{dish.same_day && …}`), par
+  // vérité et pas `!== null`: un plat relu sans la clé rendrait sinon le
+  // couvercle muet sans rien monter à sa place.
+  const takeOut = dish.same_day && boxedMeal && soloLine !== null && soloLine.meal !== ""
+    ? soloLine
+    : null;
+  // Ce que `SameDayLine` reçoit en plus du jeton et de la phrase. Un objet
+  // étalé garde la ligne de rendu que `dishSession.int.test.ts` et
+  // `dishSameDay.int.test.ts` lisent dans ce fichier. `sides` est posé plus
+  // bas, une fois les lignes d'à-côtés calculées.
+  const boxedHead = {
+    boxed: boxedMeal,
+    hasAdds: dish.ingredients.length > 0,
+    takeOutMeal: takeOut?.meal ?? null,
+    adds: takeOut !== null ? dish.ingredients : [],
+  };
   /**
    * ⟳ 2026-09-23 — LES À-CÔTÉS QU'AUCUN COUVERCLE DE CETTE CARTE NE PORTE.
    *
@@ -358,18 +384,94 @@ export default function DishCard(
    * seconde lecture du plan.
    */
   const looseSides = looseSideLinesForDish(dish, eaters);
-  const hasDetail = sources.length > 0 || boxes.length > 0 ||
-    eaters.length > 0 || shares.length > 0 || servedFrom !== null ||
-    dish.ingredients.length > 0 || session !== null || looseSides.length > 0;
-  const folded = collapsible && hasDetail && !detailOpen;
+  /**
+   * ⟳ 2026-09-25 — LES À-CÔTÉS MONTENT SOUS LE TITRE (retour du propriétaire:
+   * « le à côté devrait presque être dans le titre, en deuxième ligne »).
+   * Ceux des couvercles et ceux sans boîte, en une seule liste.
+   *
+   * LE PRÉNOM SE DIT DÈS QUE PLUS D'UNE BOUCHE MANGE CE REPAS: sous le titre,
+   * aucun couvercle n'est plus là pour dire à qui est le fromage.
+   */
+  const sideRows = dishSideSummary(boxes, looseSides);
+  const mouths = boxes.length > 0
+    ? boxes.reduce((n, box) => n + box.eaterCount, 0)
+    : eaters.length;
+  const namedSides = mouths > 1 || sideRows.length > 1;
+  /**
+   * ⟳ 2026-09-25 — LES À-CÔTÉS PAR TYPE, AVEC LEUR QUANTITÉ, DANS LE GESTE DU
+   * JOUR — sur l'aperçu seulement (retour du propriétaire: « l'à côté, on ne
+   * l'a pas en termes de quantité »). Sur l'aperçu, la ligne du titre ne porte
+   * que les noms (« clémentine, pain complet »); ouverte, la carte dit « Pour
+   * accompagner : pain complet ~30 g », « En dessert : 2 × clémentine ».
+   * Ailleurs, la ligne du titre porte déjà les quantités: les redire ici
+   * ferait deux fois la même liste.
+   */
+  const headSides = compact
+    ? sideRows.map((row) => ({
+      memberId: row.memberId,
+      name: namedSides ? row.name : null,
+      kinds: row.kinds,
+    }))
+    : [];
   // ⟳ 2026-09-24 — LA LIGNE DE L'APERÇU (`compact`): fermée, le titre seul.
   const [rowOpen, setRowOpen] = React.useState(false);
   const rowId = React.useId();
+  /**
+   * ⟳ 2026-09-25 — TOUTE LA CARTE OUVRE LA LIGNE, « partout sauf Changer »
+   * (retour du propriétaire: seul le titre répondait, et l'anneau de focus le
+   * montrait). Le bouton du titre reste LE contrôle — clavier, lecteur d'écran,
+   * `aria-expanded`; ce clic-ci n'est qu'un confort de souris, sur la surface.
+   *
+   * ⚠️ UN CONTRÔLE GARDE SON GESTE: un clic sur un bouton (celui du titre
+   * compris, qui bascule déjà), un lien, un champ ou la bulle de « Changer »
+   * ne passe pas par ici.
+   * ⚠️ OUVERTE, SEULE LA TÊTE REFERME (titre et « À côté »): on lit le corps
+   * et on y clique sans que la carte se replie sous la souris.
+   * ⚠️ UN TEXTE SÉLECTIONNÉ N'EST PAS UN CLIC.
+   */
+  const onCardClick = compact
+    ? (event: React.MouseEvent<HTMLElement>) => {
+      const target = event.target as HTMLElement;
+      if (
+        target.closest(
+          "button, a, input, select, textarea, label, [role=dialog], [data-no-row-toggle]",
+        )
+      ) return;
+      if (rowOpen && !target.closest("[data-row-head]")) return;
+      if (window.getSelection()?.toString()) return;
+      setRowOpen((v) => !v);
+    }
+    : undefined;
   const struck = replace?.struck ?? null;
+  // ⟳ 2026-09-25 — L'ICÔNE DU PLAT, tirée de son aliment principal
+  // (`main_food`). `null` sur un plan d'avant: la ligne reste celle d'avant.
+  const foodIcon = foodIconOf(dish.main_food);
+  const foodIconBadge = foodIcon === null ? null : (
+    <span
+      aria-hidden="true"
+      data-dish-icon
+      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-paper-2 text-base leading-none"
+    >
+      {foodIcon}
+    </span>
+  );
 
   return (
-    <Card>
-      <div className="flex flex-wrap items-center gap-2">
+    <Card
+      onClick={onCardClick}
+      // ⟳ 2026-09-25 — SUR L'APERÇU, LA CARTE ENTIÈRE EST LA CIBLE: le survol,
+      // le curseur et l'anneau de focus du bouton du titre sont portés par la
+      // carte (fermée), pas par la seule ligne du titre.
+      className={compact
+        ? `group/row has-[[data-row-toggle]:focus-visible]:outline-2 has-[[data-row-toggle]:focus-visible]:outline-offset-2 has-[[data-row-toggle]:focus-visible]:outline-fig-600 ${
+          rowOpen ? "" : "cursor-pointer transition-colors hover:bg-paper-2"
+        }`
+        : ""}
+    >
+      <div
+        data-row-head={compact || undefined}
+        className={`flex flex-wrap items-center gap-2 ${compact ? "cursor-pointer" : ""}`}
+      >
         {compact
           ? (
             // LA LIGNE ENTIÈRE EST LE BOUTON — titre ET chiffre: c'est elle
@@ -386,14 +488,15 @@ export default function DishCard(
               aria-expanded={rowOpen}
               aria-controls={rowId}
               onClick={() => setRowOpen((v) => !v)}
-              className="group -m-1 flex min-h-6 min-w-0 flex-1 items-center gap-2.5 rounded-part p-1 text-left hover:bg-paper-2"
+              data-row-toggle
+              className="-m-1 flex min-h-6 min-w-0 flex-1 items-center gap-2.5 rounded-part p-1 text-left"
             >
               <span
                 aria-hidden="true"
                 className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border transition-colors ${
                   rowOpen
                     ? "border-fig-700 bg-fig-50 text-fig-700"
-                    : "border-line-strong text-ink-soft group-hover:border-ink group-hover:text-ink"
+                    : "border-line-strong text-ink-soft group-hover/row:border-ink group-hover/row:text-ink"
                 }`}
               >
                 <svg
@@ -408,6 +511,7 @@ export default function DishCard(
                   <path d="M6 3.5 10.5 8 6 12.5" />
                 </svg>
               </span>
+              {foodIconBadge}
               {/* LE CHIFFRE SUIT LE DERNIER MOT DU TITRE, dans le même fil:
                   en colonne à part, il prenait sa largeur au titre — quatre
                   lignes pour un plat à 375 px. */}
@@ -425,7 +529,12 @@ export default function DishCard(
               </span>
             </button>
           )
-          : <span className="font-medium text-ink">{dish.title}</span>}
+          : (
+            <>
+              {foodIconBadge}
+              <span className="font-medium text-ink">{dish.title}</span>
+            </>
+          )}
         {slotBadge && dish.slot && (
           <Badge tone="neutral">{dishSlotLabel(dish.slot)}</Badge>
         )}
@@ -463,27 +572,86 @@ export default function DishCard(
             palette ira très bien ». Les gris du bouton secondaire (`Button`):
             bord `line-strong` (3,84:1, seuil d'un contrôle), texte `ink-soft`
             (6,11:1), survol `fig-50`. */}
-        {replace && (struck === null
-          ? (
-            <button
-              type="button"
-              onClick={replace.onReplace}
-              disabled={!replace.canReplace}
-              className="ml-auto min-h-6 shrink-0 rounded-part border border-line-strong px-2 py-0.5 text-xs font-medium text-ink-soft hover:bg-fig-50 hover:text-ink disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {mealCopy("meals.dish.replace")}
-            </button>
-          )
-          : (
-            <button
-              type="button"
-              onClick={replace.onKeep}
-              className="ml-auto min-h-6 shrink-0 text-xs font-medium text-ink-soft underline underline-offset-2 hover:text-ink"
-            >
-              {mealCopy("meals.dish.keep")}
-            </button>
-          ))}
+        {/* ⟳ même jour — LA BULLE SORT DU BOUTON: le bouton et sa bulle
+            (`replace.panel`) partagent un conteneur `relative`, qui est aussi
+            la frontière du « clic ailleurs » (`AnchoredPanel`). Le conteneur
+            prend TOUTE la hauteur de la ligne (`self-stretch`), bouton centré:
+            la bulle s'ouvre sous la ligne, jamais sur un titre de trois lignes. */}
+        {replace && (
+          // `data-no-row-toggle`: la marge autour de « Changer » n'ouvre pas la
+          // carte non plus — « partout sauf Changer ».
+          <span
+            data-no-row-toggle
+            className="relative ml-auto flex shrink-0 cursor-auto items-center self-stretch"
+          >
+            {struck === null
+              ? (
+                <button
+                  type="button"
+                  onClick={replace.onReplace}
+                  disabled={!replace.canReplace}
+                  aria-haspopup="dialog"
+                  aria-expanded={replace.panel != null}
+                  className={`min-h-6 rounded-part border px-2 py-0.5 text-xs font-medium hover:bg-fig-50 hover:text-ink disabled:cursor-not-allowed disabled:opacity-50 ${
+                    replace.panel != null ? "border-ink bg-fig-50 text-ink" : "border-line-strong text-ink-soft"
+                  }`}
+                >
+                  {mealCopy("meals.dish.replace")}
+                </button>
+              )
+              : (
+                <button
+                  type="button"
+                  onClick={replace.onKeep}
+                  className="min-h-6 text-xs font-medium text-ink-soft underline underline-offset-2 hover:text-ink"
+                >
+                  {mealCopy("meals.dish.keep")}
+                </button>
+              )}
+            {replace.panel}
+          </span>
+        )}
       </div>
+      {/* ══════════════════════════════════════════════════════════════════
+          ⟳ 2026-09-25 · « À CÔTÉ », LA DEUXIÈME LIGNE DU TITRE.
+          ══════════════════════════════════════════════════════════════════
+          Hors du pli ET hors de la ligne compacte de l'aperçu: ce qu'on mange
+          avec le plat se lit en balayant la semaine, pas en ouvrant chaque
+          carte (« il faudrait que l'à côté ressorte »). Le libellé est en
+          encre pleine, les aliments en gris: c'est lui qu'on repère.
+
+          ⚠️ SUR L'APERÇU (`compact`), LES ALIMENTS SEULS, SANS GRAMMES — la
+          règle de la ligne compacte (« les titres, sans grammages »). Ailleurs
+          les grammes restent (« comté ~30 g »): le tilde dit que c'est un
+          repère, pas une pesée. Décalé sous le titre, après la pastille.
+          ⛔ AUCUNE PROVENANCE: rien ne dit si l'aliment vient du modèle ou de
+          la liste de secours. */}
+      {sideRows.length > 0 && (
+        <div
+          data-dish-sides
+          data-row-head={compact || undefined}
+          // Décalé sous le titre: pastille (24 px) + écart (10 px), et l'icône
+          // (28 px + 10 px) quand le plat en a une.
+          className={`mt-1 flex flex-col gap-0.5 ${
+            compact ? `cursor-pointer ${foodIconBadge === null ? "pl-[34px]" : "pl-[72px]"}` : ""
+          }`}
+        >
+          {sideRows.map((row) => (
+            <p
+              key={row.memberId}
+              data-side-member-id={row.memberId}
+              className="break-words text-sm text-ink-soft"
+            >
+              <span className="font-medium text-ink">
+                {namedSides && row.name !== null
+                  ? mealCopy("meals.dish.sides_for", { name: row.name })
+                  : mealCopy("meals.dish.sides")}
+              </span>{" "}
+              {compact ? row.terms : row.items}
+            </p>
+          ))}
+        </div>
+      )}
       {/* LA RAISON, SOUS LE TITRE BARRÉ — les mots de la personne, tels quels:
           c'est ce qui partira avec le plat quand elle cliquera « Ajuster le
           plan ». `break-words`: une phrase libre n'a aucune longueur garantie. */}
@@ -525,8 +693,11 @@ export default function DishCard(
           temps du GESTE DU JOUR. `active_minutes`/`total_minutes` restent
           interdits ici — ce sont des temps de CUISSON et de SESSION, ils ont
           leur surface, et les remonter donnerait à un assemblage le temps d'un
-          rôti. La ceinture est dans `lib/dishSession.int.test.ts`. */}
-      {dish.same_day && <SameDayLine sameDay={dish.same_day} method={dish.method} />}
+          rôti. La ceinture est dans `lib/dishSession.int.test.ts`.
+
+          ⟳ 2026-09-25 — SUR UN REPAS SORTI D'UNE BOÎTE, le libellé et le
+          contenu suivent `boxedMeal` / `takeOut` (voir leur définition). */}
+      {dish.same_day && <SameDayLine sameDay={dish.same_day} method={dish.method} {...boxedHead} sides={headSides} />}
       {/* ══════════════════════════════════════════════════════════════════
           LA PART CONGELÉE SE SORT LA VEILLE — 2026-09-01.
           ══════════════════════════════════════════════════════════════════
@@ -555,9 +726,16 @@ export default function DishCard(
           `same_day: null` juste au-dessus.
 
           ⚠️ MUET SUR TOUT PLAN D'AVANT LE LOT: le lecteur y met `"fridge"`,
-          jamais `undefined`, donc rien ne s'affiche et rien ne change. */}
-      {session && session.day !== dish.day &&
-        dish.uses.some((u) => u.kept === "freezer") && (
+          jamais `undefined`, donc rien ne s'affiche et rien ne change.
+
+          ⟳ 2026-09-25 — `sessions` est une liste: la garde lit la session du
+          lot CONGELÉ, plus celle du premier lot cité. */}
+      {sessions.some((s) =>
+        s.day !== dish.day &&
+        s.dishPreparations.some((p) =>
+          dish.uses.some((u) => u.kept === "freezer" && u.preparation_id === p.id)
+        )
+      ) && (
         <p className="mt-2 text-sm leading-6 text-ink">
           {mealCopy("meals.result.thaw_the_night_before")}
         </p>
@@ -618,35 +796,6 @@ export default function DishCard(
         </p>
       )}
       {/* ══════════════════════════════════════════════════════════════════
-          LE PLI — le bouton d'abord, ce qu'il ouvre juste après.
-          ══════════════════════════════════════════════════════════════════
-          Même idiome que le dépliant de session, une ligne soulignée et
-          discrète: le plan se lit d'un coup d'œil, et un bouton plein par
-          carte ferait vingt-six boutons pleins sur une semaine. `min-h-6` est
-          le plancher de 24 px de WCAG 2.5.8, que `text-xs` seul n'atteint pas.
-
-          ⚠️ RIEN À OUVRIR ⇒ PAS DE BOUTON (`hasDetail`). */}
-      {collapsible && hasDetail && (
-        <div className="mt-3">
-          <button
-            type="button"
-            aria-expanded={detailOpen}
-            aria-controls={detailId}
-            onClick={() => setDetailOpen((v) => !v)}
-            className="min-h-6 text-xs font-medium text-ink-soft underline underline-offset-2 hover:text-ink"
-          >
-            {mealCopy(detailOpen ? "meals.dish.fold" : "meals.dish.unfold")}
-          </button>
-        </div>
-      )}
-      {/* ⚠️ L'ENVELOPPE EST TOUJOURS LÀ, MÊME SANS PLI (`collapsible: false`):
-          c'est un `div` nu, sans classe de disposition, donc il ne change ni
-          l'espacement ni l'ordre de ce qu'il contient. Une enveloppe
-          conditionnelle aurait dédoublé tout le corps de la carte en deux
-          branches JSX — exactement le double rendu que ce fichier existe pour
-          empêcher. */}
-      <div id={detailId} hidden={folded}>
-      {/* ══════════════════════════════════════════════════════════════════
           ⛔ `dish.why` N'EST PLUS AFFICHÉ — ET IL EST TOUJOURS DEMANDÉ.
           ══════════════════════════════════════════════════════════════════
 
@@ -668,30 +817,10 @@ export default function DishCard(
           ⚠️ CE CHAMP N'A PLUS AUCUN LECTEUR. C'était le seul. S'il en
           réapparaît un, c'est cette décision-là qu'il renverse. */}
 
-      {/* LE JOUR DE CUISSON, QUAND CE N'EST PAS AUJOURD'HUI. C'est la seule
-          chose à faire ce jour-là, donc c'est la seule chose affichée.
-          ⚠️ `bg-gray-50` NE DEVIENT PAS `bg-paper`: `paper` est le remplissage de
-          la carte elle-même, donc le bloc disparaîtrait. `paper-2` (1,08:1 sur
-          `paper`) est le second fond nommé par la charte — c'est l'idiome du
-          fronton de `ui/Modal.tsx` — et le trait `line` garantit l'arête même là
-          où le remplissage ne se voit pas. */}
-      {sources.length > 0 && (
-        <div className="mt-3 space-y-1 rounded-card border border-line bg-paper-2 px-3 py-2">
-          {sources.map((source, i) => (
-            <div key={`${source.title}-${i}`}>
-              <p className="text-sm text-ink">
-                {mealCopy("meals.result.from_prep")
-                  .replace("{title}", source.title)
-                  .replace(
-                    "{day}",
-                    (source.cookOn ? dishDayLabel(source.cookOn) : null) ??
-                      source.cookOn ?? "—",
-                  )}
-              </p>
-            </div>
-          ))}
-        </div>
-      )}
+      {/* ⛔ 2026-09-25 — « DEPUIS … — CUISINÉ VENDREDI. » N'EST PLUS RENDU
+          (« ça on s'en fout »). Le jour de cuisson et les lots de ce plat se
+          lisent dans la bulle « Quelles cuissons ? ». `sources` reste une
+          prop: il décide encore `leftover` et la phrase de repli `from_batch`. */}
       {/* ══════════════════════════════════════════════════════════════════
           LES CONTENANTS À SORTIR — LEURS NOMS, ET AUCUN CHIFFRE.
           ══════════════════════════════════════════════════════════════════
@@ -720,14 +849,18 @@ export default function DishCard(
           aucune session de cuisine : ses contenants sont des DOSES par
           personne, et c'est ce que la carte montre — grammes par ingrédient,
           kcal pour qui a un objectif. Un plat qui tire sur une casserole
-          garde ses boîtes. */}
-      <BoxTable
-        lines={boxes}
-        context={dish.uses.length === 0 ? "doses" : "dish"}
-        // Une seule personne : son chiffre est déjà sous le titre, la ligne
-        // ne le répète pas.
-        boxEnergy={soloLine === null ? boxEnergy : undefined}
-      />
+          garde ses boîtes.
+          ⟳ 2026-09-25 — SAUF quand le geste du jour a déjà dit laquelle
+          sortir (`takeOut`): le bloc ne ferait que la redire. */}
+      {takeOut === null && (
+        <BoxTable
+          lines={boxes}
+          context={dish.uses.length === 0 ? "doses" : "dish"}
+          // Une seule personne : son chiffre est déjà sous le titre, la ligne
+          // ne le répète pas.
+          boxEnergy={soloLine === null ? boxEnergy : undefined}
+        />
+      )}
       {/* ══════════════════════════════════════════════════════════════════
           QUI MANGE ÇA — quand aucun couvercle ne l'a déjà dit.
           ══════════════════════════════════════════════════════════════════
@@ -830,8 +963,11 @@ export default function DishCard(
           `justify-between` — la règle de `BoxTable`, mot pour mot: des nombres
           qui s'alignent se comparent d'un coup d'œil. `min-w-0` sur le terme est
           OBLIGATOIRE (enfant de flex, largeur minimale `auto` par défaut): sans
-          lui, un nom composé long pousse la quantité hors de la carte à 320 px. */}
-      {dish.ingredients.length > 0 && !(doses && boxes.length === 1) && (
+          lui, un nom composé long pousse la quantité hors de la carte à 320 px.
+
+          ⟳ 2026-09-25 — ABSENTE quand elle est montée dans le geste du jour
+          (`takeOut`): la même liste deux fois sur une carte. */}
+      {dish.ingredients.length > 0 && !(doses && boxes.length === 1) && takeOut === null && (
         <div className="mt-3 rounded-card border border-line bg-paper-2 px-3 py-2">
           {/* ══════════════════════════════════════════════════════════════
               CES INGRÉDIENTS S'AJOUTENT AU LOT — ILS NE LE REDISENT PAS.
@@ -863,86 +999,22 @@ export default function DishCard(
               {mealCopy("meals.result.total_quantities")}
             </p>
           )}
-          <ul className="mt-1 flex flex-col gap-0.5">
-            {dish.ingredients.map((ing, i) => {
-              const quantity = ingredientQuantityText(ing);
-              return (
-                <li
-                  key={`${ing.term}-${i}`}
-                  className="flex items-baseline justify-between gap-3 text-sm"
-                >
-                  <span className="min-w-0 break-words text-ink-soft">{ing.term}</span>
-                  {/* La marque « déjà au placard » voyage AVEC le nombre, à
-                      droite: elle qualifie la quantité (« celle-là, tu l'as »),
-                      pas le nom de l'aliment. */}
-                  <span className="flex shrink-0 items-baseline gap-2">
-                    {ing.in_pantry && (
-                      <Badge tone="positive">{mealCopy("meals.result.in_pantry")}</Badge>
-                    )}
-                    {quantity && (
-                      <span className="tabular-nums text-ink-soft">{quantity}</span>
-                    )}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
+          <IngredientRows ingredients={dish.ingredients} />
         </div>
       )}
       {/* ══════════════════════════════════════════════════════════════════
-          ⟳ 2026-09-23 · « À CÔTÉ », QUAND AUCUNE BOÎTE NE LE PORTE.
+          ⟳ 2026-09-25 — « QUELLES CUISSONS ? », EN BAS À DROITE DE LA CARTE.
           ══════════════════════════════════════════════════════════════════
-          Après les items du plat, dans le même bloc encastré que ses voisins
-          (charte §2). Le prénom devant les aliments quand la carte le connaît;
-          sinon les aliments seuls — jamais un identifiant.
-          ⛔ AUCUNE PROVENANCE: rien ne dit si l'aliment vient du modèle ou de
-          la liste de secours. */}
-      {looseSides.length > 0 && (
-        <div
-          data-dish-sides
-          className="mt-3 rounded-card border border-line bg-paper-2 px-3 py-2"
-        >
-          <p className="text-label font-semibold uppercase tracking-wide text-ink-soft">
-            {mealCopy("meals.boxes.side_courses")}
-          </p>
-          <ul className="mt-1 flex flex-col gap-0.5">
-            {looseSides.map((side) => (
-              <li
-                key={side.memberId}
-                data-side-member-id={side.memberId}
-                className="break-words text-sm text-ink-soft"
-              >
-                {side.text}
-              </li>
-            ))}
-          </ul>
+          Il remplace le dépliant « La session de cuisine » qui fermait la
+          carte, et il a gardé sa place quand « Voir le détail » est parti (sur
+          demande: l'étape n'était pas nécessaire). Il ouvre une bulle alignée
+          sur le bord droit — posée à gauche, ses 20 rem déborderaient de
+          l'écran à 375 px. */}
+      {sessions.length > 0 && (
+        <div className="mt-3 flex justify-end">
+          <CookingsButton sessions={sessions} />
         </div>
       )}
-      {/* ── LE PLAT ET LA SESSION QUI A FAIT SON LOT (2026-08-14) ───────────
-          Le chemin `dish.uses[].preparation_id → cooking_sessions[]
-          .preparation_ids` existait ENTIÈREMENT dans la donnée, et n'était
-          nulle part à l'écran: « tes sessions de cuisine » porte les grosses
-          cuissons sans dire quel plat en sort, et cette carte disait d'où
-          venait son lot (`sources`, plus haut) sans dire dans quelle session
-          il avait été fait. Le bouton ne fait que rendre ce lien visible.
-
-          ⚠️ IL EST POSÉ JUSTE SOUS LE GESTE DU SOIR, ET C'EST DÉLIBÉRÉ: les
-          deux se lisent ENSEMBLE. « Réchauffe une portion et presse un citron »
-          ne dit pas d'où vient la portion; « la session du mercredi, où on a
-          fait le poulet, le riz et les légumes » le dit. Le geste n'est pas
-          recopié dans le dépliant — il est déjà là, une ligne au-dessus, et
-          l'écrire deux fois sur la même carte ferait relire la même phrase.
-
-          ⚠️ DISCRET PAR DÉFAUT. Fermé, c'est un contrôle de texte souligné —
-          l'idiome de `CookingSessions` pour déplier une recette. Le planning
-          se lit d'un coup d'œil; il ne doit pas devenir une liste de recettes
-          dépliées.
-
-          ⛔ AUCUNE DURÉE. `active_minutes` et `total_minutes` vivent sur les
-          préparations et sur la session; les recopier ici donnerait à un
-          assemblage le temps d'une cuisson. Elles ont déjà leur surface. */}
-      {session && <SessionLink session={session} />}
-      </div>
       </div>
     </Card>
   );
@@ -1056,13 +1128,51 @@ export function UntickForm({ prompt }: { prompt: UntickPrompt }) {
  * `leftover` ne pouvait pas faire. Empiler les deux donnerait « À réchauffer —
  * 8 min » puis « Au moment de servir : », deux en-têtes pour une phrase. Le
  * couple reste vivant sur le chemin de repli, pour les plans sans `same_day`.
+ *
+ * ⟳ 2026-09-25 — SUR UN REPAS SORTI D'UNE BOÎTE (`boxed`), `assemble` se lit
+ * « À compléter » ou « À servir »: la session a déjà réuni le plat et le
+ * féculent. Quand la carte le décide (`takeOutMeal` non nul), le bloc dit
+ * aussi quelle boîte sortir et, après la phrase du modèle, ce qu'on y ajoute.
+ * Le jeton reste la seule source du libellé; la boîte et les ajouts sont des
+ * faits du plan, pas une lecture de `method`.
  */
 function SameDayLine(
-  // `method` est `string` et jamais `null` (`readDishes` rend `String(… ?? "")`);
-  // la chaîne VIDE est le cas à traiter, et c'est `{method && …}` qui le fait.
-  { sameDay, method }: { sameDay: DishSameDay; method: string },
+  {
+    sameDay,
+    method,
+    boxed,
+    hasAdds,
+    takeOutMeal,
+    adds,
+    sides,
+  }: {
+    sameDay: DishSameDay;
+    // `method` est `string` et jamais `null` (`readDishes` rend `String(… ?? "")`);
+    // la chaîne VIDE est le cas à traiter, et c'est `{method && …}` qui le fait.
+    method: string;
+    /** Le repas tire sur des casseroles ET porte au moins une boîte. */
+    boxed: boolean;
+    /** Le plat porte des ajouts frais (`ingredients` non vide). */
+    hasAdds: boolean;
+    /** « Lundi Déjeuner » — les mots du couvercle. `null` = ne rien dire de la boîte. */
+    takeOutMeal: string | null;
+    /** Les ajouts à rendre ici. `[]` = ils restent dans la liste du bas. */
+    adds: readonly DishIngredient[];
+    /**
+     * ⟳ 2026-09-25 — les à-côtés par type, avec leur quantité (`headSides`).
+     * `[]` = rien à dire ici: hors aperçu, la ligne du titre les chiffre déjà.
+     */
+    sides: readonly {
+      memberId: string;
+      name: string | null;
+      kinds: readonly { kind: DishSideCourseKind; items: string }[];
+    }[];
+  },
 ) {
-  const label = mealCopy(`meals.same_day.${sameDay.kind}`);
+  const kind = boxed && sameDay.kind === "assemble"
+    ? (hasAdds ? "complete" : "serve")
+    : sameDay.kind;
+  const label = mealCopy(`meals.same_day.${kind}`);
   return (
     <div className="mt-2 border-l-2 border-line-strong pl-3">
       <p className="text-sm font-medium text-ink break-words">
@@ -1074,84 +1184,179 @@ function SameDayLine(
           </span>
         )}
       </p>
+      {takeOutMeal !== null && (
+        <p data-take-out-box className="mt-1 text-sm text-ink break-words">
+          {mealCopy("meals.same_day.take_box", { box: takeOutMeal })}
+        </p>
+      )}
       {/* ⚠️ RIEN AU-DESSUS DU VIDE, la règle du 14/08 tient toujours: une
           méthode absente ne laisse pas un paragraphe vide sous le libellé.
           `break-words` est OBLIGATOIRE — c'est un paragraphe entier venu du
           modèle, et la contrainte qui gouverne est 320 px. */}
       {method && <p className="mt-1 text-sm text-ink break-words">{method}</p>}
+      {adds.length > 0 && (
+        <div data-same-day-adds className="mt-2">
+          <p className="text-label font-semibold uppercase tracking-wide text-ink-soft">
+            {mealCopy("meals.result.extra_ingredients")}
+          </p>
+          <IngredientRows ingredients={adds} />
+        </div>
+      )}
+      {/* L'ORDRE DU REPAS: entrée, pain, fromage, dessert (`sideKindsOf`). Le
+          prénom d'abord quand plusieurs bouches mangent ce repas. */}
+      {sides.length > 0 && (
+        <div data-same-day-sides className="mt-2 flex flex-col gap-1">
+          {sides.map((row) => (
+            <div key={row.memberId} data-side-kinds-member-id={row.memberId}>
+              {row.name !== null && (
+                <p className="text-sm font-medium text-ink break-words">
+                  {mealCopy("meals.dish.sides_for", { name: row.name })}
+                </p>
+              )}
+              {row.kinds.map((group) => (
+                <p key={group.kind} className="text-sm text-ink break-words">
+                  <span className="font-medium">
+                    {mealCopy(`meals.dish.side_kind.${group.kind}`)}
+                  </span>{" "}
+                  <span className="text-ink-soft">{group.items}</span>
+                </p>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
 /**
- * LE DÉPLIANT DE LA SESSION.
+ * LES AJOUTS DU PLAT, UNE LIGNE PAR ALIMENT — rendus au même format dans la
+ * liste du bas et, sur un repas sorti d'une boîte, dans le geste du jour.
  *
- * ⚠️ COMPOSANT À PART, ET PAS UN `useState` DE PLUS DANS `DishCard`. La carte
- * est rendue jusqu'à vingt-six fois sur `/app/plan`: un état ouvert/fermé de
- * plus dans son corps se recrée à chaque rendu de la liste, et surtout il
- * existerait pour les plats qui n'ont AUCUNE session. Ici, l'état n'existe que
- * là où il y a quelque chose à ouvrir.
+ * ⚠️ LE NOMBRE EN BOUT DE LIGNE, `tabular-nums`, et `min-w-0` sur le terme:
+ * voir la note de la liste du bas.
  */
-function SessionLink({ session }: { session: DishSessionView }) {
-  const [open, setOpen] = React.useState(false);
-  const panelId = React.useId();
+function IngredientRows({ ingredients }: { ingredients: readonly DishIngredient[] }) {
   return (
-    <div className="mt-2">
+    <ul className="mt-1 flex flex-col gap-0.5">
+      {ingredients.map((ing, i) => {
+        const quantity = ingredientQuantityText(ing);
+        return (
+          <li
+            key={`${ing.term}-${i}`}
+            className="flex items-baseline justify-between gap-3 text-sm"
+          >
+            <span className="min-w-0 break-words text-ink-soft">{ing.term}</span>
+            {/* La marque « déjà au placard » voyage AVEC le nombre, à
+                droite: elle qualifie la quantité (« celle-là, tu l'as »),
+                pas le nom de l'aliment. */}
+            <span className="flex shrink-0 items-baseline gap-2">
+              {ing.in_pantry && (
+                <Badge tone="positive">{mealCopy("meals.result.in_pantry")}</Badge>
+              )}
+              {quantity && (
+                <span className="tabular-nums text-ink-soft">{quantity}</span>
+              )}
+            </span>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+/**
+ * ⟳ 2026-09-25 — « QUELLES CUISSONS ? » ET SA BULLE.
+ *
+ * Remplace le dépliant « La session de cuisine » (retour du propriétaire:
+ * « quand on clique on doit avoir une petite fenêtre qui s'ouvre avec la ou les
+ * cuissons concernées pour le plat »). Une session par bloc: son jour, les lots
+ * de CE plat qui y ont été cuits, puis ce qui a été fait avec eux.
+ *
+ * ⚠️ COMPOSANT À PART: l'état ouvert/fermé n'existe que sur les cartes qui ont
+ * une session — la minorité des vingt-six cartes d'une semaine.
+ *
+ * ⛔ AUCUNE DURÉE. `active_minutes` et `total_minutes` vivent sur les
+ * préparations et sur la session; les recopier ici donnerait à un assemblage
+ * le temps d'une cuisson. Elles ont déjà leur surface.
+ * ⛔ PAS DE DÉROULÉ: il décrit toute la session, pas ce plat, et il se lit dans
+ * la carte de session du jour de cuisson.
+ */
+function CookingsButton({ sessions }: { sessions: readonly DishSessionView[] }) {
+  const [open, setOpen] = React.useState(false);
+  return (
+    // LE CONTENEUR `relative` porte le bouton ET sa bulle: c'est la frontière
+    // du « clic ailleurs » (`AnchoredPanel`). `ml-auto`: au bord droit de la
+    // carte, où la bulle s'aligne.
+    <span className="relative ml-auto flex shrink-0 items-center">
       <button
         type="button"
+        aria-haspopup="dialog"
         aria-expanded={open}
-        aria-controls={panelId}
         onClick={() => setOpen((v) => !v)}
-        // L'IDIOME DU KIT POUR DÉPLIER, repris de `CookingSessions`: le
-        // soulignement porte l'affordance, la teinte ne la porte pas — la
-        // figue reste à l'action principale de l'écran. `min-h-6` est le
-        // plancher de 24 px de WCAG 2.5.8, que `text-xs` seul n'atteint pas.
-        className="min-h-6 text-xs font-medium text-ink-soft underline underline-offset-2 hover:text-ink"
+        // L'IDIOME DU KIT POUR UN CONTRÔLE DE TEXTE, le même que le pli: le
+        // soulignement porte l'affordance, la figue reste à l'action
+        // principale de l'écran. `min-h-6` = 24 px (WCAG 2.5.8).
+        className={`min-h-6 text-xs font-medium underline underline-offset-2 hover:text-ink ${
+          open ? "text-ink" : "text-ink-soft"
+        }`}
       >
-        {mealCopy(open ? "meals.result.session_hide" : "meals.result.session_open")}
+        {mealCopy("meals.dish.cookings_open")}
       </button>
       {open && (
-        <div
-          id={panelId}
-          // ⚠️ `data-preparation-id` N'EST PAS UN ORNEMENT DE TEST. C'est
-          // l'identifiant QUI A FAIT LE LIEN entre ce plat et cette session.
-          // Il ne s'affiche pas — un slug de lot ne veut rien dire à table —
-          // mais il rend la jointure auditable dans le DOM, sans relire le
-          // code. Une jointure invisible est une jointure qu'on ne sait pas
-          // prouver juste.
-          data-preparation-id={session.viaPreparationId}
-          // `paper-2` (1,08:1 sur `paper`) est le second fond nommé par la
-          // charte, et le trait `line` garantit l'arête même là où le
-          // remplissage ne se voit pas. Même bloc que `sources`, plus haut:
-          // c'est la même famille d'information — d'où vient ce plat.
-          className="mt-2 rounded-card border border-line bg-paper-2 px-3 py-2"
+        <AnchoredPanel
+          title={mealCopy("meals.dish.cookings_title")}
+          onDismiss={() => setOpen(false)}
+          footer={
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="min-h-6 text-xs font-medium text-ink-soft underline underline-offset-2 hover:text-ink"
+            >
+              {mealCopy("meals.dish.cookings_close")}
+            </button>
+          }
         >
-          <p className="text-sm font-medium text-ink">
-            {dishDayLabel(session.day) ?? session.day}
-          </p>
-          {/* CE QUI EST SORTI DE LA MÊME CASSEROLÉE. C'est la moitié que le
-              plat n'avait nulle part: « le poulet, le riz et les légumes ont
-              été faits ensemble ». Muet quand la session ne nomme aucune
-              préparation connue — pas de libellé au-dessus du vide. */}
-          {session.preparations.length > 0 && (
-            <p className="mt-1 text-sm leading-6 text-ink-soft break-words">
-              {mealCopy("meals.result.session_also").replace(
-                "{titles}",
-                session.preparations.join(", "),
-              )}
-            </p>
-          )}
-          {/* LE DÉROULÉ, tel que le modèle l'a écrit. `break-words` n'est pas
-              décoratif: c'est du texte VENU DU MODÈLE, donc des mots dont
-              personne ne contrôle la longueur, et à 320 px un mot insécable
-              fait défiler LE CORPS DE LA PAGE. */}
-          {session.runThrough && (
-            <p className="mt-1 text-sm leading-6 text-ink break-words">
-              {session.runThrough}
-            </p>
-          )}
-        </div>
+          <ul className="flex flex-col gap-2">
+            {sessions.map((session) => (
+              <li
+                key={`${session.day}-${session.dishPreparations[0]?.id ?? ""}`}
+                className="border-t border-line pt-2 first:border-t-0 first:pt-0"
+              >
+                <p className="text-label font-semibold uppercase tracking-wide text-ink-soft">
+                  {mealCopy("meals.dish.cookings_day", {
+                    day: dishDayLabel(session.day) ?? session.day,
+                  })}
+                </p>
+                <ul className="mt-1 flex flex-col gap-0.5">
+                  {session.dishPreparations.map((prep) => (
+                    <li
+                      key={prep.id}
+                      // ⚠️ PAS UN ORNEMENT DE TEST: l'identifiant qui relie ce
+                      // plat à cette session. Jamais affiché — un slug ne veut
+                      // rien dire à table —, mais la jointure reste auditable
+                      // dans le DOM.
+                      data-preparation-id={prep.id}
+                      className="break-words text-sm text-ink"
+                    >
+                      {prep.title}
+                    </li>
+                  ))}
+                </ul>
+                {/* CE QUI EST SORTI DE LA MÊME SESSION. Muet quand il n'y a
+                    rien d'autre — pas de libellé au-dessus du vide. */}
+                {session.alsoMade.length > 0 && (
+                  <p className="mt-1 break-words text-xs leading-5 text-ink-soft">
+                    {mealCopy("meals.result.session_also", {
+                      titles: session.alsoMade.join(", "),
+                    })}
+                  </p>
+                )}
+              </li>
+            ))}
+          </ul>
+        </AnchoredPanel>
       )}
-    </div>
+    </span>
   );
 }

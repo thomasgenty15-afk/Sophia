@@ -501,6 +501,15 @@ function tableVerb(kind: RetainedItem["kind"]): string {
 function occasionSuffix(item: RetainedItem): string {
   const occasion = (item as { occasion?: RhythmOccasion | null }).occasion ?? null;
   if (occasion === null) return "";
+  // ⟳ 2026-09-25 — UNE EXCLUSION AU MOMENT DIT « PAS À CE MOMENT », jamais
+  // « seulement à ce moment ». Mesuré deux fois: « OFF the table: œufs --
+  // ONLY AT breakfast » (`31aef694`) a été lu « des œufs, mais seulement au
+  // petit-déjeuner » — trois petits-déjeuners aux œufs, réécrits ensuite par
+  // la réparation —, et « tofu… » a donné trois petits-déjeuners au tofu
+  // (`6ef02747`). « ONLY AT » reste pour ce qu'on VEUT à un moment.
+  if (item.kind === "food.exclude") {
+    return ` -- NOT at ${occasion}; the other meals may keep it`;
+  }
   return ` -- ONLY AT ${occasion}`;
 }
 

@@ -277,10 +277,16 @@ Deno.test("⛔ IDENTITÉ — le prompt de trois foyers N ≥ 2 est ÉPINGLÉ à 
   // ⚠️ SANS CETTE VÉRIFICATION, ÉPINGLER AURAIT ÉTÉ UN GESTE VIDE: on aurait
   // gravé son propre changement en croyant graver l'identité. C'est la
   // différence entre « le test passe » et « le test dit quelque chose ».
+  // ⟳ 2026-09-25 — LES TROIS REMPLACÉES, ET LA QUESTION « QUI A BOUGÉ » A SA
+  // RÉPONSE: la première ligne du brief (« one cooking session » → « the same
+  // dishes for the whole table », v46), destinée à tous les foyers. Vérifié
+  // avant de remplacer: en remettant l'ancienne ligne dans le texte d'après,
+  // on retrouve les trois empreintes d'avant au caractère près (a298e286…,
+  // a7c77b2b…, a13bf0c6…) — aucune autre ligne n'a bougé.
   assertEquals(empreintes, {
-    deux: "a298e286a1b22f1d318f7ef066f8a0ff7d6a849a3e79a64e2f554a28203f0f87",
-    deux_objectif: "a7c77b2bf4a8308516846203b19070817fd3643a1cdbd116a7bf497091f5281e",
-    quatre: "a13bf0c630413de47aa955baa942dd2cc5076cd3551805c5e1737b4dbe8a2c70",
+    deux: "4bf419b6f8dab15d9efa01b1c9bac0e895ed21cd62506f75abd00fb95f4dcf6e",
+    deux_objectif: "f258118d2edc43cf5d425db0e300171fa9946d230cd4c5396acfe305364f38a0",
+    quatre: "860c5899ad2f4006502dfa343a8f465ab2121e7ed87b6e8ccb7e427b5f768fcb",
   });
 });
 
@@ -301,7 +307,7 @@ Deno.test("la version dit le lot, et l'arbitrage l'a suivie", () => {
   // seul ou partagé (voir le ⑥ en fin de fichier).
   // ⟳ 2026-09-23 — v39: les à-côtés en familles (`side_courses_prompt.ts`).
   // ⟳ 2026-09-23 — v40: la table partage ses à-côtés (`side_courses_prompt.ts`).
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v42_what_they_turned_down");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v48_off_the_table_not_at");
 });
 
 // ═══════════════════════════════════════════════════════════════════════════

@@ -428,13 +428,12 @@ export const enSetup = {
   "setup.equipment.intro":
     "Asked once, for the whole kitchen — it is shared, so it is not a question per person.",
   "setup.equipment.legend": "Your kitchen",
-  // La ligne d'aide dit les DEUX faces: ce que ça sert, et que le silence ne
-  // coûte rien. Sans la seconde moitié, sept cases vides ressemblent à un
-  // formulaire obligatoire.
+  // La ligne d'aide dit à quoi ça sert. ⟳ 2026-09-25 — « Sans réponse, rien ne
+  // change » est retiré, sur demande.
   "setup.equipment.hint":
     "Tick what you actually have. A freezer changes whether we can cook once " +
     "and keep the rest; a microwave changes what « reheat it » means " +
-    "on the day. Skip it and nothing changes.",
+    "on the day.",
   "setup.equipment.tool_oven": "Oven",
   "setup.equipment.tool_stovetop": "Hob",
   "setup.equipment.tool_microwave": "Microwave",
@@ -444,7 +443,6 @@ export const enSetup = {
   "setup.equipment.tool_blender": "Blender or food processor",
   "setup.equipment.save": "Save",
   "setup.equipment.saving": "Saving…",
-  "setup.equipment.saved": "Saved. Your next plan is built around this.",
   // LE REFUS D'UNE SÉLECTION VIDE, et il dit la sortie: on ne demande pas de
   // répondre, on refuse la réponse « aucun ». Un foyer sans aucun des sept ne
   // cuisine pas, et il n'y a alors rien à composer.
@@ -453,38 +451,6 @@ export const enSetup = {
     "Leave it untouched instead if you would rather not say.",
   "setup.equipment.loading": "Reading what you already told us…",
   "setup.equipment.no_goal": "Set your goal above first, then this can be saved.",
-  // ── LE DÉJEUNER DE LA SEMAINE (L6, §2.2) ────────────────────────────────
-  // La question ne se pose qu'aux majeurs, et l'âge se DÉDUIT de la date de
-  // naissance — aucune de ces phrases ne demande « adulte ou enfant ».
-  // ⚠️ DEPUIS LE 2026-09-03 (A6, P6), LA CARTE VIT SUR /app/household, DANS
-  // LA FICHE DE CHAQUE BOUCHE, juste au-dessus de sa grille — plus à l'étape 3.
-  // Le namespace est GARDÉ (D6.3); les phrases qui disaient « at the next
-  // step » sont réécrites en place (listées dans le bloc chantier-0903/FOYER).
-  "setup.work_lunch.title": "Lunch on a working day",
-  "setup.work_lunch.intro":
-    "Whoever eats away from the kitchen at midday changes what the plan has " +
-    "to cook. Their week, just below, has the last word.",
-  "setup.work_lunch.loading": "Reading what you already told us…",
-  "setup.work_lunch.at_work": "During the week, does {name} eat lunch at work?",
-  "setup.work_lunch.yes": "Yes",
-  "setup.work_lunch.no": "No",
-  "setup.work_lunch.mode": "Does {name} take a packed lunch, or eat out?",
-  "setup.work_lunch.mode_lunchbox": "Packed lunch",
-  "setup.work_lunch.mode_outside": "Eats out",
-  "setup.work_lunch.microwave": "Is there a microwave at work?",
-  "setup.work_lunch.lunchbox_note":
-    "The plan cooks those lunches, and makes them carry well.",
-  // SANS MICRO-ONDES, LE REPAS DOIT ÊTRE BON FROID. C'est une contrainte de
-  // composition, pas un conseil: on ne l'invente pas sur un silence.
-  "setup.work_lunch.cold_note":
-    "No microwave, so those lunches have to be good cold. The plan cooks them " +
-    "that way.",
-  "setup.work_lunch.outside_note":
-    "{n} weekday lunches are marked “eating out” in their week, just below. " +
-    "The plan does not cook them — it says what to aim for.",
-  "setup.work_lunch.grid_wins":
-    "Nothing is settled here. The day-by-day grid of their week, just below, " +
-    "wins, meal by meal.",
   "setup.request.title": "This plan",
   "setup.request.from": "From",
   "setup.request.to": "To",
@@ -516,7 +482,6 @@ export const enSetup = {
   "setup.plan.composing_6": "Checking the week holds together…",
   "setup.plan.composing_7": "Adding up the shopping list…",
   "setup.plan.composing_8": "Writing why each choice was made…",
-  "setup.plan.compose_hint": "This composes it. The next screen is the plan itself.",
 
   // ── CE QUI MANQUE ENCORE ────────────────────────────────────────────────
   // Un motif par phrase, et chacune dit LE GESTE, pas l'état. « Il manque une
@@ -592,7 +557,7 @@ export const enSetup = {
   // global qui n'existe plus, et laissait chercher ailleurs.
   "setup.missing.eating_rhythm": "The moments you eat at, on your own card.",
   "setup.missing.cook_days": "Which days you cook.",
-  "setup.missing.cooking_time_min": "How long a cooking session lasts.",
+  "setup.missing.cooking_time_min": "How long a cooking session can last.",
   "setup.missing.budget_amount": "How much this plan can cost.",
   "setup.missing.member_eating_rhythm":
     "When each person eats, if it is not the same as the house.",
@@ -633,7 +598,6 @@ export const enSetup = {
   "setup.day.fri": "Fri",
   "setup.day.sat": "Sat",
   "setup.day.sun": "Sun",
-  "setup.missing.cooking_style": "Tell us how you want to cook",
   "setup.missing.grocery_runs": "Tell us how many food shops you are up for",
   // ⟳ 2026-09-24 — « AVEC QUOI TU CUISINES » RETIENT LA GÉNÉRATION. Demandé:
   // bloquer le plan tant que la cuisine n'est pas renseignée. Le motif

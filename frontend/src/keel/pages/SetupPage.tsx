@@ -43,18 +43,21 @@ import {
   discardDraft,
   editCells,
   editExclusions,
+  matchDishes,
   type PlanDraft,
   readNote,
   readRejections,
   replaceDishes,
   DRAFT_ORIGIN_PATH,
   recoverLatestDraft,
+  recoverPreviewBehind,
   waitForDraft,
   writeFromDraft,
   type DraftProgress,
 } from "../api/planDraft";
 import ComposingLabel from "../components/plan/ComposingLabel";
-import { PlanComposingCard } from "../components/plan/PlanComposingCard";
+import DemoPlanTour from "../components/plan/demo/DemoPlanTour";
+import { useDemoOpen, usePublishRealPlanReady } from "../components/plan/demo/demoGate";
 import PlanDraftDialog from "../components/plan/PlanDraftDialog";
 import {
   EATING_OCCASIONS,
@@ -96,7 +99,9 @@ import {
 } from "../api/practicalConstraints";
 import {
   assessBudget,
+  type BudgetDayRates,
   budgetMouthsFor,
+  loadBudgetDayRates,
   readBudgetMarket,
 } from "../api/planBudget";
 // ── D6 (2026-08-18) — LE POIDS VISÉ ET LE RYTHME, DANS L'ENTONNOIR ─────────
@@ -163,6 +168,12 @@ import {
   submitEnvy,
 } from "../api/household";
 import { presenceRoster } from "../lib/presenceRoster";
+import { cookingAnswersVerdict, presenceMealsPerDay } from "../lib/cookingAnswers";
+import {
+  type CookingSessionCount,
+  readSessionTimeBound,
+} from "../api/cookingPlan";
+import { hasFreezerDeclared, readKitchenEquipment } from "../api/kitchenEquipment";
 import { browserLocalDate, catchUpWindowStart } from "../lib/useMealTicks";
 import { t } from "../i18n/t";
 import { habitSlotsFor } from "../lib/habitSlots";
@@ -384,6 +395,33 @@ export default function SetupPage() {
     };
   }, [userId]);
   const [stepIndex, setStepIndex] = React.useState(0);
+  /**
+   * ⟳ 2026-09-25 — LE COÛT PAR JOUR DE CHAQUE BOUCHE, AJUSTÉ À SON BESOIN
+   * (`budget-rates-v1`), pour le minimum du curseur de budget.
+   *
+   * ⚠️ RELU À CHAQUE ARRIVÉE SUR L'ÉTAPE DE LA DEMANDE: les corps se saisissent
+   * aux étapes d'avant, et une lecture faite au montage porterait le foyer
+   * d'avant la saisie. Carte vide tant que rien n'est revenu = la table de
+   * prix, le comportement d'avant.
+   */
+  const [budgetRates, setBudgetRates] = React.useState<
+    ReadonlyMap<string, BudgetDayRates>
+  >(() => new Map());
+  const onRequestStep = React.useMemo(() => {
+    if (facts === null) return false;
+    const all = funnelSteps(facts.branch ?? "solo");
+    return all[Math.min(stepIndex, all.length - 1)]?.id === "request";
+  }, [facts, stepIndex]);
+  React.useEffect(() => {
+    if (!userId || !onRequestStep) return;
+    let cancelled = false;
+    void loadBudgetDayRates().then((rates) => {
+      if (!cancelled) setBudgetRates(rates);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, onRequestStep]);
   const [pendingHouseholdSize, setPendingHouseholdSize] = React.useState<
     number | null
   >(null);
@@ -396,6 +434,15 @@ export default function SetupPage() {
    * la dernière étape : revenu sur l'entonnoir, on ne voyait plus l'attente.
    */
   const [resumingDraft, setResumingDraft] = React.useState(false);
+  /**
+   * ⟳ 2026-09-25 — UN AJUSTEMENT REPRIS DANS LA FENÊTRE. Signalé : un
+   * rechargement pendant « Ajuster le plan » fermait la fenêtre d'aperçu et
+   * montrait la carte « Ton plan se compose », qui n'a pas sa place dans
+   * l'entonnoir. Quand un aperçu existe derrière la composition en vol, la
+   * fenêtre se rouvre sur lui et « Ajuster le plan » tourne jusqu'au nouveau.
+   */
+  const [resumedAdjusting, setResumedAdjusting] = React.useState(false);
+  const [resumedFailure, setResumedFailure] = React.useState<string | null>(null);
   const [failure, setFailure] = React.useState<string | null>(null);
   /** Le refus des gestes de la carte des bouches — rendu SUR la carte. */
   const [mouthFailure, setMouthFailure] = React.useState<string | null>(null);
@@ -655,6 +702,17 @@ export default function SetupPage() {
    * travaille là où on a cliqué.
    */
   const [draft, setDraft] = React.useState<PlanDraft | null>(null);
+  // ⟳ 2026-09-25 — LE VRAI PLAN ET LA DÉMONSTRATION (`plan/demo/demoGate`):
+  // on dit à la démonstration que le plan est là; l'aperçu se cache tant
+  // que sa fenêtre est ouverte.
+  usePublishRealPlanReady(draft !== null);
+  const demoOpen = useDemoOpen();
+  /**
+   * UNE COMPOSITION EST EN VOL — et seulement elle. `busy` sert aussi aux
+   * enregistrements de l'entonnoir (`guard`, `guardMouth`): la démonstration
+   * du plan ne doit pas s'inviter pendant qu'on enregistre une allergie.
+   */
+  const [composeBusy, setComposeBusy] = React.useState(false);
   /**
    * ⛔ PLUS DE PHRASE RETENUE POUR L'ADOPTION (lot 4, 2026-09-08). Lire la
    * phrase c'est L'APPLIQUER (un cran d'appétit, un réglage, un goût); la
@@ -695,12 +753,59 @@ export default function SetupPage() {
           return;
         }
         setBusy(true);
-        if (recoverable.state === "in_flight") setResumingDraft(true);
-        const recovered = recoverable.state === "done"
-          ? recoverable.draft
-          : await waitForDraft(recoverable.draftId, { onProgress: setProgress });
+        // ⟳ 2026-09-25 — EN VOL : UN AJUSTEMENT (un aperçu derrière) se suit
+        // DANS la fenêtre, rouverte sur l'aperçu d'avant; une PREMIÈRE
+        // composition se suit comme sans rechargement (la démonstration du
+        // plan, `(composeBusy || resumingDraft) && draft === null`). Plus de
+        // carte d'attente ici.
+        let behind: PlanDraft | null = null;
+        if (recoverable.state === "in_flight") {
+          behind = await recoverPreviewBehind(recoverable.draftId);
+          if (cancelled) return;
+          if (behind !== null) {
+            setDraft(behind);
+            setResumedFailure(null);
+            setResumedAdjusting(true);
+          } else {
+            setResumingDraft(true);
+          }
+        }
+        let recovered: PlanDraft;
+        try {
+          recovered = recoverable.state === "done"
+            ? recoverable.draft
+            : await waitForDraft(recoverable.draftId, { onProgress: setProgress });
+        } catch (error) {
+          // Un ajustement repris qui échoue laisse l'aperçu d'avant en place,
+          // et l'échec se dit dans la fenêtre, à côté de « Ajuster le plan ».
+          if (behind === null) throw error;
+          if (!cancelled) setResumedFailure(refusalMessage(error));
+          recovered = behind;
+        }
         if (cancelled) return;
         setDraft(recovered);
+        // ⟳ 2026-09-24 — LA FENÊTRE REVIENT AVEC L'APERÇU. La page repartait
+        // de sa fenêtre par défaut (7 jours à partir d'aujourd'hui) pendant
+        // que l'aperçu repris en montrait une autre: toute reprise était
+        // refusée (`draft_mismatch`, mesuré sur un brouillon de 3 jours), et
+        // « Ajuster » recomposait une autre semaine.
+        // ⚠️ LA FENÊTRE DE SA DEMANDE, PAS CELLE QU'IL A RANGÉE: le serveur
+        // ajoute lui-même la veille de cuisine à une demande (« je cuisine la
+        // veille »), et la lui renvoyer déjà ajoutée décalerait la reprise
+        // d'un jour. La fenêtre rangée ne sert que pour une ligne d'avant la
+        // demande relue (`recoverable.input` nul). Un départ passé n'est pas
+        // repris: le rattrapage du jour (`catchUpWindowStart`) le corrigerait.
+        const asked = recoverable.input?.window;
+        const { startsOn, durationDays } = asked && asked.kind === "exact"
+          ? asked
+          : recovered.plan;
+        if (
+          /^\d{4}-\d{2}-\d{2}$/.test(startsOn) && startsOn >= browserLocalDate() &&
+          Number.isInteger(durationDays) && durationDays >= 1
+        ) {
+          setWindowStart(startsOn);
+          setWindowEnd(addDays(startsOn, durationDays - 1));
+        }
         setComposeFailure(null);
       } catch (error) {
         if (!cancelled) {
@@ -711,6 +816,7 @@ export default function SetupPage() {
           recoveredDraftFor.current = userId;
           setBusy(false);
           setResumingDraft(false);
+          setResumedAdjusting(false);
           setProgress(null);
         }
       }
@@ -723,9 +829,9 @@ export default function SetupPage() {
   // celle de son bouton : c'est là qu'elle a été lancée, et c'est là que son
   // issue (la fenêtre, ou le refus à côté du bouton) se lit.
   React.useEffect(() => {
-    if (!resumingDraft || state.kind !== "ready" || !facts) return;
+    if (!(resumingDraft || resumedAdjusting) || state.kind !== "ready" || !facts) return;
     setStepIndex(funnelSteps(facts.branch ?? "solo").length - 1);
-  }, [resumingDraft, state.kind, facts]);
+  }, [resumingDraft, resumedAdjusting, state.kind, facts]);
   /**
    * LOT B — COMMENT ON CUISINE CETTE SEMAINE. `null` = « laisse décider », et
    * c'est le DÉFAUT: le calcul du moteur gouverne alors seul, exactement comme
@@ -794,16 +900,20 @@ export default function SetupPage() {
     };
   }, [envyWeek, envyPrint, userId, bootDraftFor]);
   /**
-   * « TOUT CUISINER EN UNE SEULE FOIS » — 2026-09-01. `false` par défaut, et
-   * c'est le comportement d'avant ce lot au caractère près.
+   * ⟳ 2026-09-25 — « COMBIEN DE FOIS TU VEUX CUISINER », 1 à 4, ou `null` =
+   * pas encore répondu. Il remplace « tout cuisiner en une seule fois »
+   * (2026-09-01): « une fois » est une réponse parmi les autres.
    *
    * ⚠️ IL VIT ICI ET PAS DANS `draft` (`FunnelPlanAnswers`), pour la raison
    * exacte écrite pour `cookingShape` juste au-dessus: tout ce que porte
    * `draft` est ÉCRIT dans `practical_constraints` par `savePlanAnswers`,
-   * c'est-à-dire appliqué en silence à toutes les semaines suivantes. Celui-ci
-   * se redemande à chaque composition.
+   * c'est-à-dire appliqué en silence à toutes les semaines suivantes. Le
+   * nombre de sessions dépend de la longueur du plan: il se redemande à chaque
+   * composition.
    */
-  const [oneCookingSession, setOneCookingSession] = React.useState(false);
+  const [cookingSessions, setCookingSessions] = React.useState<CookingSessionCount | null>(null);
+  /** Le bouton de fin a été refusé sur les réponses de cuisine: les champs le disent. */
+  const [cookingMissesShown, setCookingMissesShown] = React.useState(false);
   // ⟳ A1 (2026-09-03) — L'ÉTAT « JE CUISINE LA VEILLE » A DISPARU AVEC SA
   // CASE. La veille est dérivée côté serveur (`leadDayFor`) de la date de
   // départ et de l'heure locale, coupure à 18 h; le navigateur ne connaît pas
@@ -1024,9 +1134,9 @@ export default function SetupPage() {
             // seul champ du brouillon dont la valeur est un JETON FERMÉ que
             // l'écran rend directement; les autres sont des chaînes libres ou
             // passent par une porte qui refuse. Voir `COOKING_SHAPES`.
-            // ⚠️ PAS DE RELECTURE CONTRE UN VOCABULAIRE: c'est un booléen, et
-            // `readSetupDraft` l'a déjà ramené à `true`/`false` par `=== true`.
-            setOneCookingSession(kept.draft.oneCookingSession);
+            // ⟳ 2026-09-25 — `readSetupDraft` l'a déjà relu contre le
+            // vocabulaire (`readCookingSessions`): 1 à 4, ou `null`.
+            setCookingSessions(kept.draft.cookingSessions);
           } else {
             // ── LA REPRISE QUI TOMBAIT SUR UN MUR ────────────────────────
             //
@@ -1144,7 +1254,7 @@ export default function SetupPage() {
           mouth,
           stepIndex,
           householdSize: pendingHouseholdSize,
-          oneCookingSession,
+          cookingSessions,
           envy,
           envyWeek,
         },
@@ -1163,7 +1273,7 @@ export default function SetupPage() {
     // changerait aucune autre dépendance: l'effet ne repartirait pas, et
     // l'onglet rechargé retrouverait la case décochée — un brouillon qui perd
     // la seule réponse qui n'existe nulle part ailleurs.
-    oneCookingSession,
+    cookingSessions,
     envy,
     envyWeek,
   ]);
@@ -1502,6 +1612,7 @@ export default function SetupPage() {
    */
   async function guardCompose(work: () => Promise<void>) {
     setBusy(true);
+    setComposeBusy(true);
     setComposeFailure(null);
     setFlash(null);
     try {
@@ -1510,6 +1621,7 @@ export default function SetupPage() {
       setComposeFailure(error instanceof Error ? error.message : String(error));
     } finally {
       setBusy(false);
+      setComposeBusy(false);
       setProgress(null);
     }
   }
@@ -2932,11 +3044,11 @@ export default function SetupPage() {
       // exactement ce que rendait la réponse par défaut, « laisse le plan
       // décider ». Voir la pierre tombale du champ, plus bas dans ce fichier.
       cookingShape: null,
-      // ⛔ SUR LES DEUX LANES, ET SUR LES TROIS GESTES. « Tout dans une session »
-      // est une question de CONSERVATION, pas de nombre d'assiettes: elle se
-      // pose pareil à qui mange seul. Et sans lui à l'adoption, le plan ÉCRIT ne
-      // serait pas celui qu'on vient de montrer.
-      oneCookingSession,
+      // ⛔ SUR LES TROIS GESTES. Le nombre de sessions se pose pareil à qui
+      // mange seul, et sans lui à l'adoption, le plan ÉCRIT ne serait pas celui
+      // qu'on vient de montrer. (⟳ 2026-09-25 — il remplace « tout dans une
+      // session ».)
+      cookingSessions,
       // ⟳ 2026-09-10 · LOT 7 — `mode`, `slot`, `servings` et `pantry` ONT
       // QUITTÉ `ComposeDraftInput` avec l'ancienne lane individuelle. Ils
       // étaient déjà des constantes ici (« to_shop », null, 1, []): l'écran
@@ -2964,6 +3076,36 @@ export default function SetupPage() {
    */
   function askForDraft(): Promise<void> {
     return (async () => {
+      // ⟳ 2026-09-25 — « COMBIEN DE FOIS » ET UNE PLAGE QUI SUFFIT, AVANT
+      // TOUTE ÉCRITURE. Les mêmes offres que les champs (`cookingAnswersVerdict`):
+      // les lignes rouges se lisent sous les champs, le motif sous le bouton,
+      // et le clic emmène au champ qui le lève.
+      const cooking = cookingAnswersVerdict({
+        sessions: cookingSessions,
+        sessionTime: readSessionTimeBound({ cooking_time_min: plan!.cookingTimeMin }),
+        daysToEat: planWindow.tokens.length,
+        freezer: hasFreezerDeclared(readKitchenEquipment(facts!.practicalConstraints)),
+        mealsPerDay: presenceMealsPerDay(
+          presenceRoster({
+            self: {
+              ownMemberId: facts!.ownMemberId,
+              firstName: facts!.state.self.firstName,
+              away: facts!.ownAway,
+              eatingSlots: facts!.ownEatingSlots,
+            },
+            mouths: facts!.mouths,
+          }).map((m) => ({ slots: m.eatingSlots ?? plan!.eatingRhythm })),
+        ),
+      });
+      if (cooking.sessions !== "ok" || cooking.time !== "ok") {
+        setCookingMissesShown(true);
+        document.getElementById(
+          cooking.sessions !== "ok" ? "setup-cooking-sessions" : "setup-session-time",
+        )?.focus();
+        throw new Error(
+          t(cooking.sessions !== "ok" ? "plan.cooking.sessions_required" : "plan.cooking.time_required"),
+        );
+      }
       // ⚠️ LECTURE FRAÎCHE — MÊME PIÈGE QU'À L'ÉTAPE 3, MÊME COLONNE.
       // C'était `facts!.practicalConstraints`, la photo prise au MONTAGE de la
       // page. Le « Continuer » de l'étape 3 a écrit `diet_asked` depuis, et
@@ -3039,6 +3181,9 @@ export default function SetupPage() {
           })),
           selfMemberId: fresh.ownMemberId,
           selfAway: parseAwayMarks(fresh.practicalConstraints?.away_days),
+          // ⟳ 2026-09-25 — LES COÛTS RELUS EUX AUSSI, comme les faits: un
+          // corps a pu changer depuis l'étape.
+          rates: await loadBudgetDayRates(),
         }),
       });
       if (floorVerdict.kind === "below_floor") {
@@ -3109,11 +3254,10 @@ export default function SetupPage() {
         ) : null}
         {flash ? <p className="text-xs text-ink-soft">{flash}</p> : null}
 
-        {/* ⟳ 2026-09-23 — L'ÉCRAN D'ATTENTE D'UNE COMPOSITION REPRISE, EN TÊTE.
-            Le bouton de fin dit aussi qu'il compose, mais tout en bas d'une
-            étape de plusieurs écrans : au retour, rien de visible ne disait
-            qu'un plan était en route. Même carte que `/app/plan`. */}
-        {resumingDraft ? <PlanComposingCard progress={progress} replacing={false} /> : null}
+        {/* ⟳ 2026-09-25 — PLUS DE CARTE « TON PLAN SE COMPOSE » DANS
+            L'ENTONNOIR (demandé : elle est pour la plateforme). Une première
+            composition reprise montre la démonstration du plan, comme sans
+            rechargement; un ajustement repris se suit dans la fenêtre. */}
 
         {step.id === "situate" ? (
           <SituateStep
@@ -3402,6 +3546,7 @@ export default function SetupPage() {
             // absences du titulaire ne compteraient pas, et le plancher serait
             // trop HAUT.
             budgetMarket={budgetMarket}
+            budgetRates={budgetRates}
             selfMemberId={facts.ownMemberId}
             selfName={facts.state.self.firstName.trim() || t("plan.request.presence_you")}
             // ⚠️ LU DANS LA COLONNE QU'IL ÉCRIT (`practical_constraints.
@@ -3419,8 +3564,9 @@ export default function SetupPage() {
             hasGoal={facts.state.self.goal !== null}
             onEquipmentSaved={() => load(false)}
             rhythm={plan.eatingRhythm}
-            oneCookingSession={oneCookingSession}
-            onOneCookingSession={setOneCookingSession}
+            cookingSessions={cookingSessions}
+            onCookingSessions={setCookingSessions}
+            showCookingMisses={cookingMissesShown}
             envy={envy}
             onEnvy={setEnvy}
             // LA MÊME QUESTION QUE LE ROUTAGE: le champ n'existe que si la
@@ -3596,6 +3742,18 @@ export default function SetupPage() {
           {composeFailure ? (
             <p className="mt-3 text-sm text-red-700">{composeFailure}</p>
           ) : null}
+          {/* ⟳ 2026-09-25 — LE PLAN DE DÉMONSTRATION ET SA VISITE, le temps que
+              le vrai se compose. Démonté dès que le brouillon arrive: la
+              fenêtre d'aperçu s'ouvre alors, comme avant. */}
+          {((composeBusy || resumingDraft) && draft === null) || demoOpen ? (
+            <div className="mt-6">
+              <DemoPlanTour
+                progress={progress}
+                householdSize={facts?.mouths.length ?? 1}
+                composing={composeBusy || resumingDraft}
+              />
+            </div>
+          ) : null}
         </div>
 
         {/* ── LA FENÊTRE DES PRÉFÉRENCES — UNE SEULE, POUR TROIS SURFACES ──
@@ -3738,6 +3896,10 @@ export default function SetupPage() {
             montrer: y envoyer quelqu'un serait le poser devant un écran vide
             en lui ayant fait croire qu'il venait de finir. */}
         <PlanDraftDialog
+          // ⟳ 2026-09-25 — ELLE SE CACHE D'ELLE-MÊME TANT QUE LA
+          // DÉMONSTRATION EST OUVERTE (`PlanDraftDialog`, `plan/demo/demoGate`):
+          // une visite commencée va jusqu'au bout, et une visite rouverte
+          // depuis l'aperçu le rend tel qu'on l'a laissé.
           open={draft !== null}
           /* ⛔ « LAISSER TOMBER » JETTE LE BROUILLON. Fermer en le gardant en
              mémoire le rendait inatteignable jusqu'au rechargement. */
@@ -3763,6 +3925,8 @@ export default function SetupPage() {
           // rien rangé: l'aperçu s'affiche alors comme hier, sans ses kcal.
           draftId={draft?.envelope.draftId ?? null}
           busy={busy}
+          resumedAdjusting={resumedAdjusting}
+          resumedFailure={resumedFailure}
           // ⟳ 2026-09-08 (lot 4) — TROIS GESTES AU LIEU D'UN. Le dialogue lit
           // la phrase (`readNote`), pose la question du serveur s'il y en a
           // une, la répond (`answerNote`), PUIS compose — sans la phrase:
@@ -3809,9 +3973,9 @@ export default function SetupPage() {
           }}
           // ⟳ 2026-09-24 — la note n'est qu'une exclusion : seuls les plats
           // qui contiennent l'aliment sont refaits (`editExclusions`).
-          onEditExclusions={async (id) => {
+          onEditExclusions={async (id, swaps) => {
             try {
-              setDraft(await editExclusions(draftInput(), id));
+              setDraft(await editExclusions(draftInput(), id, {}, swaps));
             } catch (e) {
               throw new Error(refusalMessage(e));
             }
@@ -3833,6 +3997,9 @@ export default function SetupPage() {
               throw new Error(refusalMessage(e));
             }
           }}
+          // ⟳ 2026-09-24 — « ÇA VAUT AUSSI POUR… »: une proposition, qui ne
+          // jette jamais (une panne rend `[]`).
+          onMatchDishes={(id, target) => matchDishes(id, target, draftInput().window)}
           edit={draft?.envelope.edit ?? null}
           onAdopt={async () => {
             // Le serveur relit et revalide ce brouillon par son identifiant,

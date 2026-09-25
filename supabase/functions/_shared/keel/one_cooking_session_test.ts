@@ -293,13 +293,20 @@ const LANES: readonly [string, string][] = [
 ];
 
 for (const [name, rel] of LANES) {
-  Deno.test(`la lane ${name} LIT \`one_cooking_session\` dans le corps`, async () => {
+  Deno.test(`la lane ${name} LIT \`cooking_sessions\` dans le corps`, async () => {
     const src = await sourceFamily(new URL(rel, import.meta.url));
-    // ⚠️ `=== true`, ET LA COMPARAISON EST LA GARDE. Le corps vient du réseau:
-    // `"false"`, `0` et `{}` sont truthy ou falsy pour de mauvaises raisons.
+    // ⟳ 2026-09-25 — « une seule fois » est la réponse `cooking_sessions = 1`,
+    // lue par `readCookingSessions`: un nombre ou sa chaîne, jamais un booléen
+    // (`Number(true)` vaudrait 1).
     assertStringIncludes(
       src,
-      "const askedOneCookingSession = body.one_cooking_session === true;",
+      "const askedCookingSessions = readCookingSessions(body.cooking_sessions);",
+    );
+    // ⛔ ET L'ANCIENNE CASE N'EST PLUS LUE: deux origines pour une même demande
+    // divergeraient au premier écran qui n'enverrait que l'une.
+    assert(
+      !src.includes("body.one_cooking_session"),
+      "la case `one_cooking_session` est encore lue à côté du nombre de sessions",
     );
   });
 
@@ -321,25 +328,25 @@ for (const [name, rel] of LANES) {
     // ⛔ CE QUE CE TEST TIENT TOUJOURS: la PORTE est unique, et la demande
     // explicite y entre seule. Une quatrième implémentation du congélateur ne
     // peut toujours pas s'installer à côté.
+    // ⟳ 2026-09-25 — LA PORTE NE S'OUVRE QU'AU-DELÀ DE CE QUE LE FRIGO TIENT.
+    // Une session pour deux ou trois jours est une session ordinaire: rien à
+    // congeler, donc rien à refuser faute de congélateur.
     assertStringIncludes(
       src,
-      "const askedOneSession = askedOneCookingSession;",
+      "const freezerSingleSessionAsked = askedCookingSessions === 1 &&\n      daysToEat > MAX_FRIDGE_DAYS;",
     );
     // ⛔ ET LA SECONDE ORIGINE NE DOIT PAS REVENIR. Sans cette absence, un lot
     // futur la remettrait « par symétrie » et refermerait la configuration
     // « une course, deux sessions » sans que rien ne rougisse.
     assert(
-      !src.includes("askedOneCookingSession || groceryRuns === 1"),
+      !src.includes("|| groceryRuns === 1"),
       "la dérivation « une course ⇒ une session » a été retirée le 2026-09-04 (lot C)",
     );
     assertStringIncludes(
       src,
-      "const oneCookingSession = askedOneSession &&\n      hasFreezerDeclared(kitchenEquipment);",
+      "const oneCookingSession = freezerSingleSessionAsked &&\n      hasFreezerDeclared(kitchenEquipment);",
     );
-    // ⛔ ET LE REFUS SE COMPTE SUR L'UNION, pas sur la seule case: une course
-    // unique refusée faute de congélateur doit être aussi visible qu'une case
-    // cochée refusée.
-    assertStringIncludes(src, "if (askedOneSession && !oneCookingSession) {");
+    assertStringIncludes(src, "if (freezerSingleSessionAsked && !oneCookingSession) {");
     // Et le booléen TRANCHÉ est celui qui atteint le tronc — pas la demande.
     assertStringIncludes(src, "      oneCookingSession,");
   });
@@ -396,5 +403,5 @@ Deno.test("le millésime du TRONC est celui d'aujourd'hui — épinglé ici auss
   // ⟳ LOT C (2026-09-11) — v31: le prompt système ne dit plus le POIDS d'une
   // assiette (« roughly 600 to 750 g »), il dit sa FORME. La version avance avec
   // son texte, sinon un cache servirait l'ancienne consigne sous le nouveau nom.
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v34_the_grid_is_a_checklist");
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v42_off_the_table_not_at");
 });

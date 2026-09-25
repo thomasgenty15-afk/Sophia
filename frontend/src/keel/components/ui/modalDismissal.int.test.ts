@@ -233,7 +233,10 @@ describe("une couche ne vole pas le focus d'un de ses champs", () => {
     );
   });
   it("⚠️ la prémisse: le champ de la raison demande le focus lui-même", () => {
-    const layer = bare(read("../plan/ReplaceReasonLayer.tsx"));
-    expect(layer).toMatch(/<textarea[\s\S]*?autoFocus/);
+    // ⟳ 2026-09-24 — la raison vit désormais dans une bulle sous le bouton
+    // (`ReplaceReasonPanel`), hors couche; la garde reste pour tout champ de
+    // couche qui prend le focus au montage.
+    const panel = bare(read("../plan/ReplaceReasonPanel.tsx"));
+    expect(panel).toMatch(/<textarea[\s\S]*?autoFocus/);
   });
 });

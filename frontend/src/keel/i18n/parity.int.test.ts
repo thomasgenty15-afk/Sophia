@@ -255,6 +255,13 @@ describe("pack français de la vitrine", () => {
       "unit.many.point",
       "unit.one.portion",
       "unit.many.portion",
+      // ⟳ 2026-09-25 — LES DURÉES PAR SESSION (« 30 min », « 1 h 30 »…): des
+      // nombres et des unités d'horloge, écrits pareil dans les deux langues.
+      "plan.cooking.time_band_30",
+      "plan.cooking.time_band_60",
+      "plan.cooking.time_band_90",
+      "plan.cooking.time_band_120",
+      "plan.cooking.time_band_150",
       // ⚠️ CES QUATRE SONT VIDES DES DEUX CÔTÉS, ET LE VIDE EST LA VALEUR.
       // `quantity()` (api/labels.ts) teste `word === ""` pour n'imprimer que le
       // nombre: l'unité d'horloge et l'unité `none` n'ont pas de mot. Les
@@ -415,9 +422,12 @@ describe("pack français de la vitrine", () => {
       // le "Boxing" »). Deux noms pour la même chose — « Mise en boîtes » ici,
       // « Boxing » là — sépareraient une capture d'écran d'une phrase de
       // support, et le pack n'est pas recopié pour autant: ses huit voisines
-      // (`title_dish`, `count_one`, `count_many`, `ready_not_raw`, `for_n`,
+      // (`title_dish`, `count_one`, `count_many`, `for_n`,
       // `rest_of_table`, `lid_unnamed`) diffèrent toutes.
       "meals.boxes.title",
+      // ⟳ 2026-09-25 — « Plan » est le même mot, et c'est celui de l'onglet
+      // (`/app/plan`): le titre de la section porte le nom de l'écran.
+      "meals.result.plan_title",
 
       // ══ LOT 6 · LES DEUX DERNIÈRES PAGES ÉLÈVE ════════════════════════════
       // Quatre clés sur 300, et la preuve que le pack est rédigé est dans ce

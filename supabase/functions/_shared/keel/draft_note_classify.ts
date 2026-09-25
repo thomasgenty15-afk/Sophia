@@ -446,7 +446,7 @@ export const DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT = [
   "",
   "Return ONE JSON object, and nothing else. No prose, no code fence.",
   "",
-  '{ "preferences": [ ... ], "next_plan": [ ... ], "notes": [ ... ], "portions": [ ... ], "settings": [ ... ], "slots": [ ... ], "cells": [ ... ], "skipped": [ ... ], "clarify": [ ... ], "safety": [ ... ], "side_courses": [ ... ] }',
+  '{ "preferences": [ ... ], "next_plan": [ ... ], "notes": [ ... ], "portions": [ ... ], "settings": [ ... ], "slots": [ ... ], "cells": [ ... ], "skipped": [ ... ], "clarify": [ ... ], "safety": [ ... ], "side_courses": [ ... ], "swaps": [ ... ] }',
   "",
   "For each thing the note says, try the drawers IN THIS ORDER and file it in the FIRST one that fits. Never in two. Every drawer may be empty, and an empty drawer is a correct answer.",
   "",
@@ -628,7 +628,34 @@ export const DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT = [
   '  ⛔ A FOOD IS NOT A COURSE. "no cheese in the evening", "less bread", "no more yogurt" name a FOOD: they go in (1), with their meal — and the app then keeps that food off the side course too. Only a sentence about TAKING the course itself comes here: "never has dessert", "to finish the meal", "as a starter", "on the table".',
   '  ⚠️ THE FOOD NAMED WITH THE COURSE IS FILED TOO: "no dessert for Léa, she hates yogurt" is this drawer (dessert, false) AND a food in (1) (yogurt). Neither absorbs the other.',
   '  Return "side_courses": [] when the note says none of this. That is the normal answer.',
+  "",
+  // ── PORTE ⑫ — LE REMPLACEMENT POUR CE PLAN (2026-09-25). Décision du
+  // propriétaire : « à la place de X, mets Y » change CE plan seulement — X
+  // n'est pas un dégoût et n'est rangé nulle part; Y est une préférence. Le
+  // front rend l'entrée au composeur, qui refait les plats où X est servi.
+  '12. "swaps" — the note asks to put one food IN PLACE OF another in THIS plan, WITHOUT naming a day AND a moment: « à la place du petit suisse, mets du fromage blanc », "replace the rice with quinoa", "quinoa instead of rice", « plutôt du fromage blanc que du petit suisse ». It changes THIS plan only: the food taken out is NOT a dislike and is NEVER filed in (1) or (2). The food put in IS a taste: ALSO file it in (1) as food.prefer. With a day AND a moment named ("Friday dinner, chicken instead of fish") it is a cell (9), not a swap. Each entry is exactly:',
+  "{",
+  '  "from": the food to take OUT of this plan, in THEIR language and their words, a few words at most,',
+  '  "to": the food to put in its place, in THEIR language and their words, a few words at most,',
+  '  "member_id": see WHO above — null when it is for the whole table,',
+  "}",
+  '  ⛔ A DISLIKE IS NOT A SWAP: "I don\'t like X, give me Y" says X for good — X goes in (1) as food.exclude, Y in (1) as food.prefer, and nothing here.',
+  '  Return "swaps": [] when the note asks for no such swap. That is the normal answer.',
 ].join("\n");
+
+/**
+ * ⑫ — « À LA PLACE DE X, METS Y », POUR CE PLAN SEULEMENT (2026-09-25).
+ * `subject` : `household` ou `member:<uuid>`, comme les autres portes.
+ */
+export interface DraftNoteSwap {
+  readonly from: string;
+  readonly to: string;
+  readonly subject: string;
+}
+/** Trois remplacements par note, au plus. */
+export const DRAFT_NOTE_SWAPS_MAX = 3;
+/** Un aliment, en quelques mots — au-delà, ce n'est plus un aliment. */
+export const DRAFT_NOTE_SWAP_TEXT_MAX = 60;
 
 /** Une bouche, réduite à ce dont ce prompt a besoin. */
 export type DraftNoteMember = {
@@ -906,6 +933,12 @@ export interface DraftNoteClassification {
    * composeur (`operation: "edit_cells"`). Lue par le lecteur du générateur.
    */
   readonly cells: DraftNoteGateCount & { readonly requests: readonly CellEdit[] };
+  /**
+   * ⑫ — LE REMPLACEMENT POUR CE PLAN (2026-09-25). Rien n'est ÉCRIT : comme
+   * `cells`, c'est une demande que `keel-read-note-v1` rend au front, qui la
+   * donne au composeur (`edit_cells`, `cells_from: "exclusions"`, `swaps`).
+   */
+  readonly swaps: DraftNoteGateCount & { readonly requests: readonly DraftNoteSwap[] };
   readonly skipped: DraftNoteSkipped;
   /**
    * ⑤ — ce qui attend UNE précision. Chaque entrée est rangée nulle part
@@ -990,6 +1023,7 @@ export const EMPTY_DRAFT_NOTE_CLASSIFICATION: DraftNoteClassification = {
   slots: { proposed: 0, kept: 0, refused: EMPTY_REFUSALS, moves: [] },
   sideCourses: { proposed: 0, kept: 0, refused: EMPTY_REFUSALS, moves: [] },
   cells: { proposed: 0, kept: 0, refused: EMPTY_REFUSALS, requests: [] },
+  swaps: { proposed: 0, kept: 0, refused: EMPTY_REFUSALS, requests: [] },
   skipped: EMPTY_SKIPPED,
   clarify: {
     proposed: 0,
@@ -1844,6 +1878,44 @@ export function readDraftNoteClassification(args: {
     refused: cellRefusals.freeze(),
     requests: cellRead.cells,
   };
+  // ── ⑫ LE REMPLACEMENT — deux aliments et une bouche, rien d'écrit ───────
+  const swapRefusals = new Refusals();
+  const swapRequests: DraftNoteSwap[] = [];
+  const swapSeen = new Set<string>();
+  for (const row of lists.swaps) {
+    const record = asRecord(row);
+    if (!record) {
+      swapRefusals.malformed += 1;
+      continue;
+    }
+    const subject = subjectOf(record);
+    if (!subject) {
+      swapRefusals.unknownMember += 1;
+      continue;
+    }
+    const from = typeof record.from === "string" ? record.from.trim() : "";
+    const to = typeof record.to === "string" ? record.to.trim() : "";
+    if (
+      !from || !to || from.length > DRAFT_NOTE_SWAP_TEXT_MAX ||
+      to.length > DRAFT_NOTE_SWAP_TEXT_MAX
+    ) {
+      swapRefusals.badText += 1;
+      continue;
+    }
+    const key = `${subject}|${from.toLowerCase()}`;
+    if (swapSeen.has(key) || swapRequests.length >= DRAFT_NOTE_SWAPS_MAX) {
+      swapRefusals.malformed += 1;
+      continue;
+    }
+    swapSeen.add(key);
+    swapRequests.push({ from, to, subject });
+  }
+  const swaps = {
+    proposed: lists.swaps.length,
+    kept: swapRequests.length,
+    refused: swapRefusals.freeze(),
+    requests: swapRequests,
+  };
   const clarify = {
     proposed: lists.clarify.length,
     kept: clarifyEntries.length + portionQuestions.length,
@@ -1858,6 +1930,7 @@ export function readDraftNoteClassification(args: {
     notes.refused,
     nextPlan.refused,
     cells.refused,
+    swaps.refused,
     portions.refused,
     settings.refused,
     slots.refused,
@@ -1871,9 +1944,10 @@ export function readDraftNoteClassification(args: {
     classification: {
       proposed: preferences.proposed + notes.proposed + nextPlan.proposed +
         portions.proposed + settings.proposed + slots.proposed +
-        sideCourses.proposed + cells.proposed + clarify.proposed,
+        sideCourses.proposed + cells.proposed + swaps.proposed + clarify.proposed,
       kept: preferences.kept + notes.kept + nextPlan.kept + portions.kept +
-        settings.kept + slots.kept + sideCourses.kept + cells.kept + clarify.kept,
+        settings.kept + slots.kept + sideCourses.kept + cells.kept + swaps.kept +
+        clarify.kept,
       refused,
       preferences,
       notes,
@@ -1883,6 +1957,7 @@ export function readDraftNoteClassification(args: {
       slots,
       sideCourses,
       cells,
+      swaps,
       skipped: {
         total: degree + setting + mealStory + other + unknownSkip,
         degree,
@@ -1922,6 +1997,7 @@ function listsOf(raw: unknown): {
   clarify: unknown[];
   safety: unknown[];
   side_courses: unknown[];
+  swaps: unknown[];
   missing: string[];
 } | null {
   let value = raw;
@@ -1948,6 +2024,8 @@ function listsOf(raw: unknown): {
     // ⟳ 2026-09-23 — ⑪. Même raison que `clarify`: une clé absente est un
     // prompt lu de travers, et se compte à part d'un vide.
     "side_courses",
+    // ⟳ 2026-09-25 — ⑫, le remplacement pour ce plan.
+    "swaps",
   ] as const;
   if (!keys.some((k) => k in record)) return null;
   const missing: string[] = [];
@@ -1971,6 +2049,7 @@ function listsOf(raw: unknown): {
     clarify: list("clarify"),
     safety: list("safety"),
     side_courses: list("side_courses"),
+    swaps: list("swaps"),
     missing,
   };
 }
@@ -2034,7 +2113,7 @@ export function draftNoteClassifyTrace(
     portions_up: classification.portions.moves.filter((m) => m.direction === "up").length,
     // ⑤ — LE TRAVAIL DE CUISINE. Par axe, parce que c'est l'axe qui dit quel
     // champ le bilan va déplacer: `time` et `difficulty` peuvent tomber sur le
-    // MÊME champ (`cooking_style`) et se neutraliser (`bothPolarities`).
+    // MÊME champ (`cooking_time_min`) et se neutraliser (`bothPolarities`).
     ...gate("settings", classification.settings),
     settings_time: classification.settings.moves.filter((m) => m.about === "time").length,
     settings_difficulty: classification.settings.moves.filter((m) => m.about === "difficulty").length,
@@ -2057,6 +2136,8 @@ export function draftNoteClassifyTrace(
     // a inventé ou omis.
     ...gate("cells", classification.cells),
     cells_refused_bad_when: classification.cells.refused.badWhen,
+    // ⑫ — le remplacement pour ce plan: ce que le front rendra au composeur.
+    ...gate("swaps", classification.swaps),
     ...gate("clarify", classification.clarify),
     clarify_refused_bad_about: classification.clarify.refused.badAbout,
     clarify_refused_bad_gate: classification.clarify.refused.badGate,

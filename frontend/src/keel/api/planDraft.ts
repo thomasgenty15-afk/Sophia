@@ -35,6 +35,7 @@ import { supabase } from "../../lib/supabase";
 // LOT B — le TYPE seul. La règle du plafond vit côté serveur, et aucune garde
 // n'est recopiée ici: c'est la règle de ce fichier.
 import { COOKING_SHAPES, type CookingShape } from "./cookingShape";
+import { type CookingSessionCount, readCookingSessions } from "./cookingPlan";
 import { readEdgeRefusal } from "./edgeErrors";
 import {
   type GeneratedMealResult,
@@ -58,42 +59,10 @@ import { daysBetween } from "./dates";
 // regarde le moins qui garderait l'ancien comportement.
 import { readPlanValidation } from "./planValidation";
 
-/**
- * ══════════════════════════════════════════════════════════════════════════
- * LE PLAFOND DE TOURS, ET IL SE DIT AVANT QU'ON LE HEURTE.
- * ══════════════════════════════════════════════════════════════════════════
- *
- * Trois COMPOSITIONS par brouillon, l'aperçu initial COMPRIS — donc deux
- * reprises. Ce n'est pas une limite de coût déguisée en règle produit: chaque
- * tour est un appel modèle de 100 à 200 secondes (mesuré: 133,7 s / 100,3 s /
- * 194,3 s en réel), et un champ de commentaire sans plafond invite à négocier
- * avec un plan au lieu de le composer.
- *
- * ⚠️ IL EST AFFICHÉ AVANT LE DERNIER TOUR, JAMAIS DÉCOUVERT EN LE HEURTANT.
- * Un bouton qui se désactive sans prévenir se lit comme une panne, et quelqu'un
- * qui aurait su qu'il lui restait UNE reprise aurait écrit une autre phrase.
- * C'est `draftTurnsLeft` qui porte le chiffre, et l'écran le dit à chaque tour.
- */
-export const DRAFT_MAX_TURNS = 3;
-
-/**
- * Combien de compositions il RESTE. Jamais négatif: un compteur qui descend
- * sous zéro ferait afficher « −1 » à quelqu'un.
- *
- * `used` est le nombre de compositions DÉJÀ rendues, aperçu initial compris.
- * REQUIS, et jamais optionnel: `0` par défaut dirait « personne n'a rien
- * composé », ce qui est une AFFIRMATION — et la mauvaise, puisqu'on ne compte
- * qu'après avoir composé au moins une fois.
- */
-export function draftTurnsLeft(used: number): number {
-  if (!Number.isFinite(used) || used <= 0) return DRAFT_MAX_TURNS;
-  return Math.max(0, DRAFT_MAX_TURNS - Math.floor(used));
-}
-
-/** Reste-t-il un tour ? Un seul lecteur pour la règle, à un seul endroit. */
-export function canRemix(used: number): boolean {
-  return draftTurnsLeft(used) > 0;
-}
+// ⟳ 2026-09-25 — LE PLAFOND DE TOURS EST PARTI (`DRAFT_MAX_TURNS`,
+// `draftTurnsLeft`, `canRemix`). Décision produit : « il ne doit pas y avoir
+// de limite de reprises dans les faits ». Plus de compteur à l'écran, plus de
+// bouton éteint au troisième tour.
 
 /**
  * LE PLAFOND DE SIGNES, TEL QUE LE SERVEUR LE MESURE.
@@ -316,6 +285,20 @@ export interface NoteOutcome {
    * (lecture des raisons de « Remplacer »). `0` sur une note.
    */
   rejectedFiled: number;
+  /**
+   * ⟳ 2026-09-25 — « À LA PLACE DE X, METS Y », POUR CE PLAN SEULEMENT
+   * (décision du propriétaire). Rien n'est écrit pour X; Y est rangé comme
+   * préférence (et arrive dans `announced`). Le dialogue les donne à la
+   * retouche locale (`editExclusions`), qui refait les plats où X est servi.
+   */
+  swaps: ReadonlyArray<NoteSwap>;
+}
+
+export interface NoteSwap {
+  from: string;
+  to: string;
+  /** `null` = toute la table. */
+  memberId: string | null;
 }
 
 export interface NoteCell {
@@ -675,6 +658,42 @@ export async function recoverLatestDraft(): Promise<RecoverablePlanDraft> {
     .maybeSingle();
   if (error) throw new Error("composition_unavailable");
   return recoverableRow(data);
+}
+
+/**
+ * ⟳ 2026-09-25 — L'APERÇU QU'UN AJUSTEMENT EN COURS VA REMPLACER.
+ *
+ * Signalé dans l'entonnoir : un rechargement pendant « Ajuster le plan »
+ * fermait la fenêtre d'aperçu et affichait la carte « Ton plan se compose ».
+ * L'aperçu d'avant existe pourtant encore (un brouillon ne passe `discarded`
+ * qu'au moment où un autre devient `done`) : c'est lui qu'on rouvre, pendant
+ * que la page attend la composition en vol.
+ *
+ * Le brouillon le plus récent AVANT la ligne en vol, parmi `done`, `adopted`
+ * et `discarded` — même règle que `recoverLatestDraft` : si le plus récent a
+ * déjà eu sa réponse, il n'y a rien à rouvrir (`null`). `null` aussi pour une
+ * première composition : rien n'était affiché avant elle.
+ */
+export async function recoverPreviewBehind(inFlightDraftId: string): Promise<PlanDraft | null> {
+  const head = await supabase
+    .from("student_meal_drafts")
+    .select("created_at")
+    .eq("id", inFlightDraftId)
+    .maybeSingle();
+  const createdAt = String((head.data as { created_at?: unknown } | null)?.created_at ?? "");
+  if (head.error || !createdAt) return null;
+  const { data, error } = await supabase
+    .from("student_meal_drafts")
+    .select(`id,status,response,error_code,expires_at,created_at,${RELAUNCH_COLUMNS}`)
+    .in("status", ["done", "adopted", "discarded"])
+    .gt("expires_at", new Date().toISOString())
+    .lt("created_at", createdAt)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) return null;
+  const behind = recoverableRow(data);
+  return behind !== null && behind.state === "done" ? behind.draft : null;
 }
 
 let pendingDiscard: Promise<boolean> | null = null;
@@ -1081,19 +1100,21 @@ export interface ComposeDraftInput {
    */
   cookingShape: CookingShape | null;
   /**
-   * « TOUT DANS UNE SESSION DE CUISINE » — 2026-09-01.
+   * ⟳ 2026-09-25 — « COMBIEN DE FOIS TU VEUX CUISINER », 1 à 4. Il remplace
+   * `oneCookingSession` (« tout dans une session de cuisine », 2026-09-01):
+   * « une fois » est une réponse comme les autres.
    *
-   * ⚠️ REQUIS, jamais `?`. Un champ facultatif ici n'aurait fait remonter AUCUN
-   * appelant au compilateur, et l'option se serait construite sans être
-   * branchée — c'est la forme exacte de « paramètre de garde optionnel = garde
-   * désarmée », payée sept fois par ce dépôt.
+   * ⚠️ REQUIS ET NULLABLE, jamais `?`. Un champ facultatif ici n'aurait fait
+   * remonter AUCUN appelant au compilateur — « paramètre de garde optionnel =
+   * garde désarmée », payée sept fois par ce dépôt. `null` = pas de réponse:
+   * le moteur ne dérive alors aucun plan de cuisine (`resolveCookingCapacity`).
    *
-   * ⛔ LE SERVEUR LE REFUSE SANS CONGÉLATEUR DÉCLARÉ, et il le DIT
-   * (`plan_rationale`). L'écran pose la même porte pour ne pas PROPOSER un
-   * geste qui sera refusé; ce n'est pas une garde en double — le corps de la
-   * requête est écrit par le réseau, pas par l'écran.
+   * ⛔ LE SERVEUR RELÈVE UN NOMBRE IMPOSSIBLE (une session sur sept jours sans
+   * congélateur) et le DIT (`plan_rationale`). L'écran grise déjà ces options;
+   * ce n'est pas une garde en double — le corps de la requête est écrit par le
+   * réseau, pas par l'écran.
    */
-  oneCookingSession: boolean;
+  cookingSessions: CookingSessionCount | null;
   // ⟳ A1 (2026-09-03) — `cookTheDayBefore` A ÉTÉ RETIRÉ D'ICI, ET DU CORPS.
   // La veille n'est plus une case: `generate-meal-v1` et
   // `generate-household-meal-v1` la DÉRIVENT (`leadDayFor`) de la date de
@@ -1162,7 +1183,7 @@ export function readComposeInput(raw: unknown): ComposeDraftInput | null {
   return {
     window,
     cookingShape: (COOKING_SHAPES as readonly string[]).includes(shape) ? (shape as CookingShape) : null,
-    oneCookingSession: body.one_cooking_session === true,
+    cookingSessions: readCookingSessions(body.cooking_sessions),
     context,
     preferences,
     origin: readDraftOrigin(body.origin) ?? "plan",
@@ -1322,6 +1343,67 @@ function rejectionBody(r: DishRejection): Record<string, unknown> {
 }
 
 /**
+ * ⟳ 2026-09-24 — UN AUTRE PLAT DU BROUILLON À QUI LA MÊME RAISON S'APPLIQUE,
+ * proposé par `keel-read-note-v1` (mode `match`). Un titre, et toutes ses
+ * occurrences.
+ */
+export interface DishMatch {
+  title: string;
+  occurrences: ReadonlyArray<{ day: string; slot: string; memberId: string | null }>;
+}
+
+/** La réponse du mode `match`, relue: un titre vide ou sans occurrence tombe. */
+export function readDishMatchesResponse(raw: unknown): DishMatch[] {
+  const list = (raw as { matches?: unknown } | null)?.matches;
+  if (!Array.isArray(list)) return [];
+  const out: DishMatch[] = [];
+  for (const item of list) {
+    const m = (item ?? {}) as Record<string, unknown>;
+    const title = String(m.title ?? "").trim();
+    const occurrences = (Array.isArray(m.occurrences) ? m.occurrences : [])
+      .map((o) => (o ?? {}) as Record<string, unknown>)
+      .map((o) => ({
+        day: String(o.day ?? ""),
+        slot: String(o.slot ?? ""),
+        memberId: o.member_id === null || o.member_id === undefined ? null : String(o.member_id),
+      }))
+      .filter((o) => o.day !== "" && o.slot !== "");
+    if (title === "" || occurrences.length === 0) continue;
+    out.push({ title, occurrences });
+  }
+  return out;
+}
+
+/**
+ * « ÇA VAUT AUSSI POUR… » — après la raison d'UN plat barré, les autres plats
+ * du même brouillon à qui elle s'applique (un appel rapide, côté serveur).
+ *
+ * ⛔ NE JETTE JAMAIS: c'est une suggestion. Une panne, un refus, un modèle
+ * lent rendent `[]` — le plat est déjà barré, et la personne continue.
+ */
+export async function matchDishes(
+  draftId: string,
+  target: DishRejection,
+  window: MealWindowRequest,
+): Promise<DishMatch[]> {
+  try {
+    const startsOn = window.kind === "exact" ? window.startsOn : null;
+    const { data, error } = await supabase.functions.invoke("keel-read-note-v1", {
+      body: {
+        draft_id: draftId,
+        match: rejectionBody(target),
+        today: localTodayIso(),
+        ...(startsOn ? { starts_on: startsOn } : {}),
+      },
+    });
+    if (error) return [];
+    return readDishMatchesResponse(data);
+  } catch {
+    return [];
+  }
+}
+
+/**
  * ⟳ 2026-09-08 (lot 4) — RÉPONDRE À « C'EST POUR QUI ? ». Même fonction edge,
  * sans `draft_note` et sans appel modèle: la phrase a déjà été lue, il ne
  * manquait que la bouche. Rend la même issue que `readNote`, donc les mêmes
@@ -1353,8 +1435,8 @@ export async function answerNote(answer: NoteAnswer): Promise<NoteOutcome> {
 function readNoteOutcome(raw: Record<string, unknown>): NoteOutcome {
   const reason = String(raw.reason ?? "");
   const counters = (raw.counters ?? {}) as Record<string, unknown>;
-  const announced = Array.isArray(raw.announced)
-    ? raw.announced.map((a) => {
+  const readLines = (list: unknown) =>
+    (Array.isArray(list) ? list : []).map((a) => {
       const row = (a ?? {}) as Record<string, unknown>;
       return {
         text: String(row.text ?? ""),
@@ -1362,8 +1444,19 @@ function readNoteOutcome(raw: Record<string, unknown>): NoteOutcome {
         kind: String(row.kind ?? ""),
         sense: row.sense === null || row.sense === undefined ? null : String(row.sense),
       };
-    }).filter((a) => a.text !== "")
-    : [];
+    }).filter((a) => a.text !== "");
+  // ⟳ 2026-09-25 — `known` : ce que la note redit et que la mémoire portait
+  // déjà (rien d'écrit, donc absent d'`announced` côté serveur). Versé ici
+  // dans `announced`, parce que c'est lui qui AIGUILLE : sans ça, « J'aime pas
+  // le tofu » redit sur un aperçu qui portait encore du tofu recomposait toute
+  // la semaine (mesuré sur un vrai compte) au lieu de refaire les plats au
+  // tofu. « J'ai noté : tofu » reste vrai — c'est noté.
+  const written = readLines(raw.announced);
+  const seen = new Set(written.map((a) => `${a.kind}|${a.sense ?? ""}|${a.who ?? ""}|${a.text}`));
+  const announced = [
+    ...written,
+    ...readLines(raw.known).filter((a) => !seen.has(`${a.kind}|${a.sense ?? ""}|${a.who ?? ""}|${a.text}`)),
+  ];
   const questions: NoteQuestion[] = [];
   for (const q of Array.isArray(raw.questions) ? raw.questions : []) {
     const row = (q ?? {}) as Record<string, unknown>;
@@ -1435,6 +1528,14 @@ function readNoteOutcome(raw: Record<string, unknown>): NoteOutcome {
     safetyNotWritten,
     cells,
     rejectedFiled: Number(raw.rejected_filed) || 0,
+    swaps: (Array.isArray(raw.swaps) ? raw.swaps : []).flatMap((w): NoteSwap[] => {
+      const row = (w ?? {}) as Record<string, unknown>;
+      const from = typeof row.from === "string" ? row.from.trim() : "";
+      const to = typeof row.to === "string" ? row.to.trim() : "";
+      if (!from || !to) return [];
+      const member = typeof row.member_id === "string" && row.member_id.trim() !== "" ? row.member_id.trim() : null;
+      return [{ from, to, memberId: member }];
+    }),
   };
 }
 
@@ -1486,6 +1587,49 @@ export async function composeDraft(
 }
 
 /**
+ * ⟳ 2026-09-25 — UNE RETOUCHE IMPOSSIBLE DEVIENT UNE RECOMPOSITION, DÉCIDÉE ICI.
+ *
+ * Décision produit du 2026-09-25 : un ajustement se fait en local, ou le plan
+ * se recompose parce que le système le décide. Jamais « refais tout le plan »
+ * demandé à la personne (le bouton `recomposeStale` du dialogue est parti).
+ *
+ * Quatre refus disent que la retouche locale ne peut pas aboutir :
+ *   · l'aperçu de départ n'est plus utilisable — absent, pas prêt (fermé par
+ *     une autre composition), ou sans plan rangé ;
+ *   · `plan_not_deliverable` : le plan retouché ne passe pas la porte finale.
+ *     Mesuré le 2026-09-25 : un plat NON touché de l'aperçu d'hier (poisson
+ *     cru que rien ne cuit, `raw_protein_uncooked`) faisait refuser toute la
+ *     retouche — l'aperçu a été composé avant cette règle, la retouche le
+ *     recopie, et une retouche ne relance pas d'amélioration.
+ * On recompose alors, avec la même entrée. L'effet de la note ou des plats
+ * barrés est déjà rangé en amont (`readNote`, `readRejections`), donc la
+ * recomposition le porte.
+ *
+ * ⚠️ SEULEMENT CES QUATRE JETONS. Tout autre refus (une case illisible, aucun
+ * plat concerné) garde l'aperçu courant et se dit tel quel.
+ */
+const EDIT_FALLS_BACK_TO_COMPOSE: ReadonlySet<string> = new Set([
+  "draft_not_found",
+  "draft_not_done",
+  "draft_has_no_source",
+  "plan_not_deliverable",
+]);
+
+async function editOrRecompose(
+  input: ComposeDraftInput,
+  opts: WaitForDraftOptions,
+  edit: () => Promise<PlanDraft>,
+): Promise<PlanDraft> {
+  try {
+    return await edit();
+  } catch (error) {
+    const token = (error instanceof Error ? error.message : String(error)).split(":")[0].trim();
+    if (!EDIT_FALLS_BACK_TO_COMPOSE.has(token)) throw error;
+    return await composeDraft(input, opts);
+  }
+}
+
+/**
  * ⟳ 2026-09-24 — REMPLACER LES PLATS BARRÉS, ET SEULEMENT EUX.
  *
  * La reprise locale (`operation: "edit_cells"`) en mode `cells_from:
@@ -1495,8 +1639,9 @@ export async function composeDraft(
  * `envelope.edit.extended`), recopie tout le reste, rejoue ses ceintures, et
  * range un nouveau brouillon. Une reprise locale n'est jamais relancée.
  *
- * ⛔ UN REFUS LÈVE (`dish_unknown`, `dish_not_rendered`, `draft_mismatch`…) et
- * l'aperçu courant reste, plats toujours barrés: on peut relancer.
+ * ⛔ UN REFUS LÈVE (`dish_unknown`, `dish_not_rendered`…) et l'aperçu courant
+ * reste, plats toujours barrés: on peut relancer. Une retouche qui ne peut
+ * pas aboutir recompose (`editOrRecompose`).
  */
 export async function replaceDishes(
   input: ComposeDraftInput,
@@ -1506,16 +1651,18 @@ export async function replaceDishes(
 ): Promise<PlanDraft> {
   // Même corps que `editCells`: le plan remplacé voyage (`replaces`), sinon la
   // garde de chevauchement refuserait avant tout tour de modèle.
-  const payload = await callGenerator(input, "draft", opts.replaces ?? null, {
-    operation: "edit_cells",
-    draft_id: draftId,
-    cells_from: "rejections",
-    rejections: rejections.map(rejectionBody),
-  }, opts.onProgress);
-  return {
-    plan: { ...readDraftPlan(payload), planKind: "household" as const },
-    envelope: readDraftEnvelope(payload),
-  };
+  return await editOrRecompose(input, opts, async () => {
+    const payload = await callGenerator(input, "draft", opts.replaces ?? null, {
+      operation: "edit_cells",
+      draft_id: draftId,
+      cells_from: "rejections",
+      rejections: rejections.map(rejectionBody),
+    }, opts.onProgress);
+    return {
+      plan: { ...readDraftPlan(payload), planKind: "household" as const },
+      envelope: readDraftEnvelope(payload),
+    };
+  });
 }
 
 /**
@@ -1534,9 +1681,13 @@ export async function replaceDishes(
  * `edit` serait `null`, le dialogue dirait « refait », et personne ne saurait
  * pourquoi les autres cases ont bougé.
  *
- * ⛔ UN REFUS LÈVE (`cell_not_rendered`, `cell_unknown`, `draft_has_no_source`,
- * `draft_mismatch`…) et l'aperçu courant reste : rien n'a été composé à la
- * place.
+ * ⛔ UN REFUS LÈVE (`cell_not_rendered`, `cell_unknown`…) et l'aperçu courant
+ * reste : rien n'a été composé à la place.
+ *
+ * ⟳ 2026-09-25 — SAUF QUAND LA RETOUCHE NE PEUT PAS ABOUTIR
+ * (`editOrRecompose`) : décision produit, le système recompose au lieu de
+ * demander à la personne de le faire. Ce n'est pas le repli silencieux retiré
+ * au lot 7 : `edit` est `null` et la recomposition se lit comme telle.
  */
 export async function editCells(
   input: ComposeDraftInput,
@@ -1549,15 +1700,17 @@ export async function editCells(
   // `edit_cells` appelée sans `replaces`, refusée en 600 ms par la garde de
   // chevauchement (`plan_overlaps_existing`) — aucun tour de modèle, et la
   // personne lit « ça n'a rien fait ». Même corps que `composeDraft`.
-  const payload = await callGenerator(input, "draft", opts.replaces ?? null, {
-    operation: "edit_cells",
-    draft_id: draftId,
-    cells: cells.map((c) => ({ day: c.day, slot: c.slot, text: c.text })),
-  }, opts.onProgress);
-  return {
-    plan: { ...readDraftPlan(payload), planKind: "household" },
-    envelope: readDraftEnvelope(payload),
-  };
+  return await editOrRecompose(input, opts, async () => {
+    const payload = await callGenerator(input, "draft", opts.replaces ?? null, {
+      operation: "edit_cells",
+      draft_id: draftId,
+      cells: cells.map((c) => ({ day: c.day, slot: c.slot, text: c.text })),
+    }, opts.onProgress);
+    return {
+      plan: { ...readDraftPlan(payload), planKind: "household" as const },
+      envelope: readDraftEnvelope(payload),
+    };
+  });
 }
 
 /**
@@ -1582,22 +1735,44 @@ export function noteIsExclusionOnly(outcome: Pick<NoteOutcome, "announced">): bo
     );
 }
 
+/**
+ * ⟳ 2026-09-25 — LA RETOUCHE EST LOCALE QUAND LA NOTE NE DEMANDE QUE ÇA.
+ * Une exclusion seule (`noteIsExclusionOnly`), ou un remplacement « à la place
+ * de X, mets Y » accompagné de ses préférences (Y est rangé en `food.prefer`,
+ * une autre exclusion peut l'accompagner). Tout le reste — un goût seul, une
+ * envie, un mémo, une portion — change la semaine : recomposition.
+ */
+export function noteIsLocalEdit(outcome: Pick<NoteOutcome, "announced" | "swaps">): boolean {
+  if (outcome.swaps.length > 0) {
+    return outcome.announced.every((a) =>
+      (a.kind === "preference" || a.kind === "next_plan") &&
+      (a.sense === "food.exclude" || a.sense === "food.prefer")
+    );
+  }
+  return noteIsExclusionOnly(outcome);
+}
+
 export async function editExclusions(
   input: ComposeDraftInput,
   draftId: string,
   opts: WaitForDraftOptions = {},
+  /** ⟳ 2026-09-25 — les remplacements pour CE plan (`[]` = aucun). */
+  swaps: ReadonlyArray<NoteSwap> = [],
 ): Promise<PlanDraft> {
   // Même corps que `editCells` (plan remplacé compris), sans case nommée.
-  const payload = await callGenerator(input, "draft", opts.replaces ?? null, {
-    operation: "edit_cells",
-    draft_id: draftId,
-    cells: [],
-    cells_from: "exclusions",
-  }, opts.onProgress);
-  return {
-    plan: { ...readDraftPlan(payload), planKind: "household" },
-    envelope: readDraftEnvelope(payload),
-  };
+  return await editOrRecompose(input, opts, async () => {
+    const payload = await callGenerator(input, "draft", opts.replaces ?? null, {
+      operation: "edit_cells",
+      draft_id: draftId,
+      cells: [],
+      cells_from: "exclusions",
+      swaps: swaps.map((w) => ({ from: w.from, to: w.to, member_id: w.memberId })),
+    }, opts.onProgress);
+    return {
+      plan: { ...readDraftPlan(payload), planKind: "household" as const },
+      envelope: readDraftEnvelope(payload),
+    };
+  });
 }
 
 /**
@@ -1745,11 +1920,10 @@ async function callGenerator(
     // le défaut exact que la fenêtre d'aperçu existe pour empêcher, et qui est
     // déjà écrit noir sur blanc pour `draft_note`.
     cooking_shape: input.cookingShape,
-    // ⛔ SUR LES TROIS GESTES AUSSI. « Tout dans une session » est une question
-    // de CONSERVATION, pas de nombre d'assiettes: elle se pose exactement
+    // ⛔ SUR LES TROIS GESTES AUSSI. Le nombre de sessions se pose exactement
     // pareil à qui mange seul. Sans lui sur l'adoption, le plan ÉCRIT ne
     // serait pas celui qu'on vient de montrer.
-    one_cooking_session: input.oneCookingSession,
+    cooking_sessions: input.cookingSessions,
     preferences: input.preferences,
     origin: input.origin,
   };

@@ -829,7 +829,7 @@ Deno.test("⟳ 2026-09-23 — v38: la recette de v34 porte la règle UNIQUE du f
   // bloc des à-côtés (la prise suit la table, le nom exact, le pain hors des deux jours).
   // ⟳ 2026-09-23 — v34_what_came_back_is_named: la ligne « à éviter » suit l'envie.
   // ⟳ 2026-09-24 — v34_what_they_turned_down: la ligne des plats refusés la suit.
-  assertEquals(b.promptVersion, "v34_what_they_turned_down");
+  assertEquals(b.promptVersion, "v34_off_the_table_not_at");
 });
 
 // ═══════════════════════════════════════════════════════════════════════════

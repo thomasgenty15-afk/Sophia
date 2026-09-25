@@ -1038,7 +1038,6 @@ export async function handleDeterministicButton(
           localDate: slotMeal.localDate,
           slot: slotMeal.slot,
           origin: "uncovered",
-          eatingOut: false,
         });
         await ack(admin, {
           userId: message.user_id,

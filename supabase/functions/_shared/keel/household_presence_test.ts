@@ -7,7 +7,6 @@ import {
   type PresenceMember,
   presenceStateFor,
   resolveWindowPresence,
-  workLunchPrefillCells,
 } from "./household_presence.ts";
 import { type EatingOccasionSlot } from "./meal_generation.ts";
 
@@ -494,98 +493,39 @@ Deno.test("C3 — SANS RYTHME, la primitive rend `[]` et l'appelant décide", ()
 });
 
 // ===========================================================================
-// L3 (2026-08-18) — « DEHORS » N'EST PAS « ABSENT »
+// ⟳ 2026-09-24 — DEUX ÉTATS: À TABLE OU ABSENT
 //
-// CE QUE CES TESTS GARDENT, et pourquoi ça ne se relit pas dans le code:
+// L'état « dehors » (`kind: "eating_out"`, L3 du 2026-08-18) est retiré, et
+// ses lignes converties en absences par migration. Ce que ces tests gardent:
 //
-//   1. LE MOTEUR NE BOUGE PAS. `servings`, `householdAway` et surtout `block`
-//      sont IDENTIQUES au caractère près avec ou sans jeton. C'est la garde
-//      qui dit que ce lot collecte sans exploiter — s'il modifiait le prompt,
-//      il entrerait en collision avec le lot qui le regroupe.
-//   2. LE SILENCE GAGNE quand les deux sources se contredisent. Un conseil
-//      chiffré au milieu de vacances s'écrit à l'écran; un conseil qui manque
-//      ne s'y voit pas.
-//   3. UNE LIGNE D'AVANT CE LOT RESTE LISIBLE, et se lit `away`.
-//   4. UN JETON INCONNU NE DEVIENT PAS UN TROISIÈME ÉTAT.
-//   5. LA GAMELLE NE COCHE RIEN — le point le plus facile à rater: un repas
-//      emporté est un repas COMPOSÉ.
-//
-// ⚠️ AUCUN CHIFFRE N'EST PARAMÉTRÉ PAR UNE CONSTANTE DU MODULE, ici non plus.
+//   1. UN ANCIEN JETON, OU UN JETON INCONNU, SE LIT COMME UNE ABSENCE: aucune
+//      ligne restante ne peut remettre une part à table ni inventer un état.
+//   2. LE MOTEUR NE LIT PAS `kind`: `servings`, `householdAway`, `block` et la
+//      trace sont identiques avec ou sans jeton.
 // ===========================================================================
 
-Deno.test("L3 — les trois états se lisent sur la MÊME colonne", () => {
+Deno.test("⟳ 2026-09-24 — un ancien jeton `eating_out` se lit comme une absence", () => {
   const away = parseMemberAway([
     { day: "tue", slots: ["lunch"], kind: "eating_out", source: "self" },
     { day: "sat", kind: "away", source: "household" },
   ]);
-  // L'EFFECTIF PORTE LES DEUX: un « dehors » EST une absence de la table, et
-  // c'est ce qui fait que le moteur compte exactement comme hier.
   assertEquals(away.effective, [
     { day: "tue", slots: ["lunch"] },
     { day: "sat", slots: [] },
   ]);
-  assertEquals(away.eatingOut, [{ day: "tue", slots: ["lunch"] }]);
-  assertEquals(presenceStateFor(away, "tue", "lunch"), "eating_out");
+  assertEquals(presenceStateFor(away, "tue", "lunch"), "away");
   assertEquals(presenceStateFor(away, "tue", "dinner"), "at_table");
   assertEquals(presenceStateFor(away, "sat", "lunch"), "away");
 });
 
-Deno.test("L3 — une ligne SANS jeton (avant ce lot) se lit `away`, pas `dehors`", () => {
-  // Les lignes déjà en base ne portent rien. Les lire « dehors » ferait
-  // apparaître un conseil chiffré sur des vacances déclarées il y a des jours.
-  const away = parseMemberAway([{ day: "sat", slots: ["lunch"] }]);
-  assertEquals(away.eatingOut, []);
-  assertEquals(presenceStateFor(away, "sat", "lunch"), "away");
-});
-
-Deno.test("L3 — un jeton INCONNU ne fabrique pas un troisième état", () => {
-  // `canteen` ressemble à quelque chose, et c'est précisément le danger. Le
-  // repli est le silence, jamais l'invention d'un vocabulaire.
+Deno.test("un jeton INCONNU ne fabrique pas un troisième état", () => {
   const away = parseMemberAway([
     { day: "mon", slots: ["lunch"], kind: "canteen" },
   ]);
-  assertEquals(away.eatingOut, []);
   assertEquals(presenceStateFor(away, "mon", "lunch"), "away");
 });
 
-Deno.test("L3 — LE SILENCE GAGNE quand les deux sources se contredisent", () => {
-  // Elle a dit « je déjeune dehors le mardi »; le maître a marqué « toute la
-  // semaine en vacances ». Les deux retirent la part et ne se contredisent que
-  // sur un point: est-ce qu'on lui dit un nombre ? On ne le dit pas.
-  const away = parseMemberAway([
-    { day: "tue", slots: ["lunch"], kind: "eating_out", source: "self" },
-    { day: "tue", kind: "away", source: "household" },
-  ]);
-  assertEquals(away.eatingOut, []);
-  assertEquals(presenceStateFor(away, "tue", "lunch"), "away");
-});
-
-Deno.test("L3 — l'arbitrage est PAR CASE, pas par jour", () => {
-  // Le maître marque le dîner de mardi (dentiste); elle mange dehors ce
-  // midi-là. Faire gagner le silence sur TOUTE la journée effacerait un midi
-  // qu'elle a déclaré, et c'est le geste le plus frustrant du lot.
-  const away = parseMemberAway([
-    { day: "tue", slots: ["lunch"], kind: "eating_out", source: "self" },
-    { day: "tue", slots: ["dinner"], kind: "away", source: "household" },
-  ]);
-  assertEquals(away.eatingOut, [{ day: "tue", slots: ["lunch"] }]);
-  assertEquals(presenceStateFor(away, "tue", "lunch"), "eating_out");
-  assertEquals(presenceStateFor(away, "tue", "dinner"), "away");
-});
-
-Deno.test("L3 — une JOURNÉE ENTIÈRE dehors garde sa forme courte", () => {
-  // `slots: []` survit à un changement de rythme; la déplier en six moments
-  // ferait qu'ajouter un petit-déjeuner plus tard changerait le sens d'une
-  // déclaration écrite avant.
-  const away = parseMemberAway([{ day: "wed", kind: "eating_out" }]);
-  assertEquals(away.eatingOut, [{ day: "wed", slots: [] }]);
-  assertEquals(presenceStateFor(away, "wed", "breakfast"), "eating_out");
-});
-
-Deno.test("L3 — LE PROMPT NE BOUGE PAS D'UN CARACTÈRE", () => {
-  // ⚠️ LA GARDE CENTRALE DE CE LOT. Il collecte une distinction, il n'en
-  // exploite aucune: l'exploitation par le modèle est regroupée ailleurs, en un
-  // seul bump de version. Si ce test tombe, ce lot a écrit dans le prompt.
+Deno.test("LE MOTEUR NE LIT PAS `kind`: le prompt et la trace ne bougent pas", () => {
   const plain = resolveWindowPresence({
     members: [
       member("m-1", "Marc", []),
@@ -608,37 +548,15 @@ Deno.test("L3 — LE PROMPT NE BOUGE PAS D'UN CARACTÈRE", () => {
   assertEquals(tagged.servings, plain.servings);
   assertEquals(tagged.householdAway, plain.householdAway);
   assertEquals(tagged.absentAllWindow, plain.absentAllWindow);
-  // Ce qui change, et c'est TOUT ce qui change:
-  assertEquals(plain.eatingOut, []);
-  assertEquals(tagged.eatingOut, [
-    { member_id: "m-2", cells: [{ day: "tue", slot: "lunch" }] },
-  ]);
+  assertEquals(tagged.trace, plain.trace);
 });
 
-Deno.test("L3 — la fenêtre borne les cases dehors, par la même primitive", () => {
-  // Un « dehors » déclaré vendredi sur une fenêtre lundi-mardi ne produit
-  // AUCUNE case: un conseil posé hors de la fenêtre serait un conseil sur un
-  // jour que le plan ne couvre pas.
-  const presence = resolveWindowPresence({
-    members: [
-      member("m-1", "Marc", [
-        { day: "fri", slots: ["lunch"], kind: "eating_out" },
-      ]),
-    ],
-    rhythm: RHYTHM,
-    windowDays: ["mon", "tue"],
-  });
-  assertEquals(presence.eatingOut, []);
-});
-
-Deno.test("L3 — la trace archive la part « dehors » de chaque absence", () => {
-  // Sans elle, « pourquoi le plan a-t-il dit un nombre à Zoe ce mardi ? » n'a
-  // aucune réponse trois jours plus tard.
+Deno.test("la trace archive chaque absence et sa source", () => {
   const presence = resolveWindowPresence({
     members: [
       member("m-1", "Marc", []),
       member("m-2", "Zoe", [
-        { day: "tue", slots: ["lunch"], kind: "eating_out", source: "self" },
+        { day: "tue", slots: ["lunch"], source: "self" },
         { day: "sat", source: "household" },
       ]),
     ],
@@ -650,16 +568,13 @@ Deno.test("L3 — la trace archive la part « dehors » de chaque absence", () =
     away: [{ day: "tue", slots: ["lunch"] }, { day: "sat", slots: [] }],
     self: [{ day: "tue", slots: ["lunch"] }],
     household: [{ day: "sat", slots: [] }],
-    eating_out: [{ day: "tue", slots: ["lunch"] }],
   }]);
 });
 
-Deno.test("L3 — un `MemberAway` bâti à la main n'invente aucun « dehors »", () => {
-  // Le champ est facultatif dans le type (des fixtures d'autres modules en
-  // construisent), et son absence vaut le SILENCE. La direction inverse ferait
-  // parler le produit à partir d'une donnée que personne n'a écrite.
+Deno.test("un `MemberAway` bâti à la main se lit comme les autres", () => {
   const hand = { effective: [{ day: "mon", slots: [] }], self: [], household: [] };
   assertEquals(presenceStateFor(hand, "mon", "lunch"), "away");
+  assertEquals(presenceStateFor(hand, "tue", "lunch"), "at_table");
 });
 
 Deno.test("L3 — la réponse hebdo se lit, et un `at_work` illisible n'est pas « non »", () => {
@@ -689,30 +604,5 @@ Deno.test("L3 — la réponse hebdo se lit, et un `at_work` illisible n'est pas 
   assertEquals(
     parseWorkLunch({ at_work: true, mode: "outside", microwave: true }),
     { atWork: true, mode: "outside", microwave: null },
-  );
-});
-
-Deno.test("L3 — LA GAMELLE NE COCHE AUCUN MIDI, et c'est le piège du lot", () => {
-  // Un repas emporté est un repas COMPOSÉ. Le marquer « dehors » retirerait
-  // cinq déjeuners du plan de quelqu'un qui compte précisément dessus pour
-  // remplir sa boîte.
-  assertEquals(
-    workLunchPrefillCells({ atWork: true, mode: "lunchbox", microwave: true }),
-    [],
-  );
-  assertEquals(workLunchPrefillCells({ atWork: false, mode: null, microwave: null }), []);
-  assertEquals(workLunchPrefillCells(null), []);
-  assertEquals(workLunchPrefillCells({ atWork: true, mode: null, microwave: null }), []);
-  // Et « dehors » couvre les cinq midis de semaine, PAS le week-end: « la
-  // semaine » veut dire lundi→vendredi, et le samedi ne se déduit pas.
-  assertEquals(
-    workLunchPrefillCells({ atWork: true, mode: "outside", microwave: null }),
-    [
-      { day: "mon", slot: "lunch" },
-      { day: "tue", slot: "lunch" },
-      { day: "wed", slot: "lunch" },
-      { day: "thu", slot: "lunch" },
-      { day: "fri", slot: "lunch" },
-    ],
   );
 });

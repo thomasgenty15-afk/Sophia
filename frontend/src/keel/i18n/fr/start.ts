@@ -7,23 +7,21 @@ import type { TranslatedMessagesOf } from "../catalog";
 export const frStart = {
   // ── /start — LA PORTE D'INSCRIPTION DU FOYER ─────────────────────────────
   //
-  // ⚠️ VOUVOIEMENT (2026-08-12). Ce namespace tutoyait, et c'était la couture
-  // signalée au lot précédent: `/` vouvoie, `/auth` vouvoie, et le visiteur
-  // traverse les trois d'affilée — « Commencer » sur le hall, ou « Créer un
-  // compte gratuit » sur l'écran de connexion, atterrissent ICI. Trois surfaces
-  // d'un même parcours qui changent d'adresse en deux clics.
-  // ⚠️ LE LOT « À PART » A ÉTÉ FAIT LE 2026-09-01: `/meal-prep` et `/app/setup`
-  // sont passés au vouvoiement, soixante-quatre clés. Il ne reste `/coaches`,
-  // qui s'adresse à un vendeur de méthode — un autre monde, un autre registre.
-  "start.seo_title": "Créer votre compte",
+  // ⚠️ TUTOIEMENT DEPUIS LE 2026-09-25 (en-tête d'`auth.ts`). Ce namespace a
+  // vouvoyé du 2026-08-12 à cette date, pour ne pas changer d'adresse entre
+  // `/`, `/auth` et `/start`, que le visiteur traverse d'affilée — « Commencer »
+  // sur le hall, ou « Créer un compte gratuit » sur l'écran de connexion,
+  // atterrissent ICI. La raison tient toujours: ces surfaces changent de
+  // registre ensemble, ou pas du tout.
+  "start.seo_title": "Créer ton compte",
   "start.seo_description":
-    "Ouvrez votre compte Sophia. Sophia compose la semaine autour des " +
-    "personnes qui mangent vraiment à votre table.",
+    "Ouvre ton compte Sophia. Sophia compose la semaine autour des " +
+    "personnes qui mangent vraiment à ta table.",
   "start.loading": "Un instant…",
 
-  "start.title": "Créez votre compte.",
+  "start.title": "Crée ton compte.",
   "start.lead":
-    "D’abord le compte. Ensuite, vous décrivez qui mange à votre table et ce " +
+    "D’abord le compte. Ensuite, tu décris qui mange à ta table et ce " +
     "qu’il faut à chacun : c’est autour de ça que Sophia compose le plan.",
 
   // ⚠️ `start.price` RETIRÉE LE 2026-09-01. Elle vivait SOUS le bouton
@@ -32,12 +30,12 @@ export const frStart = {
   // en amont. L'offre est maintenant le bloc partagé `offer`, rendu
   // au-dessus de la fiche par `ui/OfferLines.tsx`.
   "start.coach_line":
-    "Un coach vous a invité ? Votre porte est le lien de son e-mail, pas celle-ci.",
+    "Un coach t’a invité ? Ta porte est le lien de son e-mail, pas celle-ci.",
 
   "start.sheet.form": "Inscription",
   "start.sheet.repair": "Rattachement",
 
-  "start.form.name": "Votre prénom",
+  "start.form.name": "Ton prénom",
   "start.form.email": "Adresse e-mail",
   "start.form.password": "Mot de passe",
   "start.form.password_hint": "8 caractères au minimum.",
@@ -47,7 +45,7 @@ export const frStart = {
   // de la seule réponse qui change quelque chose tous les jours. Le pays se
   // déduit désormais du fuseau (`api/countryFromTimezone.ts`).
   "start.form.language":
-    "La langue dans laquelle vous voulez qu'on vous parle",
+    "La langue dans laquelle tu veux qu'on te parle",
   "start.form.legal_prefix": "J’accepte les",
   // « conditions générales » et pas « conditions d'utilisation »: c'est le nom
   // que porte le même document sur `/auth`. Un document change de nom entre
@@ -57,44 +55,44 @@ export const frStart = {
   "start.form.legal_privacy": "politique de confidentialité",
   "start.form.cta": "Créer mon compte",
   "start.form.submitting": "Création du compte…",
-  "start.form.have_account": "Vous avez déjà un compte ?",
+  "start.form.have_account": "Tu as déjà un compte ?",
   "start.have_account_cta": "Se connecter",
 
   "start.repair.title": "Il reste un champ.",
   "start.repair.body":
-    "Votre compte existe, mais il n’est pas encore rattaché. Dites-nous où vous " +
-    "vivez, et ce sera fait en un clic.",
+    "Ton compte existe, mais il n’est pas encore rattaché. Dis-nous où tu " +
+    "vis, et ce sera fait en un clic.",
   "start.repair.cta": "Rattacher mon compte",
 
-  "start.check_email.title": "Confirmez votre adresse.",
+  "start.check_email.title": "Confirme ton adresse.",
   "start.check_email.body":
-    "Votre compte est créé et déjà rattaché : l’e-mail ne sert qu’à ouvrir votre " +
-    "session. Ouvrez la confirmation qu’on vient de vous envoyer, elle vous " +
-    "emmène directement aux trois étapes qui composent votre premier plan.",
+    "Ton compte est créé et déjà rattaché : l’e-mail ne sert qu’à ouvrir ta " +
+    "session. Ouvre la confirmation qu’on vient de t’envoyer, elle " +
+    "t’emmène directement aux trois étapes qui composent ton premier plan.",
 
-  "start.joined.title": "Votre compte est prêt.",
+  "start.joined.title": "Ton compte est prêt.",
   "start.joined.body":
-    "Trois étapes courtes, et votre premier plan est composé. Rien ne se prépare " +
-    "en coulisses : vous répondez, et il se construit.",
+    "Trois étapes courtes, et ton premier plan est composé. Rien ne se prépare " +
+    "en coulisses : tu réponds, et il se construit.",
   "start.joined.cta": "Régler ma cuisine",
-  "start.existing.title": "Vous avez déjà un compte.",
+  "start.existing.title": "Tu as déjà un compte.",
   "start.existing.body":
-    "Cette adresse est déjà inscrite. Connectez-vous, et on reprend exactement ici.",
+    "Cette adresse est déjà inscrite. Connecte-toi, et on reprend exactement ici.",
   "start.existing.cta": "Se connecter",
 
   "start.unavailable.title": "L’inscription est en pause.",
   "start.unavailable.body":
     "On ne crée pas de comptes en ce moment : un compte neuf n’aurait rien pour " +
-    "fonctionner. Réessayez un peu plus tard — et si un coach vous a invité, " +
-    "passez plutôt par le lien de son e-mail.",
+    "fonctionner. Réessaie un peu plus tard — et si un coach t’a invité, " +
+    "passe plutôt par le lien de son e-mail.",
 
   "start.error.legal":
-    "Acceptez les conditions générales et la politique de confidentialité pour continuer.",
+    "Accepte les conditions générales et la politique de confidentialité pour continuer.",
   "start.error.already_coached":
-    "Votre compte suit déjà un coach. Vous n’avez pas besoin de vous inscrire ici.",
+    "Ton compte suit déjà un coach. Tu n’as pas besoin de t’inscrire ici.",
   "start.error.caller_is_coach":
-    "C’est un compte coach. Votre espace est l’espace coach, pas celui-ci.",
+    "C’est un compte coach. Ton espace est l’espace coach, pas celui-ci.",
   "start.error.unavailable":
-    "L’inscription n’est pas disponible en ce moment. Rien n’a été créé — réessayez plus tard.",
-  "start.error.generic": "Ça n’est pas passé. Rien n’a changé — réessayez.",
+    "L’inscription n’est pas disponible en ce moment. Rien n’a été créé — réessaie plus tard.",
+  "start.error.generic": "Ça n’est pas passé. Rien n’a changé — réessaie.",
 } satisfies TranslatedMessagesOf<"start">;

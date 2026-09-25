@@ -228,6 +228,22 @@ export const MOVE_COOKED_G = 5;
 export const MIN_MOVE_COOKED_G = 0.1;
 /** 200 déplacements par composante de préparations partagées. Pas 201. */
 export const MAX_MOVES_PER_COMPONENT = 200;
+/**
+ * ⟳ 2026-09-25 — LE PLAFOND DE TEMPS DE L'AJUSTEMENT, TOUTES COMPOSANTES.
+ *
+ * Mesuré sur une vraie composition (2026-09-25 00:46, 28 cases, une bouche):
+ * 135 déplacements, 566 ms dans l'ajustement, 0,95 s entre les deux lignes de
+ * journal qui l'encadrent — contre 10 à 25 ms sur les autres compositions de
+ * la nuit. Avec le chargement du code sur un serveur neuf, la requête a
+ * dépassé les 2 s de CALCUL qu'une fonction edge a par requête (limite de
+ * Supabase, la même sur toutes les formules), et le serveur l'a tuée.
+ *
+ * Le plafond de 200 déplacements ne suffisait pas: c'est le TEMPS qui est
+ * compté. 150 ms, c'est six fois une passe ordinaire. Au plafond, l'ajusteur
+ * garde les déplacements déjà faits (chacun améliorait le défaut) et s'arrête
+ * sur `time_budget` — un motif compté, jamais silencieux.
+ */
+export const ADJUST_TIME_BUDGET_MS = 150;
 /** Le pas de la sonde qui mesure le marginal d'un ingrédient, en grammes CRUS. */
 export const PROBE_RAW_G = 10;
 /** Les quantités rendues sont au dixième de gramme. Une borne, elle, est exacte. */
@@ -423,6 +439,11 @@ export const ADJUST_STOPS = [
   "would_degrade",
   /** 200 déplacements. */
   "move_budget",
+  /**
+   * ⟳ 2026-09-25 — le plafond de TEMPS (`ADJUST_TIME_BUDGET_MS`) est atteint.
+   * Les déplacements déjà faits sont gardés: chacun améliorait le défaut.
+   */
+  "time_budget",
   /** Aucune ligne ajustable dans la composante. */
   "all_fixed",
   /** La mesure injectée rend `null` sur une unité de la composante. */
@@ -759,14 +780,24 @@ function quantizeNearest(target: number): number {
  * L'AJUSTEMENT. Pur: ne touche à rien, rend les nouvelles quantités et tout ce
  * qu'il faut pour les appliquer et les contrôler.
  *
- * PURE: no I/O, no clock, no randomness. La seule fonction externe appelée est
- * la `MeasureFn` de l'appelant, et son nombre d'appels est COMPTÉ.
+ * PURE: no I/O, no randomness. La seule fonction externe appelée est la
+ * `MeasureFn` de l'appelant, et son nombre d'appels est COMPTÉ. ⟳ 2026-09-25 —
+ * l'horloge du plafond de temps est un ARGUMENT (`timeBudget`), jamais lue ici.
  */
 export function adjustProportions(args: {
   readonly units: readonly AdjustableUnit[];
   readonly consumers: readonly ConsumerConstraint[];
   readonly measure: MeasureFn;
+  /**
+   * ⟳ 2026-09-25 — le plafond de temps, horloge comprise. Absent = pas de
+   * plafond (les tests purs de ce module). ⚠️ Facultatif ICI seulement: le
+   * seul appelant de production (`adjustPlanProportions`) l'EXIGE dans sa
+   * signature (`budgetMs`), et `lot_e_cablage_test.ts` le vérifie.
+   */
+  readonly timeBudget?: { readonly now: () => number; readonly ms: number } | null;
 }): AdjustResult {
+  const budget = args.timeBudget ?? null;
+  const deadline = budget === null ? null : budget.now() + budget.ms;
   let measureCalls = 0;
   const measure = (ings: readonly AdjustableIngredient[]): UnitMeasure => {
     measureCalls++;
@@ -1120,6 +1151,10 @@ export function adjustProportions(args: {
         }
         if (moveCount >= MAX_MOVES_PER_COMPONENT) {
           stop = "move_budget";
+          break;
+        }
+        if (deadline !== null && budget !== null && budget.now() >= deadline) {
+          stop = "time_budget";
           break;
         }
 

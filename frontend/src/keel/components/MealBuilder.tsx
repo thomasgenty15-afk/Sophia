@@ -1,13 +1,15 @@
-// ⚠️ LES TYPES SEULS. `readCookingStyle` / `readGroceryRuns` étaient importés
-// ici sans le moindre appel: la relecture passe par `readPlanInputs`, qui les
-// utilise déjà. Un import mort n'est pas neutre — il fait croire à un second
+// ⚠️ LES TYPES SEULS. La relecture passe par `readPlanInputs`, qui porte les
+// lecteurs. Un import mort n'est pas neutre — il fait croire à un second
 // lecteur du même vocabulaire.
 import {
-  type CookingStyle,
+  type CookingSessionCount,
   type GroceryRunsAnswer,
+  type SessionTimeBound,
 } from "../api/cookingPlan";
 import React from "react";
 import { PlanComposingCard } from "./plan/PlanComposingCard";
+import DemoPlanTour from "./plan/demo/DemoPlanTour";
+import { useDemoOpen } from "./plan/demo/demoGate";
 
 import { useAuth } from "../../context/AuthContext";
 // ⛔ `AwayMark` ET PLUS `AwayDay` SUR LES ABSENCES — DÉFAUT P1 (L6,
@@ -36,7 +38,10 @@ import {
 import {
   assessBudget,
   BUDGET_MAX,
+  type BudgetDayRates,
   budgetMouthsFor,
+  budgetScaleFor,
+  loadBudgetDayRates,
   readBudgetMarket,
   readPlanInputs,
   savePlanInputs,
@@ -51,7 +56,7 @@ import {
   submitEnvy,
 } from "../api/household";
 import { mayCompose } from "../api/planRouting";
-import { readKitchenEquipment } from "../api/kitchenEquipment";
+import { hasFreezerDeclared, readKitchenEquipment } from "../api/kitchenEquipment";
 import type { PracticalConstraints } from "../api/practicalConstraints";
 import { planFailureKey } from "../copy/planRefusals";
 import { t } from "../i18n/t";
@@ -66,6 +71,7 @@ import CookingSessions from "./CookingSessions";
 import MealPickerGrid from "./MealPickerGrid";
 import PlanRequestFields, { type PresenceRow } from "./PlanRequestFields";
 import { awayMomentsIn } from "../lib/presenceAbsence";
+import { cookingAnswersVerdict, presenceMealsPerDay } from "../lib/cookingAnswers";
 import { } from "../api/mealStretch";
 import { addDays, daysBetween, weekStartFor } from "../api/dates";
 import { browserLocalDate, useMealTicks, catchUpWindowStart } from "../lib/useMealTicks";
@@ -134,9 +140,8 @@ import { Card, SectionLabel } from "./ui/Card";
 //     plusieurs bouches, la question n'a jamais eu de sujet: le générateur du
 //     foyer DÉDUIT les couverts de la présence, repas par repas.
 //   · « Temps par session de cuisine »   — retiré de l'entonnoir par P2
-//     (2026-09-03): `cooking_time_min` est DÉRIVÉ du style de cuisine
-//     (`_shared/keel/cooking_plan.ts`). La valeur déjà en base n'est pas
-//     effacée pour autant — voir `cookingTimeMin`, qui fait l'aller-retour.
+//     (2026-09-03), puis ⟳ REVENU LE 2026-09-25 sous forme de PLAGES bornées
+//     par le plan (`SessionTimeField`, dans `PlanRequestFields`).
 //   · « Ce qui se passe cette semaine »  — `context: null` dans `draftInput`.
 //
 // ⚠️ CE QUI RESTE DE LEURS MOTS. Les clés (`meals.form.mode_*`,
@@ -605,32 +610,28 @@ export default function MealBuilder(props: MealBuilderProps) {
    */
   const [budgetMarket, setBudgetMarket] = React.useState<"fr" | "us" | null>(null);
   /**
-   * ⛔ « TEMPS PAR SESSION DE CUISINE » N'EST PLUS DEMANDÉ ICI — 2026-09-03.
-   *
-   * La rangée de six durées a été retirée de l'entonnoir par P2 (« personne ne
-   * sait répondre 45 avant d'avoir vu le plan »), et `cooking_time_min` est
-   * maintenant DÉRIVÉ du style de cuisine (`_shared/keel/cooking_plan.ts`).
-   * Cet écran la posait encore: deux autorités sur la même colonne, dont une
-   * que l'entonnoir contredit à la composition suivante.
-   *
-   * ⚠️ LA VALEUR FAIT QUAND MÊME L'ALLER-RETOUR, ET C'EST TOUT L'INTÉRÊT DE
-   * CET ÉTAT. `savePlanInputs` réécrit la clé à chaque composition: ne plus la
-   * lire reviendrait à écrire `null` par-dessus la réponse des comptes qui ont
-   * répondu AVANT P2, et le moteur retomberait sur son défaut sans que rien ne
-   * le dise. On relit, on réécrit à l'identique — exactement ce que fait
-   * l'entonnoir avec `answers.cookingTimeMin`.
+   * ⟳ 2026-09-25 — LE COÛT PAR JOUR DE CHAQUE BOUCHE, AJUSTÉ À SON BESOIN
+   * (`budget-rates-v1`). Carte vide tant que rien n'est revenu: le plancher
+   * garde alors la table de prix, le comportement d'avant.
    */
-  const [cookingTimeMin, setCookingTimeMin] = React.useState<number | null>(null);
+  const [budgetRates, setBudgetRates] = React.useState<
+    ReadonlyMap<string, BudgetDayRates>
+  >(() => new Map());
   /**
-   * ⟳ P2 (2026-09-03) — LE STYLE ET LA CADENCE DE COURSES.
+   * ⟳ 2026-09-25 — « TEMPS PAR SESSION DE CUISINE », UNE PLAGE, par sa borne
+   * haute (`cooking_time_min`).
    *
-   * ⚠️ ILS SE PRÉ-REMPLISSENT, contrairement à « une seule session » et à
-   * la forme de cuisine: ce sont des propriétés DURABLES (« j'aime
-   * cuisiner » ne change pas d'une semaine à l'autre), écrites dans
-   * `practical_constraints`. Repartir de vide à chaque composition ferait
-   * effacer la réponse au premier `savePlanInputs`.
+   * ⚠️ ELLE SE PRÉ-REMPLIT: c'est une réponse DURABLE (« une heure au plus,
+   * c'est ma vie »). Repartir de vide à chaque composition ferait effacer la
+   * réponse au premier `savePlanInputs`. Une durée d'avant les plages (45) est
+   * relue dans SA plage (« 30 min à 1 h ») et réécrite ainsi.
    */
-  const [cookingStyle, setCookingStyle] = React.useState<CookingStyle | null>(null);
+  const [sessionTime, setSessionTime] = React.useState<SessionTimeBound | null>(null);
+  /**
+   * ⟳ P2 (2026-09-03) — LA CADENCE DE COURSES. Durable, pré-remplie, comme la
+   * plage de temps. (Le style de cuisine qui vivait ici est parti le
+   * 2026-09-25.)
+   */
   // ⟳ 2026-09-09 — L'ÉTAT PORTE AUSSI « peu importe ». Le garder en
   // `GroceryRuns | null` aurait forcé un `as` au site de montage, et le `as`
   // désarme le typecheck en silence — cicatrice mesurée dans ce dépôt.
@@ -644,16 +645,17 @@ export default function MealBuilder(props: MealBuilderProps) {
    * `SetupPage.tsx`, à la place du champ.
    */
   /**
-   * « TOUT CUISINER EN UNE SEULE FOIS » — `false` par défaut, et c'est le
-   * comportement d'avant ce lot, au caractère près.
+   * ⟳ 2026-09-25 — « COMBIEN DE FOIS TU VEUX CUISINER ». Il remplace la case
+   * « tout cuisiner en une seule fois »: « une fois » est une réponse parmi les
+   * autres.
    *
-   * ⚠️ IL NE SE PRÉ-REMPLIT PAS, exactement comme `cookingShape` juste
-   * au-dessus et pour le même motif: le budget et les jours de cuisine sont des
-   * FAITS de la vie de quelqu'un, dont la dernière réponse est un défaut
-   * raisonnable; celui-ci est un ARBITRAGE de semaine. Le rejouer en silence
-   * serait le réglage de profil que ce produit refuse d'écrire.
+   * ⚠️ IL NE SE PRÉ-REMPLIT PAS, exactement comme la case qu'il remplace: le
+   * nombre dépend de la longueur du plan (« quatre fois » n'a pas de sens sur
+   * deux jours). C'est un arbitrage de plan, pas un réglage de profil.
    */
-  const [oneCookingSession, setOneCookingSession] = React.useState(false);
+  const [cookingSessions, setCookingSessions] = React.useState<CookingSessionCount | null>(null);
+  /** Le lancement a été refusé sur les réponses de cuisine: les champs le disent. */
+  const [cookingMissesShown, setCookingMissesShown] = React.useState(false);
   /**
    * « JE CUISINE LA VEILLE DU PREMIER JOUR » — `false` par défaut.
    *
@@ -702,6 +704,9 @@ export default function MealBuilder(props: MealBuilderProps) {
    */
   const resumed = props.resumedComposition ?? null;
   const building = launching || resumed !== null;
+  // ⟳ 2026-09-25 — la fenêtre de démonstration est-elle ouverte ? Voir le
+  // montage de `DemoPlanTour` plus bas.
+  const demoOpen = useDemoOpen();
   const composingProgress = buildProgress ?? resumed?.progress ?? null;
   /** La liste de courses est dépliée ou non. Son bouton vit dans l'en-tête. */
   const [shoppingOpen, setShoppingOpen] = React.useState(false);
@@ -782,12 +787,8 @@ export default function MealBuilder(props: MealBuilderProps) {
         const last = await readPlanInputs(userId);
         if (!cancelled) {
           if (last.budgetAmount !== null) setBudget(String(last.budgetAmount));
-          // ⟳ 2026-09-03 — RELUE POUR ÊTRE RÉÉCRITE À L'IDENTIQUE, plus pour
-          // remplir un champ: la rangée de durées est partie de cet écran
-          // comme de l'entonnoir. Sans cette ligne, `savePlanInputs` écrirait
-          // `null` par-dessus la réponse d'un compte d'avant P2.
-          setCookingTimeMin(last.cookingTimeMin);
           // ⟳ P2 (2026-09-03) — LE PRÉ-REMPLISSAGE, ET IL EST OBLIGATOIRE.
+          // ⟳ 2026-09-25 — la plage de temps et la cadence de courses.
           // Ces deux réponses sont DURABLES: sans cette relecture, le premier
           // `savePlanInputs` de la composition suivante écrirait `null` sur les
           // deux et effacerait la réponse donnée dans l'entonnoir — la
@@ -797,7 +798,7 @@ export default function MealBuilder(props: MealBuilderProps) {
           // répondu »), pas une absence de lecture. Un `if (… !== null)` comme
           // au-dessus laisserait un état obsolète si la réponse était effacée
           // ailleurs entre deux montages.
-          setCookingStyle(last.cookingStyle);
+          setSessionTime(last.sessionTime);
           setGroceryRuns(last.groceryRuns);
           // ⛔ LA MÊME LECTURE, PAS UN SECOND ALLER-RETOUR: `readPlanInputs`
           // ouvre déjà cette colonne pour le budget et les jours de cuisine.
@@ -814,8 +815,14 @@ export default function MealBuilder(props: MealBuilderProps) {
       // faire échouer le montage: `readBudgetMarket` rend `null` sur une panne
       // plutôt que de jeter. Pas de plancher vaut mieux qu'un plancher posé sur
       // une lecture ratée.
-      const market = await readBudgetMarket(userId);
-      if (!cancelled) setBudgetMarket(market);
+      const [market, rates] = await Promise.all([
+        readBudgetMarket(userId),
+        loadBudgetDayRates(),
+      ]);
+      if (!cancelled) {
+        setBudgetMarket(market);
+        setBudgetRates(rates);
+      }
       try {
         const loaded = await loadMealPlans(userId, browserLocalDate());
         if (!cancelled) {
@@ -949,37 +956,47 @@ export default function MealBuilder(props: MealBuilderProps) {
    * montage, et c'est la bonne direction: tant qu'on ne sait pas qui mange, on
    * ne peut refuser aucun montant.
    */
+  const budgetMouths = React.useMemo(() =>
+    budgetMouthsFor({
+      dayTokens: askedDays.tokens,
+      // ⚠️ LE MÊME REPLI QUE LA GRILLE DE PRÉSENCE, deux cents lignes plus
+      // bas: `member.eatingSlots ?? (props.rhythm ?? [])`. Une bouche sans
+      // rythme déclaré mange aux moments de la maison, et ce sont ceux de la
+      // personne qui compose.
+      houseSlots: props.rhythm ?? [],
+      mouths: (household?.members ?? []).map((m) => ({
+        memberId: m.memberId,
+        diet: m.diet,
+        eatingSlots: m.eatingSlots,
+        // ⚠️ LA COLONNE DU FOYER SEULE. L'union est faite par
+        // `budgetMouthsFor`, et SEULEMENT sur la ligne du titulaire: la
+        // fondre ici la recopierait sur des bouches qui n'ont rien déclaré.
+        away: m.awayHousehold,
+      })),
+      // ⚠️ `props.awayDays` EST LA DÉCLARATION DU TITULAIRE — la colonne que
+      // la grille « Choisir les repas » écrit sous les dates, et que le
+      // moteur unit à celle du foyer (`away.effective`). L'ignorer ferait un
+      // plancher trop haut pour quelqu'un qui vient de dire qu'il s'absente.
+      selfMemberId: household?.me?.memberId ?? null,
+      selfAway: props.awayDays ?? [],
+      rates: budgetRates,
+    }), [askedDays, props.rhythm, props.awayDays, household, budgetRates]);
   const budgetVerdict = React.useMemo(() => {
     const typed = budget.trim();
     const amount = Number(typed);
     return assessBudget({
       amount: typed === "" || !Number.isFinite(amount) ? null : amount,
       market: budgetMarket,
-      mouths: budgetMouthsFor({
-        dayTokens: askedDays.tokens,
-        // ⚠️ LE MÊME REPLI QUE LA GRILLE DE PRÉSENCE, deux cents lignes plus
-        // bas: `member.eatingSlots ?? (props.rhythm ?? [])`. Une bouche sans
-        // rythme déclaré mange aux moments de la maison, et ce sont ceux de la
-        // personne qui compose.
-        houseSlots: props.rhythm ?? [],
-        mouths: (household?.members ?? []).map((m) => ({
-          memberId: m.memberId,
-          diet: m.diet,
-          eatingSlots: m.eatingSlots,
-          // ⚠️ LA COLONNE DU FOYER SEULE. L'union est faite par
-          // `budgetMouthsFor`, et SEULEMENT sur la ligne du titulaire: la
-          // fondre ici la recopierait sur des bouches qui n'ont rien déclaré.
-          away: m.awayHousehold,
-        })),
-        // ⚠️ `props.awayDays` EST LA DÉCLARATION DU TITULAIRE — la colonne que
-        // la grille « Choisir les repas » écrit sous les dates, et que le
-        // moteur unit à celle du foyer (`away.effective`). L'ignorer ferait un
-        // plancher trop haut pour quelqu'un qui vient de dire qu'il s'absente.
-        selfMemberId: household?.me?.memberId ?? null,
-        selfAway: props.awayDays ?? [],
-      }),
+      mouths: budgetMouths,
     });
-  }, [budget, budgetMarket, askedDays, props.rhythm, props.awayDays, household]);
+  }, [budget, budgetMarket, budgetMouths]);
+  // ⟳ 2026-09-25 — LE CURSEUR, SUR LES MÊMES BOUCHES QUE LE PLANCHER.
+  // `household === null` (montage) ⇒ aucune bouche ⇒ `null`: le champ libre
+  // s'affiche le temps de la lecture, jamais un curseur sur une échelle vide.
+  const budgetScale = React.useMemo(
+    () => budgetScaleFor({ market: budgetMarket, mouths: budgetMouths }),
+    [budgetMarket, budgetMouths],
+  );
 
   /**
    * LE BOUTON DIT CE QUI PART: combien de jours, pour combien de bouches. Le
@@ -1046,11 +1063,24 @@ export default function MealBuilder(props: MealBuilderProps) {
       block?.querySelector("summary")?.focus();
       return;
     }
-    // ⛔ ET PLUS DE GARDE SUR LA DURÉE D'UNE SESSION. Elle réclamait un champ
-    // qui n'existe plus: un refus dont on ne peut pas voir la cause est un
-    // bouton mort, cicatrice mesurée trois fois sur l'écran de réglages. La
-    // durée est DÉRIVÉE du style de cuisine côté moteur, et le style, lui, a
-    // sa question juste au-dessus du budget.
+    // ⟳ 2026-09-25 — PAS DE PLAN SANS « COMBIEN DE FOIS » NI UNE PLAGE QUI
+    // SUFFIT. Les champs grisent déjà ce qui n'est pas proposable; le refus se
+    // lit SOUS le champ qui le lève (`showCookingMisses`), et le clic y
+    // emmène. Les mêmes offres que les champs (`cookingAnswersVerdict`).
+    const cooking = cookingAnswersVerdict({
+      sessions: cookingSessions,
+      sessionTime,
+      daysToEat: askedDays.tokens.length,
+      freezer: hasFreezerDeclared(readKitchenEquipment(planConstraints)),
+      mealsPerDay: presenceMealsPerDay(presenceRows),
+    });
+    if (cooking.sessions !== "ok" || cooking.time !== "ok") {
+      setCookingMissesShown(true);
+      document.getElementById(
+        cooking.sessions !== "ok" ? "meals-cooking-sessions" : "meals-session-time",
+      )?.focus();
+      return;
+    }
     // ⟳ 2026-09-21 — REMPLACER SE CONFIRME D'ABORD (voir `confirmOpen`).
     const replacing = formIntent === "replace_current" &&
       (tab === "next" ? plans.next : plans.current) !== null;
@@ -1086,16 +1116,10 @@ export default function MealBuilder(props: MealBuilderProps) {
       // l'écran ne montre pas qui gagne.
       await savePlanInputs(userId, {
         budgetAmount,
-        // ⟳ 2026-09-03 — RÉÉCRITE À L'IDENTIQUE, jamais recalculée ici: la
-        // question n'est plus posée sur cet écran, et `savePlanInputs` réécrit
-        // la clé à chaque composition. Passer `null` effacerait la réponse d'un
-        // compte d'avant P2; passer un nombre inventé ferait de cet écran une
-        // seconde autorité sur une colonne que le moteur dérive.
-        cookingTimeMin,
-        // ⟳ P2 — DURABLES, donc écrites ici comme le budget. Le générateur les
-        // relit dans `practical_constraints` et en dérive sessions, jours de
-        // cuisine et budget de temps (`_shared/keel/cooking_plan.ts`).
-        cookingStyle,
+        // ⟳ 2026-09-25 — LA PLAGE CHOISIE, par sa borne haute. Durable, donc
+        // écrite ici comme le budget; le générateur la relit dans
+        // `practical_constraints` (`_shared/keel/cooking_plan.ts`).
+        cookingTimeMin: sessionTime,
         groceryRuns,
       });
 
@@ -1139,7 +1163,9 @@ export default function MealBuilder(props: MealBuilderProps) {
           : { kind: "until_sunday" },
         context,
         cookingShape: null,
-        oneCookingSession,
+        // ⟳ 2026-09-25 — le nombre de sessions part AVEC LA DEMANDE: il dépend
+        // de ce plan-ci. Le verdict ci-dessus garantit qu'il est posé.
+        cookingSessions,
         preferences: null,
       };
       await props.onPreviewPlan({
@@ -1354,10 +1380,11 @@ export default function MealBuilder(props: MealBuilderProps) {
                   setHasGoalRow(fresh.hasGoal);
                 }}
                 presence={presenceRows}
-                cookingStyle={cookingStyle}
-                onCookingStyle={setCookingStyle}
-                oneCookingSession={oneCookingSession}
-                onOneCookingSession={setOneCookingSession}
+                cookingSessions={cookingSessions}
+                onCookingSessions={setCookingSessions}
+                sessionTime={sessionTime}
+                onSessionTime={setSessionTime}
+                showCookingMisses={cookingMissesShown}
                 groceryRuns={groceryRuns}
                 onGroceryRuns={setGroceryRuns}
                 budget={budget}
@@ -1367,6 +1394,7 @@ export default function MealBuilder(props: MealBuilderProps) {
                   setError(null);
                 }}
                 budgetVerdict={budgetVerdict}
+                budgetScale={budgetScale}
                 showEnvy
                 envy={envy}
                 onEnvy={setEnvy}
@@ -1423,9 +1451,7 @@ export default function MealBuilder(props: MealBuilderProps) {
               {/* ⟳ 2026-09-21 — PLUS PETITE, SUR DEMANDE. `text-label` est le
                   cran d'en dessous (11 px); `tracking-normal` annule son
                   interlettrage, qui est dessiné pour des CAPITALES et qui
-                  étalerait une phrase de quarante-cinq signes. Même geste que
-                  `plan.draft.turns_*`, qui emploie déjà ce cran pour de la
-                  prose. */}
+                  étalerait une phrase de quarante-cinq signes. */}
               <p className="text-right text-label leading-5 tracking-normal text-ink-soft">
                 {t("meals.eta")}
               </p>
@@ -1730,6 +1756,23 @@ export default function MealBuilder(props: MealBuilderProps) {
           {!building && props.resumeFailure && (
             <p className="mb-3 text-sm text-red-700">{props.resumeFailure}</p>
           )}
+          {/* ══════════════════════════════════════════════════════════════
+              ⟳ 2026-09-25 — LE PLAN DE DÉMONSTRATION ET SA VISITE
+              (`plan/demo/DemoPlanTour`), le temps que le vrai se compose.
+              ⚠️ HORS DE LA BRANCHE D'ATTENTE, ET C'EST EXPRÈS: elle reste
+              montée tant que sa fenêtre est ouverte (`useDemoOpen`), même
+              quand la composition est finie — une visite commencée va
+              jusqu'au bout, et la page retient la fenêtre d'aperçu d'ici là.
+              Changer de branche la démonterait au milieu d'une étape. */}
+          {(building || demoOpen) && (
+            <div className={building ? "mb-5" : undefined}>
+              <DemoPlanTour
+                progress={composingProgress}
+                householdSize={household?.members.length ?? 1}
+                composing={building}
+              />
+            </div>
+          )}
           {building
             ? (
               // ⟳ 2026-09-21 — L'ATTENTE A SON ÉCRAN, à la place du plan: le
@@ -1768,7 +1811,8 @@ export default function MealBuilder(props: MealBuilderProps) {
                 // qui n'a pas fini de charger.
                 tools={showPlanTools
                   ? (
-                    <div className="flex flex-wrap items-center gap-2">
+                    // ⟳ 2026-09-25 — CENTRÉS, sous le rail des jours centré.
+                    <div className="flex flex-wrap items-center justify-center gap-2">
                       {showSessionsButton && (
                         <Button
                           variant="secondary"

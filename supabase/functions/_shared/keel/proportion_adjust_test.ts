@@ -992,3 +992,28 @@ Deno.test("CAS RÉEL PERTE — les déplacements sont traçables un par un, et c
   );
   assertNotEquals(out.units.find((u) => u.unitId === "prep_poulet_quinoa")!.touched, false);
 });
+
+// ⟳ 2026-09-25 — LE PLAFOND DE TEMPS. Une horloge qui avance de 200 ms à chaque
+// lecture fait passer l'échéance (150 ms) au premier tour de boucle:
+// l'ajusteur s'arrête sur `time_budget`, sans déplacement, au lieu de chercher
+// jusqu'à 200 coups. Le cas témoin, sans plafond, DOIT déplacer — sinon ce test
+// ne prouverait rien.
+Deno.test("le plafond de temps arrête l'ajustement sur time_budget", () => {
+  const u = () => unit("u", [ing("légume", 300), ing("riz", 200), ing("poulet", 100), ing("huile", 40)]);
+  const temoin = adjustProportions({
+    units: [u()],
+    consumers: [consumer("c", [{ unitId: "u", share: 1 }], 160, 250)],
+    measure: pocketMeasure,
+  });
+  assert(temoin.moves.length > 0, "le cas témoin ne déplace rien: le test ne mord pas");
+  assertEquals(temoin.counts.stopped.time_budget, 0);
+  let t = 0;
+  const plafonne = adjustProportions({
+    units: [u()],
+    consumers: [consumer("c", [{ unitId: "u", share: 1 }], 160, 250)],
+    measure: pocketMeasure,
+    timeBudget: { now: () => (t += 200), ms: 150 },
+  });
+  assertEquals(plafonne.counts.stopped.time_budget, 1);
+  assertEquals(plafonne.moves.length, 0);
+});

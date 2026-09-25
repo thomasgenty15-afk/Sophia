@@ -344,7 +344,7 @@ export function SelfStep(props: {
             `ActivityAxesTiles`. */}
         <ActivityAxesTiles
           // ⚠️ LA VOIX EST À LA PAGE, LES SIX OPTIONS SONT AU COMPOSANT. Cette
-          // carte est celle du titulaire: « Vos journées », pas « Ses
+          // carte est celle du titulaire: « Tes journées », pas « Ses
           // journées ». Les deux `null` sont l'absence d'aide sous la grille —
           // les tuiles portent déjà la leur, et une phrase de plus au-dessus
           // n'y ajoutait rien ici (elle en ajoute sur la fiche d'une bouche,

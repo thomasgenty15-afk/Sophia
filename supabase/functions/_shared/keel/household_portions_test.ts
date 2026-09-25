@@ -101,7 +101,10 @@ Deno.test("le brief interdit explicitement les plats séparés", () => {
   // promesse tombe au premier foyer aux objectifs divergents.
   const brief = buildPortionBrief([DAD, SON], "one_dish", 0, 1, "legacy_measure");
   assert(brief.includes("Do NOT propose separate dishes"));
-  assert(brief.includes("one cooking session"));
+  // ⟳ 2026-09-25 — « the same dishes », plus « one cooking session »: la
+  // phrase se lisait « une seule session » dans un plan qui en a deux.
+  assert(brief.includes("the same dishes for the whole table"));
+  assert(!brief.includes("one cooking session"));
 });
 
 Deno.test("un mineur reçoit une TAILLE, jamais une direction d'objectif", () => {

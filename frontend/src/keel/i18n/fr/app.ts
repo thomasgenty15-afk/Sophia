@@ -8,16 +8,10 @@ export const frApp = {
   // ═══════════════════════════════════════════════════════════════════════════
   // LE COULOIR D'ENTRÉE (lot 2)
   //
-  // ⚠️ REGISTRE: TUTOIEMENT, et c'est la suite de l'arbitrage du lot 1. La
-  // vitrine vouvoie l'acheteur qu'elle ne connaît pas (`/`, `/pro`, `/auth`,
-  // `/start`); le PRODUIT tutoie, comme `/meal-prep`, `/coaches`, la signature
-  // du pied de page (« Ta méthode, qui répond en ton absence. ») et Sophia
-  // elle-même dans le chat. Tout ce qui suit est derrière la porte.
-  //
-  // Le raccord `/start` (vous) → `/app/setup` (tu) est VISIBLE et connu. Il
-  // appartient au lot qui uniformisera le registre du site, pas à celui-ci —
-  // choisir le vouvoiement ici aurait juste déplacé la couture d'un cran, entre
-  // le tunnel et le chat.
+  // ⚠️ REGISTRE: TUTOIEMENT, comme tout le parcours depuis le 2026-09-25
+  // (en-tête d'`auth.ts`). Le raccord `/start` (vous) → `/app/setup` (tu)
+  // signalé ici au lot 2 n'existe plus: `/`, `/start`, `/auth` et le tunnel
+  // disent tous « tu », comme Sophia dans le chat.
   // ═══════════════════════════════════════════════════════════════════════════
 
   // ── LE CHROME DE L'APP CONNECTÉE, CE QUI EN EST TRADUIT (`app.*`) ─────────

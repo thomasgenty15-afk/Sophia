@@ -137,7 +137,7 @@ Deno.test("v15 — la version de prompt suit l'octet: elle a bougé avec ce lot"
   // ⟳ LOT C (2026-09-11) — v31: le prompt système ne dit plus le POIDS d'une
   // assiette (« roughly 600 to 750 g »), il dit sa FORME. La version avance avec
   // son texte, sinon un cache servirait l'ancienne consigne sous le nouveau nom.
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v34_the_grid_is_a_checklist");
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v42_off_the_table_not_at");
 });
 
 Deno.test("① l'ordre est ÉCRIT, et il est écrit pour TOUT LE MONDE", () => {

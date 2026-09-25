@@ -2,8 +2,9 @@ import React from "react";
 import { ChevronDown, X } from "lucide-react";
 
 import {
-  type CookingStyle,
+  type CookingSessionCount,
   type GroceryRunsAnswer,
+  type SessionTimeBound,
 } from "../api/cookingPlan";
 import { addDays, isIsoDate } from "../api/dates";
 import {
@@ -16,10 +17,15 @@ import {
   planEndsOn,
   resolveRequestedWindow,
 } from "../api/mealWindow";
-import { BUDGET_MAX, type BudgetVerdict } from "../api/planBudget";
+import {
+  BUDGET_MAX,
+  type BudgetScale,
+  type BudgetVerdict,
+  clampToBudgetScale,
+} from "../api/planBudget";
 import { ENVY_MAX_CHARS } from "../api/household";
 import type { PracticalConstraints } from "../api/practicalConstraints";
-import { formatBudgetAmount, formatDate } from "../i18n/format";
+import { formatBudgetAmount, formatDate, formatPrice } from "../i18n/format";
 import { plural } from "../i18n/plural";
 import { t } from "../i18n/t";
 import { type AwayMark } from "../lib/presenceMarks";
@@ -30,12 +36,13 @@ import {
   markAwayAllWindow,
 } from "../lib/presenceAbsence";
 import { browserLocalDate, catchUpWindowStart } from "../lib/useMealTicks";
-import CookingStyleField from "./CookingStyleField";
+import { presenceMealsPerDay, useOfferedAnswer } from "../lib/cookingAnswers";
+import CookingSessionsField from "./CookingSessionsField";
 import GroceryRunsField from "./GroceryRunsField";
 import KitchenEquipmentCard from "./KitchenEquipmentCard";
 import { kitchenToolLabel } from "./kitchenToolLabel";
 import MealPickerGrid from "./MealPickerGrid";
-import OneCookingSessionField from "./OneCookingSessionField";
+import SessionTimeField from "./SessionTimeField";
 import { Button } from "./ui/Button";
 import { Field, inputClass } from "./ui/Field";
 
@@ -53,8 +60,9 @@ import { Field, inputClass } from "./ui/Field";
 // replié dans le formulaire de l'autre.
 //
 // Ce composant rend LES CHAMPS, dans cet ordre: les dates, « Avec quoi tu
-// cuisines » (replié), « Qui mange à la maison », le style et « tout en une
-// fois », les courses, le budget, l'envie. Chaque écran garde ce qui
+// cuisines » (replié), « Qui mange à la maison », « combien de fois » et le
+// temps par session (⟳ 2026-09-25, à la place du style et de « tout en une
+// fois »), les courses, le budget, l'envie. Chaque écran garde ce qui
 // l'entoure — sa carte, ses boutons, ses refus — et ses propres états: les
 // valeurs arrivent par les props, les écritures partent par les callbacks.
 //
@@ -92,10 +100,21 @@ export interface PlanRequestFieldsProps {
 
   presence: readonly PresenceRow[];
 
-  cookingStyle: CookingStyle | null;
-  onCookingStyle: (next: CookingStyle | null) => void;
-  oneCookingSession: boolean;
-  onOneCookingSession: (next: boolean) => void;
+  /**
+   * ⟳ 2026-09-25 — « COMBIEN DE FOIS TU VEUX CUISINER ». Une réponse DE PLAN:
+   * l'écran la garde pour la composition, elle ne s'enregistre pas.
+   */
+  cookingSessions: CookingSessionCount | null;
+  onCookingSessions: (next: CookingSessionCount | null) => void;
+  /** ⟳ 2026-09-25 — la plage de temps, par sa borne haute (`cooking_time_min`). */
+  sessionTime: SessionTimeBound | null;
+  onSessionTime: (next: SessionTimeBound | null) => void;
+  /**
+   * LE LANCEMENT A ÉTÉ REFUSÉ SUR CES DEUX RÉPONSES. Les lignes rouges se
+   * lisent sous les champs, à l'endroit où on lève le refus, et meurent avec
+   * leur cause. REQUIS: un défaut à `false` ferait un bouton mort.
+   */
+  showCookingMisses: boolean;
   groceryRuns: GroceryRunsAnswer | null;
   onGroceryRuns: (next: GroceryRunsAnswer | null) => void;
 
@@ -104,6 +123,12 @@ export interface PlanRequestFieldsProps {
   onBudget: (raw: string) => void;
   /** Calculé par l'écran: les bouches et leurs absences n'y arrivent pas de la même façon. */
   budgetVerdict: BudgetVerdict;
+  /**
+   * ⟳ 2026-09-25 — LE CURSEUR: bas, haut, pas et monnaie (`budgetScaleFor`).
+   * `null` hors de France et des États-Unis, ou tant que les bouches ne sont
+   * pas lues: le champ libre revient.
+   */
+  budgetScale: BudgetScale | null;
 
   showEnvy: boolean;
   envy: string;
@@ -279,23 +304,30 @@ export default function PlanRequestFields(props: PlanRequestFieldsProps) {
 
       <div className="border-t border-line" />
 
-      {/* LE STYLE, PUIS « TOUT EN UNE FOIS » À SA DROITE, PUIS LES COURSES.
-          Le style plafonne les sessions, la case en est le cas extrême, et une
-          seule cuisson implique une seule course: on lit les causes avant
-          l'effet. `oneCookingSessionField.int.test.ts` lit cet ordre. */}
-      <div className="grid gap-4 sm:grid-cols-2 sm:items-center">
-        <CookingStyleField
-          id={id("cooking-style")}
-          value={props.cookingStyle}
-          onChange={props.onCookingStyle}
+      {/* ⟳ 2026-09-25 — COMBIEN DE FOIS, PUIS COMBIEN DE TEMPS À SA DROITE,
+          PUIS LES COURSES. Le nombre de sessions borne le temps (une session
+          qui couvre sept jours ne tient pas en trente minutes) et les courses
+          (pas plus de passages au magasin que de sessions): on lit les causes
+          avant les effets. `cookingSessionsField.int.test.ts` lit cet ordre. */}
+      <div className="grid gap-4 sm:grid-cols-2 sm:items-start">
+        <CookingSessionsField
+          id={id("cooking-sessions")}
+          value={props.cookingSessions}
+          onChange={props.onCookingSessions}
           disabled={props.disabled}
+          daysToEat={props.days.tokens.length}
+          freezer={hasFreezer}
+          showMissing={props.showCookingMisses}
         />
-        <OneCookingSessionField
-          id={id("one-cooking-session")}
-          value={props.oneCookingSession}
-          onChange={props.onOneCookingSession}
+        <SessionTimeField
+          id={id("session-time")}
+          value={props.sessionTime}
+          onChange={props.onSessionTime}
           disabled={props.disabled}
-          hasFreezer={hasFreezer}
+          daysToEat={props.days.tokens.length}
+          sessions={props.cookingSessions}
+          mealsPerDay={presenceMealsPerDay(props.presence)}
+          showMissing={props.showCookingMisses}
         />
       </div>
 
@@ -304,42 +336,19 @@ export default function PlanRequestFields(props: PlanRequestFieldsProps) {
         value={props.groceryRuns}
         onChange={props.onGroceryRuns}
         disabled={props.disabled}
-        style={props.cookingStyle}
-        oneCookingSession={props.oneCookingSession}
+        sessions={props.cookingSessions}
         daysToEat={props.days.tokens.length}
         freezer={hasFreezer}
       />
 
-      <Field label={t("plan.cooking.budget_label")} htmlFor={id("budget")}>
-        <input
-          id={id("budget")}
-          type="number"
-          inputMode="decimal"
-          min={1}
-          max={BUDGET_MAX}
-          step="1"
-          className={inputClass}
-          value={props.budget}
-          disabled={props.disabled}
-          onChange={(e) => props.onBudget(e.target.value)}
-        />
-        {/* « Serré » informe et ne retient rien; « sous le plancher » dit le
-            montant qui le lève. Les deux se calculent sur ce que le champ
-            porte MAINTENANT: un refus qui survit à sa cause est faux. */}
-        {props.budgetVerdict.kind === "tight" && (
-          <p className="mt-1 text-xs text-ink-soft">
-            {t("plan.cooking.budget_tight")}
-          </p>
-        )}
-        {props.budgetVerdict.kind === "below_floor" && (
-          <p className="mt-1 text-xs font-medium text-red-700">
-            {t("plan.cooking.budget_below_floor").replace(
-              "{amount}",
-              formatBudgetAmount(props.budgetVerdict.floor),
-            )}
-          </p>
-        )}
-      </Field>
+      <BudgetField
+        id={id("budget")}
+        disabled={props.disabled}
+        budget={props.budget}
+        onBudget={props.onBudget}
+        budgetVerdict={props.budgetVerdict}
+        budgetScale={props.budgetScale}
+      />
 
       {props.showEnvy && (
         <>
@@ -358,6 +367,122 @@ export default function PlanRequestFields(props: PlanRequestFieldsProps) {
         </>
       )}
     </>
+  );
+}
+
+/**
+ * ⟳ 2026-09-25 — LE BUDGET DES COURSES, EN CURSEUR.
+ *
+ * Demandé: un curseur à la place du champ libre, dont le minimum suit ce qui
+ * est donné au-dessus (jours, personnes, absences, régimes) et dont le maximum
+ * reste raisonnable. Le bas est le plancher, le haut `budgetCeilingFor` — les
+ * deux calculés par l'écran (`budgetScaleFor`).
+ *
+ * ⚠️ PAS DE MONTANT INVENTÉ: sans réponse, le curseur est posé au minimum mais
+ * rien n'est choisi, et la phrase le dit. Le premier geste choisit — y compris
+ * un clic sur le curseur sans le déplacer.
+ *
+ * ⚠️ HORS ÉCHELLE, LE MONTANT GLISSE À LA BORNE LA PLUS PROCHE, comme les
+ * champs de cuisine voisins: la réponse choisie est gardée à part
+ * (`useOfferedAnswer`) et revient dès que l'échelle la permet de nouveau.
+ *
+ * Sans échelle (hors France et États-Unis), le champ libre d'avant, borné par
+ * `BUDGET_MAX`.
+ */
+export function BudgetField(props: {
+  id: string;
+  disabled: boolean;
+  /** Ce que le champ porte, tel que tapé. */
+  budget: string;
+  onBudget: (raw: string) => void;
+  budgetVerdict: BudgetVerdict;
+  budgetScale: BudgetScale | null;
+}) {
+  const { budgetScale: scale, onBudget } = props;
+  const typed = props.budget.trim();
+  // `Number("")` vaut 0 et EST fini: le vide se teste avant.
+  const value = typed === "" || !Number.isFinite(Number(typed)) ? null : Number(typed);
+  const write = React.useCallback(
+    (next: number | null) => onBudget(next === null ? "" : String(next)),
+    [onBudget],
+  );
+  const correct = React.useCallback(
+    (intent: number | null) =>
+      intent === null || scale === null ? intent : clampToBudgetScale(intent, scale),
+    [scale],
+  );
+  const { shown, pick } = useOfferedAnswer<number>({ value, onChange: write, correct });
+  const money = (amount: number) =>
+    scale === null ? formatBudgetAmount(amount) : formatPrice(amount, { currency: scale.currency });
+
+  return (
+    <Field label={t("plan.cooking.budget_label")} htmlFor={props.id}>
+      {scale === null
+        ? (
+          <input
+            id={props.id}
+            type="number"
+            inputMode="decimal"
+            min={1}
+            max={BUDGET_MAX}
+            step="1"
+            className={inputClass}
+            value={props.budget}
+            disabled={props.disabled}
+            onChange={(e) => props.onBudget(e.target.value)}
+          />
+        )
+        : (
+          <div className="mt-1">
+            <p className="text-lg font-semibold tabular-nums text-ink">
+              {shown === null
+                ? (
+                  <span className="text-sm font-normal text-ink-soft">
+                    {t("plan.cooking.budget_pick")}
+                  </span>
+                )
+                : money(shown)}
+            </p>
+            <input
+              id={props.id}
+              type="range"
+              min={scale.min}
+              max={scale.max}
+              step={scale.step}
+              value={shown ?? scale.min}
+              disabled={props.disabled}
+              aria-valuetext={shown === null ? t("plan.cooking.budget_pick") : money(shown)}
+              onChange={(e) => pick(Number(e.target.value))}
+              // Un clic sur le curseur sans le déplacer ne lève pas `change`:
+              // c'est quand même un choix, celui du montant affiché.
+              onPointerUp={(e) => {
+                if (shown === null) pick(Number(e.currentTarget.value));
+              }}
+              className="mt-2 w-full accent-fig-700 focus:outline-none focus:ring-2 focus:ring-fig-600 disabled:opacity-60"
+            />
+            <div className="mt-1 flex justify-between text-xs tabular-nums text-ink-soft">
+              <span>{money(scale.min)}</span>
+              <span>{money(scale.max)}</span>
+            </div>
+          </div>
+        )}
+      {/* « Serré » informe et ne retient rien; « sous le plancher » dit le
+          montant qui le lève. Les deux se calculent sur ce que le champ
+          porte MAINTENANT: un refus qui survit à sa cause est faux. */}
+      {props.budgetVerdict.kind === "tight" && (
+        <p className="mt-1 text-xs text-ink-soft">
+          {t("plan.cooking.budget_tight")}
+        </p>
+      )}
+      {props.budgetVerdict.kind === "below_floor" && (
+        <p className="mt-1 text-xs font-medium text-red-700">
+          {t("plan.cooking.budget_below_floor").replace(
+            "{amount}",
+            formatBudgetAmount(props.budgetVerdict.floor),
+          )}
+        </p>
+      )}
+    </Field>
   );
 }
 

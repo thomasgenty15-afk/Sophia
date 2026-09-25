@@ -221,6 +221,9 @@ export async function loadJournal(
     unknown
   >;
   const rhythm = effectiveRhythm(parseEatingRhythm(pc.eating_rhythm));
+  // Les moments que la personne a DÉCLARÉS, sans le rythme par défaut: un
+  // moment que personne n'a nommé ne fait pas de trou dans une journée.
+  const declaredRhythm = parseEatingRhythm(pc.eating_rhythm);
   const slotHours = { ...SLOT_PASSED_HOUR };
   for (const r of rhythmClockFrom(pc.eating_rhythm)) {
     if (r.hour !== null) slotHours[r.slot] = r.hour;
@@ -370,15 +373,19 @@ export async function loadJournal(
           additive: true,
         });
       }
-      for (const r of rhythm) {
-        const presence = presenceStateFor(away, day, r.slot);
-        if (presence === "away") continue;
+      // ⟳ 2026-09-24 — UN MOMENT DÉCLARÉ QUE LE PLAN NE COMPOSE PAS, SUR UN
+      // JOUR QUE CE PLAN COUVRE, EST UNE LIGNE À REMPLIR (décision du
+      // propriétaire). Avant, seul un moment marqué « dehors » en produisait
+      // une, et cet état a été retiré. Trois bornes:
+      //   · un jour SANS plan n'entre pas dans cette boucle — pas de ligne,
+      //     donc pas de question (`slot_meal`) sur une semaine sans plan;
+      //   · un moment absent (vacances) n'en produit pas;
+      //   · `buildJournal` écarte la ligne dès qu'un plat du plan occupe ce
+      //     moment pour cette personne.
+      for (const r of declaredRhythm) {
+        if (presenceStateFor(away, day, r.slot) === "away") continue;
         if (slotIsTaken(fixed, day, r.slot)) continue;
-        // A hole in a plan is not evidence of a missed meal. Only an explicitly
-        // declared outside slot creates a row that can be filled or skipped.
-        if (presence === "eating_out") {
-          expected.push({ date, slot: r.slot, kind: "outside" });
-        }
+        expected.push({ date, slot: r.slot, kind: "uncovered" });
       }
     }
   }

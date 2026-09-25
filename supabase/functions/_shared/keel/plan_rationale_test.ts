@@ -481,10 +481,11 @@ Deno.test("AUCUN gabarit ne culpabilise — la porte 4 ne doit jamais mordre", (
     // même temps (les deux issues s'excluent). Elle a son propre passage plus
     // bas.
     oneCookingSession: { day: "sun", refusedNoFreezer: false },
-    // ⟳ A2 — ALLUMÉ AUSSI, avec la note qui PRODUIT une phrase: sinon la porte
-    // 4 (« aucune phrase ne culpabilise ») ne relirait jamais les deux
-    // gabarits de P2.
-    cookingPlan: { sessions: 2, runs: 2, cookDays: ["sun", "wed"], unusedRuns: 1, notes: ["style_caps_sessions"] },
+    // ⟳ A2 — ALLUMÉ AUSSI, avec les notes qui PRODUISENT une phrase: sinon la
+    // porte 4 (« aucune phrase ne culpabilise ») ne relirait jamais les
+    // gabarits des sessions. ⟳ 2026-09-25 — les deux relèvements remplacent la
+    // phrase du style.
+    cookingPlan: { sessions: 2, runs: 2, cookDays: ["sun", "wed"], unusedRuns: 1, sessionMinutes: 180, notes: ["sessions_need_freezer", "time_raised_to_minimum"] },
     // ALLUMÉE AUSSI: « le plan commence dimanche, un jour plus tôt » est un
     // fait de calendrier, donc parmi les phrases les plus faciles à tourner en
     // reproche si on la réécrit un jour. La porte 4 doit la relire.
@@ -1622,6 +1623,30 @@ Deno.test("plusieurs courses DISENT à quoi sert le déplacement de plus", () =>
   }
 });
 
+Deno.test("⟳ 2026-09-25 — le nombre de courses CHOISI est dit comme tel, pas comme un besoin du frais", () => {
+  // `31aef694`: deux courses choisies, deux faites; la phrase disait qu'elles
+  // existaient « pour que le frais n'attende pas la casserole ».
+  for (const locale of ["fr", "en"] as const) {
+    const joined = explainPlanChoices({
+      facts: {
+        ...nominalFacts(),
+        shoppingDays: ["fri", "sun"],
+        cookingPlan: {
+          sessions: 3,
+          cookDays: ["fri", "sun", "tue"],
+          runs: 2,
+          unusedRuns: 0,
+          sessionMinutes: 120,
+          notes: [],
+        },
+      },
+      locale,
+    }).lines.join(" ");
+    assertStringIncludes(joined, locale === "fr" ? "le nombre que tu as choisi" : "the number you chose");
+    assert(!joined.includes(locale === "fr" ? "n'attende pas" : "does not wait"), joined);
+  }
+});
+
 Deno.test("LE CAS RAPPORTÉ — le jour qui réclame sa propre course est NOMMÉ", () => {
   for (const locale of ["fr", "en"] as const) {
     const joined = explainPlanChoices({
@@ -1847,21 +1872,43 @@ Deno.test("A1 — LE ROUGE DE SEPT JOURS DIT LA MÊME CHOSE AUX TROIS ENDROITS",
 // option ignorée; une seule session sur une fenêtre de deux jours se lit comme
 // un moteur qui n'a pas compris.
 
-Deno.test("A2 — le plafond du style se DIT, et il nomme les deux nombres", () => {
+// ⟳ 2026-09-25 — LE STYLE EST PARTI; LES DEUX RELÈVEMENTS SE DISENT. L'écran
+// ne les propose pas, mais une demande arrivée par le réseau peut les
+// produire: un nombre changé sans motif se lirait comme une réponse ignorée.
+Deno.test("2026-09-25 — une session ajoutée faute de congélateur se DIT, avec son nombre", () => {
   for (const locale of ["fr", "en"] as const) {
     const lines = explainPlanChoices({
       facts: {
         ...nominalFacts(),
-        cookingPlan: { sessions: 2, runs: 2, cookDays: ["sun", "wed"], unusedRuns: 1, notes: ["style_caps_sessions"] },
+        cookingPlan: { sessions: 3, runs: 2, cookDays: ["sun", "wed", "fri"], unusedRuns: 0, sessionMinutes: 120, notes: ["sessions_need_freezer"] },
       },
       locale,
     }).lines.join(" ");
-    // Les DEUX nombres: ce qui a été demandé (2 + 1 = 3 courses) et ce que le
-    // plan prend (2 sessions). N'en dire qu'un laisserait la personne compter.
-    assertStringIncludes(lines, "3");
-    assertStringIncludes(lines, "2");
-    assertStringIncludes(lines, locale === "fr" ? "le moins possible" : "as little as possible");
+    assertStringIncludes(lines, locale === "fr" ? "cuisine 3 fois" : "cooks 3 times");
+    assertStringIncludes(lines, locale === "fr" ? "Sans congélateur" : "Without a freezer");
   }
+});
+
+Deno.test("2026-09-25 — une plage relevée se DIT, avec la durée retenue", () => {
+  for (const locale of ["fr", "en"] as const) {
+    const lines = explainPlanChoices({
+      facts: {
+        ...nominalFacts(),
+        cookingPlan: { sessions: 1, runs: 1, cookDays: ["sun"], unusedRuns: 0, sessionMinutes: 180, notes: ["time_raised_to_minimum"] },
+      },
+      locale,
+    }).lines.join(" ");
+    assertStringIncludes(lines, locale === "fr" ? "jusqu'à 3 h par session" : "up to 3 h per session");
+  }
+  // Sans la note, pas de phrase: la durée choisie est servie telle quelle.
+  const quiet = explainPlanChoices({
+    facts: {
+      ...nominalFacts(),
+      cookingPlan: { sessions: 1, runs: 1, cookDays: ["sun"], unusedRuns: 0, sessionMinutes: 180, notes: [] },
+    },
+    locale: "fr",
+  }).lines.join(" ");
+  assertEquals(quiet.includes("par session"), false, quiet);
 });
 
 Deno.test("A2 — la fenêtre courte se DIT, et ce n'est pas la même phrase", () => {
@@ -1869,19 +1916,20 @@ Deno.test("A2 — la fenêtre courte se DIT, et ce n'est pas la même phrase", (
     const style = explainPlanChoices({
       facts: {
         ...nominalFacts(),
-        cookingPlan: { sessions: 2, runs: 2, cookDays: ["sun", "wed"], unusedRuns: 1, notes: ["style_caps_sessions"] },
+        cookingPlan: { sessions: 2, runs: 2, cookDays: ["sun", "wed"], unusedRuns: 1, sessionMinutes: 60, notes: ["sessions_need_freezer"] },
       },
       locale,
     }).lines.join(" ");
     const days = explainPlanChoices({
       facts: {
         ...nominalFacts(),
-        cookingPlan: { sessions: 1, runs: 1, cookDays: ["sun", "wed"], unusedRuns: 0, notes: ["days_cap_sessions"] },
+        cookingPlan: { sessions: 1, runs: 1, cookDays: ["sun", "wed"], unusedRuns: 0, sessionMinutes: 60, notes: ["days_cap_sessions"] },
       },
       locale,
     }).lines.join(" ");
-    // ⛔ ELLES SE RÉPARENT PAR DES GESTES OPPOSÉS — changer de style, ou
-    // allonger la fenêtre. Une phrase commune ne dirait ni l'un ni l'autre.
+    // ⛔ ELLES SE RÉPARENT PAR DES GESTES DIFFÉRENTS — déclarer un
+    // congélateur, ou allonger la fenêtre. Une phrase commune ne dirait ni
+    // l'un ni l'autre.
     assert(style !== days, `${locale}: les deux plafonds disent la même chose`);
     assertStringIncludes(days, locale === "fr" ? "courte" : "short");
   }
@@ -1895,7 +1943,7 @@ Deno.test("A2 — « une seule course sans congélateur » n'a QU'UNE phrase", (
     const lines = explainPlanChoices({
       facts: {
         ...nominalFacts(),
-        cookingPlan: { sessions: 2, runs: 2, cookDays: ["sun", "wed"], unusedRuns: 0, notes: ["runs_1_needs_freezer"] },
+        cookingPlan: { sessions: 2, runs: 2, cookDays: ["sun", "wed"], unusedRuns: 0, sessionMinutes: 60, notes: ["runs_1_needs_freezer"] },
         oneCookingSession: { day: null, refusedNoFreezer: true },
       },
       locale,
@@ -1940,7 +1988,7 @@ Deno.test("A2 — le nombre de sessions se DIT au cas nominal", () => {
         declaredCookDays: [],
         usableCookDays: [],
         addedCookDays: [],
-        cookingPlan: { sessions: 2, runs: 2, cookDays: ["mon", "thu"], unusedRuns: 0, notes: [] },
+        cookingPlan: { sessions: 2, runs: 2, cookDays: ["mon", "thu"], unusedRuns: 0, sessionMinutes: 60, notes: [] },
       },
       locale,
     }).lines.join(" ");
@@ -1965,7 +2013,7 @@ Deno.test("A2 — la session UNIQUE ne se dit pas deux fois", () => {
     const lines = explainPlanChoices({
       facts: {
         ...nominalFacts(),
-        cookingPlan: { sessions: 1, runs: 1, cookDays: ["sun"], unusedRuns: 0, notes: [] },
+        cookingPlan: { sessions: 1, runs: 1, cookDays: ["sun"], unusedRuns: 0, sessionMinutes: 60, notes: [] },
         oneCookingSession: { day: "sun", refusedNoFreezer: false },
       },
       locale,
@@ -2313,7 +2361,7 @@ Deno.test("LOT C — quand la FENÊTRE borne, les courses perdues sont dites, da
       facts: {
         ...nominalFacts(),
         // 3 courses demandées, 2 sessions (fenêtre courte) ⇒ 2 courses organisées.
-        cookingPlan: { sessions: 2, runs: 2, cookDays: ["sun", "wed"], unusedRuns: 1, notes: ["days_cap_sessions", "runs_capped_by_sessions"] },
+        cookingPlan: { sessions: 2, runs: 2, cookDays: ["sun", "wed"], unusedRuns: 1, sessionMinutes: 60, notes: ["days_cap_sessions", "runs_capped_by_sessions"] },
       },
       locale,
     }).lines.join(" ");
@@ -2324,12 +2372,13 @@ Deno.test("LOT C — quand la FENÊTRE borne, les courses perdues sont dites, da
   }
 });
 
-Deno.test("⛔ LOT C — pas deux phrases pour le même fait quand le STYLE a déjà parlé", () => {
-  // `styleCapsSessions` dit déjà « 2 sessions suffisent, même avec 3 courses ».
+Deno.test("⛔ LOT C — les courses rabotées font UNE phrase, pas deux", () => {
+  // ⟳ 2026-09-25 — la phrase du style qui le disait aussi est partie avec lui;
+  // celle du rabotage parle seule, et une seule fois.
   const lines = explainPlanChoices({
     facts: {
       ...nominalFacts(),
-      cookingPlan: { sessions: 2, runs: 2, cookDays: ["sun", "wed"], unusedRuns: 1, notes: ["style_caps_sessions", "runs_capped_by_sessions"] },
+      cookingPlan: { sessions: 2, runs: 2, cookDays: ["sun", "wed"], unusedRuns: 1, sessionMinutes: 60, notes: ["runs_capped_by_sessions"] },
     },
     locale: "fr",
   }).lines;
@@ -2381,7 +2430,7 @@ Deno.test("LOT 3 — les jours de cuisine déclarés sont DITS comme un choix, d
     const lines = explainPlanChoices({
       facts: {
         ...nominalFacts(),
-        cookingPlan: { sessions: 1, runs: 1, cookDays: ["sun"], unusedRuns: 1, notes: ["cook_days_declared", "runs_capped_by_sessions"] },
+        cookingPlan: { sessions: 1, runs: 1, cookDays: ["sun"], unusedRuns: 1, sessionMinutes: 60, notes: ["cook_days_declared", "runs_capped_by_sessions"] },
       },
       locale,
     }).lines.join(" ");
@@ -2390,7 +2439,7 @@ Deno.test("LOT 3 — les jours de cuisine déclarés sont DITS comme un choix, d
     const out = explainPlanChoices({
       facts: {
         ...nominalFacts(),
-        cookingPlan: { sessions: 3, runs: 2, cookDays: ["sun", "tue", "thu"], unusedRuns: 0, notes: ["cook_days_out_of_window"] },
+        cookingPlan: { sessions: 3, runs: 2, cookDays: ["sun", "tue", "thu"], unusedRuns: 0, sessionMinutes: 60, notes: ["cook_days_out_of_window"] },
       },
       locale,
     }).lines.join(" ");

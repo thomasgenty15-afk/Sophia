@@ -42,14 +42,14 @@
 // qui restent anglais alors que leurs clés sont écrites: leur corps vient d'une
 // fonction edge, d'un module Deno partagé ou d'une migration.
 //
-// ── LE REGISTRE, ET LÀ OÙ IL BASCULE ───────────────────────────────────────
-// Le site n'a pas une seule adresse: `/`, `/pro`, `/couples`, `/families`,
-// `/gyms`, `/communities`, `/auth` et le chrome VOUVOIENT; `/meal-prep`,
-// `/coaches`, `/start`, tout le couloir d'entrée et TOUT L'ESPACE COACH
-// TUTOIENT. La ligne de partage est la porte: on vouvoie l'acheteur qu'on ne
-// connaît pas, on tutoie la personne qui est entrée. C'est l'arbitrage du lot 1,
-// tenu tel quel — et le lot 5 l'a appliqué au coach plutôt que d'en inventer un
-// second (le raisonnement complet est en tête du bloc « LOT 5 »).
+// ── LE REGISTRE ────────────────────────────────────────────────────────────
+// TUTOIEMENT PARTOUT depuis le 2026-09-25, sur demande: `/`, `/start`,
+// `/auth`, `/email-verified`, `/app/setup`, l'app, l'espace coach, `/legal`.
+// Un « vous » ne reste que s'il désigne plusieurs personnes (voir l'en-tête
+// d'`auth.ts`). Seules les pages pro occultées (`/pro`, `/gyms`,
+// `/communities`) vouvoient encore: elles s'adressent à une organisation, et
+// se relisent si `VITE_B2C_ONLY` rouvre le pro. L'arbitrage d'avant (vouvoyer
+// l'acheteur qu'on ne connaît pas, tutoyer qui est entré) est retiré.
 //
 // Ce qui NE se traduit pas: le nom de marque, l'adresse e-mail, et les prix
 // (ce sont des faits commerciaux, pas de la langue).

@@ -80,7 +80,6 @@ const DOSES: BoxLine[] = [{
   total: 146,
   shared: false,
   partial: false,
-  restOnTheDay: false,
   fromOtherSessions: [],
   frozen: false,
 }];

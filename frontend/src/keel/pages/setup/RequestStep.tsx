@@ -7,8 +7,17 @@ import React from "react";
 import { Card, SectionLabel } from "../../components/ui/Card";
 import type { FunnelMissId, FunnelMouth, FunnelPlanAnswers } from "../../api/onboarding";
 import type { PracticalConstraints } from "../../api/practicalConstraints";
-import { assessBudget, budgetMouthsFor } from "../../api/planBudget";
+import {
+  assessBudget,
+  type BudgetDayRates,
+  budgetMouthsFor,
+  budgetScaleFor,
+} from "../../api/planBudget";
 import type { EatingOccasionSlot } from "../../api/mealGeneration";
+import {
+  type CookingSessionCount,
+  readSessionTimeBound,
+} from "../../api/cookingPlan";
 import PlanRequestFields, { type PresenceRow } from "../../components/PlanRequestFields";
 import { t } from "../../i18n/t";
 import { MissingCard } from "./MissCards.tsx";
@@ -43,6 +52,7 @@ export function RequestStep({
   mouths,
   planWindow,
   budgetMarket,
+  budgetRates,
   selfMemberId,
   selfName,
   rhythm,
@@ -52,8 +62,9 @@ export function RequestStep({
   practicalConstraints,
   hasGoal,
   onEquipmentSaved,
-  oneCookingSession,
-  onOneCookingSession,
+  cookingSessions,
+  onCookingSessions,
+  showCookingMisses,
   envy,
   onEnvy,
   askEnvy,
@@ -74,6 +85,8 @@ export function RequestStep({
   };
   /** `null` hors de France et des États-Unis: pas de grille, donc pas de plancher. */
   budgetMarket: "fr" | "us" | null;
+  /** ⟳ 2026-09-25 — le coût par jour de chaque bouche (`loadBudgetDayRates`). */
+  budgetRates: ReadonlyMap<string, BudgetDayRates>;
   /** Le titulaire, DANS le roster — la ligne à laquelle `selfAway` appartient. */
   selfMemberId: string | null;
   /** Le nom de la ligne du titulaire quand le roster ne le porte pas encore. */
@@ -101,11 +114,14 @@ export function RequestStep({
   hasGoal: boolean;
   onEquipmentSaved: () => void | Promise<void>;
   /**
-   * « TOUT CUISINER EN UNE SEULE FOIS » — requis, et pas dans `draft`: il ne
-   * s'écrit nulle part, il part avec la demande.
+   * ⟳ 2026-09-25 — « COMBIEN DE FOIS TU VEUX CUISINER » — requis, et pas dans
+   * `draft`: il ne s'écrit nulle part, il part avec la demande. Il remplace
+   * « tout cuisiner en une seule fois ».
    */
-  oneCookingSession: boolean;
-  onOneCookingSession: (next: boolean) => void;
+  cookingSessions: CookingSessionCount | null;
+  onCookingSessions: (next: CookingSessionCount | null) => void;
+  /** Le bouton de fin a été refusé sur les réponses de cuisine. */
+  showCookingMisses: boolean;
   /** L'ENVIE DE LA MAISON POUR CETTE SEMAINE-CI. Requise, jamais optionnelle. */
   envy: string;
   onEnvy: (value: string) => void;
@@ -120,31 +136,31 @@ export function RequestStep({
    * ⚠️ CE QUI EST RENDU ICI NE RETIENT RIEN. Le refus qui BLOQUE est posé au
    * bout du parcours, juste avant `composeDraft`, sur des faits RELUS.
    */
+  const budgetMouths = React.useMemo(() =>
+    budgetMouthsFor({
+      dayTokens: planWindow.tokens,
+      houseSlots: rhythm,
+      mouths: mouths.map((m) => ({
+        memberId: m.memberId,
+        diet: m.diet,
+        eatingSlots: m.eatingSlots,
+        away: m.away,
+      })),
+      selfMemberId,
+      selfAway,
+      rates: budgetRates,
+    }), [planWindow.tokens, rhythm, mouths, selfMemberId, selfAway, budgetRates]);
   const budgetVerdict = React.useMemo(() =>
     assessBudget({
       amount: draft.budgetAmount,
       market: budgetMarket,
-      mouths: budgetMouthsFor({
-        dayTokens: planWindow.tokens,
-        houseSlots: rhythm,
-        mouths: mouths.map((m) => ({
-          memberId: m.memberId,
-          diet: m.diet,
-          eatingSlots: m.eatingSlots,
-          away: m.away,
-        })),
-        selfMemberId,
-        selfAway,
-      }),
-    }), [
-    draft.budgetAmount,
-    budgetMarket,
-    planWindow.tokens,
-    rhythm,
-    mouths,
-    selfMemberId,
-    selfAway,
-  ]);
+      mouths: budgetMouths,
+    }), [draft.budgetAmount, budgetMarket, budgetMouths]);
+  // ⟳ 2026-09-25 — LE CURSEUR, SUR LES MÊMES BOUCHES QUE LE PLANCHER.
+  const budgetScale = React.useMemo(
+    () => budgetScaleFor({ market: budgetMarket, mouths: budgetMouths }),
+    [budgetMarket, budgetMouths],
+  );
 
   /**
    * « QUI MANGE À LA MAISON » — une ligne par personne, titulaire en tête.
@@ -215,11 +231,15 @@ export function RequestStep({
             hasGoal={hasGoal}
             onEquipmentSaved={onEquipmentSaved}
             presence={presence}
-            cookingStyle={draft.cookingStyle}
-            onCookingStyle={(next) =>
-              onChange((prev) => prev === null ? prev : { ...prev, cookingStyle: next })}
-            oneCookingSession={oneCookingSession}
-            onOneCookingSession={onOneCookingSession}
+            cookingSessions={cookingSessions}
+            onCookingSessions={onCookingSessions}
+            // ⟳ 2026-09-25 — LA PLAGE DE TEMPS EST UNE RÉPONSE DURABLE: elle vit
+            // dans `draft` (`cookingTimeMin`), écrite par `savePlanAnswers`. Une
+            // durée d'avant les plages y est lue dans la sienne.
+            sessionTime={readSessionTimeBound({ cooking_time_min: draft.cookingTimeMin })}
+            onSessionTime={(next) =>
+              onChange((prev) => prev === null ? prev : { ...prev, cookingTimeMin: next })}
+            showCookingMisses={showCookingMisses}
             groceryRuns={draft.groceryRuns}
             onGroceryRuns={(next) =>
               onChange((prev) => prev === null ? prev : { ...prev, groceryRuns: next })}
@@ -239,6 +259,7 @@ export function RequestStep({
               );
             }}
             budgetVerdict={budgetVerdict}
+            budgetScale={budgetScale}
             // ⚠️ SEULEMENT QUAND LA DEMANDE PART SUR UN FOYER: la ligne d'envie
             // est clé sur un foyer. Vrai pour toute personne qui atteint cet
             // écran dès que l'étape 1 a créé son foyer.
@@ -249,9 +270,9 @@ export function RequestStep({
         </div>
       </Card>
 
-      {missing.length > 0 ? <MissingCard missing={missing} title="setup.missing.title" /> : (
-        <p className="text-xs text-ink-soft">{t("setup.plan.compose_hint")}</p>
-      )}
+      {/* ⛔ 2026-09-25 — « Ça le compose. L'écran suivant est le plan
+          lui-même. » est retirée, sur demande. */}
+      {missing.length > 0 && <MissingCard missing={missing} title="setup.missing.title" />}
     </>
   );
 }

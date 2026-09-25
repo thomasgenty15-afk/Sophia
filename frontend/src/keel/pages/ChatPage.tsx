@@ -56,7 +56,6 @@ import {
   uploadMealPhoto,
 } from "../api/mealPhoto";
 import {
-  armsQuestion,
   isNavigationOnly,
   memoryViewHref,
   readMemoryViewToken,
@@ -64,6 +63,8 @@ import {
 import { useNavigate } from "react-router-dom";
 import { subscribeQuickAdd, takeQuickAdd } from "../lib/quickAdd";
 import { dayMealsMissedDate } from "../api/dayMeals";
+import ChatAnswerTray from "../components/ChatAnswerTray";
+import { openQuestionId, unansweredSupersededIds } from "../lib/chatQuestions";
 import MealsTrackingDialog from "../components/MealsTrackingDialog";
 import { browserLocalDate } from "../lib/useMealTicks";
 import { t } from "../i18n/t";
@@ -973,7 +974,7 @@ export default function ChatPage() {
     }
   };
 
-  // ── LE DERNIER MESSAGE ASSISTANT PORTEUR DE BOUTONS, ET LUI SEUL ────────
+  // ── LA QUESTION EN COURS, ET LES QUESTIONS QU'ON LAISSE PARTIR ─────────
   //
   // ⚠️ CE N'EST PLUS UNE ASTUCE D'ÉCRAN: C'EST LA RÈGLE DU PRODUIT (FF-062
   // R13), et le serveur applique EXACTEMENT la même depuis le 2026-09-01
@@ -995,9 +996,19 @@ export default function ChatPage() {
   // ferait disparaître les boutons de la question posée juste avant, alors que
   // le serveur, lui, l'accepterait encore. Les deux côtés partagent la règle —
   // miroir de `_shared/chat/disarmed_tap.ts`.
-  const lastAssistantId = [...messages].reverse().find((m) =>
-    m.role === "assistant" && armsQuestion(m.buttons)
-  )?.id ?? null;
+  //
+  // ⟳ 2026-09-25 — LES RÉPONSES QUITTENT LA BULLE (décision du propriétaire).
+  // Les boutons de la dernière question vivent dans `ChatAnswerTray`, au-dessus
+  // du champ, et SEULEMENT tant qu'aucun message de la personne ne la suit:
+  // une question répondue ne propose plus rien. Et une question que Sophia a
+  // posée d'elle-même, laissée sans réponse, s'efface du fil quand la suivante
+  // arrive. Les deux règles vivent dans `lib/chatQuestions.ts`, qui passe par
+  // `armsQuestion` — le même critère que le serveur.
+  const openId = openQuestionId(messages);
+  const openQuestion = openId === null
+    ? null
+    : messages.find((m) => m.id === openId) ?? null;
+  const hiddenIds = unansweredSupersededIds(messages);
 
   return (
     <KeelAppShell
@@ -1144,7 +1155,7 @@ export default function ChatPage() {
             </p>
           )}
 
-          {messages.map((message) => (
+          {messages.filter((message) => !hiddenIds.has(message.id)).map((message) => (
             <div
               key={message.clientMessageId ?? message.id}
               className={message.role === "user"
@@ -1247,10 +1258,9 @@ export default function ChatPage() {
                 {/* ⚠️ UNE BULLE QUI NE FAIT QUE NAVIGUER GARDE SON BOUTON, même
                 quand une question plus récente est arrivée. Rien ne l'expire:
                 « Voir » ouvre un écran, et cet écran existera encore demain.
-                Le désarmement ne concerne que ce qui ATTEND une réponse. */}
-            {message.buttons.length > 0 &&
-              (message.id === lastAssistantId ||
-                isNavigationOnly(message.buttons)) && (
+                ⟳ 2026-09-25 — les réponses d'une QUESTION ne sont plus sous la
+                bulle: elles sont dans l'encadré au-dessus du champ. */}
+            {isNavigationOnly(message.buttons) && (
                   <div className="mt-2 flex flex-wrap gap-2">
                     {message.buttons.map((button) => (
                       <Button
@@ -1325,6 +1335,14 @@ export default function ChatPage() {
             qui défile. `shrink-0` pour que la rangée ne se fasse pas comprimer
             par un fil qui réclame de la place. */}
         <form onSubmit={onSubmit} className="flex shrink-0 flex-col gap-2">
+          {openQuestion && (
+            <ChatAnswerTray
+              kicker={t("chat.answer.kicker")}
+              buttons={openQuestion.buttons}
+              disabled={sending}
+              onAnswer={(payload, label) => onButton(payload, label, openQuestion.id)}
+            />
+          )}
           {/* LA PHOTO EN ATTENTE, AU-DESSUS DE SON CHAMP. Elle se voit avant de
               partir — c'est tout l'intérêt de ne plus envoyer au `change` — et
               elle se retire sans avoir à recharger l'écran. La vignette est

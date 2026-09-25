@@ -228,9 +228,13 @@ import {
 // est pire qu'aucun plafond.
 import {
   budgetBoundsFor,
+  budgetGateDayRatesOf,
   budgetMarketFor,
   budgetMouthDays,
 } from "../_shared/keel/budget_floor.ts";
+// ⟳ 2026-09-25 — LE BESOIN DE CHAQUE BOUCHE, par le chargeur que l'écran lit
+// aussi (`budget-rates-v1`).
+import { loadBudgetMouthKcal } from "../_shared/keel/budget_mouth_kcal_io.ts";
 import {
   dishBearingDelta,
   eatersByDish,
@@ -318,6 +322,10 @@ import {
   type PlateCorridor,
   prepUnitId,
 } from "../_shared/keel/plan_proportion_units.ts";
+// ⟳ 2026-09-25 — le plafond de temps de l'ajustement des proportions.
+import { ADJUST_TIME_BUDGET_MS } from "../_shared/keel/proportion_adjust.ts";
+// ⟳ 2026-09-25 — le travail de la composition, hors attente du modèle.
+import { markWorkPhase, startWorkClock, takeWorkTimeReport } from "../_shared/model_wait.ts";
 // ⟳ 2026-09-22 · LOT B — LE PLAFOND PROTÉIQUE, SUR LES PLATS MANGÉS SEUL.
 // ⛔ `CeilingMouthDay` porte la JOURNÉE ENTIÈRE (partagé compris) et marque
 // case par case ce qui est mangé seul: c'est la seule forme où la mesure du
@@ -506,6 +514,7 @@ import {
   type CellEdit,
   cellEditInstruction,
   exclusionEditCells,
+  readEditSwaps,
   mergeCellEdit,
   readCellEdits,
 } from "../_shared/keel/cell_edit.ts";
@@ -602,6 +611,8 @@ import {
 // contrairement à `readCookingCapacity` qui vit en double dans ces deux
 // fichiers depuis toujours.
 import {
+  cookedMealsPerDay,
+  readCookingSessions,
   readGroceryRuns,
   readGroceryRunsAnswer,
   resolveCookingCapacity,
@@ -614,14 +625,19 @@ import {
 import {
   buyDatesByIndex,
   describeWrittenWaves,
+  mealChainsByTerm,
   PERISHABLE_AISLES,
+  plannedShopDatesForPlan,
+  plateWindowReport,
+  sessionRanksForPlan,
   waveNeedsFromPlan,
+  waveTermKey,
 } from "../_shared/keel/grocery_waves.ts";
 import {
   rawKeepingBreaches,
   sessionsFedFromFreezer,
 } from "../_shared/keel/raw_keeping.ts";
-import { FREEZER_WINDOW_DAYS } from "../_shared/keel/fridge_window.ts";
+import { effectiveRawWindowDays, FREEZER_WINDOW_DAYS } from "../_shared/keel/fridge_window.ts";
 // ③ — LES JOURS QUE LE FOYER NE DÉPLACE PAS (2026-08-20).
 import {
   type HouseholdTradition,
@@ -923,6 +939,8 @@ import {
   sharedProteinCaps,
 } from "../_shared/keel/plan_protein_brief.ts";
 import { foodQualityOf } from "../_shared/keel/plan_food_quality.ts";
+// ⟳ 2026-09-25 — l'aliment principal de chaque plat, dont l'écran tire l'icône.
+import { mainFoodCounts, mainFoodsOf } from "../_shared/keel/dish_main_food.ts";
 // ⟳ 2026-09-23 — LA LISTE « À ÉVITER »: les aliments beaucoup revenus dans
 // les deux derniers plans, nommés dans la consigne, et le compteur de ceux qui
 // reviennent quand même.
@@ -1201,6 +1219,43 @@ interface HandlerContext {
 /** Un uuid, et rien d'autre — pour les en-têtes du relanceur (lot C). */
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+/**
+ * ⟳ 2026-09-25 — LE TIMING RANGÉ D'UN APERÇU (`response.timing`), relu pour
+ * une retouche. `null` sur une forme illisible : la lane recalcule alors.
+ */
+function readStoredPlanTiming(raw: unknown): PlanTiming | null {
+  if (!raw || typeof raw !== "object") return null;
+  const t = raw as { kind?: unknown; reason?: unknown; lead_day?: unknown };
+  const kind = String(t.kind ?? "");
+  if (kind !== "day_before" && kind !== "same_morning" && kind !== "starts_tomorrow") return null;
+  if (typeof t.reason !== "string" || t.reason === "") return null;
+  const leadDay = typeof t.lead_day === "string" && t.lead_day !== "" ? t.lead_day : null;
+  return { kind, reason: t.reason as PlanTiming["reason"], lead_day: leadDay };
+}
+
+/**
+ * ⟳ 2026-09-25 — LE TRAVAIL DE LA COMPOSITION, AU JOURNAL. Une fonction edge a
+ * 2 s de calcul par requête (limite de Supabase, sur toutes les formules);
+ * l'attente du modèle n'y compte pas. `work_ms` est l'écoulé moins cette
+ * attente — base de données comprise, donc un majorant du calcul. Mesuré le
+ * 2026-09-25: ~1,0 à 1,2 s sur une composition ordinaire, 3,2 s sur celle que
+ * le serveur a tuée. `over_budget` s'allume au-dessus de 1,5 s: c'est
+ * l'alarme, pas le mur.
+ */
+const WORK_TIME_ALARM_MS = 1500;
+function logWorkTime(req: Request, status: number, draftId: string | null): void {
+  const report = takeWorkTimeReport(getRequestId(req));
+  if (report === null) return;
+  console.log(JSON.stringify({
+    tag: "keel.household_meal.work_time",
+    request_id: getRequestId(req),
+    draft_id: draftId,
+    status,
+    ...report,
+    over_budget: report.work_ms > WORK_TIME_ALARM_MS,
+  }));
+}
+
 Deno.serve((req) => {
   const wrapperT0 = performance.now();
   let settleEarly: ((early: { response: Response; draftId: string }) => void) | null = null;
@@ -1248,6 +1303,7 @@ Deno.serve((req) => {
     work.then((response) => ({ kind: "full" as const, response })),
   ]).then((winner) => {
     if (winner.kind === "full") {
+      logWorkTime(req, winner.response.status, null);
       // Un refus rendu tout de suite (chemin synchrone) est consigné APRÈS la
       // réponse, sans la retarder : le runtime garde l'isolat pour la promesse.
       if (isPlanRefusal(winner.response.status, false) || ctx.refused !== null) {
@@ -1256,6 +1312,7 @@ Deno.serve((req) => {
       return winner.response;
     }
     const kept = keepWorking(work.then(async (late) => {
+      logWorkTime(req, late.status, winner.draftId);
       await foldLateOutcome(winner.draftId, late, Math.round(performance.now() - wrapperT0));
       if (isPlanRefusal(late.status, true) || ctx.refused !== null) {
         await journalRefusalWithBody(late, "async", winner.draftId);
@@ -1286,6 +1343,10 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
   // refus précoce.
   const wallT0 = performance.now();
   const wallMs = () => Math.round(performance.now() - wallT0);
+  // ⟳ 2026-09-25 — l'horloge du TRAVAIL (écoulé moins attente du modèle),
+  // découpée aux marqueurs d'étape; le bilan part au journal en fin de requête
+  // (`keel.household_meal.work_time`, écrit par le wrapper).
+  startWorkClock(getRequestId(req), wallT0);
 
   // ── ⟳ 2026-09-10 · L'ÉCHÉANCE ET LE BUDGET DE RATTRAPAGE ─────────────────
   // Le bloc au-dessus MESURE le mur; celui-ci l'ARBITRE. Pire cas mesuré de
@@ -1891,6 +1952,9 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
       ? "rejections"
       : null;
     const editRejections = readDishRejections(body.rejections);
+    // ⟳ 2026-09-25 — « à la place de X, mets Y », pour CE plan seulement
+    // (décision du propriétaire). Lu avec `cells_from: "exclusions"`.
+    const editSwaps = readEditSwaps(body.swaps);
     let editCells: readonly CellEdit[] = editCellsRead.cells;
     if (editing) {
       if (String(body.intent ?? "").trim() !== "draft") {
@@ -2102,20 +2166,24 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
     // précédente.
     const askedCookingShape = readCookingShape(body.cooking_shape);
     // ══════════════════════════════════════════════════════════════════════
-    // « TOUT DANS UNE SESSION DE CUISINE » — LA DEMANDE, 2026-09-01.
+    // ⟳ 2026-09-25 — « COMBIEN DE FOIS TU VEUX CUISINER ? » — LA DEMANDE.
     // ══════════════════════════════════════════════════════════════════════
     //
-    // ⚠️ `=== true`, ET LA COMPARAISON EST LA GARDE. Le corps vient du réseau:
-    // `"false"`, `0` et `{}` sont tous truthy ou falsy pour de mauvaises
-    // raisons. Seul le booléen `true` est une demande.
+    // Il remplace `one_cooking_session` (la case « tout cuisiner en une seule
+    // fois ») ET le nombre de sessions que le style déduisait en silence.
+    // `null` = pas de réponse (une requête d'avant ce lot): aucune dérivation,
+    // les champs déclarés passent tels quels (`resolveCookingCapacity`).
     //
-    // ⛔ CE N'EST PAS ENCORE LA DÉCISION: la porte est le CONGÉLATEUR, et
-    // l'inventaire n'est lu que bien plus bas (`kitchenEquipment`).
+    // ⚠️ `readCookingSessions` NE PREND QU'UN NOMBRE OU SA CHAÎNE: `true`
+    // nombrifié vaudrait 1, c'est-à-dire « une seule fois ».
     //
-    // ⚠️ COMME `cooking_shape`, IL N'EST JAMAIS RELU D'UN PLAN PRÉCÉDENT. Une
-    // semaine ne réapplique pas le choix de la précédente: c'est un arbitrage
-    // de semaine, pas un réglage de profil.
-    const askedOneCookingSession = body.one_cooking_session === true;
+    // ⛔ CE N'EST PAS ENCORE LA DÉCISION: la conservation et le CONGÉLATEUR
+    // tranchent plus bas, une fois l'inventaire lu et la fenêtre connue.
+    //
+    // ⚠️ COMME `cooking_shape`, IL N'EST JAMAIS RELU D'UN PLAN PRÉCÉDENT. Le
+    // nombre dépend de la longueur du plan; c'est un arbitrage de semaine, pas
+    // un réglage de profil.
+    const askedCookingSessions = readCookingSessions(body.cooking_sessions);
     // ══════════════════════════════════════════════════════════════════════
     // « JE CUISINE LA VEILLE » — PLUS UNE DEMANDE, UNE DÉRIVATION (A1,
     // 2026-09-03).
@@ -2347,6 +2415,64 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
      * ailleurs, même règle que `merge` juste au-dessus.
      */
     let unmerge: ResolvedUnmerge | null = null;
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-25 — UNE RETOUCHE GARDE LA FENÊTRE DE SON APERÇU
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // Décision produit du 2026-09-25 : un ajustement se fait en local, ou le
+    // plan se recompose parce que le système le décide — jamais « refais le
+    // plan », jamais un refus parce que l'heure a tourné. Mesuré : « J'aime pas
+    // le tofu » sur un aperçu fait la veille à 23 h, envoyé à 1 h, rendait
+    // `draft_day_passed` : la fenêtre de la DEMANDE, relue avec l'heure (veille
+    // de cuisine, journée entamée), ne concordait plus avec celle de l'aperçu.
+    //
+    // ⛔ UNE RETOUCHE NE RELIT DONC PAS L'HEURE. Elle refait des cases d'un
+    // aperçu existant : sa fenêtre est celle de l'aperçu, telle qu'il l'a
+    // rangée (veille comprise), et la fenêtre envoyée par la page est ignorée.
+    // Les jours déjà passés se règlent à l'adoption, pas ici.
+    //
+    // `null` quand la ligne manque ou ne porte pas de fenêtre lisible : la
+    // demande suit alors le chemin ordinaire, et le chargement du brouillon,
+    // plus bas, rend `draft_not_found` / `draft_not_done`.
+    let editPinnedWindow:
+      | {
+        startsOn: string;
+        durationDays: number;
+        cookOnlyDay: ReturnType<typeof dayTokenOf> | null;
+        /** Le timing que l'aperçu a rendu (`response.timing`), repris tel quel. */
+        timing: PlanTiming | null;
+      }
+      | null = null;
+    if (editing && editDraftId !== null) {
+      const pinRow = (await admin
+        .from("student_meal_drafts")
+        .select("starts_on, duration_days, lead_days, timing:response->timing")
+        .eq("id", editDraftId)
+        .eq("user_id", userId)
+        .maybeSingle()).data as
+        | {
+          starts_on?: unknown;
+          duration_days?: unknown;
+          lead_days?: unknown;
+          timing?: unknown;
+        }
+        | null;
+      const pinStart = String(pinRow?.starts_on ?? "");
+      const pinDays = Number(pinRow?.duration_days ?? 0);
+      if (
+        /^\d{4}-\d{2}-\d{2}$/.test(pinStart) && Number.isInteger(pinDays) &&
+        pinDays >= 1
+      ) {
+        editPinnedWindow = {
+          startsOn: pinStart,
+          durationDays: pinDays,
+          // Le JETON du premier jour (`sun`…), comme `withCookDayBefore` le
+          // rend : la veille rangée est le premier jour de la fenêtre.
+          cookOnlyDay: Number(pinRow?.lead_days ?? 0) > 0 ? dayTokenOf(pinStart) : null,
+          timing: readStoredPlanTiming(pinRow?.timing),
+        };
+      }
+    }
 
     // ── LES PLANS DU FOYER VIVANTS, LUS UNE FOIS POUR LES TROIS OPÉRATIONS ──
     //
@@ -2513,6 +2639,13 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
         ? "replace_current"
         : "prepare_next";
       replaces = intent === "replace_current" ? unmerge.basePlan.id : null;
+    } else if (editPinnedWindow !== null) {
+      // ⟳ 2026-09-25 — la fenêtre de l'aperçu retouché, sans relecture de
+      // l'heure (voir `editPinnedWindow`). Rien n'a été coupé : c'est la
+      // fenêtre que l'aperçu montre déjà.
+      startsOn = editPinnedWindow.startsOn;
+      durationDays = editPinnedWindow.durationDays;
+      requestedWindowFacts = { startsOn, durationDays };
     } else {
       const windowRequest = readWindowRequest(body.window);
       if (!windowRequest) {
@@ -2542,6 +2675,8 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
           request_id: requestId,
         }, { status: 400 });
       }
+    }
+    if (operation !== "merge" && operation !== "unmerge") {
 
       // ══ C2 ② — LES JETONS DE JOUR NE VONT PAS AU-DELÀ DE DIMANCHE ════════
       //
@@ -4544,18 +4679,9 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
     // exister — donc la marque « à congeler à l'achat » n'avait aucun plan où
     // se poser.
     //
-    // ⛔ LA DEMANDE EXPLICITE RESTE LA SEULE PORTE, et elle est inchangée:
-    // `body.one_cooking_session` plus un congélateur déclaré. Le refus compté
-    // ci-dessous ne bouge pas d'un caractère.
-    const askedOneSession = askedOneCookingSession;
-    const oneCookingSession = askedOneSession &&
-      hasFreezerDeclared(kitchenEquipment);
-    if (askedOneSession && !oneCookingSession) {
-      // Comptable en SQL sur la ligne du plan. `plan_rationale` le DIT à la
-      // personne; sans ce compteur, une option ignorée en silence serait
-      // indiscernable d'une option jamais cochée.
-      issues.push("one_cooking_session_refused: no freezer declared");
-    }
+    // ⛔ LA DEMANDE EXPLICITE RESTE LA SEULE PORTE: ⟳ 2026-09-25, c'est
+    // `cooking_sessions = 1`. Sa porte du congélateur a besoin des jours
+    // MANGÉS, connus plus bas: elle est posée juste après `daysToEat`.
     // ── LES MOMENTS DE LA MAISON = L'UNION DES MOMENTS DES BOUCHES ────────
     //
     // ⚠️ CE N'EST PAS UNE COMMODITÉ, C'EST CE QUI REND LE RYTHME PAR BOUCHE
@@ -4833,11 +4959,26 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
     // ⚠️ `hourNow: null` NE DEVIENT JAMAIS MINUIT. Une horloge illisible rend
     // `clock_unreadable`, donc pas de veille — le produit d'hier, nommé. La
     // deviner accorderait une veille que personne n'a le temps de cuisiner.
-    const lead = leadDayFor({ startsOn, today: todayDate, hourNow });
-    const cookAhead = withCookDayBefore({ startsOn, durationDays }, {
-      asked: lead.leadDay !== null,
-      today: todayDate,
-    });
+    // ⟳ 2026-09-25 — une retouche ne relit pas la veille à l'heure qu'il est:
+    // `leadDayFor` JETTE sur un départ passé (aperçu d'hier retouché ce
+    // matin), et redemander la veille décalerait la fenêtre d'un jour. Le
+    // verdict d'une retouche décrit la veille que l'aperçu a rangée.
+    const lead: ReturnType<typeof leadDayFor> = editPinnedWindow !== null
+      ? (editPinnedWindow.cookOnlyDay !== null
+        ? { leadDay: editPinnedWindow.startsOn, timing: "day_before", reason: "day_before" }
+        : { leadDay: null, timing: "same_morning", reason: "starts_today" })
+      : leadDayFor({ startsOn, today: todayDate, hourNow });
+    const cookAhead: ReturnType<typeof withCookDayBefore> = editPinnedWindow !== null
+      ? {
+        startsOn,
+        durationDays,
+        cookOnlyDay: editPinnedWindow.cookOnlyDay,
+        refused: null,
+      }
+      : withCookDayBefore({ startsOn, durationDays }, {
+        asked: lead.leadDay !== null,
+        today: todayDate,
+      });
     startsOn = cookAhead.startsOn;
     durationDays = cookAhead.durationDays;
     const cookOnlyDay: string | null = cookAhead.cookOnlyDay;
@@ -4873,7 +5014,9 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
     // avant ce repas ? ». Mesuré avant le lot: à 12 h le déjeuner était servi,
     // à 19 h le dîner l'était aussi, alors que la coupure des courses est à
     // 18 h.
-    const unservableToday = startsOn === todayDate
+    // ⟳ 2026-09-25 — une retouche ne relit pas l'heure: les moments de
+    // l'aperçu sont ceux qu'il a composés, et sa fenêtre ne perd aucun jour.
+    const unservableToday = startsOn === todayDate && editPinnedWindow === null
       ? slotsUnservableToday({
         hourNow,
         rhythm: eatingRhythm.length > 0 ? eatingRhythm : DEFAULT_EATING_RHYTHM,
@@ -4888,7 +5031,9 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
       ...unservableToday.passed,
       ...unservableToday.heldForShopping,
     ];
-    const spentFirstDay = withoutSpentFirstDay({ startsOn, durationDays }, {
+    const spentFirstDay: ReturnType<typeof withoutSpentFirstDay> = editPinnedWindow !== null
+      ? { startsOn, durationDays, dropped: null, refused: null, cause: null }
+      : withoutSpentFirstDay({ startsOn, durationDays }, {
       today: todayDate,
       // ⛔ LA GARDE DU PIÈGE. Si la veille de cuisine a reculé la fenêtre,
       // aujourd'hui est un jour où l'on CUISINE et non où l'on mange: tous ses
@@ -4929,7 +5074,10 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
     // calculs du même fait divergeraient au premier ajustement — c'est la
     // forme de défaut que ce dépôt a déjà payée sur `usableCookDays`,
     // `addedCookDays` et `rationaleCookDays`.
-    const planTiming: PlanTiming = planTimingOf(lead, cookAhead, spentFirstDay);
+    // ⟳ 2026-09-25 — une retouche rend le timing de son aperçu, tel qu'il
+    // l'a dit à l'écran; le recalculer à une autre heure le changerait.
+    const planTiming: PlanTiming = editPinnedWindow?.timing ??
+      planTimingOf(lead, cookAhead, spentFirstDay);
 
     const declaredCapacity = readCookingCapacity(pc);
     // ⟳ A1 — `scope` SE DÉRIVE DES JOURS **MANGÉS**. Une fenêtre de deux jours
@@ -4938,6 +5086,28 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
     // d'accord.
     const daysToEat = durationDays - (cookOnlyDay === null ? 0 : 1);
     const scope: MealScope = daysToEat === 1 ? "day" : "several_days";
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-25 — « UNE SEULE SESSION » N'APPELLE LE CONGÉLATEUR QU'AU-DELÀ
+    // DE CE QUE LE FRIGO TIENT.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // Une session pour deux ou trois jours est une session ordinaire: le plat
+    // tient au frigo, la dérivation la pose au premier jour, et rien n'est
+    // congelé. Seule une session unique qui couvre plus de `MAX_FRIDGE_DAYS`
+    // jours ouvre la porte du congélateur — la case d'avant ce lot, que
+    // l'écran ne proposait qu'avec un congélateur déclaré.
+    //
+    // ⚠️ SANS CONGÉLATEUR, LE REFUS EST COMPTÉ ET DIT. Comptable en SQL sur la
+    // ligne du plan; `plan_rationale` le DIT à la personne. L'écran ne propose
+    // pas ce cas: il n'arrive que par le réseau. La dérivation, elle, relève
+    // alors les sessions au minimum (`sessions_need_freezer`).
+    const freezerSingleSessionAsked = askedCookingSessions === 1 &&
+      daysToEat > MAX_FRIDGE_DAYS;
+    const oneCookingSession = freezerSingleSessionAsked &&
+      hasFreezerDeclared(kitchenEquipment);
+    if (freezerSingleSessionAsked && !oneCookingSession) {
+      issues.push("one_cooking_session_refused: no freezer declared");
+    }
     const daysToFill = windowDayOrder(startsOn, durationDays);
 
     // ══════════════════════════════════════════════════════════════════════
@@ -4966,13 +5136,13 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
     // resserrerait la cadence de courses sur une raison qui n'en est pas une.
     const capacity = resolveCookingCapacity({
       declared: declaredCapacity,
-      style: declaredCapacity.cookingStyle,
+      // ⟳ 2026-09-25 — les sessions DEMANDÉES, plus celles d'un style.
+      sessions: askedCookingSessions,
       runs: groceryRunsAnswer,
-      // ⟳ 2026-09-09 — LES DEUX ENTRÉES DE L'OFFRE, parce que « peu importe »
-      // se résout contre CE QUE L'ÉCRAN AURAIT PROPOSÉ, pas contre le plafond
-      // du style: sans la fenêtre, un plan de trois jours partait avec trois
-      // passages au magasin (mesuré).
-      oneCookingSession,
+      // ⟳ 2026-09-25 — les déjeuners et dîners de la grille du plan: c'est ce
+      // que la plus grosse session doit cuisiner (`minimumSessionMinutes`).
+      // `eatingRhythm` est l'union RÉSOLUE, celle que le prompt reçoit.
+      mealsPerDay: cookedMealsPerDay(eatingRhythm.map((o) => o.slot)),
       maxFridgeDays: MAX_FRIDGE_DAYS,
       // ⛔ LE TRI-ÉTAT EST DÉJÀ RÉDUIT, ET AU BON ENDROIT. `hasFreezerDeclared`
       // rend le même `false` pour « pas de congélateur » et « jamais demandé »
@@ -5698,10 +5868,15 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
     // donc le choix DÉJÀ plafonné plutôt que d'ajouter une seconde comparaison
     // à côté.
     //
-    // ⛔ IL PLAFONNE, IL NE FORCE PAS. Un style `balanced` ou `keen` ne
+    // ⛔ IL PLAFONNE, IL NE FORCE PAS. Un effort `normal` ou `keen` ne
     // FABRIQUE aucun second plat: il laisse le calcul décider, exactement comme
-    // avant ce lot. Et `null` (jamais demandé) ne plafonne rien du tout — la
-    // population qui n'a pas vu la question garde son comportement d'hier.
+    // avant ce lot. Et un plan sans dérivation (`capacity.plan === null`) ne
+    // plafonne rien du tout.
+    //
+    // ⟳ 2026-09-25 — L'EFFORT REMPLACE LE STYLE. « Le moins possible » a
+    // disparu avec la question; ce qui plafonne maintenant est `simple`, la
+    // marge courte entre le temps choisi et le minimum (`cookingEffort`):
+    // séparer les plats coûte un temps que la personne n'a pas donné.
     //
     // ⚠️ CE N'EST PAS LA MÊME CHOSE QUE LE SEUIL DE TEMPS. `weeklyCookingMinutes`
     // (D2.4) plafonne aussi, plus bas, sur le budget dérivé — et il se réveille
@@ -5709,7 +5884,7 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
     // chose par deux chemins, et c'est voulu: l'un vient du MOT (« le moins
     // possible »), l'autre du NOMBRE (30 min × 1 session < 90).
     const styleCappedShape: CookingShape | null =
-      declaredCapacity.cookingStyle === "minimal"
+      capacity.plan?.effort === "simple"
         ? "one_dish"
         : askedCookingShape;
     const shapeCap = capCookingShape(computedShape, styleCappedShape);
@@ -6619,18 +6794,59 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
     const budgetFloorSlots =
       (eatingRhythm.length > 0 ? eatingRhythm : DEFAULT_EATING_RHYTHM)
         .map((r) => r.slot);
-    const budgetBounds = budgetBoundsFor({
-      market: budgetMarketFor(country),
-      mouths: composedMembers.map((m) => ({
-        diet: m.diet,
-        mouthDays: budgetMouthDays(daysToFill.map((day) => ({
-          declaredSlots: budgetFloorSlots,
-          askedSlots: budgetFloorSlots.filter((slot) =>
-            presenceStateFor(m.away, day, slot) === "at_table"
-          ),
-        }))),
-      })),
-    });
+    // ⟳ 2026-09-25 — LE BESOIN DE CHAQUE BOUCHE, PAR LE CHARGEUR DE L'ÉCRAN.
+    //
+    // `loadBudgetMouthKcal` est celui que `budget-rates-v1` appelle pour
+    // borner le curseur: un second calcul du besoin ici donnerait deux
+    // planchers, et c'est cette porte qui retirerait en silence un budget que
+    // le curseur a proposé. Le coût est PLAFONNÉ à la journée de référence
+    // (`budgetGateDayRatesOf`): cette porte descend avec un enfant comme
+    // l'écran, elle ne monte jamais au-dessus de lui.
+    //
+    // ⚠️ UNE LECTURE EN ÉCHEC NE RETIRE RIEN: sans besoin connu, la porte
+    // s'abstient et le budget part tel que l'écran l'a accepté. La trace est
+    // nommée (`budget_kcal_unreadable`).
+    const budgetMarket = budgetMarketFor(country);
+    let budgetKcal: Map<string, number> | null = null;
+    if (budgetMarket !== null) {
+      try {
+        budgetKcal = await loadBudgetMouthKcal(admin, {
+          householdId,
+          roster,
+          todayLocalDate: todayDate,
+        });
+      } catch (error) {
+        issues.push("budget_kcal_unreadable");
+        console.warn(JSON.stringify({
+          tag: "keel.household_meal.budget_kcal_unreadable",
+          household_id: householdId,
+          error: readableErrorMessage(error),
+          effect: "fail-open: pas de plancher, le budget part tel quel",
+        }));
+      }
+    }
+    const budgetSizedMouths = budgetKcal === null
+      ? 0
+      : composedMembers.filter((m) => budgetKcal!.has(m.memberId)).length;
+    const budgetBounds = budgetMarket === null || budgetKcal === null
+      ? null
+      : budgetBoundsFor({
+        market: budgetMarket,
+        mouths: composedMembers.map((m) => ({
+          diet: m.diet,
+          dayRates: budgetGateDayRatesOf({
+            market: budgetMarket,
+            diet: m.diet,
+            dayKcal: budgetKcal!.get(m.memberId) ?? null,
+          }),
+          mouthDays: budgetMouthDays(daysToFill.map((day) => ({
+            declaredSlots: budgetFloorSlots,
+            askedSlots: budgetFloorSlots.filter((slot) =>
+              presenceStateFor(m.away, day, slot) === "at_table"
+            ),
+          }))),
+        })),
+      });
     const built = buildMealPrompt({
       // ── FF-030 · LES CONTRAINTES DURES, ICI AUSSI ──────────────────────
       // Cette lane portait exactement le même trou que `generate-meal-v1`:
@@ -6887,6 +7103,9 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
         runs: capacity.plan.runs,
         sessions: capacity.plan.sessions,
         usesFreezer: capacity.plan.usesFreezer,
+        // ⟳ 2026-09-25 — les jours de cuisine prévus: la consigne en tire les
+        // jours de courses, la même règle que le moteur (`plannedShopRanks`).
+        cookDays: capacity.plan.cookDays,
       },
       // ⛔ DÉJÀ TRANCHÉ par `withCookDayBefore`. `null` = pas de veille, et le
       // prompt est alors byte-identique à celui d'avant ce lot.
@@ -8002,8 +8221,8 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
         wishServed: envyLine !== null && envyLine.trim() !== "",
       },
       // D6.2 — la réponse hebdomadaire de chaque bouche, telle qu'elle est
-      // écrite. Le bloc ne sort que pour les gamelles; `outside` a déjà son
-      // effet par les cinq midis `eating_out` que la porte SQL a posés.
+      // écrite. Le bloc ne sort que pour les gamelles; `outside` n'a plus
+      // aucun effet depuis le 2026-09-24.
       workLunch: workLunchRows,
       // ⟳ 2026-09-23 — LES À-CÔTÉS DEMANDÉS, tels que le contrat les a coupés.
       // v34 les écrit en fin de ligne de chaque case du calendrier; v33 (une
@@ -8496,13 +8715,21 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
     // bien plus haut.
     // ── ⟳ 2026-09-09 — LE PLAN DE DÉPART D'UNE REPRISE LOCALE ────────────────
     // Chargé PAR PROPRIÉTAIRE (`loadDraftForAdoption` : id du client, user du
-    // jeton), sur la MÊME fenêtre que la demande, et avec son texte modèle.
-    // Trois refus nommés ; aucun ne recompose en silence.
+    // jeton), avec son texte modèle. Sa fenêtre est déjà celle de la demande
+    // (`editPinnedWindow`, 2026-09-25). Refus restants : la ligne manque, n'est
+    // pas prête, ou ne porte pas de plan — le front recompose alors de lui-même.
     let editBaseSourceText: string | null = null;
     let editBaseMeal: GeneratedMeal | null = null;
     // ⟳ 2026-09-24 — « Remplacer »: les PLATS à prendre dans la réponse
     // (`dishReplaceKey`), et ceux qu'une exclusion neuve fait refaire en plus.
     let editDishKeys: string[] | null = null;
+    /**
+     * ⟳ 2026-09-25 — LES « X » DES REMPLACEMENTS, en exclusions de CETTE
+     * requête seulement : jamais écrites, elles désignent les cases à refaire
+     * et entrent dans la ceinture (`beltItems`), pour que le modèle ne
+     * resserve pas X dans les plats refaits.
+     */
+    let editSwapItems: RetainedItem[] = [];
     let editExtended: { key: string; title: string }[] = [];
     if (editing && editDraftId !== null) {
       const row = await loadDraftForAdoption(admin, { draftId: editDraftId, userId });
@@ -8526,17 +8753,14 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
           request_id: requestId,
         }, { status: 409 });
       }
-      if (
-        String(row.starts_on ?? "") !== startsOn ||
-        Number(row.duration_days ?? 0) !== durationDays
-      ) {
-        return jsonResponse(req, {
-          error: "draft_mismatch",
-          detail: `the draft covers ${String(row.starts_on ?? "?")} for ${String(row.duration_days ?? "?")} day(s), the request ${startsOn} for ${durationDays}`,
-          draft_id: editDraftId,
-          request_id: requestId,
-        }, { status: 409 });
-      }
+      // ⟳ 2026-09-25 — PLUS DE REFUS DE FENÊTRE SUR UNE RETOUCHE.
+      // `draft_day_passed` et `draft_mismatch` vivaient ici (2026-09-24) : la
+      // fenêtre de la demande, relue avec l'heure, ne concordait plus avec
+      // celle de l'aperçu, et l'écran proposait « Refaire tout le plan ».
+      // Décision produit du 2026-09-25 : une retouche se fait en local ou le
+      // système recompose — jamais un refus parce que l'heure a tourné. La
+      // fenêtre d'une retouche EST celle de l'aperçu (`editPinnedWindow`), donc
+      // les deux concordent par construction.
       // ⛔ LA BASE EST LE PLAN FINAL (`source_meal`), PAS LE TEXTE. Mesuré au
       // premier tir : la fusion était juste sur le texte, mais le texte ne
       // suivait pas les relances qui modifient le plan en place — B était
@@ -8585,10 +8809,79 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
           meal: editBaseMeal as never,
           members: ownTerms,
         });
+        // ⟳ 2026-09-25 — LES REMPLACEMENTS: X passe la garde de la note
+        // (plancher TCA du compte qui compose, fail-closed; interdits de
+        // doctrine) avec Y, puis devient une exclusion de cette requête.
+        let swapsRefused = editSwaps.refused;
+        const restrictionFlag =
+          composedMembers.find((m) => m.userId === userId)?.body?.restrictionFlag ?? true;
+        const usableSwaps = editSwaps.swaps.flatMap((w) => {
+          const from = readDraftNote({ raw: w.from, doctrineForbidden, restrictionFlag }).usable;
+          const to = readDraftNote({ raw: w.to, doctrineForbidden, restrictionFlag }).usable;
+          const known = w.memberId === null || members.some((m) => m.memberId === w.memberId);
+          if (from === null || to === null || !known) {
+            swapsRefused++;
+            return [];
+          }
+          return [{ from, to, memberId: w.memberId }];
+        });
+        editSwapItems = usableSwaps.map((w): RetainedItem => ({
+          kind: "food.exclude",
+          scope: "next_plan",
+          value: null,
+          force: "never",
+          occasion: null,
+          ref: null,
+          text: w.from,
+          subject: w.memberId === null ? HOUSEHOLD_SUBJECT : (memberSubject(w.memberId) ?? HOUSEHOLD_SUBJECT),
+          source: "draft_note",
+          at: todayDate,
+          item: "",
+          confidence: null,
+          quote: null,
+        }));
+        const insteadOf = (subjectOrNull: string | null, because: string | null): string | null => {
+          const hit = usableSwaps.find((w) =>
+            w.from === because &&
+            (w.memberId === null ? subjectOrNull === null : subjectOrNull === w.memberId)
+          );
+          return hit?.to ?? null;
+        };
+        const swapHouseTerms = exclusionTermsFor({ items: editSwapItems, subject: HOUSEHOLD_SUBJECT });
+        const swapOwnTerms = members.map((m) => ({
+          memberId: m.memberId,
+          terms: exclusionTermsFor({ items: editSwapItems, subject: memberSubject(m.memberId) ?? "" }),
+        }));
+        const swapBites = servedExclusionBites({
+          meal: editBaseMeal as never,
+          householdTerms: swapHouseTerms,
+          unallocatedTerms: [...swapHouseTerms, ...swapOwnTerms.flatMap((m) => m.terms)],
+        });
+        const swapOwnBites = memberServedExclusionBites({
+          meal: editBaseMeal as never,
+          members: swapOwnTerms,
+        });
         editCells = exclusionEditCells([
           ...bites.map((b) => ({ ...b, who: null })),
           ...ownBites.map((b) => ({ ...b, who: nameOf.get(b.memberId) ?? null })),
+          ...swapBites.map((b) => ({ ...b, who: null, instead: insteadOf(null, b.because) })),
+          ...swapOwnBites.map((b) => ({
+            ...b,
+            who: nameOf.get(b.memberId) ?? null,
+            instead: insteadOf(b.memberId, b.because),
+          })),
         ]);
+        console.log(JSON.stringify({
+          tag: "keel.household_meal.edit_swaps",
+          user_id: userId,
+          request_id: requestId,
+          base_draft_id: editDraftId,
+          asked: editSwaps.swaps.length,
+          refused: swapsRefused,
+          used: usableSwaps.length,
+          biting_dishes: swapBites.length,
+          biting_own_dishes: swapOwnBites.length,
+        }));
         console.log(JSON.stringify({
           tag: "keel.household_meal.exclusion_edit",
           user_id: userId,
@@ -9273,6 +9566,7 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
       // fournisseur — « OpenAI error: Rate limit reached » — sur une surface
       // lue par quelqu'un. Voir `model_call_failure.ts`.
       // ⟳ 2026-09-15 · LOT B — le stade, pour l'écran qui relit la ligne.
+      markWorkPhase(requestId, "composing");
       if (draftId) await markStage(admin, draftId, "composing");
       result = await appelModele("composition", () =>
         generateWithGemini(
@@ -9330,6 +9624,7 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
       }, { status: 502 });
     }
     // ⟳ 2026-09-15 · LOT B — le modèle a rendu ; ce qui suit est déterministe.
+    markWorkPhase(requestId, "checking");
     if (draftId) await markStage(admin, draftId, "checking");
 
     // Hissés en `const` pour la même raison que sur la lane individuelle: la
@@ -9378,6 +9673,8 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
     const beltItems = [
       ...routedRetained.composition,
       ...(noteBelt?.items ?? []),
+      // ⟳ 2026-09-25 — les « X » des remplacements de cette retouche.
+      ...editSwapItems,
     ];
     if (noteBelt !== null) {
       console.log(JSON.stringify({
@@ -14376,7 +14673,8 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
               preparations: meal.preparations ?? [],
               corridors,
               baselineOf: () => null,
-              now: () => Date.now(),
+              now: () => performance.now(),
+              budgetMs: ADJUST_TIME_BUDGET_MS,
             });
           })();
           if (adjustment !== null) {
@@ -15368,7 +15666,8 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
           // ×1,5 feraient ×2,25 — le mode d'échec que le lot D nomme en tête.
           // Ce chemin ne rappelle jamais l'ajusteur, donc `null` est exact.
           baselineOf: () => null,
-          now: () => Date.now(),
+          now: () => performance.now(),
+          budgetMs: ADJUST_TIME_BUDGET_MS,
         });
       })();
       if (adjustment !== null) {
@@ -16472,6 +16771,8 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
             unusedRuns: capacity.plan === null || groceryRuns === null
               ? 0
               : unusedGroceryRuns(groceryRuns, capacity.plan),
+            // ⟳ 2026-09-25 — la durée retenue, pour `timeRaisedToMinimum`.
+            sessionMinutes: capacity.plan.sessionMinutes,
             notes: capacity.plan.notes,
           },
           cookDayBefore: {
@@ -16479,10 +16780,10 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
             refused: cookAhead.refused,
             reason: planTiming.reason,
           },
-          // ⟳ A2 — `askedOneSession`, pas `askedOneCookingSession`: « une seule
-          // course » DEMANDE la session unique, et son refus sans congélateur
-          // doit être dit avec les mêmes mots que la case.
-          oneCookingSession: askedOneSession
+          // ⟳ 2026-09-25 — la session unique QUI APPELLE LE CONGÉLATEUR, pas
+          // toute réponse « une fois »: une session pour deux jours n'a rien à
+          // refuser, et « refusée faute de congélateur » y serait faux.
+          oneCookingSession: freezerSingleSessionAsked
             ? {
               day: (oneCookingSession ? rationaleSingleSessionDay : null) as never,
               refusedNoFreezer: !oneCookingSession,
@@ -18405,16 +18706,62 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
       };
       // ⟳ 2026-09-24 — les jours de courses que la datation vient de poser :
       // un achat scindé s'y range quand il y reste frais (`purchasesForNeed`).
-      const rangsDeCourses = daysToFill.map((_, rank) => rank).filter((rank) =>
+      const rangsPoses = daysToFill.map((_, rank) => rank).filter((rank) =>
         meal.shopping_list.some((l) => l.buy_on === addDays(startsOn, rank))
       );
+      // ⟳ 2026-09-25 — LES COURSES CHOISIES SONT UNE RÈGLE (« si le user dit
+      // 3, c'est 3 »): la scission range chaque achat sur un jour de courses,
+      // elle n'en ouvre plus. Sans congélateur, ce sont les jours prévus
+      // (`plannedShopDatesForPlan`, ceux que la consigne a dits au modèle);
+      // avec, ceux que le repli a gardés. Sans cadence déclarée, la règle
+      // d'avant: un jour s'ouvre quand la fraîcheur l'exige.
+      const coursesImposees = capacity.plan !== null;
+      const rangsPrevus = coursesImposees && !hasFreezerDeclared(kitchenEquipment)
+        ? plannedShopDatesForPlan({
+          startsOn,
+          durationDays,
+          preparations: waveNeedsNow(),
+          runs: capacity.plan!.runs,
+        }).map((d) => daysToFill.findIndex((_, i) => addDays(startsOn, i) === d))
+          .filter((rank) => rank >= 0)
+        : [];
+      const rangsDeCourses = [...new Set([...rangsPoses, ...rangsPrevus])].sort((a, b) => a - b);
       const rangDAchat = (l: { buy_on?: string | null }): number | null => {
         const rank = daysToFill.findIndex((_, i) => addDays(startsOn, i) === l.buy_on);
         return rank < 0 ? null : rank;
       };
+      // ⟳ 2026-09-25 — UNE SEULE FENÊTRE POUR LES DEUX PASSES: la fenêtre crue
+      // (`keepingOf`), réduite par la chaîne cuisson → dernier repas du terme
+      // (`effectiveRawWindowDays`). Les chaînes sont lues sur le plan COURANT,
+      // par les mêmes besoins que la datation (`waveNeedsNow`).
+      const chaines = mealChainsByTerm({
+        startsOn,
+        durationDays,
+        preparations: waveNeedsNow(),
+      });
+      const fenetreDeConservation = (l: {
+        term: string;
+        ref?: string | null;
+        food_group?: string | null;
+        freeze_on_purchase?: boolean;
+      }): number | null => {
+        const keeping = keepingOf({
+          ref: l.ref ?? null,
+          group: l.food_group ?? null,
+          frozen: l.freeze_on_purchase === true,
+        });
+        return effectiveRawWindowDays({
+          raw: keeping.rawWindowDays,
+          group: keeping.kind === "refrigerated" ? l.food_group ?? null : null,
+          eatSpan: chaines.get(waveTermKey(l.term))?.eatSpan ?? null,
+        });
+      };
       const scission = splitShoppingByUses({
         lines: meal.shopping_list,
         shopDays: rangsDeCourses,
+        onlyShopDays: coursesImposees
+          ? { sessionRanks: sessionRanksForPlan({ startsOn, durationDays, preparations: waveNeedsNow() }) }
+          : false,
         rankOf: rangDAchat,
         usesOf: (l) => {
           const besoin = besoinDe(l);
@@ -18431,12 +18778,9 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
         // congélateur absorbe l'écart, et la scinder ferait une course de plus
         // pour rien — le plan l'interdit (« congeler uniquement si l'équipement
         // et la règle alimentaire le permettent »).
-        windowOf: (l) =>
-          keepingOf({
-            ref: l.ref ?? null,
-            group: l.food_group ?? null,
-            frozen: l.freeze_on_purchase === true,
-          }).rawWindowDays,
+        // ⟳ 2026-09-25 — LA FENÊTRE RÉDUITE PAR LA LIMITE ACHAT → ASSIETTE, la
+        // même que `planGroceryWaves` (`fenetreDeConservation`).
+        windowOf: fenetreDeConservation,
         splittable: (l) =>
           typeof l.amount === "number" && Number.isFinite(l.amount) &&
           l.amount > 0 && l.unit !== null && l.unit !== undefined,
@@ -18476,18 +18820,58 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
         lines: meal.shopping_list,
         covers: scission.covers,
         // ⛔ LA MÊME LECTURE DE CONSERVATION QUE LA SCISSION, LA DATATION ET LA GARDE.
-        windowOf: (l) =>
-          keepingOf({
-            ref: l.ref ?? null,
-            group: l.food_group ?? null,
-            frozen: l.freeze_on_purchase === true,
-          }).rawWindowDays,
+        // ⟳ 2026-09-25 — limite achat → assiette comprise: sans elle, cet
+        // espacement ramenait au vendredi le porc que la datation avait mis
+        // au samedi, parce que la fenêtre crue seule l'y autorisait.
+        windowOf: fenetreDeConservation,
         rankOf: rangDAchat,
         withRank: (l, rank) => ({ ...l, buy_on: addDays(startsOn, rank) }),
       });
       meal.shopping_list = espacement.lines;
+
+      // ── ⟳ 2026-09-25 · LA GARDE ACHAT → ASSIETTE, SUR LES DATES FINALES ──
+      //
+      // ⛔ ELLE SORT MÊME À ZÉRO, avec ses trois populations. Sur le brouillon
+      // `a0481b9c`, toutes les gardes étaient vertes et un porc acheté
+      // vendredi se mangeait mardi: aucune ne mesurait la chaîne entière.
+      // Celle-ci la mesure sur la décision écrite (`buy_on`), après la
+      // scission et l'espacement — les deux dernières passes qui déplacent
+      // une date.
+      const assiette = plateWindowReport({
+        startsOn,
+        durationDays,
+        shoppingList: meal.shopping_list.map((l) => ({
+          term: String(l.term ?? ""),
+          food_group: l.food_group ?? null,
+          ref: l.ref ?? null,
+          buy_on: l.buy_on ?? null,
+          freeze_on_purchase: l.freeze_on_purchase === true,
+        })),
+        preparations: waveNeedsNow(),
+      });
+      issues.push(
+        `plate_window: ${assiette.breaches.length} over, ${assiette.within} within, ` +
+          `${assiette.unjudged} unjudged` +
+          (assiette.breaches.length > 0
+            ? ` (${
+              assiette.breaches.map((b) => `${b.term} ${b.buyOn}→${b.lastEat} ${b.days}d>${b.limit}d`)
+                .join(", ")
+            })`
+            : ""),
+      );
       if (espacement.counts.adjacent_after > 0) {
         issues.push(`shopping_days_adjacent_kept: ${espacement.counts.adjacent_after}`);
+      }
+      // ⟳ 2026-09-25 — LE NOMBRE CHOISI CONTRE LE NOMBRE FAIT, sur les dates
+      // finales. Il sort même quand ils sont égaux: « tenu » et « pas mesuré »
+      // ne doivent pas rendre le même silence.
+      if (capacity.plan !== null) {
+        const faites = new Set(
+          meal.shopping_list.map((l) => l.buy_on).filter((d): d is string =>
+            typeof d === "string" && d !== ""
+          ),
+        ).size;
+        issues.push(`shopping_runs: asked ${capacity.plan.runs}, made ${faites}`);
       }
 
       // ── ③ LES JOURS, LES VAGUES ÉCRITES ET LA PROSE, RECOMPOSÉS ────────
@@ -19322,7 +19706,14 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
         quantity_relinked: quantityRelinked,
       }));
     }
-    issues.push(...boxSizing.issues);
+    // ⟳ 2026-09-25 — CES LIGNES DÉCRIVENT UNE MESURE, PAS UN GESTE. Rien de
+    // `boxSizing` n'est recopié sur les boîtes depuis le 2026-09-07 (voir
+    // `wouldResize` plus haut), mais « every share … scaled back to fit » se
+    // lisait comme une assiette rabotée: sur `54aec009`, 7 lignes pour une
+    // personne servie à 99,4–99,8 % de sa cible. Le calcul ne voit pas les
+    // à-côtés (`side_courses`), d'où des facteurs de 1,11 à 1,19 et des
+    // casseroles « trop petites » qui ne le sont pas.
+    issues.push(...boxSizing.issues.map((line) => `measured, not applied: ${line}`));
 
     // ══════════════════════════════════════════════════════════════════════
     // ⟳ 2026-09-24 — LES À-CÔTÉS RATTACHÉS DE NOUVEAU AU PLAN ÉCRIT
@@ -19456,6 +19847,23 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
       });
     };
     const preparationsWritten = withShareParts(mealPreparationsPayload(meal));
+    // ⟳ 2026-09-25 — L'ALIMENT PRINCIPAL DE CHAQUE PLAT (`dish_main_food.ts`):
+    // l'écran en tire l'icône du plat. Lu sur la charge écrite (`dishes`,
+    // `preparationsWritten`) et recollé EN PLACE, comme les à-côtés: l'aperçu,
+    // le plan écrit et la réponse partent tous de `dishes`. Écrit même à
+    // `null`: « rien de reconnu » se distingue d'un plan d'avant ce lot.
+    const mainFoods = mainFoodsOf(readAvoidPlan(dishes, preparationsWritten), composition);
+    for (const [at, food] of mainFoods.entries()) {
+      const payload = dishes[at] as Record<string, unknown> | undefined;
+      if (payload !== undefined) payload.main_food = food;
+    }
+    console.log(JSON.stringify({
+      tag: "keel.household_meal.main_food",
+      user_id: userId,
+      household_id: householdId,
+      intent,
+      ...mainFoodCounts(mainFoods, composition),
+    }));
     const foodGroups = foodGroupWriteCounts(meal.regime_belt, {
       dishes,
       preparations: preparationsWritten,
@@ -19788,7 +20196,10 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
           // publié faux sans que rien ne le dise.
           final: finalSizing,
           verification: {
-            would_resize: (v as { would_resize?: { boxes?: number } }).would_resize?.boxes ?? 0,
+            // ⟳ 2026-09-25 — `wouldResize`, PAS `v.would_resize`: le compte vit à
+            // côté de `boxSizing.counts`, jamais dedans. Lu là, il valait 0 sur
+            // chaque plan — le signal même qui devait montrer ce désaccord.
+            would_resize: wouldResize.boxes,
             anchored: anchorReasons.anchored,
             anchor_clamped: anchorReasons.clamped,
             pot_short_after: growth.short_after,
@@ -19975,7 +20386,8 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
         // CE QUE LE BLOC A INTERDIT, rendu par le module qui l'a écrit.
         missing: household.kitchenMissing,
       },
-      eating_out: household.eatingOut,
+      // ⟳ 2026-09-24 — `eating_out` n'est plus écrit: l'état « dehors » est
+      // retiré, et son bloc de prompt avec lui.
       // ── ⛔ D6.2 · LE COMPTEUR DE LA GAMELLE, ET IL ÉTAIT LE MAILLON QUI
       //    MANQUAIT.
       //
@@ -20177,6 +20589,9 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
         // comparaison refaite trois mois plus tard par quelqu'un d'autre.
         ceiling_sent: capacity.budgetAmount !== null &&
           capacity.budgetAmount >= budgetBounds.floor,
+        // ⟳ 2026-09-25 — combien de bouches composées ont porté leur propre
+        // besoin; les autres ont compté pour la journée de référence.
+        sized_mouths: budgetSizedMouths,
       },
       // ⟳ 2026-09-10 · LE BUDGET DE LA REQUÊTE, SUR LA LIGNE ÉCRITE.
       //
@@ -21776,6 +22191,7 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
             // dire « zéro appel » à une requête qui en a payé deux.
             c4CallsMade += 1;
             // ⟳ 2026-09-15 · LOT B — un second appel modèle ; l'écran le dit.
+            markWorkPhase(requestId, "repairing");
             if (draftId) await markStage(admin, draftId, "repairing");
             const answer = await appelModele("repair", () =>
               generateWithGemini(
@@ -22803,6 +23219,7 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
             },
           };
         // ⟳ 2026-09-15 · LOT B — dernier stade avant que la ligne devienne `done`.
+        markWorkPhase(requestId, "writing");
         await markStage(admin, draftId, "writing");
         const storedRpc = await admin.rpc("keel_household_complete_draft_generation", {
           p_household: held.householdId,

@@ -40,7 +40,6 @@ const CTX: PlanFeedbackContext = {
   locale: "fr-FR",
   planDishTitles: ["Poulet rôti", "Gratin de courgettes"],
   planFoodTerms: ["poulet", "courgette", "riz", "cabillaud"],
-  cookingStyle: null,
   // Les trois bases sont AU MILIEU de leur échelle, exprès: un test qui ne
   // produit rien ne peut pas se cacher derrière un plancher ou un plafond.
   cookingTimeMin: 45,
@@ -153,13 +152,15 @@ const CORPUS: readonly Answered[] = [
   },
 
   // ── `difficulty` — les recettes ───────────────────────────────────────────
+  // ⟳ 2026-09-25 — le champ déplacé est la PLAGE DE TEMPS: la difficulté se
+  // déduit de la marge qu'elle laisse au-dessus du minimum du plan.
   {
     question: "difficulty",
     answer: "too_hard",
-    why: "Trop dur ⇒ le CHAMP descend d'un cran, il n'y a pas d'item retenu (lot M5).",
+    why: "Trop dur ⇒ la plage de temps descend d'un cran, il n'y a pas d'item retenu (lot M5).",
     row: row({ cooked: "partly", difficulty: "too_hard" }),
     items: [],
-    fields: ["recipe_difficulty"],
+    fields: ["cooking_time_min"],
   },
   {
     question: "difficulty",
@@ -175,7 +176,7 @@ const CORPUS: readonly Answered[] = [
     why: "⛔ LE SENS MONTANT EXISTE. Un champ qui ne descend jamais finit au plancher.",
     row: row({ cooked: "yes", difficulty: "could_do_more" }),
     items: [],
-    fields: ["recipe_difficulty"],
+    fields: ["cooking_time_min"],
   },
 
   // ── `speed` — le temps ────────────────────────────────────────────────────

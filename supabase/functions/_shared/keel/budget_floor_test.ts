@@ -19,9 +19,13 @@ import { assert, assertEquals } from "jsr:@std/assert@1";
 
 import {
   assessBudget,
+  BUDGET_CEILING_PER_MOUTH_DAY,
   BUDGET_FLOOR_PER_MOUTH_DAY,
   BUDGET_PLAUSIBLE_PER_MOUTH_DAY,
   budgetBoundsFor,
+  budgetCeilingFor,
+  budgetDayRatesOf,
+  budgetGateDayRatesOf,
   budgetDietOf,
   budgetMarketFor,
   budgetMouthDays,
@@ -133,6 +137,7 @@ Deno.test("② sans gluten: la France paie plus cher, les États-Unis non", () =
 Deno.test("③ 1 € pour sept jours à quatre est REFUSÉ, et le refus porte son chiffre", () => {
   const mouths = [1, 2, 3, 4].map(() => ({
     diet: "omnivore",
+    dayRates: null,
     mouthDays: budgetMouthDays(fullWeek()),
   }));
   const verdict = assessBudget({ amount: 1, market: "fr", mouths });
@@ -146,6 +151,7 @@ Deno.test("③ 1 € pour sept jours à quatre est REFUSÉ, et le refus porte so
 Deno.test("③ le même foyer à 90 € passe, en « serré », et à 110 € il passe tout court", () => {
   const mouths = [1, 2, 3, 4].map(() => ({
     diet: "omnivore",
+    dayRates: null,
     mouthDays: budgetMouthDays(fullWeek()),
   }));
   assertEquals(assessBudget({ amount: 90, market: "fr", mouths }).kind, "tight");
@@ -154,7 +160,7 @@ Deno.test("③ le même foyer à 90 € passe, en « serré », et à 110 € il
 });
 
 Deno.test("③ UNE personne, sept jours: le plancher tient dans un chiffre qu'on peut relire", () => {
-  const mouths = [{ diet: "omnivore", mouthDays: budgetMouthDays(fullWeek()) }];
+  const mouths = [{ diet: "omnivore", dayRates: null, mouthDays: budgetMouthDays(fullWeek()) }];
   const bounds = budgetBoundsFor({ market: "fr", mouths })!;
   assertEquals(bounds.floor, 18.55); // 7 × 2,65
   assertEquals(bounds.plausible, 26.39); // 7 × 3,77
@@ -207,7 +213,7 @@ Deno.test("④ une semaine à moitié dehors coûte moins qu'une semaine à tabl
   assert(away < 7, `${away} devrait être sous 7`);
   const bounds = budgetBoundsFor({
     market: "fr",
-    mouths: [{ diet: "omnivore", mouthDays: away }],
+    mouths: [{ diet: "omnivore", dayRates: null, mouthDays: away }],
   })!;
   assert(bounds.floor < 18.55, `${bounds.floor} devrait être sous la semaine pleine`);
 });
@@ -221,7 +227,7 @@ Deno.test("⑤ hors FR et US, aucun plancher — jamais une conversion inventée
   assertEquals(budgetMarketFor("CA"), null);
   assertEquals(budgetMarketFor(null), null);
   assertEquals(budgetMarketFor(""), null);
-  const mouths = [{ diet: "omnivore", mouthDays: 7 }];
+  const mouths = [{ diet: "omnivore", dayRates: null, mouthDays: 7 }];
   assertEquals(budgetBoundsFor({ market: null, mouths }), null);
   assertEquals(assessBudget({ amount: 1, market: null, mouths }).kind, "unbounded");
 });
@@ -240,13 +246,13 @@ Deno.test("⑤ une demande qui ne nourrit personne n'a pas de borne — et pas `
   );
   // Une bouche présente mais jamais nourrie ne fabrique pas de borne non plus.
   assertEquals(
-    budgetBoundsFor({ market: "fr", mouths: [{ diet: "vegan", mouthDays: 0 }] }),
+    budgetBoundsFor({ market: "fr", mouths: [{ diet: "vegan", dayRates: null, mouthDays: 0 }] }),
     null,
   );
 });
 
 Deno.test("⑤ un montant illisible ne fabrique NI refus NI approbation", () => {
-  const mouths = [{ diet: "omnivore", mouthDays: 7 }];
+  const mouths = [{ diet: "omnivore", dayRates: null, mouthDays: 7 }];
   assertEquals(assessBudget({ amount: null, market: "fr", mouths }).kind, "unbounded");
   assertEquals(assessBudget({ amount: 0, market: "fr", mouths }).kind, "unbounded");
   assertEquals(
@@ -275,8 +281,8 @@ Deno.test("⑥ un foyer mélangé additionne les bouches, chacune à SON tarif",
   const bounds = budgetBoundsFor({
     market: "fr",
     mouths: [
-      { diet: "omnivore", mouthDays: 7 },
-      { diet: "gluten_free", mouthDays: 7 },
+      { diet: "omnivore", dayRates: null, mouthDays: 7 },
+      { diet: "gluten_free", dayRates: null, mouthDays: 7 },
     ],
   })!;
   // 7 × 2,65 + 7 × 2,77 = 37,94
@@ -295,7 +301,7 @@ Deno.test("⑦ le plancher s'arrondit vers le HAUT, le seuil vers le BAS", () =>
   // trois parts de 0,6 pour tomber sur 4,77.
   const bounds = budgetBoundsFor({
     market: "fr",
-    mouths: [{ diet: "omnivore", mouthDays: 0.6 * 3 }],
+    mouths: [{ diet: "omnivore", dayRates: null, mouthDays: 0.6 * 3 }],
   })!;
   // 1,8 × 2,65 = 4,77 ; 1,8 × 3,77 = 6,786 → 6,78 (vers le bas)
   assertEquals(bounds.floor, 4.77);
@@ -304,15 +310,144 @@ Deno.test("⑦ le plancher s'arrondit vers le HAUT, le seuil vers le BAS", () =>
   assert(assessBudget({
     amount: bounds.floor,
     market: "fr",
-    mouths: [{ diet: "omnivore", mouthDays: 1.8 }],
+    mouths: [{ diet: "omnivore", dayRates: null, mouthDays: 1.8 }],
   }).kind !== "below_floor");
 });
 
 Deno.test("⑦ un budget PILE au plancher n'est pas refusé; un centime en dessous l'est", () => {
-  const mouths = [{ diet: "omnivore", mouthDays: 7 }];
+  const mouths = [{ diet: "omnivore", dayRates: null, mouthDays: 7 }];
   assertEquals(assessBudget({ amount: 18.55, market: "fr", mouths }).kind, "tight");
   assertEquals(
     assessBudget({ amount: 18.54, market: "fr", mouths }).kind,
     "below_floor",
   );
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⑧ ⟳ 2026-09-25 — LE HAUT DU CURSEUR
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("⑧ sept jours à quatre: 420 € en France, 504 $ aux États-Unis", () => {
+  const mouths = Array.from({ length: 4 }, () => ({ diet: "omnivore", dayRates: null, mouthDays: 7 }));
+  assertEquals(budgetCeilingFor({ market: "fr", mouths }), 420);
+  assertEquals(budgetCeilingFor({ market: "us", mouths }), 504);
+});
+
+Deno.test("⑧ le haut suit les mêmes journées de bouche que le plancher", () => {
+  // Une semaine à moitié dehors achète moins: le haut descend comme le bas.
+  const atTable = budgetCeilingFor({ market: "fr", mouths: [{ diet: null, dayRates: null, mouthDays: 7 }] })!;
+  const halfAway = budgetCeilingFor({ market: "fr", mouths: [{ diet: null, dayRates: null, mouthDays: 3.5 }] })!;
+  assertEquals(atTable, 105);
+  assertEquals(halfAway, 52.5);
+});
+
+Deno.test("⑧ le régime ne change pas le haut", () => {
+  for (const diet of ["omnivore", "vegan", "gluten_free", null]) {
+    assertEquals(budgetCeilingFor({ market: "fr", mouths: [{ diet, dayRates: null, mouthDays: 7 }] }), 105);
+  }
+});
+
+Deno.test("⑧ hors FR et US, ou sans bouche nourrie, pas de haut", () => {
+  assertEquals(budgetCeilingFor({ market: null, mouths: [{ diet: null, dayRates: null, mouthDays: 7 }] }), null);
+  assertEquals(budgetCeilingFor({ market: "fr", mouths: [] }), null);
+  assertEquals(budgetCeilingFor({ market: "fr", mouths: [{ diet: null, dayRates: null, mouthDays: 0 }] }), null);
+});
+
+Deno.test("⑧ le haut est toujours au-dessus du seuil de ce qu'on DIT, chaque régime", () => {
+  for (const market of COST_MARKETS) {
+    for (const plausible of Object.values(BUDGET_PLAUSIBLE_PER_MOUTH_DAY[market])) {
+      assert(BUDGET_CEILING_PER_MOUTH_DAY[market] > plausible, `${market} ${plausible}`);
+    }
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⑨ ⟳ 2026-09-25 — LE BESOIN DE CHAQUE BOUCHE
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("⑨ sans besoin connu, le coût par jour est la table de son régime", () => {
+  assertEquals(budgetDayRatesOf({ market: "fr", diet: "omnivore", dayKcal: null }), {
+    floor: 2.65,
+    plausible: 3.77,
+  });
+  assertEquals(budgetDayRatesOf({ market: "fr", diet: "vegan", dayKcal: 0 }), {
+    floor: 2.65,
+    plausible: 3.19,
+  });
+});
+
+Deno.test("⑨ le coût suit le besoin: 1 400 kcal achète 70 %, 3 000 kcal achète 150 %", () => {
+  const child = budgetDayRatesOf({ market: "fr", diet: "omnivore", dayKcal: 1400 });
+  const tall = budgetDayRatesOf({ market: "fr", diet: "omnivore", dayKcal: 3000 });
+  assertEquals(Math.round(child.floor * 1000) / 1000, 1.855);
+  assertEquals(Math.round(tall.floor * 1000) / 1000, 3.975);
+  assert(child.plausible < 3.77 && tall.plausible > 3.77);
+});
+
+Deno.test("⑨ la porte du moteur descend avec un enfant, elle ne monte jamais", () => {
+  const args = { market: "fr" as const, diet: "omnivore" };
+  assertEquals(
+    budgetGateDayRatesOf({ ...args, dayKcal: 1400 }),
+    budgetDayRatesOf({ ...args, dayKcal: 1400 }),
+  );
+  assertEquals(
+    budgetGateDayRatesOf({ ...args, dayKcal: 3000 }),
+    budgetDayRatesOf({ ...args, dayKcal: null }),
+  );
+});
+
+Deno.test("⛔ ⑨ l'écran n'est jamais sous la porte du moteur, quel que soit le besoin", () => {
+  // Le montant que le curseur propose ne doit jamais être retiré du prompt.
+  for (const dayKcal of [null, 900, 1400, 2000, 2600, 3500]) {
+    for (const diet of ["omnivore", "vegan", "gluten_free"]) {
+      const screen = budgetBoundsFor({
+        market: "fr",
+        mouths: [{ diet, dayRates: budgetDayRatesOf({ market: "fr", diet, dayKcal }), mouthDays: 7 }],
+      })!;
+      const gate = budgetBoundsFor({
+        market: "fr",
+        mouths: [{ diet, dayRates: budgetGateDayRatesOf({ market: "fr", diet, dayKcal }), mouthDays: 7 }],
+      })!;
+      assert(screen.floor >= gate.floor, `${diet} ${dayKcal}`);
+    }
+  }
+  // Et quand l'écran n'a rien reçu (`dayRates: null`), il reste à la référence,
+  // au-dessus de la porte.
+  const fallback = budgetBoundsFor({
+    market: "fr",
+    mouths: [{ diet: "omnivore", dayRates: null, mouthDays: 7 }],
+  })!;
+  const gateTall = budgetBoundsFor({
+    market: "fr",
+    mouths: [{
+      diet: "omnivore",
+      dayRates: budgetGateDayRatesOf({ market: "fr", diet: "omnivore", dayKcal: 3500 }),
+      mouthDays: 7,
+    }],
+  })!;
+  assert(fallback.floor >= gateTall.floor);
+});
+
+Deno.test("⑨ un foyer avec deux enfants a un plancher plus bas que quatre adultes", () => {
+  const adult = budgetDayRatesOf({ market: "fr", diet: "omnivore", dayKcal: 2400 });
+  const child = budgetDayRatesOf({ market: "fr", diet: "omnivore", dayKcal: 1500 });
+  const family = budgetBoundsFor({
+    market: "fr",
+    mouths: [adult, adult, child, child].map((dayRates) => ({ diet: "omnivore", dayRates, mouthDays: 7 })),
+  })!;
+  const reference = budgetBoundsFor({
+    market: "fr",
+    mouths: Array.from({ length: 4 }, () => ({ diet: "omnivore", dayRates: null, mouthDays: 7 })),
+  })!;
+  // 2 × 7 × 2,65 × 1,2 + 2 × 7 × 2,65 × 0,75 = 72,35 contre 74,20.
+  assertEquals(family.floor, 72.35);
+  assertEquals(reference.floor, 74.2);
+});
+
+Deno.test("⑨ un coût reçu illisible vaut la table, jamais un zéro", () => {
+  const bounds = budgetBoundsFor({
+    market: "fr",
+    mouths: [{ diet: "omnivore", dayRates: { floor: Number.NaN, plausible: 0 }, mouthDays: 7 }],
+  })!;
+  assertEquals(bounds.floor, 18.55);
 });

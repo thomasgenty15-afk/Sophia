@@ -25,7 +25,9 @@ export const enMeals = {
   // SONT la recette entière, et ce titre affirmerait un lot qui n'existe pas.
   // Le défaut (2026-08-20): la liste sortait nue sous le titre du plat, on y
   // lisait la recette complète, et on croyait qu'il manquait le poulet.
-  "meals.result.extra_ingredients": "On top of the batch",
+  // ⟳ 2026-09-25 — "On top of the batch" was not understood: the title now
+  // says the gesture (add) and the moment (serving).
+  "meals.result.extra_ingredients": "Add when serving",
   "meals.result.method": "How",
   // ── LE GESTE DU SOIR (2026-08-14) ───────────────────────────────────────
   // ⚠️ UNE CLÉ À PART, ET C'EST TOUT LE POINT. « How » ouvre une RECETTE —
@@ -48,8 +50,6 @@ export const enMeals = {
   // un assemblage le temps d'une cuisson.
   "meals.result.thaw_the_night_before":
     "Frozen portion: take it out of the freezer the night before.",
-  "meals.result.session_open": "The cooking session",
-  "meals.result.session_hide": "Hide the session",
   "meals.result.session_also": "Made in the same session: {titles}",
   // ── FF-053: DEUX CLÉS QUI ONT DÉMÉNAGÉ ──────────────────────────────────
   // Elles vivaient dans le `COPY` local de `MealBuilder`. Depuis que le rendu
@@ -90,10 +90,21 @@ export const enMeals = {
   "meals.result.day_groceries_hide": "Hide the list",
   // Un jour vraiment vide le dit — un bloc muet sous un titre de jour se
   // lirait comme une panne.
+  // ⟳ 2026-09-25 — the two zones of a day: what you prepare, what you eat.
+  "meals.result.zone_prep": "Shopping and cooking",
+  "meals.result.zone_groceries": "Shopping",
+  "meals.result.zone_cooking": "Cooking",
+  "meals.result.zone_menu": "On the menu",
   "meals.result.day_nothing": "Nothing to cook or buy this day.",
   // ── ⟳ 2026-09-24 · THE WEEK TABLE, AT THE TOP OF THE PLAN ───────────────
   // It replaces "The whole week" (`meals.result.day_all`, removed).
   "meals.week_table.caption": "Your week at a glance",
+  // ⟳ 2026-09-25 — the two sections of `PlanResult`: the table, then the day
+  // rail and the days themselves.
+  "meals.result.recap_title": "Summary",
+  "meals.result.plan_title": "Plan",
+  "meals.result.recap_hint": "Shopping and cooking, day by day",
+  "meals.result.plan_hint": "Pick a day to see your meals",
   "meals.week_table.groceries": "Groceries",
   "meals.week_table.cooking": "Cooking",
   "meals.week_table.yes": "yes",
@@ -129,10 +140,6 @@ export const enMeals = {
   // Deux plats de table sur un seul moment. On COMPTE, on ne jette pas.
   "meals.grid.extra_one": "+1 more dish",
   "meals.grid.extra_many": "+{n} more dishes",
-  // L3 — ELLE MANGE, MAIS PAS CE QUE LE PLAN COMPOSE. Voisin d'`away` et
-  // distinct de lui: aucun plat dans les deux cas, mais celui-ci est le seul
-  // où le produit gardera le droit de dire un ordre de grandeur.
-  "meals.grid.eating_out": "eating out",
   // ── FF-053 · LE BLOC CUISINE ────────────────────────────────────────────
   "meals.kitchen.title": "What you cook",
   "meals.kitchen.cook_on": "cook it {day}",
@@ -168,11 +175,24 @@ export const enMeals = {
   // their SUM, that is, what to prepare in total. With a single dose the list
   // is not rendered at all — it repeated the dose word for word.
   "meals.result.total_quantities": "The total to prepare",
-  // The fold on a dish card, on `/app/plan` and on the preview. "The detail"
-  // and not "the recipe": what opens are the boxes, the per-person doses and
-  // the added ingredients — the batch recipe lives in the cooking session.
-  "meals.dish.unfold": "See the detail",
-  "meals.dish.fold": "Hide the detail",
+  // ⟳ 2026-09-25 — the button that replaced "The cooking session" at the
+  // bottom of the card: it opens a bubble listing the session(s) this dish
+  // was cooked in.
+  "meals.dish.cookings_open": "Cooked when?",
+  "meals.dish.cookings_title": "What was cooked for this dish",
+  "meals.dish.cookings_day": "Cooked on {day}",
+  "meals.dish.cookings_close": "Close",
+  // ⟳ 2026-09-25 — the side courses, as the dish's second line, visible on a
+  // folded card and on the preview. One line per person when several eat this
+  // meal. The LABEL only: it renders in full ink, the foods follow in grey.
+  "meals.dish.sides": "On the side:",
+  "meals.dish.sides_for": "On the side for {name}:",
+  // ⟳ 2026-09-25 — side courses by kind, with their amount, in the opened
+  // preview card (its title line carries the names only).
+  "meals.dish.side_kind.starter": "Starter:",
+  "meals.dish.side_kind.bread": "With it:",
+  "meals.dish.side_kind.cheese": "Cheese:",
+  "meals.dish.side_kind.dessert": "Dessert:",
   // ⟳ 2026-09-24 — REPLACE A DISH OF THE PREVIEW.
   "meals.dish.replace": "Change",
   "meals.dish.keep": "Keep this dish",
@@ -182,12 +202,6 @@ export const enMeals = {
   // clés et pas un suffixe fabriqué en code (R7), comme les courses du jour.
   "meals.boxes.count_one": "1 container to fill",
   "meals.boxes.count_many": "{n} containers to fill",
-  // ⚠️ DE QUEL GRAMME ON PARLE, UNE FOIS POUR TOUT LE BLOC. Trois centimètres
-  // plus haut, les casseroles affichent leurs quantités de CRU, pour la fournée
-  // entière. Sans cette ligne, deux séries de nombres voisines se lisent comme
-  // une contradiction — c'est le défaut du 2026-08-19 pris par l'autre bout.
-  "meals.boxes.ready_not_raw":
-    "Grams of cooked food, per container. The pan quantities above are raw, for the whole batch.",
   // ⛔ CE QUI DIT QUE LE NOMBRE DÉCRIT UN BAC, PAS UNE PERSONNE. Il ne paraît QUE
   // sur un contenant à plusieurs noms: sur un seul nom, la boîte EST la portion
   // et « for 1 » n'apprendrait rien. C'est la seule marque de la distinction
@@ -230,9 +244,6 @@ export const enMeals = {
   // moitié « sortir » est dite par `DishCard` quatre jours plus tard, et sans
   // celle-ci on demandait de sortir une part que personne n'avait rangée.
   "meals.boxes.freeze": "· freeze",
-  // ⟳ 2026-09-16 — a container holding only the batch share: the rest of the
-  // meal (tortilla, lettuce…) is put together on the day, and the day says so.
-  "meals.boxes.rest_on_the_day": "· the rest is made on the day",
   // ⟳ 2026-09-23 — a share of the box cooked in ANOTHER session: named and
   // dated, never weighed here (Wednesday was weighing Friday's salmon).
   "meals.boxes.with_other_session": "· with {what}, cooked on {day}",
@@ -250,6 +261,15 @@ export const enMeals = {
   "meals.sessions.recipe_show": "Recipe",
   "meals.sessions.recipe_hide": "Hide recipe",
   "meals.sessions.overview_title": "Overall run-through",
+  // ⟳ 2026-09-25 — the day's session card: the count up top, and the two
+  // columns of a recipe (`RecipeBody`).
+  "meals.sessions.preps_one": "1 preparation",
+  "meals.sessions.preps_many": "{n} preparations",
+  "meals.sessions.ingredients": "Ingredients",
+  "meals.sessions.method": "Method",
+  "meals.sessions.preparation_title": "Preparation",
+  "meals.sessions.preparation_meta": "Ingredients and method",
+  "meals.sessions.overview_close": "Close",
   // ── CE QUI SE PASSE DANS LA CUISINE AUJOURD'HUI ───────────────────────────
   // `/app/today` répondait à « qu'est-ce que je mange » et pas à « qu'est-ce
   // que j'ai à faire ». Or les deux gestes qui DEMANDENT quelque chose à la
@@ -274,30 +294,6 @@ export const enMeals = {
   // valeur-là est atteignable (on décoche un seul dîner).
   "meals.picker.some_off_one": "{n} meal off. It comes back next time if you tick it.",
   "meals.picker.some_off_many": "{n} meals off. They come back next time if you tick them.",
-  // ── L3 · LES TROIS ÉTATS ────────────────────────────────────────────────
-  // Trois choix nommés, parce qu'« absent » et « dehors » retirent tous deux
-  // la part et ne veulent pas dire la même chose. Les libellés le disent par
-  // ce que le plan FAIT, jamais par un jargon d'état.
-  "meals.picker.state_at_table": "Eating here",
-  "meals.picker.state_eating_out": "Eating out",
-  "meals.picker.state_away": "Not around",
-  // ⚠️ « Sort du plan, pas de la journée » est la phrase qui sépare les deux
-  // états. Sans elle, on lit deux mots pour une seule idée.
-  "meals.picker.some_out_one":
-    "{n} of them is a meal out: it leaves the plan, not the day.",
-  "meals.picker.some_out_many":
-    "{n} of them are meals out: they leave the plan, not the day.",
-  // ── D4 ④ · CE QUE LA GRILLE NE MONTRE PAS ────────────────────────────────
-  // La réponse hebdomadaire coche CINQ midis; une fenêtre « d'ici dimanche »
-  // commencée un mardi n'a que QUATRE jours ouvrés. Le compteur d'à côté n'était
-  // pas faux — il comptait ce qui est À L'ÉCRAN — mais il démentait d'une unité
-  // la phrase de l'étape précédente, et un nombre faux d'un cran est pire
-  // qu'absent parce qu'on le croit. Cette ligne nomme le reste au lieu de
-  // l'additionner: écrire « 5 » sous quatre cases ferait chercher la cinquième.
-  "meals.picker.some_out_hidden_one":
-    "1 more is marked on a day this plan does not cover. It stays marked.",
-  "meals.picker.some_out_hidden_many":
-    "{n} more are marked on days this plan does not cover. They stay marked.",
   "meals.picker.no_rhythm":
     "Set the moments you eat in «How your day runs» first — this grid is built " +
     "from them.",
@@ -363,6 +359,14 @@ export const enMeals = {
   "meals.same_day.reheat_only": "Just reheat",
   "meals.same_day.assemble": "Assemble on the plate",
   "meals.same_day.cook_fresh": "Cook it fresh",
+  // ⟳ 2026-09-25 — `assemble` SUR UN REPAS SORTI D'UNE BOÎTE. La session a
+  // déjà mis le plat et le féculent dans la même boîte: « Assemble » ferait
+  // refaire ce qui est fait. Avec des ajouts frais on complète, sans ajout on
+  // sert. `take_box` nomme la boîte par son jour et son moment, les mots
+  // exacts de son couvercle.
+  "meals.same_day.complete": "Add the extras",
+  "meals.same_day.serve": "Just serve",
+  "meals.same_day.take_box": "Take out the “{box}” box.",
   // La durée du GESTE DU JOUR, jamais celle de la cuisson ni de la session.
   // Clé à part et pas une phrase assemblée en code: l'ordre du libellé et de la
   // durée appartient à la langue.

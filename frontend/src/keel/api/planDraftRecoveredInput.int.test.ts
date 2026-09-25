@@ -17,17 +17,17 @@ const BODY = {
   replaces: "64abd449-e852-4d08-acc1-02446edba356",
   context: null,
   cooking_shape: null,
-  one_cooking_session: true,
+  cooking_sessions: 1,
   preferences: null,
   origin: "plan",
 };
 
 describe("readComposeInput — la demande relue dans `request_body`", () => {
-  it("relit la fenêtre exacte, le mode, la session unique, l'origine", () => {
+  it("relit la fenêtre exacte, le mode, le nombre de sessions, l'origine", () => {
     expect(readComposeInput(BODY)).toEqual({
       window: { kind: "exact", startsOn: "2026-09-21", durationDays: 5 },
       cookingShape: null,
-      oneCookingSession: true,
+      cookingSessions: 1,
       context: null,
       preferences: null,
       origin: "plan",

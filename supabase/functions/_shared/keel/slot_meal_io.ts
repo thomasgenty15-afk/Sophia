@@ -17,9 +17,6 @@ import { dayTokenForLocalDate } from "./slot_reminders.ts";
 import { plannedSlotsToday } from "./slot_meal_planned_io.ts";
 import {
   decideSlotMealAsk,
-  SLOT_MEAL_GOALS,
-  slotMealAskSwitchFrom,
-  type EatingOutCell,
   parseSlotMealButton,
   renderSlotMealAsk,
   type SlotMealVerdict,
@@ -35,8 +32,8 @@ export const SLOT_MEAL_ACK_PURPOSE = "keel_slot_meal_ack";
  *
  * ⚠️ DISTINCTE DE `accident_off_plan:<mealId>:<index>`, ET IL LE FAUT. Celle-là
  * dit « le plat PRÉVU n'a pas été mangé, autre chose l'a été » et se clave sur
- * un plat du plan. Ici il n'y a AUCUN plat: le créneau est `eating_out`, le plan
- * ne compose rien. La clé se clave donc sur la seule chose qui existe — le jour
+ * un plat du plan. Ici il n'y a AUCUN plat: le plan ne compose rien sur ce
+ * créneau. La clé se clave donc sur la seule chose qui existe — le jour
  * et le moment.
  *
  * L'index unique partiel `(user_id, source_message_id)` fait le reste: un double
@@ -53,59 +50,27 @@ export function slotMealFactKey(localDate: string, slot: string): string {
   return `${SLOT_MEAL_FACT_PREFIX}${date}:${s}`;
 }
 
-/**
- * Les cases « dehors » de l'élève, depuis son « about you ».
- *
- * ⚠️ UNE SEULE SOURCE ICI, ET C'EST LA BONNE. `household_presence.ts` unit
- * DEUX sources (`self` et `household`) parce qu'une bouche du foyer peut être
- * marquée absente par le maître. Le TITULAIRE, lui, écrit ses propres cases
- * dans `practical_constraints.away_days` — c'est ce que `MealPickerGrid` écrit,
- * et la grille est l'autorité (§2.2 bis). Lire aussi sa ligne de roster
- * ajouterait une source que personne ne remplit pour lui.
- *
- * `kind` absent vaut `away`, la direction sûre: les lignes écrites avant le
- * troisième état ne portent rien, et les lire « dehors » ferait partir C1
- * pendant des vacances déclarées il y a des semaines.
- */
-export function eatingOutCellsFrom(constraintsRaw: unknown): EatingOutCell[] {
-  const c = (constraintsRaw ?? {}) as Record<string, unknown>;
-  const raw = c.away_days;
-  if (!Array.isArray(raw)) return [];
-  const out: EatingOutCell[] = [];
-  for (const entry of raw) {
-    if (!entry || typeof entry !== "object" || Array.isArray(entry)) continue;
-    const e = entry as Record<string, unknown>;
-    if (String(e.kind ?? "").trim().toLowerCase() !== "eating_out") continue;
-    const day = String(e.day ?? "").trim().toLowerCase();
-    if (!day) continue;
-    // ⚠️ UNE ENTRÉE SANS `slots` VEUT DIRE « TOUTE LA JOURNÉE » dans
-    // `parseAwayDays` — et ici ça n'a pas de sens: on ne demande pas six
-    // questions pour une journée entière passée dehors. Sans moments nommés,
-    // la case ne déclenche RIEN. C'est le même refus que celui des trois
-    // moments sans heure de référence.
-    const slots = Array.isArray(e.slots)
-      ? (e.slots as unknown[]).map((s) => String(s ?? "").trim().toLowerCase())
-        .filter(Boolean)
-      : [];
-    if (slots.length === 0) continue;
-    out.push({ day, slots });
-  }
-  return out;
-}
-
 /** Les créneaux dont la question est déjà partie aujourd'hui. */
 export async function slotsAskedToday(
   admin: SupabaseClient,
   args: { userId: string; today: string },
 ): Promise<string[]> {
   try {
+    // ⟳ 2026-09-24 — LA DATE SE LIT SUR LE JETON, LA BORNE N'EST QU'UN FILTRE
+    // DE COÛT, et elle part de la VEILLE. `today` est une date LOCALE: bornée à
+    // son minuit UTC, une question du matin à Auckland (UTC+13) tombait la
+    // veille en UTC et n'était pas relue — elle serait repartie au tick suivant.
+    // Et sans le filtre de date, le dîner demandé hier soir à New York (déjà
+    // « aujourd'hui » en UTC) fermait le dîner d'aujourd'hui.
+    const since = new Date(`${args.today}T00:00:00Z`);
+    since.setUTCDate(since.getUTCDate() - 1);
     const { data, error } = await admin
       .from("chat_messages")
       .select("metadata")
       .eq("user_id", args.userId)
       .eq("scope", CHAT_SCOPE)
       .eq("role", "assistant")
-      .gte("created_at", `${args.today}T00:00:00Z`)
+      .gte("created_at", since.toISOString())
       .order("created_at", { ascending: false })
       .limit(50);
     if (error) throw error;
@@ -121,7 +86,7 @@ export async function slotsAskedToday(
         : [];
       for (const b of buttons) {
         const tap = parseSlotMealButton(b?.payload);
-        if (tap) out.push(tap.slot);
+        if (tap && tap.localDate === args.today) out.push(tap.slot);
       }
     }
     return [...new Set(out)];
@@ -275,53 +240,66 @@ export async function runSlotMealStep(
   // eux, et le compte-rendu ressemblait à un canal qui se tait.
   const goal: GoalToken | null = goalTokenOrNull(row?.goal);
 
-  // ── LES DEUX PORTES GRATUITES D'ABORD ──────────────────────────────────
-  // L'objectif retire la majorité des élèves avant qu'on ne lise une case.
-  const eatingOut = eatingOutCellsFrom(row?.practical_constraints);
+  // La CLÉ du jsonb, pas une colonne. Voir le pavé au-dessus.
+  const rhythmRaw = (row?.practical_constraints as Record<string, unknown> | null)
+    ?.eating_rhythm;
+  const decide = (
+    plannedToday: Parameters<typeof decideSlotMealAsk>[0]["plannedToday"],
+    askedSlotsToday: readonly string[],
+  ) =>
+    decideSlotMealAsk({
+      goal,
+      muted: args.muted,
+      askEnabled: args.askEnabled,
+      plannedToday,
+      localHour,
+      rhythmRaw,
+      askedSlotsToday,
+    });
 
-  // ── LES CRÉNEAUX QUE LE PLAN COMPOSE, ET CE QUI RESTE À COCHER DEDANS ────
+  // ── TROIS PASSES, DE LA MOINS CHÈRE À LA PLUS CHÈRE ────────────────────
   //
-  // ⚠️ CHARGÉS APRÈS LES GARDES GRATUITES, JAMAIS AVANT. Le mute, l'objectif et
-  // l'interrupteur se lisent sur la ligne qu'on a déjà; ce chargeur-ci fait
-  // deux requêtes de plus. Les ordonner autrement ferait payer une lecture de
-  // plan à toute la cohorte que la décision écarte de toute façon.
-  const dayToken = dayTokenForLocalDate(today);
-  const openSwitch = goal !== null && SLOT_MEAL_GOALS.has(goal) && !args.muted &&
-    slotMealAskSwitchFrom({ stored: args.askEnabled, goal }).on;
-  const planned = openSwitch
-    ? await plannedSlotsToday(admin, {
-      userId: args.userId,
-      localDate: today,
-      dayToken,
-      resolveMemberId: () => memberIdOf(admin, args.userId),
-    })
-    : { slots: [], reason: "no_plan" as const };
+  // ⟳ 2026-09-24 — CE BALAYAGE TOURNE SUR TOUTE LA FLOTTE, TOUTES LES HEURES,
+  // DANS UNE SEULE REQUÊTE. Le journal (`loadJournal`) relit la doctrine, la
+  // garde de restriction et les plans: ~11 ms de CPU par compte. Chargé pour
+  // chaque compte à chaque tick, il faisait tuer `keel-proactive-v1` par la
+  // limite CPU du runtime vers la moitié de la liste — les comptes suivants
+  // n'étaient jamais examinés, la question du soir (`day_meals`) comprise.
+  //
+  // Chaque passe ne fait que RETIRER des moments candidats (un moment composé
+  // par le plan ne se demande plus, un moment déjà demandé non plus, un moment
+  // que le journal ne rend pas non plus). Une passe qui ne trouve rien à
+  // demander ne peut donc pas être contredite par la suivante: on s'arrête là.
+  //
+  // ① Sans aucune lecture: l'objectif, l'interrupteur, l'heure.
+  const gate = decide([], []);
+  if (!gate.ask) return { verdict: gate, delivered: false };
 
-  // ⟳ L'IDEMPOTENCE NE DÉPEND PLUS DU SEUL « DEHORS ». Un créneau composé, ou
-  // simplement déclaré au rythme, s'interroge aussi: relire les créneaux déjà
-  // demandés dès qu'il y a QUELQUE CHOSE à demander.
-  const asked = openSwitch
-    ? await slotsAskedToday(admin, { userId: args.userId, today })
-    : [];
-
-  // The same journal coverage drives the page and automatic questions.
-  const journal = openSwitch ? await loadJournal(admin, {
-    userId:args.userId, from:today, to:today, requestId:`slot-meal:${today}`, forPrompts:true,
-  }) : null;
-  const eligible = new Set(promptEligibleJournalSlots(journal?.days[0]));
-  const verdict = decideSlotMealAsk({
-    goal,
-    muted: args.muted,
-    askEnabled: args.askEnabled,
-    plannedToday: planned.slots.filter(p=>eligible.has(p.slot)),
-    dayToken,
-    localHour,
-    eatingOut: eatingOut.map(c=>({...c,slots:c.slots.filter(s=>eligible.has(s as never))})),
-    // La CLÉ du jsonb, pas une colonne. Voir le pavé au-dessus.
-    rhythmRaw: (row?.practical_constraints as Record<string, unknown> | null)
-      ?.eating_rhythm,
-    askedSlotsToday: [...asked, ...EATING_OCCASIONS.filter(s=>!eligible.has(s))],
+  // ② Le plan du jour et les questions déjà parties.
+  const planned = await plannedSlotsToday(admin, {
+    userId: args.userId,
+    localDate: today,
+    dayToken: dayTokenForLocalDate(today),
+    resolveMemberId: () => memberIdOf(admin, args.userId),
   });
+  const asked = await slotsAskedToday(admin, { userId: args.userId, today });
+  const beforeJournal = decide(planned.slots, asked);
+  if (!beforeJournal.ask) return { verdict: beforeJournal, delivered: false };
+
+  // ③ Le journal: la même lecture que la page, qui retire les moments absents
+  // (vacances), déjà déclarés, ou fermés par la garde de restriction.
+  const journal = await loadJournal(admin, {
+    userId: args.userId,
+    from: today,
+    to: today,
+    requestId: `slot-meal:${today}`,
+    forPrompts: true,
+  });
+  const eligible = new Set(promptEligibleJournalSlots(journal?.days[0]));
+  const verdict = decide(
+    planned.slots.filter((p) => eligible.has(p.slot)),
+    [...asked, ...EATING_OCCASIONS.filter((s) => !eligible.has(s))],
+  );
   if (!verdict.ask) return { verdict, delivered: false };
   if (args.dryRun) return { verdict, delivered: false, deliveryReason: "dry_run" };
 
@@ -338,7 +316,6 @@ export async function runSlotMealStep(
       localDate: today,
       slot: verdict.slot,
       origin: "uncovered",
-      eatingOut: verdict.eatingOut,
     });
   const res = await deliverChatMessage(admin, {
     userId: args.userId,

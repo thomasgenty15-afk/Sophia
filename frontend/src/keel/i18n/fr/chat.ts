@@ -35,6 +35,7 @@ export const frChat = {
   // Le libellé est le MÊME pour les trois messages qui partent sans qu'on ait
   // rien demandé: il dit qui a ouvert la bouche, pas pourquoi.
   "chat.proactive.label": "Sophia a écrit la première",
+  "chat.answer.kicker": "Ta réponse",
   "chat.unread.aria": "Messages non lus de Sophia : {count}",
   "chat.settings.toggle": "Notifications",
   // ⟳ 2026-09-23 — UN SEUL INTERRUPTEUR, activé ou désactivé. Il remplace

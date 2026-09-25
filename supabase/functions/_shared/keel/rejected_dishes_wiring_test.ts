@@ -17,7 +17,10 @@
  *   ④ le modèle ne rend que ses cases (`cells_only`), et la fusion prend des
  *      PLATS (`mergeRejectionEdit`);
  *   ⑤ chaque raison passe la garde de la note (`readDraftNote`: plancher
- *      TCA, interdits de doctrine) AVANT d'être citée au modèle.
+ *      TCA, interdits de doctrine) AVANT d'être citée au modèle;
+ *   ⑥ une retouche garde la fenêtre de son aperçu (`editPinnedWindow`) et ne
+ *      relit pas l'heure : aucun refus de fenêtre (`draft_day_passed`,
+ *      `draft_mismatch`) ne subsiste — décision produit du 2026-09-25.
  *
  * ⚠️ LES COMMENTAIRES SONT RETIRÉS AVANT TOUTE RECHERCHE: un commentaire ne
  * câble rien.
@@ -89,6 +92,19 @@ function broken(src: string): string[] {
     !after(src, "const plan = rejectionEditPlan({", 200).includes("targets: guardedTargets,")
   ) out.push("⑤ garde");
 
+  // ⑥ UNE RETOUCHE N'EST JAMAIS REFUSÉE PARCE QUE L'HEURE A TOURNÉ.
+  // Mesuré le 2026-09-25: « J'aime pas le tofu » sur un aperçu fait la veille à
+  // 23 h, envoyé à 1 h, rendait `draft_day_passed` et « Refaire tout le plan ».
+  // Sa fenêtre est celle de l'aperçu, et ni la veille ni la journée entamée ne
+  // sont relues à l'heure qu'il est.
+  const pinned = after(src, "} else if (editPinnedWindow !== null) {", 120);
+  if (
+    !pinned.includes("startsOn = editPinnedWindow.startsOn;") ||
+    !src.includes("const spentFirstDay: ReturnType<typeof withoutSpentFirstDay> = editPinnedWindow !== null") ||
+    !src.includes("const unservableToday = startsOn === todayDate && editPinnedWindow === null") ||
+    src.includes('error: "draft_day_passed"') || src.includes('error: "draft_mismatch"')
+  ) out.push("⑥ fenêtre de l'aperçu");
+
   return out;
 }
 
@@ -114,5 +130,13 @@ Deno.test("chaque épingle mord sur sa jonction, et sur elle seule", () => {
   assertEquals(
     broken(cut("targets: guardedTargets,", "targets: editRejections.targets,")),
     ["⑤ garde"],
+  );
+  assertEquals(
+    broken(cut("} else if (editPinnedWindow !== null) {", "} else if (editPinnedWindow === undefined) {")),
+    ["⑥ fenêtre de l'aperçu"],
+  );
+  assertEquals(
+    broken(cut("const spentFirstDay: ReturnType<typeof withoutSpentFirstDay> = editPinnedWindow !== null", "const spentFirstDay: ReturnType<typeof withoutSpentFirstDay> = false")),
+    ["⑥ fenêtre de l'aperçu"],
   );
 });

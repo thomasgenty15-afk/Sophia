@@ -1,8 +1,8 @@
 import {
-  type CookingStyle,
   type GroceryRunsAnswer,
-  readCookingStyle,
   readGroceryRunsAnswer,
+  readSessionTimeBound,
+  type SessionTimeBound,
 } from "./cookingPlan";
 // KEEL — L'ARGENT DE CE PLAN-LÀ, LU ET ÉCRIT EN UN SEUL ENDROIT.
 //
@@ -47,6 +47,9 @@ import type { PracticalConstraints } from "./practicalConstraints";
 // que personne ne regarde qui refuserait quelqu'un.
 import {
   assessBudget,
+  budgetBoundsFor,
+  budgetCeilingFor,
+  type BudgetDayRates,
   type BudgetFloorMouth,
   budgetMarketFor,
   budgetMouthDays,
@@ -55,7 +58,7 @@ import {
 import { type AwayMark, presenceStateOf } from "../lib/presenceMarks";
 import type { EatingOccasion, EatingOccasionSlot } from "./mealGeneration";
 
-export type { BudgetFloorMouth, BudgetVerdict };
+export type { BudgetDayRates, BudgetFloorMouth, BudgetVerdict };
 export { assessBudget };
 
 /**
@@ -154,20 +157,23 @@ export function isUsableBudgetAmount(amount: unknown): amount is number {
  */
 export interface PlanRequestInputs {
   budgetAmount: number | null;
-  cookingTimeMin: number | null;
   /**
-   * ⟳ P2 (2026-09-03) — LES DEUX RÉPONSES DURABLES DE LA CUISINE.
+   * ⟳ 2026-09-25 — LA PLAGE DE TEMPS PAR SESSION, par sa borne haute. Une des
+   * deux réponses DURABLES de la cuisine, avec `groceryRuns`.
    *
-   * ⚠️ REQUISES ET NULLABLES, jamais `?`: les deux sites de composition
+   * ⚠️ REQUISE ET NULLABLE, jamais `?`: les deux sites de composition
    * (`/app/plan` et l'entonnoir) doivent remonter au compilateur, sinon l'un
-   * d'eux écrirait sans elles et effacerait la réponse de l'autre.
+   * d'eux écrirait sans elle et effacerait la réponse de l'autre.
    *
    * `null` = pas encore répondu, et il S'ÉCRIT. Omettre la clé laisserait un
    * compte qui vient d'effacer sa réponse avec l'ancienne — un réglage qu'on
    * ne peut plus retirer, la cicatrice « contrainte qu'on ne peut plus lever »
    * de `cook_days`, dix lignes plus bas.
+   *
+   * ⛔ LE STYLE DE CUISINE (`cooking_style`) N'EST PLUS ÉCRIT depuis le
+   * 2026-09-25: la question est partie, et rien ne le relit.
    */
-  cookingStyle: string | null;
+  cookingTimeMin: number | null;
   /**
    * ⟳ 2026-09-09 — `number | string`, PARCE QUE « peu importe » S'ÉCRIT COMME
    * UN JETON. Le champ vit dans le jsonb `practical_constraints`, qui ne
@@ -213,10 +219,11 @@ export interface PlanRequestFacts extends PlanRequestInputs {
    * deux fois, documentée dans `api/kitchenEquipment.ts`.
    */
   /**
-   * ⟳ P2 (2026-09-03) — LES DEUX RÉPONSES DURABLES, RELUES POUR PRÉ-REMPLIR.
-   * `null` = pas encore répondu.
+   * ⟳ 2026-09-25 — LA PLAGE DE TEMPS, RELUE POUR PRÉ-REMPLIR, ramenée à sa
+   * borne (une durée d'avant les plages tombe dans la sienne). `null` = pas
+   * encore répondu.
    */
-  cookingStyle: CookingStyle | null;
+  sessionTime: SessionTimeBound | null;
   /** ⟳ 2026-09-09 — « peu importe » compris: c'est une réponse qui s'écrit. */
   groceryRuns: GroceryRunsAnswer | null;
   practicalConstraints: PracticalConstraints;
@@ -248,7 +255,7 @@ export async function readPlanInputs(userId: string): Promise<PlanRequestFacts> 
     // ⟳ P2 — RELUES POUR PRÉ-REMPLIR, avec LES parseurs du moteur. Une
     // seconde lecture du vocabulaire ferait un écran qui montre autre chose
     // que ce avec quoi on compose.
-    cookingStyle: readCookingStyle(pc),
+    sessionTime: readSessionTimeBound(pc),
     groceryRuns: readGroceryRunsAnswer(pc),
     cookingTimeMin: Number.isFinite(time) && time > 0 ? time : null,
     practicalConstraints: pc as PracticalConstraints,
@@ -284,7 +291,6 @@ export async function savePlanInputs(
       // le générateur dans `practical_constraints`. Le passer dans le corps
       // de la requête ferait deux sources pour un seul réglage, et c'est
       // toujours celle que l'écran ne montre pas qui gagne.
-      cooking_style: inputs.cookingStyle,
       grocery_runs: inputs.groceryRuns,
       // ══════════════════════════════════════════════════════════════════
       // ⛔ ÉCRIT VIDE, ET C'EST LA MOITIÉ DE LA SUPPRESSION.
@@ -393,6 +399,45 @@ export async function readBudgetMarket(userId: string): Promise<"fr" | "us" | nu
   return budgetMarketFor((data as { country: string | null } | null)?.country ?? null);
 }
 
+/**
+ * ⟳ 2026-09-25 — LE COÛT PAR JOUR DE CHAQUE BOUCHE, AJUSTÉ À SON BESOIN.
+ *
+ * Demandé: « le besoin calorique est déjà calculé par personne, pourquoi ne
+ * pas le prendre ». Il est calculé côté serveur, et seulement là: l'écran n'a
+ * aucune formule d'énergie (règle écrite dans `api/eatingStructure.ts`).
+ * `budget-rates-v1` le rend converti en ARGENT, par le même chargeur que la
+ * porte du budget de `generate-household-meal-v1`.
+ *
+ * Clé: `member_id`. Une bouche absente (pas de corps saisi) garde la journée
+ * de référence de son régime.
+ *
+ * ⚠️ UNE PANNE REND UNE CARTE VIDE, jamais une erreur: le plancher retombe
+ * alors sur la table de prix, c'est-à-dire exactement le comportement d'avant
+ * — et toujours au-dessus de la porte du moteur (`budgetGateDayRatesOf`),
+ * donc aucun montant proposé ne peut être retiré du prompt.
+ */
+export async function loadBudgetDayRates(): Promise<ReadonlyMap<string, BudgetDayRates>> {
+  const out = new Map<string, BudgetDayRates>();
+  try {
+    const { data, error } = await supabase.functions.invoke("budget-rates-v1", { body: {} });
+    if (error) return out;
+    const rows = (data as { members?: unknown } | null)?.members;
+    if (!Array.isArray(rows)) return out;
+    for (const raw of rows) {
+      const r = (raw ?? {}) as Record<string, unknown>;
+      const memberId = String(r.member_id ?? "").trim();
+      const floor = Number(r.floor_per_day);
+      const plausible = Number(r.plausible_per_day);
+      if (!memberId || !Number.isFinite(floor) || floor <= 0) continue;
+      if (!Number.isFinite(plausible) || plausible <= 0) continue;
+      out.set(memberId, { floor, plausible });
+    }
+  } catch {
+    // Même direction qu'un refus du serveur: la table de prix.
+  }
+  return out;
+}
+
 /** Une bouche telle que les DEUX écrans de composition la connaissent. */
 export interface PlanMouthPresence {
   /** Pour retrouver le titulaire, et pour rien d'autre ici. */
@@ -408,11 +453,7 @@ export interface PlanMouthPresence {
 /**
  * LES BOUCHES DE CETTE DEMANDE, AVEC LEUR PART DE JOURNÉE.
  *
- * ⚠️ « DEHORS » ET « ABSENT » COMPTENT PAREIL ICI, et seulement ici: le
- * plancher parle d'ARGENT, et dans les deux cas le plan ne compose rien à
- * acheter. Ailleurs dans le produit les deux états se séparent, parce que ce
- * qui les distingue est ce que le produit DIT — un conseil chiffré pour un midi
- * dehors, le silence pour des vacances. Une liste de courses ne se dit pas.
+ * Une case absente ne compte pas: le plan n'y compose rien à acheter.
  *
  * ⚠️ LE RYTHME DE LA MAISON EST LE REPLI, exactement comme la grille de
  * présence le fait deux lignes plus loin dans les mêmes écrans
@@ -442,6 +483,13 @@ export function budgetMouthsFor(args: {
    */
   selfMemberId: string | null;
   selfAway: readonly AwayMark[];
+  /**
+   * ⟳ 2026-09-25 — LE COÛT PAR JOUR DE CHAQUE BOUCHE (`loadBudgetDayRates`).
+   *
+   * ⛔ REQUIS, jamais `?`: un écran qui l'oublierait ferait revenir toutes les
+   * bouches à 2 000 kcal en silence. Carte vide = pas encore lu, ou panne.
+   */
+  rates: ReadonlyMap<string, BudgetDayRates>;
 }): BudgetFloorMouth[] {
   return args.mouths.map((mouth) => {
     const rhythm = mouth.eatingSlots ?? args.houseSlots;
@@ -451,6 +499,7 @@ export function budgetMouthsFor(args: {
       : [...mouth.away];
     return {
       diet: mouth.diet,
+      dayRates: mouth.memberId === null ? null : args.rates.get(mouth.memberId) ?? null,
       mouthDays: budgetMouthDays(
         args.dayTokens.map((day) => ({
           declaredSlots,
@@ -461,4 +510,70 @@ export function budgetMouthsFor(args: {
       ),
     };
   });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LE CURSEUR DE BUDGET — 2026-09-25
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Demandé: « un slider, avec le minimum qui varie en fonction des infos
+// données avant », et un maximum raisonnable. Le bas est le plancher
+// (`budgetBoundsFor`), donc il bouge avec les jours, les bouches, leurs
+// absences et leurs régimes; le haut est `budgetCeilingFor`, sur les mêmes
+// journées de bouche.
+//
+// ⚠️ HORS DE FRANCE ET DES ÉTATS-UNIS, PAS DE CURSEUR: sans grille de prix il
+// n'y a ni bas ni haut, et le champ libre revient (`budgetScaleFor` → `null`).
+// ═══════════════════════════════════════════════════════════════════════════
+
+/** L'échelle du curseur, en unités entières de la monnaie du marché. */
+export interface BudgetScale {
+  min: number;
+  max: number;
+  step: number;
+  /** Code ISO 4217 — le marché est connu, donc la monnaie aussi. */
+  currency: "EUR" | "USD";
+}
+
+const MARKET_CURRENCY: Readonly<Record<"fr" | "us", BudgetScale["currency"]>> = {
+  fr: "EUR",
+  us: "USD",
+};
+
+/**
+ * LE BAS, LE HAUT ET LE PAS DU CURSEUR, ou `null` quand le plancher s'abstient.
+ *
+ * ⛔ LE BAS S'ARRONDIT VERS LE HAUT, JAMAIS VERS LE BAS: un curseur qui
+ * démarrerait sous le plancher proposerait un montant que le verdict refuse.
+ *
+ * Le pas passe à 5 au-delà de 100 d'écart, pour qu'un doigt puisse viser sur
+ * un téléphone; le haut s'arrondit au multiple de 5 supérieur, donc il reste
+ * atteignable avec les deux pas.
+ */
+export function budgetScaleFor(args: {
+  market: "fr" | "us" | null;
+  mouths: readonly BudgetFloorMouth[];
+}): BudgetScale | null {
+  if (args.market === null) return null;
+  const bounds = budgetBoundsFor(args);
+  const ceiling = budgetCeilingFor(args);
+  if (bounds === null || ceiling === null) return null;
+  const step = ceiling - bounds.floor > 100 ? 5 : 1;
+  const min = Math.ceil(bounds.floor / step) * step;
+  const max = Math.max(min + step, Math.ceil(ceiling / 5) * 5);
+  return { min, max, step, currency: MARKET_CURRENCY[args.market] };
+}
+
+/**
+ * LE MONTANT QUE LE CURSEUR PEUT PORTER. Hors échelle, il glisse à la borne la
+ * plus proche — même décision que les champs de cuisine voisins
+ * (`useOfferedAnswer`), qui gardent la réponse choisie à part et y reviennent
+ * dès qu'elle redevient possible.
+ *
+ * ⚠️ ET SUR UN CRAN DU PAS: un navigateur place le curseur sur le cran le plus
+ * proche; garder 83 avec un pas de 5 afficherait 83 sous un curseur posé à 85.
+ */
+export function clampToBudgetScale(amount: number, scale: BudgetScale): number {
+  const stepped = scale.min + Math.round((amount - scale.min) / scale.step) * scale.step;
+  return Math.min(scale.max, Math.max(scale.min, stepped));
 }

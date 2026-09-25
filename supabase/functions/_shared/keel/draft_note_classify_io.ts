@@ -63,6 +63,7 @@ import {
   type SlotSizeMove,
   type DraftNoteClarifyEntry,
   type DraftNoteGate,
+  type DraftNoteSwap,
 } from "./draft_note_classify.ts";
 import type { DraftNoteVerdict } from "./plan_draft_note.ts";
 import type { CellEdit } from "./cell_edit.ts";
@@ -252,6 +253,24 @@ export interface DraftNoteClassifyResult {
    * écrit — jamais une ligne inventée.
    */
   readonly announced: readonly RecapKept[];
+  /**
+   * ⟳ 2026-09-25 — CE QUE LA NOTE REDIT ET QUE LA MÉMOIRE PORTAIT DÉJÀ.
+   *
+   * Les préférences que le classifieur a gardées mais que la porte a refusées
+   * comme déjà rangées (`alreadyStored`). Elles ne sont PAS dans `announced`
+   * (on ne dit pas « j'ai noté » sur une écriture qu'on n'a pas faite), mais
+   * l'écran en a besoin pour aiguiller : mesuré sur un vrai compte, « J'aime
+   * pas le tofu » redit sur un aperçu qui portait encore du tofu rendait
+   * `announced: []`, et le dialogue recomposait toute la semaine au lieu de
+   * refaire les deux plats concernés. Vide quand quelque chose a été écrit.
+   */
+  readonly known: readonly RecapKept[];
+  /**
+   * ⟳ 2026-09-25 — ⑫ « À LA PLACE DE X, METS Y », pour CE plan seulement. Rien
+   * n'est écrit pour X ; Y est rangé comme préférence par la porte ①. Rendu au
+   * front, qui le donne à la retouche locale.
+   */
+  readonly swaps: readonly DraftNoteSwap[];
   /**
    * ⟳ 2026-09-08 (lot 4) — LES QUESTIONS À POSER SOUS LE CHAMP. Une part
    * dont on ne sait pas la bouche: rien n'est écrit pour elle, et elle ne
@@ -602,6 +621,8 @@ export async function classifyAndPersistDraftNote(args: {
       clarification: NO_CLARIFICATION,
       notice: NO_NOTICE,
       announced: [],
+      known: [],
+      swaps: [],
       questions: [],
       atEdge: 0,
       cells: [],
@@ -647,6 +668,8 @@ export async function classifyAndPersistDraftNote(args: {
       clarification: NO_CLARIFICATION,
       notice: NO_NOTICE,
       announced: [],
+      known: [],
+      swaps: [],
       questions: [],
       atEdge: 0,
       cells: [],
@@ -704,6 +727,8 @@ export async function classifyAndPersistDraftNote(args: {
       clarification: NO_CLARIFICATION,
       notice: NO_NOTICE,
       announced: [],
+      known: [],
+      swaps: [],
       questions: [],
       atEdge: 0,
       cells: [],
@@ -870,6 +895,8 @@ export async function classifyAndPersistDraftNote(args: {
       clarification,
       notice,
       announced: [],
+      known: [],
+      swaps: [],
       questions,
       atEdge: 0,
       cells: cellsOut,
@@ -999,8 +1026,8 @@ export async function classifyAndPersistDraftNote(args: {
   //
   // ⛔ PAR `retainedItemsFromPlanFeedback`, ET PAR ELLE SEULE. « Trop long »
   // se traduit en la réponse fermée que le bilan connaît (`speed: too_long`),
-  // et c'est LA FONCTION DU BILAN qui décide: le style s'il est déclaré
-  // (`cooking_style`, cadran unique), sinon le temps ou la difficulté; un cran
+  // et c'est LA FONCTION DU BILAN qui décide: ⟳ 2026-09-25 la plage de temps
+  // (`cooking_time_min`, cadran unique des deux axes); un cran
   // depuis la valeur courante; rien au bord (`atFloor`/`atCeiling`); rien sans
   // base (`noBaseline`); rien quand les deux axes se contredisent
   // (`bothPolarities`). Réécrire un de ces cas ici en ferait deux.
@@ -1095,7 +1122,6 @@ export async function classifyAndPersistDraftNote(args: {
         planDishTitles: [],
         planFoodTerms: [],
         cookingTimeMin: Number.isFinite(num) ? num : null,
-        cookingStyle: text(pc?.cooking_style),
         recipeDifficulty: text(pc?.recipe_difficulty),
         varietyLevel: text(pc?.variety),
       });
@@ -1143,6 +1169,17 @@ export async function classifyAndPersistDraftNote(args: {
   // accusés ne veulent rien dire — la même règle que « on ne dit jamais noté
   // sur une écriture qu'on n'a pas faite ».
   const announced: RecapKept[] = writtenRecapLines(write, classification, whoOf);
+  // ⟳ 2026-09-25 — rien d'écrit, mais la porte a reconnu des doublons : la
+  // note redit ce que la mémoire porte déjà. Voir `known` sur le type.
+  const known: RecapKept[] = write.durableWritten === 0 && write.refused.alreadyStored > 0
+    ? classification.preferences.items.map((item) => ({
+      text: item.text,
+      until: null,
+      kind: "preference",
+      who: whoOf(item.subject),
+      sense: item.kind,
+    }))
+    : [];
   // ══════════════════════════════════════════════════════════════════════
   // ⛔ ④ ET ⑤ S'ANNONCENT HORS DU `if (write.ok)` — MESURÉ AU TIR N3b
   // ══════════════════════════════════════════════════════════════════════
@@ -1153,7 +1190,7 @@ export async function classifyAndPersistDraftNote(args: {
   // cette porte (l'appétit par sa RPC, le réglage par la porte des champs):
   // lier leur accusé à `write.ok` faisait écrire le champ ET se taire.
   // Mesuré: « C'est trop long à cuisiner » ⇒ `cooking_style: balanced →
-  // minimal`, trace écrite, `settings_moved: 1`… et `notice_reason:
+  // minimal` (le cadran d'avant le 2026-09-25), trace écrite, `settings_moved: 1`… et `notice_reason:
   // not_attempted`. Le tir N1 ne l'avait pas montré parce que Leo avait une
   // préférence à côté, qui ouvrait le `if`.
   announced.push(...appetiteRecapLines(appetiteMoved, language, whoOf));
@@ -1193,6 +1230,8 @@ export async function classifyAndPersistDraftNote(args: {
     clarification,
     notice,
     announced,
+    known,
+    swaps: classification.swaps.requests,
     questions,
     atEdge: appetite.at_edge + settings.at_edge,
     cells: cellsOut,

@@ -195,6 +195,11 @@ function isBarePhrase(text: string): boolean {
     .normalize("NFD")
     .replace(/\p{Diacritic}/gu, "")
     .toLowerCase()
+    // ⟳ 2026-09-25 — ligatures dépliées, comme `termsOfInstruction` et
+    // `normalizeForMatch` : « œufs » est un mot, pas « ufs ».
+    .replace(/œ/g, "oe")
+    .replace(/æ/g, "ae")
+    .replace(/ß/g, "ss")
     .split(/[^a-z0-9]+/)
     .filter(Boolean);
   return words.length > 0 && !words.some((w) => SENTENCE_MARKERS.has(w));

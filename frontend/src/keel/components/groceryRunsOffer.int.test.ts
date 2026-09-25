@@ -6,12 +6,13 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 import GroceryRunsField from "./GroceryRunsField";
 import {
-  type CookingStyle,
+  type CookingSessionCount,
   GROCERY_RUNS_ANY,
   type GroceryRunsAnswer,
   offerableGroceryRuns,
   resolveGroceryRunsAnswer,
 } from "../api/cookingPlan";
+import { intentAfter, nearestOffered } from "../lib/cookingAnswers";
 import { fr } from "../i18n/fr";
 import { en } from "../i18n/en";
 import { sourceFamily } from "../../test/sourceFamily";
@@ -40,8 +41,7 @@ const FIELDS = readFileSync(resolve(__dirname, "./PlanRequestFields.tsx"), "utf8
 
 const html = (over: {
   value?: GroceryRunsAnswer | null;
-  style?: CookingStyle | null;
-  oneCookingSession?: boolean;
+  sessions?: CookingSessionCount | null;
   daysToEat?: number;
   freezer?: boolean | null;
 } = {}) =>
@@ -51,12 +51,13 @@ const html = (over: {
       value: over.value ?? null,
       onChange: () => {},
       disabled: false,
-      style: over.style ?? null,
-      oneCookingSession: over.oneCookingSession ?? false,
+      // ⟳ 2026-09-25 — le nombre de sessions choisi juste au-dessus, `null` =
+      // pas encore répondu. Il remplace le style et la case « une seule fois ».
+      sessions: over.sessions === undefined ? null : over.sessions,
       daysToEat: over.daysToEat ?? 7,
       // ⟳ 2026-09-21 — le congélateur entre dans l'offre; `null` = jamais demandé.
       // ⟳ 2026-09-24 — AVEC par défaut: sans lui, « une course » sort au-delà de
-      // trois jours, et les cas de fenêtre et de style perdraient leur sens.
+      // trois jours, et les cas de fenêtre et de sessions perdraient leur sens.
       // Les cas sans congélateur le disent explicitement.
       freezer: over.freezer === undefined ? true : over.freezer,
     }),
@@ -90,25 +91,39 @@ const keeping = (dict: typeof en, n: number) =>
 const offered = (markup: string) =>
   [...markup.matchAll(/<option value="(\d)"(?![^>]*disabled)/g)].map((m) => Number(m[1]));
 
+/**
+ * ⟳ 2026-09-25 — LA VALEUR SÉLECTIONNÉE DANS LE RENDU, ou `null`. Une réponse
+ * imposée doit être SÉLECTIONNÉE dans la liste, pas remplacée par une phrase.
+ */
+const selected = (markup: string) => {
+  const found = markup.match(/<option value="(\d)"[^>]*selected/);
+  return found ? Number(found[1]) : null;
+};
+
+/** La phrase du plafond des sessions, interpolée comme `t()` le fait. */
+const cappedBySessions = (dict: typeof en, k: number) =>
+  say(dict["plan.cooking.runs_capped_sessions"]).replace(/\{k\}/g, String(k));
+
 describe("l'écran ne propose que ce que le plan fera", () => {
   it("sans contrainte, les trois cadences", () => {
     expect(offered(html())).toEqual([1, 2, 3]);
     // ⟳ 2026-09-16 — SANS PLAFOND, AUCUN MOTIF: l'aide générale a été retirée.
-    expect(html()).not.toContain(say(en["plan.cooking.runs_capped_style"]));
+    expect(html()).not.toContain(cappedBySessions(en, 3));
+    // Trois ou quatre sessions ne plafonnent rien: le plafond des courses est
+    // trois.
+    expect(offered(html({ sessions: 4 }))).toEqual([1, 2, 3]);
+    expect(offered(html({ sessions: 3 }))).toEqual([1, 2, 3]);
   });
 
-  it("« le moins possible » retire la troisième, ET DIT POURQUOI", () => {
-    // Sur SEPT jours: la conservation autoriserait trois sessions, c'est donc
-    // bien le style qui plafonne — et le motif le nomme.
-    // ⟳ 2026-09-21 — sept jours SANS congélateur font trois sessions, donc
-    // trois courses; AVEC, deux — et c'est le style qui retire la troisième.
-    expect(offered(html({ style: "minimal", daysToEat: 7, freezer: false }))).toEqual([2, 3]);
-    const markup = html({ style: "minimal", daysToEat: 7, freezer: true });
+  it("⟳ 2026-09-25 — deux sessions retirent la troisième course, ET LE DISENT", () => {
+    // Sur SEPT jours: la conservation autoriserait trois courses, c'est donc
+    // bien le nombre de sessions qui plafonne — on ne va pas au magasin plus
+    // souvent qu'on ne cuisine — et le motif le nomme.
+    const markup = html({ sessions: 2, daysToEat: 7, freezer: true });
     expect(offered(markup)).toEqual([1, 2]);
     // ⛔ LA PHRASE EST LA MOITIÉ QUI COMPTE. Une option qui s'évapore sans
-    // motif se lit comme une panne, et envoie chercher le réglage manquant
-    // dans le mauvais écran.
-    expect(markup).toContain(say(en["plan.cooking.runs_capped_style"]));
+    // motif se lit comme une panne.
+    expect(markup).toContain(cappedBySessions(en, 2));
   });
 
   it("⛔ LE PLAFOND DE FENÊTRE EST LA CONSERVATION, pas le compte de jours", () => {
@@ -120,9 +135,8 @@ describe("l'écran ne propose que ce que le plan fera", () => {
     // ══════════════════════════════════════════════════════════════════════
     for (const daysToEat of [1, 2, 3]) {
       const markup = html({ daysToEat });
-      expect(markup, `${daysToEat} jours: un contrôle est resté`).not.toContain(
-        "<select",
-      );
+      expect(offered(markup), `${daysToEat} jours`).toEqual([1]);
+      expect(selected(markup), `${daysToEat} jours`).toBe(1);
       expect(markup).toContain(say(en["plan.cooking.runs_only_one_batch"]));
     }
     for (const daysToEat of [4, 5, 6]) {
@@ -135,18 +149,13 @@ describe("l'écran ne propose que ce que le plan fera", () => {
     expect(offered(html({ daysToEat: 7 }))).toEqual([1, 2, 3]);
   });
 
-  it("⛔ À ÉGALITÉ, LA FENÊTRE GAGNE — on n'envoie pas corriger le style", () => {
-    // « le moins possible » et cinq jours plafonnent tous les deux à 2. La
-    // fenêtre est concrète, datée, et elle vient d'être réglée trois champs
-    // plus haut. Sur SEPT jours la conservation ne plafonne plus, et c'est le
-    // style qu'on nomme.
-    expect(html({ style: "minimal", daysToEat: 5 })).toContain(keeping(en, 5));
-    expect(html({ style: "minimal", daysToEat: 5 })).not.toContain(
-      say(en["plan.cooking.runs_capped_style"]),
-    );
-    expect(html({ style: "minimal", daysToEat: 7, freezer: true })).toContain(
-      say(en["plan.cooking.runs_capped_style"]),
-    );
+  it("⛔ À ÉGALITÉ, LA FENÊTRE GAGNE — on n'envoie pas corriger les sessions", () => {
+    // Deux sessions et cinq jours plafonnent tous les deux à 2. La fenêtre est
+    // concrète, datée, et elle vient d'être réglée plus haut. Sur SEPT jours la
+    // conservation ne plafonne plus, et ce sont les sessions qu'on nomme.
+    expect(html({ sessions: 2, daysToEat: 5 })).toContain(keeping(en, 5));
+    expect(html({ sessions: 2, daysToEat: 5 })).not.toContain(cappedBySessions(en, 2));
+    expect(html({ sessions: 2, daysToEat: 7, freezer: true })).toContain(cappedBySessions(en, 2));
   });
 });
 
@@ -158,134 +167,193 @@ describe("l'écran ne propose que ce que le plan fera", () => {
 // courses (`runs_1_needs_freezer`), et rien ne le disait.
 // ===========================================================================
 describe("sans congélateur, « Une fois » ne couvre pas un plan long", () => {
-  const needsFreezer = (dict: typeof en, n: number) =>
-    say(dict["plan.cooking.runs_needs_freezer"]).replace("{d}", "3").replace(
-      "{n}",
-      String(n),
-    );
+  // ⟳ 2026-09-25 — LE CONGÉLATEUR N'A PLUS DE PHRASE SOUS COURSES (décision du
+  // propriétaire): « Combien de fois tu veux cuisiner », juste au-dessus, le
+  // dit déjà. La règle reste: « Une fois » n'est pas proposée.
+  const freezerWords = [en["setup.equipment.title"], fr["setup.equipment.title"], "freezer", "congélateur"];
 
-  it("sept jours: « Une fois » sort de la liste, et la phrase dit pourquoi", () => {
+  it("sept jours: « Une fois » sort de la liste, sans phrase de congélateur", () => {
     for (const freezer of [false, null] as const) {
       const markup = html({ freezer, daysToEat: 7 });
       expect(offered(markup), String(freezer)).toEqual([2, 3]);
-      expect(markup).toContain(needsFreezer(en, 7));
+      for (const word of freezerWords) expect(markup).not.toContain(say(word));
     }
   });
 
-  it("quatre à six jours: plus de question, la phrase à la place du contrôle", () => {
+  it("quatre à six jours: « Deux fois » est sélectionné, et la phrase dit pourquoi", () => {
     for (const daysToEat of [4, 5, 6]) {
-      const markup = html({ freezer: false, daysToEat });
-      expect(markup, `${daysToEat} jours: un contrôle est resté`).not.toContain("<select");
-      expect(markup).toContain(needsFreezer(en, daysToEat));
-      expect(markup).toContain(say(en["plan.cooking.runs_label"]));
+      for (const sessions of [null, 2, 3, 4] as const) {
+        const markup = html({ freezer: false, daysToEat, sessions });
+        const où = `${daysToEat}j/${sessions}s`;
+        expect(offered(markup), où).toEqual([2]);
+        expect(selected(markup), où).toBe(2);
+        for (const word of freezerWords) expect(markup, où).not.toContain(say(word));
+      }
+      // Deux courses suffisent: c'est la fenêtre qui plafonne, à égalité avec
+      // deux sessions comme au-delà.
+      expect(html({ freezer: false, daysToEat, sessions: 2 })).toContain(keeping(en, daysToEat));
     }
+  });
+
+  it("⛔ LE CAS DU 2026-09-25: cinq jours, deux sessions, pas de congélateur", () => {
+    const markup = html({ freezer: false, daysToEat: 5, sessions: 2 });
+    expect(selected(markup)).toBe(2);
+    expect(markup).toMatch(/<option value="1"[^>]*disabled/);
+    expect(markup).toMatch(/<option value="3"[^>]*disabled/);
+    expect(markup).toContain(keeping(en, 5));
+    expect(markup).not.toContain(say(en["plan.cooking.runs_unset"]));
   });
 
   it("jusqu'à trois jours, un seul lot suffit, avec ou sans congélateur", () => {
     const markup = html({ freezer: false, daysToEat: 3 });
     expect(markup).toContain(say(en["plan.cooking.runs_only_one_batch"]));
-    expect(markup).not.toContain(needsFreezer(en, 3));
+    expect(selected(markup)).toBe(1);
   });
 
   it("le congélateur coché rend « Une fois »", () => {
     expect(offered(html({ freezer: true, daysToEat: 7 }))).toEqual([1, 2, 3]);
-    expect(html({ freezer: true, daysToEat: 7 })).not.toContain(needsFreezer(en, 7));
   });
 
-  it("⛔ une réponse « Une fois » déjà donnée reste visible, grisée", () => {
+  it("⟳ 2026-09-25 — une réponse « Une fois » devenue impossible passe à « Deux fois »", () => {
     const markup = html({ value: 1, freezer: false, daysToEat: 7 });
     expect(offered(markup)).toEqual([2, 3]);
     expect(markup).toMatch(/<option value="1"[^>]*disabled/);
-    expect(markup).toContain(needsFreezer(en, 7));
+    expect(selected(markup)).toBe(2);
   });
 
-  it("la phrase nomme la carte où on lève le refus, dans les deux langues", () => {
-    expect(fr["plan.cooking.runs_needs_freezer"]).toContain(fr["setup.equipment.title"]);
-    expect(en["plan.cooking.runs_needs_freezer"]).toContain(en["setup.equipment.title"]);
-    expect(fr["plan.cooking.runs_needs_freezer"]).not.toBe(en["plan.cooking.runs_needs_freezer"]);
+  it("⛔ la phrase qui renvoyait au congélateur n'existe plus, dans aucune langue", () => {
+    expect(Object.keys(fr)).not.toContain("plan.cooking.runs_needs_freezer");
+    expect(Object.keys(en)).not.toContain("plan.cooking.runs_needs_freezer");
+    expect(FIELD).not.toContain("runs_needs_freezer");
   });
 });
 
-describe("quand il n'y a plus qu'une réponse, il n'y a plus de question", () => {
-  it("un plan qu'UN SEUL LOT couvre: une phrase, et AUCUN contrôle", () => {
+describe("⟳ 2026-09-25 — quand il n'y a plus qu'une réponse, elle est SÉLECTIONNÉE", () => {
+  it("un plan qu'UN SEUL LOT couvre: « Une fois » sélectionnée, et sa raison dessous", () => {
     const markup = html({ daysToEat: 3 });
-    // ⛔ PAS DE `<select>` À UNE OPTION. C'est un contrôle qui n'en est pas un:
-    // il demande un geste dont le résultat est déjà écrit.
-    expect(markup).not.toContain("<select");
+    // La liste RESTE: on voit ce qui est retenu, et ce qui ne l'est pas.
+    expect(markup).toContain("<select");
+    expect(selected(markup)).toBe(1);
+    expect(markup).toMatch(/<option value="2"[^>]*disabled/);
     expect(markup).toContain(say(en["plan.cooking.runs_only_one_batch"]));
-    // ⚠️ L'ÉTIQUETTE RESTE. La réponse doit rester identifiable: une phrase
-    // seule au milieu d'un formulaire ne dit pas de quelle question elle est
-    // la réponse.
     expect(markup).toContain(say(en["plan.cooking.runs_label"]));
+    // ⚠️ PAS DE « PAS ENCORE RÉPONDU » NI DE « PEU IMPORTE »: la réponse est
+    // déjà donnée.
+    expect(markup).not.toContain(say(en["plan.cooking.runs_unset"]));
+    expect(markup).not.toContain(say(en["plan.cooking.runs_any"]));
   });
 
-  it("« tout cuisiner en une seule fois »: une phrase, et elle NOMME la case", () => {
+  it("« une fois » (une seule session): sélectionnée, et la phrase nomme la session", () => {
     for (const daysToEat of [2, 5, 7]) {
-      for (const style of [null, "minimal", "keen"] as const) {
-        const markup = html({ oneCookingSession: true, style, daysToEat });
-        expect(markup, `${style}/${daysToEat}j`).not.toContain("<select");
+      for (const freezer of [true, false] as const) {
+        const markup = html({ sessions: 1, freezer, daysToEat });
+        expect(selected(markup), `${freezer}/${daysToEat}j`).toBe(1);
         expect(markup).toContain(say(en["plan.cooking.runs_only_one_session"]));
       }
     }
   });
 
-  it("⛔ ET C'EST LA CASE QU'ON NOMME, pas la fenêtre ni le style", () => {
-    // Nommer la fenêtre devant une case qu'on vient de cocher enverrait
-    // corriger la mauvaise réponse.
-    const markup = html({ oneCookingSession: true, style: "minimal", daysToEat: 2 });
+  it("⛔ ET C'EST LA SESSION UNIQUE QU'ON NOMME, pas la fenêtre", () => {
+    // Nommer la fenêtre devant une réponse qu'on vient de donner juste
+    // au-dessus enverrait corriger la mauvaise réponse.
+    const markup = html({ sessions: 1, daysToEat: 2 });
     expect(markup).toContain(say(en["plan.cooking.runs_only_one_session"]));
     expect(markup).not.toContain(say(en["plan.cooking.runs_only_one_batch"]));
   });
-});
 
-describe("⛔ UNE RÉPONSE DÉJÀ DONNÉE N'EST JAMAIS ÉCRASÉE", () => {
-  // ══════════════════════════════════════════════════════════════════════════
-  // LE DÉFAUT QUE CE BLOC EXISTE POUR EMPÊCHER, ET IL EST SILENCIEUX.
-  // ══════════════════════════════════════════════════════════════════════════
-  //
-  // `grocery_runs` est DURABLE — c'est la tolérance de la personne, pas une
-  // propriété de la semaine. Un champ qui raboterait « trois courses » à
-  // « deux » parce que CETTE fenêtre fait deux jours lui retirerait, pour
-  // toujours, une réponse qu'elle avait donnée: la semaine suivante repartirait
-  // d'un chiffre que personne n'a choisi. C'est mot pour mot la cicatrice
-  // « la coche automatique écrit des faits faux indémentables ».
-
-  it("une valeur hors offre reste VISIBLE et sélectionnée, désactivée", () => {
-    const markup = html({ value: 3, style: "minimal", daysToEat: 7, freezer: true });
-    expect(offered(markup), "trois est redevenu proposable").toEqual([1, 2]);
-    expect(markup, "la réponse enregistrée a disparu du contrôle").toMatch(
-      /<option value="3"[^>]*disabled/,
-    );
+  it("⛔ une réponse imposée ne dit jamais « une seule course » sous « Deux fois »", () => {
+    for (const daysToEat of [4, 5, 6]) {
+      const markup = html({ freezer: false, daysToEat });
+      expect(selected(markup)).toBe(2);
+      expect(markup).not.toContain(say(en["plan.cooking.runs_only_one_batch"]));
+    }
   });
 
-  it("l'amorce n'écrit QUE sur une réponse absente", () => {
-    // ⚠️ SUR LA SOURCE: `renderToStaticMarkup` ne joue pas les effets. Ce qui
-    // rend la lecture suffisante ici, c'est que la condition tient en une
-    // ligne et qu'elle porte les DEUX moitiés — la seule forme qui puisse être
-    // lue de travers est `if (forced !== null)` tout court.
-    expect(FIELD).toMatch(
-      /if \(forced !== null && value === null\) onChange\(forced\)/,
+  it("chaque réponse imposée a sa phrase", () => {
+    for (const sessions of [null, 1, 2, 3, 4] as const) {
+      for (const freezer of [true, false, null] as const) {
+        for (let daysToEat = 1; daysToEat <= 7; daysToEat++) {
+          const offer = offerableGroceryRuns({ sessions, daysToEat, maxFridgeDays: 3, freezer });
+          if (offer.forced === null) continue;
+          const markup = html({ sessions, freezer, daysToEat });
+          const où = `${sessions}s/${daysToEat}j/${freezer}`;
+          expect(selected(markup), où).toBe(offer.forced);
+          expect(markup, où).toMatch(/<p class="mt-2 text-sm leading-6 text-ink-soft">[^<]+<\/p>/);
+        }
+      }
+    }
+  });
+});
+
+describe("⟳ 2026-09-25 — UNE RÉPONSE DEVENUE IMPOSSIBLE GLISSE AU PLUS PROCHE", () => {
+  // ══════════════════════════════════════════════════════════════════════════
+  // DÉCISION DU PROPRIÉTAIRE, QUI RENVERSE « UNE RÉPONSE DÉJÀ DONNÉE N'EST
+  // JAMAIS ÉCRASÉE ». On pouvait garder coché ce qu'on ne pouvait plus
+  // choisir: la réponse restait sélectionnée et grisée, partait telle quelle,
+  // et le moteur la rabotait en silence. Elle passe maintenant au nombre
+  // proposé le plus proche, et c'est lui qui part avec la demande.
+  // ══════════════════════════════════════════════════════════════════════════
+
+  it("trois courses, puis deux sessions: « Deux fois »", () => {
+    const markup = html({ value: 3, sessions: 2, daysToEat: 7, freezer: true });
+    expect(offered(markup)).toEqual([1, 2]);
+    expect(markup).toMatch(/<option value="3"[^>]*disabled/);
+    expect(selected(markup)).toBe(2);
+  });
+
+  it("« peu importe » ne bouge jamais, et rien encore reste rien", () => {
+    expect(html({ value: GROCERY_RUNS_ANY, sessions: 2, daysToEat: 7 })).toMatch(
+      /<option value="any"[^>]*selected/,
     );
-    // ⛔ ET AUCUN AUTRE `onChange` AUTOMATIQUE. Un `clamp` ajouté plus tard
-    // ferait exactement le rabotage que ce bloc interdit.
-    //
-    // ⟳ 2026-09-09 — LA MESURE ÉTAIT LIGNE À LIGNE, ET ELLE A CRIÉ AU LOUP.
-    // Elle comptait les lignes portant `onChange(` sans `e.target.value` sur
-    // LA MÊME ligne. Un gestionnaire écrit sur plusieurs lignes — celui de
-    // « peu importe », qui doit tester le jeton avant de nombrifier — met donc
-    // `onChange(` seul sur sa ligne, et le test le lisait comme une écriture
-    // automatique. Replier le code pour plaire à la mesure aurait été le
-    // mauvais sens: c'est la mesure qui ne disait pas ce qu'elle voulait dire.
-    //
-    // ⚠️ CE QU'ELLE VEUT DIRE: « aucune écriture HORS d'un geste ». Une
-    // écriture automatique vit forcément avant le JSX (effet ou corps de
-    // rendu); tout ce qui est dans le `return (` est accroché à un événement.
-    // On coupe donc à la frontière plutôt que de deviner ligne par ligne.
+    expect(selected(html({ value: null, daysToEat: 7 }))).toBe(null);
+  });
+
+  it("l'écriture automatique passe par `useOfferedAnswer`, et nulle part ailleurs", () => {
+    // ⚠️ SUR LA SOURCE: `renderToStaticMarkup` ne joue pas les effets.
+    expect(FIELD).toMatch(/useOfferedAnswer<GroceryRunsAnswer>\(\{/);
+    expect(FIELD).toMatch(/: nearestOffered\(offer\.values, intent\)/);
+    // « Peu importe » est rendu tel quel: il vaut déjà le haut de l'offre.
+    expect(FIELD).toMatch(/intent === GROCERY_RUNS_ANY\s*\?\s*intent/);
+    // ⛔ ET AUCUN `onChange` AUTOMATIQUE DANS LE CHAMP. Une écriture
+    // automatique vit forcément avant le JSX (effet ou corps de rendu); le
+    // geste passe par `pick`.
     const beforeJsx = FIELD.slice(0, FIELD.lastIndexOf("  return ("));
     const auto = beforeJsx.split("\n").filter((line) =>
       /onChange\(/.test(line) && !line.trimStart().startsWith("//")
     );
-    expect(auto.length, `écriture automatique en trop:\n${auto.join("\n")}`).toBe(1);
+    expect(auto.length, `écriture automatique en trop:\n${auto.join("\n")}`).toBe(0);
+  });
+
+  it("⛔ `54aec009` — 3 courses, « Deux fois » en cuisine, puis « Trois fois »: 3 courses", () => {
+    // Le scénario rejoué pas à pas sur la règle qu'applique `useOfferedAnswer`:
+    // la correction part de la réponse CHOISIE, jamais de la précédente
+    // correction.
+    const correct = (intent: GroceryRunsAnswer | null, sessions: CookingSessionCount) => {
+      const offer = offerableGroceryRuns({ sessions, daysToEat: 7, maxFridgeDays: 3, freezer: false });
+      return intent === null || intent === GROCERY_RUNS_ANY
+        ? intent
+        : nearestOffered(offer.values, intent);
+    };
+    let wanted: GroceryRunsAnswer | null = 3;
+    let auto: GroceryRunsAnswer | null | undefined = undefined;
+    let value: GroceryRunsAnswer | null = 3;
+    const step = (sessions: CookingSessionCount) => {
+      wanted = intentAfter({ value, wanted, auto });
+      const shown = correct(wanted ?? value, sessions);
+      if (shown !== null && shown !== value) {
+        auto = shown;
+        value = shown;
+      }
+      return value;
+    };
+    expect(step(3)).toBe(3);
+    expect(step(2)).toBe(2);
+    expect(step(3)).toBe(3);
+    // Un geste de la personne, lui, change la réponse choisie.
+    wanted = 2;
+    auto = undefined;
+    value = 2;
+    expect(step(3)).toBe(2);
   });
 });
 
@@ -302,28 +370,25 @@ describe("les deux écrans nourrissent l'offre, et avec LES MÊMES trois entrée
     }
   });
 
-  it("le formulaire commun passe style, case et fenêtre", () => {
+  it("le formulaire commun passe sessions, fenêtre et congélateur", () => {
     for (const [name, src] of [["PlanRequestFields", FIELDS]] as const) {
       const at = src.indexOf("<GroceryRunsField");
       expect(at, `${name}: le champ a disparu`).toBeGreaterThan(-1);
       const mount = src.slice(at, src.indexOf("/>", at));
-      expect(mount, `${name}: le style n'atteint pas l'offre`).toMatch(/\bstyle=\{/);
-      expect(mount, `${name}: la case n'atteint pas l'offre`).toMatch(
-        /oneCookingSession=\{/,
+      expect(mount, `${name}: les sessions n'atteignent pas l'offre`).toMatch(
+        /sessions=\{props\.cookingSessions\}/,
       );
       expect(mount, `${name}: la fenêtre n'atteint pas l'offre`).toMatch(/daysToEat=\{/);
+      expect(mount, `${name}: le congélateur n'atteint pas l'offre`).toMatch(/freezer=\{/);
     }
   });
 
-  it("⛔ ET LA CASE EST LUE AU-DESSUS DU CHAMP, pas ailleurs", () => {
+  it("⛔ ET LES SESSIONS SONT LUES AU-DESSUS DU CHAMP, pas ailleurs", () => {
     // L'ordre du formulaire EST l'ordre de la dérivation: on lit les causes
-    // avant l'effet. Une case posée SOUS la liste ferait bouger la liste
-    // au-dessus du geste qui la change.
+    // avant l'effet.
     for (const [name, src] of [["PlanRequestFields", FIELDS]] as const) {
-      expect(src.indexOf("<OneCookingSessionField"), name).toBeLessThan(
-        src.indexOf("<GroceryRunsField"),
-      );
-      expect(src.indexOf("<CookingStyleField"), name).toBeLessThan(
+      expect(src.indexOf("<CookingSessionsField"), name).toBeGreaterThan(-1);
+      expect(src.indexOf("<CookingSessionsField"), name).toBeLessThan(
         src.indexOf("<GroceryRunsField"),
       );
     }
@@ -337,7 +402,7 @@ describe("les mots existent dans les deux langues", () => {
         "plan.cooking.runs_only_one_session",
         "plan.cooking.runs_only_one_batch",
         "plan.cooking.runs_capped_days",
-        "plan.cooking.runs_capped_style",
+        "plan.cooking.runs_capped_sessions",
       ] as const
     ) {
       expect(fr[key], `fr: ${key}`).toBeTruthy();
@@ -348,34 +413,14 @@ describe("les mots existent dans les deux langues", () => {
     }
   });
 
-  it("⛔ LE MOTIF DU STYLE EXPLIQUE LA SESSION, il ne compte pas les courses", () => {
-    // ══════════════════════════════════════════════════════════════════════
-    // ⟳ 2026-09-04 (soir) — LA PHRASE COMPTAIT AU LIEU D'EXPLIQUER.
-    // ══════════════════════════════════════════════════════════════════════
-    //
-    // « le plan ne cuisine pas trois fois : une troisième course n'aurait rien
-    // à acheter ». Le nombre n'intéresse personne — ce qui manque à la
-    // personne, c'est CE QU'EST une session de cuisine, l'unité sur laquelle
-    // repose toute la question, et qui n'était dite nulle part dans l'écran.
+  it("⟳ 2026-09-25 — LE MOTIF DES SESSIONS DIT LE NOMBRE CHOISI, et la règle", () => {
+    // Le nombre est celui que la personne vient de choisir juste au-dessus: il
+    // est interpolé, jamais écrit en dur — un nombre recopié dans une phrase
+    // est un mensonge qui attend qu'on retouche la réponse.
     for (const [lang, dict] of [["fr", fr], ["en", en]] as const) {
-      const said = dict["plan.cooking.runs_capped_style"];
-      // ⛔ AUCUN NOMBRE, ni en chiffres ni en toutes lettres: le seul qui
-      // comptait était le plafond du style, une valeur de moteur.
-      expect(said, `${lang}: un chiffre est revenu`).not.toMatch(/\d/);
-      for (const word of lang === "fr" ? ["trois", "deux"] : ["three", "two"]) {
-        expect(said.toLowerCase(), `${lang}: « ${word} » est revenu`).not.toContain(
-          word,
-        );
-      }
-      // ⚠️ ET ELLE NOMME LA RÉPONSE CHOISIE, mot pour mot le libellé de
-      // l'option. Le libellé est LU du dictionnaire, jamais recopié: le jour
-      // où l'option est renommée, ce test tombe au lieu de laisser la phrase
-      // seule avec l'ancien mot.
-      const label = dict["plan.cooking.style_minimal"].split("—")[0].trim();
-      expect(
-        said.toLowerCase(),
-        `${lang}: le motif ne cite plus « ${label} »`,
-      ).toContain(label.toLowerCase());
+      const said = dict["plan.cooking.runs_capped_sessions"];
+      expect(said, lang).toContain("{k}");
+      expect(said.replace(/\{k\}/g, ""), `${lang}: un chiffre en dur`).not.toMatch(/\d/);
     }
   });
 
@@ -383,34 +428,24 @@ describe("les mots existent dans les deux langues", () => {
     // La garde qui manquait à trois lots de ce dépôt: un vocabulaire fermé
     // élargi d'un cas, et l'écran rend une clé vide sans que rien ne rougisse.
     const seen = new Set<string>();
-    for (const style of [null, "minimal", "balanced", "keen"] as const) {
-      for (const oneCookingSession of [true, false]) {
+    for (const sessions of [null, 1, 2, 3, 4] as const) {
+      for (const freezer of [true, null] as const) {
         for (const daysToEat of [1, 3, 5, 7]) {
           const { limit } = offerableGroceryRuns({
-            style,
-            oneCookingSession,
+            sessions,
             daysToEat,
             // Littéral: voir `keeping` ci-dessus.
             maxFridgeDays: 3,
-            freezer: null,
+            freezer,
           });
           if (limit !== null) seen.add(limit);
         }
       }
     }
-    // ⟳ 2026-09-21 — « style » ne borne plus seul qu'avec un congélateur:
-    // sept jours en « le moins possible » tiennent alors en deux sessions.
-    const froid = offerableGroceryRuns({
-      style: "minimal",
-      oneCookingSession: false,
-      daysToEat: 7,
-      maxFridgeDays: 3,
-      freezer: true,
-    });
-    if (froid.limit !== null) seen.add(froid.limit);
-    // ⟳ 2026-09-24 — « freezer »: sans congélateur, « une course » sort
-    // au-delà de trois jours (la boucle ci-dessus tourne avec `freezer: null`).
-    expect([...seen].sort()).toEqual(["days", "freezer", "one_session", "style"]);
+    // ⟳ 2026-09-25 — « sessions » remplace « style »: deux sessions sur sept
+    // jours avec congélateur retirent la troisième course. Et « freezer » est
+    // retiré: le congélateur est dit par le champ des sessions.
+    expect([...seen].sort()).toEqual(["days", "one_session", "sessions"]);
     for (const limit of seen) {
       expect(FIELD, `motif sans phrase: ${limit}`).toContain(`${limit}:`);
     }
@@ -429,7 +464,7 @@ describe("les mots existent dans les deux langues", () => {
 
 describe("« peu importe » est une RÉPONSE, et elle circule", () => {
   it("l'option est offerte quand il reste plusieurs cadences", () => {
-    const markup = html({ value: null, style: "keen", daysToEat: 7 });
+    const markup = html({ value: null, sessions: 4, daysToEat: 7 });
     expect(markup).toContain(`value="${GROCERY_RUNS_ANY}"`);
     // ⚠️ `en`, PAS `fr`: ce harnais rend dans la langue par défaut, et les
     // autres cas du fichier comparent déjà aux clés anglaises. `say()` refait
@@ -445,8 +480,7 @@ describe("« peu importe » est une RÉPONSE, et elle circule", () => {
     // qui n'ouvre sur rien — et deux façons de dire le même nombre.
     const markup = html({
       value: null,
-      style: "minimal",
-      oneCookingSession: true,
+      sessions: 1,
       daysToEat: 7,
     });
     expect(markup).not.toContain(`value="${GROCERY_RUNS_ANY}"`);
@@ -467,7 +501,7 @@ describe("« peu importe » est une RÉPONSE, et elle circule", () => {
     // Une valeur hors offre est rendue désactivée. « peu importe » ne nomme
     // aucune cadence, donc aucun resserrement ne peut le rendre impossible —
     // le tester contre l'offre le grillerait au premier plan court.
-    const markup = html({ value: GROCERY_RUNS_ANY, style: "keen", daysToEat: 7 });
+    const markup = html({ value: GROCERY_RUNS_ANY, sessions: 4, daysToEat: 7 });
     expect(markup).not.toMatch(
       new RegExp(`<option value="${GROCERY_RUNS_ANY}"[^>]*disabled`),
     );
@@ -495,11 +529,16 @@ describe("« peu importe » est une RÉPONSE, et elle circule", () => {
       "utf8",
     );
     expect(engine).toContain("resolveGroceryRunsAnswer(");
-    // ⛔ ET IL RÉSOUT CONTRE L'OFFRE, PAS CONTRE LE PLAFOND DU STYLE. Voir le
-    // test ci-dessous: le style ne sait rien de la FENÊTRE.
+    // ⛔ ET IL RÉSOUT CONTRE L'OFFRE, fenêtre et sessions comprises.
     expect(engine).toContain("offerableGroceryRuns({");
-    expect(engine, "le plafond du style est redevenu la source")
-      .not.toContain("COOKING_STYLE_PROFILE[style].sessionCap");
+    // ⚠️ SUR LE CODE, COMMENTAIRES RETIRÉS: l'historique du module NOMME
+    // encore `sessionCap` pour raconter pourquoi il est parti.
+    const code = engine
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .split("\n")
+      .map((line) => (line.trimStart().startsWith("//") ? "" : line))
+      .join("\n");
+    expect(code, "un plafond de style est revenu").not.toContain("sessionCap");
   });
 });
 
@@ -525,8 +564,7 @@ describe("« peu importe » vaut le HAUT DE L'OFFRE, fenêtre comprise", () => {
     resolveGroceryRunsAnswer(
       GROCERY_RUNS_ANY,
       offerableGroceryRuns({
-        style: "balanced",
-        oneCookingSession: false,
+        sessions: null,
         daysToEat,
         maxFridgeDays: 3,
         freezer: null,
@@ -549,8 +587,7 @@ describe("« peu importe » vaut le HAUT DE L'OFFRE, fenêtre comprise", () => {
     // supprimé une fois. On compare donc à l'offre elle-même, pas à un nombre.
     for (const daysToEat of [1, 2, 3, 4, 5, 6, 7]) {
       const offer = offerableGroceryRuns({
-        style: "balanced",
-        oneCookingSession: false,
+        sessions: null,
         daysToEat,
         maxFridgeDays: 3,
         freezer: null,
@@ -561,15 +598,14 @@ describe("« peu importe » vaut le HAUT DE L'OFFRE, fenêtre comprise", () => {
     }
   });
 
-  it("⛔ ET LA CASE « une seule fois » LE RAMÈNE À UN", () => {
+  it("⛔ ET « UNE FOIS » (une seule session) LE RAMÈNE À UN", () => {
     // Elle resserre l'offre à une seule valeur; « peu importe » doit la suivre,
     // sinon l'écran et le moteur diraient deux choses sur le même écran.
     expect(
       resolveGroceryRunsAnswer(
         GROCERY_RUNS_ANY,
         offerableGroceryRuns({
-          style: "keen",
-          oneCookingSession: true,
+          sessions: 1,
           daysToEat: 7,
           maxFridgeDays: 3,
           freezer: null,
@@ -582,8 +618,7 @@ describe("« peu importe » vaut le HAUT DE L'OFFRE, fenêtre comprise", () => {
     // La garde qui a un cas qui passe: « peu importe » ne doit pas devenir un
     // rabot déguisé sur une réponse que la personne a réellement donnée.
     const offer = offerableGroceryRuns({
-      style: "balanced",
-      oneCookingSession: false,
+      sessions: null,
       daysToEat: 2,
       maxFridgeDays: 3,
       freezer: null,

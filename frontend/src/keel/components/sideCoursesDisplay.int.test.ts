@@ -174,6 +174,15 @@ function occurrences(haystack: string, needle: string): number {
   return haystack.split(needle).length - 1;
 }
 
+/**
+ * ⟳ 2026-09-25 — LA LIGNE « À CÔTÉ » DU TITRE, À PLAT: le libellé est un
+ * `<span>` en encre pleine, les aliments suivent. On retire ce `<span>` pour
+ * lire la phrase entière d'un seul tenant.
+ */
+function flatSides(html: string): string {
+  return html.replace(/<span class="font-medium text-ink">([^<]*)<\/span> /g, "$1 ");
+}
+
 /** La source d'un fichier, commentaires retirés — patron du dépôt. */
 function code(rel: string): string {
   return readFileSync(resolve(__dirname, rel), "utf8")
@@ -388,30 +397,59 @@ describe("les à-côtés d'une personne se lisent sous SA boîte", () => {
     expect(tableBox.sides.map((s) => s.text).join(" ")).not.toContain("mem-");
   });
 
-  it("fr — la carte du repas rend « À côté » sous chaque couvercle, après lui", () => {
+  // ⟳ 2026-09-25 — SUR LA CARTE, « À CÔTÉ » EST LA DEUXIÈME LIGNE DU TITRE,
+  // plus un bloc sous chaque couvercle: une ligne par personne, prénom compris
+  // (sous le titre, aucun couvercle ne dit plus à qui est le fromage).
+  it("fr — la carte rend « À côté » sous le titre, une ligne par personne, avant les couvercles", () => {
     atLocale("fr");
     const html = dishCard(lunch());
-    expect(occurrences(html, `>${fr["meals.boxes.side_courses"]}<`)).toBe(2);
-    const lidThomas = html.indexOf("Thomas — ");
-    const sideThomas = html.indexOf("comté ~30 g, 1 × pomme");
-    const lidTable = html.indexOf("Christèle + Fabrice — ");
-    const sideChristele = html.indexOf("Christèle : 1 × yaourt nature");
-    const sideFabrice = html.indexOf("Fabrice : soupe de courgettes ~250 g");
-    expect(lidThomas).toBeGreaterThan(-1);
-    expect(sideThomas).toBeGreaterThan(lidThomas);
-    expect(lidTable).toBeGreaterThan(sideThomas);
-    expect(sideChristele).toBeGreaterThan(lidTable);
+    expect(occurrences(html, `>${fr["meals.boxes.side_courses"]}<`)).toBe(0);
+    expect(html).not.toContain("data-box-sides");
+    const title = flatSides(html).indexOf(">Poulet, riz et courgettes<");
+    const sideThomas = flatSides(html).indexOf(">À côté pour Thomas : comté ~30 g, 1 × pomme<");
+    const sideChristele = flatSides(html).indexOf(">À côté pour Christèle : 1 × yaourt nature<");
+    const sideFabrice = flatSides(html).indexOf(">À côté pour Fabrice : soupe de courgettes ~250 g<");
+    const firstBox = flatSides(html).indexOf("data-box-id");
+    expect(title).toBeGreaterThan(-1);
+    expect(sideThomas).toBeGreaterThan(title);
+    expect(sideChristele).toBeGreaterThan(sideThomas);
     expect(sideFabrice).toBeGreaterThan(sideChristele);
+    expect(firstBox).toBeGreaterThan(sideFabrice);
     expect(occurrences(html, `data-side-member-id="${CHRISTELE}"`)).toBe(1);
   });
 
-  it("en — la carte du repas rend « On the side »", () => {
+  it("en — la carte rend « On the side for … »", () => {
     atLocale("en");
     const html = dishCard(lunch());
-    expect(occurrences(html, `>${en["meals.boxes.side_courses"]}<`)).toBe(2);
-    expect(html).toContain("Christèle: 1 × yaourt nature");
+    expect(flatSides(html)).toContain(">On the side for Christèle: 1 × yaourt nature<");
+    expect(flatSides(html)).toContain(">On the side for Thomas: comté ~30 g, 1 × pomme<");
     expect(html).not.toContain(fr["meals.boxes.side_courses"]);
   });
+
+  it("une seule bouche à ce repas: « À côté : … », sans prénom", () => {
+    atLocale("fr");
+    const payload = lunchPayload([LUNCH_SIDES[0], LUNCH_SIDES[1]]);
+    payload.boxes = [(payload.boxes as unknown[])[0]];
+    const html = dishCard(readDishes([payload])[0]);
+    expect(flatSides(html)).toContain(">À côté : comté ~30 g, 1 × pomme<");
+    expect(html).not.toContain("À côté pour");
+  });
+
+  it("⛔ sur l'aperçu (ligne compacte FERMÉE), l'à-côté se lit, sans grammes", () => {
+    atLocale("fr");
+    const html = flatSides(dishCard(lunch(), { compact: true }));
+    const closed = html.indexOf(" hidden=\"\"");
+    const side = html.indexOf(">À côté pour Thomas : comté, pomme<");
+    expect(closed).toBeGreaterThan(-1);
+    expect(side).toBeGreaterThan(-1);
+    expect(side).toBeLessThan(closed);
+    expect(html.slice(0, closed)).not.toContain("comté ~30 g");
+    // ⟳ 2026-09-25 — OUVERTE, la carte les chiffre par type dans le geste du
+    // jour (« Fromage : comté ~30 g »), demande du propriétaire: la ligne
+    // fermée ne disait pas combien.
+    expect(html.slice(closed)).toContain("comté ~30 g");
+  });
+
 });
 
 // ---------------------------------------------------------------------------
@@ -509,7 +547,7 @@ describe("un à-côté rattaché à un plat sans boîte qui nomme la personne", 
     return readDishes([payload])[0];
   }
 
-  it("fr — la carte rend « À côté » après les ingrédients, avec les prénoms connus", () => {
+  it("fr — la carte rend « À côté » sous le titre, avec les prénoms connus", () => {
     atLocale("fr");
     const html = dishCard(tableDish(), {
       eaters: [
@@ -520,37 +558,38 @@ describe("un à-côté rattaché à un plat sans boîte qui nomme la personne", 
     const ingredient = html.indexOf(">salade verte<");
     const block = html.indexOf("data-dish-sides");
     expect(ingredient).toBeGreaterThan(-1);
-    expect(block).toBeGreaterThan(ingredient);
-    expect(html).toContain("Thomas : 1 × pomme");
-    expect(html).toContain("Christèle : 1 × yaourt nature");
+    expect(block).toBeGreaterThan(-1);
+    expect(block).toBeLessThan(ingredient);
+    expect(flatSides(html)).toContain(">À côté pour Thomas : 1 × pomme<");
+    expect(flatSides(html)).toContain(">À côté pour Christèle : 1 × yaourt nature<");
   });
 
-  it("en — même bloc, gabarit anglais", () => {
+  it("en — même ligne, gabarit anglais", () => {
     atLocale("en");
     const html = dishCard(tableDish(), {
       eaters: [{ memberId: THOMAS, name: "Thomas" }],
     });
-    expect(html).toContain(`>${en["meals.boxes.side_courses"]}<`);
-    expect(html).toContain("Thomas: 1 × pomme");
+    expect(flatSides(html)).toContain(">On the side for Thomas: 1 × pomme<");
     // Christèle n'est pas dans les mangeurs connus: ses aliments seuls.
-    expect(html).toContain(">1 × yaourt nature<");
+    expect(flatSides(html)).toContain(">On the side: 1 × yaourt nature<");
     expect(html).not.toContain("mem-christele<");
   });
 
-  it("un plat qui porte ses boîtes ne rend AUCUN bloc de ce genre", () => {
+  it("un plat qui porte ses boîtes n'a aucun à-côté « sans boîte »", () => {
     atLocale("fr");
     expect(looseSideLinesForDish(lunch(), [])).toEqual([]);
-    expect(dishCard(lunch())).not.toContain("data-dish-sides");
+    // Une seule ligne de titre, pas un second bloc.
+    expect(occurrences(dishCard(lunch()), "data-dish-sides")).toBe(1);
   });
 
-  it("un plat sans rien d'autre qu'un à-côté a quelque chose à déplier", () => {
+  it("un plat sans rien d'autre qu'un à-côté le montre sans rien à déplier", () => {
     atLocale("fr");
     const payload = lunchPayload([LUNCH_SIDES[1]]);
     payload.boxes = [];
     payload.uses = [];
-    const html = dishCard(readDishes([payload])[0], { collapsible: true });
-    expect(html).toContain("aria-expanded");
-    expect(html).toContain("1 × pomme");
+    const html = dishCard(readDishes([payload])[0]);
+    expect(html).not.toContain("aria-expanded");
+    expect(flatSides(html)).toContain(">À côté : 1 × pomme<");
   });
 });
 

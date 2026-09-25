@@ -13,16 +13,14 @@ import {
   slotMealButtonId,
 } from "./slot_meal_ask.ts";
 import { GOAL_TOKENS } from "./tokens.ts";
-import { eatingOutCellsFrom } from "./slot_meal_io.ts";
 
 /**
  * FF-062 C1 — LE REPAS D'UN CRÉNEAU DÉCLARÉ QUE LE PLAN NE COMPOSE PAS.
  *
  * ══ CE QUE CES ÉPREUVES TIENNENT ═════════════════════════════════════════
  *
- * · le déclencheur est `eating_out`, JAMAIS `away` — c'est la différence entre
- *   « je mange ailleurs » et « je suis en vacances », et la confondre ferait
- *   partir cinq questions par semaine de congés;
+ * · le déclencheur est un moment DÉCLARÉ dans le rythme que le plan ne compose
+ *   pas (les absences sont retirées en amont, par le journal);
  * · `maintenance` n'ouvre RIEN (R4);
  * · le créneau voyage DANS le jeton (R6): rien en aval ne le devine;
  * · l'heure DÉCLARÉE l'emporte sur le repli;
@@ -45,10 +43,9 @@ function base(over: Partial<Parameters<typeof decideSlotMealAsk>[0]> = {}) {
     // ⛔ VIDE, ET DÉCLARÉ. « Le plan ne compose rien » est le cas de base de ce
     // fichier — les cas `planned` sont plus bas et le posent explicitement.
     plannedToday: [],
-    dayToken: "tue",
     localHour: 14,
-    eatingOut: [{ day: "tue", slots: ["lunch"] }],
-    rhythmRaw: null,
+    // Un déjeuner déclaré, sans heure: le repli de 14h s'applique.
+    rhythmRaw: [{ slot: "lunch" }],
     askedSlotsToday: [],
     ...over,
   });
@@ -140,52 +137,6 @@ Deno.test("le mute coupe ce canal comme les cinq autres", () => {
 });
 
 // ---------------------------------------------------------------------------
-// R5 — LE DÉCLENCHEUR
-// ---------------------------------------------------------------------------
-
-Deno.test("⛔ `away` NE DÉCLENCHE RIEN — la différence avec `eating_out`", () => {
-  // LE CAS QUI SÉPARE CE CANAL D'UN PING DE VACANCES. Le lecteur ne garde que
-  // les entrées marquées `eating_out`; une semaine de congés (`away`, ou une
-  // entrée sans `kind`) ne produit AUCUNE case.
-  assertEquals(
-    eatingOutCellsFrom({
-      away_days: [
-        { day: "tue", slots: ["lunch"], kind: "away" },
-        { day: "wed", slots: ["dinner"] }, // sans `kind` ⇒ away
-      ],
-    }),
-    [],
-  );
-  assertEquals(
-    eatingOutCellsFrom({
-      away_days: [{ day: "tue", slots: ["lunch"], kind: "eating_out" }],
-    }),
-    [{ day: "tue", slots: ["lunch"] }],
-  );
-});
-
-Deno.test("une case « dehors » SANS moments ne déclenche rien", () => {
-  // `parseAwayDays` lit une entrée sans `slots` comme « toute la journée ». Ici
-  // ça n'a pas de sens: on ne pose pas six questions pour une journée entière
-  // passée dehors. Sans moments nommés, la case est ignorée.
-  assertEquals(
-    eatingOutCellsFrom({ away_days: [{ day: "tue", kind: "eating_out" }] }),
-    [],
-  );
-  assertEquals(
-    eatingOutCellsFrom({ away_days: [{ day: "tue", slots: [], kind: "eating_out" }] }),
-    [],
-  );
-});
-
-Deno.test("un autre jour que le jour courant ne déclenche rien", () => {
-  assertEquals(
-    base({ eatingOut: [{ day: "wed", slots: ["lunch"] }] }),
-    { ask: false, reason: "nothing_to_ask" },
-  );
-});
-
-// ---------------------------------------------------------------------------
 // L'HEURE
 // ---------------------------------------------------------------------------
 
@@ -223,7 +174,7 @@ Deno.test("les trois moments SANS heure de référence ne sont jamais demandés"
   for (const slot of ["snack_am", "snack_pm", "before_bed"]) {
     for (const hour of [8, 11, 14, 17, 20, 23]) {
       assertEquals(
-        base({ eatingOut: [{ day: "tue", slots: [slot] }], localHour: hour }).ask,
+        base({ rhythmRaw: [{ slot }], localHour: hour }).ask,
         false,
         `${slot} à ${hour}h`,
       );
@@ -231,7 +182,6 @@ Deno.test("les trois moments SANS heure de référence ne sont jamais demandés"
   }
   // …sauf si la personne a DÉCLARÉ une heure pour ce moment-là.
   const v = base({
-    eatingOut: [{ day: "tue", slots: ["snack_pm"] }],
     localHour: 17,
     rhythmRaw: [{ slot: "snack_pm", at: "17:00" }],
   });
@@ -243,9 +193,8 @@ Deno.test("deux créneaux éligibles: le plus RÉCENT gagne, l'autre est perdu",
   // déjeuner et parle d'un repas déjà reconstruit. On ne pose jamais deux
   // questions dans le même tick — R2 appliqué à l'intérieur d'un canal.
   const v = base({
-    eatingOut: [{ day: "tue", slots: ["breakfast", "lunch"] }],
     localHour: 14,
-    rhythmRaw: [{ slot: "breakfast", at: "13:00" }],
+    rhythmRaw: [{ slot: "breakfast", at: "13:00" }, { slot: "lunch" }],
   });
   assert(v.ask);
   if (!v.ask) return;
@@ -266,7 +215,7 @@ Deno.test("⛔ UN CRÉNEAU DÉJÀ DEMANDÉ AUJOURD'HUI NE SE REDEMANDE PAS", () 
   );
   // Un AUTRE créneau reste demandable le même jour: c'est ça, « sans plafond ».
   const v = base({
-    eatingOut: [{ day: "tue", slots: ["lunch", "dinner"] }],
+    rhythmRaw: [{ slot: "lunch" }, { slot: "dinner" }],
     localHour: 21,
     askedSlotsToday: ["lunch"],
   });
@@ -279,23 +228,21 @@ Deno.test("⛔ UN CRÉNEAU DÉJÀ DEMANDÉ AUJOURD'HUI NE SE REDEMANDE PAS", () 
 // LES MOTS
 // ---------------------------------------------------------------------------
 
-Deno.test("la question porte QUATRE options, et chacune nomme son créneau", () => {
+Deno.test("la question porte TROIS options, et chacune nomme son créneau", () => {
   for (const locale of ["en-US", "fr-FR"]) {
     const m = renderSlotMealAsk({
       locale,
       localDate: TUESDAY,
       slot: "lunch",
       origin: "uncovered",
-      eatingOut: true,
     });
-    // ⟳ QUATRE, ET PAS `SLOT_MEAL_ACTIONS.length`. Le vocabulaire porte six
-    // actions depuis que la forme COMPOSÉE existe (`ate`, `notplanned`), et
-    // aucune question ne les offre toutes: lier le compte à la taille du
-    // vocabulaire ferait rougir ce test à chaque action ajoutée à l'AUTRE
-    // forme. C'est le nombre de boutons de CETTE question-ci.
-    assertEquals(m.buttons.length, 4);
+    // ⟳ TROIS, ET PAS `SLOT_MEAL_ACTIONS.length`: le vocabulaire garde `mute`
+    // et la forme composée pour relire les bulles déjà envoyées, et aucune
+    // question neuve ne les offre. C'est le nombre de boutons de CETTE
+    // question-ci.
+    assertEquals(m.buttons.length, 3);
     const actions = m.buttons.map((b) => parseSlotMealButton(b.payload)?.action);
-    assertEquals(actions, ["photo", "describe", "skip", "mute"]);
+    assertEquals(actions, ["photo", "describe", "skip"]);
     for (const b of m.buttons) {
       const tap = parseSlotMealButton(b.payload);
       assertEquals(tap?.slot, "lunch", `${locale}: ${b.payload}`);
@@ -423,21 +370,26 @@ Deno.test("la décision NOMME l'extinction, et pas `muted`", () => {
   );
 });
 
-Deno.test("le bouton d'extinction est SOUS la question, et il est le dernier", () => {
-  const m = renderSlotMealAsk({
-    locale: "fr-FR",
-    localDate: TUESDAY,
-    slot: "lunch",
-    origin: "uncovered",
-    eatingOut: true,
-  });
-  const last = m.buttons[m.buttons.length - 1];
-  assertEquals(parseSlotMealButton(last.payload)?.action, "mute");
-  // ⛔ LE LIBELLÉ NE PROMET QUE CE QU'IL FAIT. « Arrêter le suivi » ferait
-  // couper la mesure à quelqu'un qui voulait le silence, et il ne le saurait
-  // pas. Il éteint une QUESTION.
-  assertEquals(last.label, "Ne plus me demander à chaque repas");
-  assertEquals(/suivi|tracking/i.test(last.label), false, last.label);
+Deno.test("⟳ 2026-09-24 — AUCUNE question n'offre l'extinction, sous aucune forme", () => {
+  // Décision du propriétaire: le bouton promettait « à chaque repas » alors que
+  // la question ne part que sur un moment non prévu, il coupait aussi la
+  // question du soir, et le rallumer demande d'aller dans « Notifications ».
+  for (const locale of ["en-US", "fr-FR"]) {
+    const forms = [
+      renderSlotMealAsk({ locale, localDate: TUESDAY, slot: "lunch", origin: "uncovered" }),
+      renderSlotMealAsk({
+        locale,
+        localDate: TUESDAY,
+        slot: "lunch",
+        origin: "planned",
+        planned: PLANNED_LUNCH,
+      }),
+    ];
+    for (const m of forms) {
+      const actions = m.buttons.map((b) => parseSlotMealButton(b.payload)?.action);
+      assertEquals(actions.includes("mute"), false, `${locale}: ${actions}`);
+    }
+  }
 });
 
 Deno.test("l'accusé d'extinction ne prétend pas quand rien n'est écrit", () => {
@@ -469,7 +421,6 @@ const PLANNED_LUNCH = {
 
 Deno.test("⟳ 2026-09-23 — CRÉNEAU COMPOSÉ: plus de question par repas, la question du soir le couvre", () => {
   const v = base({
-    eatingOut: [],
     plannedToday: [PLANNED_LUNCH],
     rhythmRaw: [{ slot: "lunch", at: "13:00" }],
   });
@@ -491,19 +442,17 @@ Deno.test("une question par repas DÉJÀ ENVOYÉE garde ses boutons oui/non lisi
   // ⛔ LE PLAT EST NOMMÉ. Un « Oui » qui coche trois lignes anonymes est une
   // signature en blanc.
   assert(m.body.includes(PLANNED_LUNCH.title), m.body);
-  assertEquals(m.buttons.length, 3);
+  assertEquals(m.buttons.length, 2);
   const actions = m.buttons.map((b) => parseSlotMealButton(b.payload)?.action);
-  assertEquals(actions, ["ate", "notplanned", "mute"]);
+  assertEquals(actions, ["ate", "notplanned"]);
 
-  // Les deux réponses portent DE QUOI on parle; l'extinction non — elle ne
-  // coche rien.
-  const [yes, no, mute] = m.buttons.map((b) => parseSlotMealButton(b.payload));
+  // Les deux réponses portent DE QUOI on parle.
+  const [yes, no] = m.buttons.map((b) => parseSlotMealButton(b.payload));
   assertEquals(yes?.plan, {
     mealId: PLANNED_LUNCH.mealId,
     dishIndexes: [1, 2],
   });
   assertEquals(no?.plan?.dishIndexes, [1, 2]);
-  assertEquals(mute?.plan, null);
 });
 
 Deno.test("⟳ CRÉNEAU DÉCLARÉ MAIS NON COMPOSÉ — « tu as mangé quoi ? »", () => {
@@ -512,39 +461,21 @@ Deno.test("⟳ CRÉNEAU DÉCLARÉ MAIS NON COMPOSÉ — « tu as mangé quoi ? �
   // rien à midi n'était JAMAIS interrogé: ni le plan, ni la question, ni le
   // bilan ne savaient ce qu'il avait mangé.
   const v = base({
-    eatingOut: [],
     plannedToday: [],
     rhythmRaw: [{ slot: "lunch", at: "13:00" }],
   });
   assert(v.ask);
   if (!v.ask || v.origin !== "uncovered") return;
   assertEquals(v.slot, "lunch");
-  assertEquals(v.eatingOut, false);
 
   const m = renderSlotMealAsk({
     locale: "fr-FR",
     localDate: TUESDAY,
     slot: "lunch",
     origin: "uncovered",
-    eatingOut: false,
   });
   assert(m.body.includes("Rien n'était prévu"), m.body);
-  assertEquals(m.buttons.length, 4);
-});
-
-Deno.test("⛔ « DEHORS » L'EMPORTE SUR « COMPOSÉ »", () => {
-  // La personne a DIT qu'elle mangeait dehors: le plat composé pour ce
-  // moment-là est un reste de composition, pas une prévision. Lui demander
-  // « tu as mangé ton poulet prévu ? » serait lui opposer une consigne qu'elle
-  // a déjà annulée.
-  const v = base({
-    eatingOut: [{ day: "tue", slots: ["lunch"] }],
-    plannedToday: [PLANNED_LUNCH],
-    rhythmRaw: [{ slot: "lunch", at: "13:00" }],
-  });
-  assert(v.ask);
-  if (!v.ask || v.origin !== "uncovered") return;
-  assertEquals(v.eatingOut, true);
+  assertEquals(m.buttons.length, 3);
 });
 
 Deno.test("un créneau composé dont tout est COCHÉ ne se demande pas", () => {
@@ -553,7 +484,6 @@ Deno.test("un créneau composé dont tout est COCHÉ ne se demande pas", () => {
   // pas, et c'est la garde qui remplace l'ancienne collision avec la bande du
   // soir (désarmée depuis le 2026-09-07).
   const v = base({
-    eatingOut: [],
     plannedToday: [{ ...PLANNED_LUNCH, dishIndexes: [] }],
     rhythmRaw: null,
   });

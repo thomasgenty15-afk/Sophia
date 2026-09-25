@@ -378,7 +378,7 @@ describe("readDishes lit les contenants du repas", () => {
     // `solo_boxes_test.ts`. Cet écran-ci reçoit une ligne de base sans savoir
     // d'où elle vient : y refaire la décision, ce serait la prendre à l'aveugle.
     //
-    // Le cas qui passe vivait déjà dans `oneCookingSessionField.int.test.ts`
+    // Le cas qui passe vivait déjà dans `cookingSessionsField.int.test.ts` (ex-`oneCookingSessionField`)
     // (« un contenant solo (aucun nom) est LU, pas jeté ») : les deux tests
     // affirmaient l'inverse l'un de l'autre, et c'est celui-ci qui était rouge.
     const nobody = readDishes([{
@@ -584,14 +584,6 @@ describe("le Boxing rend ce qu'il faut mettre dans chaque bac", () => {
     );
     expect(one).toContain(en["meals.boxes.count_one"]);
     expect(one).not.toContain(en["meals.boxes.count_many"].replace("{n}", "1"));
-  });
-
-  it("dit de QUEL gramme il parle — une seule fois, en tête du bloc", () => {
-    // Trois centimètres plus haut, les casseroles affichent du CRU pour la
-    // fournée entière. Deux séries de nombres voisines sans cette ligne, c'est
-    // le prochain « on comprend pas à quoi ça correspond ».
-    const text = textOf(createElement(BoxTable, { lines, context: "session" }));
-    expect(occurrences(text, en["meals.boxes.ready_not_raw"])).toBe(1);
   });
 
   it("montre chaque item avec ses grammes", () => {
@@ -892,7 +884,8 @@ describe("la carte d'un repas NOMME ses contenants, et ne pèse rien", () => {
     // la même suite de mots à l'écran: deux constructions divergentes feraient
     // échouer cette comparaison-là, sur l'objet dont le seul travail est de
     // trancher. Le libellé est donc construit UNE fois (`boxLidLabel`) et rendu
-    // tel quel des deux côtés.
+    // tel quel des deux côtés — sur UNE ligne (⟳ 2026-09-25, l'essai sur trois
+    // lignes a été défait).
     const inBoxing = textOf(createElement(BoxTable, { lines: boxes, context: "session" }));
     const onCard = textOf(createElement(DishCard, { slotBadge: false, dish: twoBoxDish(), boxes }));
     for (const line of boxes) {
@@ -1070,17 +1063,16 @@ describe("le jour suit l'ordre des gestes", () => {
     const fold = card.indexOf("{open && hasBody && (");
     const preps = card.indexOf("{preps.map((prep) => (");
     const boxes = card.indexOf("<BoxingFold");
-    // ⟳ 2026-09-23 — une seule recette ⇒ pas de déroulé global (il redirait sa
-    // méthode): la garde porte aussi le nombre de préparations.
-    const run = card.indexOf("{session.run_through && preps.length !== 1 && (");
+    // ⟳ 2026-09-25 — le déroulé global est un bouton AU BOUT DE LA LIGNE
+    // « Préparation » (une bulle), plus une section entre les recettes et le
+    // boxing. Une seule recette ⇒ pas de déroulé (il redirait sa méthode).
+    const run = card.indexOf("action={session.run_through && preps.length !== 1");
     expect(fold, "le pli a disparu").toBeGreaterThan(-1);
-    // Les trois morceaux sont DANS le pli, et dans cet ordre: les casseroles,
-    // puis le DÉROULÉ GLOBAL qui ordonne les gestes entre elles, PUIS dans quoi
-    // on répartit. ⟳ 2026-09-23 — le déroulé passait APRÈS le boxing; demandé:
-    // « en bas des plats et leurs recettes », avant la pesée.
-    expect(preps).toBeGreaterThan(fold);
-    expect(run).toBeGreaterThan(preps);
-    expect(boxes).toBeGreaterThan(run);
+    // DANS le pli, et dans cet ordre: la section « Préparation » (son bouton de
+    // déroulé en tête), ses casseroles, PUIS dans quoi on répartit.
+    expect(run).toBeGreaterThan(fold);
+    expect(preps).toBeGreaterThan(run);
+    expect(boxes).toBeGreaterThan(preps);
     // La pesée lit la valeur DÉJÀ calculée pour `hasBody`: deux appels à
     // `boxLinesForSession` divergeraient le jour où l'un des deux change.
     expect(card).toContain("lines={boxLines}");
@@ -1107,7 +1099,9 @@ describe("le jour suit l'ordre des gestes", () => {
       src.indexOf("function DaySessionCard("),
       src.indexOf("function DayGroceriesCard("),
     );
-    expect(card).toContain("{hasBody && (");
+    // ⟳ 2026-09-25 — le bouton du haut ne se rend que fermé (« Masquer le
+    // détail » est en bas, `FoldCloser`); la garde reste `hasBody`.
+    expect(card).toContain("{hasBody && !open && (");
     expect(card).toContain("const hasBody = preps.length > 0 || boxLines.length > 0 ||");
     expect(card).toContain("Boolean(session.run_through)");
   });
@@ -1300,8 +1294,8 @@ describe("le Boxing dit ce qui part au congélateur", () => {
 // ⟳ LOT F (2026-09-04) — LE KCAL SUR LE COUVERCLE À UN NOM, ET NULLE PART AILLEURS.
 describe("BoxTable — le kcal d'un contenant à un nom", () => {
   const lines: BoxLine[] = [
-    { id: "box_marc", eaters: ["Marc"], eatersLabel: "Marc", eaterCount: 1, shared: false, lid: "Marc", meal: "sam. midi", dish: "Poulet", items: [], sides: [], total: 350, frozen: false, partial: false, restOnTheDay: false, fromOtherSessions: [] },
-    { id: "box_table", eaters: ["Julie", "Tom"], eatersLabel: "Julie, Tom", eaterCount: 2, shared: true, lid: "La table", meal: "sam. midi", dish: "Poulet", items: [], sides: [], total: 700, frozen: false, partial: false, restOnTheDay: false, fromOtherSessions: [] },
+    { id: "box_marc", eaters: ["Marc"], eatersLabel: "Marc", eaterCount: 1, shared: false, lid: "Marc", meal: "sam. midi", dish: "Poulet", items: [], sides: [], total: 350, frozen: false, partial: false, fromOtherSessions: [] },
+    { id: "box_table", eaters: ["Julie", "Tom"], eatersLabel: "Julie, Tom", eaterCount: 2, shared: true, lid: "La table", meal: "sam. midi", dish: "Poulet", items: [], sides: [], total: 700, frozen: false, partial: false, fromOtherSessions: [] },
   ];
   const energy = (id: string) =>
     id === "box_marc" || id === "box_table"
@@ -1392,7 +1386,9 @@ describe("⟳ 2026-09-16 — le contenant d'une session ne tient que les parts d
     expect(boxLinesForSession(["prep_lunch_wed"], [freshOnly], ROSTER, [])).toEqual([]);
   });
 
-  it("à l'écran : un contenant partiel dit que le reste se fait le jour même, et ne porte PAS les kcal du repas", () => {
+  // ⟳ 2026-09-25 — la mention « le reste se prépare le jour même » est retirée
+  // (sur demande); reste la garde du kcal.
+  it("à l'écran : un contenant partiel ne porte PAS les kcal du repas", () => {
     const lines = boxLinesForSession(["prep_lunch_wed"], [assembledLunch()], ROSTER, []);
     const energy = (id: string) => (id === "box_thu_lunch_peregrine" ? { kcal: 1213 } : null);
     const text = decode(textOf(createElement(BoxTable, {
@@ -1400,9 +1396,7 @@ describe("⟳ 2026-09-16 — le contenant d'une session ne tient que les parts d
       context: "session",
       boxEnergy: energy as never,
     })));
-    expect(text).toContain(en["meals.boxes.rest_on_the_day"]);
     expect(text).not.toContain("1213");
     expect(text).not.toContain("tortilla");
-    expect(fr["meals.boxes.rest_on_the_day"]).toBeTruthy();
   });
 });

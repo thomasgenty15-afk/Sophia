@@ -394,7 +394,7 @@ Deno.test("SANS HABITUDE, LE BRIEF EST CELUI D'AVANT LE LOT G, À L'OCTET PRÈS"
   assertEquals(
     brief,
     [
-      "HOUSEHOLD SERVING PLAN — one cooking session, portions that differ.",
+      "HOUSEHOLD SERVING PLAN — the same dishes for the whole table, portions that differ.",
       "Cook ONE set of preparations for everyone. Do NOT propose separate dishes.",
       "For each person below, give a short serving instruction: how much of which",
       "component goes on their plate, and which side is added or dropped.",

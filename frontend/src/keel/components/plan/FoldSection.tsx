@@ -19,54 +19,157 @@ import { BoxTable } from "./BoxTable";
 // `tone="tinted"` sert le « Déroulé global »: une zone teintée, pour qu'on voie
 // au premier regard que ce n'est pas une préparation de plus.
 
+/** Les icônes des sections: une casserole, une boîte, une liste d'étapes. */
+export type FoldIcon = "pot" | "box" | "steps";
+
+function FoldIconGlyph({ icon }: { icon: FoldIcon }) {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 16 16"
+      className="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      {icon === "pot" && (
+        <>
+          <path d="M3 7h10v3.5A2.5 2.5 0 0 1 10.5 13h-5A2.5 2.5 0 0 1 3 10.5V7Z" />
+          <path d="M1.5 7h13" />
+          <path d="M6.5 2.5c-.5.6-.5 1.4 0 2M9.5 2.5c-.5.6-.5 1.4 0 2" />
+        </>
+      )}
+      {icon === "box" && (
+        <>
+          <path d="M2.5 6h11v6.5a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1V6Z" />
+          <path d="M1.75 3.5h12.5V6H1.75z" />
+          <path d="M6.5 8.75h3" />
+        </>
+      )}
+      {icon === "steps" && (
+        <>
+          <path d="M6 4h7.5M6 8h7.5M6 12h7.5" />
+          <path d="M2.5 4h.01M2.5 8h.01M2.5 12h.01" strokeWidth="2.2" />
+        </>
+      )}
+    </svg>
+  );
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ 2026-09-25 — UNE SECTION = UNE TUILE QU'ON OUVRE.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * « C'est pas hyper clair cette vue-là »: deux lignes de texte séparées par
+ * des filets, un « ▾ » de 10 px au bord droit — rien ne disait qu'on pouvait
+ * cliquer, ni ce qu'il y avait dedans. Chaque section est maintenant une tuile
+ * bordée: une icône dans un carré `fig-100`, le titre et, dessous, ce que la
+ * section contient; à droite la pastille ronde à chevron — la même que la
+ * ligne d'un plat sur l'aperçu (`DishCard`, `compact`), donc un geste que la
+ * personne connaît déjà. Toute la tuile réagit au survol.
+ *
+ * ⚠️ LE TITRE EST LE BOUTON (clavier, `aria-expanded`); la pastille est un
+ * second déclencheur pour la souris, hors tabulation. Un contrôle au bout de
+ * la ligne (`action`: le « Déroulé global ») vit ENTRE les deux: un bouton
+ * dans un bouton n'est pas du HTML valide.
+ * ⚠️ L'ANNEAU DE FOCUS EST PORTÉ PAR LA TUILE (`data-row-toggle`, règle hors
+ * `@layer` dans `tokens.css`): le bouton seul n'en dessinait qu'un morceau.
+ */
 export default function FoldSection({
   title,
   meta,
   tone,
+  icon,
+  defaultOpen = false,
+  action,
   children,
 }: {
   title: string;
-  /** À droite du titre, en discret: une durée, un compte. `null` = rien. */
+  /** Sous le titre, en discret: ce que la section contient, un compte. `null` = rien. */
   meta: string | null;
   tone: "plain" | "tinted";
+  icon: FoldIcon;
+  /** ⟳ 2026-09-25 — ouverte au montage (la « Préparation » d'une session). */
+  defaultOpen?: boolean;
+  /** ⟳ 2026-09-25 — un contrôle au bout de la ligne, avant la pastille. */
+  action?: React.ReactNode;
   children: React.ReactNode;
 }) {
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = React.useState(defaultOpen);
   const panelId = React.useId();
+  const toggle = () => setOpen((v) => !v);
   return (
     <div
-      className={tone === "tinted"
-        ? "mt-3 rounded-card border border-fig-300 bg-fig-50 px-3 py-2"
-        : "mt-3 border-t border-line pt-3"}
+      className={`group/fold mt-3 rounded-card border has-[[data-row-toggle]:focus-visible]:outline-2 has-[[data-row-toggle]:focus-visible]:outline-offset-2 has-[[data-row-toggle]:focus-visible]:outline-fig-600 ${
+        tone === "tinted" ? "border-fig-300 bg-fig-50" : "border-line bg-paper"
+      }`}
     >
-      <button
-        type="button"
-        aria-expanded={open}
-        aria-controls={panelId}
-        onClick={() => setOpen((v) => !v)}
-        className="flex min-h-6 w-full items-baseline justify-between gap-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-fig-600"
+      <div
+        className={`flex items-center gap-3 rounded-card px-3 py-2.5 transition-colors ${
+          tone === "tinted" ? "hover:bg-fig-100" : "hover:bg-paper-2"
+        }`}
       >
-        <span className="min-w-0 break-words">
-          <span className="text-sm font-semibold text-ink">{title}</span>
-          {meta && (
-            <span className="ml-2 text-xs font-normal tabular-nums text-ink-soft">
-              {meta}
-            </span>
-          )}
-        </span>
-        <span
-          aria-hidden
-          className={`shrink-0 text-ink-soft transition-transform ${open ? "rotate-180" : ""}`}
+        <button
+          type="button"
+          data-row-toggle
+          aria-expanded={open}
+          aria-controls={panelId}
+          onClick={toggle}
+          className="flex min-h-8 min-w-0 flex-1 items-center gap-3 text-left"
         >
-          ▾
-        </span>
-      </button>
+          <span
+            aria-hidden="true"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-part bg-fig-100 text-fig-700"
+          >
+            <FoldIconGlyph icon={icon} />
+          </span>
+          <span className="min-w-0 break-words">
+            <span className="block text-sm font-semibold text-ink">{title}</span>
+            {meta && (
+              <span className="block text-xs tabular-nums text-ink-soft">{meta}</span>
+            )}
+          </span>
+        </button>
+        {action}
+        <button
+          type="button"
+          tabIndex={-1}
+          aria-hidden="true"
+          onClick={toggle}
+          className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border transition-colors ${
+            open
+              ? "border-fig-700 bg-fig-50 text-fig-700"
+              : "border-line-strong text-ink-soft group-hover/fold:border-ink group-hover/fold:text-ink"
+          }`}
+        >
+          <svg
+            viewBox="0 0 16 16"
+            className={`h-3.5 w-3.5 transition-transform ${open ? "rotate-90" : ""}`}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M6 3.5 10.5 8 6 12.5" />
+          </svg>
+        </button>
+      </div>
       {/* ⚠️ LE CONTENU EST TOUJOURS RENDU, MASQUÉ PAR `hidden` — le patron du
           pli de `DishCard`. Replié, rien ne se voit ni ne se lit (`hidden` le
           retire aussi de l'arbre d'accessibilité), mais le document garde ses
           chiffres: les épreuves qui lisent le rendu d'une carte continuent de
           voir ce qu'elle porte. */}
-      <div id={panelId} className="mt-2" hidden={!open}>{children}</div>
+      <div
+        id={panelId}
+        className={`border-t px-3 pb-3 pt-3 ${tone === "tinted" ? "border-fig-300" : "border-line"}`}
+        hidden={!open}
+      >
+        {children}
+      </div>
     </div>
   );
 }
@@ -94,6 +197,7 @@ export function BoxingFold({
         ? `${count} ${mealCopy("meals.boxes.freeze_count", { n: frozen })}`
         : count}
       tone="plain"
+      icon="box"
     >
       <BoxTable lines={lines} context="session" boxEnergy={boxEnergy} headless />
     </FoldSection>

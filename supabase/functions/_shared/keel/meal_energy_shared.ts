@@ -20,7 +20,7 @@ import {
   foldRetiredGoal,
 } from "./tokens.ts";
 import { latest, loadStudentBody } from "./student_body_io.ts";
-import { EATING_OCCASIONS, parseAwayDays } from "./meal_generation.ts";
+import { parseAwayDays } from "./meal_generation.ts";
 import {
   dayEnergyFor,
   estimatedMaintenanceKcal,
@@ -58,37 +58,9 @@ export interface PlanRow {
 // continue d'écrire `member_deltas` (valeur historique); plus personne ne les
 // lit. Voir `docs/fonctionnalites/le-foyer/FF-043-la-resolution-foyer.md`.
 
-export function readViewerMealsOut(
-  row: PlanRow,
-  viewerMemberId: string | null,
-): Map<string | null, number> {
-  const out = new Map<string | null, number>();
-  if (row.plan_kind !== "household" || !viewerMemberId) return out;
-  const gf = (row.generated_from ?? {}) as Record<string, unknown>;
-  const household = (gf.household ?? {}) as Record<string, unknown>;
-  const presence = (household.presence ?? {}) as Record<string, unknown>;
-  const members = presence.members;
-  if (!Array.isArray(members)) return out;
-  for (const entry of members) {
-    if (!entry || typeof entry !== "object") continue;
-    const m = entry as Record<string, unknown>;
-    if (String(m.member_id ?? "").trim() !== viewerMemberId) continue;
-    const cells = m.eating_out;
-    if (!Array.isArray(cells)) continue;
-    for (const cell of cells) {
-      if (!cell || typeof cell !== "object") continue;
-      const c = cell as Record<string, unknown>;
-      const day = String(c.day ?? "").trim();
-      if (!day) continue;
-      const slots = Array.isArray(c.slots) ? c.slots.length : 0;
-      out.set(
-        day,
-        (out.get(day) ?? 0) + (slots > 0 ? slots : EATING_OCCASIONS.length),
-      );
-    }
-  }
-  return out;
-}
+// ⟳ 2026-09-24 — `readViewerMealsOut` EST PARTI AVEC L'ÉTAT « DEHORS »: il
+// comptait les cases `eating_out` de la trace du foyer. Les traces anciennes
+// en portent encore; plus rien ne les lit.
 
 export function readViewerAway(
   row: PlanRow,
@@ -108,7 +80,6 @@ export function readViewerAway(
       effective: parseAwayDays(m.away),
       self: [],
       household: [],
-      eatingOut: parseAwayDays(m.eating_out),
     };
   }
   return null;

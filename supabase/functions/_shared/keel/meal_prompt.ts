@@ -730,6 +730,11 @@ export function buildMealPrompt(args: {
       firstDayCookable: args.firstDayCookable,
     }),
   ];
+  // ⟳ 2026-09-25 — les jours de cuisine, dédoublonnés, dans l'ordre de la
+  // fenêtre: ceux que la ligne du nombre de sessions nomme.
+  const chosenCookDays = (args.daysToFill ?? []).filter((d, i, all) =>
+    effectiveCookDays.includes(d) && all.indexOf(d) === i
+  );
   const singleSessionDay = args.oneCookingSession
     ? singleSessionCookDay({
       window: args.daysToFill ?? [],
@@ -946,8 +951,21 @@ export function buildMealPrompt(args: {
     ...rawReachLines(windowDays, args.groceryCadence),
     ...(args.cookingTimeMin
       ? [
-        `time per cooking session: about ${args.cookingTimeMin} minutes. A ` +
-        "session that does not fit is a session they skip.",
+        // ⟳ 2026-09-25 — UN MAXIMUM QUAND LA PERSONNE A CHOISI UNE PLAGE. Le
+        // nombre est la borne haute de « 1 h à 2 h » (`cooking_time_min`), et
+        // la consigne système dit déjà « the session fits inside it. It is not
+        // a target ». « about 120 minutes » se lisait comme une cible, à côté
+        // d'une règle qui en fait un plafond. Sans plan dérivé (`groceryCadence`
+        // nul), la phrase d'avant, au caractère près.
+        // ⟳ 2026-09-25 (soir) — PLUS DE PLAGE: la personne choisit une durée
+        // « environ » (30 min … 2 h 30). Le nombre reste un plafond pour le
+        // modèle; le dépassement toléré est l'affaire de `plan_feasibility.ts`.
+        args.groceryCadence !== null
+          ? `time per cooking session: at most ${args.cookingTimeMin} minutes -- ` +
+            "the time they chose. A session that does not fit is a " +
+            "session they skip."
+          : `time per cooking session: about ${args.cookingTimeMin} minutes. A ` +
+            "session that does not fit is a session they skip.",
       ]
       : []),
     // ══════════════════════════════════════════════════════════════════════
@@ -1576,10 +1594,26 @@ export function buildMealPrompt(args: {
         "else eats nothing. Where a block below orders someone a dish of " +
         "their own, write BOTH dishes on that cell: the table's, and theirs.",
         // `baseCap`, PAS `cap` — voir les deux nombres en tête de fonction.
-        `cooking sessions: at most ${batchSessionBudget(baseCap)} for the whole ` +
-        "stretch. Most lunches and dinners must therefore come from BATCHES — " +
-        "one cooking session, several servings, several days, declared in " +
-        "`batch`. Seventeen separately-cooked dishes is not a plan anybody cooks.",
+        //
+        // ⟳ 2026-09-25 — LE NOMBRE QU'ILS ONT CHOISI, QUAND ILS L'ONT CHOISI.
+        // Mesuré sur `a0481b9c`: la personne avait demandé deux sessions, la
+        // consigne nommait vendredi et dimanche… et disait « at most 7 » dix
+        // lignes plus bas, pendant que la consigne système conseille « two or
+        // three sessions in a week ». Trois nombres pour une réponse. Le nombre
+        // choisi est dit ici, avec SES jours dans la même phrase (une promesse
+        // loin de sa clé ne tient pas), et il remplace le conseil général.
+        // Sans plan dérivé (`groceryCadence` nul), la phrase d'avant.
+        args.groceryCadence !== null
+          ? `cooking sessions: exactly ${args.groceryCadence.sessions} for the whole ` +
+            `stretch -- the number they chose` +
+            (chosenCookDays.length > 0 ? `, on ${chosenCookDays.join(", ")}` : "") +
+            ". This replaces any general advice on how many sessions to aim for. " +
+            "Most lunches and dinners must therefore come from BATCHES — one " +
+            "cooking session, several servings, several days, declared in `batch`."
+          : `cooking sessions: at most ${batchSessionBudget(baseCap)} for the whole ` +
+            "stretch. Most lunches and dinners must therefore come from BATCHES — " +
+            "one cooking session, several servings, several days, declared in " +
+            "`batch`. Seventeen separately-cooked dishes is not a plan anybody cooks.",
         // ── ⛔ UNE RECETTE SE CUISINE UNE FOIS DANS LA FENÊTRE — 2026-09-07 ──
         //
         // Mesuré sur le run `be373339…` (foyer de trois, six jours): TROIS
@@ -1606,6 +1640,23 @@ export function buildMealPrompt(args: {
         "muffins\") or swapping one vegetable does not make it a different " +
         "one. Breakfasts count like any other meal. When the same slot needs " +
         "covering again later in the stretch, cook something else.",
+        // ⟳ 2026-09-25 — LA MÊME RÈGLE, DITE POUR CE QU'ELLE N'ATTRAPAIT PAS.
+        // Mesuré sur `54aec009` (une personne, sept jours, trois sessions): le
+        // couscous cuit dans les TROIS sessions, deux fois le vendredi dans
+        // deux casseroles; le haut de cuisse de poulet dans quatre des six
+        // plats cuisinés (9 déjeuners et dîners sur 14); le même goûter sept
+        // jours de suite. Sur les 16 plans des 8 jours d'avant: 6 cuisaient un
+        // féculent dans plusieurs sessions, 4 le cuisaient deux fois dans la
+        // même, 3 mettaient une protéine dans trois préparations ou plus, 2
+        // servaient le même goûter trois jours de suite. Chaque cas est dit avec
+        // son nombre: une règle qualitative est appliquée quand ça arrange.
+        "The same holds for what goes around the batches. Each starch -- rice, " +
+        "pasta, couscous, potatoes, bulgur, quinoa, barley -- is cooked in ONE " +
+        "session of the stretch, in ONE pot: two dishes of that session that " +
+        "take it share that pot, and another session cooks another starch. A " +
+        "protein is the main of at most TWO preparations in the stretch: chicken " +
+        "in two sessions means the third one cooks something else. A breakfast " +
+        "or a snack is never the same three days in a row.",
       ]
       : []),
     args.slot ? `meal: ${args.slot}` : "meal: whichever fits",

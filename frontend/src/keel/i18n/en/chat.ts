@@ -28,6 +28,7 @@ export const enChat = {
   // Le libellé est le MÊME pour les trois: il dit qui a ouvert la bouche, pas
   // pourquoi — la raison est dans le message lui-même.
   "chat.proactive.label": "Sophia reached out",
+  "chat.answer.kicker": "Your answer",
   "chat.unread.aria": "Unread messages from Sophia: {count}",
 
   // Les réglages de la bulle. `proactive_muted_at` existait, la politique de

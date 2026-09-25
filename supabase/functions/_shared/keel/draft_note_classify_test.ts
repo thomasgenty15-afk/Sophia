@@ -587,6 +587,8 @@ Deno.test("les DIX listes vides sont une réponse correcte; une liste ABSENTE es
     safety: [],
     // ⟳ 2026-09-23 — ONZE: `side_courses`, les à-côtés. Même raison.
     side_courses: [],
+    // ⟳ 2026-09-25 — DOUZE: `swaps`, « à la place de X, mets Y ». Même raison.
+    swaps: [],
   });
   assert(empty.ok);
   assertEquals(empty.classification.listsMissing, []);
@@ -604,6 +606,7 @@ Deno.test("les DIX listes vides sont une réponse correcte; une liste ABSENTE es
     "clarify",
     "safety",
     "side_courses",
+    "swaps",
   ]);
 });
 
@@ -657,6 +660,7 @@ Deno.test("LE COMPTEUR PAR PORTE se lit d'un bloc, et les agrégats sont des som
     clarify: [],
     safety: [],
     side_courses: [],
+    swaps: [],
   });
   const t = draftNoteClassifyTrace(out.classification);
   // ⑧ — la case de ce plan-ci: une gardée, une refusée (moment illisible).
@@ -1903,43 +1907,47 @@ async function persistWith(
   return { res, trace, field };
 }
 
-Deno.test("⛔ « TROP LONG » AVEC UN STYLE DÉCLARÉ: c'est LE STYLE qui descend d'un cran", async () => {
+Deno.test("⛔ « TROP LONG »: c'est LA DURÉE PAR SESSION qui descend d'un cran", async () => {
   const { res, field } = await persistWith(
     SETTINGS_ONLY("time", "down"),
-    { cooking_style: "balanced" },
+    { cooking_time_min: 120, cooking_style: "balanced" },
   );
   assertEquals(res.classification.settings.kept, 1);
   assert(field, "la porte des champs n'a pas été appelée: le tiroir 5 est vert et sans effet");
-  // Le cadran unique (A2): quand un style est déclaré, `cooking_time_min` et
-  // `recipe_difficulty` ne bougent PAS — ils sont dérivés du style.
-  assertEquals(field!.params.p_patch, { cooking_style: "minimal" });
-  assertEquals(field!.params.p_expected, { cooking_style: "balanced" });
+  // ⟳ 2026-09-25 — le cadran unique est la plage de temps; un style resté en
+  // base ne bouge plus et ne décide plus rien.
+  // ⟳ 2026-09-25 (soir) — le cran sous 2 h est 1 h 30.
+  assertEquals(field!.params.p_patch, { cooking_time_min: 90 });
+  assertEquals(field!.params.p_expected, { cooking_time_min: 120 });
   const journal = field!.params.p_changes as Array<Record<string, unknown>>;
   assertEquals(journal.length, 1);
-  assertEquals(journal[0].field, "cooking_style");
-  assertEquals(journal[0].previous, "balanced");
-  assertEquals(journal[0].next, "minimal");
+  assertEquals(journal[0].field, "cooking_time_min");
+  assertEquals(journal[0].previous, 120);
+  assertEquals(journal[0].next, 90);
   // ⛔ LA SOURCE ET LA CITATION SONT LES NÔTRES: pas `questionnaire`, pas le
   // libellé d'une échelle qu'elle n'a jamais lue — SA phrase.
   assertEquals(journal[0].source, "draft_note");
   assertEquals(journal[0].quote, "C'est trop long à cuisiner");
 });
 
-Deno.test("SANS STYLE DÉCLARÉ, « trop long » descend LE TEMPS d'un barreau (60 → 45)", async () => {
+Deno.test("une durée d'avant les plages descend depuis SA plage (45 → 30)", async () => {
   const { field } = await persistWith(
     SETTINGS_ONLY("time", "down"),
-    { cooking_time_min: 60 },
+    { cooking_time_min: 45 },
   );
   assert(field, "la porte des champs n'a pas été appelée");
-  // Un NOMBRE, pas la chaîne « 45 »: `parseLogisticsSetValue` refuserait une
+  // 45 est dans « 30 min à 1 h »: un cran plus bas, c'est « moins de 30 min ».
+  // Un NOMBRE, pas la chaîne « 30 »: `parseLogisticsSetValue` refuserait une
   // chaîne à la lecture — écrit, puis invisible.
-  assertEquals(field!.params.p_patch, { cooking_time_min: 45 });
+  assertEquals(field!.params.p_patch, { cooking_time_min: 30 });
+  // Et la garde de concurrence relit la valeur de la BASE, pas sa plage.
+  assertEquals(field!.params.p_expected, { cooking_time_min: 45 });
 });
 
 Deno.test("⛔ AU PLANCHER, RIEN NE BOUGE — et la porte n'est pas appelée pour rien", async () => {
   const { res, field } = await persistWith(
     SETTINGS_ONLY("time", "down"),
-    { cooking_style: "minimal" },
+    { cooking_time_min: 30 },
   );
   assertEquals(res.classification.settings.kept, 1, "le tiroir a bien rangé la phrase");
   assertEquals(field, undefined, "un cran a été écrit sous le plancher de l'échelle");
@@ -1951,7 +1959,7 @@ Deno.test("⛔ LES DEUX AXES EN SENS CONTRAIRES SUR LE CADRAN UNIQUE: rien ne bo
       ...SETTINGS_ONLY("time", "down"),
       settings: [{ about: "time", direction: "down" }, { about: "difficulty", direction: "up" }],
     },
-    { cooking_style: "balanced" },
+    { cooking_time_min: 120 },
   );
   assertEquals(res.classification.settings.kept, 2);
   assertEquals(field, undefined, "« moins de temps » et « plus ambitieux » ont été fondus en un cran inventé");
@@ -1974,7 +1982,7 @@ Deno.test("⛔ UNE NOTE QUI NE CONTIENT QU'UN RÉGLAGE ANNONCE LE RÉGLAGE — m
   // rien: l'accusé était sous `if (write.ok)`.
   const { res, field } = await persistWith(
     SETTINGS_ONLY("time", "down"),
-    { cooking_style: "balanced" },
+    { cooking_time_min: 120 },
   );
   assert(field, "la porte des champs n'a pas été appelée");
   assertEquals(res.ok, true, "le champ a bougé et l'appelant lit un échec");
@@ -2759,7 +2767,7 @@ function sideCourseBlock(): string[] {
 Deno.test("⑪ prompt — le tiroir existe, et la forme JSON le nomme", () => {
   assert(sideCourseBlock().length > 0, "le tiroir ⑪ n'existe pas");
   assert(
-    DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT.includes('"safety": [ ... ], "side_courses": [ ... ] }'),
+    DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT.includes('"safety": [ ... ], "side_courses": [ ... ]'),
     "la forme JSON du haut ne nomme pas `side_courses`: le modèle ne sait pas où la mettre",
   );
 });
@@ -2888,7 +2896,7 @@ Deno.test("⑪ lecteur — deux verdicts sur la même case: le second tombe, `nu
 Deno.test("⑪ trace — les nombres de la porte, et les deux sens séparés", () => {
   const out = read({
     preferences: [], notes: [], next_plan: [], portions: [], settings: [], slots: [], cells: [],
-    skipped: [], clarify: [], safety: [],
+    skipped: [], clarify: [], safety: [], swaps: [],
     side_courses: [
       { kind: "dessert", slot: null, takes: false, member_id: ZOE },
       { kind: "cheese", slot: null, takes: true, member_id: ZOE },
@@ -3141,4 +3149,47 @@ Deno.test("⟳ 2026-09-24 — les plats barrés arrivent avec leurs mangeurs, la
   const line = prompt.split("\n").find((l) => l.includes("turned down")) ?? "";
   assert(line.includes("names nobody is about the people who eat that dish"), line);
   assert(line.includes('{"dish":"Lait, pêche et avoine","eaten_by":["m-paul"]}'), line);
+});
+
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⑫ « À LA PLACE DE X, METS Y », POUR CE PLAN SEULEMENT (2026-09-25)
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("⑫ prompt — le tiroir existe, la forme JSON le nomme, et X n'est pas un dégoût", () => {
+  assert(
+    DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT.includes('"side_courses": [ ... ], "swaps": [ ... ] }'),
+    "la forme JSON du haut ne nomme pas `swaps`",
+  );
+  const line = LINES.find((l) => l.startsWith('12. "swaps"'));
+  assert(line, "le tiroir ⑫ n'existe pas");
+  assert(line!.includes("NEVER filed in (1) or (2)"), "X doit rester hors des préférences et de l'encart");
+  assert(line!.includes("ALSO file it in (1) as food.prefer"), "Y doit être rangé comme préférence");
+});
+
+Deno.test("⑫ lecture — deux aliments et une bouche; le reste est refusé et compté", () => {
+  const out = read({
+    preferences: [], notes: [], next_plan: [], portions: [], settings: [], slots: [], cells: [],
+    skipped: [], clarify: [], safety: [], side_courses: [],
+    swaps: [
+      { from: "petit suisse", to: "fromage blanc", member_id: null },
+      { from: "riz", to: "quinoa", member_id: ZOE },
+      { from: "riz", to: "boulgour", member_id: ZOE },
+      { from: "", to: "quinoa", member_id: null },
+      { from: "pâtes", to: "semoule", member_id: STRANGER },
+    ],
+  });
+  assert(out.ok);
+  assertEquals(out.classification.swaps.requests.map((w) => [w.from, w.to, w.subject]), [
+    ["petit suisse", "fromage blanc", "household"],
+    ["riz", "quinoa", `member:${ZOE}`],
+  ]);
+  assertEquals(out.classification.swaps.refused.malformed, 1);
+  assertEquals(out.classification.swaps.refused.badText, 1);
+  assertEquals(out.classification.swaps.refused.unknownMember, 1);
+  const t = draftNoteClassifyTrace(out.classification);
+  assertEquals(t.swaps_proposed, 5);
+  assertEquals(t.swaps_kept, 2);
+  assertEquals(t.swaps_refused, 3);
+  assertEquals(t.lists_missing, []);
 });

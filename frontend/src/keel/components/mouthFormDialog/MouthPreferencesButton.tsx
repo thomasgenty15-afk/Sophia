@@ -6,6 +6,7 @@
 import React from "react";
 
 import { Button } from "../ui/Button";
+import { SectionLabel } from "../ui/Card";
 import { t } from "../../i18n/t";
 import { type MouthVoice, voiced } from "../../lib/mouthVoice";
 
@@ -81,25 +82,36 @@ export function MouthPreferencesButton(
      ligne-ci, sur cette porte-ci. */
   if (action === null) return door;
   return (
-    /* ── UNE COLONNE SOUS `sm`, ET C'EST L'IDIOME DE CETTE PAGE ──────────
-       Deux boutons côte à côte sur un téléphone se compriment jusqu'à couper
-       leur libellé — celui de gauche fait sept mots. `items-start` empêche le
-       bouton de s'étirer sur toute la largeur en colonne (`align-items` vaut
-       `stretch`, et `Button` est un `inline-flex`). */
-    /* ── ⟳ 2026-09-20 · L'AIR AU-DESSUS DE LA BARRE, EN `pt-` ─────────────
-       Demandé sur capture: la barre collait aux tuiles de sport juste
-       au-dessus.
+    /* ══════════════════════════════════════════════════════════════════════
+       ⟳ 2026-09-25 · UNE SECTION À ELLE, EN FIN DE CARTE
+       ══════════════════════════════════════════════════════════════════════
 
-       ⛔ `pt-3` ET PAS `mt-3`, ET CE N'EST PAS UN GOÛT. Les deux cartes qui
-       passent une `action` rendent cette barre dans un parent `space-y-3` /
-       `space-y-4`. Tailwind écrit `space-y` en `> :not([hidden]) ~
-       :not([hidden]) { margin-top: … }` — deux classes de spécificité contre
-       une: un `mt-*` posé ici serait ÉCRASÉ, et le lot ressemblerait à un lot
-       qui marche sur un écran où rien n'aurait bougé. Le padding, lui,
-       s'ajoute à l'écart du parent sans lui disputer la même propriété. */
-    <div className="flex flex-col items-start gap-2 pt-3 sm:flex-row sm:items-center sm:justify-between">
-      {door}
-      {action}
-    </div>
+       Demandé à l'écran: « préférences alimentaires, il faut que tu le mettes
+       en fin de la section informations, genre une section dédiée, parce que
+       vu comment c'est placé sur la page, les gens le voient pas forcément ».
+       Le bouton était sur la même ligne qu'« Enregistrer », sous les tuiles
+       de sport: il se lisait comme un second bouton de sortie de la carte.
+
+       Il a maintenant un titre et une ligne qui dit ce qu'il y a derrière —
+       les allergies surtout, que cette porte est la seule à atteindre dans
+       l'entonnoir. « Enregistrer » passe dessous, seul, à droite: il écrit
+       aussi ce que la fenêtre des préférences a collecté, donc il vient
+       après elle.
+
+       ⛔ `pt-` ET PAS `mt-`, POUR LA MÊME RAISON QU'AVANT. Les deux cartes
+       qui passent une `action` rendent ce bloc dans un parent `space-y-3` /
+       `space-y-4`, qui écrit `margin-top` avec deux classes de spécificité:
+       un `mt-*` posé ici serait écrasé. Le fragment rend les deux blocs
+       frères directs de ce parent, et c'est lui qui les espace. */
+    <>
+      <section className="border-t border-line pt-4">
+        <SectionLabel>{t("household.mouth.preferences_title")}</SectionLabel>
+        <p className="text-xs leading-5 text-ink-soft">
+          {t("household.mouth.preferences_section_hint")}
+        </p>
+        <div className="mt-3">{door}</div>
+      </section>
+      <div className="flex justify-end">{action}</div>
+    </>
   );
 }

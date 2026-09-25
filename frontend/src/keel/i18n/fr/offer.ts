@@ -15,7 +15,7 @@ export const frOffer = {
   // ⛔ « Première semaine offerte » est la durée que le produit TIENT:
   // `HOUSEHOLD_TRIAL_DAYS = 7`, aligné en SQL par
   // `keel_household_trial_days()`.
-  "offer.household": "{amount} par mois pour toute la maison — votre accès est compris.",
+  "offer.household": "{amount} par mois pour toute la maison — ton accès est compris.",
   "offer.solo": "{amount} par mois pour une personne — toutes les fonctionnalités sont incluses.",
   "offer.extra": "{amount} par mois pour chaque autre personne qui veut son propre accès.",
   "offer.trial": "Première semaine offerte, sans code à saisir.",

@@ -91,6 +91,7 @@ import {
 } from "./feedback_index.ts";
 import { MEMO_LINE_MAX_CHARS, MEMO_MAX_LINES_PER_SUBJECT } from "./memo.ts";
 import {
+  BUDGET_CEILING_PER_MOUTH_DAY,
   BUDGET_FLOOR_PER_MOUTH_DAY,
   BUDGET_FLOOR_REFERENCE_KCAL,
   BUDGET_PLAUSIBLE_PER_MOUTH_DAY,
@@ -1201,6 +1202,13 @@ Deno.test("épinglage — BUDGET_PLAUSIBLE_PER_MOUTH_DAY, les deux marchés ENTI
 Deno.test("épinglage — BUDGET_FLOOR_REFERENCE_KCAL vaut 2 000", () =>
   assertEquals(BUDGET_FLOOR_REFERENCE_KCAL, 2000));
 
+// ⟳ 2026-09-25 — LE HAUT DU CURSEUR DE BUDGET. Pas un prix mesuré: une borne
+// calée sur les budgets publiés (UNAF déc. 2025, USDA « Liberal » janv. 2025),
+// détaillés au-dessus de la table. BAISSER cache à quelqu'un un budget qu'il
+// dépense vraiment; MONTER rouvre les montants que le curseur doit éviter.
+Deno.test("épinglage — BUDGET_CEILING_PER_MOUTH_DAY, 15 € et 18 $", () =>
+  assertEquals(BUDGET_CEILING_PER_MOUTH_DAY, { fr: 15, us: 18 }));
+
 // ═══════════════════════════════════════════════════════════════════════════
 // LOT C (2026-09-11) — LE CATALOGUE DE COMPOSITION ET LA DIVERGENCE D'ANCRAGE
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1375,3 +1383,11 @@ Deno.test("épinglage — DRAFT_NOTE_CORPUS_SIZE vaut 67", () =>
 import { DRAFT_NOTE_MAX_RETAINED } from "./draft_note_classify.ts";
 Deno.test("épinglage — DRAFT_NOTE_MAX_RETAINED vaut 6", () =>
   assertEquals(DRAFT_NOTE_MAX_RETAINED, 6));
+
+// ⟳ 2026-09-24 — « ÇA VAUT AUSSI POUR… » (`dish_match.ts`): au plus douze plats
+// proposés d'un coup — au-delà ce n'est plus une suggestion; huit termes
+// d'ingrédients par plat, assez pour lire « œufs » dans une frittata.
+import { DISH_MATCH_MAX, DISH_MATCH_TERMS_PER_DISH } from "./dish_match.ts";
+Deno.test("épinglage — DISH_MATCH_MAX vaut 12", () => assertEquals(DISH_MATCH_MAX, 12));
+Deno.test("épinglage — DISH_MATCH_TERMS_PER_DISH vaut 8", () =>
+  assertEquals(DISH_MATCH_TERMS_PER_DISH, 8));

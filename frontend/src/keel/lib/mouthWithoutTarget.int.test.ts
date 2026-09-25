@@ -149,8 +149,6 @@ describe("LOT 1 — la bouche sans cible, à l'écran", () => {
         // ⟳ 2026-09-16 — `partial` : un contenant de session qui ne tient que la
         // part de marmite. Un booléen, jamais un chiffre d'énergie.
         "partial",
-        // ⟳ 2026-09-23 — `restOnTheDay` : un booléen, jamais un chiffre d'énergie.
-        "restOnTheDay",
         "shared",
         // ⟳ 2026-09-23 — `sides` : les à-côtés servis avec ce contenant
         // (entrée, fromage, dessert, pain). Des grammes ou des unités

@@ -14,6 +14,7 @@ import { runPlanFeedbackStep } from "../_shared/keel/plan_feedback_chat_io.ts";
 // ⟳ 2026-09-09 — le rappel de la veille: « ce soir, sors la dinde du congélateur ».
 import { runThawReminderStep } from "../_shared/keel/thaw_reminder_io.ts";
 import { sweepLapsedClarifications } from "../_shared/keel/memory_clarification_io.ts";
+import { keepWorking } from "../_shared/keel/edge_runtime.ts";
 
 /**
  * FF-062 — LES DEUX CANAUX NEUFS, DANS UN SEUL BALAYAGE HORAIRE.
@@ -68,6 +69,26 @@ import { sweepLapsedClarifications } from "../_shared/keel/memory_clarification_
 const FN_NAME = "keel-proactive-v1";
 const PAGE = 200;
 const DEFAULT_BUDGET_MS = 45_000;
+/**
+ * ⟳ 2026-09-24 — LE BALAYAGE PAR TRANCHES.
+ *
+ * Le runtime edge coupe une requête à 2 s de temps CPU (1 s « souple », 2 s
+ * « dure » — `cpuTimeHardLimitMs` du service principal, la même limite qu'en
+ * prod). Balayer toute la flotte dans une seule requête ne tenait plus: sur la
+ * base locale (1 060 élèves), chaque tick horaire était tué vers la moitié de
+ * la liste, et les comptes suivants n'étaient JAMAIS examinés — la question du
+ * soir (`day_meals`) n'était partie à personne. Le `budgetMs` ci-dessus compte
+ * l'horloge murale, pas le CPU: il ne voyait rien venir.
+ *
+ * Une tranche examine au plus `PEOPLE_PER_LINK` personnes, puis relance la
+ * suivante avec son curseur (`handOff`). La tranche relancée répond 202 tout
+ * de suite et travaille en arrière-plan: sans ça, chaque tranche attendrait la
+ * réponse de toutes les suivantes, et la première porterait l'horloge murale de
+ * toute la chaîne.
+ */
+const PEOPLE_PER_LINK = 100;
+/** Garde contre une chaîne qui ne finirait pas (le curseur ne recule jamais). */
+const MAX_LINKS = 200;
 
 function cleanText(v: unknown, fb = ""): string {
   const t = String(v ?? "").trim();
@@ -230,347 +251,424 @@ async function runAskChannels(
   }
 }
 
-Deno.serve(async (req) => {
-  const requestId = getRequestId(req);
-  try {
-    const guard = ensureInternalRequest(req);
-    if (guard) return guard;
+/** La suite de la chaîne: ce que la tranche suivante reprend. */
+type HandOff =
+  | { after_user_id: string }
+  | { students_done: true; after_member_user_id: string };
 
-    const body = await req.json().catch(() => ({} as Record<string, unknown>));
-    const nowIso = cleanText(body.now);
-    const cand = nowIso ? new Date(nowIso) : new Date();
-    const now = Number.isFinite(cand.getTime()) ? cand : new Date();
-    const dryRun = body.dry_run === true;
-    const budgetRaw = Number(body.budget_ms);
-    const budgetMs = Number.isFinite(budgetRaw) && budgetRaw > 0
-      ? Math.min(budgetRaw, 120_000)
-      : DEFAULT_BUDGET_MS;
-    /**
-     * ⚠️ 🔴 LA PART RÉSERVÉE AUX MEMBRES — MESURÉE LE 2026-09-09.
-     *
-     * La passe des profils réclamés tourne APRÈS les élèves. Sans réserve, elle
-     * ne tourne que si les élèves n'ont pas épuisé le budget — et sur la base
-     * locale, 683 profils suffisent déjà à ne jamais l'atteindre. Le banc de
-     * bout en bout l'a montré au premier tir: `members.reached` était faux, et
-     * un membre n'aurait reçu AUCUNE question, chaque heure, en silence.
-     *
-     * Le premier réflexe — « ils passeront au tick suivant » — est faux: le
-     * curseur des élèves repart de zéro à chaque tick, donc la même page
-     * consomme le même budget et la passe des membres est affamée POUR
-     * TOUJOURS, pas retardée.
-     *
-     * ⛔ ET PAS L'INVERSE (les membres d'abord): ce serait affamer les élèves,
-     * qui sont la population la plus nombreuse. Un quart suffit largement — les
-     * profils réclamés se comptent par foyer, les élèves par flotte — et la
-     * réserve n'est PAS un délai: si les élèves finissent tôt, la passe des
-     * membres dispose de tout ce qui reste.
-     */
-    const MEMBER_BUDGET_SHARE = 0.25;
-    const studentBudgetMs = Math.floor(budgetMs * (1 - MEMBER_BUDGET_SHARE));
-    /**
-     * Restreindre le balayage à UN canal. Sert les runs réels: éprouver C1 sans
-     * risquer d'envoyer une pesée à la moitié de la base.
-     *
-     * ⚠️ UN JETON INCONNU NE FILTRE RIEN, et ce serait le pire des deux mondes.
-     * On refuse donc explicitement, plutôt que de balayer les deux canaux en
-     * croyant n'en balayer qu'un.
-     */
-    const only = cleanText(body.only);
-    if (
-      only && only !== "slot_meal" && only !== "weigh_in" &&
-      only !== "plan_feedback" && only !== "thaw_reminder" &&
-      only !== "day_meals"
-    ) {
-      return jsonResponse(req, {
+/**
+ * Relance la tranche suivante. Rend `null` si elle est partie, sinon le motif.
+ *
+ * ⚠️ LE SECRET EST CELUI QUE LA TRANCHE A REÇU, déjà vérifié par
+ * `ensureInternalRequest`: relire l'environnement ferait diverger les deux
+ * côtés en local, où le secret peut venir du repli `SECRET_KEY`.
+ */
+async function handOff(
+  req: Request,
+  body: Record<string, unknown>,
+): Promise<string | null> {
+  const base = (Deno.env.get("SUPABASE_URL") ?? "").replace(/\/$/, "");
+  const secret = (req.headers.get("x-internal-secret") ?? "").trim();
+  const anon = (Deno.env.get("SUPABASE_ANON_KEY") ?? "").trim();
+  if (!base || !secret) return "no_url_or_secret";
+  try {
+    const res = await fetch(`${base}/functions/v1/${FN_NAME}`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-internal-secret": secret,
+        ...(anon ? { apikey: anon, authorization: `Bearer ${anon}` } : {}),
+      },
+      body: JSON.stringify(body),
+    });
+    await res.body?.cancel();
+    return res.status === 202 ? null : `status_${res.status}`;
+  } catch (error) {
+    return flattenError(error);
+  }
+}
+
+/** UNE TRANCHE du balayage. Rend le compte-rendu et son statut HTTP. */
+async function sweep(
+  req: Request,
+  body: Record<string, unknown>,
+  requestId: string,
+): Promise<{ status: number; payload: Record<string, unknown> }> {
+  const nowIso = cleanText(body.now);
+  const cand = nowIso ? new Date(nowIso) : new Date();
+  const now = Number.isFinite(cand.getTime()) ? cand : new Date();
+  const dryRun = body.dry_run === true;
+  const budgetRaw = Number(body.budget_ms);
+  const budgetMs = Number.isFinite(budgetRaw) && budgetRaw > 0
+    ? Math.min(budgetRaw, 120_000)
+    : DEFAULT_BUDGET_MS;
+  const link = Math.max(0, Math.floor(Number(body.link) || 0));
+  /** `false` coupe la relance: une tranche seule, pour sonder un compte. */
+  const chain = body.chain !== false;
+  const maxRaw = Math.floor(Number(body.max_people));
+  const maxPeople = Number.isFinite(maxRaw) && maxRaw > 0
+    ? Math.min(maxRaw, PEOPLE_PER_LINK)
+    : PEOPLE_PER_LINK;
+  /**
+   * Restreindre le balayage à UN canal. Sert les runs réels: éprouver C1 sans
+   * risquer d'envoyer une pesée à la moitié de la base.
+   *
+   * ⚠️ UN JETON INCONNU NE FILTRE RIEN, et ce serait le pire des deux mondes.
+   * On refuse donc explicitement, plutôt que de balayer les deux canaux en
+   * croyant n'en balayer qu'un.
+   */
+  const only = cleanText(body.only);
+  if (
+    only && only !== "slot_meal" && only !== "weigh_in" &&
+    only !== "plan_feedback" && only !== "thaw_reminder" &&
+    only !== "day_meals"
+  ) {
+    return {
+      status: 400,
+      payload: {
         ok: false,
         error: `unknown channel ${JSON.stringify(only)}`,
         request_id: requestId,
-      }, { status: 400, includeCors: false });
+      },
+    };
+  }
+  const doSlotMeal = !only || only === "slot_meal";
+  const doDayMeals = !only || only === "day_meals";
+  const doWeighIn = !only || only === "weigh_in";
+  const doPlanFeedback = !only || only === "plan_feedback";
+  const doThawReminder = !only || only === "thaw_reminder";
+
+  const admin = adminClient();
+  const startedAt = Date.now();
+  let people = 0;
+  // ⛔ UNE TRANCHE SERT TOUJOURS AU MOINS UNE PERSONNE. Sans le `people > 0`,
+  // un budget déjà dépassé au départ rendrait une tranche vide qui relancerait
+  // la même, au même curseur, jusqu'à `MAX_LINKS`.
+  const linkFull = () =>
+    people >= maxPeople || (people > 0 && Date.now() - startedAt > budgetMs);
+
+  // ── LE BALAYAGE DES CLARIFICATIONS PÉRIMÉES ─────────────────────────────
+  //
+  // ⟳ IL VIVAIT DANS `keel-daily-pulse-v1`, SUPPRIMÉ LE 2026-09-08. Son pavé
+  // d'origine disait « ici plutôt que dans son propre cron, parce que ce job
+  // voit toute la flotte, y compris les maîtres de foyer que
+  // `keel-proactive-v1` ne balaie pas ». Cet argument NE S'APPLIQUE PAS au
+  // déplacement: `sweepLapsedClarifications` est un `update` GLOBAL sur la
+  // table, il n'itère aucun profil. L'audience du job hôte ne le borne pas.
+  //
+  // ⚠️ CE N'EST PAS DU MÉNAGE, ET C'EST DEVENU PLUS VRAI QU'AVANT. La
+  // question de clarification est désarmée: plus aucune ligne n'est créée, et
+  // le tap qui les fermait est débranché. Ce balayage est donc la SEULE chose
+  // qui ferme encore les questions déjà posées — sans lui elles resteraient
+  // `open` pour toujours, sans que personne puisse jamais y répondre.
+  //
+  // ⛔ AVANT LA BOUCLE ET SANS `dry_run`: fermer une ligne morte n'envoie
+  // rien. Ce qu'un `dry_run` protège est l'ENVOI.
+  //
+  // ⟳ 2026-09-24 — dans la PREMIÈRE tranche seulement: c'est un `update`
+  // global, le rejouer à chaque tranche ne fermerait rien de plus.
+  const clarificationsExpired = link === 0
+    ? (await sweepLapsedClarifications(admin, { nowIso: now.toISOString() }))
+      .expired
+    : 0;
+
+  let cursor = cleanText(body.after_user_id);
+  let scanned = 0;
+  const slotMeal = emptyTally();
+  const dayMeals = emptyTally();
+  const weighIn = emptyTally();
+  const planFeedback = emptyTally();
+  const thawReminder = emptyTally();
+  const failures: string[] = [];
+  // Une tranche relancée APRÈS les élèves ne les relit pas.
+  let exhausted = body.students_done === true;
+
+  while (!exhausted && !linkFull()) {
+    let q = admin
+      .from("profiles")
+      // ⚠️ NE NOMMER QUE DES COLONNES QUI EXISTENT. Un `content_locale` sur
+      // `profiles` a déjà fait rendre 42703 à PostgREST dès la première page
+      // dans `keel-weekly-flow-v1`: aucun élève examiné, et toutes les gardes
+      // en aval mortes derrière un SELECT cassé.
+      // ⚠️ `slot_meal_ask_enabled` ARRIVE AVEC SA MIGRATION, DANS LE MÊME
+      // COMMIT. La cicatrice est chiffrée: un `eating_rhythm` nommé dans un
+      // SELECT avant que sa colonne existe a rendu 42703 sur 629 élèves sur
+      // 669 — aucun examiné, et toutes les gardes en aval mortes derrière une
+      // requête cassée. La migration s'applique AVANT le déploiement.
+      .select("id, timezone, locale, proactive_muted_at, slot_meal_ask_enabled")
+      .eq("keel_role", "student")
+      .order("id", { ascending: true })
+      .limit(PAGE);
+    if (cursor) q = q.gt("id", cursor);
+    const { data, error } = await q;
+    if (error) throw error;
+    const rows = (data ?? []) as Array<Record<string, unknown>>;
+    if (rows.length === 0) {
+      exhausted = true;
+      break;
     }
-    const doSlotMeal = !only || only === "slot_meal";
-    const doDayMeals = !only || only === "day_meals";
-    const doWeighIn = !only || only === "weigh_in";
-    const doPlanFeedback = !only || only === "plan_feedback";
-    const doThawReminder = !only || only === "thaw_reminder";
 
-    const admin = adminClient();
-    const startedAt = Date.now();
+    for (const row of rows) {
+      cursor = String(row.id ?? "");
+      scanned++;
+      people++;
+      const common = {
+        userId: cursor,
+        timezone: row.timezone ? String(row.timezone) : null,
+        locale: row.locale ? String(row.locale) : null,
+        muted: Boolean(row.proactive_muted_at),
+        // ⛔ LE TRI-ÉTAT PASSE BRUT, ET `Boolean(...)` SERAIT UN DÉFAUT.
+        // `null` veut dire « personne n'a choisi », et l'objectif décide
+        // alors; le convertir ici l'écraserait en « éteint » pour toute la
+        // cohorte qui n'a jamais touché au réglage — c'est-à-dire tout le
+        // monde. La réduction vit dans `slotMealAskSwitchFrom`, et là seule.
+        askEnabled: row.slot_meal_ask_enabled === null ||
+            row.slot_meal_ask_enabled === undefined
+          ? null
+          : Boolean(row.slot_meal_ask_enabled),
+        now,
+        dryRun,
+        requestId,
+      };
 
-    // ── LE BALAYAGE DES CLARIFICATIONS PÉRIMÉES ─────────────────────────────
-    //
-    // ⟳ IL VIVAIT DANS `keel-daily-pulse-v1`, SUPPRIMÉ LE 2026-09-08. Son pavé
-    // d'origine disait « ici plutôt que dans son propre cron, parce que ce job
-    // voit toute la flotte, y compris les maîtres de foyer que
-    // `keel-proactive-v1` ne balaie pas ». Cet argument NE S'APPLIQUE PAS au
-    // déplacement: `sweepLapsedClarifications` est un `update` GLOBAL sur la
-    // table, il n'itère aucun profil. L'audience du job hôte ne le borne pas.
-    //
-    // ⚠️ CE N'EST PAS DU MÉNAGE, ET C'EST DEVENU PLUS VRAI QU'AVANT. La
-    // question de clarification est désarmée: plus aucune ligne n'est créée, et
-    // le tap qui les fermait est débranché. Ce balayage est donc la SEULE chose
-    // qui ferme encore les questions déjà posées — sans lui elles resteraient
-    // `open` pour toujours, sans que personne puisse jamais y répondre.
-    //
-    // ⛔ AVANT LA BOUCLE ET SANS `dry_run`: fermer une ligne morte n'envoie
-    // rien. Ce qu'un `dry_run` protège est l'ENVOI.
-    const clarificationsExpired =
-      (await sweepLapsedClarifications(admin, { nowIso: now.toISOString() }))
-        .expired;
+      // ── C1 ET C2 — LES DEUX CANAUX QUE LES DEUX AUDIENCES PARTAGENT ──
+      await runAskChannels(admin, common, {
+        doSlotMeal,
+        doDayMeals,
+        doWeighIn,
+        slotMeal,
+        dayMeals,
+        weighIn,
+        failures,
+      });
 
-    let cursor = cleanText(body.after_user_id);
-    let scanned = 0;
-    const slotMeal = emptyTally();
-    const dayMeals = emptyTally();
-    const weighIn = emptyTally();
-    const planFeedback = emptyTally();
-    const thawReminder = emptyTally();
-    const failures: string[] = [];
-    let exhausted = false;
-
-    while (true) {
-      let q = admin
-        .from("profiles")
-        // ⚠️ NE NOMMER QUE DES COLONNES QUI EXISTENT. Un `content_locale` sur
-        // `profiles` a déjà fait rendre 42703 à PostgREST dès la première page
-        // dans `keel-weekly-flow-v1`: aucun élève examiné, et toutes les gardes
-        // en aval mortes derrière un SELECT cassé.
-        // ⚠️ `slot_meal_ask_enabled` ARRIVE AVEC SA MIGRATION, DANS LE MÊME
-        // COMMIT. La cicatrice est chiffrée: un `eating_rhythm` nommé dans un
-        // SELECT avant que sa colonne existe a rendu 42703 sur 629 élèves sur
-        // 669 — aucun examiné, et toutes les gardes en aval mortes derrière une
-        // requête cassée. La migration s'applique AVANT le déploiement.
-        .select("id, timezone, locale, proactive_muted_at, slot_meal_ask_enabled")
-        .eq("keel_role", "student")
-        .order("id", { ascending: true })
-        .limit(PAGE);
-      if (cursor) q = q.gt("id", cursor);
-      const { data, error } = await q;
-      if (error) throw error;
-      const rows = (data ?? []) as Array<Record<string, unknown>>;
-      if (rows.length === 0) {
-        exhausted = true;
-        break;
-      }
-
-      for (const row of rows) {
-        cursor = String(row.id ?? "");
-        scanned++;
-        const common = {
-          userId: cursor,
-          timezone: row.timezone ? String(row.timezone) : null,
-          locale: row.locale ? String(row.locale) : null,
-          muted: Boolean(row.proactive_muted_at),
-          // ⛔ LE TRI-ÉTAT PASSE BRUT, ET `Boolean(...)` SERAIT UN DÉFAUT.
-          // `null` veut dire « personne n'a choisi », et l'objectif décide
-          // alors; le convertir ici l'écraserait en « éteint » pour toute la
-          // cohorte qui n'a jamais touché au réglage — c'est-à-dire tout le
-          // monde. La réduction vit dans `slotMealAskSwitchFrom`, et là seule.
-          askEnabled: row.slot_meal_ask_enabled === null ||
-              row.slot_meal_ask_enabled === undefined
-            ? null
-            : Boolean(row.slot_meal_ask_enabled),
-          now,
-          dryRun,
-          requestId,
-        };
-
-        // ── C1 ET C2 — LES DEUX CANAUX QUE LES DEUX AUDIENCES PARTAGENT ──
-        await runAskChannels(admin, common, {
-          doSlotMeal,
-          doDayMeals,
-          doWeighIn,
-          slotMeal,
-          dayMeals,
-          weighIn,
-          failures,
-        });
-
-        // ── LE RETOUR DE FIN DE PLAN — 22h, LE DERNIER JOUR ─────────────
-        //
-        // Troisième canal de ce balayage, et le seul qui ne soit pas de
-        // FF-062: il vient de FF-054 et vivait dans le message du soir, dont
-        // il prenait la place. Sa fenêtre (l'heure 22) est APRÈS celle du
-        // bilan du jour (20h-22h), donc les deux ne se disputent plus la
-        // soirée — c'est tout l'objet du déplacement.
-        if (doPlanFeedback) {
-          try {
-            const out = await runPlanFeedbackStep(admin, {
-              userId: cursor,
-              timezone: common.timezone,
-              muted: common.muted,
-              now,
-              dryRun,
-              requestId,
-            });
-            if (out.examined) planFeedback.examined++;
-            if (out.sent) planFeedback.sent++;
-            else if (out.reason.startsWith("delivery:")) {
-              bump(planFeedback.blocked, out.reason.slice("delivery:".length));
-            } else bump(planFeedback.skipped, out.reason);
-          } catch (error) {
-            failures.push(`plan_feedback ${cursor}: ${flattenError(error)}`);
-          }
+      // ── LE RETOUR DE FIN DE PLAN — 22h, LE DERNIER JOUR ─────────────
+      //
+      // Troisième canal de ce balayage, et le seul qui ne soit pas de
+      // FF-062: il vient de FF-054 et vivait dans le message du soir, dont
+      // il prenait la place. Sa fenêtre (l'heure 22) est APRÈS celle du
+      // bilan du jour (20h-22h), donc les deux ne se disputent plus la
+      // soirée — c'est tout l'objet du déplacement.
+      if (doPlanFeedback) {
+        try {
+          const out = await runPlanFeedbackStep(admin, {
+            userId: cursor,
+            timezone: common.timezone,
+            muted: common.muted,
+            now,
+            dryRun,
+            requestId,
+          });
+          if (out.examined) planFeedback.examined++;
+          if (out.sent) planFeedback.sent++;
+          else if (out.reason.startsWith("delivery:")) {
+            bump(planFeedback.blocked, out.reason.slice("delivery:".length));
+          } else bump(planFeedback.skipped, out.reason);
+        } catch (error) {
+          failures.push(`plan_feedback ${cursor}: ${flattenError(error)}`);
         }
+      }
 
-        // ── LE RAPPEL DE LA VEILLE — 18h-20h, LA VEILLE D'UNE SESSION ────
-        //
-        // ⟳ 2026-09-09. Un message sans question: ce que la session de demain
-        // sort du congélateur ce soir. Non sollicité, donc plafonné; un soir où
-        // les bilans prennent les créneaux, il ne part pas et se compte en
-        // `blocked`. Son `try` à lui, comme les trois autres.
-        if (doThawReminder) {
-          try {
-            const out = await runThawReminderStep(admin, common);
-            if (!isWindowSkip(out.verdict)) thawReminder.examined++;
-            if (out.verdict.ask) {
-              if (out.delivered) thawReminder.sent++;
-              else bump(thawReminder.blocked, out.deliveryReason ?? "unknown");
-            } else {
-              bump(thawReminder.skipped, out.verdict.reason);
-            }
-          } catch (error) {
-            failures.push(`thaw_reminder ${cursor}: ${flattenError(error)}`);
+      // ── LE RAPPEL DE LA VEILLE — 18h-20h, LA VEILLE D'UNE SESSION ────
+      //
+      // ⟳ 2026-09-09. Un message sans question: ce que la session de demain
+      // sort du congélateur ce soir. Non sollicité, donc plafonné; un soir où
+      // les bilans prennent les créneaux, il ne part pas et se compte en
+      // `blocked`. Son `try` à lui, comme les trois autres.
+      if (doThawReminder) {
+        try {
+          const out = await runThawReminderStep(admin, common);
+          if (!isWindowSkip(out.verdict)) thawReminder.examined++;
+          if (out.verdict.ask) {
+            if (out.delivered) thawReminder.sent++;
+            else bump(thawReminder.blocked, out.deliveryReason ?? "unknown");
+          } else {
+            bump(thawReminder.skipped, out.verdict.reason);
           }
+        } catch (error) {
+          failures.push(`thaw_reminder ${cursor}: ${flattenError(error)}`);
         }
-
-        // ⚠️ `studentBudgetMs`, PAS `budgetMs`: la part réservée aux membres.
-        if (Date.now() - startedAt > studentBudgetMs) break;
       }
-      if (Date.now() - startedAt > studentBudgetMs) break;
+
+      if (linkFull()) break;
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // LA SECONDE AUDIENCE — LES PROFILS RÉCLAMÉS D'UN FOYER (2026-09-09)
+  // ═══════════════════════════════════════════════════════════════════════
+  //
+  // ── LE TROU QU'ELLE FERME, ET IL ÉTAIT TOTAL ──────────────────────────
+  // La boucle du dessus filtre `keel_role = 'student'`. La réclamation d'un
+  // profil de foyer n'écrit JAMAIS ce rôle — c'est délibéré, et une garde QA
+  // le vérifie (`20260811060000`, « LE RÔLE N'EST PAS ÉCRIT »). Un compte
+  // supplémentaire ne recevait donc AUCUNE question: ni sa pesée, ni son
+  // repas. Il servait ce que `keel-daily-pulse-v1` lui adressait par sa
+  // propre seconde requête d'audience — et cette fonction a été SUPPRIMÉE le
+  // 2026-09-08. Depuis, le canal est muet, et le compte-rendu ne pouvait pas
+  // le dire: un membre jamais regardé ne produit aucun motif de refus.
+  //
+  // ── DEUX CANAUX, ET DEUX SEULEMENT (décision humaine du 2026-09-09) ────
+  //   ✓ la pesée   — c'est le suivi individuel qu'un second compte achète
+  //   ✓ le repas   — sa coche est un fait de PERSONNE (FF-058 R10)
+  //   ✗ le point de la semaine — réservé au maître
+  //   ✗ le retour de fin de plan — fermé au membre par une PROPRIÉTÉ:
+  //     `meal_plan_feedback` est `unique(meal_id)`, et ce retour gouverne la
+  //     composition suivante (FF-054 §11). C'est un geste de qui compose.
+  //   ✗ le rappel du congélateur — un fait du FOYER, comme la cuisson et les
+  //     courses (FF-058 R10 et R14): la ligne ne part qu'au maître.
+  //
+  // ── LE RÔLE N'EST TOUJOURS PAS ÉCRIT ──────────────────────────────────
+  // Ce bloc ÉLARGIT L'AUDIENCE, il ne promeut personne. Écrire
+  // `keel_role = 'student'` à la réclamation ouvrirait `/app/today` — le mode
+  // 1:1, les repas composés PAR la personne — c'est-à-dire un écran vide pour
+  // qui ne compose pas. C'est la même distinction que `KeelHouseholdRoute`
+  // côté écran: la porte s'élargit, le rôle ne ment pas.
+  //
+  // ── APRÈS LES ÉLÈVES, DANS LA MÊME CHAÎNE ─────────────────────────────
+  // ⟳ 2026-09-24 — la part réservée aux membres (un quart du budget, mesurée
+  // le 2026-09-09) existait parce que le curseur des élèves repartait de zéro
+  // à chaque tick: la même page consommait le même budget, et les membres
+  // étaient affamés POUR TOUJOURS. La chaîne reprend là où la tranche s'est
+  // arrêtée: les membres passent dans la tranche où les élèves sont épuisés.
+  // `members.reached` reste rendu — c'est lui qui distingue, dans UNE tranche,
+  // « aucun membre servi » de « aucun membre à servir ».
+  const memberSlotMeal = emptyTally();
+  const memberDayMeals = emptyTally();
+  const memberWeighIn = emptyTally();
+  let memberCursor = cleanText(body.after_member_user_id);
+  let membersScanned = 0;
+  let membersExhausted = false;
+  let membersReached = false;
+
+  while (exhausted && !linkFull()) {
+    membersReached = true;
+    // ⚠️ `role = 'member'` ET `user_id is not null`: la bouche RÉCLAMÉE. Une
+    // bouche sans compte n'a personne à qui écrire, et le maître est servi
+    // par la boucle du dessus s'il est élève.
+    let mq = admin
+      .from("household_members")
+      // ⚠️ NE NOMMER QUE DES COLONNES QUI EXISTENT — et la cicatrice vient
+      // d'être repayée sur CETTE table le 2026-09-09: `memberIdOf` demandait
+      // `household_members.id`, qui n'existe pas. La clé est
+      // `(household_id, user_id)`; l'identité d'une bouche est `member_id`.
+      .select("user_id")
+      .eq("role", "member")
+      .not("user_id", "is", null)
+      .order("user_id", { ascending: true })
+      .limit(PAGE);
+    if (memberCursor) mq = mq.gt("user_id", memberCursor);
+    const { data: mRows, error: mErr } = await mq;
+    if (mErr) throw mErr;
+    const ids: string[] = [];
+    for (const r of (mRows ?? []) as Array<Record<string, unknown>>) {
+      const id = String(r.user_id ?? "").trim();
+      // Dédoublonnage sur la page: la clé primaire autorise deux lignes pour
+      // un même compte dans deux foyers. La réclamation le refuse
+      // (`already_in_household`), mais s'appuyer sur ce refus ici ferait
+      // partir DEUX pesées le jour où il bouge.
+      if (id && !ids.includes(id)) ids.push(id);
+    }
+    if ((mRows ?? []).length === 0) {
+      membersExhausted = true;
+      break;
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
-    // LA SECONDE AUDIENCE — LES PROFILS RÉCLAMÉS D'UN FOYER (2026-09-09)
-    // ═══════════════════════════════════════════════════════════════════════
-    //
-    // ── LE TROU QU'ELLE FERME, ET IL ÉTAIT TOTAL ──────────────────────────
-    // La boucle du dessus filtre `keel_role = 'student'`. La réclamation d'un
-    // profil de foyer n'écrit JAMAIS ce rôle — c'est délibéré, et une garde QA
-    // le vérifie (`20260811060000`, « LE RÔLE N'EST PAS ÉCRIT »). Un compte
-    // supplémentaire ne recevait donc AUCUNE question: ni sa pesée, ni son
-    // repas. Il servait ce que `keel-daily-pulse-v1` lui adressait par sa
-    // propre seconde requête d'audience — et cette fonction a été SUPPRIMÉE le
-    // 2026-09-08. Depuis, le canal est muet, et le compte-rendu ne pouvait pas
-    // le dire: un membre jamais regardé ne produit aucun motif de refus.
-    //
-    // ── DEUX CANAUX, ET DEUX SEULEMENT (décision humaine du 2026-09-09) ────
-    //   ✓ la pesée   — c'est le suivi individuel qu'un second compte achète
-    //   ✓ le repas   — sa coche est un fait de PERSONNE (FF-058 R10)
-    //   ✗ le point de la semaine — réservé au maître
-    //   ✗ le retour de fin de plan — fermé au membre par une PROPRIÉTÉ:
-    //     `meal_plan_feedback` est `unique(meal_id)`, et ce retour gouverne la
-    //     composition suivante (FF-054 §11). C'est un geste de qui compose.
-    //   ✗ le rappel du congélateur — un fait du FOYER, comme la cuisson et les
-    //     courses (FF-058 R10 et R14): la ligne ne part qu'au maître.
-    //
-    // ── LE RÔLE N'EST TOUJOURS PAS ÉCRIT ──────────────────────────────────
-    // Ce bloc ÉLARGIT L'AUDIENCE, il ne promeut personne. Écrire
-    // `keel_role = 'student'` à la réclamation ouvrirait `/app/today` — le mode
-    // 1:1, les repas composés PAR la personne — c'est-à-dire un écran vide pour
-    // qui ne compose pas. C'est la même distinction que `KeelHouseholdRoute`
-    // côté écran: la porte s'élargit, le rôle ne ment pas.
-    //
-    // ── APRÈS LES ÉLÈVES, MAIS SUR UN BUDGET RÉSERVÉ ──────────────────────
-    // Voir `MEMBER_BUDGET_SHARE`: la boucle du dessus s'arrête à 75 % du
-    // budget, quoi qu'il arrive. `members.reached` reste rendu — c'est lui qui
-    // distingue « aucun membre servi » de « aucun membre à servir », qui
-    // rendraient sinon le même zéro.
-    const memberSlotMeal = emptyTally();
-    const memberDayMeals = emptyTally();
-    const memberWeighIn = emptyTally();
-    let memberCursor = cleanText(body.after_member_user_id);
-    let membersScanned = 0;
-    let membersExhausted = false;
-    let membersReached = false;
+    // Les mêmes colonnes que la boucle du dessus, plus `keel_role`.
+    const { data: pRows, error: pErr } = await admin
+      .from("profiles")
+      .select(
+        "id, timezone, locale, proactive_muted_at, slot_meal_ask_enabled, keel_role",
+      )
+      .in("id", ids);
+    if (pErr) throw pErr;
+    const byId = new Map(
+      ((pRows ?? []) as Array<Record<string, unknown>>).map((r) => [
+        String(r.id ?? ""),
+        r,
+      ]),
+    );
 
-    while (Date.now() - startedAt <= budgetMs) {
-      membersReached = true;
-      // ⚠️ `role = 'member'` ET `user_id is not null`: la bouche RÉCLAMÉE. Une
-      // bouche sans compte n'a personne à qui écrire, et le maître est servi
-      // par la boucle du dessus s'il est élève.
-      let mq = admin
-        .from("household_members")
-        // ⚠️ NE NOMMER QUE DES COLONNES QUI EXISTENT — et la cicatrice vient
-        // d'être repayée sur CETTE table le 2026-09-09: `memberIdOf` demandait
-        // `household_members.id`, qui n'existe pas. La clé est
-        // `(household_id, user_id)`; l'identité d'une bouche est `member_id`.
-        .select("user_id")
-        .eq("role", "member")
-        .not("user_id", "is", null)
-        .order("user_id", { ascending: true })
-        .limit(PAGE);
-      if (memberCursor) mq = mq.gt("user_id", memberCursor);
-      const { data: mRows, error: mErr } = await mq;
-      if (mErr) throw mErr;
-      const ids: string[] = [];
-      for (const r of (mRows ?? []) as Array<Record<string, unknown>>) {
-        const id = String(r.user_id ?? "").trim();
-        // Dédoublonnage sur la page: la clé primaire autorise deux lignes pour
-        // un même compte dans deux foyers. La réclamation le refuse
-        // (`already_in_household`), mais s'appuyer sur ce refus ici ferait
-        // partir DEUX pesées le jour où il bouge.
-        if (id && !ids.includes(id)) ids.push(id);
-      }
-      if ((mRows ?? []).length === 0) {
-        membersExhausted = true;
+    // ⚠️ LE CURSEUR AVANCE PAR PERSONNE, DANS L'ORDRE DE `user_id`. Il était
+    // posé sur la dernière ligne de la page AVANT de la servir: une tranche
+    // arrêtée en cours de page aurait fait sauter le reste de la page à la
+    // suivante. `.in(...)` ne rend pas l'ordre de `ids`, d'où la table.
+    let stopped = false;
+    for (const userId of ids) {
+      if (linkFull()) {
+        stopped = true;
         break;
       }
-      memberCursor = String(
-        ((mRows ?? [])[(mRows ?? []).length - 1] as Record<string, unknown>)
-          ?.user_id ?? "",
-      );
-
-      // Les mêmes colonnes que la boucle du dessus, plus `keel_role`.
-      const { data: pRows, error: pErr } = await admin
-        .from("profiles")
-        .select(
-          "id, timezone, locale, proactive_muted_at, slot_meal_ask_enabled, keel_role",
-        )
-        .in("id", ids);
-      if (pErr) throw pErr;
-
-      for (const row of (pRows ?? []) as Array<Record<string, unknown>>) {
-        // ⛔ UN ÉLÈVE QUI EST AUSSI MEMBRE A DÉJÀ ÉTÉ SERVI. Sans ce saut, il
-        // recevrait DEUX pesées le même soir — et le plafond de livraison ne
-        // les arbitrerait pas: les deux purposes sont GARANTIS.
-        if (String(row.keel_role ?? "") === "student") continue;
-        const userId = String(row.id ?? "");
-        if (!userId) continue;
-        membersScanned++;
-        await runAskChannels(admin, {
-          userId,
-          timezone: row.timezone ? String(row.timezone) : null,
-          locale: row.locale ? String(row.locale) : null,
-          muted: Boolean(row.proactive_muted_at),
-          // Le tri-état passe BRUT, exactement comme au-dessus.
-          askEnabled: row.slot_meal_ask_enabled === null ||
-              row.slot_meal_ask_enabled === undefined
-            ? null
-            : Boolean(row.slot_meal_ask_enabled),
-          now,
-          dryRun,
-          requestId,
-        }, {
-          doSlotMeal,
-          doDayMeals,
-          doWeighIn,
-          slotMeal: memberSlotMeal,
-          dayMeals: memberDayMeals,
-          weighIn: memberWeighIn,
-          failures,
-        });
-        if (Date.now() - startedAt > budgetMs) break;
-      }
-      if ((mRows ?? []).length < PAGE) {
-        membersExhausted = true;
-        break;
-      }
+      memberCursor = userId;
+      const row = byId.get(userId);
+      if (!row) continue;
+      // ⛔ UN ÉLÈVE QUI EST AUSSI MEMBRE A DÉJÀ ÉTÉ SERVI. Sans ce saut, il
+      // recevrait DEUX pesées le même soir — et le plafond de livraison ne
+      // les arbitrerait pas: les deux purposes sont GARANTIS.
+      if (String(row.keel_role ?? "") === "student") continue;
+      membersScanned++;
+      people++;
+      await runAskChannels(admin, {
+        userId,
+        timezone: row.timezone ? String(row.timezone) : null,
+        locale: row.locale ? String(row.locale) : null,
+        muted: Boolean(row.proactive_muted_at),
+        // Le tri-état passe BRUT, exactement comme au-dessus.
+        askEnabled: row.slot_meal_ask_enabled === null ||
+            row.slot_meal_ask_enabled === undefined
+          ? null
+          : Boolean(row.slot_meal_ask_enabled),
+        now,
+        dryRun,
+        requestId,
+      }, {
+        doSlotMeal,
+        doDayMeals,
+        doWeighIn,
+        slotMeal: memberSlotMeal,
+        dayMeals: memberDayMeals,
+        weighIn: memberWeighIn,
+        failures,
+      });
     }
+    if (stopped) break;
+    if ((mRows ?? []).length < PAGE) {
+      membersExhausted = true;
+      break;
+    }
+  }
 
-    return jsonResponse(req, {
+  // ── LA SUITE DE LA CHAÎNE ─────────────────────────────────────────────
+  const next: HandOff | null = !exhausted
+    ? { after_user_id: cursor }
+    : !membersExhausted
+    ? { students_done: true, after_member_user_id: memberCursor }
+    : null;
+  let handOffError: string | null = null;
+  if (next && chain) {
+    handOffError = link + 1 >= MAX_LINKS
+      ? "max_links"
+      : await handOff(req, {
+        ...next,
+        now: now.toISOString(),
+        dry_run: dryRun,
+        ...(only ? { only } : {}),
+        ...(Number.isFinite(budgetRaw) && budgetRaw > 0
+          ? { budget_ms: budgetMs }
+          : {}),
+        ...(maxPeople !== PEOPLE_PER_LINK ? { max_people: maxPeople } : {}),
+        link: link + 1,
+        respond_early: true,
+      });
+  }
+
+  return {
+    status: 200,
+    payload: {
       ok: true,
       dry_run: dryRun,
       only: only || null,
+      link,
       scanned,
       // ⚠️ `examined` PAR CANAL, ET AVANT `sent`. `sent: 0` est le cas NOMINAL
       // (les deux canaux sont rares par construction); `examined: 0` est une
@@ -608,6 +706,12 @@ Deno.serve(async (req) => {
         day_meals: memberDayMeals,
         weigh_in: memberWeighIn,
       },
+      // ⟳ 2026-09-24 — la tranche suivante. `handed_off: false` avec un
+      // `next` non nul est une chaîne cassée: le reste de la flotte attend le
+      // tick suivant, et c'est ici qu'on le voit.
+      next,
+      handed_off: Boolean(next && chain && handOffError === null),
+      hand_off_error: handOffError,
       // ⚠️ 🔴 LE COMPTE AVANT L'ÉCHANTILLON — MESURÉ LE 2026-09-02. Ce
       // compte-rendu ne portait que `failures.slice(0, 50)`, et un run où 629
       // élèves sur 669 échouaient en rendait exactement 50: la liste tronquée
@@ -616,7 +720,55 @@ Deno.serve(async (req) => {
       failure_count: failures.length,
       failures: failures.slice(0, 50),
       request_id: requestId,
-    }, { includeCors: false });
+    },
+  };
+}
+
+Deno.serve(async (req) => {
+  const requestId = getRequestId(req);
+  try {
+    const guard = ensureInternalRequest(req);
+    if (guard) return guard;
+
+    const body = await req.json().catch(() => ({} as Record<string, unknown>));
+
+    // ── UNE TRANCHE RELANCÉE RÉPOND TOUT DE SUITE ─────────────────────────
+    // Son compte-rendu ne part qu'au journal (`keel.proactive.link`): personne
+    // n'attend sa réponse, et la tranche d'avant ne doit pas l'attendre.
+    if (body.respond_early === true) {
+      const work = sweep(req, body, requestId).then((report) => {
+        console.log(JSON.stringify({
+          tag: "keel.proactive.link",
+          status: report.status,
+          ...report.payload,
+        }));
+      }).catch(async (error) => {
+        await logEdgeFunctionError({
+          functionName: FN_NAME,
+          requestId,
+          error,
+          metadata: { source: "edge", link: body.link ?? null },
+        });
+      });
+      const accepted = keepWorking(work);
+      return jsonResponse(req, {
+        ok: true,
+        accepted,
+        link: body.link ?? null,
+        request_id: requestId,
+      }, { status: 202, includeCors: false });
+    }
+
+    const report = await sweep(req, body, requestId);
+    console.log(JSON.stringify({
+      tag: "keel.proactive.link",
+      status: report.status,
+      ...report.payload,
+    }));
+    return jsonResponse(req, report.payload, {
+      status: report.status,
+      includeCors: false,
+    });
   } catch (error) {
     await logEdgeFunctionError({
       functionName: FN_NAME,

@@ -53,19 +53,17 @@ describe("PlanDraftDialog — la question avant la composition", () => {
     expect(stop, "on refait AVANT de regarder la question").toBeLessThan(compose);
   });
 
-  it("le tour se compte APRÈS une composition ou une reprise locale, jamais sur une lecture ou une réponse", () => {
-    // ⟳ 2026-09-24 — UN SEUL COMPTEUR (`countTurn`), appelé APRÈS chaque
-    // chemin qui compose: recomposer, refaire la case, l'ajustement par
-    // exclusion, remplacer des plats. Aucun autre endroit n'incrémente.
-    expect(src.match(/setTurnsUsed\(\(n\) => n \+ 1\)/g)?.length, "un seul incrément").toBe(1);
-    expect(src).toMatch(/const countTurn = \(\) => setTurnsUsed\(\(n\) => n \+ 1\);/);
+  it("⟳ 2026-09-25 — aucun tour ne se compte: il n'y a plus de limite de reprises", () => {
+    // Décision produit: « il ne doit pas y avoir de limite de reprises dans
+    // les faits ». Les quatre chemins qui composent (recomposer, refaire la
+    // case, l'ajustement par exclusion, remplacer des plats) ne comptent rien.
+    expect(src).not.toMatch(/countTurn|setTurnsUsed/);
     const fn = src.slice(src.indexOf("const composeNow = async () => {"));
     const body = fn.slice(0, fn.indexOf("};"));
-    expect(body).toMatch(/await onCompose\(\);\s*countTurn\(\);/);
-    expect(src).toMatch(/await onEditCells\(draftId, outcome\.cells\);\s*countTurn\(\);/);
-    expect(src).toMatch(/await onEditExclusions\(draftId\);\s*countTurn\(\);/);
-    expect(src).toMatch(/await onReplaceDishes\(id, rejections\);\s*countTurn\(\);/);
-    expect(src.match(/countTurn\(\);/g)?.length, "quatre chemins comptent un tour").toBe(4);
+    expect(body).toMatch(/await onCompose\(\);/);
+    expect(src).toMatch(/await onEditCells\(draftId, outcome\.cells\);/);
+    expect(src).toMatch(/await onEditExclusions\(draftId, outcome\.swaps\);/);
+    expect(src).toMatch(/await onReplaceDishes\(id, rejections\);/);
   });
 
   it("⟳ pièce 4 — la case seule quand la phrase en désigne une ET qu'un brouillon est rangé, sinon tout", () => {
@@ -76,7 +74,9 @@ describe("PlanDraftDialog — la question avant la composition", () => {
     expect(body).toMatch(/await composeNow\(\);/);
     // ⟳ 2026-09-24 — une note qui n'est QU'UNE exclusion modifie le brouillon,
     // et ce test vient AVANT la recomposition : sinon elle ne s'atteint jamais.
-    const exclusion = body.indexOf("if (draftId !== null && noteIsExclusionOnly(outcome)) {");
+    // ⟳ 2026-09-25 — `noteIsLocalEdit`: l'exclusion seule, ou « à la place
+    // de X, mets Y » pour ce plan.
+    const exclusion = body.indexOf("if (draftId !== null && noteIsLocalEdit(outcome)) {");
     expect(exclusion).toBeGreaterThan(0);
     expect(exclusion).toBeLessThan(body.indexOf("await composeNow();"));
     // Ce qui se dit vient de `edit.taken` (les cases PRISES), jamais de la demande.
@@ -90,7 +90,9 @@ describe("PlanDraftDialog — la question avant la composition", () => {
     // « Personne de la liste » (ou rien de coché) n'écrit rien, et se compte.
     expect(body).toMatch(/if \(memberId === null\) \{\s*skipped\+\+;\s*continue;/);
     const replace = body.indexOf("await replaceNow(then.draftId, then.rejections, merged);");
-    const guard = body.indexOf("if (merged.announced.length === 0 && merged.cells.length === 0) return;");
+    // ⟳ 2026-09-25 — un remplacement pour ce plan (`swaps`) est aussi « quelque
+    // chose qui a bougé »: sans lui dans la garde, il serait perdu en silence.
+    const guard = body.indexOf("if (merged.announced.length === 0 && merged.cells.length === 0 && merged.swaps.length === 0) return;");
     const render = body.indexOf("await renderNow(merged);");
     expect(replace, "le remplacement ne part plus après les questions").toBeGreaterThan(0);
     expect(guard).toBeGreaterThan(replace);
@@ -122,7 +124,9 @@ describe("PlanDraftDialog — la question avant la composition", () => {
   it("⟳ 2026-09-24 — les questions sont une COUCHE: tant qu'elle est ouverte, le reste est inerte, et l'échappatoire existe", () => {
     // La couche est montée par `Modal`, qui rend fronton, corps et pied `inert`
     // tant qu'elle est là: ni le champ ni la reprise ne se touchent.
-    expect(src).toMatch(/: asking !== null\s*\?\s*\(\s*<NoteQuestionsLayer/);
+    // ⟳ 2026-09-24 — la couche ne porte plus QUE les questions (la raison de
+    // « Changer » vit dans une bulle sous le bouton du plat).
+    expect(src).toMatch(/layer=\{asking !== null\s*\?\s*\(\s*<NoteQuestionsLayer/);
     const modal = read("../ui/Modal.tsx");
     expect(modal.match(/inert=\{hasLayer\}/g)?.length, "fronton, corps et pied inertes").toBe(3);
     const layer = read("./NoteQuestionsLayer.tsx");

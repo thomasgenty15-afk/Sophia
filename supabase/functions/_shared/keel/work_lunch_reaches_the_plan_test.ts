@@ -75,9 +75,8 @@ Deno.test("D6.2 — sans gamelle, PAS UN OCTET", () => {
   // Le cas nominal, et la contre-épreuve du lot: le prompt d'un foyer où
   // personne n'emporte son déjeuner est celui de v22 au caractère près.
   assertEquals(workLunchBlock(MEMBERS, []), { block: "", mouths: 0, cold: 0 });
-  // « Dehors » n'est PAS une gamelle: son effet est ailleurs (les cinq midis
-  // `eating_out` que la porte SQL a posés), et le redire ici ferait poser une
-  // contrainte de transport sur un repas que le plan ne compose pas.
+  // « Dehors » n'est PAS une gamelle: il ne pose aucune contrainte de
+  // transport (et plus aucun effet depuis le 2026-09-24).
   assertEquals(
     workLunchBlock(MEMBERS, [{ memberId: "m-1", mode: "outside", microwave: null }]),
     { block: "", mouths: 0, cold: 0 },
@@ -216,9 +215,13 @@ Deno.test("A2 — les deux lanes lisent la MÊME cuisine, et la DÉRIVENT au mê
   for (const [name, code] of [["foyer", foyer]] as const) {
     for (
       const key of [
-        "cookingStyle: readCookingStyle(pc),",
+        // ⟳ 2026-09-25 — le style n'est plus lu; les sessions arrivent avec la
+        // demande, et les repas cuisinés viennent de la grille résolue.
         "groceryRuns: readGroceryRuns(pc),",
+        "const askedCookingSessions = readCookingSessions(body.cooking_sessions);",
         "const capacity = resolveCookingCapacity({",
+        "sessions: askedCookingSessions,",
+        "mealsPerDay: cookedMealsPerDay(eatingRhythm.map((o) => o.slot)),",
         "leadDay: cookOnlyDay !== null,",
       ]
     ) {
@@ -230,6 +233,16 @@ Deno.test("A2 — les deux lanes lisent la MÊME cuisine, et la DÉRIVENT au mê
     assert(
       !code.includes("sessionCap"),
       `${name}: le plafond du style est recopié hors du module`,
+    );
+    // ⟳ 2026-09-25 — ET LE STYLE N'EST PLUS LU NULLE PART dans la lane.
+    assert(
+      !code.includes("readCookingStyle"),
+      `${name}: le style de cuisine est encore lu`,
+    );
+    // ⛔ NI LE MINIMUM PAR SESSION: il vit dans `cooking_plan.ts`.
+    assert(
+      !code.includes("MINUTES_PER_COOKED_MEAL"),
+      `${name}: le minimum par session est recopié hors du module`,
     );
   }
 });

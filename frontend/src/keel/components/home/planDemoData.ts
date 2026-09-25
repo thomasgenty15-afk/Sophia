@@ -139,12 +139,6 @@ export interface DemoDish {
   kcal: Readonly<Record<DemoGoal, number>> | null;
 }
 
-export interface DemoSilence {
-  day: DemoDay;
-  slot: DemoSlot;
-  kind: "eating_out";
-}
-
 // ── LES COURSES ──────────────────────────────────────────────────────────────
 export const DEMO_GROCERIES: readonly DemoGrocery[] = [
   { id: "chicken_thighs", aisle: "protein", termKey: "home.demo.ing.chicken_thighs", quantity: { fat_loss: "400 g", muscle_gain: "500 g" }, prepIds: ["chicken"], dishIds: [] },
@@ -271,11 +265,6 @@ export const DEMO_DISHES: readonly DemoDish[] = [
   },
 ];
 
-/** Le déjeuner du dimanche est DÉCLARÉ dehors: un silence voulu, pas un trou. */
-export const DEMO_SILENCES: readonly DemoSilence[] = [
-  { day: "sun", slot: "lunch", kind: "eating_out" },
-];
-
 // ── LES LECTURES ─────────────────────────────────────────────────────────────
 
 export function prepById(id: string): DemoPrep | undefined {
@@ -391,7 +380,6 @@ export function boxLinesForSession(session: DemoSession, goal: DemoGoal): DemoBo
 
 export type DemoGridCell =
   | { kind: "dish"; title: string; fromBatch: boolean }
-  | { kind: "eating_out" }
   | { kind: "empty" };
 
 export interface DemoGridRow {
@@ -404,8 +392,6 @@ export function demoGrid(): DemoGridRow[] {
   return DEMO_SLOTS.map((slot) => ({
     slot,
     cells: DEMO_DAYS.map((day): DemoGridCell => {
-      const silence = DEMO_SILENCES.find((s) => s.day === day && s.slot === slot);
-      if (silence) return { kind: silence.kind };
       const dish = DEMO_DISHES.find((d) => d.day === day && d.slot === slot);
       if (!dish) return { kind: "empty" };
       return { kind: "dish", title: t(dish.titleKey), fromBatch: dish.prepIds.length > 0 };

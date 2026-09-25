@@ -5,6 +5,7 @@ import {
   exclusionEditCells,
   mergeCellEdit,
   readCellEdits,
+  readEditSwaps,
 } from "./cell_edit.ts";
 import type { GeneratedMeal } from "./meal_generation.ts";
 
@@ -240,4 +241,32 @@ Deno.test("exclusionEditCells — une exclusion d'UNE personne nomme la personne
   assertEquals(cells.length, 1);
   assert(cells[0].text.includes("Christèle no longer eats «saumon»"));
   assert(cells[0].text.includes("the household no longer eats «tofu»"));
+});
+
+// ⟳ 2026-09-25 — « À LA PLACE DE X, METS Y », POUR CE PLAN SEULEMENT.
+Deno.test("readEditSwaps garde deux aliments et une bouche, et compte le reste", () => {
+  const { swaps, refused } = readEditSwaps([
+    { from: "petit suisse", to: "fromage blanc", member_id: null },
+    { from: "riz", to: "quinoa", member_id: "aaaaaaaa-0000-4000-8000-000000000001" },
+    { from: "riz", to: "quinoa" },
+    { from: "", to: "quinoa" },
+    { from: "pâtes", to: "semoule", member_id: "pas-un-uuid" },
+    "n'importe quoi",
+  ]);
+  assertEquals(swaps, [
+    { from: "petit suisse", to: "fromage blanc", memberId: null },
+    { from: "riz", to: "quinoa", memberId: "aaaaaaaa-0000-4000-8000-000000000001" },
+    { from: "riz", to: "quinoa", memberId: null },
+  ]);
+  assertEquals(refused, 3);
+});
+
+Deno.test("une case refaite pour un remplacement dit « à la place de », pas « ne mange plus »", () => {
+  const cells = exclusionEditCells([
+    { dish: "Petit-suisse, pomme et noix", because: "petit suisse", matched: "petit suisse", day: "mon", slot: "breakfast", who: null, instead: "fromage blanc" },
+    { dish: "Tofu sauté", because: "tofu", matched: "tofu", day: "tue", slot: "dinner", who: null },
+  ]);
+  assertEquals(cells.length, 2);
+  assert(cells[0].text.includes("for this plan the household wants «fromage blanc» instead of «petit suisse»"), cells[0].text);
+  assert(cells[1].text.includes("the household no longer eats «tofu»"), cells[1].text);
 });

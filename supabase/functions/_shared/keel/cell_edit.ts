@@ -199,6 +199,51 @@ export function cellEditInstruction(args: {
  *
  * PURE.
  */
+/**
+ * ⟳ 2026-09-25 — « À LA PLACE DE X, METS Y », POUR CE PLAN SEULEMENT.
+ *
+ * Décision du propriétaire : X n'est pas un dégoût — il n'est rangé nulle part,
+ * il sort de CE plan; Y est une préférence (rangée par la lecture de la note).
+ * Le front rend l'entrée ici (`swaps`, avec `cells_from: "exclusions"`), et le
+ * générateur refait les seuls plats où X est servi.
+ */
+export interface EditSwap {
+  readonly from: string;
+  readonly to: string;
+  /** `null` = toute la table. */
+  readonly memberId: string | null;
+}
+export const EDIT_SWAPS_MAX = 3;
+export const EDIT_SWAP_TEXT_MAX = 60;
+
+/** Lit `body.swaps`. Ce qui est illisible est COMPTÉ, jamais deviné. */
+export function readEditSwaps(raw: unknown): { swaps: EditSwap[]; refused: number } {
+  const swaps: EditSwap[] = [];
+  let refused = 0;
+  const seen = new Set<string>();
+  for (const row of Array.isArray(raw) ? raw : []) {
+    const r = row && typeof row === "object" && !Array.isArray(row) ? row as Record<string, unknown> : null;
+    const from = typeof r?.from === "string" ? r.from.trim() : "";
+    const to = typeof r?.to === "string" ? r.to.trim() : "";
+    const memberRaw = typeof r?.member_id === "string" ? r.member_id.trim().toLowerCase() : "";
+    if (
+      !from || !to || from.length > EDIT_SWAP_TEXT_MAX || to.length > EDIT_SWAP_TEXT_MAX ||
+      (memberRaw !== "" && !/^[0-9a-f-]{36}$/.test(memberRaw))
+    ) {
+      refused++;
+      continue;
+    }
+    const key = `${memberRaw}|${from.toLowerCase()}`;
+    if (seen.has(key) || swaps.length >= EDIT_SWAPS_MAX) {
+      refused++;
+      continue;
+    }
+    seen.add(key);
+    swaps.push({ from, to, memberId: memberRaw === "" ? null : memberRaw });
+  }
+  return { swaps, refused };
+}
+
 export function exclusionEditCells(
   bites: readonly {
     readonly dish: string;
@@ -213,6 +258,12 @@ export function exclusionEditCells(
      * même plat, et le modèle doit savoir lequel des deux on lui demande.
      */
     readonly who: string | null;
+    /**
+     * ⟳ 2026-09-25 — « À LA PLACE DE X, METS Y », pour ce plan : l'aliment à
+     * mettre à la place. Absent ou `null` = une exclusion rangée (« ne mange
+     * plus »).
+     */
+    readonly instead?: string | null;
   }[],
 ): CellEdit[] {
   const byCell = new Map<string, { day: DayToken; slot: RhythmOccasion; because: Set<string>; dishes: Set<string> }>();
@@ -225,7 +276,14 @@ export function exclusionEditCells(
     const cell = byCell.get(key) ??
       { day: day as DayToken, slot: slot as RhythmOccasion, because: new Set<string>(), dishes: new Set<string>() };
     const food = `«${String(b.because ?? b.matched)}»`;
-    cell.because.add(b.who === null ? `the household no longer eats ${food}` : `${b.who} no longer eats ${food}`);
+    const instead = typeof b.instead === "string" && b.instead.trim() !== "" ? `«${b.instead.trim()}»` : null;
+    cell.because.add(
+      instead !== null
+        ? (b.who === null
+          ? `for this plan the household wants ${instead} instead of ${food}`
+          : `for this plan ${b.who} wants ${instead} instead of ${food}`)
+        : (b.who === null ? `the household no longer eats ${food}` : `${b.who} no longer eats ${food}`),
+    );
     cell.dishes.add(b.dish);
     byCell.set(key, cell);
   }
@@ -238,7 +296,7 @@ export function exclusionEditCells(
       slot: c.slot,
       text: `${[...c.because].join("; ")}; ` +
         `it is in ${[...c.dishes].map((t) => `«${t}»`).join(", ")}. ` +
-        "Rewrite that dish so nobody is served what they no longer eat, and copy the other dishes of this cell exactly",
+        "Rewrite that dish so nobody is served what they no longer eat or asked to swap out, and copy the other dishes of this cell exactly",
     }));
 }
 

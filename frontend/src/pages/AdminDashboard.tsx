@@ -57,7 +57,7 @@ export default function AdminDashboard() {
           </div>
           <h1 className="text-xl font-bold text-red-200 mb-2">Acces refuse</h1>
           <p className="text-red-400/80 mb-4 text-sm">
-            Votre compte n&apos;a pas les privileges administrateur requis.
+            Ton compte n&apos;a pas les privileges administrateur requis.
           </p>
           <div className="text-xs text-neutral-500 bg-neutral-900/50 p-2 rounded border border-neutral-800 break-all">
             {user.email}

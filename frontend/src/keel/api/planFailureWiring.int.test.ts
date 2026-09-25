@@ -97,7 +97,12 @@ describe("aucune panne ordinaire ne sort en clair sur l'écran", () => {
     const src = code("frontend/src/keel/components/plan/PlanDraftDialog.tsx");
     // ⟳ 2026-09-24 — QUATRE: la note, l'adoption, la suite des questions en
     // couche, et « Remplacer ». Chacun traduit son refus.
-    expect(src.match(/message: failureText\(e\)/g)?.length).toBe(4);
+    // ⟳ même jour — les reprises passent par `bodyFailure`, qui traduit PAR
+    // `failureText`; l'adoption traduit directement. ⟳ 2026-09-25 — trois, et
+    // plus quatre : « Refaire tout le plan » est parti (décision produit).
+    expect(src.match(/message: failureText\(e\)/g)?.length).toBe(1);
+    expect(src.match(/setFailure\(bodyFailure\(e\)\)/g)?.length).toBe(3);
+    expect(src).toContain("const message = failureText(e);");
     expect(src, "un motif repart en brut sous un bouton")
       .not.toContain("message: e instanceof Error ? e.message");
   });

@@ -271,6 +271,77 @@ export function looseSideLinesForDish(
 }
 
 /**
+ * ⟳ 2026-09-25 — TOUS LES À-CÔTÉS D'UN REPAS, POUR LA DEUXIÈME LIGNE DU TITRE.
+ *
+ * Ils se lisaient sous chaque couvercle, dans le détail replié. Ils montent
+ * sous le titre de la carte: ce qu'on mange avec le plat fait partie de ce
+ * qu'on mange. Une entrée par personne, dans l'ordre des couvercles puis des
+ * à-côtés sans boîte.
+ *
+ * ⚠️ LE PRÉNOM D'UNE BOÎTE À UN NOM REVIENT ICI. Sous son couvercle, la ligne
+ * le taisait (le couvercle le disait); sous le titre, rien ne le dit plus, et
+ * c'est la carte qui décide de l'écrire selon le nombre de bouches.
+ */
+export function dishSideSummary(
+  boxes: readonly BoxLine[],
+  loose: readonly BoxSideLine[],
+): {
+  memberId: string;
+  name: string | null;
+  items: string;
+  terms: string;
+  kinds: { kind: DishSideCourseKind; items: string }[];
+}[] {
+  // `items` = « comté ~30 g, 1 × pomme »; `terms` = « comté, pomme », pour la
+  // ligne compacte de l'aperçu, qui ne porte aucun gramme.
+  const itemsOf = (side: BoxSideLine) => side.items.map((it) => it.label).join(", ");
+  const termsOf = (side: BoxSideLine) => side.items.map((it) => it.term).join(", ");
+  return [
+    ...boxes.flatMap((box) =>
+      // ⚠️ `?? []`: même tolérance que `BoxTable` pour les `BoxLine` de test.
+      (box.sides ?? []).map((side) => ({
+        memberId: side.memberId,
+        name: side.name ?? (box.shared ? null : box.eaters[0] ?? null),
+        items: itemsOf(side),
+        terms: termsOf(side),
+        kinds: sideKindsOf(side),
+      }))
+    ),
+    ...loose.map((side) => ({
+      memberId: side.memberId,
+      name: side.name,
+      items: itemsOf(side),
+      terms: termsOf(side),
+      kinds: sideKindsOf(side),
+    })),
+  ];
+}
+
+/**
+ * ⟳ 2026-09-25 — L'ORDRE DU REPAS: l'entrée, le pain qui accompagne le plat,
+ * le fromage, le dessert. C'est l'ordre dans lequel la carte ouverte de
+ * l'aperçu les nomme (« En entrée : … », « En dessert : … »).
+ */
+const SIDE_KIND_ORDER: readonly DishSideCourseKind[] = ["starter", "bread", "cheese", "dessert"];
+
+/**
+ * LES À-CÔTÉS D'UNE PERSONNE, GROUPÉS PAR TYPE, AVEC LEUR QUANTITÉ.
+ *
+ * Demande du propriétaire (2026-09-25): la ligne « À côté : clémentine, pain
+ * complet » de l'aperçu ne dit pas combien. Le type vient du plan
+ * (`DishSideCourse.kind`), la quantité du libellé déjà rédigé
+ * (`sideCourseLabel`): rien n'est demandé de plus au modèle.
+ */
+function sideKindsOf(side: BoxSideLine): { kind: DishSideCourseKind; items: string }[] {
+  return SIDE_KIND_ORDER
+    .map((kind) => ({
+      kind,
+      items: side.items.filter((it) => it.kind === kind).map((it) => it.label).join(", "),
+    }))
+    .filter((group) => group.items !== "");
+}
+
+/**
  * LA COMPOSITION D'UNE CASSEROLE, PAR SON IDENTIFIANT. `null` = rien à dire.
  * ⚠️ REQUISE sur chaque constructeur de lignes: la session la lit sur ses
  * préparations, la carte du repas dit explicitement qu'elle n'en a pas.
@@ -429,13 +500,8 @@ export interface BoxLine {
    * lit pas sur ce contenant.
    */
   partial: boolean;
-  /**
-   * ⟳ 2026-09-23 — VRAI QUAND DES ACCOMPAGNEMENTS FRAIS (`preparation_id:
-   * null`) ont été laissés hors du contenant de la session : c'est lui, et lui
-   * seul, qui fait dire « le reste se prépare le jour même ». Toujours `false`
-   * hors d'une session.
-   */
-  restOnTheDay: boolean;
+  // ⛔ 2026-09-25 — `restOnTheDay` EST RETIRÉ avec la mention « le reste se
+  // prépare le jour même » qu'il était seul à armer (sur demande).
   /**
    * ⟳ 2026-09-23 — LES PARTS DE CE CONTENANT CUITES DANS UNE AUTRE SESSION,
    * nommées avec leur jour de cuisson. `[]` hors d'une session.
@@ -660,7 +726,6 @@ function oneLine(
       : (box.legacy_total_grams ?? 0),
     shared: eaterCount > 1,
     partial: kept.length < box.items.length,
-    restOnTheDay: scope !== null && box.items.some((it) => it.preparation_id === null),
     fromOtherSessions: [...elsewhere.values()],
     // ⚠️ `some`, PAS `every`: un contenant qui mélange une part congelée et une
     // part fraîche se remplit quand même au congélateur — c'est le geste le plus

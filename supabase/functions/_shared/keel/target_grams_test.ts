@@ -35,13 +35,6 @@ import {
   BOX_SIZING_REASONS,
   type BoxSizingReason,
   DEFAULT_PACE_KG_PER_WEEK,
-  eatingOutAdvice,
-  EATING_OUT_ADVICE_REASONS,
-  type EatingOutAdviceReason,
-  eatingOutAdviceSentence,
-  EATING_OUT_SLOT_LABELS,
-  KNOWN_PRESENCE_STATES,
-  MEAL_SIZE_WEIGHT,
   memberTargetFactor,
   mouthAgeVerdict,
   mouthTargetFactor,
@@ -51,9 +44,8 @@ import {
   resolveBoxFactors,
   sizeBoxesFromTarget,
 } from "./household_portions.ts";
-import { ageStateFromVerdict, type MemberAgeState } from "./household.ts";
+import { ageStateFromVerdict } from "./household.ts";
 import { assessBirthDate } from "./student_age.ts";
-import { PRESENCE_STATES } from "./household_presence.ts";
 import {
   executedPaceFor,
   KCAL_PER_KG_BODY_MASS,
@@ -64,7 +56,6 @@ import {
   MAX_DAILY_DEFICIT_KCAL,
   type MouthBody,
 } from "./meal_envelope.ts";
-import { EATING_OCCASIONS, type EatingOccasion } from "./meal_generation.ts";
 import { sourceFamilySync } from "./source_family.ts";
 
 // ---------------------------------------------------------------------------
@@ -1092,222 +1083,6 @@ Deno.test("L8 ① — PROPRIÉTÉ: sized + unchanged === items, toujours", () =>
 });
 
 // ---------------------------------------------------------------------------
-// ② LE CONSEIL DU MIDI — clause C9
-// ---------------------------------------------------------------------------
-
-const DAY: EatingOccasion[] = ["breakfast", "lunch", "dinner"];
-const SLOTS = DAY.map((slot) => ({ slot, size: null }));
-const LUNCH = { slot: "lunch" as EatingOccasion, size: null };
-const OPEN_READER = { show: true, reason: "open" };
-/**
- * ⟳ 2026-09-09 — LA JOURNÉE **AFFICHÉE**, ÉCRITE À LA MAIN, ET C'EST LE POINT.
- *
- * Elle valait `executedPaceFor(...).maintenanceKcal − dailyDeltaKcal`, c'est-à-
- * dire la grandeur que `weight_pace.ts` interdit d'afficher — et un test qui
- * relit la formule qu'il vérifie reste vert quand la formule change de base.
- * Ici le nombre est LE nombre que l'écran imprime (milieu de `directedRange`),
- * et il est écrit en clair pour qu'une somme de parts puisse s'y comparer.
- */
-const DAY_KCAL = 2075;
-
-const ADVICE = {
-  presenceState: "eating_out",
-  reader: OPEN_READER,
-  mouthIsReader: true,
-  mouthAgeState: "adult" as MemberAgeState,
-  slots: SLOTS,
-  occasion: LUNCH,
-  dayKcal: DAY_KCAL,
-};
-
-Deno.test("L8 ② — LE CAS QUI PASSE: un midi dehors reçoit un nombre, arrondi aux 50", () => {
-  const out = eatingOutAdvice(ADVICE);
-  assertEquals(out.reason, "advised");
-  assert(out.kcal !== null && out.kcal > 0, JSON.stringify(out));
-  assertEquals(out.kcal! % 50, 0, `${out.kcal} n'est pas arrondi aux 50`);
-});
-
-Deno.test("⛔ L8 C9.a — UN MINEUR ET UN ÂGE INCONNU NE REÇOIVENT AUCUN CHIFFRE", () => {
-  // `keel_household_set_member_away` ne consulte AUCUN âge — reconfirmé sur
-  // `prosrc` par L4-B. « Dehors » est donc posable sur un mineur, et sans cette
-  // garde un chiffre l'atteindrait par une case de grille, sans jamais passer
-  // devant la porte qui existe pour l'en protéger.
-  assertEquals(
-    eatingOutAdvice({ ...ADVICE, mouthAgeState: "minor" }),
-    { kcal: null, reason: "mouth_minor" },
-  );
-  assertEquals(
-    eatingOutAdvice({ ...ADVICE, mouthAgeState: "unknown" }),
-    { kcal: null, reason: "mouth_age_unknown" },
-  );
-});
-
-Deno.test("⛔ L8 C9.b — UN VOCABULAIRE INCONNU NE REÇOIT AUCUN CHIFFRE, ET AUCUN REPLI", () => {
-  // Le vocabulaire de présence est fermé côté maître et OUVERT côté personne: un
-  // `.update()` PostgREST direct passe sans contrainte. Un jeton hors liste vaut
-  // « on ne sait pas », jamais « à table » et jamais « dehors ».
-  for (const state of ["", "EATING_OUT", "eating out", "dehors", "out", "away_days", "null"]) {
-    assertEquals(
-      eatingOutAdvice({ ...ADVICE, presenceState: state }),
-      { kcal: null, reason: "unknown_state" },
-      state,
-    );
-  }
-  // Et les deux états CONNUS qui ne sont pas « dehors » se disent autrement:
-  // confondre « pas de conseil » et « on ne sait pas » ferait chercher la
-  // réparation du mauvais côté.
-  for (const state of ["at_table", "away"]) {
-    assertEquals(
-      eatingOutAdvice({ ...ADVICE, presenceState: state }),
-      { kcal: null, reason: "not_eating_out" },
-      state,
-    );
-  }
-});
-
-Deno.test("L8 C9.b — le vocabulaire recopié est EXACTEMENT celui de `household_presence`", () => {
-  // La recopie est imposée par le cycle d'import (voir le commentaire du
-  // module). Ce test est ce qui l'empêche de dériver: un quatrième état ajouté
-  // là-bas serait lu « inconnu » ici, donc muet, et le lot ressemblerait à un
-  // lot qui marche.
-  assertEquals([...KNOWN_PRESENCE_STATES], [...PRESENCE_STATES]);
-});
-
-Deno.test("L8 ② — la bouche d'un AUTRE ne reçoit jamais de chiffre", () => {
-  // FF-059 §11 n°4: un chiffre ne sort que pour la bouche qui le demande. Une
-  // bouche sans compte n'a aucun interrupteur — lui adresser un chiffre serait
-  // un tracker qu'elle ne peut pas éteindre. C'est le manque que le levier
-  // d'invitation existe pour nommer.
-  assertEquals(
-    eatingOutAdvice({ ...ADVICE, mouthIsReader: false }),
-    { kcal: null, reason: "other_mouth" },
-  );
-});
-
-Deno.test("L8 ② — le motif du LECTEUR survit tel quel, interrupteurs compris", () => {
-  // ⚠️ CONTRAIREMENT AU DIMENSIONNEMENT, CE CONSEIL SE LIT: il traverse donc les
-  // CINQ portes. `student_off` et `target_off` doivent arriver jusqu'ici, sans
-  // quoi éteindre l'affichage laisserait un chiffre à l'écran.
-  for (
-    const reason of [
-      "restriction_floor",
-      "minor",
-      "doctrine_no_counting",
-      "student_off",
-      "target_off",
-    ]
-  ) {
-    assertEquals(
-      eatingOutAdvice({ ...ADVICE, reader: { show: false, reason } }),
-      { kcal: null, reason: reason as EatingOutAdviceReason },
-      reason,
-    );
-  }
-  // Un motif que ce vocabulaire ne porte pas refuse quand même, et il ne se
-  // range PAS dans `advised`.
-  const unknown = eatingOutAdvice({
-    ...ADVICE,
-    reader: { show: false, reason: "some_new_gate" },
-  });
-  assertEquals(unknown, { kcal: null, reason: "unknown_state" });
-});
-
-Deno.test("L8 ② — sans corps ni journée déclarée, aucun chiffre", () => {
-  assertEquals(
-    eatingOutAdvice({ ...ADVICE, dayKcal: null }),
-    { kcal: null, reason: "no_body" },
-  );
-  // ⛔ ZÉRO ET NÉGATIF SONT DES `no_body`, PAS DES CONSEILS À ZÉRO. « Vise
-  // autour de 0 » se lirait « ne mange rien », le sens exactement inverse.
-  assertEquals(
-    eatingOutAdvice({ ...ADVICE, dayKcal: 0 }),
-    { kcal: null, reason: "no_body" },
-  );
-  assertEquals(
-    eatingOutAdvice({ ...ADVICE, slots: [] }),
-    { kcal: null, reason: "no_rhythm" },
-  );
-  // Une case qui n'est pas dans la journée déclarée de cette personne: on ne
-  // fabrique pas un moment qu'elle n'a pas.
-  assertEquals(
-    eatingOutAdvice({
-      ...ADVICE,
-      slots: [{ slot: "dinner", size: null }],
-      occasion: LUNCH,
-    }),
-    { kcal: null, reason: "no_rhythm" },
-  );
-});
-
-Deno.test("L8 ② — le conseil suit la TAILLE déclarée du repas, pas une table universelle", () => {
-  const plain = eatingOutAdvice(ADVICE).kcal!;
-  const big = eatingOutAdvice({
-    ...ADVICE,
-    slots: [
-      { slot: "breakfast", size: null },
-      { slot: "lunch", size: "large" },
-      { slot: "dinner", size: null },
-    ],
-    occasion: { slot: "lunch", size: "large" },
-  }).kcal!;
-  assert(big > plain, `${big} devrait dépasser ${plain}`);
-  // Et la somme des moments d'une journée reste la journée, à l'arrondi près:
-  // le conseil est une PART d'une journée déclarée, pas un pourcentage figé.
-  const total = DAY.map((slot) =>
-    eatingOutAdvice({ ...ADVICE, occasion: { slot, size: null } }).kcal ?? 0
-  ).reduce((a, b) => a + b, 0);
-  assert(Math.abs(total - DAY_KCAL) <= 75, `${total} vs ${DAY_KCAL}`);
-});
-
-Deno.test("⛔ L8 ② — UNE CONSIGNE, JAMAIS UN SOLDE — et les deux langues le disent", () => {
-  const kcal = eatingOutAdvice(ADVICE).kcal!;
-  const en = eatingOutAdviceSentence("en", "lunch", kcal);
-  const fr = eatingOutAdviceSentence("fr", "lunch", kcal);
-  assertEquals(en, `At lunch, aim for around ${kcal}.`);
-  assertEquals(fr, `Au déjeuner, vise autour de ${kcal}.`);
-  // « Il te reste 680 kcal » est LA phrase d'un tracker. Aucune des douze
-  // formulations ne peut la produire, et on le vérifie dans les DEUX langues —
-  // « garde testée dans une seule langue » est une cicatrice mesurée d'ici.
-  for (const occasion of EATING_OCCASIONS) {
-    for (const locale of ["en", "fr"] as const) {
-      const line = eatingOutAdviceSentence(locale, occasion, 700);
-      for (
-        const banned of ["left", "remaining", "reste", "restant", "budget", "over", "under"]
-      ) {
-        assert(!line.toLowerCase().includes(banned), `${locale}/${occasion}: ${line}`);
-      }
-      assert(line.includes("700"), line);
-    }
-  }
-});
-
-Deno.test("L8 ② — la préposition française est DANS le libellé, jamais dans le gabarit", () => {
-  // Une phrase assemblée en `Au ${label}` rend « Au ta collation du matin ». La
-  // faute est invisible à qui teste en anglais.
-  assertEquals(
-    eatingOutAdviceSentence("fr", "snack_am", 200),
-    "À ta collation du matin, vise autour de 200.",
-  );
-  for (const occasion of EATING_OCCASIONS) {
-    const fr = EATING_OUT_SLOT_LABELS[occasion].fr;
-    assert(/^(Au |À |Aux )/.test(fr), `${occasion}: « ${fr} » ne porte pas sa préposition`);
-    assert(
-      EATING_OUT_SLOT_LABELS[occasion].en.startsWith("At "),
-      occasion,
-    );
-  }
-});
-
-Deno.test("L8 ② — le vocabulaire des motifs est FERMÉ, et `advised` en fait partie", () => {
-  // Un journal qui ne nomme que les refus ne distingue pas « la porte a laissé
-  // passer » de « la porte n'a pas tourné ».
-  assert((EATING_OUT_ADVICE_REASONS as readonly string[]).includes("advised"));
-  assertEquals(new Set(EATING_OUT_ADVICE_REASONS).size, EATING_OUT_ADVICE_REASONS.length);
-  assertEquals(MEAL_SIZE_WEIGHT.small < MEAL_SIZE_WEIGHT.medium, true);
-  assertEquals(MEAL_SIZE_WEIGHT.medium < MEAL_SIZE_WEIGHT.large, true);
-});
-
-// ---------------------------------------------------------------------------
 // LE RYTHME EXÉCUTÉ — ≤ le cran choisi, et == sur un cran du curseur
 // ---------------------------------------------------------------------------
 
@@ -1440,54 +1215,6 @@ Deno.test("⛔ L8 — LE DIMENSIONNEMENT NE LIT NI ④ NI ⑤, ET LA SOURCE LE P
   }
 });
 
-Deno.test("⛔ L8 — LE MODULE NE SOUSTRAIT AUCUN CONSOMMÉ: il n'y a pas de solde à écrire", () => {
-  // « Il te reste 680 kcal » ne peut pas se construire à partir de ce module,
-  // parce qu'aucune de ses entrées ne porte un consommé. Le test lit les noms de
-  // champs plutôt qu'une arithmétique: c'est l'ENTRÉE qui rend la phrase
-  // possible, pas l'opérateur.
-  const start = CODE.indexOf("export function eatingOutAdvice(");
-  const end = CODE.indexOf("\n}\n", start);
-  assert(start > 0 && end > start);
-  const body = CODE.slice(start, end);
-  assert(body.includes('refuse("mouth_minor")'), "le corps n'a pas été lu");
-  for (
-    const banned of ["consumed", "eaten", "alreadyAte", "remaining", "left", "balance"]
-  ) {
-    assert(!body.includes(banned), `${banned} dans le conseil du midi`);
-  }
-});
-
-Deno.test("⛔ 2026-09-09 — LE CONSEIL NE FABRIQUE PAS SA PROPRE JOURNÉE", () => {
-  // La journée du conseil doit être CELLE QUE L'ÉCRAN IMPRIME. Quand ce module
-  // la recalculait — `ExecutedPace.maintenanceKcal ± dailyDeltaKcal`, une
-  // grandeur que `weight_pace.ts` interdit d'afficher —, un run réel a rendu
-  // « au déjeuner, vise autour de 900 » sous une fourchette 1 950–2 200: 900 × 3
-  // dépassait de 500 kcal la borne haute imprimée trois centimètres plus haut.
-  //
-  // ⚠️ LE TEST LIT LA SOURCE, PAS UN NOMBRE. Une assertion sur une valeur
-  // resterait verte le jour où quelqu'un rebranche une seconde estimation en
-  // dessous; ce qu'on interdit, c'est d'AVOIR une seconde estimation ici.
-  const start = CODE.indexOf("export function eatingOutAdvice(");
-  const end = CODE.indexOf("\n}\n", start);
-  assert(start > 0 && end > start);
-  const body = CODE.slice(start, end);
-  assert(body.includes("args.dayKcal"), "la journée n'est plus une entrée");
-  for (
-    const banned of [
-      "maintenanceKcal",
-      "estimatedMaintenance",
-      "dailyDeltaKcal",
-      "args.executed",
-      "args.direction",
-    ]
-  ) {
-    assert(
-      !body.includes(banned),
-      `${banned}: le conseil s'est refait une seconde journée`,
-    );
-  }
-});
-
 Deno.test("L8 — aucun champ OPTIONNEL dans les entrées neuves", () => {
   // « Un paramètre de garde optionnel est une garde désarmée » (`safetyBand:
   // null`). Le typecheck ne sait pas exprimer « cette signature n'a pas de `?` »:
@@ -1495,7 +1222,6 @@ Deno.test("L8 — aucun champ OPTIONNEL dans les entrées neuves", () => {
   for (
     const marker of [
       "export function mouthTargetFactor(args: {",
-      "export function eatingOutAdvice(args: {",
       "export interface SizablePreparation {",
     ]
   ) {

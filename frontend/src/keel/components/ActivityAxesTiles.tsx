@@ -38,7 +38,7 @@ import type {
 // est le second exemplaire.
 //
 // ⚠️ LA VOIX RESTE À L'APPELANT, LES OPTIONS NON. `dayLabel`/`sportLabel` sont
-// des chaînes DÉJÀ TRADUITES: la carte du titulaire dit « Vos journées », la
+// des chaînes DÉJÀ TRADUITES: la carte du titulaire dit « Tes journées », la
 // fiche d'une bouche dit « La journée de Fabrice » (`voiced` + `whoOf`, qui
 // NOMME la personne au lieu de deviner son genre). C'est la seule chose que
 // les sites décident encore — le titre est une voix, les six options sont une

@@ -6,64 +6,24 @@ import type { AwayMark } from "./presenceMarks";
 // D4 ② — QUI A UNE GRILLE DE PRÉSENCE À L'ÉTAPE 4, ET LE TITULAIRE EN FAIT
 // PARTIE.
 //
-// Spec: `scratchpad/2026-08-18-FORMULAIRE-PERSONNE-ET-PLANNING.md` §2.2 bis —
-// « la grille du plan gagne toujours sur la réponse hebdomadaire ».
+// `presenceRoster` assemble la liste des bouches de la grille de présence de
+// l'entonnoir, TITULAIRE COMPRIS (lu par `SetupPage`). `readFunnelFacts` retire
+// le titulaire de `mouths` (il vit dans `state.self`); sans cette liste, celui
+// qui remplit le formulaire n'avait aucune case pour dire « je ne suis pas là
+// à ce repas ».
 //
-// ══════════════════════════════════════════════════════════════════════════
-// ⟳ 2026-09-19 — LA QUESTION DU DÉJEUNER N'EST PLUS POSÉE NULLE PART
-// ══════════════════════════════════════════════════════════════════════════
-//
-// « Le déjeuner en semaine » a été SUPPRIMÉ du code sur décision du
-// propriétaire: « on ne pose plus jamais ces questions ».
-// `MemberWorkLunchCard`, `PersonWorkLunch`, `api/workLunch` et
-// `lib/workLunchCommit` n'existent plus. Ce qui suit décrit donc un défaut
-// FERMÉ PAR LE HAUT: plus personne ne pré-remplit cinq midis « dehors », donc
-// il n'y a plus rien à contredire.
-//
-// ⚠️ CE MODULE RESTE VIVANT, ET POUR SA SECONDE MOITIÉ: `presenceRoster`
-// assemble la liste des bouches de la grille de présence de l'entonnoir, TITULAIRE
-// COMPRIS. C'est ça qui est encore lu (`SetupPage`), pas l'arbitrage du
-// déjeuner. La porte SQL (`keel_household_set_member_work_lunch`) et la colonne
-// existent toujours: aucune donnée n'a été touchée, seule la question est
-// retirée de l'écran.
-//
-// ── ⛔ LE DÉFAUT D'ORIGINE, GARDÉ POUR L'HISTOIRE ────────────────────────
-// La question du déjeuner se posait AU TITULAIRE AUSSI (`MemberWorkLunchCard` sur
-// `/app/household` depuis A6, 2026-09-03 — à l'étape 3 avant, `workLunchRoster`:
-// « le titulaire, premier et pareil »), et sa réponse PRÉ-REMPLIT cinq midis
-// « dehors » sur SA ligne membre, dans la même transaction. L'étape 4, elle,
-// listait `facts.mouths` — dont `readFunnelFacts` RETIRE le titulaire, exprès,
-// parce qu'il vit dans `state.self`.
-//
-// Résultat mesuré: celui qui remplit le formulaire pouvait déclarer « je
-// déjeune au bureau », voir cinq de ses midis sortir du plan, et ne trouver
-// NULLE PART dans le tunnel de quoi en contredire un seul. Or « pré-remplir
-// n'est pas décider »: une réponse hebdomadaire qui ne se laisse pas contredire
-// fait disparaître un repas que quelqu'un vient de réclamer à la main, et c'est
-// le défaut le plus frustrant qui soit — on a fait le geste, il n'a rien
-// changé.
-//
-// ── POURQUOI RENDRE LA GRILLE PLUTÔT QUE RETIRER LA QUESTION ─────────────
-// L'autre issue était de ne plus poser la question du déjeuner au titulaire
-// dans le tunnel. Elle est REJETÉE, et pas par confort:
-//   · elle lui retirerait le conseil chiffré du midi (`eatingOutAdvice`), qui
-//     n'existe QUE pour un midi marqué « dehors » — c'est-à-dire qu'elle
-//     supprimerait la moitié utile du lot pour la personne la plus susceptible
-//     de composer;
-//   · `MemberWorkLunchCard` porte en toutes lettres l'arbitrage inverse (repris
-//     de `workLunchRoster`, retiré avec l'étape), pris la veille et écrit dans
-//     son en-tête. Le renverser en passant, depuis un lot
-//     d'écran, ferait exactement ce que ce dépôt reproche à ses propres
-//     commentaires: une contrainte qui survit à sa cause, dans l'autre sens.
-//   · la question reste juste: elle décrit une SEMAINE ORDINAIRE. Ce qui
-//     manquait n'était pas la question, c'était la case où la démentir.
+// ⟳ Historique. La liste est née pour contredire le pré-remplissage de la
+// question du déjeuner en semaine (cinq midis « dehors » écrits par
+// `keel_household_set_member_work_lunch`). La question est retirée depuis le
+// 2026-09-19, et l'état « dehors » le 2026-09-24 (ses cases converties en
+// absences). La liste reste: c'est la grille de présence du titulaire.
 //
 // ── ⚠️ IL PASSE PAR LA MÊME PORTE QUE LES AUTRES ─────────────────────────
-// Son pré-remplissage a été écrit dans `household_members.away_days` par
-// `keel_household_set_member_work_lunch`, sur SA ligne membre — la même colonne
-// que pour n'importe quelle bouche, et le roster la rend étiquetée
-// `source: 'household'` comme les autres. `setMemberAway(ownMemberId, …)`
-// est donc la porte, sans un chemin d'écriture de plus.
+// Ses absences de foyer vivent dans `household_members.away_days`, sur SA
+// ligne membre — la même colonne que pour n'importe quelle bouche, et le roster
+// la rend étiquetée `source: 'household'` comme les autres.
+// `setMemberAway(ownMemberId, …)` est donc la porte, sans un chemin d'écriture
+// de plus.
 //
 // ⛔ ET SANS LIGNE MEMBRE, IL N'A PAS DE GRILLE — PAS UNE FABRIQUÉE. Un compte
 // solo n'a pas de foyer: `ownMemberId` est `null`, il n'existe aucune ligne où

@@ -121,6 +121,14 @@ export function termsOfInstruction(instruction: string): string[] {
     .normalize("NFD")
     .replace(/\p{Diacritic}/gu, "")
     .toLowerCase()
+    // ⟳ 2026-09-25 — LES LIGATURES SE DÉPLIENT, COMME CÔTÉ PLAT
+    // (`normalizeForMatch`). « œ » n'est pas un accent : NFD ne le décompose
+    // pas, et le découpage le prenait pour un séparateur. Mesuré : « Je ne
+    // veux pas d'œufs » rendait le jeton `ufs`, qui ne mord jamais « Œuf,
+    // pain complet » — l'exclusion était rangée et ne retirait rien.
+    .replace(/œ/g, "oe")
+    .replace(/æ/g, "ae")
+    .replace(/ß/g, "ss")
     .split(/[^a-z0-9]+/)
     .filter(Boolean);
   const out: string[] = [];

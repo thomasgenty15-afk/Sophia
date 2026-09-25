@@ -18,6 +18,7 @@ describe("une section de session, au premier affichage", () => {
           title: "Déroulé global",
           meta: null,
           tone: "tinted",
+          icon: "steps",
           children: createElement("p", null, "Allumer le four à 200 °C."),
         },
       ),
@@ -43,7 +44,6 @@ describe("une section de session, au premier affichage", () => {
       shared: false,
       frozen,
       partial: false,
-      restOnTheDay: false,
       fromOtherSessions: [],
     });
     const lines = [line("b1", false), line("b2", true)];

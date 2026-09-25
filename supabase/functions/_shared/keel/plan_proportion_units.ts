@@ -792,6 +792,12 @@ export function adjustPlanProportions(args: {
   /** Les grammes crus de la recette INITIALE acceptée. `() => null` à la 1ʳᵉ passe. */
   baselineOf: (lineId: string) => number | null;
   now: () => number;
+  /**
+   * ⟳ 2026-09-25 — le plafond de temps de l'ajustement, en millisecondes.
+   * REQUIS: c'est ce qui empêche un ajustement long de faire dépasser les 2 s
+   * de calcul d'une fonction edge (`ADJUST_TIME_BUDGET_MS`).
+   */
+  budgetMs: number;
 }): PlanAdjustment | null {
   if (args.corridors.length === 0) return null;
   const built = unitsOfPlan({
@@ -814,6 +820,7 @@ export function adjustPlanProportions(args: {
       preparations: args.preparations,
       dishes: args.dishes,
     }),
+    timeBudget: { now: args.now, ms: args.budgetMs },
   });
   const ms = Math.max(0, args.now() - started);
   const apply = applyAdjustment({ result, lines: built.lines });

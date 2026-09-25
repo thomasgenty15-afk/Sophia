@@ -246,7 +246,6 @@ Deno.test("② la journée vient des BOÎTES, et planEnergy rendrait d'autres no
       preparations: readPreparations(plan.preparations),
       servings: Number(plan.servings ?? 1),
       addons: [],
-      mealsOutByDay: new Map(),
     }).days.find((d) => d.day === "sun")!;
     assertEquals(conventionnel.kcal, parPart[id], "part conventionnelle");
 

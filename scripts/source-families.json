@@ -34,7 +34,6 @@
     "supabase/functions/_shared/keel/household_cell_density.ts",
     "supabase/functions/_shared/keel/household_box_schema.ts",
     "supabase/functions/_shared/keel/household_box_resize.ts",
-    "supabase/functions/_shared/keel/household_eating_out.ts",
     "supabase/functions/_shared/keel/portion_note_terms.ts"
   ],
   "supabase/functions/_shared/keel/portion_sizing.ts": [

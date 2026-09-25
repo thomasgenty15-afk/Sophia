@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  attachEatingOutAdvice,
-  dayEnergySubjectClause,
   finiteEnergyNumber,
   readBox,
   readBoxes,
@@ -278,202 +276,28 @@ describe("readDay — le total d'un jour", () => {
     expect(day.kcal).toBe(204);
     expect(day.dishesCounted).toBe(3);
   });
-});
 
-// ---------------------------------------------------------------------------
-// ② — LE SUJET DU NOMBRE, ET LE PIÈGE DU ZÉRO QU'ON NE REJOUE PAS
-// ---------------------------------------------------------------------------
-
-describe("readDay — de quoi ce nombre parle", () => {
-  const OUT_DAY = {
-    day: "tue",
-    kcal: 1400,
-    basis: "plan_quantities",
-    complete: true,
-    dishes_counted: 2,
-    dishes_total: 2,
-    meals_out: 1,
-    subject: "what_the_plan_made",
-  };
-
-  it("LE CAS QUI PASSE: le sujet restreint traverse avec son compte", () => {
-    // Sans ce cas, une garde qui refuserait TOUT laisserait le banc vert et
-    // l'écran continuerait d'annoncer « ta journée » sur deux repas sur trois.
-    const day = readDay(OUT_DAY);
-    expect(day.subject).toBe("what_the_plan_made");
-    expect(day.mealsOut).toBe(1);
-    expect(day.kcal).toBe(1400);
-  });
-
-  it("le cas NOMINAL reste `the_day`, et son compte est zéro", () => {
-    const day = readDay({ ...OUT_DAY, meals_out: 0, subject: "the_day" });
-    expect(day.subject).toBe("the_day");
-    expect(day.mealsOut).toBe(0);
-  });
-
-  it("⚠️ un plan d'AVANT la trace se lit comme hier, pas comme une journée tronquée", () => {
-    // Les deux clés absentes du fil. Le repli doit être EXACTEMENT le
-    // comportement d'avant ce champ — sinon un plan composé la semaine dernière
-    // se mettrait à parler d'une restriction que personne n'a déclarée.
+  it("⟳ 2026-09-24 — `meals_out`, `subject` et `eating_out_advice` NE TRAVERSENT PLUS", () => {
+    // Leur seul producteur était l'état « dehors », retiré. Un serveur non
+    // redéployé peut encore les envoyer: la vue d'un jour ne les porte pas.
     const day = readDay({
       day: "tue",
       kcal: 1400,
       complete: true,
       dishes_counted: 2,
       dishes_total: 2,
+      meals_out: 1,
+      subject: "what_the_plan_made",
+      eating_out_advice: [{ slot: "lunch", kcal: 700 }],
     });
-    expect(day.subject).toBe("the_day");
-    expect(day.mealsOut).toBe(0);
-  });
-
-  it("⛔ LE PIÈGE DU 0–0, DANS SA FORME SYMÉTRIQUE: un sujet sans son compte", () => {
-    // Le 2026-08-18, `Number(null) === 0` a fabriqué « Autour de 0–0 par jour »
-    // et EFFACÉ la phrase qui invitait à ajouter une pesée. Ici la forme
-    // dégradée serait « sur les 2 repas que j'ai composés (0 repas dehors) » —
-    // une phrase qui restreint le sujet du nombre en avouant qu'il n'y a aucune
-    // raison de le restreindre, et qui remplacerait « sur la journée », lequel
-    // était vrai.
-    for (
-      const broken of [
-        { ...OUT_DAY, meals_out: null },
-        { ...OUT_DAY, meals_out: undefined },
-        { ...OUT_DAY, meals_out: "" },
-        { ...OUT_DAY, meals_out: 0 },
-        { ...OUT_DAY, meals_out: -2 },
-      ]
-    ) {
-      const day = readDay(broken);
-      expect(day.subject).toBe("the_day");
-      expect(day.mealsOut).toBe(0);
-    }
-  });
-
-  it("un jour où le plan n'a composé AUCUN repas n'a pas de sujet à restreindre", () => {
-    // « sur les 0 repas que j'ai composés » n'est pas un sujet, c'est une
-    // journée vide — et `day_unreadable` le dit déjà mieux.
-    const day = readDay({ ...OUT_DAY, dishes_total: 0, kcal: null });
-    expect(day.subject).toBe("the_day");
-    expect(day.mealsOut).toBe(0);
-  });
-
-  it("un jeton de sujet INCONNU retombe sur le comportement d'hier", () => {
-    for (const token of ["the_week", "", "WHAT_THE_PLAN_MADE", 42, null]) {
-      const day = readDay({ ...OUT_DAY, subject: token });
-      expect(day.subject).toBe("the_day");
-      expect(day.mealsOut).toBe(0);
-    }
-  });
-
-  it("le compte est un ENTIER: un fil bavard ne rend pas « 1,4 repas dehors »", () => {
-    expect(readDay({ ...OUT_DAY, meals_out: 1.4 }).mealsOut).toBe(1);
-    expect(readDay({ ...OUT_DAY, meals_out: "3" }).mealsOut).toBe(3);
-  });
-});
-
-// ---------------------------------------------------------------------------
-// ① — LE CONSEIL DU MIDI, LU SANS RIEN RÉPARER
-// ---------------------------------------------------------------------------
-
-describe("attachEatingOutAdvice — l'ordre de grandeur d'une case « dehors »", () => {
-  const days = [
-    readDay({ day: "mon", kcal: 1400, complete: true, dishes_total: 2, dishes_counted: 2 }),
-    readDay({ day: "tue", kcal: 1900, complete: true, dishes_total: 3, dishes_counted: 3 }),
-  ];
-
-  it("LE CAS QUI PASSE: le conseil se range sur SON jour, et sur lui seul", () => {
-    const out = attachEatingOutAdvice(days, [
-      { day: "mon", slot: "lunch", kcal: 700 },
-    ]);
-    expect(out[0].eatingOutAdvice).toEqual([{ slot: "lunch", kcal: 700 }]);
-    // ⚠️ ET PAS SUR L'AUTRE JOUR. Lire les deux tableaux par index servirait à
-    // quelqu'un l'ordre de grandeur d'un autre midi — les deux ne sont pas
-    // alignés: un jour peut n'avoir aucun conseil.
-    expect(out[1].eatingOutAdvice).toEqual([]);
-  });
-
-  it("plusieurs cases du même jour tiennent ensemble", () => {
-    const out = attachEatingOutAdvice(days, [
-      { day: "tue", slot: "lunch", kcal: 700 },
-      { day: "tue", slot: "dinner", kcal: 900 },
-    ]);
-    expect(out[1].eatingOutAdvice).toEqual([
-      { slot: "lunch", kcal: 700 },
-      { slot: "dinner", kcal: 900 },
-    ]);
-  });
-
-  it("⛔ UN MOMENT HORS VOCABULAIRE TOMBE, il n'est jamais rendu brut", () => {
-    // Sinon `EATING_OUT_SLOT_LABELS[slot]` vaut `undefined` et la phrase sort
-    // avec « undefined » dedans, sous les yeux de quelqu'un.
-    for (const slot of ["brunch", "", "LUNCH", null, 3]) {
-      const out = attachEatingOutAdvice(days, [{ day: "mon", slot, kcal: 700 }]);
-      expect(out[0].eatingOutAdvice).toEqual([]);
-    }
-  });
-
-  it("⛔ « VISE AUTOUR DE 0 » N'EXISTE PAS: `Number(null)` ne devient pas un conseil", () => {
-    // Le piège du 0–0, troisième forme. « Au déjeuner, vise autour de 0 » se
-    // lirait « ne mange rien » — le sens exactement inverse, et sur la phrase
-    // la plus directive du produit.
-    for (const kcal of [null, undefined, "", 0, -50]) {
-      const out = attachEatingOutAdvice(days, [{ day: "mon", slot: "lunch", kcal }]);
-      expect(out[0].eatingOutAdvice).toEqual([]);
-    }
-  });
-
-  it("un serveur muet laisse les jours intacts", () => {
-    for (const raw of [null, undefined, [], "nope", {}]) {
-      const out = attachEatingOutAdvice(days, raw);
-      expect(out.map((d) => d.eatingOutAdvice)).toEqual([[], []]);
-    }
-  });
-});
-
-describe("dayEnergySubjectClause — le sujet, dans les deux langues", () => {
-  it("le pluriel et le singulier sont ÉCRITS, pas interpolés", () => {
-    expect(dayEnergySubjectClause("fr", { dishes: 2, mealsOut: 1 })).toBe(
-      "sur les 2 repas que j'ai composés (1 repas dehors)",
-    );
-    expect(dayEnergySubjectClause("fr", { dishes: 1, mealsOut: 2 })).toBe(
-      "sur le seul repas que j'ai composé (2 repas dehors)",
-    );
-    expect(dayEnergySubjectClause("en", { dishes: 2, mealsOut: 1 })).toBe(
-      "across the 2 meals I composed (1 meal out)",
-    );
-    expect(dayEnergySubjectClause("en", { dishes: 1, mealsOut: 2 })).toBe(
-      "across the one meal I composed (2 meals out)",
-    );
-  });
-
-  it("⛔ AUCUN SOLDE, AUCUN VERDICT — dans aucune des deux langues", () => {
-    // « Il te reste 680 kcal » est LA phrase d'un tracker. Elle n'existe sur
-    // aucun chemin de ce produit, et celui-ci est le plus tentant de tous:
-    // c'est le seul endroit où l'écran commente un total incomplet.
-    const forbidden = [
-      "reste",
-      "manque",
-      "left",
-      "remaining",
-      "missing",
-      "deficit",
-      "déficit",
-      "kcal",
-      "calorie",
-      "objectif",
-      "target",
-      "goal",
-    ];
-    for (const locale of ["en", "fr"] as const) {
-      for (const dishes of [1, 2, 5]) {
-        for (const mealsOut of [1, 3, 6]) {
-          const text = dayEnergySubjectClause(locale, { dishes, mealsOut })
-            .toLowerCase();
-          for (const word of forbidden) {
-            expect(text.includes(word)).toBe(false);
-          }
-        }
-      }
-    }
+    expect(day).toEqual({
+      day: "tue",
+      kcal: 1400,
+      basis: "",
+      complete: true,
+      dishesCounted: 2,
+      dishesTotal: 2,
+    });
   });
 });
 

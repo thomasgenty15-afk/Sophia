@@ -20,7 +20,9 @@ export const frMeals = {
   "meals.result.in_pantry": "Tu l’as déjà",
   // Seulement quand le plat puise dans un lot: sans lot, ces ingrédients sont la
   // recette entière et ce titre affirmerait un lot qui n'existe pas.
-  "meals.result.extra_ingredients": "En plus du lot",
+  // ⟳ 2026-09-25 — « En plus du lot » ne se comprenait pas: le titre dit le
+  // geste (on ajoute) et le moment (au service), plus le mot de moteur « lot ».
+  "meals.result.extra_ingredients": "À ajouter au moment de servir",
   "meals.result.method": "Comment",
   // « Comment » ouvre une recette; ceci ouvre un GESTE — réchauffer, trancher,
   // ajouter la salade. Deux mots parce que ce sont deux choses.
@@ -28,8 +30,6 @@ export const frMeals = {
   // ── LA SESSION D'OÙ CE PLAT TIRE SON LOT (2026-08-14) ───────────────────
   "meals.result.thaw_the_night_before":
     "Part congelée : sors-la du congélateur la veille au soir.",
-  "meals.result.session_open": "La session de cuisine",
-  "meals.result.session_hide": "Masquer la session",
   "meals.result.session_also": "Fait dans la même session : {titles}",
   "meals.result.today": "Aujourd’hui",
   "meals.result.past": "Passé",
@@ -43,9 +43,20 @@ export const frMeals = {
   "meals.result.day_groceries_show": "Voir la liste",
   "meals.result.day_groceries_hide": "Masquer la liste",
   "meals.result.day_nothing": "Rien à cuisiner ni à acheter ce jour-là.",
+  // ⟳ 2026-09-25 — les deux zones d'un jour: ce qu'on prépare, ce qu'on mange.
+  "meals.result.zone_prep": "Courses et cuisine",
+  "meals.result.zone_groceries": "Courses",
+  "meals.result.zone_cooking": "Cuisine",
+  "meals.result.zone_menu": "Au menu",
   // ── ⟳ 2026-09-24 · LE TABLEAU DE LA SEMAINE, EN TÊTE DU PLAN ────────────
   // Il remplace « Toute la semaine » (`meals.result.day_all`, retirée).
   "meals.week_table.caption": "Ta semaine en un coup d’œil",
+  // ⟳ 2026-09-25 — les deux sections de `PlanResult`: le tableau, puis le rail
+  // des jours et les jours eux-mêmes.
+  "meals.result.recap_title": "Récapitulatif",
+  "meals.result.plan_title": "Plan",
+  "meals.result.recap_hint": "Courses et cuisine, jour par jour",
+  "meals.result.plan_hint": "Choisis un jour pour voir tes repas",
   "meals.week_table.groceries": "Courses",
   "meals.week_table.cooking": "Cuisine",
   "meals.week_table.yes": "oui",
@@ -64,7 +75,6 @@ export const frMeals = {
   "meals.grid.own_only": "rien pour la table",
   "meals.grid.extra_one": "+1 plat de plus",
   "meals.grid.extra_many": "+{n} plats de plus",
-  "meals.grid.eating_out": "repas dehors",
   "meals.kitchen.title": "Ce que tu cuisines",
   "meals.kitchen.cook_on": "à cuisiner {day}",
   "meals.kitchen.feeds": "couvre {days}",
@@ -85,11 +95,25 @@ export const frMeals = {
   // leur SOMME, donc ce qu'il faut préparer en tout. À une seule dose, la liste
   // ne se rend plus du tout — elle répétait la dose mot pour mot.
   "meals.result.total_quantities": "La quantité totale à préparer",
-  // Le pli d'une carte de plat sur `/app/plan` et sur l'aperçu. « Le détail »
-  // et pas « la recette »: ce qui s'ouvre, ce sont les boîtes, les doses et les
-  // ingrédients ajoutés — la recette du lot, elle, vit dans la session.
-  "meals.dish.unfold": "Voir le détail",
-  "meals.dish.fold": "Masquer le détail",
+  // ⟳ 2026-09-25 — « QUELLES CUISSONS ? » remplace le dépliant « La session de
+  // cuisine » en bas de carte: le bouton ouvre une bulle qui liste la ou les
+  // sessions où ce plat a été cuit, et ce qui en vient.
+  "meals.dish.cookings_open": "Quelles cuissons ?",
+  "meals.dish.cookings_title": "Les cuissons de ce plat",
+  "meals.dish.cookings_day": "Cuisiné {day}",
+  "meals.dish.cookings_close": "Fermer",
+  // ⟳ 2026-09-25 — L'À-CÔTÉ, SOUS LE TITRE: la deuxième ligne du plat, visible
+  // carte repliée et sur l'aperçu. Une ligne par personne quand plusieurs
+  // mangent ce repas. Le LIBELLÉ seul: il se rend en encre pleine, les
+  // aliments suivent en gris.
+  "meals.dish.sides": "À côté :",
+  "meals.dish.sides_for": "À côté pour {name} :",
+  // ⟳ 2026-09-25 — LES À-CÔTÉS PAR TYPE, AVEC LEUR QUANTITÉ, dans la carte
+  // ouverte de l'aperçu: la ligne du titre n'y porte que les noms.
+  "meals.dish.side_kind.starter": "En entrée :",
+  "meals.dish.side_kind.bread": "Pour accompagner :",
+  "meals.dish.side_kind.cheese": "Fromage :",
+  "meals.dish.side_kind.dessert": "En dessert :",
   // ⟳ 2026-09-24 — REMPLACER UN PLAT DE L'APERÇU.
   "meals.dish.replace": "Changer",
   "meals.dish.keep": "Garder ce plat",
@@ -97,11 +121,6 @@ export const frMeals = {
   // Le compte est en tête: on sort ses bacs avant de commencer, pas au milieu.
   "meals.boxes.count_one": "1 contenant à remplir",
   "meals.boxes.count_many": "{n} contenants à remplir",
-  // De quel gramme on parle, une fois pour tout le bloc. Juste au-dessus, les
-  // casseroles affichent du CRU pour la fournée entière; sans cette ligne, les
-  // deux séries de nombres se lisent comme une contradiction.
-  "meals.boxes.ready_not_raw":
-    "Grammes d’aliment cuit, par contenant. Les quantités des casseroles, plus haut, sont celles du cru, pour toute la fournée.",
   // ⛔ Ce qui dit que le nombre décrit un BAC et non une personne. Seulement sur
   // un contenant à plusieurs noms: à un seul nom, la boîte EST la portion.
   "meals.boxes.for_n": "· pour {n}",
@@ -137,9 +156,6 @@ export const frMeals = {
   // geste quatre jours plus tard (« sors-la du congélateur la veille »), et
   // sans celle-ci on demandait de sortir une part que personne n'avait rangée.
   "meals.boxes.freeze": "· à congeler",
-  // ⟳ 2026-09-16 — un contenant qui ne tient que la part de marmite : le reste
-  // du repas (tortilla, laitue…) se monte le jour même, et c'est le jour qui le dit.
-  "meals.boxes.rest_on_the_day": "· le reste se prépare le jour même",
   // ⟳ 2026-09-23 — une part de la boîte cuite dans une AUTRE session : nommée
   // et datée, jamais pesée ici (le mercredi pesait le saumon du vendredi).
   "meals.boxes.with_other_session": "· avec {what}, cuisiné {day}",
@@ -159,6 +175,17 @@ export const frMeals = {
   "meals.sessions.recipe_show": "La recette",
   "meals.sessions.recipe_hide": "Masquer la recette",
   "meals.sessions.overview_title": "Déroulé global",
+  // ⟳ 2026-09-25 — la carte de session du jour: le compte en tête, et les deux
+  // colonnes d'une recette (`RecipeBody`).
+  "meals.sessions.preps_one": "1 préparation",
+  "meals.sessions.preps_many": "{n} préparations",
+  "meals.sessions.ingredients": "Ingrédients",
+  // ⟳ 2026-09-25 — « Instructions » et plus « Préparation »: ce mot est
+  // devenu le titre de la section qui contient les recettes.
+  "meals.sessions.method": "Instructions",
+  "meals.sessions.preparation_title": "Préparation",
+  "meals.sessions.preparation_meta": "Ingrédients et instructions",
+  "meals.sessions.overview_close": "Fermer",
   "meals.picker.title": "Quels repas, quels jours",
   "meals.picker.subtitle":
     "Décoche un repas que tu ne prendras pas à la maison — rien n’est cuisiné " +
@@ -168,19 +195,6 @@ export const frMeals = {
     "Pour modifier le nombre de repas, rends-toi dans Foyer > Préférences alimentaires.",
   "meals.picker.some_off_one": "{n} repas décoché. Il revient la prochaine fois si tu le recoches.",
   "meals.picker.some_off_many": "{n} repas décochés. Ils reviennent la prochaine fois si tu les recoches.",
-  "meals.picker.state_at_table": "Ici, à table",
-  "meals.picker.state_eating_out": "Dehors",
-  "meals.picker.state_away": "Pas là",
-  "meals.picker.some_out_one":
-    "Dont {n} repas dehors : il sort du plan, pas de la journée.",
-  "meals.picker.some_out_many":
-    "Dont {n} repas dehors : ils sortent du plan, pas de la journée.",
-  // Voir la note de `en.ts` : on NOMME ce que la fenêtre ne montre pas, on ne
-  // l'additionne pas au compteur des cases visibles.
-  "meals.picker.some_out_hidden_one":
-    "1 autre est coché un jour que ce plan ne couvre pas. Il le reste.",
-  "meals.picker.some_out_hidden_many":
-    "{n} autres sont cochés des jours que ce plan ne couvre pas. Ils le restent.",
   // ⚠️ LA CITATION DOIT SUIVRE LE TITRE DE LA CARTE. Ces guillemets nomment
   // `rhythm.title` (`EatingRhythmCard`): si l’un des deux change de mots,
   // l’élève cherche à l’écran une section qui n’existe pas sous ce nom.
@@ -231,6 +245,11 @@ export const frMeals = {
   "meals.same_day.reheat_only": "À réchauffer",
   "meals.same_day.assemble": "À assembler",
   "meals.same_day.cook_fresh": "Cuisine minute",
+  // ⟳ 2026-09-25 — `assemble` sur un repas sorti d'une boîte: la boîte est
+  // déjà assemblée à la session. Voir la note de `en/meals.ts`.
+  "meals.same_day.complete": "À compléter",
+  "meals.same_day.serve": "À servir",
+  "meals.same_day.take_box": "Sors la boîte « {box} ».",
   "meals.same_day.minutes": "{n} min",
   // ── LE CHIFFRE, ET CE QU’IL DIT DE LUI-MÊME ─────────────────────────────
   // Aucune de ces phrases n’est une cible, un budget ni un score: elles

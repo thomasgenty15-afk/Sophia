@@ -70,7 +70,7 @@ describe("les fonctions de l'absence", () => {
   });
 
   it("⛔ les jours HORS fenêtre sont repris tels quels, à l'aller comme au retour", () => {
-    const sunday: AwayMark = { day: "sun", slots: ["lunch"], kind: "eating_out" };
+    const sunday: AwayMark = { day: "sun", slots: ["lunch"], kind: "away" };
     const marked = markAwayAllWindow([sunday], DAYS);
     expect(marked[0]).toEqual(sunday);
     expect(clearWindow(marked, DAYS)).toEqual([sunday]);

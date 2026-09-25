@@ -10,9 +10,9 @@ export const frLegal = {
 
   // ── /legal — MENTIONS LÉGALES, CGU, CONFIDENTIALITÉ, CGV, PARRAINAGE ────
   //
-  // VOUVOIEMENT, comme `/` et `/auth`: la ligne de partage du lot 1 est la
-  // porte, et cette page se lit avant d'entrer — souvent par quelqu'un qui
-  // vérifie qui nous sommes avant d'acheter.
+  // TUTOIEMENT depuis le 2026-09-25, comme `/` et `/auth` (en-tête d'`auth.ts`).
+  // Seule la politique de confidentialité s'adresse au lecteur; les CGU et les
+  // CGV parlent de « l'Utilisateur » et n'ont pas bougé.
   //
   // ⚠️ CE N'EST PAS UNE TRADUCTION NEUVE, C'EST UNE RÉCUPÉRATION. La page a
   // été française jusqu'au 2026-08-03 (commit `0328448a`, « le site passe
@@ -106,10 +106,10 @@ export const frLegal = {
     "Les conséquences d'une panne, d'un incident de sécurité ou d'un piratage survenu sur l'infrastructure de prestataires tiers (hébergement, fournisseurs de modèles d'IA, acheminement des messages), en l'absence de faute prouvée de l'Éditeur dans le choix ou la configuration de ces services.",
 
   "legal.privacy.title": "Politique de confidentialité",
-  "legal.privacy.subtitle": "La protection de vos données personnelles (RGPD)",
+  "legal.privacy.subtitle": "La protection de tes données personnelles (RGPD)",
   "legal.privacy.s1_title": "1. Données collectées",
   "legal.privacy.s1_p1":
-    "Lorsque vous utilisez Sophia, nous collectons les données suivantes :",
+    "Lorsque tu utilises Sophia, nous collectons les données suivantes :",
   "legal.privacy.s1_li1_label": "Données d'identité :",
   "legal.privacy.s1_li1_body":
     "nom, prénom, adresse e-mail, numéro de téléphone (identifiant du compte).",
@@ -122,7 +122,7 @@ export const frLegal = {
   "legal.privacy.s1_li4_body":
     "journaux de connexion, adresse IP, type de navigateur.",
   "legal.privacy.s2_title": "2. Finalités du traitement",
-  "legal.privacy.s2_p1": "Vos données sont traitées pour les raisons suivantes :",
+  "legal.privacy.s2_p1": "Tes données sont traitées pour les raisons suivantes :",
   "legal.privacy.s2_li1":
     "Fournir et personnaliser le Service (base légale : exécution du contrat).",
   "legal.privacy.s2_li2":
@@ -132,41 +132,41 @@ export const frLegal = {
   "legal.privacy.s2_li4": "Gérer la facturation et le support client.",
   "legal.privacy.s3_title": "3. Partage des données",
   "legal.privacy.s3_p1":
-    "Vos données sont strictement confidentielles. Elles ne sont transmises qu'aux sous-traitants techniques sans lesquels nous ne pouvons pas fonctionner (hébergement cloud, fournisseur d'API d'IA, service d'acheminement des messages), tenus aux mêmes obligations de sécurité.",
+    "Tes données sont strictement confidentielles. Elles ne sont transmises qu'aux sous-traitants techniques sans lesquels nous ne pouvons pas fonctionner (hébergement cloud, fournisseur d'API d'IA, service d'acheminement des messages), tenus aux mêmes obligations de sécurité.",
   "legal.privacy.s3_never_sell":
-    "Nous ne vendons jamais vos données à des annonceurs.",
+    "Nous ne vendons jamais tes données à des annonceurs.",
   "legal.privacy.s4_title": "4. Sécurité",
   "legal.privacy.s4_p1":
-    "Nous mettons en place des mesures de sécurité techniques (chiffrement SSL/TLS, bases de données sécurisées) et organisationnelles pour protéger vos données contre tout accès non autorisé, perte ou altération.",
-  "legal.privacy.s5_title": "5. Vos droits",
+    "Nous mettons en place des mesures de sécurité techniques (chiffrement SSL/TLS, bases de données sécurisées) et organisationnelles pour protéger tes données contre tout accès non autorisé, perte ou altération.",
+  "legal.privacy.s5_title": "5. Tes droits",
   "legal.privacy.s5_p1":
-    "Le RGPD vous ouvre des droits d'accès, de rectification, d'effacement, de limitation et de portabilité sur vos données. Vous exercez l'effacement et la portabilité directement dans l'application, sans nous écrire : menu « Account → Options → My data » (exporter vos données) et « Delete my account ».",
+    "Le RGPD t'ouvre des droits d'accès, de rectification, d'effacement, de limitation et de portabilité sur tes données. Tu exerces l'effacement et la portabilité directement dans l'application, sans nous écrire : menu « Account → Options → My data » (exporter tes données) et « Delete my account ».",
   "legal.privacy.s6_title": "6. Conservation et suppression des données",
   "legal.privacy.s6_self_label": "Suppression du compte en autonomie :",
   "legal.privacy.s6_self_body":
-    "vous pouvez supprimer votre compte à tout moment depuis l'application. La suppression se fait en deux temps :",
+    "tu peux supprimer ton compte à tout moment depuis l'application. La suppression se fait en deux temps :",
   "legal.privacy.s6_li1_label": "Immédiatement :",
   "legal.privacy.s6_li1_body":
-    "votre accès est désactivé, Sophia cesse de vous écrire et votre abonnement est résilié sans nouveau prélèvement.",
+    "ton accès est désactivé, Sophia cesse de t'écrire et ton abonnement est résilié sans nouveau prélèvement.",
   "legal.privacy.s6_li2_label": "Sous 7 jours :",
   "legal.privacy.s6_li2_body":
-    "l'ensemble de vos données (profil, plans, conversations, souvenirs) est supprimé définitivement et irréversiblement de nos bases. Pendant ce délai, vous pouvez annuler la suppression en vous reconnectant.",
+    "l'ensemble de tes données (profil, plans, conversations, souvenirs) est supprimé définitivement et irréversiblement de nos bases. Pendant ce délai, tu peux annuler la suppression en te reconnectant.",
   "legal.privacy.s6_kept_title": "Données conservées après la suppression :",
   "legal.privacy.s6_kept_li1":
-    "Les factures liées à vos paiements, conservées au titre de l'obligation légale de conservation comptable (article L.123-22 du code de commerce).",
+    "Les factures liées à tes paiements, conservées au titre de l'obligation légale de conservation comptable (article L.123-22 du code de commerce).",
   "legal.privacy.s6_kept_li2":
-    "Une trace anonymisée minimale de la suppression (empreintes cryptographiques de l'adresse e-mail et du numéro de téléphone, et date de suppression), conservée comme preuve de conformité. Elle ne permet pas de vous identifier.",
+    "Une trace anonymisée minimale de la suppression (empreintes cryptographiques de l'adresse e-mail et du numéro de téléphone, et date de suppression), conservée comme preuve de conformité. Elle ne permet pas de t'identifier.",
   "legal.privacy.s6_kept_li3":
     "Les mesures techniques d'usage (volumes et coûts de calcul), anonymisées au moment de la suppression : elles ne sont plus rattachées à personne.",
   "legal.privacy.s6_backups_label": "Sauvegardes techniques :",
   "legal.privacy.s6_backups_body":
     "des copies de sauvegarde de nos bases peuvent subsister temporairement après la suppression. Elles expirent d'elles-mêmes au fil de leur rotation et ne sont jamais utilisées pour restaurer des données supprimées, sauf incident technique majeur touchant l'ensemble du service.",
-  "legal.privacy.s6_export_label": "Export de vos données :",
+  "legal.privacy.s6_export_label": "Export de tes données :",
   "legal.privacy.s6_export_body":
-    "vous pouvez télécharger une copie de vos données (profil, plans, conversations, souvenirs) au format JSON à tout moment depuis le menu du compte. Par sécurité, une nouvelle authentification est demandée, une notification vous est envoyée à chaque demande, et les exports sont limités à un par 24 heures.",
-  "legal.privacy.rights_label": "Exercer vos droits.",
+    "tu peux télécharger une copie de tes données (profil, plans, conversations, souvenirs) au format JSON à tout moment depuis le menu du compte. Par sécurité, une nouvelle authentification est demandée, une notification t'est envoyée à chaque demande, et les exports sont limités à un par 24 heures.",
+  "legal.privacy.rights_label": "Exercer tes droits.",
   "legal.privacy.rights_body":
-    "Pour toute demande concernant vos données, écrivez-nous à",
+    "Pour toute demande concernant tes données, écris-nous à",
 
   "legal.cgv.title": "Conditions générales de vente",
   "legal.cgv.subtitle": "Abonnements, paiements et rétractation",

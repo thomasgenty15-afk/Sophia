@@ -282,8 +282,10 @@ export function standardRecipeBlock(
     "gain), OR 80 to 90 g of bread -- never more. Check it: divide each pot by its",
     "\"servings_made\"; one serving must land in THE TEMPLATE. Never stir the starch",
     "into the main pot: the app serves each person more or less starch beside the",
-    "same main. The session \"run_through\" says so: cook the starch on its own,",
-    "then put the main and the starch side by side in each box.",
+    "same main. The session \"run_through\" says so: the starch cooks in its own",
+    "pot. The app then puts the main and the starch side by side in ONE container",
+    "per meal. Two dishes of the same session that take the same starch share",
+    "ONE pot of it: never two pots of the same starch in one session.",
     `A normal dish carries at least ${floors.normal} kcal per 100 g as served. A soup is`,
     "possible but it comes complete (croutons, grated cheese, a poached egg, or",
     "bread and cheese beside it).",
@@ -297,6 +299,12 @@ export function standardRecipeBlock(
     "The fat of a plate is a drizzle: 5 to 15 ml of oil, or 15 to 30 g of cheese,",
     "per serving -- never both at full size. Reach the density with what THE",
     "TEMPLATE gives, not by pouring oil or grating cheese until the figure is met.",
+    // ⟳ 2026-09-25 — v44: UNE HUILE AJOUTÉE SE VERSE. Mesuré sur les plans
+    // servis en v35/v36: 10 lignes d'huile ajoutée sur 13 sous 2,5 ml (0,3 ml
+    // pour tenir « never both at full size » à côté d'un fromage). Personne ne
+    // verse 0,3 ml; le plancher est dit à côté de la règle qu'il borne.
+    "Oil a dish adds fresh on the day is at least 5 ml, one teaspoon: less cannot",
+    "be poured. A plate that cannot take 5 ml more adds no oil.",
     // ⟳ 2026-09-21 — CE QU'UN NUTRITIONNISTE A REFUSÉ SUR LE PLAN `3e121b21`,
     // ET LES CHIFFRES QUI L'INTERDISENT. Deux légumes sur toute la semaine
     // (oignon, poivron), 170 à 220 g de légumes par jour et par bouche, de la

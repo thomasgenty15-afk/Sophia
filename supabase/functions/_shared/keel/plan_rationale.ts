@@ -287,7 +287,9 @@ export interface PlanRationaleFacts {
    */
   /**
    * ═════════════════════════════════════════════════════════════════════════
-   * A2 (2026-09-03) — CE QUE LE STYLE ET LA CADENCE DE COURSES ONT PLAFONNÉ.
+   * A2 (2026-09-03) — CE QUE LA DÉRIVATION DES SESSIONS ET DES COURSES A CORRIGÉ.
+   * ⟳ 2026-09-25 — le style est parti; les sessions et la plage de temps sont
+   * demandées, et le plan ne les relève que lorsqu'elles sont impossibles.
    * ═════════════════════════════════════════════════════════════════════════
    *
    * `null` = les deux questions de P2 n'ont pas été posées, et l'explication
@@ -323,6 +325,11 @@ export interface PlanRationaleFacts {
       readonly runs: number;
       /** Les courses demandées que le plan n'utilise pas. `0` = aucune. */
       readonly unusedRuns: number;
+      /**
+       * ⟳ 2026-09-25 — LA DURÉE RETENUE PAR SESSION, en minutes (la borne haute
+       * de la plage). REQUIS: la phrase `timeRaisedToMinimum` la dit.
+       */
+      readonly sessionMinutes: number;
       /** Le vocabulaire fermé de `CookingPlanNote`. */
       readonly notes: readonly string[];
     }
@@ -722,14 +729,16 @@ const COPY = {
     // remplace.
     cookingSessionsPlanned: (n: number, days: string) =>
       `Le plan pose ${n} sessions de cuisine : ${days}.`,
-    // ── A2 · LE STYLE A PLAFONNÉ ─────────────────────────────────────────
-    // ⚠️ ELLE DIT LE CHOIX AVANT LA CONSÉQUENCE. « Deux sessions » seul se lit
-    // comme une limite subie; « tu as choisi de cuisiner le moins possible »
-    // en fait une décision, qui est ce qu'elle est.
-    styleCapsSessions: (runs: number, sessions: number) =>
-      `Tu as choisi de cuisiner le moins possible : ${sessions} sessions ` +
-      `suffisent, même avec ${runs} courses. La dernière ne sert qu'au frais ` +
-      `du jour.`,
+    // ── ⟳ 2026-09-25 · LES DEUX RELÈVEMENTS ───────────────────────────────
+    // L'écran ne propose ni l'un ni l'autre; ils existent pour une demande
+    // arrivée par le réseau. Chacun dit la CAUSE avant la conséquence: un
+    // nombre changé sans motif se lit comme une réponse ignorée.
+    sessionsNeedFreezer: (sessions: number) =>
+      `Sans congélateur, une seule session ne peut pas couvrir tout le plan : ` +
+      `le plan cuisine ${sessions} fois, pour que chaque plat soit mangé à temps.`,
+    timeRaisedToMinimum: (duration: string) =>
+      `Le temps choisi ne suffisait pas pour cuisiner tous ces repas : le plan ` +
+      `prévoit jusqu'à ${duration} par session.`,
     // ── A2 · LA FENÊTRE A PLAFONNÉ ───────────────────────────────────────
     daysCapSessions: (sessions: number) =>
       `Cette fenêtre est courte : ${sessions} session de cuisine, pas plus — ` +
@@ -783,6 +792,12 @@ const COPY = {
     shoppingSeveral: (n: number, days: string) =>
       `Les courses se font en ${n} fois : ${days}. Les suivantes existent pour ` +
       `que le frais n'attende pas la casserole.`,
+    // ⟳ 2026-09-25 — LE NOMBRE CHOISI EST TENU (« si le user dit 3, c'est
+    // 3 »): la raison du déplacement est la réponse de la personne, pas la
+    // fraîcheur. Sur `31aef694`, deux courses choisies, deux faites, et la
+    // phrase disait qu'elles existaient « pour que le frais n'attende pas ».
+    shoppingChosen: (n: number, days: string) =>
+      `Les courses se font en ${n} fois, le nombre que tu as choisi : ${days}.`,
     shopLater: (days: string) =>
       `Une partie de ce qui se cuisine ${days} s'achète au plus près de ce ` +
       `jour-là : du frais pris à la première course ne tiendrait pas jusque-là.`,
@@ -1012,10 +1027,12 @@ const COPY = {
       `starts on its first day, and the cooking happens there.`,
     cookingSessionsPlanned: (n: number, days: string) =>
       `The plan sets ${n} cooking sessions: ${days}.`,
-    styleCapsSessions: (runs: number, sessions: number) =>
-      `You chose to cook as little as possible: ${sessions} sessions are ` +
-      `enough, even with ${runs} shops. The last one is only for the day's ` +
-      `fresh food.`,
+    sessionsNeedFreezer: (sessions: number) =>
+      `Without a freezer, a single session cannot cover the whole plan: the ` +
+      `plan cooks ${sessions} times, so every dish is eaten in time.`,
+    timeRaisedToMinimum: (duration: string) =>
+      `The time you chose was not enough to cook all these meals: the plan ` +
+      `allows up to ${duration} per session.`,
     daysCapSessions: (sessions: number) =>
       `This window is short: ${sessions} cooking session, no more — two on ` +
       `the same day would only be one.`,
@@ -1046,6 +1063,8 @@ const COPY = {
     shoppingSeveral: (n: number, days: string) =>
       `Shopping happens ${n} times: ${days}. The later trips are there so ` +
       `fresh food does not wait for the pan.`,
+    shoppingChosen: (n: number, days: string) =>
+      `Shopping happens ${n} times, the number you chose: ${days}.`,
     shopLater: (days: string) =>
       `Part of what is cooked on ${days} is bought close to that day: fresh ` +
       `food from the first shop would not keep that long.`,
@@ -1186,6 +1205,17 @@ export function renderDays(
   locale: RationaleLocale,
 ): string {
   return joinList(days.map((d) => COPY[locale].days[d] ?? d), locale);
+}
+
+/**
+ * ⟳ 2026-09-25 — UNE DURÉE DE SESSION, écrite comme l'écran écrit ses plages:
+ * « 30 min », « 2 h », « 1 h 30 ». La même forme dans les deux langues.
+ */
+export function renderSessionDuration(minutes: number): string {
+  const m = Math.max(0, Math.round(minutes));
+  if (m < 60) return `${m} min`;
+  const rest = m % 60;
+  return rest === 0 ? `${m / 60} h` : `${Math.floor(m / 60)} h ${rest}`;
 }
 
 /**
@@ -1430,10 +1460,12 @@ export function explainPlanChoices(input: {
         ),
       );
     }
-    if (cooking.notes.includes("style_caps_sessions")) {
-      lines.push(
-        copy.styleCapsSessions(cooking.sessions + cooking.unusedRuns, cooking.sessions),
-      );
+    // ⟳ 2026-09-25 — les deux relèvements, avant tout le reste du calendrier.
+    if (cooking.notes.includes("sessions_need_freezer")) {
+      lines.push(copy.sessionsNeedFreezer(cooking.sessions));
+    }
+    if (cooking.notes.includes("time_raised_to_minimum")) {
+      lines.push(copy.timeRaisedToMinimum(renderSessionDuration(cooking.sessionMinutes)));
     }
     // ⟳ LOT 3 — les jours déclarés sont dits comme un CHOIX, à côté du calendrier.
     if (cooking.notes.includes("cook_days_declared") && cooking.cookDays.length > 0) {
@@ -1445,15 +1477,9 @@ export function explainPlanChoices(input: {
     if (cooking.notes.includes("days_cap_sessions")) {
       lines.push(copy.daysCapSessions(cooking.sessions));
     }
-    // ⟳ LOT C — ET LE RABOTAGE DES COURSES, QUAND LE STYLE N'A PAS DÉJÀ PARLÉ.
-    // `styleCapsSessions` dit déjà « N sessions suffisent, même avec R courses »
-    // quand c'est le STYLE qui borne ; en redire une phrase serait deux fois le
-    // même fait. Celle-ci ne sort que sur l'autre cause — la fenêtre — où sans
-    // elle « cette fenêtre est courte » ne dirait rien des courses perdues.
-    if (
-      cooking.notes.includes("runs_capped_by_sessions") &&
-      !cooking.notes.includes("style_caps_sessions")
-    ) {
+    // ⟳ LOT C — ET LE RABOTAGE DES COURSES. ⟳ 2026-09-25 — la phrase du style
+    // qui le disait déjà est partie avec lui; celle-ci parle seule.
+    if (cooking.notes.includes("runs_capped_by_sessions")) {
       lines.push(copy.runsCappedBySessions(cooking.runs + cooking.unusedRuns, cooking.runs));
     }
     // ⛔ `runs_1_needs_freezer` N'A PAS DE PHRASE ICI, ET CE N'EST PAS UN OUBLI:
@@ -1626,7 +1652,8 @@ export function explainPlanChoices(input: {
   if (shoppingDays.length === 1) {
     lines.push(copy.shoppingOnce(renderDays(shoppingDays, input.locale)));
   } else if (shoppingDays.length > 1) {
-    lines.push(copy.shoppingSeveral(
+    const chosen = facts.cookingPlan !== null && facts.cookingPlan.runs === shoppingDays.length;
+    lines.push((chosen ? copy.shoppingChosen : copy.shoppingSeveral)(
       shoppingDays.length,
       renderDays(shoppingDays, input.locale),
     ));

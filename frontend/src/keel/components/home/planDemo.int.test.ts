@@ -17,7 +17,6 @@ import {
   DEMO_GROCERIES,
   DEMO_PREPS,
   DEMO_SESSIONS,
-  DEMO_SILENCES,
   DEMO_WAVES,
   demoGrid,
   relatedTo,
@@ -155,12 +154,23 @@ describe("la fixture tient ses liens", () => {
     }
   });
 
-  it("aucun moment vide — le seul état qui serait un défaut", () => {
+  it("un seul moment sans plat — le déjeuner du dimanche — et la démo ne le rend pas", () => {
+    // ⟳ 2026-09-24 — il était déclaré « dehors » (`DEMO_SILENCES`), état retiré
+    // du produit. Le bloc d'un jour ne rend que les moments qui ont un plat:
+    // aucune case vide n'apparaît sur la page.
     atPath("/");
-    for (const row of demoGrid()) {
-      for (const cell of row.cells) expect(cell.kind).not.toBe("empty");
-    }
-    expect(DEMO_SILENCES.every((s) => s.kind === "eating_out")).toBe(true);
+    const empty = demoGrid().flatMap((row) =>
+      row.cells.flatMap((cell, i) => (cell.kind === "empty" ? [`${DEMO_DAYS[i]}|${row.slot}`] : []))
+    );
+    expect(empty).toEqual(["sun|lunch"]);
+    const html = renderFr();
+    const start = html.indexOf(`>${fr["meals.day.sun"]}</h3>`);
+    const end = html.indexOf(`>${fr["meals.day.mon"]}</h3>`);
+    expect(start).toBeGreaterThanOrEqual(0);
+    expect(end).toBeGreaterThan(start);
+    const sunday = html.slice(start, end);
+    expect(sunday).toContain(`>${fr["meals.slot.dinner"]}</h4>`);
+    expect(sunday).not.toContain(`>${fr["meals.slot.lunch"]}</h4>`);
   });
 });
 
@@ -234,10 +244,8 @@ describe("le rendu français reprend les libellés du produit, dans l'ordre véc
   it("les courses, la session, le Boxing et les plats portent les mots de `meals.*`", () => {
     const html = renderFr();
     for (const key of [
-      "meals.grid.eating_out",
       "meals.result.day_session",
       "home.plan.boxes_label",
-      "meals.boxes.ready_not_raw",
       "meals.boxes.title_dish",
       "meals.energy.basis",
       "meals.shopping.wave_now",

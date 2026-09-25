@@ -21,8 +21,8 @@
 // sont ceux de `meal-energy-v1` au commit `31ee930f`, avec leurs commentaires,
 // et `meal-energy-v1` les importe désormais d'ici.
 //
-// ⚠️ CE QUI N'A PAS SUIVI, ET POURQUOI. `readViewerMealsOut`
-// et `readViewerAway` restent chez `meal-energy-v1`: ils dépendent d'un
+// ⚠️ CE QUI N'A PAS SUIVI, ET POURQUOI. `readViewerAway` (et
+// `readViewerMealsOut`, retiré le 2026-09-24) restent chez `meal-energy-v1`: ils dépendent d'un
 // `viewerMemberId` que seule cette fonction résout, et ils portent l'arbitrage
 // de présence du foyer. `keel-tracking-v1` ne les réimplémente pas — il
 // S'ABSTIENT sur un plan de foyer, ce qui est le comportement que

@@ -10,25 +10,13 @@ import { boxLinesForDish } from "../lib/mealBoxes";
 import { en } from "../i18n/en";
 
 // ===========================================================================
-// ⟳ 2026-09-22 — LA CARTE D'UN PLAT SE REPLIE, SUR LE PLAN ET SUR L'APERÇU.
+// ⛔ 2026-09-25 — LA CARTE D'UN PLAT NE SE REPLIE PLUS.
 // ===========================================================================
 //
-// ── LE DÉFAUT ──────────────────────────────────────────────────────────────
-// Un plan de sept jours empile jusqu'à vingt-six cartes, et chacune rend
-// désormais ses contenants, ses doses par personne, ses ingrédients et sa
-// provenance. Pour savoir ce qu'on mange jeudi, il fallait traverser les
-// grammages de lundi.
-//
-// ── CE QUE CE FICHIER TIENT ────────────────────────────────────────────────
-//   ① CE QUI RESTE À DÉCOUVERT: le titre et le geste du jour. C'est ce qu'on
-//      lit pour savoir ce qu'on mange; le reste se lit pour cuisiner.
-//   ② LE PLI CACHE, IL NE DÉMONTE PAS. Le détail reste dans le DOM sous
-//      `hidden` — l'idiome natif du dépliant. Un rendu conditionnel aurait
-//      fait disparaître du DOM les grammages que ce dépôt vérifie par le DOM.
-//   ③ `/app/today` N'EST PAS PLIÉE. La journée rend LA journée: le détail y
-//      est le sujet, et un pli y ferait cliquer trois fois pour lire trois
-//      plats. C'est la moitié qui arme la garde — sans elle, « la carte se
-//      replie » et « la carte se replie PARTOUT » seraient indiscernables.
+// Le pli « Voir le détail » / « Masquer le détail » (2026-09-22) est retiré,
+// sur demande: « l'étape "Voir détail" sur les cartes de repas n'est pas
+// nécessaire ». La carte rend tout ce qu'elle porte; sur l'aperçu, c'est la
+// ligne compacte qui s'ouvre (`dishCardCompact.int.test.ts`).
 //
 // ⚠️ `.ts` ET `createElement`, JAMAIS DE JSX: `vitest.config.ts` n'inclut que
 // `src/**/*.int.test.ts` — un `.tsx` ne serait jamais collecté, et le fichier
@@ -59,66 +47,36 @@ const DISH = {
   same_day: { kind: "assemble", minutes: 5 },
 } as unknown as GeneratedDish;
 
-function markup(collapsible: boolean): string {
-  return renderToStaticMarkup(
-    createElement(DishCard, { dish: DISH, slotBadge: false, collapsible }),
-  );
+function markup(): string {
+  return renderToStaticMarkup(createElement(DishCard, { dish: DISH, slotBadge: false }))
+    .replace(/&#x27;/g, "'");
 }
 
-describe("le pli d'une carte de plat", () => {
-  it("① replié, on lit le titre et le geste du jour", () => {
-    // ⚠️ L'APOSTROPHE EST ÉCHAPPÉE PAR REACT (`&#x27;`): on la rend avant de
-    // comparer, sinon on comparerait une chaîne à son encodage.
-    const text = markup(true)
-      .replace(/<[^>]*>/g, " ")
-      .replace(/&#x27;/g, "'");
-    expect(text).toContain(DISH.title);
-    expect(text).toContain(en["meals.same_day.assemble"]);
-    expect(text).toContain(en["meals.same_day.minutes"].replace("{n}", "5"));
-    expect(text).toContain(DISH.method);
+describe("⛔ plus de pli sur la carte d'un plat", () => {
+  it("le geste du jour ET le détail se lisent sans rien ouvrir", () => {
+    const html = markup();
+    expect(html).toContain(DISH.method);
+    expect(html).toContain("flocons d'avoine");
+    expect(html, "un morceau de la carte est encore caché").not.toContain(' hidden=""');
   });
 
-  it("① le bouton porte le libellé du pack, et il dit qu'il est fermé", () => {
-    const html = markup(true);
-    expect(html).toContain(en["meals.dish.unfold"]);
-    expect(html).toContain('aria-expanded="false"');
+  it("aucun bouton « Voir le détail », ni sur la carte ni dans le pack", () => {
+    const html = markup();
+    for (const label of ["See the detail", "Voir le détail", "Hide the detail", "Masquer le détail"]) {
+      expect(html).not.toContain(label);
+    }
+    expect(Object.keys(en)).not.toContain("meals.dish.unfold");
+    expect(Object.keys(en)).not.toContain("meals.dish.fold");
   });
 
-  it("② le détail est CACHÉ, pas démonté", () => {
-    const html = markup(true);
-    // ⛔ LES DEUX MOITIÉS. `hidden` doit être là (le pli est fermé) ET le
-    // contenu doit être dans le DOM (rien n'a été démonté): un test qui ne
-    // vérifierait que la première passerait aussi sur un rendu conditionnel.
-    expect(html).toContain("hidden=");
-    expect(html).toContain("flocons d");
-  });
-
-  it("③ sans le pli, aucun bouton et rien de caché — c'est `/app/today`", () => {
-    const html = markup(false);
-    expect(html).not.toContain(en["meals.dish.unfold"]);
-    expect(html).not.toContain(en["meals.dish.fold"]);
-    expect(html).not.toContain("hidden=");
-    expect(html).toContain("flocons d");
-  });
-
-  it("③ et rien à ouvrir ⇒ aucun bouton, même sur le plan", () => {
-    // Un plat sans provenance, sans contenant, sans ingrédient et sans session
-    // n'a RIEN sous le pli: un bouton y ouvrirait du vide.
-    const nu = { ...DISH, ingredients: [] } as unknown as GeneratedDish;
-    const html = renderToStaticMarkup(
-      createElement(DishCard, { dish: nu, slotBadge: false, collapsible: true }),
-    );
-    expect(html).not.toContain(en["meals.dish.unfold"]);
-  });
-
-  it("③ le bloc jour du plan monte bien la carte AVEC le pli", () => {
-    // La garde suit le code: si `PlanDayBlock` cessait de passer la prop, la
-    // semaine redeviendrait un mur de grammages sans qu'un seul rouge le dise.
-    const block = readFileSync(
-      resolve(__dirname, "./plan/PlanDayBlock.tsx"),
-      "utf8",
-    );
-    expect(block).toContain("collapsible");
+  it("le bloc jour du plan ne passe plus de pli", () => {
+    const strip = (src: string) =>
+      src.replace(/\{\/\*[\s\S]*?\*\/\}/g, "").replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/(^|[^:])\/\/.*$/gm, "$1");
+    const block = strip(readFileSync(resolve(__dirname, "./plan/PlanDayBlock.tsx"), "utf8"));
+    const card = strip(readFileSync(resolve(__dirname, "./DishCard.tsx"), "utf8"));
+    expect(block).not.toContain("collapsible");
+    expect(card).not.toContain("collapsible");
   });
 });
 
@@ -157,7 +115,6 @@ function dosesMarkup(boxCount: number): string {
     createElement(DishCard, {
       dish,
       slotBadge: false,
-      collapsible: false,
       boxes: boxLinesForDish(dish, ROSTER),
     }),
   ).replace(/&#x27;/g, "'");
@@ -197,7 +154,6 @@ describe("la liste du bas, sous des doses", () => {
       createElement(DishCard, {
         dish: enBoites,
         slotBadge: false,
-        collapsible: false,
         boxes: boxLinesForDish(enBoites, ROSTER),
       }),
     ).replace(/&#x27;/g, "'");

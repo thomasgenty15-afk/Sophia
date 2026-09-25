@@ -286,18 +286,10 @@ const FIELD_TITLE: Readonly<Record<string, { fr: string; en: string }>> = {
   recipe_difficulty: { fr: "Difficulté des recettes", en: "Recipe difficulty" },
   variety: { fr: "Variété", en: "Variety" },
   eating_rhythm: { fr: "Rythme des repas", en: "Meal rhythm" },
-  // ⟳ 2026-09-08 — LE DÉPLACEMENT LE PLUS FRÉQUENT DU BILAN, ENFIN NOMMÉ.
-  //
-  // ⛔ CE `null` N'ÉTAIT PAS UNE PRÉCAUTION ÉTERNELLE, c'était un FAIT daté:
-  // « un bouton Voir qui mène sur un écran où la ligne n'est pas ». Vérifié
-  // avant d'écrire cette ligne, et la prémisse est tombée: `CookingStyleField`
-  // existe, `MealBuilder` le rend, et `onboarding.ts` en fait une étape
-  // (`id: "cooking_style"`). Le champ a donc son écran.
-  //
-  // ⚠️ ET IL EST LE CAS MAJORITAIRE: dès qu'un style est déclaré, c'est LUI que
-  // le bilan déplace, et `recipe_difficulty` / `variety` le suivent. Se taire
-  // ici, c'était taire presque tous les déplacements (`field_not_announced`).
-  cooking_style: { fr: "Style de cuisine", en: "Cooking style" },
+  // ⟳ 2026-09-25 — `cooking_style` N'A PLUS DE LIBELLÉ, ET C'EST LA RÈGLE DE
+  // `settingRecapLine`: son écran (`CookingStyleField`) a été retiré, donc un
+  // bouton « Voir » mènerait sur un écran où la ligne n'est pas. Le bilan ne
+  // le déplace plus: c'est `cooking_time_min`, juste au-dessus, qui bouge.
   // ⟳ 2026-09-08 — L'APPÉTIT, déplacé d'un cran par une phrase de brouillon
   // (« ma mère ne mange pas autant »). Il a son écran — la fiche de la bouche,
   // que `mouthProfile` écrit — donc la garde du `null` n'a pas à jouer.
@@ -365,19 +357,28 @@ const SIDE_COURSE_VALUE: Readonly<Record<string, { fr: string; en: string }>> = 
  * vrai AUSSI sur le champ le plus fréquemment déplacé aurait fait du défaut la
  * règle plutôt que l'exception.
  *
- * ⚠️ LES TROIS VOCABULAIRES SONT AILLEURS, ET C'EST EUX QUI DÉCIDENT:
- * `COOKING_STYLES` (`cooking_plan.ts:46`), `RECIPE_DIFFICULTIES` et
- * `VARIETY_LEVELS` (`retained_item.ts:290` et `:294`). Un jeton qu'on ne
+ * ⚠️ LES VOCABULAIRES SONT AILLEURS, ET C'EST EUX QUI DÉCIDENT:
+ * `SESSION_TIME_BOUNDS` (`cooking_plan.ts`), `RECIPE_DIFFICULTIES` et
+ * `VARIETY_LEVELS` (`retained_item.ts`). Un jeton qu'on ne
  * connaît pas retombe sur lui-même — jamais sur « rien », qui voudrait dire
  * l'absence.
  */
 const FIELD_VALUE: Readonly<
   Record<string, Readonly<Record<string, { fr: string; en: string }>>>
 > = {
-  cooking_style: {
-    minimal: { fr: "minimal", en: "minimal" },
-    balanced: { fr: "équilibré", en: "balanced" },
-    keen: { fr: "passionné", en: "keen" },
+  // ⟳ 2026-09-25 — LA DURÉE PAR SESSION. Le bilan la déplace d'un cran; sans
+  // unité, la phrase disait « de 120 à 60 ». ⟳ 2026-09-25 (soir) — les durées
+  // sont 30 · 60 · 90 · 120 · 150; 180 et 240 restent, parce que l'historique
+  // porte encore les anciennes plages. Une autre valeur (45) retombe sur
+  // elle-même.
+  cooking_time_min: {
+    30: { fr: "30 min", en: "30 min" },
+    60: { fr: "1 h", en: "1 h" },
+    90: { fr: "1 h 30", en: "1 h 30" },
+    120: { fr: "2 h", en: "2 h" },
+    150: { fr: "2 h 30", en: "2 h 30" },
+    180: { fr: "3 h", en: "3 h" },
+    240: { fr: "4 h", en: "4 h" },
   },
   recipe_difficulty: {
     simple: { fr: "simple", en: "simple" },
@@ -487,9 +488,9 @@ function showFieldValue(
  * n'est pas — pire que le silence, parce que ça lui apprend que le bouton ment.
  * L'appelant compte ce qu'il a tu (`field_not_announced`).
  *
- * ⟳ 2026-09-08 — L'EXEMPLE QUI VIVAIT ICI ÉTAIT `cooking_style`, ET IL N'EST
- * PLUS VRAI: le champ a son écran, donc son libellé. La règle, elle, tient —
- * c'est la liste qui a changé, pas la doctrine. Le prochain champ ajouté à
+ * ⟳ 2026-09-25 — `cooking_style` Y EST RETOMBÉ: son écran a été retiré le
+ * 2026-09-25, donc son libellé aussi. La règle, elle, tient — c'est la liste
+ * qui a changé, pas la doctrine. Le prochain champ ajouté à
  * `WRITABLE_FIELDS` sans écran retombera sur ce `null`, et c'est voulu.
  */
 export function settingRecapLine(

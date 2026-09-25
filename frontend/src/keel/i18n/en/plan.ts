@@ -213,8 +213,7 @@ export const enPlan = {
     "I couldn't change those dishes this time. The preview is unchanged: try \"Adjust the plan\" again.",
   "plan.refusal.edit_nothing_to_change":
     "No dish in this preview contains that: it stays as it is. It is kept for your next plans.",
-  "plan.refusal.draft_has_no_source": "This preview is too old to be redone meal by meal. Redo the whole plan.",
-  "plan.refusal.draft_mismatch": "This preview no longer matches the requested week. Redo the whole plan.",
+  "plan.refusal.draft_has_no_source": "This preview is no longer available.",
   "plan.refusal.note_unusable":
     "I can't work from that sentence. Say again what you want changed in the plan.",
 
@@ -247,7 +246,7 @@ export const enPlan = {
   "plan.cooking.summary_open": "Change",
   "plan.cooking.summary_edit": "Tell me",
   "plan.cooking.summary_close": "Close",
-  "plan.cooking.time_label": "Time per cooking session",
+  "plan.cooking.time_label": "Time per cooking session (approx.)",
   "plan.cooking.time_15": "15 minutes — get in and out",
   "plan.cooking.time_30": "30 minutes",
   "plan.cooking.time_60": "An hour, I do not mind",
@@ -260,6 +259,7 @@ export const enPlan = {
   "plan.cooking.variety_some": "Some repetition is fine",
   "plan.cooking.variety_varied": "Keep it varied",
   "plan.cooking.budget_label": "Shopping budget",
+  "plan.cooking.budget_pick": "Slide to choose your budget",
   // ── ⛔ ICI VIVAIENT LES SIX CLÉS DE « COMMENT TU CUISINES CETTE SEMAINE »
   // Retirées le 2026-09-06 avec le champ et son composant
   // (`CookingShapeField.tsx`, supprimé). Elles disaient « Laisse le plan
@@ -271,18 +271,13 @@ export const enPlan = {
   // STYLE dit l'effort, la FORME disait la séparation des assiettes — mais les
   // deux s'annonçaient « comment on cuisine », et c'est ce qui a tranché.
   //
-  // ⚠️ LE JETON, LUI, EXISTE TOUJOURS côté serveur: le style « le moins
-  // possible » plafonne encore la forme (`styleCappedShape` →
-  // `capCookingShape`). Ce qui est parti est la QUESTION, pas le mécanisme.
-  "plan.cooking.one_session_label":
-    "Cook everything in one go",
+  // ⚠️ LE MÉCANISME, LUI, EXISTE TOUJOURS côté serveur: un plafond de forme
+  // (`styleCappedShape` → `capCookingShape`). ⟳ 2026-09-25 — ce qui le
+  // déclenche n'est plus le style « le moins possible » (parti) mais l'effort
+  // `simple`: peu de temps au-dessus du minimum du plan.
+  // ⟳ 2026-09-25 — the "cook everything in one go" box is gone: "Once" is an
+  // answer to "How many times you want to cook". The hint stays.
   "plan.cooking.one_session_hint": "Leftovers go in the freezer and come out the night before.",
-  // ⟳ 2026-09-04 — UN FRAGMENT DE PARENTHÈSE, plus une phrase: il se rend entre
-  // parenthèses à côté du libellé, et disparaît dès que le congélateur est
-  // déclaré. Ni parenthèses, ni majuscule, ni point final dans la chaîne —
-  // elles sont dans la markup.
-  "plan.cooking.one_session_needs_freezer":
-    "requires ticking the freezer under \"What you cook with\"",
   "plan.cooking.time_minutes": "{n} min",
   "plan.cooking.time_hours": "{n} hr",
   "plan.cooking.time_required": "Say how long a cooking session can last.",
@@ -545,7 +540,8 @@ export const enPlan = {
   "plan.feedback.send": "Send",
   "plan.feedback.sending": "Sending…",
   "plan.feedback.dismiss": "Not now",
-  "plan.draft.title": "What it would look like",
+  "plan.draft.title": "What your plan would look like",
+  "plan.draft.tour": "Guided tour",
   // ⛔ 2026-09-20 — removed with the block's heading, on request (no reader):
   //   · plan.draft.note_label / plan.draft.note_hint
   "plan.draft.note_placeholder": "Too much fish, and more pasta for the kids.",
@@ -575,14 +571,10 @@ export const enPlan = {
   // un bouton qui se désactive sans prévenir se lit comme une panne, et
   // quelqu'un qui aurait su qu'il lui restait UNE reprise aurait écrit une
   // autre phrase.
-  "plan.draft.turns_left": "{count} redos left",
-  "plan.draft.turns_one": "1 redo left — make it count.",
-  "plan.draft.turns_none": "No redo left. This is the preview you have.",
   "plan.draft.chars_left": "{count} characters left",
   // ⚠️ LE FAIT, JAMAIS LE MOTIF. Nommer la raison d'une clause écartée dirait à
   // quelqu'un qu'il est sous plancher TCA. Le motif reste interne et compté.
   "plan.draft.note_partial": "Part of what you wrote wasn't used. The rest was.",
-  "plan.draft.note_applied": "Noted:",
   "plan.draft.note_nothing": "I found nothing to change in what you wrote. The plan is redone as is.",
   "plan.draft.note_who_unknown": "I couldn't tell who you meant, so I changed nothing. Name the person.",
   "plan.draft.question_who": "You wrote “{text}” — who is that for?",
@@ -596,6 +588,12 @@ export const enPlan = {
   "plan.draft.replace_placeholder": "E.g. too sweet, Paul doesn't like mushrooms, takes too long…",
   "plan.draft.replace_cancel": "Cancel",
   "plan.draft.replace_confirm": "Confirm",
+  // ⟳ 2026-09-24 — "it also fits…": the same reason, offered for other dishes.
+  "plan.draft.same_reason_looking": "Checking whether your reason fits other dishes…",
+  "plan.draft.same_reason_title": "Your reason may also fit these dishes",
+  "plan.draft.same_reason_skip": "No thanks",
+  "plan.draft.same_reason_confirm_one": "Strike this one too",
+  "plan.draft.same_reason_confirm_many": "Strike these {count} too",
   "plan.draft.struck_one": "1 dish to change",
   "plan.draft.struck_many": "{count} dishes to change",
   "plan.draft.struck_cap": "At most {max} dishes at once: adjust these first.",
@@ -817,16 +815,31 @@ export const enPlan = {
   //   · plan.cooking.day_before_starts_today
   //   · plan.cooking.day_before_no_room
   //
-  // ── A2 · LE STYLE DE CUISINE ET LE NOMBRE DE COURSES (P2) ────────────────
-  // Les libellés portent la CONSÉQUENCE, pas le jargon: « minimal » ne veut
-  // rien dire à quelqu'un qui prépare à manger. `plan.cooking.difficulty_keen`
-  // existait déjà et disait la bonne chose — la troisième option la reprend
-  // mot pour mot plutôt que d'en inventer une variante.
-  "plan.cooking.style_label": "How you cook",
-  "plan.cooking.style_unset": "Not answered yet",
-  "plan.cooking.style_minimal": "As little as possible — I reheat",
-  "plan.cooking.style_balanced": "A middle ground",
-  "plan.cooking.style_keen": "I like cooking",
+  // ── ⟳ 2026-09-25 · HOW MANY TIMES, AND HOW LONG ─────────────────────────
+  // See the twin block in `fr/plan.ts` for the why of each sentence.
+  "plan.cooking.sessions_label": "How many times you want to cook",
+  "plan.cooking.sessions_unset": "Not answered yet",
+  "plan.cooking.sessions_1": "Once",
+  "plan.cooking.sessions_2": "Twice",
+  "plan.cooking.sessions_3": "Three times",
+  "plan.cooking.sessions_4": "Four times",
+  "plan.cooking.sessions_only_one":
+    "A one-day plan is cooked in a single session.",
+  "plan.cooking.sessions_needs_freezer":
+    "Without a freezer, a cooked dish keeps {d} days in the fridge: for {n} " +
+    "days, you need to cook at least {min} times. To cook less often, tick " +
+    "the freezer under \"What you cook with\".",
+  "plan.cooking.sessions_required": "Say how many times you want to cook.",
+  "plan.cooking.time_unset": "Not answered yet",
+  "plan.cooking.time_band_30": "30 min",
+  "plan.cooking.time_band_60": "1 h",
+  "plan.cooking.time_band_90": "1 h 30",
+  "plan.cooking.time_band_120": "2 h",
+  "plan.cooking.time_band_150": "2 h 30",
+  "plan.cooking.time_minimum":
+    "Each session covers up to {d} days of meals: allow at least \"{band}\".",
+  "plan.cooking.time_minimum_one_day":
+    "Each session covers one day of meals: allow at least \"{band}\".",
   "plan.cooking.runs_label": "Food shops",
   "plan.cooking.runs_unset": "Not answered yet",
   "plan.cooking.runs_any": "No preference — the plan decides",
@@ -834,36 +847,20 @@ export const enPlan = {
   "plan.cooking.runs_two": "Twice",
   "plan.cooking.runs_three": "Three times",
   // ── L'OFFRE (2026-09-04) — chaque phrase est un MOTIF, jamais
-  // « indisponible ». Les deux premières REMPLACENT le contrôle (une seule
-  // réponse possible = plus de question); les deux suivantes s'affichent sous
-  // la liste courte, à la place de l'aide générale.
+  // « indisponible ». ⟳ 2026-09-25 — toutes s'affichent SOUS la liste: une
+  // seule réponse possible est sélectionnée, la phrase dit pourquoi.
   "plan.cooking.runs_only_one_session":
-    "One food shop: you are cooking everything in one go.",
+    "You cook once: one food shop is enough.",
   // ⟳ 2026-09-04 (soir) — le plafond n'est pas le nombre de JOURS mais la
   // CONSERVATION: un lot couvre trois jours, donc deux jours ne demandent
   // qu'une course. « Two » est le seul nombre écrit, et un test le tient.
   "plan.cooking.runs_only_one_batch":
-    "One food shop: what you cook at the start keeps until the end of this " +
-    "plan.",
+    "What you cook at the start keeps until the end of the plan.",
   "plan.cooking.runs_capped_days":
     "Two food shops cover {n} days: a cooked dish keeps for {d}.",
-  // ⟳ 2026-09-04 (soir) — elle COMPTAIT au lieu d'expliquer. Le nombre
-  // n'intéresse personne; ce qui manque, c'est ce QU'EST une session de
-  // cuisine — l'unité sur laquelle toute la question repose, et qui n'était
-  // dite nulle part dans cet écran. Plus aucun nombre: la phrase dit le
-  // mécanisme, et reste vraie quel que soit le plafond.
-  "plan.cooking.runs_capped_style":
-    "A cooking session is one stretch where you cook several days ahead — and " +
-    "each one starts with a food shop. With \"as little as possible\", the " +
-    "plan uses fewer of them, so there are fewer trips to the shop.",
-  // ⟳ 2026-09-24 — WITHOUT A FREEZER, "ONCE" IS NO LONGER OFFERED past what a
-  // cooked dish keeps in the fridge (product decision). Names the two numbers
-  // the person compares and where to lift the refusal — the card title, word
-  // for word (`setup.equipment.title`).
-  "plan.cooking.runs_needs_freezer":
-    "Without a freezer you have to go back to the shop during the plan: a " +
-    "cooked dish keeps {d} days in the fridge, and this plan covers {n}. To " +
-    "buy everything in one go, tick the freezer under \"What you cook with\".",
+  // ⟳ 2026-09-25 — the session cap replaces the style cap.
+  "plan.cooking.runs_capped_sessions":
+    "You cook {k} times, so there are no more than {k} trips to the shop.",
   "plan.request.equipment_required":
     "Needed before the plan can start: tick at least what you have.",
 
@@ -882,4 +879,62 @@ export const enPlan = {
   // clé avec un `{name}` vide dirait « la boîte de , encore au frigo ».
   "plan.box.still_fridge": "Your box from {day}, still in the fridge",
   "plan.box.still_fridge_named": "{name} — box from {day}, still in the fridge",
+  // ══ ⟳ 2026-09-25 · THE DEMO PLAN AND ITS TOUR (`plan/demo`) ═════════════
+  // Shown while a real plan is being composed. Everything in the demo is made
+  // up, and every sentence makes that clear.
+  "plan.demo.badge": "Demo",
+  "plan.demo.banner_title": "Demo plan",
+  "plan.demo.intro_title": "A quick tour, while your plan is on its way?",
+  "plan.demo.intro_body":
+    "Your plan is being composed: it takes two to three minutes. Meanwhile, we'll show you how to read the preview, on a sample plan with made-up data.",
+  "plan.demo.intro_go": "Let's go",
+  "plan.demo.intro_skip": "Skip",
+  "plan.demo.invite": "While your plan is being composed, see how it reads on a sample plan.",
+  "plan.demo.show": "See the demo plan",
+  "plan.demo.tour_counter": "Step {n} of {total}",
+  "plan.demo.tour_prev": "Back",
+  "plan.demo.tour_next": "Next",
+  "plan.demo.tour_done": "Done",
+  "plan.demo.tour_skip": "Skip the tour",
+  "plan.demo.step_recap_title": "The summary",
+  "plan.demo.step_recap_body":
+    "The week at a glance: shopping days, time spent cooking, and the day's calories for each person with a goal.",
+  "plan.demo.step_rail_title": "The days",
+  "plan.demo.step_rail_body": "Pick a day: everything about it shows just below.",
+  "plan.demo.close": "Close the demo",
+  "plan.demo.not_real":
+    "This is a demo: nothing is saved. Your real plan will open in its place as soon as it's ready.",
+  "plan.demo.step_groceries_title": "The day's shopping",
+  "plan.demo.step_groceries_body":
+    "Each day starts with what you do before eating. First the shopping: “See the list” opens everything to buy that day, sorted by aisle.",
+  "plan.demo.step_session_title": "The cooking session",
+  "plan.demo.step_session_body":
+    "Then what you cook ahead, in one go. “See the detail” opens the session: the Preparation, then the Boxing.",
+  "plan.demo.step_preparation_title": "The Preparation",
+  "plan.demo.step_preparation_body":
+    "The recipes to cook during the session, with their ingredients and method. “Overall run-through”, at the end of the line, says in which order to start everything.",
+  "plan.demo.step_boxing_title": "The Boxing",
+  "plan.demo.step_boxing_body":
+    "After cooking, you fill one box per meal and per person. Each box carries its label — who, which day, which meal — and what goes in, to the gram. On the day, you just take it out of the fridge.",
+  "plan.demo.step_menu_title": "On the menu",
+  "plan.demo.step_menu_body":
+    "Then the meals, moment by moment. Click a dish to open it: what to do at mealtime, and the boxes to take out of the fridge.",
+  "plan.demo.step_adjust_title": "Adjust the plan: 2 ways",
+  "plan.demo.step_adjust_body":
+    "Something doesn't suit you? Press “Change” on a dish, or “Adjust the plan” at the bottom to say it in a few words.",
+  "plan.demo.step_way1_title": "Way 1 of 2 — Change a dish",
+  "plan.demo.step_way1_body":
+    "The first: “Change” on a dish, and say why. Sophia suggests the other dishes it applies to, then “Adjust the plan” recomposes the ones you struck.",
+  "plan.demo.step_way2_title": "Way 2 of 2 — Say what you want changed",
+  "plan.demo.step_way2_body":
+    "The second, without going through a dish: “Adjust the plan”, then say what you want changed. Sophia recomposes the plan and keeps what suits you.",
+  "plan.demo.note_example": "Less rice, and more vegetables in the evening.",
+  "plan.demo.step_end_body_ready":
+    "Your plan is ready: it opens when you finish.",
+  "plan.demo.ready_in_tour": "Your real plan is ready — it will open at the end of the tour.",
+  "plan.demo.stopped":
+    "Composing your plan stopped: finish the tour to see what happened.",
+  "plan.demo.step_end_title": "Over to you",
+  "plan.demo.step_end_body":
+    "That's it. Your plan will open as soon as it's ready.",
 } as const

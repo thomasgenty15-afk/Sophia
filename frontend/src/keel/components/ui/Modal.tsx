@@ -98,6 +98,12 @@ export interface ModalProps {
    */
   headerAction?: React.ReactNode;
   /**
+   * ⟳ 2026-09-25 — UN PETIT BOUTON COLLÉ AU TITRE, à gauche du fronton (la
+   * « Visite guidée » de l'aperçu de brouillon). Pas une décision: celles-là
+   * vont à droite (`headerAction`).
+   */
+  titleAction?: React.ReactNode;
+  /**
    * ── ⟳ 2026-09-20 · LE PIED, HORS DU DÉFILEMENT ─────────────────────────
    *
    * Ce qui est passé ici se rend SOUS le corps, en frère du conteneur qui
@@ -179,6 +185,7 @@ export default function Modal(
     closeLabel,
     closeAsIcon,
     headerAction,
+    titleAction,
     footer,
     closeOnlyByButton = false,
     layer,
@@ -332,7 +339,14 @@ export default function Modal(
           {/* PUBLIC SANS, PAS YOUNG SERIF: un titre de fenêtre fait 16 px et la
               display ne descend jamais sous 20. Et pas d'équerre — la signature
               ouvre une SECTION, elle ne redouble pas un titre de dialogue. */}
-          <h2 className="text-base font-semibold text-ink">{title}</h2>
+          {titleAction
+            ? (
+              <div className="flex min-w-0 items-center gap-2">
+                <h2 className="text-base font-semibold text-ink">{title}</h2>
+                {titleAction}
+              </div>
+            )
+            : <h2 className="text-base font-semibold text-ink">{title}</h2>}
           {/* ⚠️ `min-w-0` ET `flex-wrap` NE SUFFISENT PAS SEULS ICI: un enfant
               de flex refuse par défaut d'être plus étroit que son contenu, donc
               un libellé long dans `headerAction` pousserait le titre hors du

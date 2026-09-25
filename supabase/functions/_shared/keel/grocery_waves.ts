@@ -68,10 +68,17 @@
  * en silence est pire qu'une liste plate: on s'en aperçoit devant la casserole.
  */
 
-import { type RawWindowCounts, rawWindowDaysFor } from "./fridge_window.ts";
+import {
+  effectiveRawWindowDays,
+  plateWindowDaysFor,
+  RAW_WINDOW_NEVER_BINDS_FROM,
+  type RawWindowCounts,
+  rawWindowDaysFor,
+} from "./fridge_window.ts";
 import { keepingOf } from "./food_keeping.ts";
 import { MAX_FRIDGE_DAYS, type ShoppingAisle } from "./meal_generation.ts";
 import { addDays, windowDates } from "./meal_plan_window.ts";
+import { plannedShopRanks, shopRankFor } from "./shopping_purchases.ts";
 
 export { MAX_FRIDGE_DAYS };
 export { type RawWindowCounts, rawWindowDaysFor } from "./fridge_window.ts";
@@ -175,6 +182,21 @@ export interface WavePreparation {
   cookOn: string | null;
   /** Les termes d'ingrédients, tels qu'ils apparaissent dans la liste. */
   ingredientTerms: readonly string[];
+  /**
+   * ⟳ 2026-09-25 — LES JOURS OÙ UN REPAS PUISE DANS CETTE PRÉPARATION (jetons),
+   * pour la limite achat → assiette (`PLATE_WINDOW_DAYS`). `null` ou absent =
+   * inconnu: la limite ne s'applique pas, la date reste celle de la fenêtre
+   * crue seule — le comportement d'avant, octet pour octet.
+   *
+   * ⚠️ FACULTATIF, CONTRE LA RÈGLE DU DÉPÔT, ET C'EST ÉCRIT ICI. Cette forme est
+   * construite à neuf endroits et dans une centaine de tests; seul le
+   * GÉNÉRATEUR a les plats sous la main, et c'est lui qui ÉCRIT les dates
+   * d'achat (`buy_on`). Les autres surfaces lisent ces dates écrites au lieu de
+   * les recalculer. `waveNeedsFromPlan` le remplit toujours, et un test tient
+   * que le générateur passe par elle; le compteur `plate_window` dit, sur
+   * chaque plan, combien de lignes ont été jugées.
+   */
+  eatenOn?: readonly string[] | null;
 }
 
 /**
@@ -260,7 +282,25 @@ export function waveNeedsFromPlan(args: {
   preparations: readonly WavePreparationRow[];
   dishes: readonly WaveDishRow[];
 }): WavePreparation[] {
-  const out = wavePreparationsFromRows(args.preparations);
+  // ⟳ 2026-09-25 — LES JOURS DE REPAS DE CHAQUE CASSEROLE, lus sur les plats
+  // qui la citent (`uses`). Une casserole citée par aucun plat garde `[]`:
+  // on sait qu'aucun repas n'en mange, ce qui n'est pas « inconnu ».
+  const eaten = new Map<string, Set<string>>();
+  for (const dish of args.dishes) {
+    const day = String(dish.day ?? "").trim();
+    if (day === "") continue;
+    for (const use of dish.uses ?? []) {
+      const id = preparationIdOfUse(use);
+      if (id === null) continue;
+      const days = eaten.get(id) ?? new Set<string>();
+      days.add(day);
+      eaten.set(id, days);
+    }
+  }
+  const out: WavePreparation[] = wavePreparationsFromRows(args.preparations).map((prep) => ({
+    ...prep,
+    eatenOn: [...(eaten.get(prep.id) ?? [])],
+  }));
   args.dishes.forEach((dish, i) => {
     if ((dish.uses ?? []).length > 0) return;
     const day = String(dish.day ?? "").trim();
@@ -269,8 +309,78 @@ export function waveNeedsFromPlan(args: {
       .map((ing) => String(ing?.term ?? ""))
       .filter((term) => term.length > 0);
     if (terms.length === 0) return;
-    out.push({ id: `dish:${i}`, cookOn: day, ingredientTerms: terms });
+    // Un plat sans casserole se mange le jour où il est assemblé.
+    out.push({ id: `dish:${i}`, cookOn: day, ingredientTerms: terms, eatenOn: [day] });
   });
+  return out;
+}
+
+/** L'identifiant de casserole d'un `uses[]` de plat: objet `{preparation_id}` ou chaîne. */
+function preparationIdOfUse(use: unknown): string | null {
+  if (typeof use === "string") return use.trim() === "" ? null : use.trim();
+  if (use && typeof use === "object") {
+    const raw = (use as Record<string, unknown>).preparation_id ??
+      (use as Record<string, unknown>).preparationId;
+    const id = String(raw ?? "").trim();
+    return id === "" ? null : id;
+  }
+  return null;
+}
+
+/** L'écart en jours entre deux dates `YYYY-MM-DD` (b − a). */
+function daysApart(a: string, b: string): number {
+  return Math.round((Date.parse(`${b}T12:00:00Z`) - Date.parse(`${a}T12:00:00Z`)) / 86_400_000);
+}
+
+/** La clé de rapprochement terme de liste ↔ ingrédient, la même partout ici. */
+export function waveTermKey(term: unknown): string {
+  return normalize(term);
+}
+
+/**
+ * ⟳ 2026-09-25 — PAR TERME, LA CHAÎNE CUISSON → DERNIER REPAS.
+ *
+ * Pour chaque terme d'ingrédient: le plus grand écart, en jours, entre la
+ * cuisson d'une préparation qui l'utilise et le dernier repas qui en mange, et
+ * la date de ce dernier repas. C'est ce que la limite achat → assiette lit
+ * (`effectiveRawWindowDays`).
+ *
+ * Un terme dont AUCUNE préparation ne connaît ses repas (`eatenOn` absent)
+ * n'est pas dans la carte: il retombe sur la fenêtre crue seule.
+ *
+ * PURE.
+ */
+export function mealChainsByTerm(args: {
+  startsOn: string;
+  durationDays: number;
+  preparations: readonly WavePreparation[];
+}): Map<string, { eatSpan: number; lastEat: string }> {
+  const out = new Map<string, { eatSpan: number; lastEat: string }>();
+  if (!CALENDAR_DATE.test(String(args.startsOn ?? ""))) return out;
+  const dates = windowDates(args.startsOn, args.durationDays);
+  for (const prep of args.preparations) {
+    if (!Array.isArray(prep.eatenOn)) continue;
+    const cook = prep.cookOn ? dates[prep.cookOn] : undefined;
+    if (!cook) continue;
+    const eats = prep.eatenOn
+      .map((token) => dates[token])
+      .filter((d): d is string => typeof d === "string");
+    const lastEat = eats.length === 0 ? cook : [...eats].sort()[eats.length - 1];
+    const span = Math.max(0, daysApart(cook, lastEat));
+    for (const raw of prep.ingredientTerms) {
+      const term = normalize(raw);
+      if (!term) continue;
+      const known = out.get(term);
+      if (!known || span > known.eatSpan || (span === known.eatSpan && lastEat > known.lastEat)) {
+        out.set(term, {
+          eatSpan: known ? Math.max(known.eatSpan, span) : span,
+          lastEat: known && known.lastEat > lastEat ? known.lastEat : lastEat,
+        });
+      } else if (lastEat > known.lastEat) {
+        out.set(term, { eatSpan: known.eatSpan, lastEat });
+      }
+    }
+  }
   return out;
 }
 
@@ -435,6 +545,8 @@ export function planGroceryWaves<T extends WaveItem>(args: {
 
 
   const dates = windowDates(startsOn, durationDays);
+  // ⟳ 2026-09-25 — la chaîne cuisson → dernier repas, par terme.
+  const chains = mealChainsByTerm({ startsOn, durationDays, preparations });
 
   // Terme normalisé → date de cuisson la PLUS PRÉCOCE qui le consomme.
   // La plus précoce, parce qu'un ingrédient utilisé mardi ET vendredi doit
@@ -456,7 +568,7 @@ export function planGroceryWaves<T extends WaveItem>(args: {
     { items: T[]; serves: string | null; all: Set<string> }
   >();
   /** Par article périssable à cuisson connue: sa fenêtre d'achat. */
-  const fresh = new Map<T, { lo: string; hi: string; cook: string }>();
+  const fresh = new Map<T, { lo: string; hi: string; cook: string; window: number }>();
 
   for (const item of shoppingList) {
     const cookDate = earliestCook.get(normalize(item.term)) ?? null;
@@ -483,11 +595,20 @@ export function planGroceryWaves<T extends WaveItem>(args: {
     //
     // ⚠️ ET C'EST LE SEUL ENDROIT OÙ LE RAYON PARLE ENCORE: il ne décide plus
     // de la fenêtre, il choisit le repli quand il n'y a pas de fenêtre du tout.
-    const window = keeping.rawWindowDays !== null
+    const rawWindow = keeping.rawWindowDays !== null
       ? keeping.rawWindowDays
       : keeping.kind === "unknown" && PERISHABLE_AISLES.has(String(item.aisle))
       ? MAX_FRIDGE_DAYS
       : null;
+    // ⟳ 2026-09-25 — LA LIMITE ACHAT → ASSIETTE RÉDUIT LA FENÊTRE CRUE. Un porc
+    // cuisiné dimanche et mangé mardi (chaîne de 2 jours, limite de 3) ne peut
+    // plus être acheté que la veille de sa cuisson. Sans jours de repas connus,
+    // la fenêtre crue est rendue telle quelle.
+    const window = effectiveRawWindowDays({
+      raw: rawWindow,
+      group: keeping.kind === "refrigerated" ? item.food_group : null,
+      eatSpan: chains.get(normalize(item.term))?.eatSpan ?? null,
+    });
     const perishable = window !== null;
 
     let buyOn = startsOn;
@@ -496,7 +617,7 @@ export function planGroceryWaves<T extends WaveItem>(args: {
       // ⟳ 2026-09-21 — LA FENÊTRE D'ACHAT DE L'ARTICLE, pour le repli: de sa
       // date la plus tôt (bornée au début du plan) à son jour de cuisson.
       const lo = addDays(cookDate, -window);
-      fresh.set(item, { lo: lo > startsOn ? lo : startsOn, hi: cookDate, cook: cookDate });
+      fresh.set(item, { lo: lo > startsOn ? lo : startsOn, hi: cookDate, cook: cookDate, window });
       // ⟳ LOT `L0-a` — LA FENÊTRE EST CELLE DU GROUPE, plus celle de tout le
       // monde. Au plus tôt `cuisson - fenêtre crue`, et jamais avant le début
       // du plan: on n'envoie personne faire des courses la semaine d'avant.
@@ -587,7 +708,11 @@ export function planGroceryWaves<T extends WaveItem>(args: {
     const movable = sortedDates.slice(1).flatMap((date) =>
       byDate.get(date)!.items
         .map((item) => ({ item, from: date, span: fresh.get(item) ?? null }))
-        .filter((m): m is { item: T; from: string; span: { lo: string; hi: string; cook: string } } =>
+        .filter((m): m is {
+          item: T;
+          from: string;
+          span: { lo: string; hi: string; cook: string; window: number };
+        } =>
           m.span !== null
         )
     );
@@ -665,6 +790,61 @@ export function planGroceryWaves<T extends WaveItem>(args: {
       const bucket = byDate.get(date);
       if (bucket && bucket.items.length === 0) byDate.delete(date);
     }
+    sortedDates = [...byDate.keys()].sort();
+  } else if (args.runs !== null && sortedDates.length > 0) {
+    // ── ⟳ 2026-09-25 · LES COURSES CHOISIES SONT LES COURSES FAITES ─────────
+    //
+    // ⛔ NI PLUS, NI MOINS. Deux défauts sur deux plans réels, le même jour:
+    // `a0481b9c` (deux courses choisies, une faite: le nombre ne servait qu'à
+    // en RETIRER) et `54aec009` (deux choisies, quatre faites: la
+    // conservation en ajoutait une par volaille ou poisson trop loin).
+    // Décision du propriétaire: « si le user dit 3, c'est 3 ».
+    //
+    // Les jours viennent de `plannedShopDatesForPlan`, la même règle que la
+    // consigne donne au modèle AVANT qu'il compose (`raw_keeping.ts`). Chaque
+    // article frais se range sur le jour de courses le plus tardif où il tient
+    // jusqu'à son dernier repas (`shopRankFor`); aucun ⇒ le dernier jour de
+    // courses avant sa cuisson — acheté trop tôt, et la garde achat →
+    // assiette le compte sur le plan écrit. Ce qui se garde (fenêtre de
+    // `RAW_WINDOW_NEVER_BINDS_FROM` jours ou plus) et ce qui n'a pas de
+    // cuisson connue va à la première course.
+    const kept = plannedShopDatesForPlan({
+      startsOn,
+      durationDays,
+      preparations,
+      runs: args.runs,
+    });
+    const keptRanks = kept.map((d) => daysApart(startsOn, d));
+    const sessionRanks = sessionRanksForPlan({ startsOn, durationDays, preparations });
+    const rebuilt = new Map<string, { items: T[]; serves: string | null; all: Set<string> }>();
+    const put = (date: string, item: T, cook: string | null) => {
+      const bucket = rebuilt.get(date) ??
+        { items: [] as T[], serves: null as string | null, all: new Set<string>() };
+      bucket.items.push(item);
+      if (cook !== null) {
+        bucket.all.add(cook);
+        if (!bucket.serves || cook < bucket.serves) bucket.serves = cook;
+      }
+      rebuilt.set(date, bucket);
+    };
+    for (const date of sortedDates) {
+      for (const item of byDate.get(date)!.items) {
+        const span = fresh.get(item) ?? null;
+        if (span === null || span.window >= RAW_WINDOW_NEVER_BINDS_FROM) {
+          put(kept[0]!, item, span === null ? null : span.cook);
+          continue;
+        }
+        const target = shopRankFor({
+          lo: daysApart(startsOn, span.lo),
+          hi: daysApart(startsOn, span.cook),
+          shopRanks: keptRanks,
+          sameDay: sessionRanks.includes(daysApart(startsOn, span.cook)),
+        });
+        put(addDays(startsOn, target.rank), item, span.cook);
+      }
+    }
+    byDate.clear();
+    for (const [date, bucket] of rebuilt) byDate.set(date, bucket);
     sortedDates = [...byDate.keys()].sort();
   }
   const firstBuyOn = sortedDates[0] ?? null;
@@ -1002,4 +1182,146 @@ export function frozenLinesForPreparations<
   return (args.shoppingList ?? []).filter((line) =>
     line.freeze_on_purchase === true && terms.has(normalize(line.term))
   );
+}
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * ⟳ 2026-09-25 — LA GARDE ACHAT → ASSIETTE, LUE SUR LES DATES ÉCRITES.
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * ── POURQUOI ELLE EXISTE ──────────────────────────────────────────────────
+ * Sur le brouillon `a0481b9c`, chaque garde vérifiait son morceau — achat →
+ * cuisson (`raw_keeping_needs_later_shop: 0/6`), cuisson → repas (la fenêtre
+ * cuite) — et aucune ne mesurait la chaîne entière: un porc acheté vendredi
+ * et mangé mardi passait toutes les gardes. Celle-ci relit la DÉCISION (la
+ * date d'achat posée sur la ligne) contre le dernier repas qui en mange.
+ *
+ * ⛔ ELLE NE DATE RIEN. La date vient de `planGroceryWaves` et des passes
+ * d'après (scission, espacement), qui lisent toutes `effectiveRawWindowDays`.
+ * Ce compteur dit si l'une d'elles a laissé passer une chaîne trop longue —
+ * par exemple une seule ligne pour deux cuissons qu'on n'a pas su scinder.
+ *
+ * ⚠️ TROIS POPULATIONS, JAMAIS DEUX: `within`, `breaches`, et `unjudged` (pas
+ * de limite pour ce groupe, pas de date, congelé à l'achat, ou repas
+ * inconnus). Sans le troisième, « rien ne dépasse » et « on n'a rien regardé »
+ * rendraient le même zéro.
+ *
+ * PURE: no I/O, no clock.
+ */
+export interface PlateWindowReport {
+  within: number;
+  breaches: { term: string; buyOn: string; lastEat: string; days: number; limit: number }[];
+  unjudged: number;
+}
+
+/**
+ * ⟳ 2026-09-25 — LES JOURS DE COURSES QUE LA PERSONNE A CHOISIS, en dates.
+ *
+ * `plannedShopRanks` (`shopping_purchases.ts`) sur les jours de cuisine du
+ * plan: les préparations qui ne sont pas des plats du jour (`dish:`). La
+ * consigne dit ces mêmes jours au modèle, depuis les jours de cuisine prévus
+ * (`raw_keeping.ts`).
+ */
+export function plannedShopDatesForPlan(args: {
+  startsOn: string;
+  durationDays: number;
+  preparations: readonly WavePreparation[];
+  runs: number;
+}): string[] {
+  return plannedShopRanks({ sessionRanks: sessionRanksForPlan(args), runs: args.runs })
+    .map((rank) => addDays(args.startsOn, rank));
+}
+
+/** ⟳ 2026-09-25 — les rangs des jours de cuisine: les préparations hors plats du jour (`dish:`). */
+export function sessionRanksForPlan(args: {
+  startsOn: string;
+  durationDays: number;
+  preparations: readonly WavePreparation[];
+}): number[] {
+  const dates = windowDates(args.startsOn, args.durationDays);
+  return [
+    ...new Set(
+      args.preparations
+        .filter((prep) => !prep.id.startsWith("dish:"))
+        .map((prep) => (prep.cookOn ? dates[prep.cookOn] : undefined))
+        .filter((d): d is string => typeof d === "string"),
+    ),
+  ].map((d) => daysApart(args.startsOn, d)).sort((a, b) => a - b);
+}
+
+export function plateWindowReport(args: {
+  startsOn: string;
+  durationDays: number;
+  shoppingList: readonly {
+    term: string;
+    food_group: string | null;
+    ref: string | null;
+    buy_on?: string | null;
+    freeze_on_purchase?: boolean;
+  }[];
+  preparations: readonly WavePreparation[];
+}): PlateWindowReport {
+  const report: PlateWindowReport = { within: 0, breaches: [], unjudged: 0 };
+  // ⟳ 2026-09-25 — PAR ACHAT, PLUS PAR NOM D'ALIMENT. Sur `54aec009`, le
+  // poulet acheté vendredi (mangé vendredi et samedi) était jugé sur le
+  // dernier repas de TOUT poulet du plan (jeudi): « 6 jours » là où il y en
+  // avait un. Un achat du jour B sert les préparations de ce terme cuisinées
+  // à partir de B et avant l'achat suivant du même terme.
+  const dates = CALENDAR_DATE.test(String(args.startsOn ?? ""))
+    ? windowDates(args.startsOn, args.durationDays)
+    : {};
+  const prepChains: { term: string; cook: string; lastEat: string }[] = [];
+  for (const prep of args.preparations) {
+    if (!Array.isArray(prep.eatenOn)) continue;
+    const cook = prep.cookOn ? (dates as Record<string, string>)[prep.cookOn] : undefined;
+    if (!cook) continue;
+    const eats = prep.eatenOn
+      .map((token) => (dates as Record<string, string>)[token])
+      .filter((d): d is string => typeof d === "string");
+    const lastEat = eats.length === 0 ? cook : [...eats].sort()[eats.length - 1];
+    for (const raw of prep.ingredientTerms) {
+      const term = normalize(raw);
+      if (term) prepChains.push({ term, cook, lastEat });
+    }
+  }
+  const buysByTerm = new Map<string, string[]>();
+  for (const line of args.shoppingList) {
+    const term = normalize(line.term);
+    const buy = typeof line.buy_on === "string" && CALENDAR_DATE.test(line.buy_on) ? line.buy_on : null;
+    if (!term || buy === null) continue;
+    const known = buysByTerm.get(term) ?? [];
+    if (!known.includes(buy)) known.push(buy);
+    buysByTerm.set(term, known.sort());
+  }
+  const chainOf = (term: string, buyOn: string): { lastEat: string } | null => {
+    const next = (buysByTerm.get(term) ?? []).find((d) => d > buyOn) ?? null;
+    const served = prepChains.filter((c) =>
+      c.term === term && c.cook >= buyOn && (next === null || c.cook < next)
+    );
+    if (served.length === 0) return null;
+    return { lastEat: served.map((c) => c.lastEat).sort()[served.length - 1] };
+  };
+  for (const line of args.shoppingList) {
+    const keeping = keepingOf({
+      ref: line.ref,
+      group: line.food_group,
+      frozen: line.freeze_on_purchase === true,
+    });
+    const limit = keeping.kind === "refrigerated" ? plateWindowDaysFor(line.food_group) : null;
+    const buyOn = typeof line.buy_on === "string" && CALENDAR_DATE.test(line.buy_on)
+      ? line.buy_on
+      : null;
+    const chain = buyOn === null ? null : chainOf(normalize(line.term), buyOn);
+    if (limit === null || chain === null || buyOn === null) {
+      report.unjudged += 1;
+      continue;
+    }
+    const days = daysApart(buyOn, chain.lastEat);
+    if (days > limit) {
+      report.breaches.push({ term: line.term, buyOn, lastEat: chain.lastEat, days, limit });
+    } else {
+      report.within += 1;
+    }
+  }
+  return report;
 }

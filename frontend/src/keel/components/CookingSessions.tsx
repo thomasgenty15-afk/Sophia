@@ -16,7 +16,9 @@ import { thawLineFor } from "../lib/thawLine";
 // que la revue a nommé: « 360 g de cuisses de poulet » pour un calcul à
 // 458,66 g. Une casserole affiche les quantités du LOT — c'est ce que le
 // modèle écrit dans `preparations[].ingredients[]`, et c'est ce qu'on cuisine.
-import { ingredientQuantityText } from "../lib/ingredientQuantity";
+// ⟳ 2026-09-25 — lue par `RecipeBody` (`ingredientQuantityText`), le corps de
+// recette partagé avec le bloc du jour.
+import { RecipeBody } from "./plan/RecipeBody";
 import { daysFedBy } from "../lib/planGridModel";
 import { Card } from "./ui/Card";
 import Modal from "./ui/Modal";
@@ -297,6 +299,7 @@ export default function CookingSessions(
                   title={mealCopy("meals.sessions.overview_title")}
                   meta={null}
                   tone="tinted"
+                  icon="steps"
                 >
                   <p className="text-sm leading-6 text-ink">{session.run_through}</p>
                 </FoldSection>
@@ -450,31 +453,9 @@ export function SessionPreparation(
                     </p>
                   )}
 
-                  {open && (
-                    <>
-                      {prep.ingredients.length > 0 && (
-                        <ul className="mt-2 space-y-1">
-                          {prep.ingredients.map((ing, i) => {
-                            const quantity = ingredientQuantityText(ing);
-                            return (
-                              <li
-                                key={`${ing.term}-${i}`}
-                                className="flex flex-wrap items-baseline gap-2 text-sm text-ink"
-                              >
-                                <span>{ing.term}</span>
-                                {quantity && (
-                                  <span className="text-ink-soft">{quantity}</span>
-                                )}
-                              </li>
-                            );
-                          })}
-                        </ul>
-                      )}
-                      {prep.method && (
-                        <p className="mt-2 text-sm leading-6 text-ink">{prep.method}</p>
-                      )}
-                    </>
-                  )}
+                  {/* ⟳ 2026-09-25 — LE MÊME CORPS QUE LE BLOC DU JOUR
+                      (`RecipeBody`): ingrédients et méthode côte à côte. */}
+                  {open && <RecipeBody ingredients={prep.ingredients} method={prep.method} />}
                 </div>
   );
 }

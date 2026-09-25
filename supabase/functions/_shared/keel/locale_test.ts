@@ -330,3 +330,16 @@ Deno.test("countryFromLocale — la région gagne, la langue est le repli, l'inc
   assertEquals(countryFromLocale(""), null);
   assertEquals(countryFromLocale(null), null);
 });
+
+Deno.test("⟳ 2026-09-25 — le bloc de langue français demande le « tu », l'anglais ne dit rien de tel", () => {
+  // Mesuré sur 2 083 méthodes: ~1 700 à l'infinitif, 196 au « vous », 39 au
+  // « tu », contre un écran qui tutoie.
+  const fr = buildContentLanguageBlock("fr-FR", ["method"], ["slot"]);
+  assert(fr.includes("Speak to the reader as « tu »"), fr);
+  assert(fr.includes("never in the « vous » form and never in"), fr);
+  // Juste sous la langue, AVANT la liste des champs qu'elle gouverne.
+  assert(fr.indexOf("« tu »") > fr.indexOf("French (fr-FR)"));
+  assert(fr.indexOf("« tu »") < fr.indexOf("This applies to these fields"));
+  const en = buildContentLanguageBlock("en-US", ["method"], ["slot"]);
+  assert(!en.includes("« tu »"), en);
+});

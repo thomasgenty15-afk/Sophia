@@ -351,6 +351,47 @@ Deno.test("le plus petit décalage viable est +1 quand c'est possible", () => {
   assertEquals(out.movedDishIndexes, [0, 1, 2]);
 });
 
+// ⟳ 2026-09-25 — LE DÉCALAGE DATE L'ACHAT AVEC LES JOURS DE REPAS. Avant,
+// `shiftedBuyOn` ne connaissait que la cuisson: la limite achat → assiette
+// (`PLATE_WINDOW_DAYS`, 3 jours pour la viande) ne s'appliquait pas au plan
+// décalé.
+Deno.test("⛔ décaler une session: la viande s'achète assez tard pour son dernier repas", () => {
+  const plan = planOf({
+    dishes: [
+      dish("Monday bowl", "dinner", "mon", ["prep_a"]),
+      dish("Wednesday stew", "dinner", "wed", ["prep_p"]),
+      dish("Thursday stew", "dinner", "thu", ["prep_p"]),
+      dish("Friday stew", "dinner", "fri", ["prep_p"]),
+    ],
+    preparations: [
+      prep("prep_a", "Rice bowl base", "mon", ["rice"]),
+      prep("prep_p", "Pork stew", "wed", ["pork shoulder"]),
+    ],
+    cooking_sessions: [
+      { day: "mon", preparation_ids: ["prep_a"], run_through: "x" },
+      { day: "wed", preparation_ids: ["prep_p"], run_through: "x" },
+    ],
+    shopping_list: [
+      { term: "rice", aisle: "grain", quantity: "500 g", food_group: "grain" },
+      { term: "pork shoulder", aisle: "protein", quantity: "600 g", food_group: "red_meat" },
+    ],
+  });
+  const out = planSessionShift({
+    plan,
+    cookOn: "2026-08-12",
+    doneWaves: NO_WAVES,
+    cookedPreparationIds: [],
+    maxFridgeDays: MAX_FRIDGE_DAYS,
+    today: STARTS_ON,
+  });
+  assertEquals(out.ok, true);
+  if (!out.ok) return;
+  // Cuit jeudi, mangé jusqu'à samedi: acheté mercredi (3 jours jusqu'au
+  // dernier repas), pas mardi (5 jours), qui tenait la seule fenêtre crue.
+  assertEquals(out.newCookOn, "2026-08-13");
+  assertEquals(out.newBuyOn, "2026-08-12");
+});
+
 Deno.test("R14 — `already_cooked`: on ne décale pas ce qui existe", () => {
   const out = planSessionShift({
     plan: planOf(),

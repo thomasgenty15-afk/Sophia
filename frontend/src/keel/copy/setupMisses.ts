@@ -57,12 +57,11 @@ export const SETUP_MISS_KEYS: Record<FunnelMissId, MessageKey> = {
 
   eating_rhythm: "setup.missing.eating_rhythm",
   cook_days: "setup.missing.cook_days",
+  // ⟳ 2026-09-25 — LA DURÉE EST REDEVENUE UNE QUESTION de l'étape (des
+  // plages, « Temps par session de cuisine »): sa phrase renvoie de nouveau à
+  // un champ qui existe. Le style de cuisine, qui l'avait remplacée le
+  // 2026-09-03, est parti avec sa phrase.
   cooking_time_min: "setup.missing.cooking_time_min",
-  // ⟳ P2 (2026-09-03) — LES DEUX QUESTIONS QUI REMPLACENT LA DURÉE. Elles
-  // ont leur propre phrase: « dis-nous combien de temps dure une session »
-  // sur un écran qui ne demande plus de minutes renverrait à un champ
-  // introuvable, et c'est le mode d'échec le plus cher de ce fichier.
-  cooking_style: "setup.missing.cooking_style",
   grocery_runs: "setup.missing.grocery_runs",
   budget_amount: "setup.missing.budget_amount",
   kitchen_equipment: "setup.missing.kitchen_equipment",

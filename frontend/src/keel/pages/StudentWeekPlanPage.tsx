@@ -10,6 +10,7 @@ import { inputClass } from "../components/ui/Field";
 import Modal from "../components/ui/Modal";
 import SetupSection from "../components/ui/SetupSection";
 import MealBuilder from "../components/MealBuilder";
+import { usePublishRealPlanReady } from "../components/plan/demo/demoGate";
 import MyShareCard from "../components/plan/MyShareCard";
 import PlanDraftDialog from "../components/plan/PlanDraftDialog";
 // LOT D — le retour de fin de plan. Les questions viennent du module serveur,
@@ -40,6 +41,7 @@ import {
   replaceDishes,
   DRAFT_ORIGIN_PATH,
   recoverLatestDraft,
+  matchDishes,
   windowFromToday,
   waitForDraft,
   writeFromDraft,
@@ -297,6 +299,10 @@ export default function StudentWeekPlanPage() {
    * ses neuf tests et sa garde d'identité étaient verts.
    */
   const [draft, setDraft] = React.useState<PlanDraft | null>(null);
+  // ⟳ 2026-09-25 — LE VRAI PLAN ET LA DÉMONSTRATION (`plan/demo/demoGate`):
+  // on dit à la démonstration (montée par `MealBuilder`) que le plan est là;
+  // l'aperçu se cache tant que sa fenêtre est ouverte.
+  usePublishRealPlanReady(draft !== null);
   /**
    * LA PHRASE QUI A PRODUIT L'APERÇU QU'ON REGARDE. `null` = aucune.
    *
@@ -929,17 +935,18 @@ export default function StudentWeekPlanPage() {
       // lot. Y glisser un défaut en dur reproduirait très exactement le
       // `mine={null}` qui a rendu muet un lot entier.
       cookingShape: null,
-      // ── `false` ICI, ET POUR LA MÊME RAISON QUE LA LIGNE DU DESSUS ─────
-      // Cette carte est un APERÇU SANS FORMULAIRE: un seul bouton, aucune
-      // entrée. La case « tout cuisiner en une seule fois » vit sur l'écran qui
-      // COMPOSE (`MealBuilder`, juste au-dessus sur cette même page, et
-      // l'entonnoir), sous les jours de cuisine qu'elle réduit — c'est là
-      // qu'elle a un sujet.
+      // ── `null` ICI, ET POUR LA MÊME RAISON QUE LA LIGNE DU DESSUS ──────
+      // ⟳ 2026-09-25 — « COMBIEN DE FOIS TU VEUX CUISINER » remplace la case
+      // « tout cuisiner en une seule fois ». Cette carte est un APERÇU SANS
+      // FORMULAIRE: un seul bouton, aucune entrée. La question vit sur l'écran
+      // qui COMPOSE (`MealBuilder`, juste au-dessus, et l'entonnoir).
       //
-      // `false` dit « je ne demande rien », donc la sortie de cette carte est
-      // byte-identique à celle d'avant ce lot. Y glisser `true` en dur
-      // reproduirait le `mine={null}` qui a rendu muet un lot entier.
-      oneCookingSession: false,
+      // ⚠️ CE QUE `null` COÛTE, ÉCRIT ICI POUR QUE PERSONNE NE LE REDÉCOUVRE:
+      // sans nombre de sessions, le moteur ne dérive AUCUN plan de cuisine
+      // (`resolveCookingCapacity` → `plan: null`). Il compose avec la plage de
+      // temps enregistrée et choisit seul ses sessions. Y glisser un nombre en
+      // dur serait décider à la place de la personne.
+      cookingSessions: null,
       // ⟳ 2026-09-10 · LOT 7 — `mode`, `slot`, `servings` et `pantry` ONT
       // QUITTÉ `ComposeDraftInput` avec l'ancienne lane individuelle; ils
       // étaient déjà des constantes ici. Le budget, les jours de cuisine et le
@@ -1872,6 +1879,10 @@ export default function StudentWeekPlanPage() {
             une carte plus haut, et il a rendu muet un lot entier: chaque prop
             ci-dessous vient du brouillon réellement composé. */}
         <PlanDraftDialog
+          // ⟳ 2026-09-25 — ELLE SE CACHE D'ELLE-MÊME TANT QUE LA
+          // DÉMONSTRATION EST OUVERTE (`PlanDraftDialog`, `plan/demo/demoGate`):
+          // une visite commencée va jusqu'au bout, et une visite rouverte
+          // depuis l'aperçu le rend tel qu'on l'a laissé.
           open={draft !== null}
           /* ⛔ « LAISSER TOMBER » JETTE LE BROUILLON, il ne referme pas
              une fenêtre en laissant l'objet derrière: c'était le seul chemin
@@ -1901,6 +1912,9 @@ export default function StudentWeekPlanPage() {
           // rien rangé: l'aperçu s'affiche alors comme hier, sans ses kcal.
           draftId={draft?.envelope.draftId ?? null}
           busy={draftBusy}
+          // ⟳ 2026-09-25 — la plateforme ne reprend pas d'ajustement dans la fenêtre.
+          resumedAdjusting={false}
+          resumedFailure={null}
           adoptLabel={draftSource?.intent === "replace_current"
             ? t("plan.draft.adopt_replace")
             : undefined}
@@ -1968,13 +1982,13 @@ export default function StudentWeekPlanPage() {
           }}
           // ⟳ 2026-09-24 — la note n'est qu'une exclusion : seuls les plats
           // qui contiennent l'aliment sont refaits, même plan remplacé.
-          onEditExclusions={async (id) => {
+          onEditExclusions={async (id, swaps) => {
             try {
               setDraft(await editExclusions(windowFromToday(draftSource?.input ?? draftInput(), todayIso()), id, {
                 replaces: draftSource?.intent === "replace_current"
                   ? draftSource.replaces
                   : null,
-              }));
+              }, swaps));
             } catch (e) {
               throw new Error(draftRefusal(e));
             }
@@ -1999,6 +2013,10 @@ export default function StudentWeekPlanPage() {
               throw new Error(draftRefusal(e));
             }
           }}
+          // ⟳ 2026-09-24 — « ÇA VAUT AUSSI POUR… »: une proposition, qui ne
+          // jette jamais (une panne rend `[]`).
+          onMatchDishes={(id, target) =>
+            matchDishes(id, target, (draftSource?.input ?? draftInput()).window)}
           edit={draft?.envelope.edit ?? null}
           onAdopt={async () => {
             // Le serveur relit et revalide le brouillon par son identifiant;

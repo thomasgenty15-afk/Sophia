@@ -211,7 +211,10 @@ Deno.test("C3 CÂBLAGE ⑦ — la redatation n'est plus gardée par `synthesized
   // calculées sur le plan d'avant.
   const at = HANDLER.indexOf('tag: "keel.household_meal.shopping_redated"');
   assert(at > 0, "la redatation ne se journalise plus");
-  const bloc = HANDLER.slice(at - 6000, at);
+  // ⟳ 2026-09-25 — 9000 et pas 6000: la fenêtre de conservation partagée et
+  // la garde achat → assiette se sont glissées entre la redatation et son
+  // journal.
+  const bloc = HANDLER.slice(at - 9000, at);
   assert(
     bloc.includes("const redated = buyDatesByIndex({"),
     "la redatation ne repasse plus par la MÊME fonction que la première datation",
@@ -247,14 +250,19 @@ Deno.test("C3 CÂBLAGE ⑧ — chaque USAGE est vérifié, pas seulement la prem
   const at = HANDLER.indexOf("const scission = splitShoppingByUses({");
   const bloc = HANDLER.slice(at, at + 2600);
   // ⛔ LA FENÊTRE VIENT DE LA MÊME LECTURE QUE LA DATATION ET QUE LA GARDE.
-  assert(bloc.includes("keepingOf({"), "la scission lit une autre conservation");
+  // ⟳ 2026-09-25 — par une fonction PARTAGÉE avec l'espacement: la fenêtre
+  // crue, réduite par la limite achat → assiette.
+  assert(bloc.includes("windowOf: fenetreDeConservation,"), "la scission lit une autre conservation");
+  const fenetre = HANDLER.slice(HANDLER.indexOf("const fenetreDeConservation = ("), at);
+  assert(fenetre.includes("keepingOf({"), "la fenêtre partagée ne lit plus `keepingOf`");
+  assert(fenetre.includes("effectiveRawWindowDays({"), "la limite achat → assiette ne mord plus");
   // ⟳ 2026-09-24 — un achat scindé se range sur une course déjà posée.
   assert(
     bloc.includes("shopDays: rangsDeCourses,"),
     "la scission ne voit plus les jours de courses déjà posés",
   );
   assert(
-    bloc.includes("frozen: l.freeze_on_purchase === true,"),
+    fenetre.includes("frozen: l.freeze_on_purchase === true,"),
     "une ligne destinée au congélateur serait scindée pour rien",
   );
   // ⛔ ET LES USAGES VIENNENT DU PLAN FINAL, par la MÊME fonction que les besoins.
@@ -281,7 +289,7 @@ Deno.test("C3 CÂBLAGE ⑨ — deux jours au moins entre deux courses, APRÈS la
   assert(prose > espacement, "la prose se recompose avant la règle des deux jours");
   const bloc = HANDLER.slice(espacement, espacement + 900);
   assert(bloc.includes("covers: scission.covers,"), "la règle ne lit plus les usages de chaque ligne");
-  assert(bloc.includes("keepingOf({"), "la règle lit une autre conservation");
+  assert(bloc.includes("windowOf: fenetreDeConservation,"), "la règle lit une autre conservation");
   assert(
     HANDLER.includes("espacement.counts.lines_moved > 0;"),
     "un déplacement ne recompose plus la prose",

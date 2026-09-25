@@ -60,7 +60,6 @@ import {
   parseRetainedSubject,
   type PortionDirection,
   type PortionMagnitude,
-  RECIPE_DIFFICULTIES,
   type RetainedItem,
   type RetainedKind,
   type RetainedSubject,
@@ -75,11 +74,10 @@ import {
 } from "./plan_feedback.ts";
 import { isFrenchLocale } from "./locale.ts";
 import type { FieldChange, WritableField } from "./field_change.ts";
-// ⟳ D2.5 (2026-09-03) — LE VOCABULAIRE DU STYLE ET SON ÉCHELLE, LUS DU
-// MODULE QUI LES PORTE. Recopier « minimal | balanced | keen » ici ferait une
-// seconde idée de l'ordre des crans, et c'est l'ordre qui décide de quel
-// côté on descend.
-import { COOKING_STYLES, readCookingStyle } from "./cooking_plan.ts";
+// ⟳ 2026-09-25 — LES PLAGES DE TEMPS, LUES DU MODULE QUI LES PORTE. Les
+// recopier ici ferait une seconde idée de l'ordre des crans, et c'est l'ordre
+// qui décide de quel côté on descend.
+import { SESSION_TIME_BOUNDS, sessionTimeBoundFor } from "./cooking_plan.ts";
 
 // ===========================================================================
 // LE JETON DE LA MATRICE — épinglé à son littéral par le test
@@ -116,15 +114,13 @@ export const QUESTIONNAIRE_PRODUCER = "questionnaire" as const;
 export const COOKING_TIME_FLOOR_MIN = 30;
 
 /**
- * L'ÉCHELLE DES SESSIONS DE CUISINE — les SIX durées que l'écran propose.
+ * L'ÉCHELLE DES SESSIONS DE CUISINE — les CINQ plages que l'écran propose.
  *
- * ⚠️ RECOPIÉE, ET LA RECOPIE EST ASSUMÉE. L'originale vit dans le front
- * (`frontend/src/keel/api/planBudget.ts#COOKING_SESSION_MINUTES`), que ce
- * runtime ne peut pas importer — deux runtimes, et le front tient exprès sa
- * propre copie de ce module. Ce qui empêche la copie de dériver n'est pas une
- * intention: le test LIT ce fichier-là et compare les deux listes, exactement
- * comme `COOKING_TIME_FLOOR_MIN` (dont le plancher est le PREMIER barreau de
- * cette échelle — et le test le vérifie aussi).
+ * ⟳ 2026-09-25 — PLUS UNE RECOPIE: ce sont les bornes hautes de
+ * `SESSION_TIME_BOUNDS` (`cooking_plan.ts`), que ce runtime importe. L'ancienne
+ * échelle recopiait les six durées d'un écran qui ne les propose plus
+ * (`[30, 45, 60, 90, 120, 180]`). Son plancher reste
+ * `COOKING_TIME_FLOOR_MIN`, et le test le vérifie.
  *
  * ⛔ UN CRAN EST UN BARREAU, PAS UN DELTA DE MINUTES, et c'est le lot B. La
  * déduction qu'on remplace retirait « 10 minutes » d'une valeur courante: sur
@@ -134,14 +130,7 @@ export const COOKING_TIME_FLOOR_MIN = 30;
  * ⚠️ ORDONNÉE, DU PLUS COURT AU PLUS LONG. `applyStep` en dépend, et un
  * réordonnancement inverserait le sens des deux réponses.
  */
-export const COOKING_SESSION_LADDER: readonly number[] = [
-  30,
-  45,
-  60,
-  90,
-  120,
-  180,
-];
+export const COOKING_SESSION_LADDER: readonly number[] = SESSION_TIME_BOUNDS;
 
 // ===========================================================================
 // CE QUI ENTRE
@@ -247,18 +236,9 @@ export interface PlanFeedbackContext {
   readonly planFoodTerms: readonly string[];
   /** `practical_constraints.cooking_time_min` AUJOURD'HUI, ou `null`. */
   readonly cookingTimeMin: number | null;
-  /**
-   * ⟳ D2.5 (2026-09-03, A2) — `practical_constraints.cooking_style` AUJOURD'HUI.
-   *
-   * ⚠️ REQUIS, JAMAIS `?`, comme ses voisins et pour la même raison: un champ
-   * optionnel ici n'aurait fait remonter aucun appelant au compilateur, et
-   * l'effet se serait construit sans être branché.
-   *
-   * `null` = la question de P2 n'a pas été posée à ce compte. Les deux crans
-   * s'appliquent alors aux DEUX champs sous-jacents, exactement comme avant ce
-   * lot — c'est le chemin de toute la population d'aujourd'hui.
-   */
-  readonly cookingStyle: string | null;
+  // ⟳ 2026-09-25 — `cookingStyle` A ÉTÉ RETIRÉ: le style ne décide plus rien,
+  // et les deux crans de cuisine bougent la plage de temps
+  // (`cookingTimeStepFrom`).
   /** `practical_constraints.recipe_difficulty` AUJOURD'HUI, ou `null`. */
   readonly recipeDifficulty: string | null;
   /**
@@ -748,77 +728,52 @@ export function retainedItemsFromPlanFeedback(
   // Un pas sur une échelle ORDONNÉE, depuis la valeur COURANTE, borné aux deux
   // bouts, journalisé avec la question citée. `applyStep` la porte une fois
   // pour les trois — trois copies auraient divergé au premier bord.
-  // ── ⟳ D2.5 (2026-09-03, A2) · QUAND UN STYLE EST DÉCLARÉ, C'EST LUI QUI BOUGE
+  // ── ⟳ 2026-09-25 · LES DEUX CRANS BOUGENT LA PLAGE DE TEMPS, ET ELLE SEULE
   //
-  // ⛔ LE DÉFAUT QUE ÇA FERME, ET IL EST LE MÊME QUE CELUI DU LOT B, UN CRAN
-  // PLUS LOIN. Le lot B a cessé d'écrire « 35 minutes », un nombre que l'écran
-  // ne propose pas. P2 va plus loin: l'écran ne propose plus AUCUN nombre de
-  // minutes, et `recipe_difficulty` n'a **aucun lecteur** dans les deux
-  // générateurs. Pire, `cooking_time_min` est ÉCRASÉ à la composition par la
-  // dérivation du style (`resolveCookingCapacity`). Déplacer ces deux champs-là
-  // sur un compte qui a répondu à P2, c'est écrire deux réglages que personne
-  // ne lit et que personne ne voit — une correction que la personne ne peut ni
-  // comprendre ni défaire.
+  // Le style est parti (`cooking_plan.ts`, en-tête). La difficulté des
+  // recettes se DÉDUIT maintenant de la marge entre la plage de temps et le
+  // minimum du plan (`cookingEffort`): écrire `recipe_difficulty` serait
+  // écrire un réglage que la dérivation écrase, donc que personne ne lit. Les
+  // deux questions — « trop dur », « trop long » — pointent donc le même
+  // cadran, la plage de temps: un cran plus bas donne des sessions plus
+  // courtes ET des recettes plus simples.
   //
-  // ⚠️ ET SANS STYLE DÉCLARÉ, RIEN NE CHANGE: les deux `applyStep` d'origine
-  // tournent à l'identique. C'est le chemin de toute la population
-  // d'aujourd'hui, et un test le tient ligne à ligne.
-  const declaredStyle = readCookingStyle({ cooking_style: ctx.cookingStyle });
-  if (declaredStyle !== null) {
-    const styleStep = cookingStyleStepFrom(
-      effect.difficultyStep,
-      effect.speedStep,
-    );
-    if (styleStep === "conflict") {
-      // ⚠️ `bothPolarities` ET PAS UN COMPTEUR NEUF: son sens est exactement
-      // celui-ci — « la même chose demandée dans les deux sens, les DEUX
-      // tombent ». Il le disait des plats; il le dit maintenant aussi des deux
-      // axes de cuisine ramenés sur un cadran unique.
-      counts.bothPolarities += 1;
-    } else if (styleStep !== null) {
-      applyStep(fieldChanges, counts, {
-        step: styleStep,
-        field: "cooking_style",
-        // Ordonnée du moins ambitieux au plus ambitieux — la MÊME que celle du
-        // module qui la porte, jamais recopiée: c'est l'ordre qui décide de
-        // quel côté on descend.
-        ladder: COOKING_STYLES as readonly string[],
-        current: declaredStyle,
-        at: ctx.at,
-        // ⚠️ LA QUESTION CITÉE EST CELLE QUI A PRODUIT LE CRAN, et quand les
-        // deux l'ont produit ensemble c'est `difficulty` — la première des deux
-        // que le questionnaire pose. Citer l'autre serait tout aussi vrai;
-        // avoir une RÈGLE est ce qui empêche la citation de bouger au hasard
-        // d'un refactor.
-        quote: effect.difficultyStep !== null
-          ? quoteOf("difficulty", String(row.difficulty ?? ""), ctx.locale)
-          : quoteOf("speed", String(row.speed ?? ""), ctx.locale),
-      });
-    }
-  } else {
+  // ⚠️ MÊME RÈGLE QUE LE STYLE AVANT ELLE (`cookingTimeStepFrom`): les deux
+  // d'accord font UN cran, deux sens opposés ne bougent rien et se comptent.
+  //
+  // ⚠️ UN CRAN PLUS BAS PEUT PASSER SOUS LE MINIMUM D'UN PLAN. Ce n'est pas
+  // un défaut: l'écran ramène alors la durée à la plus courte qui suffit, et
+  // dit pourquoi — il faut plus de sessions pour en avoir de plus courtes.
+  const timeStep = cookingTimeStepFrom(effect.difficultyStep, effect.speedStep);
+  if (timeStep === "conflict") {
+    // ⚠️ `bothPolarities` ET PAS UN COMPTEUR NEUF: son sens est exactement
+    // celui-ci — « la même chose demandée dans les deux sens, les DEUX
+    // tombent ».
+    counts.bothPolarities += 1;
+  } else if (timeStep !== null) {
     applyStep(fieldChanges, counts, {
-      step: effect.difficultyStep,
-      field: "recipe_difficulty",
-      // Ordonnée du plus simple au plus ambitieux.
-      ladder: RECIPE_DIFFICULTIES as readonly string[],
-      current: String(ctx.recipeDifficulty ?? "").trim().toLowerCase(),
-      at: ctx.at,
-      quote: quoteOf("difficulty", String(row.difficulty ?? ""), ctx.locale),
-    });
-    applyStep(fieldChanges, counts, {
-      step: effect.speedStep,
+      step: timeStep,
       field: "cooking_time_min",
-      // ⚠️ LES SIX DURÉES QUE L'ÉCRAN PROPOSE, ET C'EST UNE RECOPIE ASSUMÉE:
-      // `COOKING_SESSION_MINUTES` vit dans le front (`api/planBudget.ts`), que ce
-      // runtime ne peut pas importer. Le test l'épingle en LISANT ce fichier-là —
-      // même patron que `COOKING_TIME_FLOOR_MIN`, dont le plancher est le premier
-      // barreau de cette même échelle.
       ladder: COOKING_SESSION_LADDER.map((m) => String(m)),
-      current: Number.isFinite(Number(ctx.cookingTimeMin))
-        ? String(Number(ctx.cookingTimeMin))
-        : "",
+      // ⚠️ LA VALEUR RAMENÉE À SA PLAGE. Un compte d'avant le 2026-09-25 porte
+      // 45 ou 90, qui ne sont plus des barreaux: sans cette lecture, le cran
+      // tomberait en `noBaseline` pour tous ces comptes.
+      current: ctx.cookingTimeMin === null ||
+          !Number.isFinite(Number(ctx.cookingTimeMin)) ||
+          Number(ctx.cookingTimeMin) <= 0
+        ? ""
+        : String(sessionTimeBoundFor(Number(ctx.cookingTimeMin))),
+      // ⚠️ MAIS LA VALEUR D'AVANT EST CELLE DE LA BASE, pas sa plage: c'est
+      // elle que « Défaire » doit remettre. Un 45 ramené à 60 se rétablirait
+      // en 60.
+      previous: ctx.cookingTimeMin,
       at: ctx.at,
-      quote: quoteOf("speed", String(row.speed ?? ""), ctx.locale),
+      // ⚠️ LA QUESTION CITÉE EST CELLE QUI A PRODUIT LE CRAN, et quand les
+      // deux l'ont produit ensemble c'est `difficulty` — la première des deux
+      // que le questionnaire pose.
+      quote: effect.difficultyStep !== null
+        ? quoteOf("difficulty", String(row.difficulty ?? ""), ctx.locale)
+        : quoteOf("speed", String(row.speed ?? ""), ctx.locale),
       // Le champ porte un NOMBRE, pas le jeton d'échelle.
       asNumber: true,
     });
@@ -988,16 +943,17 @@ function subjectOf(raw: string | null): RetainedSubject | null {
  * D2.5 — LES DEUX CRANS DE CUISINE, RAMENÉS SUR **UN SEUL** CADRAN.
  * ═══════════════════════════════════════════════════════════════════════════
  *
- * `cooking_style` (P2) est UN cadran qui porte les deux axes à la fois: la
- * table `COOKING_STYLE_PROFILE` lui fait tenir les minutes (la vitesse) ET la
- * difficulté des recettes. Quand il est déclaré, les deux questions du
- * questionnaire pointent donc le même réglage.
+ * ⟳ 2026-09-25 — le cadran est la PLAGE DE TEMPS (`cooking_time_min`). Elle
+ * porte les deux axes à la fois: la durée des sessions (la vitesse) ET, par la
+ * marge qu'elle laisse au-dessus du minimum du plan, la difficulté des
+ * recettes (`cookingEffort`). Jusqu'au 2026-09-25, ce cadran était le style.
  *
  *   · les deux d'accord, ou un seul répondu ⇒ un cran, dans ce sens;
  *   · les deux en sens OPPOSÉS            ⇒ `"conflict"`.
  *
  * ⛔ « LES DEUX D'ACCORD » NE FONT QU'UN CRAN, PAS DEUX. Marcher l'échelle
- * deux fois ferait sauter `keen` → `minimal` sur un seul questionnaire: une
+ * deux fois ferait sauter « 2 h à 3 h » → « 30 min à 1 h » sur un seul
+ * questionnaire: une
  * personne qui dit « c'était trop long ET trop dur » demande un cran plus
  * accessible, pas le plancher.
  *
@@ -1010,7 +966,7 @@ function subjectOf(raw: string | null): RetainedSubject | null {
  *
  * PURE: no I/O, no clock.
  */
-export function cookingStyleStepFrom(
+export function cookingTimeStepFrom(
   difficultyStep: "down" | "up" | null,
   speedStep: "down" | "up" | null,
 ): "down" | "up" | null | "conflict" {
@@ -1027,6 +983,12 @@ function applyStep(
     field: WritableField;
     ladder: readonly string[];
     current: string;
+    /**
+     * ⟳ 2026-09-25 — LA VALEUR D'AVANT TELLE QU'ÉCRITE EN BASE. REQUISE:
+     * `current` est le barreau d'où part le cran, qui peut différer de la
+     * valeur stockée (une durée d'avant les plages est ramenée à la sienne).
+     */
+    previous: unknown;
     at: string;
     quote: string;
     asNumber?: boolean;
@@ -1052,7 +1014,7 @@ function applyStep(
   // des minutes porte un NOMBRE: y écrire la chaîne « 45 » ferait un réglage
   // que `parseLogisticsSetValue` refuse à la lecture — écrit, puis invisible.
   const next: unknown = args.asNumber ? Number(nextRaw) : nextRaw;
-  const previous: unknown = args.asNumber ? Number(args.current) : args.current;
+  const previous: unknown = args.previous;
   pushField(fieldChanges, {
     field: args.field,
     previous,

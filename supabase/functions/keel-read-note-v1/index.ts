@@ -90,6 +90,16 @@ import {
   resolveRejections,
 } from "../_shared/keel/rejected_dishes.ts";
 import { appendRejectedDishes } from "../_shared/keel/rejected_dishes_io.ts";
+// ⟳ 2026-09-24 — « ça vaut aussi pour… »: une raison, les autres plats.
+import {
+  buildDishMatchPrompt,
+  DISH_MATCH_SYSTEM_PROMPT,
+  type DishMatchDish,
+  dishMatchCandidates,
+  readDishMatches,
+} from "../_shared/keel/dish_match.ts";
+import { dishTitleKey } from "../_shared/keel/rejected_dishes.ts";
+import { generateWithGemini, getGlobalAiModel } from "../_shared/gemini.ts";
 // ⟳ 2026-09-22 · LOT A — le référentiel qui donne sa clé à un souvenir.
 import type { CompositionIndex } from "../_shared/keel/food_composition.ts";
 import { loadCompositionIndex } from "../_shared/keel/food_composition_io.ts";
@@ -266,6 +276,126 @@ Deno.serve(async (req) => {
     // ── LE RÔLE — lu AVANT la note: « Remplacer » en a besoin pour ranger
     // chaque plat refusé avec les personnes qui le mangeaient.
     const members = await draftNoteMembersOf(admin, userId, TAG);
+
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-24 — MODE « ÇA VAUT AUSSI POUR… »: UNE RAISON, LES AUTRES PLATS
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // Après la raison d'UN plat barré, l'écran demande à quels autres plats du
+    // même brouillon elle s'applique (`dish_match.ts`). Rien n'est écrit: la
+    // réponse est une PROPOSITION, que la personne confirme. Tout échec rend une
+    // liste vide — la suggestion ne bloque jamais le geste.
+    //
+    // ⛔ LA RAISON PASSE LA GARDE DE LA NOTE AVANT LE MODÈLE (plancher TCA,
+    // interdits de doctrine) — même règle que les raisons de « Changer ».
+    // ⚠️ LE MODÈLE DU CHAT (`getGlobalAiModel`), PAS CELUI QUI COMPOSE: la tâche
+    // est une lecture de titres, et elle se fait pendant que la couche attend.
+    if (body.match && typeof body.match === "object" && !Array.isArray(body.match)) {
+      const started = Date.now();
+      const match = body.match as Record<string, unknown>;
+      const draftId = String(body.draft_id ?? "").trim();
+      const struckTitle = String(match.title ?? "").trim();
+      if (!draftId || !struckTitle) {
+        return jsonResponse(req, {
+          error: "match_required",
+          detail: "`match` names a struck dish ({day, slot, member_id, title, reason}) of a stored draft (`draft_id`)",
+          request_id: requestId,
+        }, { status: 400 });
+      }
+      const noMatch = (reason: string, extra: Record<string, unknown> = {}) => {
+        console.log(JSON.stringify({
+          tag: TAG,
+          event: "dish_match",
+          user_id: userId,
+          request_id: requestId,
+          draft_id: draftId,
+          outcome: reason,
+          ms: Date.now() - started,
+          ...extra,
+        }));
+        return jsonResponse(req, { ok: true, reason, matches: [], request_id: requestId });
+      };
+      const verdict = readDraftNote({ raw: match.reason, doctrineForbidden, restrictionFlag });
+      if (verdict.usable === null) return noMatch("reason_refused");
+      const row = await loadDraftForAdoption(admin, { draftId, userId });
+      if (row === null || String(row.status ?? "") !== "done") return noMatch("draft_unavailable");
+      const storedDishes = (row.source_meal as { dishes?: unknown } | null)?.dishes;
+      if (!Array.isArray(storedDishes)) return noMatch("draft_has_no_source");
+      const dishes = storedDishes as DishMatchDish[];
+      const names = new Map(members.map((m) => [m.memberId, m.label]));
+      const candidates = dishMatchCandidates({ dishes, struckTitle, names });
+      if (candidates.length === 0) return noMatch("no_candidates");
+      // Pour qui était le plat barré — lu sur SES boîtes, jamais sur l'écran.
+      const struckDish = dishes.find((d) =>
+        (d.day ?? null) === (match.day ?? null) && (d.slot ?? null) === (match.slot ?? null) &&
+        (d.memberId ?? null) === (match.member_id ?? null) &&
+        dishTitleKey(String(d.title ?? "")) === dishTitleKey(struckTitle)
+      );
+      const struckEaters = (struckDish?.boxes ?? []).flatMap((b) => b?.memberIds ?? []);
+      const struckWho = [
+        ...new Set(
+          (struckEaters.length > 0 ? struckEaters : struckDish?.memberId ? [struckDish.memberId] : [])
+            .map((id) => names.get(id))
+            .filter((n): n is string => !!n),
+        ),
+      ];
+      let raw: unknown = null;
+      let modelFailed = false;
+      try {
+        raw = await generateWithGemini(
+          DISH_MATCH_SYSTEM_PROMPT,
+          buildDishMatchPrompt({
+            reason: verdict.usable,
+            struck: {
+              title: struckTitle,
+              day: String(match.day ?? ""),
+              slot: String(match.slot ?? ""),
+              who: struckWho,
+            },
+            candidates,
+          }),
+          0,
+          true,
+          [],
+          "auto",
+          {
+            requestId,
+            userId,
+            source: `${FN_NAME}.dish_match`,
+            model: getGlobalAiModel(),
+            reasoningEffort: "low",
+            httpTimeoutMs: 15_000,
+            maxRetries: 0,
+          },
+        );
+      } catch {
+        modelFailed = true;
+      }
+      if (modelFailed) return noMatch("model_unavailable", { candidates: candidates.length });
+      const read = readDishMatches(raw, candidates);
+      console.log(JSON.stringify({
+        tag: TAG,
+        event: "dish_match",
+        user_id: userId,
+        request_id: requestId,
+        draft_id: draftId,
+        outcome: read.matches.length > 0 ? "matched" : read.malformed ? "malformed" : "none",
+        candidates: candidates.length,
+        matches: read.matches.length,
+        unknown: read.unknown,
+        over_cap: read.overCap,
+        ms: Date.now() - started,
+      }));
+      return jsonResponse(req, {
+        ok: true,
+        reason: read.matches.length > 0 ? "matched" : "none",
+        matches: read.matches.map((c) => ({
+          title: c.title,
+          occurrences: c.occurrences.map((o) => ({ day: o.day, slot: o.slot, member_id: o.memberId })),
+        })),
+        request_id: requestId,
+      });
+    }
 
     // ══════════════════════════════════════════════════════════════════════
     // ⟳ 2026-09-24 — MODE « REMPLACER »: DES PLATS BARRÉS, UNE RAISON CHACUN
@@ -522,6 +652,18 @@ Deno.serve(async (req) => {
         ...out.announced.map((a) => ({ text: a.text, who: a.who ?? null, kind: a.kind, sense: a.sense ?? null })),
         ...out.safetyAnnounced.map((a) => ({ text: a.text, who: a.who, kind: "safety" })),
       ],
+      // ⟳ 2026-09-25 — ce que la note redit et que la mémoire portait déjà:
+      // rien n'est écrit, mais l'écran s'en sert pour aiguiller (une exclusion
+      // redite sur un aperçu qui porte encore l'aliment ⇒ retouche locale).
+      known: out.known.map((a) => ({ text: a.text, who: a.who ?? null, kind: a.kind, sense: a.sense ?? null })),
+      // ⟳ 2026-09-25 — ⑫ « à la place de X, mets Y » pour CE plan: rien n'est
+      // écrit pour X; l'écran le rend à la retouche locale (`edit_cells`,
+      // `cells_from: "exclusions"`, `swaps`). `member_id` null = la table.
+      swaps: out.swaps.map((w) => ({
+        from: w.from,
+        to: w.to,
+        member_id: w.subject.startsWith("member:") ? w.subject.slice("member:".length) : null,
+      })),
       // ⑩ ce qui n'a pas pu y entrer — le front le DIT, avec où l'ajouter.
       safety_not_written: out.safetyNotWritten.map((a) => ({ text: a.text, who: a.who })),
       // ⟳ lot 4 — ce qu'on n'a PAS pu écrire faute d'une bouche, à demander.

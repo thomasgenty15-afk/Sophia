@@ -248,6 +248,32 @@ describe("la carte du titulaire, repliée", () => {
   });
 
   /**
+   * ⟳ 2026-09-25 — LA PORTE A SA SECTION, TITRÉE, EN FIN DE CARTE.
+   *
+   * Demandé à l'écran: « les gens le voient pas forcément ». Le titre et la
+   * ligne qui nomme les allergies sont ce qui la rend visible; ils doivent
+   * venir APRÈS les champs de la carte (les tuiles de sport sont les
+   * dernières) et AVANT la porte.
+   */
+  it("rend la porte dans une section titrée, après les champs", () => {
+    const out = html({ editing: true, saved: true });
+    const sport = out.indexOf(en["setup.sport.label"]);
+    const title = out.indexOf(en["household.mouth.preferences_title"]);
+    const hint = out.indexOf(en["household.mouth.preferences_section_hint"]);
+    const door = out.indexOf(en["household.mouth.preferences_open_you"]);
+    expect(sport).toBeGreaterThan(-1);
+    expect(title).toBeGreaterThan(sport);
+    expect(hint).toBeGreaterThan(title);
+    expect(door).toBeGreaterThan(hint);
+  });
+
+  it("n'affiche pas le titre de la section repliée", () => {
+    expect(html({ editing: false, saved: true })).not.toContain(
+      en["household.mouth.preferences_section_hint"],
+    );
+  });
+
+  /**
    * ⛔ ET « Enregistrer » SURVIT À L'ABSENCE DE LA PORTE.
    *
    * Il voyage jusqu'à la barre par le `action` de la porte, et la porte

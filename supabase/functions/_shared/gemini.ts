@@ -1,3 +1,4 @@
+import { beginModelWait, endModelWait } from "./model_wait.ts";
 import { logLlmRawResponseEvent } from "./llm-raw-trace.ts";
 
 // NOTE: This file runs in Supabase Edge Runtime (Deno),
@@ -226,7 +227,38 @@ export function getGeminiFallbackModel(
   return replaceRetiredModel(model, GEMINI_FLASH_FALLBACK_MODEL);
 }
 
+/**
+ * ⟳ 2026-09-25 — L'ATTENTE DU MODÈLE EST COMPTÉE PAR REQUÊTE (`model_wait.ts`),
+ * ici, au seul point d'entrée des appels : un générateur peut ainsi dire
+ * combien il a CALCULÉ (le temps écoulé moins cette attente), ce qu'une
+ * fonction edge limite à 2 s par requête.
+ */
 export async function generateWithGemini(
+  systemPrompt: string,
+  userMessage: string,
+  temperature: number = 0.7,
+  jsonMode: boolean = false,
+  tools: any[] = [],
+  toolChoice: string = "auto", // 'auto', 'any' or specific tool name (not supported by all models but 'any' forces tool use)
+  meta?: GenerateWithGeminiMeta,
+): Promise<GenerateWithGeminiResult> {
+  beginModelWait(meta?.requestId);
+  try {
+    return await generateWithGeminiUntracked(
+      systemPrompt,
+      userMessage,
+      temperature,
+      jsonMode,
+      tools,
+      toolChoice,
+      meta,
+    );
+  } finally {
+    endModelWait(meta?.requestId);
+  }
+}
+
+async function generateWithGeminiUntracked(
   systemPrompt: string,
   userMessage: string,
   temperature: number = 0.7,

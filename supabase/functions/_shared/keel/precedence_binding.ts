@@ -231,6 +231,57 @@ export const HOUSEHOLD_ARBITRATION_BY_VERSION: Readonly<Record<string, string>> 
   // ⟳ Le jeton de la structure v34, bumpé le même jour pour la même raison.
   v34_what_they_turned_down:
     "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
+  // ⟳ v43 (2026-09-25) — MÊME EMPREINTE, ET C'EST L'AFFIRMATION. v43 change la
+  // phrase du féculent dans `standardRecipeBlock` (l'app met plat et féculent
+  // dans UNE boîte par repas), hors du texte d'arbitrage; aucun en-tête de
+  // verrou ne bouge.
+  v43_the_box_is_already_packed:
+    "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
+  // ⟳ Le jeton de la structure v34, bumpé le même jour pour la même raison.
+  v34_the_box_is_already_packed:
+    "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
+  // ⟳ v44 (2026-09-25) — MÊME EMPREINTE, ET C'EST L'AFFIRMATION. v44 ajoute le
+  // plancher de 5 ml sur l'huile ajoutée dans `standardRecipeBlock`, hors du
+  // texte d'arbitrage; aucun en-tête de verrou ne bouge.
+  v44_a_teaspoon_is_the_least_oil:
+    "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
+  // ⟳ Le jeton de la structure v34, bumpé le même jour pour la même raison.
+  v34_a_teaspoon_is_the_least_oil:
+    "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
+  // ⟳ v45 (2026-09-25) — MÊME EMPREINTE, ET C'EST L'AFFIRMATION. v45 ajoute la
+  // ligne du « tu » au bloc de langue (`locale.ts`), en queue du message, hors
+  // du texte d'arbitrage; aucun en-tête de verrou ne bouge.
+  v45_we_say_tu:
+    "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
+  // ⟳ Le jeton de la structure v34, bumpé le même jour pour la même raison.
+  v34_we_say_tu:
+    "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
+  // ⟳ v46 (2026-09-25) — MÊME EMPREINTE, ET C'EST L'AFFIRMATION. v46 change la
+  // première ligne du brief du foyer (« the same dishes for the whole table »)
+  // et le tronc dit le nombre de sessions choisi, hors du texte d'arbitrage;
+  // aucun en-tête de verrou ne bouge.
+  v46_the_sessions_they_chose:
+    "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
+  // ⟳ Le jeton de la structure v34, bumpé le même jour pour la même raison.
+  v34_the_sessions_they_chose:
+    "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
+  // ⟳ v47 (2026-09-25) — MÊME EMPREINTE, ET C'EST L'AFFIRMATION. v47 nomme le
+  // féculent, la protéine, le petit-déjeuner et le goûter dans la règle « a
+  // recipe is cooked ONCE », et fait partager la casserole de féculent; hors
+  // du texte d'arbitrage, aucun en-tête de verrou ne bouge.
+  v47_one_starch_one_session:
+    "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
+  // ⟳ Le jeton de la structure v34, bumpé le même jour pour la même raison.
+  v34_one_starch_one_session:
+    "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
+  // ⟳ v48 (2026-09-25) — MÊME EMPREINTE, ET C'EST L'AFFIRMATION. v48 change la
+  // tournure d'une exclusion au moment (« NOT at » au lieu de « ONLY AT »),
+  // dans les lignes retenues, hors du texte d'arbitrage.
+  v48_off_the_table_not_at:
+    "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
+  // ⟳ Le jeton de la structure v34, bumpé le même jour pour la même raison.
+  v34_off_the_table_not_at:
+    "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
 };
 
 /** SHA-256 hexadécimal — `crypto.subtle`, standard web, présent en edge. */

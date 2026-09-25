@@ -285,14 +285,24 @@ describe("l'aperçu du plan reste le rendu unique, et il n'écrit rien", () => {
     const plan = code("frontend/src/keel/pages/StudentWeekPlanPage.tsx");
     const setup = code("frontend/src/keel/pages/SetupPage.tsx");
     const builder = code("frontend/src/keel/components/MealBuilder.tsx");
+    expect(plan).toContain('if (recoverable.state === "in_flight") setResumingDraft(true);');
     for (const src of [plan, setup]) {
-      expect(src).toContain('if (recoverable.state === "in_flight") setResumingDraft(true);');
       expect(src).toContain("setResumingDraft(false);");
     }
     expect(plan).toContain("resumedComposition={resumingDraft ? { progress: draftProgress } : null}");
     expect(builder).toContain("const building = launching || resumed !== null;");
     expect(builder).toContain("<PlanComposingCard progress={composingProgress}");
-    expect(setup).toContain("{resumingDraft ? <PlanComposingCard progress={progress}");
+    // ⟳ 2026-09-25 — PLUS DE CARTE DANS L'ENTONNOIR (demandé : elle est pour
+    // la plateforme). Un ajustement repris rouvre la fenêtre sur l'aperçu
+    // d'avant (`recoverPreviewBehind`) et « Ajuster le plan » tourne; une
+    // première composition reprise montre la démonstration, comme sans
+    // rechargement. ⟳ 2026-09-25 — gardée sur la COMPOSITION (`composeBusy`
+    // ou `resumingDraft`), plus sur `busy`, qui sert aussi aux enregistrements.
+    expect(setup).not.toContain("<PlanComposingCard");
+    expect(setup).toContain("behind = await recoverPreviewBehind(recoverable.draftId);");
+    expect(setup).toContain("setResumedAdjusting(true);");
+    expect(setup).toContain("resumedAdjusting={resumedAdjusting}");
+    expect(setup).toContain("{((composeBusy || resumingDraft) && draft === null) || demoOpen ? (");
   });
 
   /**
@@ -340,6 +350,31 @@ describe("l'aperçu du plan reste le rendu unique, et il n'écrit rien", () => {
     expect(compose).toContain("windowFromToday(draftSource?.input ?? draftInput(), todayIso())");
     const edit = plan.slice(plan.indexOf("onEditCells={async (id, cells) => {"), plan.indexOf("onEditCells={async (id, cells) => {") + 400);
     expect(edit).toContain("windowFromToday(draftSource?.input ?? draftInput(), todayIso())");
+  });
+
+  // ⟳ 2026-09-24 — MESURÉ : un brouillon de 3 jours composé la veille, repris à
+  // la réouverture de l'entonnoir, recevait « Changer » avec la fenêtre par
+  // défaut de la page (7 jours) — `draft_mismatch`, aucun plat changé.
+  it("l'entonnoir reprend la fenêtre de SA demande, et ses reprises partent de là", () => {
+    const setup = code("frontend/src/keel/pages/SetupPage.tsx");
+    const effet = setup.slice(setup.indexOf("const recoveredDraftFor = React.useRef"));
+    const afterSet = effet.slice(effet.indexOf("setDraft(recovered);"), effet.indexOf("setComposeFailure(null);"));
+    // La demande relue d'abord (la veille de cuisine est ajoutée par le
+    // serveur, jamais renvoyée ajoutée), la fenêtre rangée à défaut.
+    expect(afterSet).toContain("const asked = recoverable.input?.window;");
+    expect(afterSet).toContain(': recovered.plan;');
+    expect(afterSet, "la fenêtre ne revient pas avec l'aperçu").toContain("setWindowStart(startsOn);");
+    expect(afterSet).toContain("setWindowEnd(addDays(startsOn, durationDays - 1));");
+    expect(afterSet, "un départ passé ne doit pas être repris").toContain("startsOn >= browserLocalDate()");
+    for (const call of [
+      "readNote(note, draftInput().window)",
+      "editCells(draftInput(), id, cells)",
+      "editExclusions(draftInput(), id, {}, swaps)",
+      "readRejections(id, rejections, draftInput().window)",
+      "replaceDishes(draftInput(), id, rejections)",
+    ]) {
+      expect(setup, `« ${call} » absent`).toContain(call);
+    }
   });
 
   it("un plan écrit malgré une réponse perdue sort du tunnel au rechargement", () => {

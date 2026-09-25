@@ -97,6 +97,15 @@ export function purchasesForNeed(args: {
    * dit « aucun », une absence ne se relirait pas.
    */
   readonly shopDays: readonly number[];
+  /**
+   * ⟳ 2026-09-25 — AUCUN JOUR DE COURSES NE S'AJOUTE, quand c'est un objet.
+   * Chaque achat se range sur un jour de `shopDays` (`shopRankFor`), parce que
+   * la personne a choisi son nombre de courses et que ce nombre est une règle
+   * (décision du propriétaire : « si le user dit 3, c'est 3 »). `sessionRanks`
+   * = les jours de cuisine : un usage ce jour-là peut s'acheter le matin même.
+   * `false` = la règle d'avant. REQUIS : un défaut rouvrirait la course en plus.
+   */
+  readonly onlyShopDays: false | { readonly sessionRanks: readonly number[] };
 }): PurchasePlan {
   const undated = args.uses.filter((u) => u.rank === null).length;
   const unweighed = args.uses.filter((u) =>
@@ -169,6 +178,14 @@ export function purchasesForNeed(args: {
     const premier = g.uses[0].rank;
     const dernier = g.uses[g.uses.length - 1].rank;
     const auPlusTot = Math.max(0, dernier - fenetre);
+    if (args.onlyShopDays !== false && args.shopDays.length > 0) {
+      return shopRankFor({
+        lo: auPlusTot,
+        hi: premier,
+        shopRanks: args.shopDays,
+        sameDay: args.onlyShopDays.sessionRanks.includes(premier),
+      }).rank;
+    }
     const dejaPoses = args.shopDays
       .filter((d) => Number.isFinite(d) && d >= auPlusTot && d < premier)
       .sort((a, b) => a - b);
@@ -195,18 +212,119 @@ export function purchasesForNeed(args: {
       : p
   );
 
+  // ⟳ 2026-09-25 — DEUX GROUPES RANGÉS SUR LE MÊME JOUR DE COURSES FONT UN
+  // SEUL ACHAT. Ça n'arrive que lorsque les jours sont imposés
+  // (`onlyShopDays`): scinder une ligne en deux achats du même jour ferait
+  // deux lignes pour une seule course.
+  const achats: { rank: number; coversRanks: number[]; share: number }[] = [];
+  groupes.forEach((g, i) => {
+    const rank = dateDe(g);
+    const same = achats.find((a) => a.rank === rank);
+    if (same) {
+      same.coversRanks.push(...g.uses.map((u) => u.rank));
+      same.share += parts[i];
+    } else {
+      achats.push({ rank, coversRanks: g.uses.map((u) => u.rank), share: parts[i] });
+    }
+  });
   return {
-    purchases: groupes.map((g, i) => ({
-      rank: dateDe(g),
-      coversRanks: g.uses.map((u) => u.rank),
-      share: parts[i],
-    })),
+    purchases: achats,
     counts: {
       undated_uses: undated,
       unweighed_uses: unweighed,
-      splits: groupes.length - 1,
+      splits: achats.length - 1,
     },
   };
+}
+
+/**
+ * ⟳ 2026-09-25 — LE JOUR DE COURSES OÙ RANGER UN ACHAT, PARMI DES JOURS
+ * IMPOSÉS.
+ *
+ * Dans cet ordre :
+ *   1. le jour de courses le plus TARDIF entre `lo` (le plus tôt où l'aliment
+ *      tient jusqu'à son dernier usage) et `hi` (son premier usage) — `hi`
+ *      compris seulement quand ce premier usage est une session de cuisine
+ *      (`sameDay`) : on achète le matin, avant la cuisson, et la session est
+ *      nourrie par SA course, comme la consigne le dit au modèle. Sinon la
+ *      veille au plus tard, la règle de `purchasesForNeed` (un achat le jour
+ *      même arrive après le petit-déjeuner) ;
+ *   2. sinon, `hi` lui-même s'il est un jour de courses (le premier jour du
+ *      plan : il n'y a pas de veille) ;
+ *   3. sinon, le jour de courses le plus tardif avant `hi` — l'aliment y est
+ *      acheté TROP TÔT, et `fresh: false` le dit. La garde achat → assiette
+ *      (`plateWindowReport`) le compte sur le plan écrit.
+ *
+ * ⛔ IL NE REND JAMAIS UN JOUR HORS DE `shopRanks`.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function shopRankFor(args: {
+  readonly lo: number;
+  readonly hi: number;
+  /** Les rangs des jours de courses. JAMAIS vide. */
+  readonly shopRanks: readonly number[];
+  /** `true` quand le premier usage est une session de cuisine. REQUIS. */
+  readonly sameDay: boolean;
+}): { rank: number; fresh: boolean } {
+  const shops = [...args.shopRanks].filter((d) => Number.isFinite(d)).sort((a, b) => a - b);
+  if (shops.length === 0) {
+    throw new Error("[keel/shopping_purchases] shopRankFor: aucun jour de courses");
+  }
+  const before = shops.filter((d) =>
+    d >= args.lo && (args.sameDay ? d <= args.hi : d < args.hi)
+  );
+  if (before.length > 0) return { rank: before[before.length - 1], fresh: true };
+  if (shops.includes(args.hi) && args.hi >= args.lo) return { rank: args.hi, fresh: true };
+  const earlier = shops.filter((d) => d <= args.hi);
+  if (earlier.length > 0) return { rank: earlier[earlier.length - 1], fresh: false };
+  return { rank: shops[0], fresh: false };
+}
+
+/**
+ * ⟳ 2026-09-25 — LES JOURS DE COURSES D'UN PLAN, QUAND LA PERSONNE A CHOISI
+ * LEUR NOMBRE. Rangs dans la fenêtre du plan (0 = premier jour).
+ *
+ * Décision du propriétaire, sur le brouillon `54aec009` (deux courses
+ * demandées, quatre faites) : « si le user dit 3, c'est 3 ». Ces jours sont
+ * dits au modèle AVANT qu'il compose (`raw_keeping.ts`), et le moteur range
+ * ensuite chaque achat sur l'un d'eux (`planGroceryWaves`, `purchasesForNeed`) :
+ * une seule fonction, pour que la consigne et la liste disent les mêmes jours.
+ *
+ * La règle :
+ *   - la première course est au premier jour de la fenêtre ;
+ *   - la course `i` (de 1 à `runs − 1`) sert la session de rang
+ *     `⌊i × sessions ÷ runs⌋`, et tombe LA VEILLE de cette session, ou le jour
+ *     même (le matin) quand la veille est à moins de `MIN_DAYS_BETWEEN_SHOPS`
+ *     jours de la course d'avant. Si ni l'une ni l'autre ne tient, elle
+ *     n'existe pas : deux sessions trop proches se nourrissent de la même
+ *     course.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function plannedShopRanks(args: {
+  /** Les rangs des jours de cuisine. */
+  readonly sessionRanks: readonly number[];
+  /** Le nombre de courses choisi, `>= 1`. */
+  readonly runs: number;
+}): number[] {
+  if (!Number.isFinite(args.runs) || args.runs < 1) {
+    throw new Error(
+      `[keel/shopping_purchases] plannedShopRanks: runs >= 1 requis, reçu ${JSON.stringify(args.runs)}`,
+    );
+  }
+  const sessions = [...new Set(args.sessionRanks.filter((r) => Number.isFinite(r) && r >= 0))]
+    .sort((a, b) => a - b);
+  const ranks = [0];
+  const runs = Math.floor(args.runs);
+  for (let i = 1; i < runs; i++) {
+    const session = sessions[Math.floor((i * sessions.length) / runs)];
+    if (session === undefined) continue;
+    const last = ranks[ranks.length - 1];
+    const pick = [session - 1, session].find((r) => r > last && r - last >= MIN_DAYS_BETWEEN_SHOPS);
+    if (pick !== undefined) ranks.push(pick);
+  }
+  return ranks;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -265,6 +383,8 @@ export function splitShoppingByUses<L>(args: {
   readonly lastRank: number;
   /** Les rangs des jours de courses déjà posés — voir `purchasesForNeed`. */
   readonly shopDays: readonly number[];
+  /** ⟳ 2026-09-25 — aucun jour ne s'ajoute à `shopDays` — voir `purchasesForNeed`. */
+  readonly onlyShopDays: false | { readonly sessionRanks: readonly number[] };
   /**
    * ⟳ 2026-09-24 — LE RANG DU JOUR D'ACHAT ACTUEL DE LA LIGNE, `null` si elle
    * n'est pas datée. REQUIS : c'est lui qui dit qu'un achat unique est trop
@@ -304,6 +424,7 @@ export function splitShoppingByUses<L>(args: {
       window: args.windowOf(line),
       lastRank: args.lastRank,
       shopDays: args.shopDays,
+      onlyShopDays: args.onlyShopDays,
     });
     const allCovered = plan.purchases.flatMap((p) => p.coversRanks);
     if (plan.purchases.length <= 1) {

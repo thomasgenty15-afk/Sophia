@@ -13,7 +13,7 @@
 
 import type { MealWindowRequest } from "../_shared/keel/meal_plan_window.ts";
 import { usableBudget } from "../_shared/keel/meal_generation.ts";
-import { readCookingStyle, readGroceryRuns } from "../_shared/keel/cooking_plan.ts";
+import { readGroceryRuns } from "../_shared/keel/cooking_plan.ts";
 
 /** Même lecture défensive que le chemin individuel. */
 function readWindowRequest(raw: unknown): MealWindowRequest | null {
@@ -65,9 +65,10 @@ function readCookingCapacity(pc: Record<string, unknown> | null) {
     // fichiers depuis toujours et sans test qui les compare — la dérivation ne
     // le sera pas, et un test lit les deux sources pour le prouver.
     //
-    // ⛔ `null` = LA QUESTION N'A JAMAIS ÉTÉ POSÉE, jamais « le moins
-    // possible »: cicatrice `20260818110000:48-51`.
-    cookingStyle: readCookingStyle(pc),
+    // ⟳ 2026-09-25 — `cookingStyle` N'EST PLUS LU: le style ne décide plus
+    // rien (`cooking_plan.ts`, en-tête). La plage de temps est
+    // `cookingTimeMin`, juste au-dessus; le nombre de sessions arrive avec la
+    // demande (`body.cooking_sessions`), pas de cette colonne.
     groceryRuns: readGroceryRuns(pc),
   };
 }

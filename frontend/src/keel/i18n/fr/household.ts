@@ -158,9 +158,9 @@ export const frHousehold = {
   "household.error.bad_work_lunch": "On n’a pas su lire cette réponse.",
   "household.error.not_adult":
     "Cette question ne se pose qu’aux majeurs, et c’est la date de naissance " +
-    "qui le dit. Renseignez-la au-dessus, et elle pourra être répondue.",
+    "qui le dit. Renseigne-la au-dessus, et elle pourra être répondue.",
   "household.error.too_many_away":
-    "Il y a déjà trop de jours marqués pour cette personne. Libérez-en " +
+    "Il y a déjà trop de jours marqués pour cette personne. Libères-en " +
     "quelques-uns dans la grille d’abord.",
   "household.error.bad_slots":
     "On n’a pas su lire ces habitudes. Chaque moment marqué « son habitude à elle » demande quelques mots.",
@@ -379,6 +379,11 @@ export const frHousehold = {
     "Tes préférences alimentaires (facultatif)",
   "household.mouth.preferences_saved": "Les préférences de {name} sont enregistrées.",
   "household.mouth.preferences_title": "Préférences alimentaires",
+  // ⟳ 2026-09-25 — LA LIGNE SOUS LE TITRE DE LA SECTION, sur les deux cartes
+  // de `/app/setup`. Sans pronom, exprès: la même ligne sert à la carte
+  // « Vous » et à celle de chaque personne ajoutée.
+  "household.mouth.preferences_section_hint":
+    "Allergies, aliments refusés, régime, habitudes de repas.",
   "household.mouth.preferences_title_named": "{name} — préférences alimentaires",
   "household.mouth.preferences_intro":
     "Rien ici n'est obligatoire. Ça affine le plan ; ça n'en décide pas la forme.",
@@ -767,6 +772,8 @@ export const frHousehold = {
   //                                     « la grille … de sa semaine, juste en dessous »
   //   "setup.request.presence_intro"  — « L'étape trois disait l'habitude » →
   //                                     l'habitude se règle sur la page Foyer
+  // ⟳ 2026-09-24 — `setup.work_lunch.*` RETIRÉ : plus aucun lecteur (question
+  // supprimée le 2026-09-19, état « dehors » le 2026-09-24).
 
   // ── A5 · la page Foyer (2026-09-03) ──────────────────────────────────────
   // LES DEUX CADRES NOMMÉS d'une fiche de bouche (D5.1, renversement du

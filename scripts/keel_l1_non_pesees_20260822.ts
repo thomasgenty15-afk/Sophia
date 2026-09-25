@@ -318,7 +318,6 @@ async function main() {
       preparations,
       servings,
       addons: [],
-      mealsOutByDay: new Map<string | null, number>(),
     });
     for (const day of energy.days) {
       const all = bumpDay(`${lane}${SEP}tout`);

@@ -22,6 +22,7 @@ import { DIET_ANSWERS } from "./onboarding";
 // LOT B — le mode de cuisson demandé à la composition. Le TYPE seul: la règle
 // du plafond vit côté serveur, et ce module ne la connaît pas.
 import { type CookingShape } from "./cookingShape";
+import { type CookingSessionCount } from "./cookingPlan";
 import { readEdgeRefusal } from "./edgeErrors";
 import { selectMealPlans } from "./mealWindow";
 import {
@@ -1752,18 +1753,16 @@ export async function generateHouseholdMeal(args: {
    */
   preferences: string | null;
   /**
-   * « TOUT DANS UNE SESSION DE CUISINE » — 2026-09-01.
+   * ⟳ 2026-09-25 — « COMBIEN DE FOIS TU VEUX CUISINER », 1 à 4, ou `null`. Il
+   * remplace « tout dans une session de cuisine » (2026-09-01).
    *
-   * ⚠️ REQUIS, jamais `?`. Même arbitrage que `preferences` juste au-dessus, et
-   * pour la cicatrice qui y est écrite noir sur blanc: un `?` aurait laissé
-   * passer sans un mot l'appelant qui l'oublie, et l'option serait construite,
-   * testée, visible à l'écran — et jamais transmise.
+   * ⚠️ REQUIS ET NULLABLE, jamais `?`. Même arbitrage que `preferences` juste
+   * au-dessus: un `?` aurait laissé passer sans un mot l'appelant qui l'oublie.
    *
-   * ⛔ IL NE S'ÉCRIT NULLE PART. Il voyage avec LA DEMANDE, comme le mode de
-   * cuisson et le budget: « cette semaine-ci, je cuisine une seule fois » est un
-   * arbitrage de semaine.
+   * ⛔ IL NE S'ÉCRIT NULLE PART. Il voyage avec LA DEMANDE: le nombre dépend
+   * de la longueur de ce plan-ci.
    */
-  oneCookingSession: boolean;
+  cookingSessions: CookingSessionCount | null;
   /** ⟳ 2026-09-15 · LOT B — le stade de la ligne, pour l'écran qui attend. */
   onProgress?: (progress: DraftProgress) => void;
   // ⟳ A1 (2026-09-03) — `cookTheDayBefore` A ÉTÉ RETIRÉ D'ICI, ET DU CORPS.
@@ -1796,7 +1795,7 @@ export async function generateHouseholdMeal(args: {
     origin: args.origin,
     context: args.context ?? null,
     cookingShape: args.cookingShape ?? null,
-    oneCookingSession: args.oneCookingSession,
+    cookingSessions: args.cookingSessions,
     preferences: args.preferences,
   };
   const intent = args.intent ?? "replace_current";

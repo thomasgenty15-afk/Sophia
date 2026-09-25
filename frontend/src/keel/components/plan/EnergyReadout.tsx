@@ -3,20 +3,12 @@ import type {
   DishEnergyView,
   EnergyTargetView,
 } from "../../api/mealEnergy";
-import { dayEnergySubjectClause } from "../../api/mealEnergy";
 import { mealCopy } from "../../api/mealLabels";
 // ⟳ LOT 5 — LE MÊME `Button` QUE PARTOUT. La rangée d'interrupteurs vient
 // d'être extraite de `MealBuilder`, où elle utilisait déjà celui-ci: l'importer
 // est ce qui garantit que les deux adresses de la rangée rendent le même
 // bouton, et pas deux qui se ressemblent.
 import { Button } from "../ui/Button";
-import { uiLocale } from "../../i18n/runtime";
-// ① — LA PHRASE DU CONSEIL DU MIDI, IMPORTÉE, JAMAIS RÉÉCRITE ICI. Elle vit
-// avec le nombre (`household_portions.ts`) pour la raison exacte de
-// `PACE_WARNING_LABELS`: « autour de » est load-bearing dans les deux langues,
-// et le libellé de chaque moment porte sa préposition — un gabarit `Au ${label}`
-// rendrait « Au ta collation du matin ».
-import { eatingOutAdviceSentence } from "../../../../../supabase/functions/_shared/keel/household_portions.ts";
 
 // FF-059 — LE CHIFFRE, RENDU UNE SEULE FOIS.
 //
@@ -80,132 +72,37 @@ export function DishEnergyLine({ energy }: { energy: DishEnergyView | null }) {
  * plats comptés » se lit correctement. C'est très exactement le rabbit hole
  * n°3 de la fiche, et il ne se commet pas dans le calcul: il se commet ici.
  *
- * ── ② · ET IL PORTE MAINTENANT SON SUJET ──────────────────────────────────
- * DEUX incomplétudes se croisent sur cette ligne, et elles ne se réparent pas
- * au même endroit:
- *
- *   `dishesCounted`/`dishesTotal` — « je n'ai pas su lire tous les plats ».
- *                                    Se répare par le référentiel.
- *   `subject`/`mealsOut` .......... « il manquait des plats à lire ».
- *                                    Ne se répare pas: c'est la vie de
- *                                    quelqu'un, et un midi au restaurant.
- *
- * Un écran qui n'en dirait qu'une nommerait la mauvaise — et proposerait de
- * curer une table de composition pour un déjeuner pris dehors.
+ * ⟳ 2026-09-24 — le conseil du midi (« vise autour de 700 ») et l'incise « sur
+ * les N repas que j'ai composés » sont partis avec l'état « dehors ».
  */
 export function DayEnergyLine({ energy }: { energy: DayEnergyView | null }) {
   if (!energy) return null;
-  const locale = uiLocale() === "fr" ? "fr" : "en";
-  // ══ ① · LE CONSEIL DU MIDI ═══════════════════════════════════════════════
-  //
-  // « Au déjeuner, vise autour de 700. » Décision produit §2.2 ⓑ: le repas
-  // sort du plan, il ne sort pas du calcul.
-  //
-  // ⛔ UNE CONSIGNE, JAMAIS UN SOLDE. Aucun reste, aucun verdict, aucune
-  // couleur, aucune barre. La phrase vient du module (« autour de » est
-  // load-bearing) et le ton reste celui d'un repère, pas d'un score.
-  //
-  // ⚠️ IL SURVIT À UNE JOURNÉE ILLISIBLE, et c'est le point. « Vise 700 au
-  // déjeuner » est vrai que le référentiel ait su lire les autres plats ou
-  // non: il se calcule sur la journée DÉCLARÉE, pas sur ce que le plan a
-  // composé. Le taire là serait perdre le conseil très exactement le jour où
-  // l'écran n'a rien d'autre à offrir.
-  const advice = energy.eatingOutAdvice.length === 0 ? null : (
-    <span className="text-xs font-normal text-ink-soft">
-      {energy.eatingOutAdvice
-        .map((a) => eatingOutAdviceSentence(locale, a.slot, a.kcal))
-        .join(" ")}
-    </span>
-  );
   if (energy.kcal === null) {
     // Aucun plat lisible. On ne rend PAS « 0 kcal », qui se lirait « cette
     // journée ne nourrit pas » — le sens exactement inverse.
     return (
-      <span className="inline-flex flex-col items-end gap-0.5">
-        <span className="text-xs font-normal text-ink-soft">
-          {mealCopy("meals.energy.day_unreadable")}
-        </span>
-        {advice}
+      <span className="text-xs font-normal text-ink-soft">
+        {mealCopy("meals.energy.day_unreadable")}
       </span>
     );
   }
-  // ══ ② · LE NOMBRE CHANGE DE SUJET, ET IL LE DIT ═══════════════════════════
-  //
-  // ⛔ « TA JOURNÉE : 1 400 » EST FAUX dès qu'un repas sur trois est pris
-  // dehors, et faux dans le sens qui décourage: la personne lit un déficit
-  // alors qu'elle a peut-être mangé un burger. La VALEUR ne bouge pas — elle
-  // est exacte sur ce qu'elle couvre — c'est le SUJET qui change.
-  //
-  // ⚠️ AUCUN SOLDE, AUCUN VERDICT, AUCUNE COULEUR. Pas de « il te manque »,
-  // pas de rouge: le produit ne sait pas ce qui a été mangé dehors, et il ne
-  // peut pas le savoir. La teinte reste celle du total, décidée par `complete`.
-  //
-  // ⚠️ LES TROIS CONDITIONS SONT LA SECONDE CEINTURE, PAS LA PREMIÈRE. La règle
-  // tout-ou-rien vit déjà dans `readDay`, qui refuse un `subject` sans son
-  // compte. Deux écritures de la même règle aux deux bouts du fil: le jour où
-  // l'une se relâche, l'autre tient — même discipline que `readDish`, dont le
-  // chiffre ne survit pas à `complete: false` des deux côtés.
-  const subject = energy.subject === "what_the_plan_made" && energy.mealsOut > 0 &&
-      energy.dishesTotal > 0
-    ? dayEnergySubjectClause(locale, {
-      dishes: energy.dishesTotal,
-      mealsOut: energy.mealsOut,
-    })
-    : null;
-  /**
-   * L'incise, ajoutée à une phrase qui ne prétend PAS parler de la journée.
-   */
-  const withSubject = (base: string) => subject === null ? base : `${base} — ${subject}`;
   const text = !energy.complete
-    // ⚠️ `day_partial` SURVIT TEL QUEL, et l'incise s'y AJOUTE. Les deux
-    // incomplétudes ne se réparent pas au même endroit — « je n'ai pas su lire
-    // tous les plats » se répare par le référentiel, « il manquait des plats à
-    // lire » ne se répare pas, c'est la vie de quelqu'un. Un écran qui n'en
-    // dirait qu'une nommerait la mauvaise.
-    ? withSubject(
-      mealCopy("meals.energy.day_partial")
-        .replace("{n}", String(energy.kcal))
-        .replace("{counted}", String(energy.dishesCounted))
-        .replace("{total}", String(energy.dishesTotal)),
-    )
+    ? mealCopy("meals.energy.day_partial")
+      .replace("{n}", String(energy.kcal))
+      .replace("{counted}", String(energy.dishesCounted))
+      .replace("{total}", String(energy.dishesTotal))
     // ⛔ LOT A1 (2026-09-22) — LA BRANCHE « dont {addon} ajoutées » EST PARTIE.
     // Elle nommait les `member_deltas` de FF-043, un aliment qui n'existait sur
     // aucune autre surface: ni boîte, ni ligne de courses, ni carte. Le total du
-    // jour ne compte plus que ce que le plan a composé, donc il n'y a plus rien
-    // à mettre à part.
-    // ══ LA SEULE PHRASE QUI SE FAIT REMPLACER, ET C'EST TOUT LE LOT ══════
-    //
-    // `meals.energy.day` dit « {n} kcal SUR LA JOURNÉE ». C'est très exactement
-    // l'affirmation qui devient fausse quand un repas échappe au plan — et lui
-    // accoler l'incise donnerait « 1 400 kcal sur la journée — sur les 2 repas
-    // que j'ai composés », une phrase qui se contredit dans sa propre longueur.
-    // Les deux autres variantes ne revendiquent pas la journée (elles parlent
-    // de plats comptés et d'add-on), donc elles se complètent au lieu de se
-    // faire remplacer.
-    : subject !== null
-    ? `${mealCopy("meals.energy.dish").replace("{n}", String(energy.kcal))} ${subject}`
+    // jour ne compte plus que ce que le plan a composé.
     : mealCopy("meals.energy.day").replace("{n}", String(energy.kcal));
-  if (advice === null) {
-    return (
-      <span
-        className={`text-xs font-normal tabular-nums ${
-          energy.complete ? "text-ink-soft" : "text-amber-700"
-        }`}
-      >
-        {text}
-      </span>
-    );
-  }
   return (
-    <span className="inline-flex flex-col items-end gap-0.5">
-      <span
-        className={`text-xs font-normal tabular-nums ${
-          energy.complete ? "text-ink-soft" : "text-amber-700"
-        }`}
-      >
-        {text}
-      </span>
-      {advice}
+    <span
+      className={`text-xs font-normal tabular-nums ${
+        energy.complete ? "text-ink-soft" : "text-amber-700"
+      }`}
+    >
+      {text}
     </span>
   );
 }

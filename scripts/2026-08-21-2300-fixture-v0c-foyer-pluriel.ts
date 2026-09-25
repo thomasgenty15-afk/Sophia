@@ -212,7 +212,7 @@ interface FixtureMouth {
   diet: "omnivore" | "vegetarian" | "vegan" | "pescatarian" | null;
   allergies: string[];
   /** `[]` = présente toute la fenêtre. */
-  awayDays: Array<{ day: string; kind: "away" | "eating_out"; slots: string[] }>;
+  awayDays: Array<{ day: string; kind: "away"; slots: string[] }>;
   body: FixtureBody;
   /** À quoi cette bouche sert dans la fixture — pour le journal. */
   why: string;
@@ -316,12 +316,12 @@ const MOUTHS: FixtureMouth[] = [
     diet: "vegetarian",
     allergies: [ALLERGY_LABEL],
     // ⑤ PARTIELLE, ET C'EST TOUT LE SUJET : des CRÉNEAUX nommés, jamais une
-    // journée entière (une entrée sans `slots` vaut « toute la journée »). Les
-    // deux `kind` sont représentés — `away` (absent) et `eating_out`
-    // (l'occasion ESTIMÉE), qui ne suivent pas le même chemin de lecture.
+    // journée entière (une entrée sans `slots` vaut « toute la journée »).
+    // ⟳ 2026-09-24 — le samedi soir était `eating_out`; cet état est retiré et
+    // la base le refuse (`bad_away_kind`): c'est désormais une absence.
     awayDays: [
       { day: "wed", kind: "away", slots: ["lunch", "dinner"] },
-      { day: "sat", kind: "eating_out", slots: ["dinner"] },
+      { day: "sat", kind: "away", slots: ["dinner"] },
     ],
     body: {
       heightCm: 175,

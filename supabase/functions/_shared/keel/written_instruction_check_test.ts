@@ -167,3 +167,15 @@ Deno.test("le module est PUR: même entrée, même sortie, entrée intacte", () 
   assertEquals(instructions, [PRUNES]);
   assertEquals(dishes.length, 1);
 });
+
+// ⟳ 2026-09-25 — « œ » EST UNE LETTRE, PAS UN SÉPARATEUR.
+// Mesuré sur un vrai compte : « Je ne veux pas d'œufs au petit déjeuner » était
+// rangée (`food.exclude`, « œufs »), mais le jeton tiré était `ufs` — il ne
+// mordait jamais « Œuf, pain complet », et la retouche rendait « aucun plat de
+// cet aperçu ne contient ça » sur un aperçu à trois petits-déjeuners aux œufs.
+Deno.test("les ligatures se déplient: œufs, Œuf et oeufs donnent le même jeton", () => {
+  assertEquals(termsOfInstruction("œufs"), ["oeuf"]);
+  assertEquals(termsOfInstruction("oeufs"), ["oeuf"]);
+  assert(termsOfInstruction("Œuf, pain complet").includes("oeuf"));
+  assert(termsOfInstruction("pas de bœuf").includes("boeuf"));
+});

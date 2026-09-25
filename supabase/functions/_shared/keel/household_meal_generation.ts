@@ -106,7 +106,6 @@ import {
   boxSchemaBlock,
   dedicatedDishBlock,
   dishOwnerSchemaBlock,
-  eatingOutBlock,
   EXPLANATION_SCHEMA_BLOCK,
   kitchenBlock,
   memberIdRosterLines,
@@ -522,10 +521,8 @@ export type { HouseholdRuleHolder, WhyRuleCounts } from "./household_why_rule.ts
 //      prompt byte-identique à v15, et c'est 100 % du parc.
 //   ② LES FOYERS OÙ QUELQU'UN MANGE DEHORS. Bloc
 //      `A MEAL EATEN OUT IS NOT AN ABSENCE`, collé au bloc de présence.
-//      Source: `resolveWindowPresence(...).eatingOut` (L3, 2026-08-18), qui
-//      porte déjà l'arbitrage entre la déclaration de la personne et la marque
-//      du maître. Personne dehors ⇒ `eatingOut: []` ⇒ prompt de v15 au
-//      caractère près.
+//      ⟳ 2026-09-24 — SUPPRIMÉ avec l'état « dehors »: ces cases sont des
+//      absences, que le bloc de présence dit déjà.
 //
 // ⚠️ AUCUN CHAMP DE SORTIE N'EST DEMANDÉ PAR CES DEUX BLOCS, et c'est pour ça
 // que le `systemSuffix` ne bouge pas d'un octet. Ce sont des CONTRAINTES, pas
@@ -771,7 +768,35 @@ export type { HouseholdRuleHolder, WhyRuleCounts } from "./household_why_rule.ts
 // « à éviter »: les plats barrés sur un aperçu (« Remplacer »), avec les
 // personnes à qui ne plus les servir (`rejected_dishes.ts`). Absente quand la
 // liste est vide. Le bloc d'arbitrage ne bouge pas.
-export const HOUSEHOLD_PROMPT_VERSION = "v42_what_they_turned_down";
+// ⟳ 2026-09-25 — v43 : LA BOÎTE EST DÉJÀ FAITE. `standardRecipeBlock` ne
+// demande plus au déroulé de session de mettre plat et féculent « dans chaque
+// boîte »: le féculent cuit dans sa casserole, l'app les met côte à côte dans
+// UNE boîte par repas. Le tronc (`MEAL_PROMPT_VERSION` v35) dit la même
+// chose au geste du jour. Le bloc d'arbitrage ne bouge pas.
+// ⟳ 2026-09-25 — v44 : UNE CUILLÈRE AU MOINS. `standardRecipeBlock` pose un
+// plancher de 5 ml sur l'huile ajoutée le jour même (10 lignes sur 13 sous
+// 2,5 ml en v43). Le bloc d'arbitrage ne bouge pas.
+// ⟳ 2026-09-25 — v45 : ON TUTOIE. Le bloc de langue (`locale.ts`,
+// `buildContentLanguageBlock`) demande l'impératif au « tu » en français: 196
+// méthodes au « vous » et ~1 700 à l'infinitif sur 2 083, contre un écran qui
+// tutoie. Le bloc d'arbitrage ne bouge pas.
+// ⟳ 2026-09-25 — v46 : LES SESSIONS QU'ILS ONT CHOISIES. Le brief du foyer
+// (`buildPortionBrief`) dit « the same dishes for the whole table » au lieu de
+// « one cooking session », qui se lisait « une seule session » dans un plan
+// de deux. Le tronc (`MEAL_PROMPT_VERSION` v39) dit le nombre choisi. Le bloc
+// d'arbitrage ne bouge pas.
+// ⟳ 2026-09-25 — v47 : UN FÉCULENT PAR SESSION, UNE PROTÉINE DANS DEUX
+// PRÉPARATIONS AU PLUS. La règle « a recipe is cooked ONCE » (`meal_prompt.ts`)
+// nomme désormais le féculent, la protéine, le petit-déjeuner et le goûter,
+// et `standardRecipeBlock` fait partager la casserole de féculent dans une
+// session. Mesuré sur `54aec009`: couscous dans les trois sessions (deux
+// casseroles le vendredi), poulet dans quatre préparations sur six, même
+// goûter sept jours. Le bloc d'arbitrage ne bouge pas.
+// ⟳ v48 (2026-09-25) — UNE EXCLUSION AU MOMENT DIT « NOT at » (voix des bouches
+// et lignes de la table, `retained_items_routing.ts#occasionSuffix`). Mesuré
+// sur `31aef694`: « œufs -- ONLY AT breakfast » lu à l'envers. Le bloc
+// d'arbitrage ne bouge pas.
+export const HOUSEHOLD_PROMPT_VERSION = "v48_off_the_table_not_at";
 
 /**
  * ⟳ 2026-09-23 — LA FORME CANONIQUE SERT LES À-CÔTÉS (`served: true`): c'est
@@ -835,7 +860,6 @@ export function buildHouseholdPromptBlocks(
   // objet que leur texte: c'est ce qui empêche la mesure de mentir sur ce que
   // le prompt a réellement dit.
   const kitchen = kitchenBlock(input.kitchenEquipment);
-  const eatingOut = eatingOutBlock(input.members, input.presence.eatingOut);
   // D6.2 — `?? []` = le champ n'a pas été passé, donc aucun bloc: le prompt
   // est celui de v22 au caractère près, et le compteur le dit (0 / 0).
   const workLunch = workLunchBlock(input.members, input.workLunch ?? []);
@@ -953,21 +977,12 @@ export function buildHouseholdPromptBlocks(
     // semaine ferait lire « pour combien de personnes » très loin de « pour
     // qui », et le modèle recompte alors la tablée sur la liste d'ids.
     input.presence.block,
-    // ── L7 ② · COLLÉ AU BLOC DE PRÉSENCE, ET LA POSITION EST LA MOITIÉ DU LOT
-    // Le bloc juste au-dessus vient d'écrire « Nina not eating here -- cook for
-    // 3 instead of 4 » pour EXACTEMENT ces cases. C'est cette phrase-là que ce
-    // bloc-ci corrige: sans lui contre elle, un midi dehors et une semaine de
-    // vacances sont le même fait pour le modèle. Les séparer par la fusion,
-    // les voix ou l'envie rendrait la correction inaudible — c'est la mesure de
-    // 3C, où une promesse et sa clé séparées par le prompt ont rendu zéro
-    // déclaration sur 291 plats.
-    eatingOut.block,
-    // D6.2 — APRÈS le bloc « dehors », et c'est l'ordre du sens: on dit
+    // D6.2 — APRÈS le bloc de présence, et c'est l'ordre du sens: on dit
     // d'abord quels repas ne se composent PAS, ensuite lesquels se composent
     // autrement. L'inverse ferait poser une contrainte de transport sur un
     // déjeuner qu'on annonce ensuite ne pas préparer.
     workLunch.block,
-    // ── ③ · COLLÉ AU BLOC « DEHORS », ET LA POSITION EST LA MOITIÉ DU LOT ───
+    // ── ③ · COLLÉ AU BLOC DE LA GAMELLE, ET LA POSITION EST LA MOITIÉ DU LOT ─
     // Les deux parlent de la MÊME chose et d'aucune autre: ce qu'une case
     // précise de la grille porte. Le voisin du dessus dit « ne compose RIEN
     // ici »; celui-ci dit « compose ÇA ici ». Les séparer par la fusion, les
@@ -1170,7 +1185,6 @@ export function buildHouseholdPromptBlocks(
     voiceCounts: voices.counts,
     notesServed: notes.served,
     kitchenMissing: kitchen.missing,
-    eatingOut: { mouths: eatingOut.mouths, cells: eatingOut.cells },
     workLunch: { mouths: workLunch.mouths, cold: workLunch.cold },
     whyRuleHolders: input.ruleHolders.length,
     // C1 — LA TRACE SORT PAR LE MÊME OBJET QUE LE TEXTE. Voir `crossContact`

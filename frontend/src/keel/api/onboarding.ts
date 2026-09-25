@@ -1,7 +1,5 @@
 import {
-  type CookingStyle,
   type GroceryRunsAnswer,
-  readCookingStyle,
   readGroceryRunsAnswer,
 } from "./cookingPlan";
 // KEEL — L'ENTONNOIR D'ENTRÉE (FF-060): décisions pures d'un côté, écran de
@@ -182,7 +180,6 @@ export type FunnelQuestionId =
   // Étape 4 — la demande de plan
   | "cook_days"
   | "cooking_time_min"
-  | "cooking_style"
   | "grocery_runs"
   | "budget_amount"
   | "kitchen_equipment"
@@ -596,35 +593,25 @@ export const FUNNEL_QUESTIONS: readonly FunnelQuestion[] = Object.freeze([
     step: null,
     scope: "household",
   },
-  // ⟳ P2 (2026-09-03) — `cooking_time_min` PASSE DE « wrong » À « better », ET
-  // SORT DE L'ÉTAPE. L'entrée RESTE: le moteur lit toujours la clé, et cinq
-  // lecteurs en dépendent. Ce qui change est qu'on ne la DEMANDE plus — elle se
-  // dérive du style. La retirer du catalogue ferait disparaître du produit la
-  // trace qu'elle est encore lue.
+  // ⟳ 2026-09-25 — `cooking_time_min` REDEVIENT UNE QUESTION BLOQUANTE, sous
+  // forme de PLAGES (« Temps par session de cuisine »). Elle avait été sortie
+  // de l'étape le 2026-09-03, dérivée d'un style de cuisine qui est parti à
+  // son tour: sans elle, le moteur ne sait pas combien de temps dure une
+  // session, et il ne dérive aucun plan de cuisine (`resolveCookingCapacity`).
+  //
+  // ⚠️ LE NOMBRE DE SESSIONS N'EST PAS ICI: il part avec la demande
+  // (`cooking_sessions`), il ne s'enregistre pas. L'écran le retient à son
+  // propre geste (`cookingAnswersVerdict`).
   {
     id: "cooking_time_min",
-    consumer: "supabase/functions/generate-household-meal-v1/index.ts#cooking_time_min",
-    weight: "better",
-    // ⛔ `NEVER` ET PAS `ALL_BRANCHES`: le contrat de §3.1 est qu'une `better`
-    // ne vit dans AUCUNE branche et n'a PAS d'étape — sinon `funnelSteps` la
-    // rendrait, c'est-à-dire remettrait dans l'entonnoir la question qu'on
-    // vient d'en sortir.
-    branches: NEVER,
-    step: null,
-    scope: "household",
-  },
-  // ⟳ P2 — LES DEUX QUESTIONS QUI LA REMPLACENT, BLOQUANTES À SA PLACE.
-  // `wrong` et pas `better`: sans elles, le moteur ne sait ni combien de fois
-  // on cuisine ni combien de vagues de courses il a le droit de poser, et il
-  // retombe sur un réglage que la personne n'a pas choisi.
-  {
-    id: "cooking_style",
-    consumer: "supabase/functions/_shared/keel/cooking_plan.ts#readCookingStyle",
+    consumer: "supabase/functions/_shared/keel/cooking_plan.ts#resolveCookingCapacity",
     weight: "wrong",
     branches: ALL_BRANCHES,
     step: "request",
     scope: "household",
   },
+  // `wrong` et pas `better`: sans elle, le moteur ne sait pas combien de vagues
+  // de courses il a le droit de poser.
   {
     id: "grocery_runs",
     consumer: "supabase/functions/_shared/keel/cooking_plan.ts#readGroceryRuns",
@@ -878,19 +865,20 @@ export interface FunnelPlanAnswers {
   eatingRhythm: readonly EatingOccasionSlot[];
   /** `mon`…`sun`. Vide = rien de déclaré. */
   cookDays: readonly string[];
-  cookingTimeMin: number | null;
   /**
-   * ⟳ P2 (2026-09-03) — LES DEUX RÉPONSES QUI REMPLACENT LA DURÉE.
+   * ⟳ 2026-09-25 — LA PLAGE DE TEMPS PAR SESSION, par sa borne haute — une
+   * durée d'avant les plages y est gardée telle quelle et lue dans sa plage.
    *
-   * `null` = la question n'a pas encore de réponse, et surtout PAS « le
-   * moins possible » ni « une course »: la cicatrice `20260818110000:48-51`
-   * (payée sur `kitchen_equipment`) dit qu'une clé absente et une réponse
-   * basse se ressemblent en JSON et ne veulent pas dire la même chose.
+   * `null` = la question n'a pas encore de réponse, et surtout PAS « moins de
+   * 30 min »: la cicatrice `20260818110000:48-51` (payée sur
+   * `kitchen_equipment`) dit qu'une clé absente et une réponse basse se
+   * ressemblent en JSON et ne veulent pas dire la même chose.
    *
-   * ⚠️ REQUIS ET NULLABLES, jamais `?`: un champ optionnel ici ne ferait
-   * remonter aucun site de montage au compilateur.
+   * ⚠️ REQUIS ET NULLABLE, jamais `?`: un champ optionnel ici ne ferait
+   * remonter aucun site de montage au compilateur. (Le style de cuisine qui
+   * vivait à côté est parti le 2026-09-25.)
    */
-  cookingStyle: CookingStyle | null;
+  cookingTimeMin: number | null;
   /**
    * ⟳ 2026-09-09 — PORTE AUSSI « peu importe » (`GROCERY_RUNS_ANY`).
    *
@@ -1370,14 +1358,14 @@ function canGenerateMisses(
   // écran ne permet de donner. C'est le mode d'échec le plus cher de cette
   // liste, et il est muet: `nextIncomplete` renverrait indéfiniment à l'étape
   // « demande » devant un formulaire complet.
-  // ⟳ P2 (2026-09-03) — CE QUI RETIENT L'ÉTAPE N'EST PLUS UN NOMBRE DE MINUTES.
+  // ⟳ 2026-09-25 — CE QUI RETIENT L'ÉTAPE: LA PLAGE DE TEMPS ET LES COURSES.
   //
-  // ⛔ ET LES DEUX SONT EXIGÉES, PAS UNE. Un style sans cadence de courses ne
-  // dit pas combien de fois on cuisine, une cadence sans style ne dit pas
-  // combien de temps: `resolveCookingCapacity` refuse de dériver sur une moitié
-  // de réponse, et laisser passer l'une des deux ferait un entonnoir complet
-  // devant un moteur qui retombe silencieusement sur l'ancien réglage.
-  if (state.plan.cookingStyle === null) missing.push("cooking_style");
+  // ⛔ LES DEUX SONT EXIGÉES, PAS UNE: `resolveCookingCapacity` refuse de
+  // dériver sur une moitié de réponse, et laisser passer l'une des deux ferait
+  // un entonnoir complet devant un moteur qui retombe silencieusement sur
+  // l'ancien réglage. Le nombre de sessions, lui, n'est pas une réponse
+  // enregistrée: l'écran le retient à son propre geste.
+  if (state.plan.cookingTimeMin === null) missing.push("cooking_time_min");
   if (state.plan.groceryRuns === null) missing.push("grocery_runs");
   // ⚠️ LE CHIFFRE, PAS LA PRÉSENCE DE LA CLÉ. `0` est un budget que personne
   // n'a, et un `NaN` venu d'un champ à moitié tapé passerait un `!== null`.
@@ -1544,10 +1532,9 @@ export function emptyFunnelState(): FunnelState {
     plan: {
       eatingRhythm: [],
       cookDays: [],
+      // ⟳ 2026-09-25 — `null` = pas encore répondu. C'est l'état d'un compte
+      // tout neuf, et l'entonnoir le retient (`missingForPlan`).
       cookingTimeMin: null,
-      // ⟳ P2 — `null` = pas encore répondu. C'est l'état d'un compte tout
-      // neuf, et l'entonnoir le retient (`missingForPlan`).
-      cookingStyle: null,
       groceryRuns: null,
       budgetAmount: null,
     },
@@ -2044,10 +2031,6 @@ function readPlanAnswers(pc: Record<string, unknown> | null): FunnelPlanAnswers 
   const budget = Number(pc?.budget_amount);
   const time = Number(pc?.cooking_time_min);
   return {
-    // ⟳ P2 — LES PARSEURS DU MOTEUR, réexportés, jamais une seconde
-    // lecture: deux idées du vocabulaire des styles produiraient un écran
-    // qui montre autre chose que ce avec quoi on compose.
-    cookingStyle: readCookingStyle(pc),
     // ⚠️ `readGroceryRunsAnswer`, PAS `readGroceryRuns`. Le second rend `null`
     // pour « peu importe » — l'étape se rebloquerait sur une question déjà
     // répondue, et l'écran afficherait « Pas encore répondu » au-dessus d'un
@@ -2614,14 +2597,13 @@ export async function savePlanAnswers(args: {
       // plans et que plus aucun écran ne peut lever.
       cook_days: [],
       cooking_time_min: args.answers.cookingTimeMin,
-      // ⟳ P2 (2026-09-03) — LES DEUX RÉPONSES DURABLES.
+      // ⟳ P2 (2026-09-03) — LA CADENCE DE COURSES, DURABLE. (Le style qui
+      // s'écrivait à côté est parti le 2026-09-25; la plage de temps est
+      // `cooking_time_min`, juste au-dessus.)
       //
-      // ⛔ `null` S'ÉCRIT, ET C'EST VOULU: il dit « pas encore répondu », et
-      // le moteur retombe alors sur `cooking_time_min` tel quel. Omettre la
-      // clé ferait la même chose côté lecteur, mais laisserait un compte qui
-      // a EFFACÉ sa réponse avec l'ancienne — c'est-à-dire un réglage qu'on
-      // ne peut plus retirer.
-      cooking_style: args.answers.cookingStyle,
+      // ⛔ `null` S'ÉCRIT, ET C'EST VOULU: il dit « pas encore répondu ».
+      // Omettre la clé laisserait un compte qui a EFFACÉ sa réponse avec
+      // l'ancienne — c'est-à-dire un réglage qu'on ne peut plus retirer.
       grocery_runs: args.answers.groceryRuns,
       budget_amount: args.answers.budgetAmount,
     },

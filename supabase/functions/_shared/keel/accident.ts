@@ -68,6 +68,7 @@ import {
   PERISHABLE_AISLES,
   planGroceryWaves,
   type WaveItem,
+  type WavePreparation,
 } from "./grocery_waves.ts";
 import { mealTickKey, parseMealTickKey } from "./meal_tick.ts";
 import {
@@ -1058,6 +1059,32 @@ export function daysBetween(a: string, b: string): number {
 }
 
 /**
+ * ⟳ 2026-09-25 — LES PRÉPARATIONS DE CETTE FICHE, AVEC LEURS JOURS DE REPAS.
+ *
+ * `eatenOn` vient des plats qui les consomment (`preparationIds`), comme
+ * `waveNeedsFromPlan` le fait pour le générateur: c'est ce qui arme la limite
+ * achat → assiette (`PLATE_WINDOW_DAYS`). Une préparation qu'aucun plat ne
+ * consomme porte `[]`: sa chaîne s'arrête à sa cuisson.
+ */
+function wavePreparationsOf(plan: AccidentPlan): WavePreparation[] {
+  const eaten = new Map<string, string[]>();
+  for (const dish of plan.dishes) {
+    if (!dish.day) continue;
+    for (const id of dish.preparationIds) {
+      const days = eaten.get(id) ?? [];
+      if (!days.includes(dish.day)) days.push(dish.day);
+      eaten.set(id, days);
+    }
+  }
+  return plan.preparations.map((p) => ({
+    id: p.id,
+    cookOn: p.cookOn,
+    ingredientTerms: p.ingredientTerms,
+    eatenOn: eaten.get(p.id) ?? [],
+  }));
+}
+
+/**
  * La date d'achat de la vague qui servira la NOUVELLE cuisson.
  *
  * ⚠️ ELLE SE RECALCULE, elle ne se décale pas de `delta`. `planGroceryWaves`
@@ -1078,11 +1105,11 @@ function shiftedBuyOn(
     startsOn: shifted.startsOn,
     durationDays: shifted.durationDays,
     shoppingList: shifted.shoppingList,
-    preparations: shifted.preparations.map((p) => ({
-      id: p.id,
-      cookOn: p.cookOn,
-      ingredientTerms: p.ingredientTerms,
-    })),
+    // ⟳ 2026-09-25 — AVEC LES JOURS DE REPAS DU PLAN DÉCALÉ. Sans eux, la
+    // limite achat → assiette ne s'appliquait pas: décaler la session de
+    // dimanche à lundi pouvait faire acheter le porc samedi pour un repas de
+    // mercredi.
+    preparations: wavePreparationsOf(shifted),
     // ⟳ LOT C (2026-09-04) — CE LECTEUR NE CONNAÎT PAS LA CADENCE, et il ne
     // doit donc RIEN replier: `runs: null` rend le comportement d'avant le
     // lot, octet pour octet. Seuls les deux générateurs, qui ont lu le style
@@ -1942,11 +1969,7 @@ export function planGroceryWavesForPlan(plan: AccidentPlan) {
     startsOn: plan.startsOn,
     durationDays: plan.durationDays,
     shoppingList: plan.shoppingList,
-    preparations: plan.preparations.map((p) => ({
-      id: p.id,
-      cookOn: p.cookOn,
-      ingredientTerms: p.ingredientTerms,
-    })),
+    preparations: wavePreparationsOf(plan),
     // ⟳ LOT C (2026-09-04) — CE LECTEUR NE CONNAÎT PAS LA CADENCE, et il ne
     // doit donc RIEN replier: `runs: null` rend le comportement d'avant le
     // lot, octet pour octet. Seuls les deux générateurs, qui ont lu le style

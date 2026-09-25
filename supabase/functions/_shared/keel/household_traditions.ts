@@ -27,13 +27,11 @@
  * **« samedi soir on commande »**. Le troisième N'EST PAS DANS CE MODULE, et
  * ce n'est pas un oubli: **il existe déjà**.
  *
- * `household_presence.ts` porte l'état `eating_out` depuis le 2026-08-18, et
- * il est claveté exactement pareil — un JOUR DE SEMAINE (`AwayDay.day` vaut
- * `mon`…`sun`, jamais une date) et des moments. « Samedi soir on commande »
- * s'écrit `{day: "sat", slots: ["dinner"], kind: "eating_out"}` sur
- * `away_days`, et le prompt porte déjà le bloc qui dit au modèle de ne rien
- * composer là (`eatingOutBlock`), avec ses gardes: ne pas grossir un autre
- * repas pour compenser, ne pas déplacer le repas, ne pas le mentionner.
+ * `away_days` est claveté exactement pareil — un JOUR DE SEMAINE
+ * (`AwayDay.day` vaut `mon`…`sun`, jamais une date) et des moments. « Samedi
+ * soir on commande » s'écrit `{day: "sat", slots: ["dinner"]}`: le plan ne
+ * compose rien là. (⟳ 2026-09-24 — l'état « dehors » qui le distinguait d'une
+ * absence, et son bloc de prompt, sont retirés.)
  *
  * Construire ici une seconde façon de dire « ne compose pas cette case »
  * donnerait DEUX magasins qui décrivent le même fait, et c'est celui qu'on

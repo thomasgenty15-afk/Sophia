@@ -273,13 +273,13 @@ export const APP_HELP_CARDS: readonly AppHelpCard[] = [
     dispatcherHint: "comment valider, adopter ou enregistrer le plan propose, ou abandonner l'apercu",
     answer: {
       fr: [
-        "Dans l'aperçu « Ce que ça donnerait », le bouton « Adopter ce plan » enregistre le plan ; quand il remplace un plan existant, il s'appelle « Remplacer mon plan par celui-ci ».",
+        "Dans l'aperçu « Ce que donnerait ton plan », le bouton « Adopter ce plan » enregistre le plan ; quand il remplace un plan existant, il s'appelle « Remplacer mon plan par celui-ci ».",
         "Avant ça, rien n'est enregistré comme plan. Les réglages (budget, courses, équipement, absences) et les phrases d'ajustement sont, eux, déjà gardés.",
         "« Laisser tomber » ferme l'aperçu sans l'adopter ; il se rouvre à la prochaine visite pendant 24 heures.",
         "Un plan adopté ne s'annule pas : on peut seulement en composer un autre.",
       ],
       en: [
-        "In the “What it would look like” preview, the “Adopt this plan” button saves the plan; when it replaces an existing plan, it is called “Replace my plan with this one”.",
+        "In the “What your plan would look like” preview, the “Adopt this plan” button saves the plan; when it replaces an existing plan, it is called “Replace my plan with this one”.",
         "Before that, nothing is saved as a plan. Settings (budget, food shops, equipment, absences) and adjustment sentences are already kept, though.",
         "“Drop it” closes the preview without adopting it; it reopens on your next visit for 24 hours.",
         "An adopted plan cannot be undone: you can only compose another one.",
@@ -299,7 +299,7 @@ export const APP_HELP_CARDS: readonly AppHelpCard[] = [
       },
     ],
     labels: [
-      { key: "plan.draft.title", fr: "Ce que ça donnerait", en: "What it would look like" },
+      { key: "plan.draft.title", fr: "Ce que donnerait ton plan", en: "What your plan would look like" },
       { key: "plan.draft.adopt", fr: "Adopter ce plan", en: "Adopt this plan" },
       { key: "plan.draft.adopt_replace", fr: "Remplacer mon plan par celui-ci", en: "Replace my plan with this one" },
       { key: "plan.draft.discard", fr: "Laisser tomber", en: "Drop it" },
@@ -440,18 +440,20 @@ export const APP_HELP_CARDS: readonly AppHelpCard[] = [
   },
   {
     id: "plan_settings",
-    title: { fr: "Budget, courses, façon de cuisiner", en: "Budget, food shops, cooking style" },
-    dispatcherHint: "changer son budget, le nombre de courses, sa facon de cuisiner ou son equipement de cuisine",
+    title: { fr: "Budget, courses, sessions de cuisine", en: "Budget, food shops, cooking sessions" },
+    dispatcherHint: "changer son budget, le nombre de courses, le nombre de sessions de cuisine, le temps par session ou son equipement de cuisine",
     answer: {
       fr: [
-        "Budget, façon de cuisiner et nombre de courses se règlent dans le formulaire de composition : « Budget des courses », « Comment tu cuisines », « Courses ».",
-        "Ils valent pour le prochain plan composé ; le plan en cours ne change pas.",
+        "Budget, nombre de sessions, temps par session et nombre de courses se règlent dans le formulaire de composition : « Budget des courses », « Combien de fois tu veux cuisiner », « Temps par session de cuisine (environ) », « Courses ».",
+        "Ils valent pour le prochain plan composé ; le plan en cours ne change pas. Le nombre de sessions se choisit à chaque plan, les autres réglages sont gardés.",
+        "Les options impossibles pour ce plan sont grisées, avec la raison : sans congélateur, il faut cuisiner plus souvent sur un plan long, et une durée trop courte pour tous les repas n'est pas proposée (30 min seulement quand chaque session couvre 2 jours au plus). Un choix que les dates ou les autres réponses rendent impossible passe tout seul au plus proche possible.",
         "L'équipement se règle dans « Avec quoi tu cuisines », dans ce formulaire ou dans « Foyer » → « Paramètres du foyer » ; chaque clic est enregistré.",
         "Le budget est obligatoire. S'il est trop bas pour les repas demandés, l'écran donne le minimum.",
       ],
       en: [
-        "Budget, cooking style and number of food shops are set in the composition form: “Shopping budget”, “How you cook”, “Food shops”.",
-        "They apply to the next plan composed; the current plan does not change.",
+        "Budget, number of sessions, time per session and number of food shops are set in the composition form: “Shopping budget”, “How many times you want to cook”, “Time per cooking session (approx.)”, “Food shops”.",
+        "They apply to the next plan composed; the current plan does not change. The number of sessions is chosen for each plan; the other settings are kept.",
+        "Options that cannot work for this plan are greyed out, with the reason: without a freezer, a long plan needs more frequent cooking, and a time too short for all the meals is not offered (30 min only when each session covers 2 days at most). A choice that the dates or the other answers make impossible moves by itself to the nearest possible one.",
         "Equipment is set in “What you cook with”, in that form or in “Household” → “Household settings”; every click is saved.",
         "The budget is required. If it is too low for the meals asked, the screen gives the minimum.",
       ],
@@ -461,17 +463,18 @@ export const APP_HELP_CARDS: readonly AppHelpCard[] = [
         when: { roles: ["member"] },
         answer: {
           fr: [
-            "Budget, courses, façon de cuisiner et équipement sont réglés par la personne qui tient le foyer.",
+            "Budget, courses, sessions de cuisine et équipement sont réglés par la personne qui tient le foyer.",
           ],
           en: [
-            "Budget, food shops, cooking style and equipment are set by the person who runs the household.",
+            "Budget, food shops, cooking sessions and equipment are set by the person who runs the household.",
           ],
         },
       },
     ],
     labels: [
       { key: "plan.cooking.budget_label", fr: "Budget des courses", en: "Shopping budget" },
-      { key: "plan.cooking.style_label", fr: "Comment tu cuisines", en: "How you cook" },
+      { key: "plan.cooking.sessions_label", fr: "Combien de fois tu veux cuisiner", en: "How many times you want to cook" },
+      { key: "plan.cooking.time_label", fr: "Temps par session de cuisine (environ)", en: "Time per cooking session (approx.)" },
       { key: "plan.cooking.runs_label", fr: "Courses", en: "Food shops" },
       { key: "setup.equipment.title", fr: "Avec quoi tu cuisines", en: "What you cook with" },
       { key: "app.nav.household", fr: "Foyer", en: "Household" },
@@ -485,13 +488,13 @@ export const APP_HELP_CARDS: readonly AppHelpCard[] = [
     dispatcherHint: "cuisiner une seule fois pour toute la semaine, batch cooking",
     answer: {
       fr: [
-        "Dans le formulaire de composition, coche « Tout cuisiner en une seule fois » : le surplus part au congélateur et se sort la veille.",
-        "Il faut avoir coché « Congélateur » dans « Avec quoi tu cuisines » ; sinon la case est grisée.",
+        "Dans le formulaire de composition, choisis « Une fois » dans « Combien de fois tu veux cuisiner » : sur un plan long, le surplus part au congélateur et se sort la veille.",
+        "Sans « Congélateur » coché dans « Avec quoi tu cuisines », l'option n'est proposée que pour un plan court, qu'un plat cuisiné tient au frigo ; sinon elle est grisée.",
         "Ça impose une seule course, et le choix n'est pas gardé d'un plan à l'autre.",
       ],
       en: [
-        "In the composition form, tick “Cook everything in one go”: the extra goes in the freezer and comes out the night before.",
-        "You need “Freezer” ticked in “What you cook with”; otherwise the box is greyed out.",
+        "In the composition form, choose “Once” in “How many times you want to cook”: on a long plan, the extra goes in the freezer and comes out the night before.",
+        "Without “Freezer” ticked in “What you cook with”, the option is only offered for a short plan that a cooked dish keeps in the fridge; otherwise it is greyed out.",
         "It means a single food shop, and the choice is not kept from one plan to the next.",
       ],
     },
@@ -517,7 +520,8 @@ export const APP_HELP_CARDS: readonly AppHelpCard[] = [
       ],
     },
     labels: [
-      { key: "plan.cooking.one_session_label", fr: "Tout cuisiner en une seule fois", en: "Cook everything in one go" },
+      { key: "plan.cooking.sessions_label", fr: "Combien de fois tu veux cuisiner", en: "How many times you want to cook" },
+      { key: "plan.cooking.sessions_1", fr: "Une fois", en: "Once" },
       { key: "setup.equipment.tool_freezer", fr: "Congélateur", en: "Freezer" },
       { key: "setup.equipment.title", fr: "Avec quoi tu cuisines", en: "What you cook with" },
     ],
@@ -1590,13 +1594,11 @@ export const APP_HELP_CARDS: readonly AppHelpCard[] = [
       fr: [
         "Dans « Sophia », bouton « Notifications » au-dessus de la conversation, puis l'interrupteur « Recevoir les notifications ».",
         "Éteint, Sophia n'écrit plus la première ; elle répond toujours quand tu lui écris.",
-        "Sous une question de Sophia sur un repas, « Ne plus me demander à chaque repas » arrête seulement les questions sur les repas.",
         "Les e-mails de suivi se coupent à part, par le lien en bas de chaque e-mail.",
       ],
       en: [
         "In “Sophia”, the “Notifications” button above the conversation, then the “Get notifications” switch.",
         "Turned off, Sophia no longer writes first; she always answers when you write to her.",
-        "Under a meal question from Sophia, “Stop asking me at each meal” stops only the meal questions.",
         "Follow-up emails are stopped separately, through the link at the bottom of each email.",
       ],
     },
@@ -1612,7 +1614,6 @@ export const APP_HELP_CARDS: readonly AppHelpCard[] = [
       { key: "app.nav.chat", fr: "Sophia", en: "Sophia" },
       { key: "chat.settings.toggle", fr: "Notifications", en: "Notifications" },
       { key: "chat.settings.all.label", fr: "Recevoir les notifications", en: "Get notifications" },
-      { key: "file:supabase/functions/_shared/keel/slot_meal_ask.ts", fr: "Ne plus me demander à chaque repas", en: "Stop asking me at each meal" },
     ],
     routes: ["/app/chat"],
   },

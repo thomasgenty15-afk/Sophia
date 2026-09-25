@@ -15,7 +15,6 @@ import {
   DEMO_GROCERIES,
   DEMO_PREPS,
   DEMO_SESSIONS,
-  DEMO_SILENCES,
   DEMO_SLOTS,
   type DemoBoxLine,
   type DemoBoxPart,
@@ -292,12 +291,11 @@ export function PlanDemoBody({ goal }: PlanDemoProps) {
   );
 }
 
-/** Le bloc d'un jour: courses, cuisine, repas — puis les moments sans plat. */
+/** Le bloc d'un jour: courses, cuisine, repas. Un moment sans plat ne se rend pas. */
 function DayBlock({ day, goal, chain }: { day: DemoDay; goal: DemoGoal; chain: Chain }) {
   const wave = waveOn(day);
   const session = sessionOn(day);
   const dishes = DEMO_DISHES.filter((d) => d.day === day);
-  const silences = DEMO_SILENCES.filter((s) => s.day === day);
   return (
     <div>
       <h3 className="mb-2 text-sm font-semibold text-ink">{dishDayLabel(day)}</h3>
@@ -318,17 +316,6 @@ function DayBlock({ day, goal, chain }: { day: DemoDay; goal: DemoGoal; chain: C
             </section>
           );
         })}
-        {silences.length > 0 && (
-          <ul className="flex flex-col gap-1">
-            {silences.map((s) => (
-              <li key={s.slot} className="text-xs text-ink-soft">
-                <span className="font-medium">{dishSlotLabel(s.slot)}</span>
-                {" — "}
-                <span className="italic">{mealCopy("meals.grid.eating_out")}</span>
-              </li>
-            ))}
-          </ul>
-        )}
       </div>
     </div>
   );
@@ -459,7 +446,7 @@ function PrepBlock({ prep, goal, chain }: { prep: DemoPrep; goal: DemoGoal; chai
   );
 }
 
-/** Le Boxing — `BoxTable` en contexte `session`: le compte, la clé de lecture, les couvercles. */
+/** Le Boxing — `BoxTable` en contexte `session`: le compte, les couvercles. */
 function BoxingTable({ lines }: { lines: readonly DemoBoxLine[] }) {
   if (lines.length === 0) return null;
   const hasKcal = lines.some((l) => l.kcal !== null);
@@ -473,7 +460,6 @@ function BoxingTable({ lines }: { lines: readonly DemoBoxLine[] }) {
             : mealCopy("meals.boxes.count_many", { n: lines.length })}
         </span>
       </div>
-      <p className="mt-1 max-w-[52ch] break-words text-xs leading-5 text-ink-soft">{mealCopy("meals.boxes.ready_not_raw")}</p>
       <ul className="mt-2 flex flex-col">
         {lines.map((line) => (
           <li key={line.id} className="border-t border-line py-2 first:border-t-0 first:pt-1">

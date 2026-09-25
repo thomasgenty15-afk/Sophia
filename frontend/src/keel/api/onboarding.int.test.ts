@@ -171,13 +171,12 @@ function complete(branch: FunnelBranch): FunnelState {
         { slot: "dinner", size: "large" },
       ],
       cookDays: ["sun", "wed"],
+      // ⟳ 2026-09-25 — LA PLAGE DE TEMPS EST REDEVENUE UNE PORTE (`wrong` au
+      // catalogue), avec la cadence de courses: un état déclaré complet les
+      // porte, sinon `canGenerate` refuserait ce décor et les dizaines de cas
+      // qui s'appuient dessus mesureraient le refus au lieu du cas nominal.
       cookingTimeMin: 45,
       budgetAmount: 90,
-      // ⟳ P2 (2026-09-03) — UN ÉTAT DÉCLARÉ COMPLET LES PORTE, puisqu'elles
-      // sont `wrong` au catalogue: sans elles, `canGenerate` refuserait ce
-      // décor et les dizaines de cas qui s'appuient dessus mesureraient le
-      // refus au lieu du cas nominal.
-      cookingStyle: "balanced",
       groceryRuns: 2,
     },
     // ⟳ 2026-09-24 — « AVEC QUOI TU CUISINES » RETIENT LA GÉNÉRATION: un état
@@ -380,12 +379,10 @@ describe("canGenerate — l'état complet", () => {
         // cuisines » a été retiré des deux écrans le 2026-09-01. Le laisser
         // ici retiendrait l'entonnoir sur une réponse que plus aucun écran ne
         // permet de donner.
-        // ⟳ P2 (2026-09-03) — `cooking_time_min` N'EST PLUS UNE PORTE, et
-        // deux questions la remplacent. « Combien de temps dure une session
-        // de cuisine » est une question d'ingénieur: personne ne sait y
-        // répondre avant d'avoir vu le plan. La clé reste lue (cinq
-        // lecteurs) et se DÉRIVE du style; ce qui part, c'est l'exigence.
-        "cooking_style",
+        // ⟳ 2026-09-25 — `cooking_time_min` REDEVIENT UNE PORTE, sous forme de
+        // plages bornées par le plan. Le style de cuisine qui l'avait remplacée
+        // le 2026-09-03 est parti.
+        "cooking_time_min",
         "grocery_runs",
         "budget_amount",
         // ⟳ 2026-09-24 — « Avec quoi tu cuisines » retient la génération.
@@ -489,16 +486,15 @@ describe("canGenerate — étape par étape", () => {
       (s) => ({ ...s, others: [adult()] }),
       "missing_mouths",
     ],
-    // ⟳ P2 (2026-09-03) — LES DEUX CAS DU TEMPS DE CUISINE SE SONT RETOURNÉS,
-    // ils n'ont pas été supprimés. Ce qui retient l'étape n'est plus un nombre
-    // de minutes; ce sont les deux réponses qui le dérivent, et il en faut
-    // DEUX — un style sans cadence de courses ne dit pas combien de fois on
-    // cuisine, une cadence sans style ne dit pas combien de temps.
+    // ⟳ 2026-09-25 — LES DEUX CAS DU TEMPS DE CUISINE SE SONT RETOURNÉS UNE
+    // SECONDE FOIS: ce qui retient l'étape est la plage de temps et la cadence
+    // de courses, et il en faut DEUX — `resolveCookingCapacity` refuse de
+    // dériver sur une moitié de réponse.
     [
-      "un style de cuisine absent",
+      "une plage de temps absente",
       "solo",
-      (s) => ({ ...s, plan: { ...s.plan, cookingStyle: null } }),
-      "cooking_style",
+      (s) => ({ ...s, plan: { ...s.plan, cookingTimeMin: null } }),
+      "cooking_time_min",
     ],
     [
       "un nombre de courses absent",
@@ -747,7 +743,6 @@ describe("missesForStep", () => {
         eatingRhythm: [],
         cookDays: [],
         cookingTimeMin: null,
-        cookingStyle: null,
         groceryRuns: null,
         budgetAmount: null,
       },

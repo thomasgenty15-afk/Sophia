@@ -44,6 +44,8 @@
 // de composer un plan qui commence dans le passé. Elle se réancre à chaque
 // montage, ce qui est la bonne réponse.
 
+import { type CookingSessionCount, readCookingSessions } from "../api/cookingPlan";
+
 /**
  * ⚠️ LE NUMÉRO MONTE DÈS QUE LA FORME D'UN BROUILLON CHANGE. Un brouillon
  * d'une version antérieure est JETÉ, pas migré: il porterait des champs que le
@@ -51,7 +53,9 @@
  * suivant est un coût connu; glisser un champ mort dans un formulaire n'en est
  * pas un. C'est CE numéro, et pas `takeKnownShape`, qui tient la forme.
  */
-export const SETUP_DRAFT_VERSION = 2;
+// ⟳ 2026-09-25 — 2 → 3: `oneCookingSession` devient `cookingSessions`, et le
+// style de cuisine quitte les réponses de plan.
+export const SETUP_DRAFT_VERSION = 3;
 
 /**
  * SEPT JOURS. Au-delà ce n'est plus « je reviens finir »: c'est une reprise que
@@ -90,7 +94,9 @@ export interface SetupDraftPayload {
    */
   householdSize: number | null;
   /**
-   * « TOUT CUISINER EN UNE SEULE FOIS » — 2026-09-01.
+   * ⟳ 2026-09-25 — « COMBIEN DE FOIS TU VEUX CUISINER », 1 à 4, ou `null`. Il
+   * remplace « tout cuisiner en une seule fois » (2026-09-01): un brouillon
+   * d'avant porte encore `oneCookingSession`, simplement ignoré à la relecture.
    *
    * ⛔ `cookingShape` VIVAIT JUSTE AU-DESSUS, retiré le 2026-09-06 avec la
    * question qu'il gardait (voir la pierre tombale dans `SetupPage.tsx`). Un
@@ -102,7 +108,7 @@ export interface SetupDraftPayload {
    * existe la moindre trace ailleurs. Les réponses de `plan`, elles, sont en
    * base — le brouillon ne fait que les devancer.
    */
-  oneCookingSession: boolean;
+  cookingSessions: CookingSessionCount | null;
   // ⟳ A1 (2026-09-03) — `cookTheDayBefore` A ÉTÉ RETIRÉ DU BROUILLON.
   // La veille n'est plus une case: le serveur la dérive de la date de départ
   // et de l'heure locale. Un brouillon d'avant ce lot porte encore la clé;
@@ -130,7 +136,7 @@ export interface StoredSetupDraft {
     mouth: Record<string, unknown>;
     stepIndex: number;
     householdSize: number | null;
-    oneCookingSession: boolean;
+    cookingSessions: CookingSessionCount | null;
     envy: string;
     envyWeek: string;
   };
@@ -340,11 +346,11 @@ export function readSetupDraft(
           Number.isInteger(draft.householdSize) && draft.householdSize >= 1
         ? draft.householdSize
         : null,
-      // ⚠️ `=== true`, ET LA COMPARAISON EST LA GARDE. Ce qui sort de
-      // `JSON.parse` est un sac de clés: `"true"`, `1` et `{}` sont truthy et
-      // ne sont pas des réponses. Un brouillon d'avant ce lot n'a pas la clé, et
-      // rend donc `false` — le comportement d'hier.
-      oneCookingSession: draft.oneCookingSession === true,
+      // ⚠️ LE LECTEUR DU MOTEUR, ET C'EST LA GARDE. Ce qui sort de
+      // `JSON.parse` est un sac de clés: `true`, `"abc"` ou `7` ne sont pas des
+      // réponses. Un brouillon d'avant ce lot n'a pas la clé, et rend `null` —
+      // la question se repose.
+      cookingSessions: readCookingSessions(draft.cookingSessions),
       envy: typeof draft.envy === "string" ? draft.envy : "",
       envyWeek: typeof draft.envyWeek === "string" ? draft.envyWeek : "",
     },

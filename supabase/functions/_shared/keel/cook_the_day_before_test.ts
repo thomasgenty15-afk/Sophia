@@ -259,7 +259,7 @@ Deno.test("la version de prompt a bougé avec ce lot", () => {
   // ⟳ LOT C (2026-09-11) — v31: le prompt système ne dit plus le POIDS d'une
   // assiette (« roughly 600 to 750 g »), il dit sa FORME. La version avance avec
   // son texte, sinon un cache servirait l'ancienne consigne sous le nouveau nom.
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v34_the_grid_is_a_checklist");
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v42_off_the_table_not_at");
 });
 
 Deno.test("A1 — l'enveloppe du FOYER ne bouge pas d'un octet", () => {
@@ -280,7 +280,7 @@ Deno.test("A1 — l'enveloppe du FOYER ne bouge pas d'un octet", () => {
   // (message byte-identique à v25), v26 avec.
   // ⟳ 2026-09-23 — v39: les à-côtés en familles (`side_courses_prompt.ts`).
   // ⟳ 2026-09-23 — v40: la table partage ses à-côtés (`side_courses_prompt.ts`).
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v42_what_they_turned_down");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v48_off_the_table_not_at");
 });
 
 // ---------------------------------------------------------------------------
@@ -301,11 +301,20 @@ for (const [name, rel] of LANES) {
     const src = await sourceFamily(new URL(rel, import.meta.url));
     assertStringIncludes(
       src,
-      "const lead = leadDayFor({ startsOn, today: todayDate, hourNow });",
+      // ⟳ 2026-09-25 — dans la branche « composition » d'un ternaire : une
+      // retouche décrit la veille rangée par son aperçu (`editPinnedWindow`).
+      ": leadDayFor({ startsOn, today: todayDate, hourNow });",
+    );
+    // ⟳ 2026-09-25 — l'appel vit dans la branche « composition » d'un
+    // ternaire : une retouche garde la veille que son aperçu a rangée
+    // (`editPinnedWindow`) et ne la redemande pas à l'heure qu'il est.
+    assertStringIncludes(
+      src,
+      ": withCookDayBefore({ startsOn, durationDays }, {\n        asked: lead.leadDay !== null,",
     );
     assertStringIncludes(
       src,
-      "const cookAhead = withCookDayBefore({ startsOn, durationDays }, {\n      asked: lead.leadDay !== null,",
+      "const cookAhead: ReturnType<typeof withCookDayBefore> = editPinnedWindow !== null",
     );
     // ⟳ 2026-09-04 — le troisième argument est le retrait de la journée
     // dépensée. On n'épingle plus la ligne ENTIÈRE: photographier un appel fait
@@ -335,7 +344,7 @@ for (const [name, rel] of LANES) {
     // fenêtre corrigée après coup laisserait la moitié du moteur sur
     // l'ancienne — et c'est le genre de défaut qui ne casse aucun test.
     const src = await sourceFamily(new URL(rel, import.meta.url));
-    const shift = src.indexOf("const cookAhead = withCookDayBefore(");
+    const shift = src.indexOf("const cookAhead: ReturnType<typeof withCookDayBefore> =");
     // ⚠️ LA PREMIÈRE OCCURRENCE, et pas une déclaration nommée: les deux lanes
     // n'écrivent pas `daysToFill` pareil (`const daysToFill: string[] =` d'un
     // côté, `const daysToFill =` de l'autre). C'est l'APPEL qu'on cherche.

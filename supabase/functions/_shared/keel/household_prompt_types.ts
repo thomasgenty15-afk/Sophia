@@ -530,18 +530,6 @@ export interface HouseholdPromptBlocks {
    */
   kitchenMissing: readonly KitchenTool[];
   /**
-   * L7 ② — COMBIEN DE BOUCHES ET COMBIEN DE CASES LE BLOC « DEHORS » A NOMMÉES.
-   *
-   * ⚠️ COMPTÉ SUR LES LIGNES ÉCRITES, pas sur `presence.eatingOut`. Une bouche
-   * qui mange dehors mais qui n'est pas dans `members` (prise de main, absence
-   * totale) est ignorée par le bloc: si la trace la comptait quand même, « le
-   * modèle a ignoré la consigne » et « la consigne ne la nommait pas » se
-   * liraient pareil, ce qui est exactement le zéro ambigu que le LOT 3C a payé.
-   *
-   * `{mouths: 0, cells: 0}` ⇒ aucun bloc servi.
-   */
-  eatingOut: { mouths: number; cells: number };
-  /**
    * D6.2 — LE COMPTEUR DU BLOC DE LA GAMELLE, ET IL EST LA MOITIÉ DU LOT.
    *
    * `mouths` = les bouches NOMMÉES dans le bloc; `cold` = celles pour qui le

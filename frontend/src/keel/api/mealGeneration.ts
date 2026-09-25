@@ -734,6 +734,30 @@ export interface GeneratedDish {
    * un complément seul. Absent ⇒ faux.
    */
   complements_shared?: boolean;
+  /**
+   * ⟳ 2026-09-25 — L'ALIMENT PRINCIPAL DU PLAT, choisi par le serveur
+   * (`dish_main_food.ts`): la protéine la plus lourde, sinon le végétal le
+   * plus lourd. L'écran en tire l'icône du plat (`foodIconOf`).
+   *
+   * `null` sur tout plan écrit avant le 2026-09-25 et sur un plat où rien
+   * n'est reconnu: pas d'icône.
+   */
+  main_food?: DishMainFood | null;
+}
+
+/** Voir `GeneratedDish.main_food`. */
+export interface DishMainFood {
+  /** `food_composition_refs.family` (« chicken », « tomato »), ou le slug. */
+  family: string;
+  /** Le groupe (« poultry »): l'icône de repli quand la famille n'en a pas. */
+  group: string;
+}
+
+function readMainFood(raw: unknown): DishMainFood | null {
+  if (raw === null || typeof raw !== "object") return null;
+  const m = raw as Record<string, unknown>;
+  if (typeof m.family !== "string" || typeof m.group !== "string") return null;
+  return { family: m.family, group: m.group };
 }
 
 /**
@@ -1273,6 +1297,8 @@ export function readDishes(raw: unknown): GeneratedDish[] {
         ? d.member_id.trim()
         : null,
       complements_shared: d.complements_shared === true,
+      // ⟳ 2026-09-25 — absent (plan d'avant) ou mal formé ⇒ `null`, pas d'icône.
+      main_food: readMainFood(d.main_food),
     };
   });
 }

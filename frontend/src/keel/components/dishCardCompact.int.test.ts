@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -53,7 +55,7 @@ function control(over: Partial<DishReplaceControl> = {}): DishReplaceControl {
 
 function markup(props: Record<string, unknown>): string {
   return renderToStaticMarkup(
-    createElement(DishCard, { dish: DISH, slotBadge: false, collapsible: true, ...props }),
+    createElement(DishCard, { dish: DISH, slotBadge: false, ...props }),
   ).replace(/&#x27;/g, "'");
 }
 
@@ -85,10 +87,40 @@ describe("la carte compacte de l'aperçu", () => {
     expect(button).toContain("<svg");
     expect(button).not.toContain("rotate-90");
     expect(button, "la ligne entière est la cible").toContain("flex-1");
-    expect(button).toContain("hover:bg-paper-2");
     expect(closed).not.toContain("▸");
     // Le titre de l'aperçu est en `text-sm` (« les titres sont trop gros »).
     expect(button).toMatch(/text-sm font-medium[^"]*"[^>]*>Lait, pêche/);
+  });
+
+  it("① ter — ⟳ 2026-09-25: TOUTE la carte est la cible, « partout sauf Changer »", () => {
+    // Retour du propriétaire: seul le titre ouvrait la carte, et l'anneau de
+    // focus ne cernait que lui. Le clic de surface est un confort de souris
+    // (`onCardClick`); le bouton du titre reste le contrôle du clavier.
+    const closed = markup({ compact: true, replace: control() });
+    const card = closed.slice(0, closed.indexOf(">"));
+    expect(card).toContain("cursor-pointer");
+    expect(card).toContain("hover:bg-paper-2");
+    // L'anneau de focus du bouton du titre est porté par la CARTE.
+    expect(card).toContain("has-[[data-row-toggle]:focus-visible]:outline-2");
+    const button = closed.slice(closed.indexOf("<button"), closed.indexOf("</button>"));
+    expect(button).toContain("data-row-toggle");
+    // Et le bouton n'a plus son propre anneau (règle hors `@layer`, `tokens.css`).
+    const tokens = readFileSync(resolve(__dirname, "../../tokens.css"), "utf8");
+    expect(tokens).toMatch(/\[data-row-toggle\]:focus-visible \{\s*outline: none;/);
+    expect(button, "le survol est celui de la carte").not.toContain("hover:bg-paper-2");
+    // « Changer » et la marge autour sont hors de la cible.
+    const replace = closed.slice(closed.indexOf("data-no-row-toggle"));
+    expect(replace).toContain(en["meals.dish.replace"]);
+    // Ouverte, la carte ne se replie plus sous la souris: plus de curseur ni de
+    // survol sur la surface, seulement sur la tête.
+    const source = readFileSync(resolve(__dirname, "DishCard.tsx"), "utf8");
+    expect(source).toContain('if (rowOpen && !target.closest("[data-row-head]")) return;');
+    expect(source).toContain('"button, a, input, select, textarea, label, [role=dialog], [data-no-row-toggle]"');
+    // Hors aperçu, aucune de ces cibles.
+    const plain = markup({});
+    expect(plain).not.toContain("data-row-toggle");
+    expect(plain).not.toContain("data-row-head");
+    expect(plain.slice(0, plain.indexOf(">"))).not.toContain("cursor-pointer");
   });
 
   it("② hors aperçu, la carte est celle d'avant", () => {

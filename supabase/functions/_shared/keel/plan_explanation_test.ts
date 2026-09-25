@@ -191,7 +191,7 @@ Deno.test("⚠️ LE MILLÉSIME DU PROMPT DIT CE LOT", () => {
   // que le millésime existe pour permettre deviendrait fausse sans rien casser.
   // ⟳ 2026-09-23 — v39: les à-côtés en familles (`side_courses_prompt.ts`).
   // ⟳ 2026-09-23 — v40: la table partage ses à-côtés (`side_courses_prompt.ts`).
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v42_what_they_turned_down");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v48_off_the_table_not_at");
 });
 
 import { assert } from "jsr:@std/assert@1";

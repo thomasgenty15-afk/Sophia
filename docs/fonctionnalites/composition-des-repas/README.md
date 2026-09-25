@@ -29,6 +29,7 @@ vérifiés.
 | [FF-057 · La procédure accident](FF-057-la-procedure-accident.md) | 🟡 Spécifiée | « J'ai pas suivi » ne mène nulle part : le fait est capté, personne ne répond à « qu'est-ce que ça change pour la suite ». Trois entrées, un formulaire à trois boutons, quatre actions de réalignement — dont la session de cuisine sautée, qui fait disparaître des repas sans que l'écran s'en aperçoive. |
 | [FF-065 · Le plancher du budget](FF-065-le-plancher-du-budget.md) | 🟢 Livrée | Sept jours pour quatre à 1 € partaient au modèle comme un plafond : il ne refuse jamais, il coupe. Deux seuils mesurés sur la grille de prix — l'un refuse, l'autre dit seulement ce que ce budget va changer. |
 | [FF-067 · Remplacer un plat de l'aperçu](FF-067-remplacer-un-plat-de-l-apercu.md) | 🟠 En cours | L'aperçu se lit en une ligne par plat ; « Remplacer » refait ce plat-là et rien d'autre, et la liste des plats refusés ne les laisse plus revenir. En tête, un tableau de la semaine : courses, cuisine, calories de ceux qui visent un poids. |
+| [FF-068 · L'icône du plat](FF-068-l-icone-du-plat.md) | 🟠 En cours | Pas d'image générée par repas : le serveur choisit l'aliment principal de chaque plat (la protéine la plus lourde, sinon le végétal le plus lourd) et l'écran le dessine avec une banque fixe d'icônes. |
 
 ## Le chantier des unités de composition
 

@@ -54,6 +54,28 @@ describe("le vocabulaire des régimes est le MÊME des deux côtés", () => {
 });
 
 describe("ce que l'écran compte", () => {
+  it("⟳ 2026-09-25 — le coût reçu du serveur remplace la table, bouche par bouche", () => {
+    // Un enfant à 70 % du panier de référence: 7 × 2,65 × 0,7 = 12,985.
+    const rates = new Map([["kid", { floor: 2.65 * 0.7, plausible: 3.77 * 0.7 }]]);
+    const mouths = budgetMouthsFor({
+      dayTokens: WEEK,
+      houseSlots: THREE_MEALS,
+      mouths: [
+        { memberId: "adult", diet: "omnivore", eatingSlots: null, away: [] },
+        { memberId: "kid", diet: "omnivore", eatingSlots: null, away: [] },
+      ],
+      selfMemberId: "adult",
+      selfAway: [],
+      rates,
+    });
+    expect(mouths[0].dayRates).toBeNull();
+    expect(mouths[1].dayRates).toEqual(rates.get("kid"));
+    const verdict = assessBudget({ amount: 1, market: "fr", mouths });
+    if (verdict.kind !== "below_floor") throw new Error(verdict.kind);
+    // 18,55 (l'adulte, table) + 12,985 (l'enfant) = 31,535 → 31,54.
+    expect(verdict.floor).toBe(31.54);
+  });
+
   it("⛔ 1 € pour sept jours à quatre est SOUS le plancher, et le verdict le chiffre", () => {
     const verdict = assessBudget({
       amount: 1,
@@ -69,6 +91,7 @@ describe("ce que l'écran compte", () => {
         })),
         selfMemberId: "m1",
         selfAway: [],
+        rates: new Map(),
       }),
     });
     expect(verdict.kind).toBe("below_floor");
@@ -83,6 +106,7 @@ describe("ce que l'écran compte", () => {
       mouths: [{ memberId: "m1", diet: "omnivore", eatingSlots: null, away: [] }],
       selfMemberId: "m1",
       selfAway: [],
+      rates: new Map(),
     });
     // 7 × 2,65 = 18,55 (plancher) · 7 × 3,77 = 26,39 (seuil)
     expect(assessBudget({ amount: 22, market: "fr", mouths }).kind).toBe("tight");
@@ -97,7 +121,12 @@ describe("ce que l'écran compte", () => {
       { day: "sat", slots: [], kind: "away" },
       { day: "sun", slots: [], kind: "away" },
     ];
-    const base = { dayTokens: WEEK, houseSlots: THREE_MEALS, selfMemberId: "m1" };
+    const base = {
+      dayTokens: WEEK,
+      houseSlots: THREE_MEALS,
+      selfMemberId: "m1",
+      rates: new Map(),
+    };
     const mouths = [
       { memberId: "m1", diet: "omnivore", eatingSlots: null, away: [] },
       { memberId: "m2", diet: "omnivore", eatingSlots: null, away: [] },
@@ -124,6 +153,7 @@ describe("ce que l'écran compte", () => {
       }],
       selfMemberId: "m1",
       selfAway: [],
+      rates: new Map(),
     });
     expect(mouths[0].mouthDays).toBe(1);
   });
@@ -135,6 +165,7 @@ describe("ce que l'écran compte", () => {
       mouths: [{ memberId: "m1", diet: "omnivore", eatingSlots: null, away: [] }],
       selfMemberId: "m1",
       selfAway: [],
+      rates: new Map(),
     });
     expect(assessBudget({ amount: 1, market: null, mouths }).kind).toBe("unbounded");
   });

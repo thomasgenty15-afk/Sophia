@@ -1,7 +1,8 @@
 import React from "react";
 
 import {
-  type CookingStyle,
+  type CookingSessionCount,
+  GROCERY_RUNS,
   type GroceryRuns,
   GROCERY_RUNS_ANY,
   type GroceryRunsAnswer,
@@ -16,6 +17,7 @@ import {
 // l'ancienne.
 import { MAX_FRIDGE_DAYS } from "../api/groceryWaves";
 import { t, type MessageKey } from "../i18n/t";
+import { nearestOffered, useOfferedAnswer } from "../lib/cookingAnswers";
 import { Field, inputClass } from "./ui/Field";
 
 /**
@@ -24,19 +26,25 @@ import { Field, inputClass } from "./ui/Field";
  * ═══════════════════════════════════════════════════════════════════════════
  *
  * ── CE QU'IL DÉCIDE, ET CE QU'IL NE DÉCIDE PAS ────────────────────────────
- * Il dit combien de fois par plan la personne accepte d'aller au magasin. Le
- * moteur en tire le nombre de SESSIONS de cuisine —
- * `min(courses, 3, plafond du style, jours mangés)` — et donc le nombre de
- * vagues de courses. Il ne dit rien de ce qu'on achète.
+ * Il dit combien de fois par plan la personne accepte d'aller au magasin, et
+ * donc le nombre de vagues de courses. Il ne dit rien de ce qu'on achète.
+ *
+ * ⟳ 2026-09-25 — IL EST BORNÉ PAR LE NOMBRE DE SESSIONS choisi juste
+ * au-dessus (`runs <= sessions`): on ne va pas au magasin plus souvent qu'on ne
+ * cuisine. Ce plafond remplace celui du style, retiré avec lui.
  *
  * ── ⟳ 2026-09-04 — IL NE PROPOSE PLUS CE QUE LE PLAN NE FERA PAS ──────────
  * Il posait les TROIS cadences à tout le monde. On demandait donc « trois
  * courses ? » pour un plan court, et « trois courses ? » à quelqu'un qui venait
  * de cocher « je cuisine tout en une seule fois » — puis le moteur rabotait en
  * silence, et la personne lisait le refus dans l'explication du plan. La liste
- * est maintenant celle de `offerableGroceryRuns`, et **quand il ne reste qu'une
- * réponse possible, il n'y a plus de question**: le champ DIT ce qui va se
- * passer, à la place du contrôle.
+ * est maintenant celle de `offerableGroceryRuns`.
+ *
+ * ⟳ 2026-09-25 — QUAND IL NE RESTE QU'UNE RÉPONSE, ELLE EST SÉLECTIONNÉE
+ * (décision du propriétaire). La liste reste à l'écran, la seule réponse
+ * possible y est choisie, les autres sont grisées, et une phrase courte dit
+ * pourquoi. Avant, une phrase remplaçait la liste: on ne voyait plus ce qui
+ * était retenu.
  *
  * ⚠️ ET LE PLAFOND DE FENÊTRE EST LA CONSERVATION, PAS LE NOMBRE DE JOURS.
  * Première version, corrigée le soir même sur une capture: un plan du 4 au 5
@@ -51,24 +59,22 @@ import { Field, inputClass } from "./ui/Field";
  * fois (`groceryWaves.ts`, 2026-08-10).
  *
  * ⛔ ET « PAS PROPOSÉ » N'EST JAMAIS « DISPARU SANS RIEN DIRE ». Chaque
- * resserrement porte sa phrase (`plan.cooking.runs_capped_*`,
- * `runs_only_one_*`), qui NOMME la cause — la fenêtre, le style, ou la case
- * du dessus. Une option qui s'évapore sans motif se lit comme une panne, et
- * envoie chercher le réglage manquant dans le mauvais écran.
+ * plafond porte sa phrase (`plan.cooking.runs_capped_*`, `runs_only_one_*`),
+ * qui NOMME la cause — la fenêtre ou les sessions. ⟳ 2026-09-25 — le
+ * congélateur n'a plus de phrase ICI: « Combien de fois tu veux cuisiner »,
+ * juste au-dessus, le dit déjà.
  *
- * ── ⚠️ CE QUE LE CHAMP N'ÉCRIT JAMAIS ─────────────────────────────────────
- * Il ne RABOTE PAS une réponse déjà donnée. `grocery_runs` est DURABLE — c'est
- * la tolérance de la personne, pas une propriété de la semaine —, et une
- * fenêtre de deux jours qui écraserait « trois courses » par « deux » lui
- * retirerait en silence, et pour toujours, une réponse qu'elle avait donnée.
- * Une valeur hors de l'offre reste donc VISIBLE et sélectionnée, désactivée:
- * même arbitrage que « une valeur hors liste garde sa place ».
- *
- * La SEULE écriture automatique est l'AMORCE: quand il n'y a qu'une réponse
- * possible et que rien n'est encore enregistré, on écrit celle-là. Sans elle,
- * l'entonnoir bloquerait sur « dis-nous combien de courses tu acceptes » avec
- * aucun contrôle à l'écran pour le lever — la garde désarmée que
- * `missesForStep` existe pour empêcher.
+ * ── ⟳ 2026-09-25 · UNE RÉPONSE DEVENUE IMPOSSIBLE GLISSE AU PLUS PROCHE ────
+ * Décision du propriétaire, qui renverse « une valeur hors offre reste
+ * visible, sélectionnée et grisée »: on pouvait garder coché ce qu'on ne
+ * pouvait plus choisir. Quand les dates, les sessions ou le congélateur
+ * changent, la réponse passe au nombre proposé le plus proche
+ * (`nearestOffered`), et c'est lui qui part avec la demande — sinon le moteur
+ * rabote, et l'explication du plan dit « tu en as demandé 3 » à quelqu'un qui
+ * a vu « 2 ». `grocery_runs` est durable: le nouveau nombre sera enregistré au
+ * lancement. Rien n'est écrit tant que la personne n'a pas répondu, sauf quand
+ * une seule réponse est possible. « Peu importe » ne bouge jamais: il vaut
+ * déjà le haut de l'offre.
  *
  * ── POURQUOI PAS UN CURSEUR ───────────────────────────────────────────────
  * Trois valeurs, trois gestes différents dans une vie — un curseur donnerait
@@ -80,59 +86,43 @@ const LABEL_KEYS: Record<GroceryRuns, MessageKey> = {
   3: "plan.cooking.runs_three",
 };
 
-/**
- * CE QU'ON DIT QUAND IL N'Y A PLUS QU'UNE RÉPONSE — à la place du contrôle.
- *
- * ⚠️ `"style"` N'Y EST PAS FORCÉMENT ATTEIGNABLE, ET C'EST UN FAIT DE CODE,
- * pas un oubli: le plafond le plus bas d'un style est `2` (`minimal`), donc le
- * style seul ne peut jamais forcer. L'entrée existe quand même — une constante
- * retouchée ne doit pas rendre une phrase vide.
- */
-const FORCED_KEYS: Record<GroceryRunsLimit, MessageKey> = {
-  one_session: "plan.cooking.runs_only_one_session",
-  days: "plan.cooking.runs_only_one_batch",
-  style: "plan.cooking.runs_capped_style",
-  // ⟳ 2026-09-24 — sans congélateur, un plan de quatre à six jours ne laisse
-  // qu'une cadence; la phrase dit pourquoi « Une fois » manque, et où la rendre.
-  freezer: "plan.cooking.runs_needs_freezer",
-};
-
-/** CE QU'ON DIT QUAND LA LISTE EST COURTE — à la place de l'aide générale. */
+/** CE QU'ON DIT SOUS LA LISTE QUAND SON HAUT EST RABOTÉ. */
 const CAPPED_KEYS: Record<GroceryRunsLimit, MessageKey> = {
   one_session: "plan.cooking.runs_only_one_session",
   days: "plan.cooking.runs_capped_days",
-  style: "plan.cooking.runs_capped_style",
-  freezer: "plan.cooking.runs_needs_freezer",
+  sessions: "plan.cooking.runs_capped_sessions",
 };
+
+/**
+ * ⟳ 2026-09-25 — CE QU'ON DIT SOUS UNE RÉPONSE IMPOSÉE. La même phrase que le
+ * plafond, sauf une fenêtre qu'UN seul lot couvre: « deux courses suffisent »
+ * y serait faux.
+ */
+function forcedKey(forced: GroceryRuns, limit: GroceryRunsLimit | null): MessageKey | null {
+  if (limit === null) return null;
+  if (limit === "days" && forced === 1) return "plan.cooking.runs_only_one_batch";
+  return CAPPED_KEYS[limit];
+}
 
 export interface GroceryRunsFieldProps {
   /**
    * LE NOMBRE CHOISI. `null` = **pas encore répondu**, et surtout pas « une ».
    *
-   * ⚠️ REQUIS ET NULLABLE, jamais optionnel — même arbitrage que le style.
+   * ⚠️ REQUIS ET NULLABLE, jamais optionnel.
    */
   value: GroceryRunsAnswer | null;
   onChange: (next: GroceryRunsAnswer | null) => void;
   id: string;
   disabled: boolean;
   /**
-   * LE STYLE DÉCLARÉ, ou `null` = jamais demandé. Il PLAFONNE les sessions,
-   * donc les courses.
+   * ⟳ 2026-09-25 — LE NOMBRE DE SESSIONS CHOISI JUSTE AU-DESSUS, ou `null` =
+   * pas encore répondu ⇒ aucun plafond. Une seule session ⇒ une seule vague
+   * de courses.
    *
-   * ⚠️ REQUIS ET NULLABLE. `null` ne vaut PAS « le moins possible »
-   * (cicatrice `20260818110000:48-51`): le traiter comme tel retirerait la
-   * troisième cadence à tout compte qui n'a pas encore répondu.
+   * ⚠️ REQUIS ET NULLABLE, jamais `?`: un paramètre de garde optionnel est
+   * une garde désarmée — l'écran proposerait trois courses sous « une fois ».
    */
-  style: CookingStyle | null;
-  /**
-   * LA CASE « TOUT CUISINER EN UNE SEULE FOIS », telle qu'elle est cochée
-   * JUSTE AU-DESSUS. Une seule cuisson ⇒ une seule vague de courses.
-   *
-   * ⚠️ REQUIS, jamais `?`. Un défaut à `false` ferait proposer trois courses
-   * sous une case cochée, et c'est très exactement le défaut que ce lot ferme:
-   * un paramètre de garde optionnel est une garde désarmée.
-   */
-  oneCookingSession: boolean;
+  sessions: CookingSessionCount | null;
   /**
    * COMBIEN DE JOURS LA FENÊTRE DEMANDE. REQUIS.
    *
@@ -144,8 +134,8 @@ export interface GroceryRunsFieldProps {
   daysToEat: number;
   /**
    * ⟳ 2026-09-21 — LE CONGÉLATEUR DU FOYER (`hasFreezerDeclared`), ou `null`
-   * quand la question n'a pas été posée. « Le moins possible » sur sept jours
-   * cuisine deux fois avec, trois fois sans: l'offre de courses suit.
+   * quand la question n'a pas été posée. Sans lui, « une course » ne couvre
+   * pas un plan plus long que la conservation: l'offre de courses suit.
    */
   freezer: boolean | null;
 }
@@ -153,8 +143,7 @@ export interface GroceryRunsFieldProps {
 export default function GroceryRunsField(props: GroceryRunsFieldProps) {
   const { value, onChange } = props;
   const offer = offerableGroceryRuns({
-    style: props.style,
-    oneCookingSession: props.oneCookingSession,
+    sessions: props.sessions,
     daysToEat: props.daysToEat,
     maxFridgeDays: MAX_FRIDGE_DAYS,
     freezer: props.freezer,
@@ -163,49 +152,46 @@ export default function GroceryRunsField(props: GroceryRunsFieldProps) {
   // Les deux nombres que la phrase de conservation interpole. Ils voyagent
   // ensemble parce qu'ils n'ont de sens qu'ensemble: « {n} jours, un plat en
   // tient {d} » est la SOUSTRACTION que la personne fait de tête.
-  const days = { n: Math.max(1, Math.floor(props.daysToEat)), d: MAX_FRIDGE_DAYS };
+  // ⟳ 2026-09-25 — `k`, le nombre de sessions, pour la phrase du plafond des
+  // sessions (`runs_capped_sessions`).
+  const days = {
+    n: Math.max(1, Math.floor(props.daysToEat)),
+    d: MAX_FRIDGE_DAYS,
+    k: props.sessions ?? 0,
+  };
 
   // ══════════════════════════════════════════════════════════════════════
-  // L'AMORCE — et elle n'écrase JAMAIS une réponse.
+  // ⟳ 2026-09-25 — LA RÉPONSE AFFICHÉE EST TOUJOURS UNE RÉPONSE POSSIBLE.
   // ══════════════════════════════════════════════════════════════════════
   //
-  // ⛔ `value === null` EST LA MOITIÉ QUI COMPTE. Sans elle, une fenêtre d'un
-  // jour effacerait durablement « trois courses » — `grocery_runs` est la
-  // TOLÉRANCE de la personne, pas une propriété de la semaine, et la semaine
-  // suivante repartirait d'une réponse que personne n'a donnée.
+  // Une seule réponse possible ⇒ elle. Un nombre devenu impossible ⇒ le plus
+  // proche proposé. Rien encore ⇒ rien. « Peu importe » ⇒ lui-même (affiché
+  // comme la réponse imposée quand il n'en reste qu'une).
   //
-  // ⚠️ ET SANS L'AMORCE, L'ENTONNOIR SE BLOQUE: `canGenerateMisses` exige
-  // `grocery_runs`, et le contrôle qui le lèverait n'est pas rendu.
-  React.useEffect(() => {
-    if (forced !== null && value === null) onChange(forced);
-  }, [forced, value, onChange]);
-
-  // ── PLUS QU'UNE RÉPONSE POSSIBLE ⇒ PLUS DE QUESTION ─────────────────────
-  // On DIT ce qui va se passer. Un `<select>` à une seule option est un
-  // contrôle qui n'en est pas un: il demande un geste dont le résultat est déjà
-  // écrit.
-  if (forced !== null) {
-    return (
-      <Field label={t("plan.cooking.runs_label")}>
-        <p className="text-sm leading-6 text-ink">
-          {t(limit === null ? "plan.cooking.runs_one" : FORCED_KEYS[limit], days)}
-        </p>
-      </Field>
-    );
-  }
-
-  // ── UNE VALEUR HORS OFFRE GARDE SA PLACE ────────────────────────────────
-  // Elle reste sélectionnée et VISIBLE, désactivée. La retirer ferait un
-  // `<select>` sans valeur au-dessus d'une réponse pourtant enregistrée — et
-  // le prochain enregistrement la réécrirait telle quelle sans que personne
-  // ait vu ce qui se joue.
-  // ⚠️ « peu importe » N'EST JAMAIS PÉRIMÉ. Il ne nomme aucun nombre, donc
-  // aucun resserrement de l'offre ne peut le rendre impossible — le tester
-  // contre `offer.values` le grillerait au premier plan court.
-  const stale = value !== null && value !== GROCERY_RUNS_ANY &&
-      !offer.values.includes(value)
-    ? value
-    : null;
+  // ⚠️ SANS L'ÉCRITURE, L'ENTONNOIR SE BLOQUE: `canGenerateMisses` exige
+  // `grocery_runs`, et une réponse imposée n'a pas d'autre contrôle pour la
+  // donner.
+  // ⟳ 2026-09-25 (soir) — LA CORRECTION PART DE LA RÉPONSE CHOISIE, pas de
+  // la dernière correction (`useOfferedAnswer`): 3 courses, puis « Deux
+  // fois » en cuisine ⇒ 2; puis « Trois fois » ⇒ 3 de nouveau.
+  const { shown: target, pick } = useOfferedAnswer<GroceryRunsAnswer>({
+    value,
+    onChange,
+    correct: (intent) =>
+      intent === GROCERY_RUNS_ANY
+        ? intent
+        : intent === null
+        ? forced
+        : nearestOffered(offer.values, intent),
+  });
+  // Ce que la liste montre: la réponse imposée, sinon la réponse corrigée.
+  const shown = forced ?? target;
+  const forcedHint = forced === null ? null : forcedKey(forced, limit);
+  const hint = forcedHint !== null
+    ? t(forcedHint, days)
+    : limit === null
+    ? undefined
+    : t(CAPPED_KEYS[limit], days);
 
   // ══════════════════════════════════════════════════════════════════════
   // « PEU IMPORTE » — SEULEMENT QUAND IL Y A VRAIMENT UN CHOIX.
@@ -214,44 +200,45 @@ export default function GroceryRunsField(props: GroceryRunsFieldProps) {
   // ⛔ UNE SEULE VALEUR OFFERTE ⇒ PAS D'OPTION. « Peu importe » voudrait dire
   // « choisis pour moi » devant une liste où il n'y a rien à choisir: deux
   // façons de dire le même nombre, dont une qui a l'air d'ouvrir une porte.
-  // (Le cas est en pratique déjà pris par la branche `forced` au-dessus, qui
-  // remplace le contrôle par une phrase; la condition reste écrite ici pour
-  // que le rendu ne dépende pas d'une garde posée ailleurs.)
+  // Une réponse « peu importe » déjà donnée reste en état, et la liste montre
+  // la réponse imposée à sa place.
   const offersAny = offer.values.length > 1;
 
   return (
     <Field
       label={t("plan.cooking.runs_label")}
       /* ⟳ 2026-09-16 — PLUS D'AIDE GÉNÉRALE: seul un MOTIF s'affiche, quand
-         l'offre est plafonnée. L'ancienne phrase expliquait le moteur
-         (« une seule demande un congélateur… ») à qui n'avait encore rien
-         choisi, et la case juste au-dessus dit déjà la nuance du congélateur.
-         Deux paragraphes sous un `<select>` se lisaient comme un avertissement. */
-      hint={limit === null ? undefined : t(CAPPED_KEYS[limit], days)}
+         l'offre est plafonnée ou qu'une seule réponse reste. */
+      hint={hint}
       htmlFor={props.id}
     >
       <select
         id={props.id}
         className={inputClass}
-        value={value === null ? "" : String(value)}
+        value={shown === null ? "" : String(shown)}
         disabled={props.disabled}
         /* ⛔ LE JETON PASSE AVANT LE `Number()`. « any » nombrifié donne `NaN`,
            que `readGroceryRuns` rend en `null` — c'est-à-dire « pas encore
            répondu ». Choisir « peu importe » aurait donc reposé la question,
            et rebloqué l'entonnoir, sans qu'aucun test de type ne bronche. */
         onChange={(e) =>
-          onChange(
+          pick(
             e.target.value === GROCERY_RUNS_ANY
               ? GROCERY_RUNS_ANY
               : readGroceryRuns({ grocery_runs: Number(e.target.value) }),
           )}
       >
-        <option value="">{t("plan.cooking.runs_unset")}</option>
-        {/* LUES DE L'OFFRE, jamais trois `<option>` écrites à la main: une
-            quatrième cadence ajoutée au module apparaîtrait ici sans libellé
-            plutôt que de manquer en silence. */}
-        {offer.values.map((runs) => (
-          <option key={runs} value={runs}>
+        {/* Pas de « pas encore répondu » sous une réponse imposée: elle est
+            déjà donnée. */}
+        {forced === null ? <option value="">{t("plan.cooking.runs_unset")}</option> : null}
+        {/* LUES DU MODULE, jamais trois `<option>` écrites à la main: une
+            quatrième cadence ajoutée apparaîtrait ici sans libellé plutôt que
+            de manquer en silence. ⟳ 2026-09-25 — les cadences hors de l'offre
+            restent VISIBLES, grisées, comme dans « Combien de fois tu veux
+            cuisiner »: on voit ce qui n'est pas possible, et la phrase dessous
+            dit pourquoi. */}
+        {GROCERY_RUNS.map((runs) => (
+          <option key={runs} value={runs} disabled={!offer.values.includes(runs)}>
             {t(LABEL_KEYS[runs])}
           </option>
         ))}
@@ -265,11 +252,6 @@ export default function GroceryRunsField(props: GroceryRunsFieldProps) {
             </option>
           )
           : null}
-        {stale === null ? null : (
-          <option key={stale} value={stale} disabled>
-            {t(LABEL_KEYS[stale])}
-          </option>
-        )}
       </select>
     </Field>
   );

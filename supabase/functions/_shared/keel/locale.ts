@@ -337,6 +337,28 @@ export function appendResponseLanguageBlock(
  * block that names nothing to translate spends tokens telling the model to
  * change nothing, and reads in review like the language axis is wired.
  */
+/**
+ * ⟳ 2026-09-25 — LE PRODUIT TUTOIE, ET LE BLOC DE LANGUE NE LE DISAIT PAS.
+ *
+ * Mesuré sur les plans des 6 derniers jours: 2 083 `method` de plats et de
+ * préparations, ~1 700 à l'infinitif (« Réchauffer… »), 196 au « vous »
+ * (« Détendez le fromage blanc… »), 39 au « tu ». L'écran, lui, tutoie
+ * (« sors-la du congélateur la veille au soir »). La consigne vit ICI, à côté de
+ * la langue et de la liste des champs qu'elle gouverne: une promesse loin de sa
+ * clé n'est pas suivie.
+ *
+ * ⚠️ LE FRANÇAIS SEULEMENT. L'anglais n'a pas de « vous »; une autre langue à
+ * double registre recevra sa ligne le jour où le produit la parlera.
+ */
+function registerLinesFor(tag: string): string[] {
+  if (tag.slice(0, 2).toLowerCase() !== "fr") return []
+  return [
+    "Speak to the reader as « tu »: every instruction is in the « tu » imperative",
+    "(« Réchauffe », « Coupe », « Sers »), never in the « vous » form and never in",
+    "the infinitive.",
+  ]
+}
+
 export function buildContentLanguageBlock(
   locale: string,
   translatableFields: readonly string[],
@@ -352,6 +374,7 @@ export function buildContentLanguageBlock(
   const lines = [
     "CONTENT_LANGUAGE:",
     `Write the human-readable TEXT of your JSON in ${language} (${tag}).`,
+    ...registerLinesFor(tag),
     `This applies to these fields and to nothing else: ${
       translatableFields.join(", ")
     }.`,

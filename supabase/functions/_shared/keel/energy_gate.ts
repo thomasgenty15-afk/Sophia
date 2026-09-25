@@ -801,9 +801,10 @@ export function canEmitMouthEnergy(args: {
 //      sort est ce que pèse une boîte de nourriture, pas ce que pèse quelqu'un.
 //
 // ⛔ CE QUE CETTE PORTE NE FAIT PAS. Elle ne touche PAS `canEmitMouthEnergy`,
-// qui reste la règle du CONSEIL DU MIDI (`eatingOutAdvice`, C9): un conseil
-// est une consigne adressée à quelqu'un, et il ne s'adresse qu'à qui le
-// demande. Un kcal sur un couvercle n'est pas une consigne.
+// qui était la règle du CONSEIL DU MIDI (`eatingOutAdvice`, C9, retiré le
+// 2026-09-24): un conseil est une consigne adressée à quelqu'un, et il ne
+// s'adresse qu'à qui le demande. Un kcal sur un couvercle n'est pas une
+// consigne.
 //
 // ⛔ LE PLANCHER, L'ÂGE ET LE COACH FERMENT TOUJOURS, pour cette bouche-là. Un
 // mineur du foyer n'a JAMAIS de kcal sur sa boîte, objectif ou pas; une bouche

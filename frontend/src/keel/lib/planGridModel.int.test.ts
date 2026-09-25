@@ -274,67 +274,38 @@ describe("FF-053 — le bloc cuisine", () => {
 });
 
 // ===========================================================================
-// L3 (2026-08-18) — « DEHORS » N'EST PAS « ABSENT », SUR LA GRILLE DU PLAN
+// ⟳ 2026-09-24 — « DEHORS » EST RETIRÉ: UNE ANCIENNE CASE SE LIT « ABSENT »
 //
-// Le cinquième silence. Il se distingue du premier par une seule chose: il
-// aura le droit de porter un ordre de grandeur, et l'autre non. Les confondre
-// ferait taire le conseil du midi de quelqu'un qui déjeune dehors tous les
-// jours, ou le ferait apparaître pendant ses vacances.
+// Les entrées `kind: "eating_out"` sont converties en base; une ligne lue
+// avant la conversion ne doit pas faire réapparaître un sixième état.
 // ===========================================================================
 
-describe("L3 — le cinquième silence", () => {
-  it("un midi marqué « dehors » ne se lit PAS comme une absence", () => {
+describe("une ancienne case « dehors »", () => {
+  it("se lit comme une absence, et seulement sur sa case", () => {
     const g = grid({
-      awayDays: [{ day: "tue", slots: ["lunch"], kind: "eating_out" }],
+      awayDays: [{ day: "tue", slots: ["lunch"], kind: "eating_out" } as never],
     });
     const lunch = g.rows.find((r) => r.slot === "lunch")!;
-    expect(lunch.cells[1]).toEqual({ kind: "eating_out" });
-    // Et le reste de la journée est INTACT: la marque porte sur une case, pas
-    // sur un jour.
+    expect(lunch.cells[1]).toEqual({ kind: "away" });
     expect(g.rows.find((r) => r.slot === "dinner")!.cells[1]).toEqual({
       kind: "empty",
     });
+    // Elle n'entre pas dans le taux de cases vides: 6 cases, 1 absente.
+    expect(emptyCellCount(g)).toBe(5);
   });
 
-  it("une absence SANS jeton reste une absence — les lignes d'avant ce lot", () => {
-    // C'est la compatibilité, et elle se mesure ici: la colonne porte des
-    // milliers d'entrées sans `kind`, et les lire « dehors » ferait apparaître
-    // un conseil chiffré sur des vacances déclarées il y a des jours.
+  it("une absence SANS jeton reste une absence", () => {
     const g = grid({ awayDays: [{ day: "tue", slots: ["lunch"] }] });
     expect(g.rows.find((r) => r.slot === "lunch")!.cells[1]).toEqual({
       kind: "away",
     });
   });
 
-  it("LE SILENCE GAGNE: absent et dehors sur la même case donnent « absent »", () => {
-    const g = grid({
-      awayDays: [
-        { day: "tue", slots: ["lunch"], kind: "eating_out" },
-        { day: "tue", slots: ["lunch"], kind: "away" },
-      ],
-    });
-    expect(g.rows.find((r) => r.slot === "lunch")!.cells[1]).toEqual({
-      kind: "away",
-    });
-  });
-
-  it("un PLAT gagne toujours, même sur une case marquée dehors", () => {
-    // La précédence d'origine ne bouge pas: s'il y a un plat, il se mange.
+  it("un PLAT gagne toujours, même sur une case marquée", () => {
     const g = grid({
       groups: [{ day: "tue", dishes: [dish({ day: "tue", slot: "lunch" })] }],
-      awayDays: [{ day: "tue", slots: ["lunch"], kind: "eating_out" }],
+      awayDays: [{ day: "tue", slots: ["lunch"], kind: "eating_out" } as never],
     });
     expect(g.rows.find((r) => r.slot === "lunch")!.cells[1].kind).toBe("dish");
-  });
-
-  it("« dehors » n'entre PAS dans le taux de cases vides", () => {
-    // `emptyCellCount` est un taux de DÉFAUT de composition. Y compter un midi
-    // que la personne a demandé à sortir du plan ferait passer une déclaration
-    // pour une panne.
-    const g = grid({
-      awayDays: [{ day: "tue", slots: ["lunch"], kind: "eating_out" }],
-    });
-    // 2 jours × 3 moments = 6 cases, une seule est « dehors ».
-    expect(emptyCellCount(g)).toBe(5);
   });
 });

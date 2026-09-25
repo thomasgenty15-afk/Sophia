@@ -107,7 +107,8 @@ import {
 //   · la densité d'une case et sa conséquence           → `household_cell_density.ts`
 //   · la forme d'une boîte, l'ordre de peser            → `household_box_schema.ts`
 //   · ① les boîtes redimensionnées                      → `household_box_resize.ts`
-//   · ② le conseil chiffré du midi                      → `household_eating_out.ts`
+//   · ② le conseil chiffré du midi — sorti vers `household_eating_out.ts`,
+//     puis SUPPRIMÉ le 2026-09-24 avec l'état « dehors » qui le portait
 //   · les listes de mots d'une consigne de portion      → `portion_note_terms.ts`
 // Restent ici: les directions de service, `densityFragment`, `buildPortionBrief`,
 // le dimensionnement (`mouthTargetFactor`, part, appétit), les notes et
@@ -180,18 +181,6 @@ export type {
   SizableMeal,
   SizablePreparation,
 } from "./household_box_resize.ts";
-export {
-  EATING_OUT_ADVICE_REASONS,
-  EATING_OUT_SLOT_LABELS,
-  eatingOutAdvice,
-  eatingOutAdviceSentence,
-  KNOWN_PRESENCE_STATES,
-  MEAL_SIZE_WEIGHT,
-} from "./household_eating_out.ts";
-export type {
-  EatingOutAdvice,
-  EatingOutAdviceReason,
-} from "./household_eating_out.ts";
 export {
   FORBIDDEN_PORTION_TERMS,
   portionCarriesAQuantity,
@@ -1114,7 +1103,10 @@ export function buildPortionBrief(
     }]`;
   });
   return [
-    "HOUSEHOLD SERVING PLAN — one cooking session, portions that differ.",
+    // ⟳ 2026-09-25 — « the same dishes », PLUS « one cooking session ». La phrase
+    // disait « un seul jeu de plats »; elle se lisait « une seule session » dans
+    // un plan où la personne en avait choisi deux.
+    "HOUSEHOLD SERVING PLAN — the same dishes for the whole table, portions that differ.",
     ...cookingShapeLines(cooking, divergingCount),
     "For each person below, give a short serving instruction: how much of which",
     "component goes on their plate, and which side is added or dropped.",

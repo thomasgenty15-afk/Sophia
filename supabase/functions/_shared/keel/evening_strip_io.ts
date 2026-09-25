@@ -293,7 +293,22 @@ export async function loadEveningStripContext(
       // DEUX VAGUES LE MÊME JOUR ⇒ UNE SEULE LIGNE (§7). La question porte sur
       // « les courses du jour », pas sur chaque vague — et l'état écrit est
       // celui du jour d'achat, donc les deux se répondent d'un seul tap.
-      const today = waves.find((w) => w.buyOn === args.localDate);
+      //
+      // ⟳ 2026-09-25 — LES DATES ÉCRITES D'ABORD. Le générateur pose `buy_on`
+      // sur chaque ligne avec ce que cette bande ne connaît pas (le nombre de
+      // courses choisi, les jours de repas, la limite achat → assiette). La
+      // recalculer ici annonçait des courses un autre jour que l'écran du plan.
+      // Le recalcul ne sert plus qu'aux plans écrits avant les dates.
+      const rawLines = Array.isArray(row.shopping_list)
+        ? (row.shopping_list as Array<Record<string, unknown>>)
+        : [];
+      const writtenDays = rawLines.length > 0 &&
+          rawLines.every((l) => typeof l?.buy_on === "string" && l.buy_on !== "")
+        ? new Set(rawLines.map((l) => String(l.buy_on)))
+        : null;
+      const today = writtenDays !== null
+        ? (writtenDays.has(args.localDate) ? { buyOn: args.localDate } : undefined)
+        : waves.find((w) => w.buyOn === args.localDate);
       if (today) shopping = { buyOn: today.buyOn };
 
       // ── FF-057 · LES PLATS QUI N'EXISTENT PAS NE SE NOMMENT PAS ─────────

@@ -27,7 +27,7 @@ export const frPublic = {
   "public.locale.switch_to_fr": "Lire ce site en français",
   "public.header.back_to_app": "Retour à mon espace",
   "public.nav.worlds_label": "À qui s'adresse Sophia",
-  "public.nav.doors_label": "Trouvez votre situation",
+  "public.nav.doors_label": "Trouve ta situation",
 
   // ── LES ANCRES DU HALL ───────────────────────────────────────────────
   // Les trois sections de `/`, portées par l'EN-TÊTE depuis le 2026-09-08.
@@ -45,7 +45,7 @@ export const frPublic = {
   // « Chez vous » et non « Pour votre foyer »: le mot foyer est administratif,
   // et l'en-tête a 71 px sur un téléphone. « Chez vous » dit la même chose,
   // plus court, et c'est ce qu'on dirait à voix haute.
-  "public.nav.world_household": "Chez vous",
+  "public.nav.world_household": "Chez toi",
   "public.nav.world_pro": "Pour les pros",
   // « Batch cooking » est le terme que ce public emploie en français — la
   // recherche du segment le confirme. « Préparation de repas » décrirait la
@@ -95,9 +95,9 @@ export const frPublic = {
   // permission de compter d'où vient un visiteur pour savoir quelle annonce a
   // marché. Le dire autrement serait faux, et un consentement obtenu sur une
   // description fausse n'est pas un consentement.
-  "public.consent.title": "Mesurer d’où vous venez",
+  "public.consent.title": "Mesurer d’où tu viens",
   "public.consent.body":
-    "Nous aimerions savoir quelle annonce vous a amené ici, pour arrêter de payer celles qui ne servent à rien. Ça demande un cookie publicitaire, et donc votre accord. Le refus ne change rien à ce que vous pouvez faire sur le site.",
+    "Nous aimerions savoir quelle annonce t’a amené ici, pour arrêter de payer celles qui ne servent à rien. Ça demande un cookie publicitaire, et donc ton accord. Le refus ne change rien à ce que tu peux faire sur le site.",
   "public.consent.accept": "Accepter",
   "public.consent.refuse": "Refuser",
   "public.consent.learn_more": "Ce que nous collectons",

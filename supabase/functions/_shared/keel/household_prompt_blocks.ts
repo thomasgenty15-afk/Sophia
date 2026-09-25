@@ -9,11 +9,12 @@
 //
 // Trois blocs, dans l'ordre où ils étaient dans le fichier d'origine :
 //   · règles de maison, identifiants, schémas de sortie, boîtes, plat dédié ;
-//   · cuisine, repas pris dehors, déjeuner emporté au travail ;
+//   · cuisine, déjeuner emporté au travail ;
 //   · notes par bouche.
 //
 // ⚠️ UN SEUL MOT A CHANGÉ : `export` devant `boxSchemaBlock`,
-// `preferenceSplitBlock` et `eatingOutBlock`. Ces trois fonctions étaient
+// `preferenceSplitBlock` et `eatingOutBlock` (ce dernier supprimé le
+// 2026-09-24 avec l'état « dehors »). Ces trois fonctions étaient
 // privées ; `buildHouseholdPromptBlocks`, resté dans
 // `household_meal_generation.ts`, les appelle. Le fichier d'origine ne les
 // ré-exporte pas : sa liste d'exports est celle d'avant.
@@ -22,14 +23,13 @@ import {
   type PortionMember,
   boxItemSchemaLines,
 } from "./household_portions.ts";
-import type { MealCell } from "./household_presence.ts";
 // L7 ① — LA PROSE DES JOURS ET DES MOMENTS VIENT DU TRONC, comme dans
 // `household_presence.ts` (D14). Une seconde table dirait « Saturday » ici et
 // « Sat » là, dans deux blocs que le modèle lit à la suite.
 // ⟳ 2026-09-24 (lot 2d-1) — le tronc a découpé ce vocabulaire dans
 // `meal_vocabulary.ts` ; on l'importe de là, et non plus de tout
 // `meal_generation.ts`.
-import { dayProse, OCCASION_PROSE } from "./meal_vocabulary.ts";
+import { dayProse } from "./meal_vocabulary.ts";
 import {
   type KitchenTool,
   missingKitchenTools,
@@ -638,82 +638,14 @@ export function kitchenBlock(
 }
 
 /**
- * ══════════════════════════════════════════════════════════════════════════
- * L7 ② — UN REPAS PRIS DEHORS N'EST PAS UNE ABSENCE.
- * ══════════════════════════════════════════════════════════════════════════
- *
- * ⛔ LE BLOC EST COLLÉ AU BLOC DE PRÉSENCE, ET LA POSITION EST LA MOITIÉ DU
- * LOT. `presence.block` vient d'écrire « Nina not eating here -- cook for 3
- * instead of 4 » pour exactement ces cases: sans un mot juste après, un midi
- * dehors et une semaine de vacances sont, pour le modèle, le même fait. C'est
- * la leçon mesurée du LOT 3C — la promesse et la clé qui vivaient dans deux
- * souffles différents ont rendu zéro déclaration sur 291 plats — appliquée à
- * une consigne qui n'a pas de clé: on la met contre la phrase qu'elle corrige.
- *
- * ⛔ AUCUN NOMBRE ICI, ET C'EST UNE FRONTIÈRE, PAS UN OUBLI. « Vise autour de
- * 700 » appartient au lot qui sait le calculer (L8) et aux cinq portes de
- * `energy_gate.ts`. Un kcal écrit dans ce bloc traverserait le prompt sans
- * qu'aucune porte n'ait tourné — la clause C5 du contrat TCA, violée à
- * l'instant où la ligne est écrite. Ce bloc dit ce que le plan NE FAIT PAS,
- * jamais ce que la personne devrait manger.
- *
- * ⚠️ IL NE CHANGE NI `servings`, NI `householdAway`. Un « dehors » EST une
- * absence de la table: la casserole descend comme avant, et c'est
- * `resolveWindowPresence` qui en décide, pas ce bloc. Ce qui change est ce que
- * le produit DIT.
- *
- * ⚠️ VIDE QUAND PERSONNE NE MANGE DEHORS — le cas nominal, et le prompt est
- * alors celui de v15 au caractère près.
- */
-export function eatingOutBlock(
-  members: readonly PortionMember[],
-  eatingOut: ReadonlyArray<{ member_id: string; cells: MealCell[] }>,
-): { block: string; mouths: number; cells: number } {
-  const nothing = { block: "", mouths: 0, cells: 0 };
-  if (eatingOut.length === 0) return nothing;
-  const nameOf = new Map(members.map((m) => [m.memberId, m.displayName]));
-  const lines: string[] = [];
-  let cells = 0;
-  for (const entry of eatingOut) {
-    // UNE BOUCHE QUI N'EST PAS DANS LA LISTE DE CE PROMPT N'EST PAS NOMMÉE.
-    // `members` porte les bouches composées; quelqu'un qui mange son propre
-    // plan (prise de main) ou qui est absent toute la fenêtre n'y est pas, et
-    // écrire un id nu à sa place ferait citer au modèle un identifiant qu'il
-    // ne peut rapprocher de rien.
-    const name = nameOf.get(entry.member_id);
-    if (!name || entry.cells.length === 0) continue;
-    cells += entry.cells.length;
-    lines.push(
-      `- ${name}: ${
-        entry.cells.map((c) => `${dayProse(c.day)} ${OCCASION_PROSE[c.slot]}`)
-          .join(", ")
-      }`,
-    );
-  }
-  if (lines.length === 0) return nothing;
-  const block = [
-    "== A MEAL EATEN OUT IS NOT AN ABSENCE ==",
-    "These meals are eaten somewhere else, and they are already taken out of",
-    "the numbers above:",
-    ...lines,
-    "Compose NOTHING there: no dish, no preparation, no line of shopping.",
-    "But these people are not away. They eat, elsewhere, and they are back at",
-    "the next meal here. So do NOT make another meal bigger to make up for it,",
-    "do NOT move that meal to another day, and do NOT mention it -- not in a",
-    "title, not in a method, not in a serving note.",
-  ].join("\n");
-  return { block, mouths: lines.length, cells };
-}
-
-/**
  * ═══════════════════════════════════════════════════════════════════════════
  * D6.2 (2026-09-03) — LA GAMELLE DOIT SE TRANSPORTER, ET TENIR FROIDE.
  * ═══════════════════════════════════════════════════════════════════════════
  *
  * ── LA PROMESSE QUI N'ÉTAIT PAS TENUE ─────────────────────────────────────
  * « Le déjeuner en semaine » demande trois choses: au bureau ? gamelle ou
- * dehors ? micro-ondes ? La branche `outside` a un effet (cinq midis
- * `eating_out`, écrits par la porte SQL). **`lunchbox` et `microwave` n'en
+ * dehors ? micro-ondes ? La branche `outside` avait un effet (cinq midis
+ * `eating_out`, écrits par la porte SQL — retirés le 2026-09-24). **`lunchbox` et `microwave` n'en
  * avaient AUCUN** — zéro lecteur, vérifié le 2026-09-03 — pendant que trois
  * commentaires du dépôt promettaient « le repas doit être transportable, et
  * bon froid s'il n'y a pas de micro-ondes ». Une question posée dont la
@@ -748,9 +680,9 @@ export function workLunchBlock(
   let cold = 0;
   for (const entry of workLunch) {
     if (entry.mode !== "lunchbox") continue;
-    // UNE BOUCHE QUI N'EST PAS DANS CE PROMPT N'EST PAS NOMMÉE — même règle
-    // que `eatingOutBlock`: écrire un identifiant nu ferait citer au modèle un
-    // id qu'il ne peut rapprocher de rien.
+    // UNE BOUCHE QUI N'EST PAS DANS CE PROMPT N'EST PAS NOMMÉE: écrire un
+    // identifiant nu ferait citer au modèle un id qu'il ne peut rapprocher de
+    // rien.
     const name = nameOf.get(entry.memberId);
     if (!name) continue;
     if (entry.microwave === false) {

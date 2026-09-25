@@ -48,12 +48,19 @@ export function Card({
   tone = "default",
   padded = true,
   className = "",
+  onClick,
   children,
 }: {
   tone?: CardTone;
   /** false when the content manages its own edge (lists with dividers). */
   padded?: boolean;
   className?: string;
+  /**
+   * ⟳ 2026-09-25 — un clic sur TOUTE la surface (la ligne compacte de
+   * `DishCard`). Un confort de souris seulement: la carte garde un vrai bouton
+   * pour le clavier et les lecteurs d'écran.
+   */
+  onClick?: React.MouseEventHandler<HTMLElement>;
   children: React.ReactNode;
 }) {
   return (
@@ -70,6 +77,7 @@ export function Card({
       ]
         .filter(Boolean)
         .join(" ")}
+      onClick={onClick}
     >
       {children}
     </section>

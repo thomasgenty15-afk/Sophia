@@ -577,7 +577,7 @@ Deno.test("LOT 2 — le TRONC bumpe, l'enveloppe FOYER ne bouge pas", () => {
   // ⟳ LOT C (2026-09-11) — v31: le prompt système ne dit plus le POIDS d'une
   // assiette (« roughly 600 to 750 g »), il dit sa FORME. La version avance avec
   // son texte, sinon un cache servirait l'ancienne consigne sous le nouveau nom.
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v34_the_grid_is_a_checklist");
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v42_off_the_table_not_at");
   // ⚠️ D1b (2026-08-18) — UN SEUL AXE BOUGE, ET C'EST L'ENVELOPPE FOYER.
   // `v17_what_each_mouth_already_has`: la lane foyer passait `fixedIntakes: []`
   // EN DUR sur ses trois sites, donc le shaker qu'une bouche déclare
@@ -614,7 +614,7 @@ Deno.test("LOT 2 — le TRONC bumpe, l'enveloppe FOYER ne bouge pas", () => {
   // (message byte-identique à v25), v26 avec.
   // ⟳ 2026-09-23 — v39: les à-côtés en familles (`side_courses_prompt.ts`).
   // ⟳ 2026-09-23 — v40: la table partage ses à-côtés (`side_courses_prompt.ts`).
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v42_what_they_turned_down");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v48_off_the_table_not_at");
 });
 
 // ---------------------------------------------------------------------------

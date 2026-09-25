@@ -18,16 +18,14 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  canRemix,
-  DRAFT_MAX_TURNS,
   DRAFT_NOTE_MAX_CHARS,
-  draftTurnsLeft,
   hasNote,
   noteLength,
   noteOverflows,
   readDraftEnvelope,
   readDraftPlan,
   noteIsExclusionOnly,
+  noteIsLocalEdit,
 } from "./planDraft";
 
 /**
@@ -88,47 +86,6 @@ const REAL_DRAFT = {
   fixed_intakes: [],
   day_properties: [],
 };
-
-describe("le plafond de tours", () => {
-  /**
-   * LE CHIFFRE EST DIT AVANT D'ÊTRE HEURTÉ. Ce test épingle la SÉQUENCE, pas
-   * une borne: c'est elle que l'écran affiche, et un plafond qu'on découvre en
-   * le heurtant se lit comme une panne.
-   */
-  it("descend de trois à zéro, un tour à la fois", () => {
-    expect(draftTurnsLeft(0)).toBe(3);
-    expect(draftTurnsLeft(1)).toBe(2);
-    expect(draftTurnsLeft(2)).toBe(1);
-    expect(draftTurnsLeft(3)).toBe(0);
-  });
-
-  /**
-   * ⚠️ CE TEST NE SE PARAMÈTRE PAS PAR SA PROPRE CONSTANTE. Écrire
-   * `expect(draftTurnsLeft(0)).toBe(DRAFT_MAX_TURNS)` resterait vert si
-   * quelqu'un passait le plafond à 12 — le test suivrait la constante au lieu
-   * de la garder. Le chiffre est donc écrit en dur au-dessus, et ce cas-ci
-   * vérifie seulement que la constante publiée dit la même chose.
-   */
-  it("publie le plafond que l'écran affiche", () => {
-    expect(DRAFT_MAX_TURNS).toBe(3);
-  });
-
-  it("ne descend jamais sous zéro, même si l'appelant a mal compté", () => {
-    expect(draftTurnsLeft(9)).toBe(0);
-    expect(canRemix(9)).toBe(false);
-  });
-
-  /**
-   * UN COMPTE ILLISIBLE REND LE PLAFOND PLEIN, ET C'EST LA DIRECTION SÛRE:
-   * l'erreur coûte un tour de plus, jamais un geste refusé à quelqu'un qui n'a
-   * encore rien composé.
-   */
-  it("rend le plafond plein sur un compte illisible", () => {
-    expect(draftTurnsLeft(Number.NaN)).toBe(3);
-    expect(draftTurnsLeft(-4)).toBe(3);
-    expect(canRemix(0)).toBe(true);
-  });
-});
 
 describe("le compteur de signes", () => {
   it("compte ce qui est écrit, et dit le plafond du serveur", () => {
@@ -347,5 +304,25 @@ describe("noteIsExclusionOnly", () => {
     expect(noteIsExclusionOnly({ announced: [line("safety", "food.exclude")] })).toBe(false);
     // Rien de rangé : rien à retirer, et surtout pas « vrai » par défaut.
     expect(noteIsExclusionOnly({ announced: [] })).toBe(false);
+  });
+});
+
+// ⟳ 2026-09-25 — « À LA PLACE DE X, METS Y », POUR CE PLAN SEULEMENT.
+describe("noteIsLocalEdit", () => {
+  const line = (kind: string, sense: string | null) => ({ text: "fromage blanc", who: null, kind, sense });
+  const swap = { from: "petit-suisse", to: "fromage blanc", memberId: null };
+  it("un remplacement et sa préférence retouchent seulement les plats concernés", () => {
+    expect(noteIsLocalEdit({ announced: [line("preference", "food.prefer")], swaps: [swap] })).toBe(true);
+    // Y déjà connu (`known`, versé dans `announced`) ou rien de rangé: toujours local.
+    expect(noteIsLocalEdit({ announced: [], swaps: [swap] })).toBe(true);
+    expect(noteIsLocalEdit({ announced: [line("preference", "food.exclude"), line("preference", "food.prefer")], swaps: [swap] })).toBe(true);
+  });
+  it("sans remplacement, un goût seul change la semaine: recomposition", () => {
+    expect(noteIsLocalEdit({ announced: [line("preference", "food.prefer")], swaps: [] })).toBe(false);
+    expect(noteIsLocalEdit({ announced: [line("preference", "food.exclude")], swaps: [] })).toBe(true);
+  });
+  it("un remplacement accompagné d'autre chose qu'un aliment recompose", () => {
+    expect(noteIsLocalEdit({ announced: [line("note", null)], swaps: [swap] })).toBe(false);
+    expect(noteIsLocalEdit({ announced: [line("safety", "food.exclude")], swaps: [swap] })).toBe(false);
   });
 });

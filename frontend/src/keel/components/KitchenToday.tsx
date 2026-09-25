@@ -1,7 +1,7 @@
 import React from "react";
 
 import { addDays, dayTokenOf } from "../api/dates";
-import { planGroceryWaves } from "../api/groceryWaves";
+import { waveAssignments } from "../api/groceryWaves";
 import type { GeneratedMealResult } from "../api/mealGeneration";
 import { dishDayLabel, mealCopy } from "../api/mealLabels";
 import { Button } from "./ui/Button";
@@ -77,12 +77,17 @@ function resolveDay(
   const cookToday = sessions.filter((s) => s.day === todayToken);
   const cookTomorrow = sessions.filter((s) => s.day === tomorrowToken);
 
-  // LES VAGUES SONT RECALCULÉES ICI, à partir des mêmes entrées que le panneau
-  // de courses. Pas recopiées: deux sources pour une même répartition
-  // divergeraient au premier changement de règle, et c'est l'écran le moins
-  // regardé qui garderait l'ancienne.
+  // LES VAGUES VIENNENT DE LA MÊME LECTURE QUE LE PANNEAU DE COURSES
+  // (`waveAssignments`): deux sources pour une même répartition divergeraient
+  // au premier changement de règle, et c'est l'écran le moins regardé qui
+  // garderait l'ancienne.
+  //
+  // ⟳ 2026-09-25 — ET CETTE LECTURE PREND D'ABORD LES DATES ÉCRITES (`buy_on`).
+  // Elle recalculait ici sans le nombre de courses choisi ni les jours de
+  // repas: « aujourd'hui » annonçait une seule course là où le plan en posait
+  // deux. Le recalcul ne sert plus qu'aux plans écrits avant les dates.
   const waves = meals.startsOn
-    ? planGroceryWaves({
+    ? waveAssignments({
       startsOn: meals.startsOn,
       durationDays: meals.durationDays ?? 7,
       shoppingList: meals.shoppingList ?? [],
@@ -107,7 +112,7 @@ function resolveDay(
         ? "tomorrow"
         : "later",
       buyOn: chosen.buyOn,
-      count: chosen.items.length,
+      count: chosen.indices.length,
     }
     : null;
 

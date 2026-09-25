@@ -135,8 +135,29 @@ import {
  * ⟳ 2026-09-23 — `v34_the_table_shares_its_sides` →
  * `v34_what_came_back_is_named`, le même jour que `HOUSEHOLD_PROMPT_VERSION`
  * (v41) et pour la même raison: la ligne « à éviter » suit l'envie.
+ *
+ * ⟳ 2026-09-25 — `v34_what_they_turned_down` →
+ * `v34_the_box_is_already_packed`, le même jour que
+ * `HOUSEHOLD_PROMPT_VERSION` (v43) et pour la même raison: la recette servie
+ * ici (`standardRecipeBlock`) dit que l'app met plat et féculent dans UNE
+ * boîte par repas.
+ *
+ * ⟳ 2026-09-25 — `v34_the_box_is_already_packed` →
+ * `v34_a_teaspoon_is_the_least_oil`, le même jour que
+ * `HOUSEHOLD_PROMPT_VERSION` (v44): la recette servie ici pose un plancher de
+ * 5 ml sur l'huile ajoutée.
+ *
+ * ⟳ 2026-09-25 — `v34_a_teaspoon_is_the_least_oil` → `v34_we_say_tu`, le même
+ * jour que `HOUSEHOLD_PROMPT_VERSION` (v45): le bloc de langue servi ici demande
+ * le « tu » en français.
  */
-export const HOUSEHOLD_PROMPT_V34_VERSION = "v34_what_they_turned_down";
+// ⟳ 2026-09-25 — `v34_we_say_tu` → `v34_the_sessions_they_chose`, le même
+// jour que `HOUSEHOLD_PROMPT_VERSION` v46 et pour la même raison.
+// ⟳ 2026-09-25 — `v34_the_sessions_they_chose` → `v34_one_starch_one_session`,
+// le même jour que `HOUSEHOLD_PROMPT_VERSION` (v47) et pour la même raison.
+// ⟳ 2026-09-25 — `v34_one_starch_one_session` → `v34_off_the_table_not_at`, le
+// même jour que `HOUSEHOLD_PROMPT_VERSION` (v48) et pour la même raison.
+export const HOUSEHOLD_PROMPT_V34_VERSION = "v34_off_the_table_not_at";
 
 /**
  * LE PLANCHER DE BOUCHES À PARTIR DUQUEL v34 EST SERVI.
@@ -820,12 +841,6 @@ export function buildHouseholdPromptBlocksV34(
     voicesHeard: voices.heard.length,
     notesServed: notes.served,
     kitchenMissing: kitchen.missing,
-    // ⛔ `eatingOut` À ZÉRO, ET C'EST UN FAIT, PAS UN OUBLI. Le bloc « un repas
-    // pris dehors n'est pas une absence » est REPLIÉ dans le calendrier: une
-    // bouche qui déjeune au restaurant n'a simplement pas de case ce midi-là
-    // (`away.effective` la porte déjà). Le compteur dit donc « aucune ligne de
-    // repas dehors servie », ce qui est vrai de cette structure.
-    eatingOut: { mouths: 0, cells: 0 },
     workLunch: { mouths: workLunch.mouths, cold: workLunch.cold },
     whyRuleHolders: input.ruleHolders.length,
     crossContact,

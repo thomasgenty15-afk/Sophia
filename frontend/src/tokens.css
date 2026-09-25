@@ -289,6 +289,16 @@
   border-radius: 4px;
 }
 
+/* ⟳ 2026-09-25 — LE BOUTON DU TITRE D'UNE CARTE DE L'APERÇU (`DishCard`,
+   `compact`) ET D'UNE SECTION DE SESSION (`FoldSection`): toute la surface
+   ouvre la ligne, donc c'est ELLE qui porte l'anneau
+   (`has-[[data-row-toggle]:focus-visible]:outline-2`). Ici et pas en
+   `focus-visible:outline-none` sur le bouton: cette règle-ci et celle du
+   dessus sont hors `@layer`, et elles gagnent sur toute utilitaire Tailwind. */
+[data-row-toggle]:focus-visible {
+  outline: none;
+}
+
 /* ⚠️ L'ANNEAU DE FOCUS DISPARAISSAIT DANS LE BLOC SOMBRE, ET ÇA A DÉFORMÉ TROIS
    PAGES AVANT D'ÊTRE NOMMÉ.
 

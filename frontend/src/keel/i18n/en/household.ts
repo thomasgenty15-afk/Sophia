@@ -547,6 +547,10 @@ export const enHousehold = {
     "Your food preferences (optional)",
   "household.mouth.preferences_saved": "{name}’s preferences are saved.",
   "household.mouth.preferences_title": "Food preferences",
+  // The line under the section title on both `/app/setup` cards. No pronoun
+  // on purpose: the same line serves the "You" card and every added person.
+  "household.mouth.preferences_section_hint":
+    "Allergies, refused foods, diet, meal habits.",
   "household.mouth.preferences_title_named": "{name} — food preferences",
   "household.mouth.preferences_intro":
     "None of this is required. It sharpens the plan; it does not decide its shape.",
@@ -927,6 +931,8 @@ export const enHousehold = {
   //                                     grid of their week, just below »
   //   "setup.request.presence_intro"  — « Step three said the habit » → the
   //                                     habit is set on the Household page
+  // ⟳ 2026-09-24 — `setup.work_lunch.*` RETIRÉ: plus aucun lecteur (question
+  // supprimée le 2026-09-19, état « dehors » le 2026-09-24).
 
   // ── A5 · the Household page (2026-09-03) ─────────────────────────────────
   // The two named frames of a mouth's sheet (D5.1). The collapsed frame's

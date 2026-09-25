@@ -582,7 +582,9 @@ Deno.test("⛔ LA LIGNE DE LA TABLE PORTE SON VERBE — exclue et voulue ne s'é
     mouths: MOUTHS,
   });
   assertEquals(out.household, [
-    "2026-09-01 — OFF the table: petit suisse -- ONLY AT breakfast",
+    // ⟳ 2026-09-25 — une exclusion au moment dit « NOT at », jamais « ONLY
+    // AT » (`31aef694`: « œufs -- ONLY AT breakfast » lu à l'envers).
+    "2026-09-01 — OFF the table: petit suisse -- NOT at breakfast; the other meals may keep it",
     "2026-09-01 — wanted: flocons d'avoine -- ONLY AT breakfast",
     "2026-09-01 — not this way: la friture",
     "2026-09-01 — this way: au four",

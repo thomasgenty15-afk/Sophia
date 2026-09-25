@@ -324,7 +324,7 @@ describe("R2 — une réponse perdue après adoption rend le plan, pas un échec
       {
         window: { kind: "days", count: 3 },
         cookingShape: null,
-        oneCookingSession: false,
+        cookingSessions: null,
         context: null,
         preferences: null,
       } as never,
@@ -356,7 +356,7 @@ describe("R2 — une réponse perdue après adoption rend le plan, pas un échec
         {
           window: { kind: "days", count: 3 },
           cookingShape: null,
-          oneCookingSession: false,
+          cookingSessions: null,
           context: null,
           preferences: null,
         } as never,

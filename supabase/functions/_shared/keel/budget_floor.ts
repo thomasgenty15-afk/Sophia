@@ -57,15 +57,17 @@
 //     mauvaise pour un chiffre qu'on afficherait comme « ton plan coûtera X ».
 //     Il ne doit jamais se rendre autrement que comme un minimum.
 //
-//   · **Ce n'est pas indexé sur les corps.** Une bouche vaut une part de
-//     journée, pas un métabolisme. La cible énergétique d'une personne demande
-//     un corps que le formulaire ne lit pas, et qui est fermé à quatre motifs
-//     (mineur, plancher de restriction, âge inconnu, doctrine sans comptage).
-//     Conséquence assumée et écrite: **un foyer avec de jeunes enfants a un
-//     plancher un peu trop haut**. Ce qui l'amortit est que le refus s'appuie
-//     sur le panier MINIMUM (≈ 70 % du frugal), pendant qu'un enfant mange
-//     ≈ 50 à 70 % d'un adulte. Aucun coefficient d'âge n'est inventé ici:
-//     inventer un nombre pour corriger l'absence d'un autre en fait deux.
+//   · ⟳ 2026-09-25 — **Il est indexé sur les corps, par le besoin que le
+//     moteur calcule déjà.** Demandé: « le besoin calorique est déjà calculé
+//     par personne, pourquoi ne pas le prendre ». Chaque bouche porte son
+//     coût par jour (`BudgetFloorMouth.dayRates`), qui est le panier de son
+//     régime × son besoin ÷ `BUDGET_FLOOR_REFERENCE_KCAL`
+//     (`budgetDayRatesOf`). Ce besoin est calculé par le serveur SEUL
+//     (`budget_mouth_kcal_io.ts`, la cible de `mouthTargetKcal`, repli sur
+//     l'entretien); l'écran ne reçoit que l'ARGENT (`budget-rates-v1`).
+//     Une bouche sans corps connu garde la journée de référence. Ce qui était
+//     écrit ici avant — « un foyer avec de jeunes enfants a un plancher un peu
+//     trop haut » — est donc fermé pour toute bouche dont le corps est saisi.
 //
 //   · **Ce n'est pas saisonnier.** Même limite que `meal_cost.ts`: la tomate
 //     varie de ±35 % dans l'année et la grille ne le porte pas.
@@ -189,6 +191,37 @@ export const BUDGET_PLAUSIBLE_PER_MOUTH_DAY: Readonly<
 });
 
 /**
+ * ⟳ 2026-09-25 — LE HAUT DU CURSEUR DE BUDGET, PAR BOUCHE ET PAR JOUR.
+ *
+ * Demandé: un curseur à la place du champ libre, avec un maximum « dans la
+ * mesure du raisonnable » pour éviter les dérives. Ce n'est pas un prix mesuré
+ * sur la grille comme les deux tables du dessus: c'est une borne haute, calée
+ * sur les budgets publiés le 2026-09-25.
+ *
+ *   · FR — UNAF, budget-type « famille A » (un couple, deux garçons de 6 à
+ *     13 ans), décembre 2025: 990 à 1 109 € d'alimentation par mois, soit
+ *     ≈ 8,6 € par personne et par jour. 15 € ≈ 1,75 fois ce budget, et au-dessus
+ *     du profil « bio et circuits courts » à Paris. Sept jours à quatre:
+ *     420 €.
+ *   · US — USDA, Cost of Food at Home, janvier 2025, plan « Liberal » (le plus
+ *     cher des quatre plans officiels): 370,60 $ la semaine pour la famille de
+ *     référence, ≈ 13,2 $ par personne et par jour; 107,30 $ la semaine pour
+ *     un homme de 19 à 50 ans, ≈ 15,3 $. 18 $ ≈ 1,35 fois la famille. Sept
+ *     jours à quatre: 504 $.
+ *
+ * ⚠️ PAR MARCHÉ SEULEMENT, PAS PAR RÉGIME: ce qui fait monter une liste de
+ * courses vers le haut est le choix des produits, pas le régime.
+ *
+ * ⛔ LE SERVEUR NE LE LIT PAS. Il ne sert qu'à borner le curseur des deux
+ * écrans; la borne de saisie du moteur reste `BUDGET_MAX`.
+ */
+export const BUDGET_CEILING_PER_MOUTH_DAY: Readonly<Record<CostMarket, number>> = Object
+  .freeze({
+    fr: 15,
+    us: 18,
+  });
+
+/**
  * LE MARCHÉ D'UN PAYS, ou `null` — jamais un repli.
  *
  * ⛔ `null` EST LA RÉPONSE NORMALE POUR LE RESTE DU MONDE, et elle doit le
@@ -234,6 +267,16 @@ export interface BudgetFloorMouth {
   /** Ce que le roster porte: `omnivore`, un des quatre régimes, ou `null`. */
   diet: string | null;
   /**
+   * ⟳ 2026-09-25 — SON COÛT PAR JOUR, AJUSTÉ À SON BESOIN (`budgetDayRatesOf`
+   * ou `budgetGateDayRatesOf`), ou `null` = la journée de référence de son
+   * régime.
+   *
+   * ⛔ REQUIS ET NULLABLE, jamais `?`: un appelant qui l'oublierait ferait
+   * repartir toutes les bouches à 2 000 kcal sans que rien ne le dise — un lot
+   * désarmé ressemble trait pour trait à un lot qui marche.
+   */
+  dayRates: BudgetDayRates | null;
+  /**
    * LA PART DE JOURNÉE QUE LE PLAN COMPOSE POUR ELLE, SOMMÉE SUR LA FENÊTRE.
    *
    * ⛔ REQUIS ET NON OPTIONNEL. Un défaut à « la fenêtre entière » ferait payer
@@ -277,6 +320,81 @@ export function budgetMouthDays(
 }
 
 /**
+ * ⟳ 2026-09-25 — LE COÛT PAR JOUR D'UNE BOUCHE: plancher et seuil.
+ */
+export interface BudgetDayRates {
+  floor: number;
+  plausible: number;
+}
+
+/**
+ * LE COÛT PAR JOUR D'UNE BOUCHE, AJUSTÉ À SON BESOIN.
+ *
+ * Les deux paniers sont mesurés à `BUDGET_FLOOR_REFERENCE_KCAL`; une bouche
+ * qui a besoin de 1 400 kcal en achète 70 %, une qui en a besoin de 3 000 en
+ * achète 150 %. `dayKcal` absent ou illisible = la journée de référence.
+ *
+ * ⛔ AUCUN KCAL NE SORT D'ICI: le résultat est de l'argent. C'est ce qui permet
+ * au serveur de le rendre à l'écran sans faire traverser un chiffre d'énergie.
+ */
+export function budgetDayRatesOf(args: {
+  market: CostMarket;
+  diet: string | null;
+  dayKcal: number | null;
+}): BudgetDayRates {
+  const diet = budgetDietOf(args.diet);
+  const kcal = Number(args.dayKcal);
+  const share = args.dayKcal !== null && Number.isFinite(kcal) && kcal > 0
+    ? kcal / BUDGET_FLOOR_REFERENCE_KCAL
+    : 1;
+  return {
+    floor: BUDGET_FLOOR_PER_MOUTH_DAY[args.market][diet] * share,
+    plausible: BUDGET_PLAUSIBLE_PER_MOUTH_DAY[args.market][diet] * share,
+  };
+}
+
+/**
+ * LE MÊME COÛT, POUR LA PORTE DU MOTEUR — jamais au-dessus de la référence.
+ *
+ * ── POURQUOI DEUX VERSIONS, ET POURQUOI CELLE-CI EST PLAFONNÉE ────────────
+ * Le plancher se calcule deux fois: sur l'écran, pour borner le curseur, et
+ * dans `generate-household-meal-v1`, pour décider si le budget entre dans le
+ * prompt. Si celui du moteur dépasse celui de l'écran, un montant que le
+ * curseur a proposé est jugé impossible et RETIRÉ du prompt, sans un mot à la
+ * personne. Les deux lisent le même chargeur (`budget_mouth_kcal_io.ts`), mais
+ * l'écran peut ne pas l'avoir reçu (fonction pas encore déployée, panne), ou
+ * un corps peut changer entre les deux lectures.
+ *
+ * La porte du moteur ne MONTE donc jamais au-dessus de la journée de
+ * référence: elle descend avec un enfant comme l'écran, elle ne monte pas avec
+ * un grand mangeur. L'écran, lui, monte — son minimum reste au-dessus de celui
+ * du moteur dans tous les cas, et un montant proposé n'est jamais retiré.
+ */
+export function budgetGateDayRatesOf(args: {
+  market: CostMarket;
+  diet: string | null;
+  dayKcal: number | null;
+}): BudgetDayRates {
+  const kcal = Number(args.dayKcal);
+  return budgetDayRatesOf({
+    ...args,
+    dayKcal: args.dayKcal !== null && Number.isFinite(kcal) && kcal > 0
+      ? Math.min(kcal, BUDGET_FLOOR_REFERENCE_KCAL)
+      : null,
+  });
+}
+
+/** Un coût reçu (du réseau, d'un appelant) qui ne se lit pas vaut `null`. */
+function usableDayRates(rates: BudgetDayRates | null): BudgetDayRates | null {
+  if (rates === null) return null;
+  const floor = Number(rates.floor);
+  const plausible = Number(rates.plausible);
+  if (!Number.isFinite(floor) || floor <= 0) return null;
+  if (!Number.isFinite(plausible) || plausible <= 0) return null;
+  return { floor, plausible };
+}
+
+/**
  * LES DEUX BORNES D'UNE DEMANDE, ou `null` hors des deux marchés.
  *
  * ⚠️ ARRONDIES AU CENTIME SUPÉRIEUR pour le plancher, INFÉRIEUR pour le seuil.
@@ -298,8 +416,9 @@ export function budgetBoundsFor(args: {
     const days = Number(mouth.mouthDays);
     if (!Number.isFinite(days) || days <= 0) continue;
     const diet = budgetDietOf(mouth.diet);
-    floor += floorTable[diet] * days;
-    plausible += plausibleTable[diet] * days;
+    const rates = usableDayRates(mouth.dayRates);
+    floor += (rates?.floor ?? floorTable[diet]) * days;
+    plausible += (rates?.plausible ?? plausibleTable[diet]) * days;
   }
   // ⛔ AUCUNE BOUCHE NOURRIE = AUCUNE BORNE. Rendre `{ floor: 0 }` ferait dire
   // « tout budget convient » à une demande qui ne compose rien, et cette
@@ -309,6 +428,28 @@ export function budgetBoundsFor(args: {
     floor: Math.ceil(floor * 100) / 100,
     plausible: Math.floor(plausible * 100) / 100,
   };
+}
+
+/**
+ * ⟳ 2026-09-25 — LE HAUT D'UNE DEMANDE, ou `null` là où le plancher s'abstient.
+ *
+ * ⚠️ LES MÊMES JOURNÉES DE BOUCHE QUE LE PLANCHER (`mouthDays`), jamais
+ * « personnes × jours »: une bouche qui déjeune dehors cinq midis achète moins,
+ * et le haut du curseur descend avec elle comme le bas.
+ */
+export function budgetCeilingFor(args: {
+  market: CostMarket | null;
+  mouths: readonly BudgetFloorMouth[];
+}): number | null {
+  if (args.market === null) return null;
+  let mouthDays = 0;
+  for (const mouth of args.mouths) {
+    const days = Number(mouth.mouthDays);
+    if (!Number.isFinite(days) || days <= 0) continue;
+    mouthDays += days;
+  }
+  if (mouthDays <= 0) return null;
+  return Math.ceil(mouthDays * BUDGET_CEILING_PER_MOUTH_DAY[args.market] * 100) / 100;
 }
 
 /**

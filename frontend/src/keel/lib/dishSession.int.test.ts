@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import type { CookingSession } from "../api/mealGeneration";
-import { sessionForDish } from "./dishSession";
+import { sessionsForDish } from "./dishSession";
 
 /**
  * LE PLAT ET SA SESSION — le chemin existait, l'écran non.
@@ -37,58 +37,55 @@ const PREPS = [
   { id: "prep_chilli", title: "Beef and bean chilli" },
 ];
 
-describe("la session d'un plat", () => {
-  it("relie le plat à la session qui a cuit son lot", () => {
-    const found = sessionForDish(
+describe("les sessions d'un plat (« Quelles cuissons ? »)", () => {
+  it("relie le plat à la session qui a cuit son lot, et nomme ce qui en vient", () => {
+    const found = sessionsForDish(
       { uses: [{ preparation_id: "prep_chicken", servings: 2, kept: "fridge" as const }] },
       SESSIONS,
       PREPS,
     );
-    expect(found?.day).toBe("wed");
-    expect(found?.runThrough).toContain("Roast the thighs");
-    // CE QUI EST SORTI DE LA MÊME CASSEROLÉE — la moitié que le plat n'avait
-    // nulle part.
-    expect(found?.preparations).toEqual([
-      "Roast chicken thighs",
-      "Cooked rice",
-      "Roast vegetables",
+    expect(found).toEqual([
+      {
+        day: "wed",
+        dishPreparations: [{ id: "prep_chicken", title: "Roast chicken thighs" }],
+        // CE QUI EST SORTI DE LA MÊME SESSION — sans le lot du plat lui-même.
+        alsoMade: ["Cooked rice", "Roast vegetables"],
+      },
     ]);
   });
 
   /**
    * ⚠️ L'IDENTIFIANT QUI A FAIT LE LIEN EST GARDÉ. Il ne s'affiche pas — un
    * slug de lot ne veut rien dire à table — mais l'écran le pose en
-   * `data-preparation-id`, donc la jointure est auditable dans le DOM. Une
-   * jointure invisible est une jointure qu'on ne sait pas prouver juste.
+   * `data-preparation-id`, donc la jointure est auditable dans le DOM.
    */
-  it("garde l'identifiant qui a fait le lien", () => {
-    const found = sessionForDish(
+  it("garde l'identifiant de chaque lot du plat", () => {
+    const [found] = sessionsForDish(
       { uses: [{ preparation_id: "prep_chilli", servings: 4, kept: "fridge" as const }] },
       SESSIONS,
       PREPS,
     );
-    expect(found?.viaPreparationId).toBe("prep_chilli");
-    expect(found?.day).toBe("sat");
+    expect(found.dishPreparations.map((p) => p.id)).toEqual(["prep_chilli"]);
+    expect(found.day).toBe("sat");
+    expect(found.alsoMade).toEqual([]);
   });
 
   it("un plat cuisiné de zéro n'a pas de session — donc pas de bouton", () => {
-    expect(sessionForDish({ uses: [] }, SESSIONS, PREPS)).toBeNull();
+    expect(sessionsForDish({ uses: [] }, SESSIONS, PREPS)).toEqual([]);
   });
 
   it("un lot qu'aucune session ne revendique ne fabrique pas de session", () => {
     expect(
-      sessionForDish(
+      sessionsForDish(
         { uses: [{ preparation_id: "prep_ghost", servings: 1, kept: "fridge" as const }] },
         SESSIONS,
         PREPS,
       ),
-    ).toBeNull();
+    ).toEqual([]);
   });
 
-  it("deux lots dans deux sessions ⇒ celle du PREMIER lot cité par le plat", () => {
-    // Nommer deux sessions sous un plat ferait de la carte une liste de
-    // sessions, ce que « discret par défaut » interdit.
-    const found = sessionForDish(
+  it("deux lots dans deux sessions ⇒ les DEUX sessions, dans l'ordre du plat", () => {
+    const found = sessionsForDish(
       {
         uses: [
           { preparation_id: "prep_chilli", servings: 1, kept: "fridge" as const },
@@ -98,22 +95,43 @@ describe("la session d'un plat", () => {
       SESSIONS,
       PREPS,
     );
-    expect(found?.day).toBe("sat");
-    expect(found?.viaPreparationId).toBe("prep_chilli");
+    expect(found.map((s) => [s.day, s.dishPreparations.map((p) => p.id)])).toEqual([
+      ["sat", ["prep_chilli"]],
+      ["wed", ["prep_rice"]],
+    ]);
+  });
+
+  it("deux lots de la même session ⇒ une session, les deux lots", () => {
+    const found = sessionsForDish(
+      {
+        uses: [
+          { preparation_id: "prep_rice", servings: 1, kept: "fridge" as const },
+          { preparation_id: "prep_chicken", servings: 1, kept: "fridge" as const },
+        ],
+      },
+      SESSIONS,
+      PREPS,
+    );
+    expect(found).toHaveLength(1);
+    expect(found[0].dishPreparations.map((p) => p.title)).toEqual([
+      "Cooked rice",
+      "Roast chicken thighs",
+    ]);
+    expect(found[0].alsoMade).toEqual(["Roast vegetables"]);
   });
 
   it("un lot inconnu de la liste des préparations est écarté, pas rendu tel quel", () => {
     // Afficher `prep_veg` sous un plat ne veut rien dire à table.
-    const found = sessionForDish(
+    const [found] = sessionsForDish(
       { uses: [{ preparation_id: "prep_chicken", servings: 2, kept: "fridge" as const }] },
       SESSIONS,
       [{ id: "prep_chicken", title: "Roast chicken thighs" }],
     );
-    expect(found?.preparations).toEqual(["Roast chicken thighs"]);
+    expect(found.alsoMade).toEqual([]);
   });
 
   it("un premier lot sans session n'empêche pas de trouver la suivante", () => {
-    const found = sessionForDish(
+    const found = sessionsForDish(
       {
         uses: [
           { preparation_id: "prep_ghost", servings: 1, kept: "fridge" as const },
@@ -123,8 +141,8 @@ describe("la session d'un plat", () => {
       SESSIONS,
       PREPS,
     );
-    expect(found?.day).toBe("wed");
-    expect(found?.viaPreparationId).toBe("prep_rice");
+    expect(found.map((s) => s.day)).toEqual(["wed"]);
+    expect(found[0].dishPreparations.map((p) => p.id)).toEqual(["prep_rice"]);
   });
 });
 
@@ -246,7 +264,7 @@ describe("les gardes du lot (câblage)", () => {
   it("l'écran pose l'identifiant du lien, et le montage passe les sessions", () => {
     const card = code("frontend/src/keel/components/DishCard.tsx");
     expect(card, "la jointure n'est plus auditable dans le DOM").toContain(
-      "data-preparation-id={session.viaPreparationId}",
+      "data-preparation-id={prep.id}",
     );
     // LOT 1 (2026-08-17): le bloc jour est extrait de `PlanResult` en
     // `PlanDayBlock` — c'est LUI qui résout la session d'un plat maintenant.
@@ -256,7 +274,7 @@ describe("les gardes du lot (câblage)", () => {
     // redevient la prop morte de 2026-08-14.
     const block = code("frontend/src/keel/components/plan/PlanDayBlock.tsx");
     expect(block, "la prop `cookingSessions` est redevenue morte").toContain(
-      "sessionForDish(dish, props.cookingSessions, props.preparations)",
+      "sessionsForDish(dish, props.cookingSessions, props.preparations)",
     );
     const result = code("frontend/src/keel/components/plan/PlanResult.tsx");
     expect(result, "`PlanResult` ne passe plus les sessions au bloc jour").toContain(
@@ -266,6 +284,8 @@ describe("les gardes du lot (câblage)", () => {
 
   it("un plat sans session ne rend aucun bouton", () => {
     const card = code("frontend/src/keel/components/DishCard.tsx");
-    expect(card).toContain("{session && <SessionLink session={session} />}");
+    // ⟳ 2026-09-25 — le bouton est en bas à droite de la carte, dans sa ligne.
+    expect(card).toContain("{sessions.length > 0 && (");
+    expect(card).toContain("<CookingsButton sessions={sessions} />");
   });
 });
