@@ -81,6 +81,7 @@
 
 import {
   findMedicalConstraintViolations,
+  type MedicalConstraintViolation,
   type StudentSafetyConstraint,
 } from "../../../_shared/keel/safety_constraints.ts";
 import {
@@ -424,7 +425,18 @@ export function applyKeelOutputLocks(input: OutputLockInput): OutputLockResult {
     };
   }
 
-  const medical = findMedicalConstraintViolations(text, constraints);
+  // ⟳ 2026-09-25 — les morsures laitières éteintes dans un analogue végétal
+  // (« lait de coco »), comptées ici : une extinction muette ressemblerait à un
+  // texte qui n'a rien nommé.
+  const silencedByPlantAnalogue: MedicalConstraintViolation[] = [];
+  const medical = findMedicalConstraintViolations(text, constraints, { silencedByPlantAnalogue });
+  if (silencedByPlantAnalogue.length > 0) {
+    console.log(JSON.stringify({
+      tag: "keel.output_lock.plant_analogue_silenced",
+      count: silencedByPlantAnalogue.length,
+      tokens: [...new Set(silencedByPlantAnalogue.map((v) => v.token))].sort(),
+    }));
+  }
   if (medical.length > 0) {
     // ⛔ S2 — LEQUEL DES DEUX TEXTES, ET L'ORDRE EST LE CONTRAT.
     //

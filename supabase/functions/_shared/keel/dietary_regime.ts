@@ -661,6 +661,25 @@ function emptyScan(): DietaryRegimeScan {
 const PLANT_ANALOGUE_TERMS: readonly ForbiddenTerm[] = PLANT_ANALOGUE_PHRASES
   .map((phrase) => ({ ruleId: "plant_analogue", token: phrase }));
 
+/**
+ * LES PORTÉES DES ANALOGUES VÉGÉTAUX D'UN TEXTE, en offsets du moteur du dépôt.
+ *
+ * ⟳ 2026-09-25 — EXPORTÉE POUR UN SECOND LECTEUR, la ceinture MÉDICALE
+ * (`findMedicalConstraintViolations`) : un seul calcul des portées, deux
+ * lecteurs. `scanProse` (plus bas) et elle passent par la même liste et le même
+ * appel ; une seconde copie divergerait à la première phrase ajoutée.
+ *
+ * `allowNegatedMentions: false` : on cherche où l'analogue EST écrit, pas s'il
+ * est recommandé.
+ *
+ * PURE.
+ */
+export function plantAnalogueSpans(text: string): readonly (readonly [number, number])[] {
+  return findForbiddenMatches(text, PLANT_ANALOGUE_TERMS, {
+    allowNegatedMentions: false,
+  }).map((m) => [m.index, m.index + m.matchedText.length] as const);
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // ⟳ 2026-09-04 — LE MOT QUI EN NOMME UN AUTRE
 // ═══════════════════════════════════════════════════════════════════════════
@@ -819,9 +838,7 @@ function scanProse(
   const hits = findForbiddenMatches(text, terms);
   if (hits.length === 0) return emptyScan();
 
-  const spans = findForbiddenMatches(text, PLANT_ANALOGUE_TERMS, {
-    allowNegatedMentions: false,
-  }).map((m) => [m.index, m.index + m.matchedText.length] as const);
+  const spans = plantAnalogueSpans(text);
   // ⟳ 2026-09-04 — LA MÊME MÉCANIQUE, SUR LES HOMOGRAPHES. Voir `HOMOGRAPH_PHRASES`:
   // « remplir des moules » est un récipient, et une morsure prise DEDANS ne
   // nomme aucun aliment.

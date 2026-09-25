@@ -349,6 +349,13 @@ try {
       if (!p) return;
       const memeUser = p.input.includes(c.user);
       const memeSystem = c.system === "" || p.instructions.includes(c.system);
+      // Une consigne différente est écrite à côté du journal, avec la stockée,
+      // pour qu'un `diff` dise ce qui a bougé.
+      if (!memeUser || !memeSystem) {
+        const base = `${HERE}/consigne-${BROUILLON.slice(0, 8)}-${source.replace("generate-household-meal-v1", "gen")}-${i + 1}`;
+        Deno.writeTextFileSync(`${base}.stockee.txt`, `${c.system}\n=====\n${c.user}`);
+        Deno.writeTextFileSync(`${base}.envoyee.txt`, `${p.instructions}\n=====\n${p.input}`);
+      }
       console.log(
         `   fidélité · ${source.replace("generate-household-meal-v1", "gen")} #${i + 1} : ` +
           `consigne ${memeUser ? "identique" : "DIFFÉRENTE"}, système ${memeSystem ? "identique" : "DIFFÉRENT"}`,

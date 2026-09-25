@@ -38,6 +38,7 @@ import {
   type ForbiddenTerm,
 } from "./forbidden_matcher.ts";
 import { surfaceFormsFor } from "./allergen_surface_forms.ts";
+import { plantAnalogueSpans } from "./dietary_regime.ts";
 
 // ---------------------------------------------------------------------------
 // Row shape
@@ -675,8 +676,42 @@ export class MedicalConstraintViolationError extends Error {
   }
 }
 
+/**
+ * ⟳ 2026-09-25 — LES ALLERGIES LAITIÈRES, ET ELLES SEULES, NE MORDENT PAS DANS
+ * UN ANALOGUE VÉGÉTAL NOMMÉ.
+ *
+ * Banc des trois foyers, foyer B (relance de B-1) : Yanis est allergique au
+ * lactose ; le curry de la table porte « lait de coco » ; `lactose` a pour
+ * forme de surface « lait » (`allergen_surface_forms.ts`), « lait » mord dans
+ * « lait de coco », trois morsures médicales, plan refusé. Le lait de coco ne
+ * contient ni lactose ni protéine de lait.
+ *
+ * La liste des analogues existe déjà, écrite à la main et testée, pour la
+ * ceinture des RÉGIMES (`dietary_regime.ts`, `plantAnalogueSpans`) : on la
+ * relit, on n'en écrit pas une seconde. Et on n'éteint QUE ce qu'elle couvre :
+ * une morsure laitière CONTENUE dans la portée d'un analogue nommé.
+ *
+ * ⛔ SEULEMENT LES JETONS LAITIERS. « nut butter » est un analogue du beurre ET
+ * une forme de surface de l'arachide : pour `peanut`, il mord toujours. « lait
+ * d'amande » n'éteint que le « lait » ; « amande » reste à la ceinture des
+ * fruits à coque.
+ */
+export const DAIRY_FAMILY_TOKENS: ReadonlySet<string> = new Set([
+  "lactose",
+  "dairy",
+  "milk",
+  "casein",
+]);
+
 /** Alias, not a copy: the negation policy is one decision, made in one place. */
-export type MedicalConstraintCheckOptions = ForbiddenMatchOptions;
+export type MedicalConstraintCheckOptions = ForbiddenMatchOptions & {
+  /**
+   * ⟳ 2026-09-25 — reçoit chaque morsure laitière éteinte dans un analogue
+   * végétal. Le compteur de l'appelant : une extinction muette ressemblerait à
+   * un texte qui n'a rien nommé.
+   */
+  readonly silencedByPlantAnalogue?: MedicalConstraintViolation[];
+};
 
 /**
  * Pure, deterministic, zero-I/O. Returns every blocking-token occurrence that
@@ -704,10 +739,21 @@ export function findMedicalConstraintViolations(
   // `ruleId`, et une jointure faite chez l'appelant serait la jointure qui
   // rate en silence.
   const severityByRule = new Map<string, SafetyConstraintSeverity>();
+  // ⟳ 2026-09-25 — les aiguilles LAITIÈRES de chaque règle (jeton + formes de
+  // surface), en minuscules comme `ForbiddenMatch.token`.
+  const dairyNeedlesByRule = new Map<string, Set<string>>();
   for (const constraint of constraints) {
     if (!isBeltBlockingSeverity(constraint.severity)) continue;
     severityByRule.set(constraint.id, constraint.severity);
     for (const token of safetyConstraintTokens(constraint)) {
+      if (DAIRY_FAMILY_TOKENS.has(String(token).trim().toLowerCase())) {
+        const needles = dairyNeedlesByRule.get(constraint.id) ?? new Set<string>();
+        for (const n of [token, ...surfaceFormsFor(token)]) {
+          const v = String(n ?? "").trim().toLowerCase();
+          if (v) needles.add(v);
+        }
+        dairyNeedlesByRule.set(constraint.id, needles);
+      }
       // LES FORMES DE SURFACE, et leur absence était le trou (QA agent 4).
       //
       // Le moteur supporte `surfaceForms` depuis toujours et la doctrine du
@@ -728,18 +774,33 @@ export function findMedicalConstraintViolations(
       });
     }
   }
-  return findForbiddenMatches(text, terms, options).map((m) => ({
-    constraintId: m.ruleId,
-    // ⛔ LE REPLI EST `medical`, JAMAIS `strict`. Un identifiant introuvable
-    // dans la table ci-dessus est impossible par construction (les règles en
-    // viennent) — mais si ça arrivait, la seule valeur sûre est la plus
-    // protectrice. Un `strict` par défaut ferait servir le texte le plus doux
-    // à l'élève le plus fragile.
-    severity: severityByRule.get(m.ruleId) ?? "medical",
-    token: m.token,
-    matchedText: m.matchedText,
-    index: m.index,
-  }));
+  const violations: MedicalConstraintViolation[] = [];
+  // Calculées une fois, et seulement si une morsure laitière le demande.
+  let analogueSpans: readonly (readonly [number, number])[] | null = null;
+  for (const m of findForbiddenMatches(text, terms, options)) {
+    const violation: MedicalConstraintViolation = {
+      constraintId: m.ruleId,
+      // ⛔ LE REPLI EST `medical`, JAMAIS `strict`. Un identifiant introuvable
+      // dans la table ci-dessus est impossible par construction (les règles en
+      // viennent) — mais si ça arrivait, la seule valeur sûre est la plus
+      // protectrice. Un `strict` par défaut ferait servir le texte le plus doux
+      // à l'élève le plus fragile.
+      severity: severityByRule.get(m.ruleId) ?? "medical",
+      token: m.token,
+      matchedText: m.matchedText,
+      index: m.index,
+    };
+    if (dairyNeedlesByRule.get(m.ruleId)?.has(m.token) === true) {
+      analogueSpans ??= plantAnalogueSpans(text);
+      const end = m.index + m.matchedText.length;
+      if (analogueSpans.some(([s, e]) => m.index >= s && end <= e)) {
+        options.silencedByPlantAnalogue?.push(violation);
+        continue;
+      }
+    }
+    violations.push(violation);
+  }
+  return violations;
 }
 
 /**

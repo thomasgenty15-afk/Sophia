@@ -357,9 +357,37 @@ export function aisleForFoodGroup(group: FoodGroupRef | null): ShoppingAisle | n
 // `RESTE-A-FAIRE.md` : `food_composition_refs` devrait porter une colonne de
 // conservation. Tant qu'elle n'existe pas, cette liste est ce qu'on SAIT, et
 // elle se lit d'un coup d'œil.
+//
+// ⟳ 2026-09-25 — LA LISTE ÉTAIT INCOMPLÈTE, ET ÇA A REFUSÉ UN PLAN RÉEL.
+// Banc des trois foyers, foyer B (relance de B-1) : « sardines en conserve
+// égouttées » datées comme du poisson frais (fenêtre d'un jour), plan refusé
+// (`perishable_bought_too_early`). La liste disait « deux dans tout le
+// référentiel » ; relu le 2026-09-25 par le nom CIQUAL de chaque ligne
+// (`ciqual_name ~* 'appertis|semi-conserve'`), la table en portait dix, dont
+// huit que la liste ignorait. Les voici, nommés un par un, plus les trois
+// conserves de poisson ajoutées par `20260925200000_la_conserve_n_est_pas_du_
+// poisson_cru.sql`.
+// ⛔ `sardines` (le nom nu) N'Y EST PAS, et c'est voulu : sa ligne est la
+// sardine à l'huile, mais « sardines » tout court peut désigner du frais. Un
+// frais lu comme une conserve échapperait à sa fenêtre d'un jour ; seul le
+// nom qui DIT la conserve (`sardines_tinned`) sort du frais.
+// ⛔ Les FUMÉS non plus (`mackerel_smoked`, `herring_smoked`,
+// `smoked_salmon`) : ils se gardent au froid, pas sur une étagère.
 export const SHELF_STABLE_SLUGS: ReadonlySet<string> = new Set<string>([
   "tuna_tinned",
   "chickpeas_tinned",
+  // Relus par leur nom CIQUAL (« appertisé », « semi-conserve »), 2026-09-25.
+  "anchovy",
+  "kidney_beans",
+  "white_beans",
+  "passata",
+  "tinned_tomatoes",
+  "tomato_puree",
+  "sweetcorn",
+  // `20260925200000_la_conserve_n_est_pas_du_poisson_cru.sql`.
+  "mackerel_tinned",
+  "salmon_tinned",
+  "sardines_tinned",
 ]);
 
 /**

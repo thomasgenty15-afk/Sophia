@@ -117,7 +117,14 @@ export const CATALOG_GROUP_CAPS: Readonly<Record<FoodGroupRef, number>> = Object
     poultry: 6,
     red_meat: 6,
     white_fish: 5,
-    fatty_fish: 5,
+    // ⟳ 2026-09-25 — 5 → 10. Le groupe porte désormais la forme PRÊTE À
+    //   MANGER du même poisson (conserve, fumé : `20260925200000`), et le
+    //   classement par nombre d'alias les faisait passer devant le frais :
+    //   cinq places montraient la conserve et cachaient le maquereau, la
+    //   truite, les anchois. Dix places montrent les deux, et le modèle peut
+    //   citer `mackerel_tinned` au lieu d'écrire un maquereau que la garde
+    //   du cru lira comme frais. Coût : quatre à cinq lignes de catalogue.
+    fatty_fish: 10,
     shellfish: 3,
     eggs: 3,
     tofu_tempeh: 4,

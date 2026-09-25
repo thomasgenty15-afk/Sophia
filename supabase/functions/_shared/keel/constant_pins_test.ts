@@ -1225,7 +1225,7 @@ Deno.test("épinglage — CATALOG_GROUP_CAPS, les trente groupes ENTIERS", () =>
   // composent pas un repas ici, et les montrer reviendrait à les proposer.
   assertEquals(CATALOG_GROUP_CAPS, {
     lean_protein: 3,
-    fatty_fish: 5,
+    fatty_fish: 10,
     white_fish: 5,
     shellfish: 3,
     poultry: 6,

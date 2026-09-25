@@ -38,10 +38,38 @@ Deno.test("conserve ② — la liste est une ÉNUMÉRATION, jamais un motif de s
   // ⛔ `endsWith("_tinned")` SERAIT UN MATCHER, et ce dépôt a mesuré douze faux
   // positifs sur douze avec un matcher maison. On nomme, donc un slug inconnu
   // qui RESSEMBLE à une conserve ne bascule pas tout seul.
-  assertEquals(aisleForFood("white_fish", "sardines_tinned"), "protein");
+  // ⟳ 2026-09-25 — `sardines_tinned` est devenu une vraie conserve ; le sosie
+  // qui ne doit pas basculer est désormais un slug qui n'existe pas.
+  assertEquals(aisleForFood("fatty_fish", "herring_tinned"), "protein");
   assertEquals(aisleForFood("legumes", "chickpeas_tinned"), "pantry");
-  // La liste connue au 2026-09-12, sur les 943 lignes du référentiel local.
-  assertEquals([...SHELF_STABLE_SLUGS].sort(), ["chickpeas_tinned", "tuna_tinned"]);
+  // ⟳ 2026-09-25 — la liste relue par le nom CIQUAL de chaque ligne
+  // (`ciqual_name ~* 'appertis|semi-conserve'`), plus les trois conserves de
+  // poisson de `20260925200000`.
+  assertEquals([...SHELF_STABLE_SLUGS].sort(), [
+    "anchovy",
+    "chickpeas_tinned",
+    "kidney_beans",
+    "mackerel_tinned",
+    "passata",
+    "salmon_tinned",
+    "sardines_tinned",
+    "sweetcorn",
+    "tinned_tomatoes",
+    "tomato_puree",
+    "tuna_tinned",
+    "white_beans",
+  ]);
+});
+
+Deno.test("conserve ②bis — le NOM NU reste au frais : seule la conserve nommée sort de la fenêtre", () => {
+  // ⛔ « sardines » tout court peut être du frais ; un frais lu comme une
+  // conserve échapperait à sa fenêtre d'un jour. Les fumés se gardent au froid.
+  for (const slug of ["sardines", "mackerel", "salmon", "herring", "mackerel_smoked", "herring_smoked", "smoked_salmon"]) {
+    assert(!SHELF_STABLE_SLUGS.has(slug), slug);
+    assertEquals(aisleForFood("fatty_fish", slug), "protein", slug);
+  }
+  assertEquals(aisleForFood("fatty_fish", "sardines_tinned"), "pantry");
+  assertEquals(aisleForFood("fatty_fish", "mackerel_tinned"), "pantry");
 });
 
 Deno.test("conserve ③ — un rayon d'épicerie SORT du frais, et c'est la propriété utile", async () => {

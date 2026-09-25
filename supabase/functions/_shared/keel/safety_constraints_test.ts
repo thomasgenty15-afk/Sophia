@@ -192,10 +192,21 @@ Deno.test("safety constraints are loaded OUTSIDE the LLM memory path", async () 
   // sur le chemin mémoire ». Le module ajouté est une constante pure: aucun
   // import, aucune I/O, aucune horloge — la boucle transitive ci-dessous le
   // vérifie elle-même plutôt que de me croire sur parole.
+  //
+  // ⟳ 2026-09-25 — ET D'UNE TROISIÈME : `dietary_regime.ts`, pour la liste des
+  // analogues végétaux (`plantAnalogueSpans`) qui éteint « lait » dans « lait
+  // de coco » sous une allergie laitière. Ce module importe lui-même le matcher
+  // et `tokens.ts` : la règle « chaque dépendance a zéro import » devient la
+  // règle qu'elle servait — TOUT le graphe atteint est sur la liste fermée, et
+  // aucun fichier ne nomme le chemin mémoire. Plus fort, pas plus lâche : la
+  // marche est transitive, et un import hors liste à n'importe quelle
+  // profondeur rougit.
   const ALLOWED_DEPS = [
     "./forbidden_matcher.ts",
     "./allergen_surface_forms.ts",
+    "./dietary_regime.ts",
   ];
+  const ALLOWED_GRAPH = new Set([...ALLOWED_DEPS, "./tokens.ts"]);
 
   const readImports = async (file: string): Promise<[string, string[]]> => {
     const source = await Deno.readTextFile(new URL(file, import.meta.url));
@@ -210,9 +221,17 @@ Deno.test("safety constraints are loaded OUTSIDE the LLM memory path", async () 
   );
 
   const sources: Array<[string, string]> = [["safety_constraints.ts", rootSource]];
-  for (const dep of ALLOWED_DEPS) {
+  const seen = new Set<string>();
+  const queue = [...ALLOWED_DEPS];
+  while (queue.length > 0) {
+    const dep = queue.shift()!;
+    if (seen.has(dep)) continue;
+    seen.add(dep);
     const [depSource, depImports] = await readImports(dep);
-    assertEquals(depImports, [], `${dep} must itself have zero imports`);
+    for (const next of depImports) {
+      assert(ALLOWED_GRAPH.has(next), `${dep} imports ${next}, outside the closed list`);
+      queue.push(next);
+    }
     sources.push([dep, depSource]);
   }
 
@@ -618,4 +637,62 @@ Deno.test("la liste FERMÉE des catégories est le MIROIR du CHECK en base", () 
   assert(m, "le CHECK de `kind` est introuvable dans la migration");
   const inDb = [...m![1].matchAll(/'([a-z_]+)'/g)].map((x) => x[1]).sort();
   assertEquals([...SAFETY_CONSTRAINT_KINDS].sort(), inDb);
+});
+
+// ---------------------------------------------------------------------------
+// ⟳ 2026-09-25 — le lait de coco n'est pas du lait (banc des trois foyers, B)
+// ---------------------------------------------------------------------------
+//
+// Relance de B-1 : Yanis allergique au lactose, un curry de poisson au « lait
+// de coco », trois morsures médicales, plan refusé. Les morsures LAITIÈRES
+// contenues dans un analogue végétal nommé (`dietary_regime.ts`) s'éteignent,
+// et elles seules.
+
+Deno.test("lait de coco — une allergie au lactose ne mord pas un analogue végétal, et l'extinction est comptée", () => {
+  const lactose = constraint({ id: "yanis", allergenRef: "lactose" });
+  for (const text of [
+    "Ajoute les légumes et le lait de coco, puis laisse mijoter.",
+    "Curry de poisson au lait de coco",
+    "coconut milk, 400 ml",
+    "Porridge au lait d'avoine et yaourt de soja",
+    "Toast with peanut butter",
+  ]) {
+    const silenced: ReturnType<typeof findMedicalConstraintViolations> = [];
+    assertEquals(
+      findMedicalConstraintViolations(text, [lactose], { silencedByPlantAnalogue: silenced }),
+      [],
+      text,
+    );
+    assert(silenced.length >= 1, `extinction non comptée: ${text}`);
+  }
+});
+
+Deno.test("lait de coco — le lait de vache mord toujours, et l'analogue n'éteint que sa propre portée", () => {
+  const lactose = constraint({ id: "yanis", allergenRef: "lactose" });
+  assertEquals(
+    findMedicalConstraintViolations("Verse 200 ml de lait de vache.", [lactose]).map((v) => v.token),
+    ["lait"],
+  );
+  // Un analogue dans la phrase ne blanchit pas le fromage d'à côté.
+  assertEquals(
+    findMedicalConstraintViolations("Curry au lait de coco, parsemé de fromage râpé.", [lactose])
+      .map((v) => v.token),
+    ["fromage"],
+  );
+  // `milk` et `casein` suivent la même règle ; `dairy` aussi.
+  for (const ref of ["milk", "casein", "dairy"]) {
+    assertEquals(findMedicalConstraintViolations("lait de coco", [constraint({ allergenRef: ref })]), [], ref);
+  }
+});
+
+Deno.test("lait de coco — ⛔ l'extinction ne touche QUE les jetons laitiers : l'arachide mord son beurre", () => {
+  const peanut = constraint({ id: "p", allergenRef: "peanut" });
+  const hits = findMedicalConstraintViolations("Tartine de beurre de cacahuète", [peanut]);
+  assert(hits.length >= 1, "le beurre de cacahuète doit mordre une allergie à l'arachide");
+  // Deux contraintes à la fois : seule la laitière s'éteint.
+  const both = findMedicalConstraintViolations("Tartine de beurre de cacahuète", [
+    peanut,
+    constraint({ id: "l", allergenRef: "lactose" }),
+  ]);
+  assert(both.length >= 1 && both.every((v) => v.constraintId === "p"), JSON.stringify(both));
 });
