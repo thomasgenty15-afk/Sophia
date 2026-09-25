@@ -212,6 +212,8 @@ function decor(nutrition: GateContext["nutrition"]): GateContext {
     windowDays: ["fri", "sat", "sun"],
     hasFreezer: true,
     maxFridgeDays: 3,
+    // Plan sans casserole: la fenêtre du riz n'a rien à regarder.
+    riceRefs: [],
     mouths: [],
     dedicated: [],
     energy: null,

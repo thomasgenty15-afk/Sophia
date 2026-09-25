@@ -1405,3 +1405,11 @@ Deno.test("épinglage — OWN_USUAL_EMPTY_MAX_KCAL vaut 30", () =>
 import { FRESH_ITEM_CRUMB_BELOW_G } from "./portion_sizing_apply.ts";
 Deno.test("épinglage — FRESH_ITEM_CRUMB_BELOW_G vaut 30", () =>
   assertEquals(FRESH_ITEM_CRUMB_BELOW_G, 30));
+
+// ⟳ 2026-09-25 — le riz cuit se mange le jour de sa cuisson ou le lendemain
+// (décision produit du 2026-09-25). Même convention que `MAX_FRIDGE_DAYS`:
+// `gap >= fenêtre` ⇒ trop tard.
+import { COOKED_RICE_FRIDGE_DAYS } from "./fridge_window.ts";
+Deno.test("épinglage — COOKED_RICE_FRIDGE_DAYS vaut 2", () =>
+  assertEquals(COOKED_RICE_FRIDGE_DAYS, 2));
+

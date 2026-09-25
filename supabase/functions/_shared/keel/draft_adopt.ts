@@ -341,6 +341,12 @@ function parseGateContext(value: unknown): GateContext | null {
 
   const maxFridgeDays = Number(src.maxFridgeDays ?? src.max_fridge_days);
   if (!Number.isFinite(maxFridgeDays)) return null;
+  // ⟳ 2026-09-25 — LES IDENTIFIANTS DU RIZ. Même tolérance que `energy`, et
+  // pour la même raison: un brouillon gelé avant ce champ ne l'a pas, et le
+  // refuser le rendrait inadoptable pour une cause qui ne fait que compter.
+  // `null` est un état à part entière: la garde compte `rice_unevaluated`.
+  const rawRice = src.riceRefs ?? src.rice_refs;
+  const riceRefs = Array.isArray(rawRice) ? asStrings(rawRice) : null;
 
   if (!Array.isArray(src.mouths)) return null;
   const mouths = src.mouths.filter(isRecord).map((m) => ({
@@ -427,6 +433,7 @@ function parseGateContext(value: unknown): GateContext | null {
     windowDays,
     hasFreezer,
     maxFridgeDays,
+    riceRefs,
     mouths,
     boxContract,
     exclusions,

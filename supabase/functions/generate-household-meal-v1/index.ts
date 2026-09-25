@@ -649,7 +649,12 @@ import {
   rawKeepingBreaches,
   sessionsFedFromFreezer,
 } from "../_shared/keel/raw_keeping.ts";
-import { effectiveRawWindowDays, FREEZER_WINDOW_DAYS } from "../_shared/keel/fridge_window.ts";
+// ⟳ 2026-09-25 — `riceRefsOf`: les identifiants du riz, pour la fenêtre du riz de la garde.
+import {
+  effectiveRawWindowDays,
+  FREEZER_WINDOW_DAYS,
+  riceRefsOf,
+} from "../_shared/keel/fridge_window.ts";
 // ③ — LES JOURS QUE LE FOYER NE DÉPLACE PAS (2026-08-20).
 import {
   type HouseholdTradition,
@@ -21624,6 +21629,9 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
         windowDays: daysToFill,
         hasFreezer: hasFreezerDeclared(kitchenEquipment),
         maxFridgeDays: MAX_FRIDGE_DAYS,
+        // ⟳ 2026-09-25 — la fenêtre du riz (`rice_eaten_too_late`, comptée).
+        // `null` sans référentiel: la garde le compte, elle ne devine pas.
+        riceRefs: composition === null ? null : riceRefsOf(composition),
         // ⚠️ LA MÊME GRILLE QUE LE DIMENSIONNEMENT, pas une seconde
         // projection: `byMouth` porte exactement `{memberId, regime, cells}`.
         //

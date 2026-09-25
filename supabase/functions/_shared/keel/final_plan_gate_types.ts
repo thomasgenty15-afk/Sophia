@@ -167,6 +167,13 @@ export interface GateContext {
    * `fridge_window.ts` : deux copies d'un même nombre divergent.
    */
   readonly maxFridgeDays: number;
+  /**
+   * ⟳ 2026-09-25 — LES IDENTIFIANTS DU RIZ (`riceRefsOf`, famille `rice` du
+   * référentiel). REQUIS ET NULLABLE: `null` = le référentiel n'a pas été lu
+   * (adoption d'un brouillon gelé avant ce champ) ⇒ la fenêtre du riz ne
+   * tourne pas, et `checked.rice_unevaluated` le compte.
+   */
+  readonly riceRefs: readonly string[] | null;
   readonly mouths: readonly {
     readonly memberId: string;
     readonly regime: DietaryRegime | null;
@@ -392,7 +399,7 @@ export interface DayNutritionRow {
 // ---------------------------------------------------------------------------
 
 /**
- * LES 29 CAUSES. Liste FERMÉE, orthographe exacte, ordre d'évaluation.
+ * LES 35 CAUSES. Liste FERMÉE, orthographe exacte, ordre d'évaluation.
  *
  * ⚠️ ELLES SE LISENT PAR FAMILLE, et chaque famille a son dénominateur :
  * références (`uses`, `box_items`, `session_ids`), fenêtre cuite
@@ -409,6 +416,16 @@ export const FINAL_GATE_CAUSES = [
   // ── la fenêtre cuite ────────────────────────────────────────────────────
   "eaten_before_cooked",
   "eaten_too_late",
+  /**
+   * ⟳ 2026-09-25 — UN RIZ CUIT MANGÉ APRÈS LE LENDEMAIN DE SA CUISSON
+   * (`COOKED_RICE_FRIDGE_DAYS`, `fridge_window.ts`), dans la fenêtre générale
+   * du frigo. Dénominateur `rice_pairs_checked`.
+   *
+   * ⚠️ `count` DANS LES QUATRE POLITIQUES, PAR DÉFAUT ET EXPRÈS: on compte sur
+   * une série de tirs, puis le refus viendra au PARSEUR (qui jette le plat,
+   * comme `eaten_too_late`), pas ici.
+   */
+  "rice_eaten_too_late",
   "cook_day_unplaced",
   // ── les sessions ────────────────────────────────────────────────────────
   "preparation_without_session",
@@ -698,6 +715,24 @@ export interface FinalGateChecked {
   readonly session_ids: number;
   /** Couples (plat, préparation citée ET résolue) passés à la fenêtre cuite. */
   readonly cooked_pairs: number;
+  /**
+   * ⟳ 2026-09-25 — Couples cuits CONFRONTÉS à la question du riz (le
+   * référentiel du riz était connu). LE DÉNOMINATEUR de `rice_eaten_too_late`,
+   * sur le modèle de `dedicated_cells_checked`: la question est posée à chaque
+   * couple, et un plan sans riz y répond « non » — son zéro de refus est une
+   * réponse, pas une règle débranchée.
+   */
+  readonly rice_pairs_checked: number;
+  /**
+   * ⟳ 2026-09-25 — TÉMOIN: parmi eux, ceux dont la casserole porte du riz.
+   */
+  readonly rice_pairs: number;
+  /**
+   * ⟳ 2026-09-25 — TÉMOIN: couples cuits NON confrontés (`ctx.riceRefs`
+   * absent: brouillon gelé avant ce champ). Sans lui, un zéro se lirait « pas
+   * de riz » au lieu de « pas regardé ».
+   */
+  readonly rice_unevaluated: number;
   /** Cases distinctes attendues (union des cases des bouches). */
   readonly cells: number;
   /** Couples (bouche, case) — le dénominateur de `mouth_unfed`. */

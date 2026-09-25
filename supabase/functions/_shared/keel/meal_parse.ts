@@ -2107,6 +2107,11 @@ export function parseGeneratedMeal(
             kept: keptHere,
             hasFreezer,
             maxFridgeDays: MAX_FRIDGE_DAYS,
+            // ⟳ 2026-09-25 — LE RIZ N'EST PAS ENCORE JETÉ ICI, ET C'EST ÉCRIT.
+            // Phase comptée: la garde finale compte `rice_eaten_too_late` sur
+            // une série de tirs; le refus au parseur viendra ensuite, en
+            // passant ici `preparationHoldsRice(...)`.
+            holdsCookedRice: false,
           }),
         );
         // `before_cooking` appartient à l'AUTRE règle (« un lot mangé avant

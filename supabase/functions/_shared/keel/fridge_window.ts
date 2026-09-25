@@ -133,6 +133,46 @@ export const FREEZER_WINDOW_DAYS = 7;
 export type KeptWhere = "fridge" | "freezer";
 
 /**
+ * ⟳ 2026-09-25 — LE RIZ CUIT: LE JOUR MÊME OU LE LENDEMAIN.
+ *
+ * Décision produit du 2026-09-25 (« le code l'applique »). La consigne le
+ * disait déjà au modèle (« Cooked rice is tighter still: same day or the day
+ * after. »), et rien ne le vérifiait: banc des trois foyers, plan A, un riz
+ * cuit dimanche servi mardi midi et mardi soir.
+ *
+ * ⚠️ MÊME CONVENTION QUE `MAX_FRIDGE_DAYS` (`gap >= fenêtre` ⇒ trop tard): 2
+ * compte le jour de cuisson et le lendemain — un écart de 0 ou 1.
+ */
+export const COOKED_RICE_FRIDGE_DAYS = 2;
+
+/**
+ * ⟳ 2026-09-25 — LES IDENTIFIANTS DU RIZ, LUS DANS LE RÉFÉRENTIEL
+ * (`food_composition_refs.family = 'rice'`), jamais dans un libellé
+ * (« laitue » n'est pas « lait »). Structurel, pour que ce module reste sans
+ * import (lu depuis Vite).
+ */
+export function riceRefsOf(index: {
+  readonly bySlug: ReadonlyMap<string, { readonly slug: string; readonly family?: string | null }>;
+}): string[] {
+  const out: string[] = [];
+  for (const ref of index.bySlug.values()) {
+    if (ref.family === "rice") out.push(ref.slug);
+  }
+  return out.sort();
+}
+
+/**
+ * ⟳ 2026-09-25 — CETTE CASSEROLE PORTE-T-ELLE DU RIZ ? Par l'identifiant de
+ * chaque ingrédient (`ref`), contre les identifiants de `riceRefsOf`.
+ */
+export function preparationHoldsRice(
+  ingredients: readonly { readonly ref?: string | null }[],
+  riceRefs: ReadonlySet<string>,
+): boolean {
+  return ingredients.some((i) => typeof i?.ref === "string" && riceRefs.has(i.ref));
+}
+
+/**
  * COMBIEN DE JOURS CETTE PART-LÀ PEUT ATTENDRE.
  *
  * Une seule décision, un seul endroit. `cookedWindowVerdict` ne change pas de
@@ -148,6 +188,12 @@ export function keptWindowDays(input: {
   /** `hasKitchenTool(eq, "freezer") === true`. REQUIS, jamais optionnel. */
   hasFreezer: boolean;
   maxFridgeDays: number;
+  /**
+   * ⟳ 2026-09-25 — LA CASSEROLE PORTE DU RIZ (`preparationHoldsRice`). REQUIS
+   * et booléen, comme `hasFreezer`. Le congélateur gagne: une part congelée
+   * le jour de sa cuisson n'a plus la fenêtre du frigo, riz compris.
+   */
+  holdsCookedRice: boolean;
 }): number {
   if (typeof input?.hasFreezer !== "boolean") {
     throw new Error(
@@ -155,8 +201,15 @@ export function keptWindowDays(input: {
         "un appelant qui n'a pas lu l'inventaire passe `false`, il ne l'hérite pas",
     );
   }
-  return input.kept === "freezer" && input.hasFreezer
-    ? FREEZER_WINDOW_DAYS
+  if (typeof input?.holdsCookedRice !== "boolean") {
+    throw new Error(
+      "[keel/fridge_window] keptWindowDays: holdsCookedRice est REQUIS et booléen — " +
+        "un appelant qui ne sait pas passe `false` et le dit, il ne l'hérite pas",
+    );
+  }
+  if (input.kept === "freezer" && input.hasFreezer) return FREEZER_WINDOW_DAYS;
+  return input.holdsCookedRice
+    ? Math.min(COOKED_RICE_FRIDGE_DAYS, input.maxFridgeDays)
     : input.maxFridgeDays;
 }
 

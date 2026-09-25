@@ -146,6 +146,12 @@ Deno.test("le cas propre a fait TOURNER les douze dénominateurs (aucun à zéro
     // Le dénominateur est `dedicated_cells_checked`, qui vaut `mouth_cells`
     // dès que la grille a tourné — et il est vérifié juste en dessous.
     "dedicated_obligations",
+    // ⟳ 2026-09-25 — TÉMOINS DE LA FENÊTRE DU RIZ, sur le modèle de
+    // `dedicated_obligations`: ce plan n'a pas de riz (`rice_pairs` vaut zéro,
+    // « rien à juger »), et son référentiel est connu (`rice_unevaluated`
+    // vaut zéro). Le dénominateur est `rice_pairs_checked`, vérifié ici.
+    "rice_pairs",
+    "rice_unevaluated",
   ]);
   for (const [name, value] of Object.entries(checked)) {
     if (TEMOINS.has(name)) continue;
@@ -1337,3 +1343,84 @@ Deno.test("BÊTA 1A — une boîte IDENTIQUE à celle des autres ne remplit rien
   });
   assertCauses(outcome, { dedicated_dish_missing: 1 });
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-25 — LE RIZ CUIT : LE JOUR MÊME OU LE LENDEMAIN (compté)
+// ═══════════════════════════════════════════════════════════════════════════
+// Banc des trois foyers, plan A : un riz cuit dimanche servi mardi. La
+// casserole « quinoa » du plan propre devient une casserole de riz
+// (`ref: white_rice`), cuite samedi, mangée lundi : deux jours d'écart, dans la
+// fenêtre générale du frigo (3), hors de celle du riz (2).
+
+const RIZ = { term: "riz blanc", group: "refined_grain", ref: "white_rice" };
+
+function rizDuSamedi(plan: MutablePlan, ctx: MutableContext): void {
+  ctx.windowDays = ["sat", "sun", "mon", "tue"];
+  ctx.startsOn = "2026-09-05";
+  plan.preparations[1].cook_on = "sat";
+  plan.preparations[1].ingredients[0] = { ...RIZ };
+  // La session suit la casserole, sinon `session_day_mismatch` parlerait.
+  plan.cooking_sessions[0].preparation_ids = ["prep_oats_sun"];
+  plan.cooking_sessions.push({ day: "sat", preparation_ids: ["prep_quinoa_sun"] });
+}
+
+Deno.test("rice_eaten_too_late : riz cuit samedi, mangé lundi — compté sous les quatre politiques", () => {
+  const outcome = gateWith(rizDuSamedi);
+  assertCauses(outcome, { rice_eaten_too_late: 1 });
+  assertEquals(outcome.counters.checked.rice_pairs_checked, 2);
+  assertEquals(outcome.counters.checked.rice_pairs, 1);
+  assertEquals(outcome.counters.checked.rice_unevaluated, 0);
+  for (
+    const policy of [
+      FINAL_GATE_POLICY_LOT_1,
+      FINAL_GATE_POLICY_LOT_2,
+      FINAL_GATE_POLICY_LOT_3,
+      FINAL_GATE_POLICY_LOT_4,
+    ]
+  ) {
+    const o = gateWith((plan, ctx) => {
+      rizDuSamedi(plan, ctx);
+      ctx.policy = policy;
+    });
+    assertEquals(o.ok, true, "compté, jamais refusé à la garde");
+    assertEquals(o.refusals.map((r) => [r.cause, r.severity]), [["rice_eaten_too_late", "count"]]);
+  }
+});
+
+Deno.test("rice_eaten_too_late : le lendemain passe", () => {
+  // Le plan propre: casserole cuite dimanche, mangée lundi.
+  const outcome = gateWith((plan) => {
+    plan.preparations[1].ingredients[0] = { ...RIZ };
+  });
+  assertCauses(outcome, {});
+  assertEquals(outcome.counters.checked.rice_pairs, 1, "le couple a bien été regardé");
+});
+
+Deno.test("rice_eaten_too_late : la part congelée déclarée, avec congélateur, passe", () => {
+  const outcome = gateWith((plan, ctx) => {
+    rizDuSamedi(plan, ctx);
+    plan.dishes[2].uses[0].kept = "freezer";
+  });
+  assertCauses(outcome, {});
+});
+
+Deno.test("rice_eaten_too_late : une casserole sans riz n'est pas regardée par la fenêtre du riz", () => {
+  const outcome = gateWith((plan, ctx) => {
+    rizDuSamedi(plan, ctx);
+    plan.preparations[1].ingredients[0] = { term: "quinoa", group: "whole_grain" };
+  });
+  assertCauses(outcome, {});
+  assertEquals(outcome.counters.checked.rice_pairs, 0);
+});
+
+Deno.test("rice_eaten_too_late : sans identifiants du riz, rien n'est jugé — et c'est compté", () => {
+  const outcome = gateWith((plan, ctx) => {
+    rizDuSamedi(plan, ctx);
+    ctx.riceRefs = null;
+  });
+  assertCauses(outcome, {});
+  assertEquals(outcome.counters.checked.rice_pairs_checked, 0, "la question n'a pas été posée");
+  assertEquals(outcome.counters.checked.rice_pairs, 0);
+  assertEquals(outcome.counters.checked.rice_unevaluated, 2, "les deux couples cuits, non jugés");
+});
+

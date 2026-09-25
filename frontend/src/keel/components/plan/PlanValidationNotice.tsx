@@ -186,6 +186,8 @@ const CAUSE_KEYS: Record<string, MessageKey> = {
   // ── la fenêtre de cuisson ───────────────────────────────────────────────
   eaten_before_cooked: "plan.validation.cause.cooking_window",
   eaten_too_late: "plan.validation.cause.cooking_window",
+  // ⟳ 2026-09-25 — le riz cuit mangé après le lendemain: même famille.
+  rice_eaten_too_late: "plan.validation.cause.cooking_window",
   cook_day_unplaced: "plan.validation.cause.cooking_window",
   preparation_without_session: "plan.validation.cause.cooking_window",
   session_day_mismatch: "plan.validation.cause.cooking_window",

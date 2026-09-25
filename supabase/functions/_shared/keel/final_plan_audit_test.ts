@@ -1049,6 +1049,8 @@ function ctxAvec(
     windowDays: ["fri", "sat", "sun"],
     hasFreezer: true,
     maxFridgeDays: 3,
+    // Plan vide: aucune casserole, la fenêtre du riz n'a rien à regarder.
+    riceRefs: [],
     // ⚠️ AUCUNE BOUCHE : ce décor n'exerce QUE les causes de nutrition, et une
     // grille non vide allumerait `cell_without_dish` sur un plan vide.
     mouths: [],

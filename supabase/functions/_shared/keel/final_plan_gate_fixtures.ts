@@ -318,6 +318,9 @@ export const CLEAN_HOUSEHOLD_CONTEXT: GateContext = {
   windowDays: [...FIXTURE_WINDOW_DAYS],
   hasFreezer: true,
   maxFridgeDays: FIXTURE_MAX_FRIDGE_DAYS,
+  // ⟳ 2026-09-25 — les trois slugs de la famille `rice` du référentiel. Le
+  // plan propre n'a pas de riz: `rice_pairs` vaut zéro, et c'est une réponse.
+  riceRefs: ["brown_rice", "cooked_rice", "white_rice"],
   mouths: [
     { memberId: PAUL, regime: null, cells: [...HOUSEHOLD_CELLS] },
     { memberId: CLAIRE, regime: null, cells: [...HOUSEHOLD_CELLS] },
@@ -542,6 +545,7 @@ export const SOLO_CONTEXT: GateContext = {
   windowDays: [...FIXTURE_WINDOW_DAYS],
   hasFreezer: false,
   maxFridgeDays: FIXTURE_MAX_FRIDGE_DAYS,
+  riceRefs: ["brown_rice", "cooked_rice", "white_rice"],
   mouths: [
     { memberId: SOLO, regime: null, cells: [{ day: "sun", slot: "breakfast" }] },
   ],

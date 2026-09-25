@@ -954,6 +954,9 @@ const CAUSE_TO_DEFECT: Readonly<
   house_rule_served: { kind: "safety", repairable: true },
   eaten_before_cooked: { kind: "safety", repairable: true },
   eaten_too_late: { kind: "safety", repairable: true },
+  // ⟳ 2026-09-25 — même famille; comptée, jamais chassée (`CHASED_CAUSES`):
+  // elle ne fait partir aucun appel, elle suit un appel parti pour autre chose.
+  rice_eaten_too_late: { kind: "safety", repairable: true },
   perishable_bought_too_early: { kind: "safety", repairable: true },
   // ── un repas qui manque ────────────────────────────────────────────────
   cell_without_dish: { kind: "missing_meal", repairable: true },

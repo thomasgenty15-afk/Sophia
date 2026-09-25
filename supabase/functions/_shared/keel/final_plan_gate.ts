@@ -86,6 +86,7 @@ import {
   cookedWindowVerdict,
   type KeptWhere,
   keptWindowDays,
+  preparationHoldsRice,
 } from "./fridge_window.ts";
 import {
   type DeliveredDish,
@@ -398,6 +399,9 @@ export function finalPlanGate(
   let boxItemsChecked = 0;
   let sessionIdsChecked = 0;
   let cookedPairs = 0;
+  let ricePairsChecked = 0;
+  let ricePairs = 0;
+  let ricePairsUnevaluated = 0;
   let tableDishes = 0;
   let boxedDishes = 0;
 
@@ -489,6 +493,14 @@ export function finalPlanGate(
   // On réutilise `cookedWindowVerdict` et `keptWindowDays`, sans les
   // réécrire : « deux copies d'un même nombre divergent, et c'est celle qu'on
   // regarde le moins qui garde l'ancienne ».
+  //
+  // ⟳ 2026-09-25 — ET LE RIZ, COMPTÉ À PART (`rice_eaten_too_late`). La
+  // fenêtre générale décide d'abord (`holdsCookedRice: false`, le verdict
+  // d'avant, inchangé); un couple qu'elle laisse passer et dont la casserole
+  // porte du riz repasse avec `holdsCookedRice: true`. `Array.isArray` et pas
+  // `!== null`: un contexte construit sans le champ ne doit pas se lire
+  // « aucun riz au référentiel ».
+  const riceSet = Array.isArray(ctx.riceRefs) ? new Set<string>(ctx.riceRefs) : null;
   for (const dish of dishes) {
     const title = String(dish?.title ?? "");
     const eatAt = rankOf(dish?.day);
@@ -529,8 +541,16 @@ export function finalPlanGate(
         kept: asKept(use?.kept),
         hasFreezer: ctx.hasFreezer === true,
         maxFridgeDays: ctx.maxFridgeDays,
+        holdsCookedRice: false,
       });
       const verdict = cookedWindowVerdict(cookAt, eatAt, window);
+      const holdsRice = riceSet !== null &&
+        preparationHoldsRice(prep.ingredients ?? [], riceSet);
+      if (riceSet === null) ricePairsUnevaluated++;
+      else {
+        ricePairsChecked++;
+        if (holdsRice) ricePairs++;
+      }
       if (verdict === "before_cooking") {
         refuse("eaten_before_cooked", {
           day: dish?.day ?? null,
@@ -549,6 +569,23 @@ export function finalPlanGate(
           detail:
             `cuisiné ${prep.cook_on}, mangé ${dish?.day} — au-delà de ${window} jour(s) de conservation`,
         });
+      } else if (holdsRice) {
+        const riceWindow = keptWindowDays({
+          kept: asKept(use?.kept),
+          hasFreezer: ctx.hasFreezer === true,
+          maxFridgeDays: ctx.maxFridgeDays,
+          holdsCookedRice: true,
+        });
+        if (cookedWindowVerdict(cookAt, eatAt, riceWindow) === "too_late") {
+          refuse("rice_eaten_too_late", {
+            day: dish?.day ?? null,
+            slot: dish?.slot ?? null,
+            dish: title,
+            preparation_id: id,
+            detail:
+              `riz cuit ${prep.cook_on}, mangé ${dish?.day} — au-delà du lendemain de sa cuisson`,
+          });
+        }
       }
     }
   }
@@ -1654,6 +1691,9 @@ export function finalPlanGate(
       box_items: boxItemsChecked,
       session_ids: sessionIdsChecked,
       cooked_pairs: cookedPairs,
+      rice_pairs_checked: ricePairsChecked,
+      rice_pairs: ricePairs,
+      rice_unevaluated: ricePairsUnevaluated,
       cells: expectedCells.size,
       // ⚠️ `mouthCells` ET PAS LE COMPTE DES OBLIGATIONS: voir le pavé du
       // champ. La question a été posée à chaque couple (bouche, case) dès lors

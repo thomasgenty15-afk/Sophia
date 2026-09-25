@@ -193,6 +193,7 @@ const CAUSE_DENOMINATOR: Readonly<
   session_cites_unknown: "session_ids",
   eaten_before_cooked: "cooked_pairs",
   eaten_too_late: "cooked_pairs",
+  rice_eaten_too_late: "rice_pairs_checked",
   cook_day_unplaced: "cooked_pairs",
   preparation_without_session: "cooked_pairs",
   session_day_mismatch: "session_ids",

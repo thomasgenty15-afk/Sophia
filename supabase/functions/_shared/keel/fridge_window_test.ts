@@ -7,9 +7,11 @@ import {
   FREEZER_WINDOW_DAYS,
   fridgeWindowChecked,
   keptWindowDays,
+  preparationHoldsRice,
   RAW_WINDOW_DAYS,
   RAW_WINDOW_NEVER_BINDS_FROM,
   rawWindowDaysFor,
+  riceRefsOf,
 } from "./fridge_window.ts";
 import { MAX_WINDOW_DAYS } from "./meal_plan_window.ts";
 import { FOOD_GROUP_REFS } from "./tokens.ts";
@@ -189,7 +191,7 @@ Deno.test("`FREEZER_WINDOW_DAYS` vaut 7, et 7 EST le plafond d'un plan", () => {
 Deno.test("la fenêtre ne s'ouvre QUE sur la déclaration ET l'équipement", () => {
   // Les quatre combinaisons, et trois d'entre elles restent au frigo.
   const at = (kept: "fridge" | "freezer", hasFreezer: boolean) =>
-    keptWindowDays({ kept, hasFreezer, maxFridgeDays: 3 });
+    keptWindowDays({ kept, hasFreezer, maxFridgeDays: 3, holdsCookedRice: false });
 
   assertEquals(at("freezer", true), 7); // la seule qui ouvre
   assertEquals(at("freezer", false), 3); // réclamé sans l'appareil
@@ -208,7 +210,7 @@ Deno.test("⛔ `hasFreezer` non booléen JETTE — l'ignorance ne s'hérite pas"
     let threw = false;
     try {
       keptWindowDays(
-        { kept: "freezer", hasFreezer: bad, maxFridgeDays: 3 } as never,
+        { kept: "freezer", hasFreezer: bad, maxFridgeDays: 3, holdsCookedRice: false } as never,
       );
     } catch {
       threw = true;
@@ -233,3 +235,45 @@ Deno.test("une part congelée traverse la semaine, une part au frigo non", () =>
   assertEquals(cookedWindowVerdict(0, 2, 3), "within");
   assertEquals(cookedWindowVerdict(0, 3, 3), "too_late");
 });
+
+// ⟳ 2026-09-25 — LE RIZ CUIT: LE JOUR MÊME OU LE LENDEMAIN.
+Deno.test("riz: la fenêtre vaut 2 au frigo, le congélateur déclaré et présent gagne", () => {
+  const at = (kept: "fridge" | "freezer", hasFreezer: boolean, rice: boolean) =>
+    keptWindowDays({ kept, hasFreezer, maxFridgeDays: 3, holdsCookedRice: rice });
+  assertEquals(at("fridge", false, true), 2);
+  assertEquals(at("fridge", true, true), 2, "avoir un congélateur ne suffit pas");
+  assertEquals(at("freezer", false, true), 2, "réclamé sans l'appareil");
+  assertEquals(at("freezer", true, true), 7, "congelé le jour de la cuisson");
+  // Le jour même et le lendemain passent, le surlendemain non.
+  assertEquals(cookedWindowVerdict(0, 0, 2), "within");
+  assertEquals(cookedWindowVerdict(0, 1, 2), "within");
+  assertEquals(cookedWindowVerdict(0, 2, 2), "too_late");
+  // ⚠️ `Math.min`: une fenêtre générale plus courte que celle du riz gagne.
+  assertEquals(keptWindowDays({ kept: "fridge", hasFreezer: false, maxFridgeDays: 1, holdsCookedRice: true }), 1);
+});
+
+Deno.test("⛔ `holdsCookedRice` non booléen JETTE", () => {
+  for (const bad of [undefined, null, "true", 1]) {
+    let threw = false;
+    try {
+      keptWindowDays({ kept: "fridge", hasFreezer: false, maxFridgeDays: 3, holdsCookedRice: bad } as never);
+    } catch {
+      threw = true;
+    }
+    assert(threw, `holdsCookedRice=${JSON.stringify(bad)} aurait dû jeter`);
+  }
+});
+
+Deno.test("riz: les identifiants viennent de la famille du référentiel, pas du libellé", () => {
+  const bySlug = new Map([
+    ["white_rice", { slug: "white_rice", family: "rice" }],
+    ["brown_rice", { slug: "brown_rice", family: "rice" }],
+    ["rice_pudding_cake", { slug: "rice_pudding_cake", family: null }],
+    ["quinoa", { slug: "quinoa", family: "quinoa" }],
+  ]);
+  assertEquals(riceRefsOf({ bySlug }), ["brown_rice", "white_rice"]);
+  const refs = new Set(riceRefsOf({ bySlug }));
+  assertEquals(preparationHoldsRice([{ ref: "quinoa" }, { ref: "white_rice" }], refs), true);
+  assertEquals(preparationHoldsRice([{ ref: "rice_pudding_cake" }, { ref: null }, {}], refs), false);
+});
+
