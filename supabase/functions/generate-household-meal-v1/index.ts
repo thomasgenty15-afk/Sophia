@@ -14241,6 +14241,26 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
         for (const c of set.contracts) {
           contractsByKey.set(contractKey(c.memberId, c.date, c.slot), c);
         }
+        // ⟳ 2026-09-25 (soir) — ET SES CASES DU REPLI À 700 g. Tir C-4: sans
+        // collation, le déjeuner réécrit de Thomas déborde et reçoit 700 g; la
+        // liste, remplie avant le modèle, ne le nommait pas, et la grille le
+        // relisait hors borne. En place, comme les demandes d'à-côtés, et le
+        // compte `overflow_to_dish` suit la liste.
+        const ceilingAt = hardCeilingCells.findIndex((x) => x.member_id === memberId);
+        const ceilingKept = hardCeilingCells.filter((x) => x.member_id !== memberId);
+        const ceilingFresh = set.contracts
+          .filter((c) => c.overflow === "hard_ceiling")
+          .map((c) => ({ member_id: memberId, day: c.dayToken, slot: c.slot, overflow: "hard_ceiling" as const }));
+        sideCoursesTrace.contract.overflow_to_dish +=
+          ceilingFresh.length - (hardCeilingCells.length - ceilingKept.length);
+        const ceilingInsertAt = ceilingAt < 0 ? ceilingKept.length : ceilingAt;
+        hardCeilingCells.splice(
+          0,
+          hardCeilingCells.length,
+          ...ceilingKept.slice(0, ceilingInsertAt),
+          ...ceilingFresh,
+          ...ceilingKept.slice(ceilingInsertAt),
+        );
         // ⟳ 2026-09-25 (nuit) — ET SES À-CÔTÉS AVEC. Le moment vide rend sa
         // part aux autres; ce que l'assiette ne tient pas part aux à-côtés du
         // contrat réécrit (`sideBudgetFor`), et c'est le registre qui les pèse

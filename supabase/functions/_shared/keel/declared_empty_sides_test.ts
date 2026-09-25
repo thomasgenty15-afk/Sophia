@@ -136,6 +136,16 @@ Deno.test("② petit-déjeuner déclaré vide : les demandes du déjeuner et du 
   assert(aCotes(apres.asks) >= aCotes(avant.asks) - 1e-9);
 });
 
+Deno.test("② le contrat réécrit peut déborder au repli de 700 g là où celui d'avant le modèle ne débordait pas", () => {
+  // C'est pourquoi la réécriture refait aussi `hardCeilingCells` (③): la liste
+  // remplie avant le modèle ne nomme pas ces cases.
+  const repli = (emptySlots: string[]) =>
+    contratsDuJour(emptySlots).contracts.filter((c) => c.overflow === "hard_ceiling").map((c) => c.slot).sort();
+  assertEquals(repli([]), []);
+  assertEquals(repli(["breakfast"]), ["dinner", "lunch"]);
+  assertEquals(contratsDuJour(["breakfast"]).counters.overflow_to_dish, 2, "le compte dit la même chose que la liste");
+});
+
 // ── ③ la jointure dans le générateur ─────────────────────────────────────
 const SRC = sourceFamilySync(
   new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
@@ -164,4 +174,16 @@ Deno.test("③ une seule construction des demandes, et la réécriture refait ce
   assert(corps.includes("sideAskOfContract(c, goal,"), "les demandes viennent du contrat réécrit");
   assert(corps.includes("sideMealKcalByKey.set("), "le repas entier de la case suit");
   assert(corps.includes("sideCourseAsks.splice("), "les anciennes demandes sont remplacées en place");
+});
+
+Deno.test("③ la réécriture renomme les cases du repli à 700 g de la personne, et le compte suit", () => {
+  const i = SRC.indexOf("const applyDeclaredEmptyContracts = (): DeclaredEmptyOutcome => {");
+  const fin = SRC.indexOf('tag: "keel.household_meal.declared_empty",', i);
+  const corps = SRC.slice(i, fin);
+  assert(corps.includes('.filter((c) => c.overflow === "hard_ceiling")'), "tirées du contrat réécrit");
+  assert(corps.includes("hardCeilingCells.splice("), "remplacées en place");
+  assert(corps.includes("sideCoursesTrace.contract.overflow_to_dish +="), "le compte `overflow_to_dish` suit la liste");
+  // ⛔ Aucun chiffre dans la liste (même règle que la boucle des contrats).
+  const fresh = corps.slice(corps.indexOf("const ceilingFresh"), corps.indexOf("sideCoursesTrace.contract.overflow_to_dish +="));
+  assert(fresh.length > 0 && !/kcal|grams/i.test(fresh), fresh);
 });
