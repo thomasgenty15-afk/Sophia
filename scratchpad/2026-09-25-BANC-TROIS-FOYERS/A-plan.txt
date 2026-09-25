@@ -1,0 +1,337 @@
+BROUILLON deed7ddf-4ee5-42d5-bab6-3493130253d8 | done |  | 167027 ms | {"intent": "draft", "origin": "setup", "window": {"kind": "exact", "starts_on": "2026-09-28", "duration_days": 4}, "context": null, "replaces": null, "takeover": true, "operation": "compose", "preferences": null, "cooking_shape": null, "cooking_sessions": 2}
+
+=== FENÊTRE {"starts_on": "2026-09-27", "duration_days": 5} TIMING {"kind": "day_before", "reason": "day_before", "lead_day": "2026-09-27"} SUGGÉRÉE {"shifted": null, "starts_on": "2026-09-25"}
+
+=== RATIONALE (texte montré)
+  • Ce plan couvre 5 jours, à partir de dimanche 2026-09-27.
+  • Le plan pose 2 sessions de cuisine : dimanche et mercredi.
+  • Le plan commence dimanche, un jour plus tôt : c'est le jour de cuisine, et rien ne s'y mange.
+  • Une seule course, dimanche : tout ce que le plan demande tient jusqu'à sa cuisson.
+  • Le budget des courses est 35.
+  • Pour y tenir, ce sont d'abord les protéines chères, puis les produits hors saison, puis la variété qui cèdent — jamais les portions.
+  • Chaque personne a chacun de ses repas.
+=== EXPLANATION {"lines": [], "refusal": null}
+=== REQUEST_REPORT {"lines": [], "refusal": null}
+=== VALIDATION {"state": "livrable_avec_ecarts", "counts": {"gaps": 18, "not_run": 1, "blocking": 0, "incomplete": 5, "not_applicable": 1}, "repair": {"rounds": 1, "by_kind": {"sizing": 18, "protein": 4}, "by_source": {"gate": 18, "upstream": 4, "quantities": 0, "output_contract": 0}, "calls_made": 0, "defects_at_delivery": 22}, "defects": [{"day": null, "dish": null, "slot": null, "term": null, "cause": "mouth_energy_short", "blocking": false, "severity": "count", "member_id": "a4853644-c3fa-4f60-afc5-1e88e300cd7d", "number_protected": true}, {"day": "mon", "dish": null, "slot": "snack_pm", "term": null, "cause": "cell_energy_off", "blocking": false, "severity": "count", "member_id": "a4853644-c3fa-4f60-afc5-1e88e300cd7d", "number_protected": true}, {"day": "tue", "dish": null, "slot": "lunch", "term": null, "cause": "cell_energy_off", "blocking": false, "severity": "count", "member_id": "a4853644-c3fa-4f60-afc5-1e88e300cd7d", "number_protected": true}, {"day": "tue", "dish": null, "slot": "snack_pm", "term": null, "cause": "cell_energy_off", "blocking": false, "severity": "count", "member_id": "a4853644-c3fa-4f60-afc5-1e88e300cd7d", "number_protected": true}, {"day": "wed", "dish": null, "slot": "breakfast", "term": null, "cause": "cell_energy_off", "blocking": false, "severity": "count", "member_id": "a4853644-c3fa-4f60-afc5-1e88e300cd7d", "number_protected": true}, {"day": "wed", "dish": null, "slot": "lunch", "term": null, "cause": "cell_energy_off", "blocking": false, "severity": "count", "member_id": "a4853644-c3fa-4f60-afc5-1e88e300cd7d", "number_protected": true}, {"day": "wed", "dish": null, "slot": "snack_pm", "term": null, "cause": "cell_energy_off", "blocking": false, "severity": "count", "member_id": "a4853644-c3fa-4f60-afc5-1e88e300cd7d", "number_protected": true}, {"day": "thu", "dish": null, "slot": "breakfast", "term": null, "cause": "cell_energy_off", "blocking": false, "severity": "count", "member_id": "a4853644-c3fa-4f60-afc5-1e88e300cd7d", "number_protected": true}, {"day": "thu", "dish": null, "slot": "lunch", "term": null, "cause": "cell_energy_off", "blocking": false, "severity": "count", "member_id": "a4853644-c3fa-4f60-afc5-1e88e300cd7d", "number_protected": true}, {"day": "thu", "dish": null, "slot": "snack_pm", "term": null, "cause": "cell_energy_off", "blocking": false, "severity": "count", "member_id": "a4853644-c3fa-4f60-afc5-1e88e300cd7d", "number_protected": true}, {"day": "2026-09-28", "dish": null, "slot": null, "term": null, "cause": "day_energy_off", "blocking": false, "severity": "count", "member_id": "a4853644-c3fa-4f60-afc5-1e88e300cd7d", "number_protected": true}, {"day": "2026-09-28", "dish": null, "slot": null, "term": null, "cause": "protein_floor_short", "blocking": false, "severity": "count", "member_id": "a4853644-c3fa-4f60-afc5-1e88e300cd7d", "number_protected": true}, {"day": "2026-09-29", "dish": null, "slot": null, "term": null, "cause": "day_energy_off", "blocking": false, "severity": "count", "member_id": "a4853644-c3fa-4f60-afc5-1e88e300cd7d", "number_protected": true}, {"day": "2026-09-29", "dish": null, "slot": null, "term": null, "cause": "protein_floor_short", "blocking": false, "severity": "count", "member_id": "a4853644-c3fa-4f60-afc5-1e88e300cd7d", "number_protected": true}, {"day": "2026-09-30", "dish": null, "slot": null, "term": null, "cause": "day_energy_off", "blocking": false, "severity": "count", "member_id": "a4853644-c3fa-4f60-afc5-1e88e300cd7d", "number_protected": true}, {"day": "2026-09-30", "dish": null, "slot": null, "term": null, "cause": "protein_floor_short", "blocking": false, "severity": "count", "member_id": "a4853644-c3fa-4f60-afc5-1e88e300cd7d", "number_protected": true}, {"day": "2026-10-01", "dish": null, "slot": null, "term": null, "cause": "day_energy_off", "blocking": false, "severity": "count", "member_id": "a4853644-c3fa-4f60-afc5-1e88e300cd7d", "number_protected": true}, {"day": "2026-10-01", "dish": null, "slot": null, "term": null, "cause": "protein_floor_short", "blocking": false, "severity": "count", "member_id": "a4853644-c3fa-4f60-afc5-1e88e300cd7d", "number_protected": true}], "not_run": ["title_promises_missing_preparation"], "version": 1, "incomplete": [{"count": 4, "control": "cell_energy"}, {"count": 1, "control": "protein_floor"}], "not_applicable": [{"count": 1, "control": "shopping_not_purchasable"}]}
+=== ISSUES
+  - table_dish_nobody: 2 shared dish(es) dropped -- every eater of the cell has a dish of their own
+  - composition_identify: 14 by_model, 0 absent, 0 unanswered (0 on the model's id), 65 by_name, 1 groups_corrected
+  - shopping_waves: 1 (2026-09-27)
+  - freeze_on_purchase: 0/32
+  - raw_keeping_needs_later_shop: 0/7 preparations
+  - waves_kept_for_freshness: 0/32
+  - sessions_fed_from_freezer: 0/0 name the freezer
+  - pot_density_drift_after_measure
+  - rounding_pot_overdrawn:2
+  - plate_window: 0 over, 0 within, 35 unjudged
+  - shopping_runs: asked 2, made 1
+  - quantity_prose_stale:37
+  - measured, not applied: preparations[prep_chickpeas_ginger]: the sized meals would take 649 g but the batch makes about 522 g, every share that draws on it scaled back to fit
+  - measured, not applied: preparations[prep_white_beans]: the sized meals would take 518 g but the batch makes about 405 g, every share that draws on it scaled back to fit
+  - measured, not applied: preparations[prep_potatoes]: the sized meals would take 734 g but the batch makes about 573 g, every share that draws on it scaled back to fit
+  - final_gate_flagged:18
+  - final_gate_delivery:deliverable_with_gaps
+  - plan_repair_skipped:no_blocking_defect:22
+  - plan_defects_at_delivery:22 (sizing:18, protein:4)
+  - ref_absent: 71/71 ingredients
+  - model_returned_no_box: 0/12 -- 12 meals take from a batch and the model emitted no box key; a deterministic sizing path may still author them downstream, so this line is about the MODEL's output, not about the shipped plan
+  - uses_kept_freezer: 0/20
+  - portion_standard_recipe:a4853644-c3fa-4f60-afc5-1e88e300cd7d
+
+=== BOUCHES
+  Camille | moments ['breakfast', 'lunch', 'snack_pm', 'dinner'] | note None
+
+=== SESSIONS
+
+## sun  total 30 min  preps ['prep_breakfast_eggs', 'prep_tofu_ginger', 'prep_chickpeas_ginger', 'prep_rice']
+   DÉROULÉ: Commence le riz: porte l’eau à ébullition 5 min à feu vif, puis cuis le riz couvert 10 min à feu doux et laisse-le reposer 5 min hors du feu. Pendant ce temps, brouille les œufs avec les épinards 5 min à feu moyen, fais sauter le tofu et les légumes 10 min à feu moyen, puis lance les pois chiches et les légumes pour 15 min à feu doux sous couvercle.
+   · prep_breakfast_eggs « Œufs brouillés aux épinards » cuit sun
+       méthode: Fais chauffer l’huile dans une poêle à feu moyen 5 min. Ajoute les épinards et les œufs battus, puis brouille le tout 5 min à feu moyen.
+       - œufs [whole_eggs/eggs] 2 unit (raw, part main)
+       - épinards [spinach/leafy_greens] 65 g (raw, part main)
+       - huile de colza [rapeseed_oil/other_added_fat] 10 ml (raw, part seasoning)
+       autres: {"share_parts": [{"kind": "protein", "term": "œufs", "fraction": 0.616}, {"kind": "vegetables", "term": null, "fraction": 0.328}], "servings_made": 2, "total_minutes": 10, "active_minutes": 10}
+   · prep_tofu_ginger « Tofu sauté au gingembre » cuit sun
+       méthode: Coupe le tofu et les légumes. Fais chauffer l’huile dans une poêle à feu moyen 5 min. Ajoute le tofu et les légumes, puis fais sauter 10 min à feu moyen avec la sauce soja et le gingembre.
+       - tofu [tofu/tofu_tempeh] 190 g (raw, part main)
+       - brocoli [broccoli/cruciferous_veg] 150 g (raw, part main)
+       - carotte [carrot/non_starchy_veg] 120 g (raw, part main)
+       - huile de colza [rapeseed_oil/other_added_fat] 7 ml (raw, part seasoning)
+       - sauce soja [soy_sauce/sauce_dressing] 15 ml (raw, part seasoning)
+       - gingembre frais [ginger/non_starchy_veg] 7 g (raw, part seasoning)
+       autres: {"share_parts": [{"kind": "protein", "term": "tofu", "fraction": 0.411}, {"kind": "vegetables", "term": null, "fraction": 0.541}], "servings_made": 2, "total_minutes": 15, "active_minutes": 10}
+   · prep_chickpeas_ginger « Pois chiches mijotés aux légumes » cuit sun
+       méthode: Coupe l’aubergine et le poivron. Fais chauffer l’huile dans une sauteuse à feu moyen 5 min. Ajoute les légumes, les pois chiches, l’eau, la sauce soja, le gingembre et l’ail. Couvre et laisse mijoter 15 min à feu doux.
+       - pois chiches en conserve [chickpeas_tinned/legumes] 204 g (cooked, part main)
+       - aubergine [aubergine/non_starchy_veg] 136 g (raw, part main)
+       - poivron [bell_pepper/non_starchy_veg] 109 g (raw, part main)
+       - huile de colza [rapeseed_oil/other_added_fat] 7 ml (raw, part seasoning)
+       - sauce soja [soy_sauce/sauce_dressing] 14 ml (raw, part seasoning)
+       - gingembre frais [ginger/non_starchy_veg] 5 g (raw, part seasoning)
+       - ail [garlic/non_starchy_veg] 3 g (raw, part seasoning)
+       - eau [water/water] 68 ml (None, part main)
+       autres: {"share_parts": [{"kind": "protein", "term": "pois chiches en conserve", "fraction": 0.391}, {"kind": "vegetables", "term": null, "fraction": 0.438}], "servings_made": 2, "total_minutes": 20, "active_minutes": 10}
+   · prep_rice « Riz blanc nature » cuit sun
+       méthode: Porte l’eau à ébullition à feu vif 5 min. Ajoute le riz, couvre et cuis 10 min à feu doux, puis laisse reposer 5 min hors du feu.
+       - riz blanc [white_rice/refined_grain] 120 g (raw, part starch)
+       - eau [water/water] 270 ml (None, part starch)
+       autres: {"share_parts": [], "servings_made": 4, "total_minutes": 20, "active_minutes": 5}
+
+## wed  total 30 min  preps ['prep_boiled_eggs', 'prep_lentils', 'prep_white_beans', 'prep_potatoes']
+   DÉROULÉ: Porte l’eau des pommes de terre à ébullition 5 min à feu vif, puis cuis-les 15 min à feu moyen; porte séparément l’eau des œufs à ébullition 5 min à feu vif et cuis les œufs 10 min à feu moyen. Pendant ce temps, fais mijoter les lentilles et leurs légumes 20 min à feu doux, puis les haricots blancs et leurs légumes 10 min à feu doux.
+   · prep_boiled_eggs « Œufs durs » cuit wed
+       méthode: Porte l’eau à ébullition à feu vif 5 min. Ajoute les œufs et cuis-les 10 min à feu moyen. Refroidis-les rapidement.
+       - œufs [whole_eggs/eggs] 1 unit (raw, part main)
+       - eau [water/water] 300 ml (None, part main)
+       autres: {"share_parts": [], "servings_made": 2, "total_minutes": 15, "active_minutes": 5}
+   · prep_lentils « Lentilles au chou et à la carotte » cuit wed
+       méthode: Rince les lentilles et coupe le chou et la carotte. Fais chauffer l’huile dans une casserole à feu moyen 5 min. Ajoute les lentilles, les légumes, l’eau, la sauce soja et le gingembre. Couvre et laisse mijoter 20 min à feu doux.
+       - lentilles vertes sèches [lentils_dry/legumes] 50 g (raw, part main)
+       - chou [cabbage/cruciferous_veg] 75 g (raw, part main)
+       - carotte [carrot/non_starchy_veg] 75 g (raw, part main)
+       - huile de colza [rapeseed_oil/other_added_fat] 4 ml (raw, part seasoning)
+       - sauce soja [soy_sauce/sauce_dressing] 8 ml (raw, part seasoning)
+       - gingembre frais [ginger/non_starchy_veg] 3 g (raw, part seasoning)
+       - eau [water/water] 130 ml (None, part main)
+       autres: {"share_parts": [{"kind": "protein", "term": "lentilles vertes sèches", "fraction": 0.3}, {"kind": "vegetables", "term": null, "fraction": 0.345}], "servings_made": 2, "total_minutes": 25, "active_minutes": 10}
+   · prep_white_beans « Haricots blancs au poireau » cuit wed
+       méthode: Émince le poireau et l’ail. Fais chauffer l’huile dans une casserole à feu moyen 5 min. Ajoute les haricots, le poireau, les épinards, l’eau, la sauce soja et l’ail. Couvre et laisse mijoter 10 min à feu doux.
+       - haricots blancs en conserve [white_beans/legumes] 160 g (cooked, part main)
+       - poireau [leek/non_starchy_veg] 95 g (raw, part main)
+       - épinards [spinach/leafy_greens] 95 g (raw, part main)
+       - huile de colza [rapeseed_oil/other_added_fat] 5 ml (raw, part seasoning)
+       - sauce soja [soy_sauce/sauce_dressing] 11 ml (raw, part seasoning)
+       - ail [garlic/non_starchy_veg] 3 g (raw, part seasoning)
+       - eau [water/water] 55 ml (None, part main)
+       autres: {"share_parts": [{"kind": "protein", "term": "haricots blancs en conserve", "fraction": 0.395}, {"kind": "vegetables", "term": null, "fraction": 0.43}], "servings_made": 2, "total_minutes": 15, "active_minutes": 10}
+   · prep_potatoes « Pommes de terre à l’eau » cuit wed
+       méthode: Coupe les pommes de terre en petits morceaux. Porte l’eau à ébullition à feu vif 5 min, ajoute les pommes de terre et cuis 15 min à feu moyen. Égoutte-les.
+       - pomme de terre [potato/starchy_veg] 635 g (raw, part starch)
+       - eau [water/water] 1 ml (None, part starch)
+       autres: {"share_parts": [], "servings_made": 4, "total_minutes": 20, "active_minutes": 5}
+
+   préparations hors session: []
+
+=== REPAS PAR JOUR
+
+######## MON
+
+  [breakfast] « Œuf, épinards, petit-suisse, pain complet et pomme » (nom: Œufs brouillés du matin) pour foyer | principal {"group": "eggs", "family": "eggs"}
+     pourquoi: Un petit-déjeuner simple qui se réchauffe vite.
+     méthode: Réchauffe la boîte dans une casserole couverte 5 min à feu doux. Sers avec le petit-suisse, le pain et la pomme. | same_day {"kind": "reheat_only", "minutes": 7}
+     uses: prep_breakfast_eggs (Œufs brouillés aux épinards) kept=fridge servings=1
+     frais: petit-suisse nature [petit_suisse_cream_cheese/dairy_yogurt] 127 g part=main
+     frais: pain complet [wholemeal_bread/whole_grain] 30 g part=bread
+     frais: pomme [apple/other_fruit] 51 g part=fruit
+     boîte box_mon_breakfast_0 → Camille: Œufs brouillés aux épinards 88g ←prep_breakfast_eggs; petit-suisse nature 127g (frais); pain complet 30g (frais); pomme 51g (frais)
+
+  [lunch] « Tofu, brocoli, carotte, riz et citron vert » (nom: Bol tofu citron vert) pour foyer | principal {"group": "tofu_tempeh", "family": "tofu"}
+     pourquoi: Le gingembre et le citron vert donnent une note asiatique fraîche à ce bol.
+     méthode: Réchauffe la boîte dans une casserole couverte 8 min à feu doux. Presse le citron vert dessus juste avant de servir. | same_day {"kind": "reheat_only", "minutes": 10}
+     uses: prep_tofu_ginger (Tofu sauté au gingembre) kept=fridge servings=1
+     uses: prep_rice (Riz blanc nature) kept=fridge servings=1
+     frais: citron vert [lime/citrus] 18 g part=seasoning
+     boîte box_mon_lunch_4 → Camille: Tofu sauté au gingembre 235g ←prep_tofu_ginger; Riz blanc nature 122g ←prep_rice; citron vert 18g (frais)
+     à côté: Camille starter concombre [cucumber] 250 g units=None prep=None
+     à côté: Camille dessert pomme [apple] 150 g units=1 prep=None
+
+  [snack_pm] « Yaourt nature et pomme » (nom: Yaourt et pomme de Camille) pour Camille | principal {"group": "other_fruit", "family": "apple"}
+     pourquoi: Le yaourt nature et la pomme font une collation familière et simple.
+     méthode: Coupe d’abord la pomme sur une planche et avec un couteau propres. Assemble le yaourt, ferme ce contenant, puis lave la planche, le couteau et le plan de travail avant d’ouvrir l’autre collation. Garde une cuillère dédiée à chaque plat. | same_day {"kind": "assemble", "minutes": 3}
+     frais: yaourt nature [plain_yogurt/dairy_yogurt] 69 g part=main
+     frais: pomme [apple/other_fruit] 56 g part=fruit
+     boîte box_mon_snack_pm_10 → Camille: yaourt nature 69g (frais); pomme 56g (frais)
+
+  [dinner] « Pois chiches, aubergine, poivron, riz et coriandre » (nom: Pois chiches au gingembre) pour foyer | principal {"group": "legumes", "family": "chickpeas"}
+     pourquoi: Le gingembre et la sauce soja donnent aux pois chiches une note asiatique chaleureuse.
+     méthode: Réchauffe la boîte dans une casserole couverte 8 min à feu doux. Hache la coriandre et parsème-la au moment de servir. | same_day {"kind": "reheat_only", "minutes": 10}
+     uses: prep_chickpeas_ginger (Pois chiches mijotés aux légumes) kept=fridge servings=1
+     uses: prep_rice (Riz blanc nature) kept=fridge servings=1
+     frais: coriandre fraîche [herbs_coriander/leafy_greens] 2 g part=seasoning
+     boîte box_mon_dinner_12 → Camille: Pois chiches mijotés aux légumes 265g ←prep_chickpeas_ginger; Riz blanc nature 36g ←prep_rice; coriandre fraîche 2g (frais)
+     à côté: Camille starter concombre [cucumber] 250 g units=None prep=None
+
+######## TUE
+
+  [breakfast] « Œuf, épinards, petit-suisse, pain complet et pêche » (nom: Matinée aux œufs) pour foyer | principal {"group": "eggs", "family": "eggs"}
+     pourquoi: La pêche apporte une touche fruitée à ce petit-déjeuner rapide.
+     méthode: Réchauffe la boîte dans une casserole couverte 5 min à feu doux. Sers avec le petit-suisse, le pain et la pêche. | same_day {"kind": "reheat_only", "minutes": 7}
+     uses: prep_breakfast_eggs (Œufs brouillés aux épinards) kept=fridge servings=1
+     frais: petit-suisse nature [petit_suisse_cream_cheese/dairy_yogurt] 127 g part=main
+     frais: pain complet [wholemeal_bread/whole_grain] 30 g part=bread
+     frais: pêche [peach/other_fruit] 51 g part=fruit
+     boîte box_tue_breakfast_1 → Camille: Œufs brouillés aux épinards 88g ←prep_breakfast_eggs; petit-suisse nature 127g (frais); pain complet 30g (frais); pêche 51g (frais)
+
+  [lunch] « Tofu, brocoli, carotte, riz et concombre » (nom: Bol tofu croquant) pour foyer | principal {"group": "tofu_tempeh", "family": "tofu"}
+     pourquoi: Le concombre apporte du croquant à un repas qui se réchauffe vite.
+     méthode: Réchauffe la boîte dans une casserole couverte 8 min à feu doux. Coupe le concombre et sers-le avec le plat chaud. | same_day {"kind": "reheat_only", "minutes": 10}
+     uses: prep_tofu_ginger (Tofu sauté au gingembre) kept=fridge servings=1
+     uses: prep_rice (Riz blanc nature) kept=fridge servings=1
+     frais: concombre [cucumber/non_starchy_veg] 37 g part=fresh_vegetable
+     boîte box_tue_lunch_5 → Camille: Tofu sauté au gingembre 223g ←prep_tofu_ginger; Riz blanc nature 115g ←prep_rice; concombre 37g (frais)
+     à côté: Camille starter tomate [tomato] 200 g units=2 prep=None
+     à côté: Camille dessert prune [plum] 120 g units=2 prep=None
+
+  [snack_pm] « Yaourt nature et pêche » (nom: Yaourt et pêche) pour foyer | principal {"group": "other_fruit", "family": "peach"}
+     pourquoi: Le yaourt nature accompagne un fruit de saison pour une pause rapide.
+     méthode: Sers le yaourt avec la pêche coupée. | same_day {"kind": "assemble", "minutes": 2}
+     frais: yaourt nature [plain_yogurt/dairy_yogurt] 72 g part=main
+     frais: pêche [peach/other_fruit] 53 g part=fruit
+     boîte box_tue_snack_pm_8 → Camille: yaourt nature 72g (frais); pêche 53g (frais)
+
+  [dinner] « Pois chiches, aubergine, poivron, riz et citron vert » (nom: Bol de pois chiches citronné) pour foyer | principal {"group": "legumes", "family": "chickpeas"}
+     pourquoi: Le citron vert réveille les légumes et les pois chiches sans compliquer le repas.
+     méthode: Réchauffe la boîte dans une casserole couverte 8 min à feu doux. Presse le citron vert dessus juste avant de servir. | same_day {"kind": "reheat_only", "minutes": 10}
+     uses: prep_chickpeas_ginger (Pois chiches mijotés aux légumes) kept=fridge servings=1
+     uses: prep_rice (Riz blanc nature) kept=fridge servings=1
+     frais: citron vert [lime/citrus] 15 g part=seasoning
+     boîte box_tue_dinner_13 → Camille: Pois chiches mijotés aux légumes 256g ←prep_chickpeas_ginger; Riz blanc nature 35g ←prep_rice; citron vert 15g (frais)
+     à côté: Camille starter tomate [tomato] 200 g units=2 prep=None
+
+######## WED
+
+  [breakfast] « Œuf, flocons d’avoine, petit-suisse et pomme » (nom: Bol d’avoine aux œufs) pour foyer | principal {"group": "eggs", "family": "eggs"}
+     pourquoi: L’avoine et le petit-suisse font un petit-déjeuner rassasiant et facile.
+     méthode: Réchauffe la boîte dans une casserole couverte 5 min à feu doux. Mélange les flocons avec le petit-suisse et sers avec la pomme. | same_day {"kind": "reheat_only", "minutes": 8}
+     uses: prep_boiled_eggs (Œufs durs) kept=fridge servings=1
+     frais: flocons d’avoine [oats/whole_grain] 45 g part=oats
+     frais: petit-suisse nature [petit_suisse_cream_cheese/dairy_yogurt] 68 g part=main
+     frais: pomme [apple/other_fruit] 15 g part=fruit
+     boîte box_wed_breakfast_2 → Camille: Œufs durs 185g ←prep_boiled_eggs; flocons d’avoine 45g (frais); petit-suisse nature 68g (frais); pomme 15g (frais)
+
+  [lunch] « Lentilles, chou, carotte, pommes de terre et persil » (nom: Lentilles au gingembre) pour foyer | principal {"group": "legumes", "family": "lentils"}
+     pourquoi: Les lentilles et les légumes d’automne composent un bol chaud et simple.
+     méthode: Réchauffe la boîte dans une casserole couverte 8 min à feu doux. Hache le persil et parsème-le au moment de servir. | same_day {"kind": "reheat_only", "minutes": 10}
+     uses: prep_lentils (Lentilles au chou et à la carotte) kept=fridge servings=1
+     uses: prep_potatoes (Pommes de terre à l’eau) kept=fridge servings=1
+     frais: persil [herbs_parsley/leafy_greens] 1 g part=seasoning
+     boîte box_wed_lunch_6 → Camille: Lentilles au chou et à la carotte 204g ←prep_lentils; Pommes de terre à l’eau 170g ←prep_potatoes; persil 1g (frais)
+     à côté: Camille starter carotte râpée [carrot] 140 g units=2 prep=None
+     à côté: Camille dessert poire [pear] 150 g units=1 prep=None
+
+  [snack_pm] « Yaourt nature et pomme » (nom: Yaourt et pomme du mercredi) pour Camille | principal {"group": "other_fruit", "family": "apple"}
+     pourquoi: La pomme et le yaourt forment une collation fraîche et pratique.
+     méthode: Coupe d’abord la pomme sur une planche et avec un couteau propres. Assemble le yaourt, ferme ce contenant, puis lave la planche, le couteau et le plan de travail avant d’ouvrir l’autre collation. Garde une cuillère dédiée à chaque plat. | same_day {"kind": "assemble", "minutes": 3}
+     frais: yaourt nature [plain_yogurt/dairy_yogurt] 69 g part=main
+     frais: pomme [apple/other_fruit] 56 g part=fruit
+     boîte box_wed_snack_pm_11 → Camille: yaourt nature 69g (frais); pomme 56g (frais)
+
+  [dinner] « Haricots blancs, poireau, épinards et pommes de terre » (nom: Haricots blancs au gingembre) pour foyer | principal {"group": "legumes", "family": "beans"}
+     pourquoi: Les haricots blancs et les poireaux offrent un dîner chaud aux saveurs de gingembre.
+     méthode: Réchauffe la boîte dans une casserole couverte 8 min à feu doux. Hache la coriandre et parsème-la au moment de servir. | same_day {"kind": "reheat_only", "minutes": 10}
+     uses: prep_white_beans (Haricots blancs au poireau) kept=fridge servings=1
+     uses: prep_potatoes (Pommes de terre à l’eau) kept=fridge servings=1
+     frais: coriandre fraîche [herbs_coriander/leafy_greens] 2 g part=seasoning
+     boîte box_wed_dinner_14 → Camille: Haricots blancs au poireau 248g ←prep_white_beans; Pommes de terre à l’eau 77g ←prep_potatoes; coriandre fraîche 2g (frais)
+     à côté: Camille starter carotte râpée [carrot] 140 g units=2 prep=None
+
+######## THU
+
+  [breakfast] « Œuf, pain complet, emmental, petit-suisse, clémentine et tomate » (nom: Tartine du jeudi) pour foyer | principal {"group": "eggs", "family": "eggs"}
+     pourquoi: Une tartine au fromage accompagne simplement le fruit de saison.
+     méthode: Réchauffe la boîte dans une casserole couverte 5 min à feu doux. Sers avec le pain, l’emmental, le petit-suisse, la clémentine et la tomate. | same_day {"kind": "reheat_only", "minutes": 8}
+     uses: prep_boiled_eggs (Œufs durs) kept=fridge servings=1
+     frais: pain complet [wholemeal_bread/whole_grain] 28 g part=bread
+     frais: emmental [emmental/dairy_cheese] 25 g part=main
+     frais: petit-suisse nature [petit_suisse_cream_cheese/dairy_yogurt] 41 g part=main
+     frais: clémentine [clementine/citrus] 28 g part=fruit
+     frais: tomate [tomato/non_starchy_veg] 23 g part=vegetable
+     boîte box_thu_breakfast_3 → Camille: Œufs durs 168g ←prep_boiled_eggs; pain complet 28g (frais); emmental 25g (frais); petit-suisse nature 41g (frais); clémentine 28g (frais); tomate 23g (frais)
+
+  [lunch] « Lentilles, chou, carotte, pommes de terre et radis » (nom: Bol de lentilles fraîches) pour foyer | principal {"group": "legumes", "family": "lentils"}
+     pourquoi: Le radis cru apporte une touche fraîche au bol chaud.
+     méthode: Réchauffe la boîte dans une casserole couverte 8 min à feu doux. Coupe les radis et sers-les avec le plat chaud. | same_day {"kind": "reheat_only", "minutes": 10}
+     uses: prep_lentils (Lentilles au chou et à la carotte) kept=fridge servings=1
+     uses: prep_potatoes (Pommes de terre à l’eau) kept=fridge servings=1
+     frais: radis [radish/cruciferous_veg] 16 g part=fresh_vegetable
+     boîte box_thu_lunch_7 → Camille: Lentilles au chou et à la carotte 196g ←prep_lentils; Pommes de terre à l’eau 163g ←prep_potatoes; radis 16g (frais)
+     à côté: Camille starter laitue [lettuce] 200 g units=2 prep=None
+     à côté: Camille dessert clémentine [clementine] 160 g units=2 prep=None
+
+  [snack_pm] « Yaourt nature et clémentine » (nom: Collation yaourt-clémentine) pour foyer | principal {"group": "citrus", "family": "clementine"}
+     pourquoi: Le yaourt et la clémentine composent une pause fraîche et rapide.
+     méthode: Sers le yaourt avec la clémentine épluchée. | same_day {"kind": "assemble", "minutes": 2}
+     frais: yaourt nature [plain_yogurt/dairy_yogurt] 76 g part=main
+     frais: clémentine [clementine/citrus] 49 g part=fruit
+     boîte box_thu_snack_pm_9 → Camille: yaourt nature 76g (frais); clémentine 49g (frais)
+
+  [dinner] « Haricots blancs, poireau, épinards, pommes de terre et citron vert » (nom: Haricots blancs au citron) pour foyer | principal {"group": "legumes", "family": "beans"}
+     pourquoi: Une touche de citron vert apporte de la fraîcheur à ce dîner réchauffé.
+     méthode: Réchauffe la boîte dans une casserole couverte 8 min à feu doux. Presse le citron vert dessus juste avant de servir. | same_day {"kind": "reheat_only", "minutes": 10}
+     uses: prep_white_beans (Haricots blancs au poireau) kept=fridge servings=1
+     uses: prep_potatoes (Pommes de terre à l’eau) kept=fridge servings=1
+     frais: citron vert [lime/citrus] 9 g part=seasoning
+     boîte box_thu_dinner_15 → Camille: Haricots blancs au poireau 156g ←prep_white_beans; Pommes de terre à l’eau 162g ←prep_potatoes; citron vert 9g (frais)
+     à côté: Camille starter laitue [lettuce] 200 g units=2 prep=None
+
+=== COURSES
+  -- achat 2026-09-27
+     œufs [whole_eggs/eggs] 3 rayon=protein raw
+     épinards [spinach/leafy_greens] 160 g rayon=produce raw
+     huile de colza [rapeseed_oil/other_added_fat] 33 ml rayon=pantry raw
+     tofu [tofu/tofu_tempeh] 190 g rayon=protein raw
+     brocoli [broccoli/cruciferous_veg] 150 g rayon=produce raw
+     carotte [carrot/non_starchy_veg] 475 g rayon=produce raw
+     sauce soja [soy_sauce/sauce_dressing] 48 ml rayon=pantry raw
+     gingembre frais [ginger/non_starchy_veg] 15 g rayon=produce raw
+     pois chiches en conserve [chickpeas_tinned/legumes] 204 g rayon=pantry raw
+     aubergine [aubergine/non_starchy_veg] 136 g rayon=produce raw
+     poivron [bell_pepper/non_starchy_veg] 109 g rayon=produce raw
+     ail [garlic/non_starchy_veg] 6 g rayon=produce raw
+     riz blanc [white_rice/refined_grain] 120 g rayon=grains raw
+     lentilles vertes sèches [lentils_dry/legumes] 50 g rayon=pantry raw
+     chou [cabbage/cruciferous_veg] 75 g rayon=produce raw
+     haricots blancs en conserve [white_beans/legumes] 160 g rayon=pantry raw
+     poireau [leek/non_starchy_veg] 95 g rayon=produce raw
+     pomme de terre [potato/starchy_veg] 635 g rayon=produce raw
+     petit-suisse nature [petit_suisse_cream_cheese/dairy_yogurt] 363 g rayon=dairy raw
+     pain complet [wholemeal_bread/whole_grain] 88 g rayon=grains raw
+     pomme [apple/other_fruit] 328 g rayon=produce raw
+     pêche [peach/other_fruit] 104 g rayon=produce raw
+     flocons d’avoine [oats/whole_grain] 45 g rayon=grains raw
+     emmental [emmental/dairy_cheese] 25 g rayon=dairy raw
+     clémentine [clementine/citrus] 237 g rayon=produce raw
+     tomate [tomato/non_starchy_veg] 423 g rayon=produce raw
+     citron vert [lime/citrus] 42 g rayon=produce raw
+     concombre [cucumber/non_starchy_veg] 537 g rayon=produce raw
+     persil [herbs_parsley/leafy_greens] 1 g rayon=produce raw
+     radis [radish/cruciferous_veg] 16 g rayon=produce raw
+     yaourt nature [plain_yogurt/dairy_yogurt] 286 g rayon=dairy raw
+     coriandre fraîche [herbs_coriander/leafy_greens] 4 g rayon=produce raw
+     prune [plum/other_fruit] 2 rayon=produce raw
+     poire [pear/other_fruit] 1 rayon=produce raw
+     laitue [lettuce/leafy_greens] 4 rayon=produce raw
+
+=== ÉNERGIE SERVIE
+   {"n": 1, "day": "mon", "pct": 92.1, "served": 1216, "target": 1321, "sides_kcal": 145, "shaved_kcal": 4, "eater_bucket": "adult_fat_loss", "served_before_bounds": 1220}
+   {"n": 2, "day": "thu", "pct": 73.1, "served": 966, "target": 1321, "sides_kcal": 134, "shaved_kcal": 8, "eater_bucket": "adult_fat_loss", "served_before_bounds": 974}
+   {"n": 3, "day": "tue", "pct": 89.1, "served": 1177, "target": 1321, "sides_kcal": 133, "shaved_kcal": 5, "eater_bucket": "adult_fat_loss", "served_before_bounds": 1182}
+   {"n": 4, "day": "wed", "pct": 78, "served": 1031, "target": 1321, "sides_kcal": 197, "shaved_kcal": 12, "eater_bucket": "adult_fat_loss", "served_before_bounds": 1043}
+
+=== CONTRÔLES DU FOYER
+  kitchen: {"missing": ["oven", "freezer", "air_fryer", "pressure_cooker"], "declared": ["stovetop", "microwave", "blender"]}
+  regime_belt: {"kept": 0, "bites": 0, "mouths": 1, "checked": 0, "refused": 0, "silenced": 0, "separated": 0, "box_scoped": 0, "groups_valid": 68, "item_repaired": 0, "not_separated": 0, "unknown_mouth": 0, "group_excluded": 0, "groups_refused": 0, "group_undecided": 0, "groups_declared": 68, "group_plant_only": 0, "citation_repaired": 0, "silenced_spelling": 0, "groups_conflicting": 0, "silenced_homograph": 0}
+  exclusion_belt: {"kept": 0, "bites": 0, "mouths": 1, "checked": 0, "refused": 0, "separated": 0, "box_scoped": 0, "final_bites": 0, "not_separated": 0}
+  cross_contact_block: {"emitted": 1, "skipped_no_medical": 0, "skipped_no_dedicated": 0}
+  meals_delivered: {"fed": 16, "rows": [], "mouths": 1, "missing": 0, "rehomed": 0, "by_cause": {"double": 0, "no_dish": 0, "not_named": 0, "held_off_regime": 0, "held_off_exclusion": 0}, "expected": 16, "measured": true, "restored": 0, "retry_on": {}, "restored_fallback": 0, "cells_without_dish": 0}
+  retained_honoured: {"items": 1, "by_ref": 1, "checked": 1, "by_words": 0, "honoured": 1, "violated": 0, "unverifiable": 0, "unverifiable_by_reason": {"no_baseline": 0, "slot_absent": 0, "mouth_absent": 0, "no_plan_surface": 0, "no_searchable_word": 0}}
+  side_courses: {"plan": {"asks": 8, "by_kind": {"bread": 0, "cheese": 0, "dessert": 4, "starter": 8}, "courses": 12, "day_outside_window": 0, "impossible_by_kind": {"bread": 0, "cheese": 0, "dessert": 0, "starter": 0}}, "pots": {"pots": 0, "scaled": 0, "unmeasured": 0, "shortfall_g": 0}, "model": {"asked": 12, "valid": 12, "dropped": 0, "refused": 0, "declared": 12, "refused_by": {"regime": 0, "excluded": 0, "duplicate": 0, "not_asked": 0, "unresolved": 0, "wrong_kind": 0, "dairy_budget": 0, "unknown_member": 0, "bad_preparation": 0}, "filled_by_engine": 0}, "attach": {"entries": 12, "no_host": 0, "own_box": 12, "attached": 12, "shared_box": 0, "table_dish": 0, "member_dish": 0}, "prompt": {"cells": 8, "given": 12, "unplaced": 0, "prompt_asked": 12}, "extract": {"status": "ok", "malformed": 0, "reused_previous": 0}, "variety": {"family_meals": 0, "fruit_capped": 0, "family_shared": 0, "streak_over_2": 0, "boundary_meals": 11, "regrown_entries": 0, "distinct_by_kind": {"bread": 0, "cheese": 0, "dessert": 4, "starter": 4}, "fruit_capped_kcal": 0, "boundary_lost_kcal": 865.7944838693388, "boundary_bread_added": 0, "deficit_regrown_kcal": 0, "deficit_to_dish_kcal": 191.93999999999997, "family_split_allowed": 0, "ref_replaced_by_term": 0, "boundary_deficit_kcal": 865.7944838693388, "boundary_regrown_kcal": 0, "deficit_kcal_withheld": 0, "boundary_kcal_withheld": 0, "fruit_capped_kcal_withheld": 0}, "contract": {"mouths": 1, "side_slots": 8, "side_capped": 0, "side_base_kcal": 800, "side_grown_kc
+  work_lunch: {"cold": 0, "mouths": 0}
+  protein_brief: {"named": 1, "slots": 4, "mouths": 1, "silent": {"no_body": 0, "protected": 0, "spread_unknown": 0, "no_covered_slot": 0, "coverage_unknown": 0}, "capped_grams": 0, "capped_slots": 0, "cells_shared": 0, "ceiling_mouths": 1, "floor_wins_cells": 0, "cells_constrained": 0, "ceiling_yielded_grams": 0, "ceiling_yielded_slots": 0}
+  portion_sizing: {"apply": {"regrammed": 67, "pots_scaled": 8, "fresh_scaled": 30, "own_authored": 0, "recipe_shares": 0, "tubs_authored": 0, "boxes_authored": 16, "dishes_unsized": 0, "eaters_unsized": 0, "fresh_unweighed": 0, "pots_unreadable": 0, "items_unresolved": 0, "recipe_shares_by": {}, "servings_rewritten": 0}, "final": {"boxes": 16, "meals": 16, "water": {"kept": 7, "absorbed": 1, "discarded": 0, "undetermined": 0}, "judged": 16, "reason": "remeasured_after_apply", "measured": true, "verdicts": {"over_max": 0, "in_bounds": 16, "under_min": 0, "unmeasurable": 0}, "out_of_bounds": [], "multi_box_meals": 0, "tubs_not_judged": 0, "pot_density_gone": 0, "pot_density_drifted": 2, "pot_density_unmeasurable": 0}, "slots": {"light": 1, "composed": 4, "declared": 4, "without_target": 0}, "dishes": 16, "mouths": 1, "reason": "one_mouth", "target": {"anchored": 1, "no_target": 0}, "applied": true, "clamped": {"max": 11, "min": 0}, "repairs": {"asked": 0, "splice": {"pot_missing": 0, "dish_missing": 0, "pots_spliced": 0, "fresh_spliced": 0, "uses_mismatch": 0, "shopping_added": 0, "shopping_pruned": 0, "density_checks_cleared": 0}, "accepted": 0, "attempts": 1, "rejected": {"belt": 0, "no_cell": 0, "degraded": 0, "missing_pot": 0, "unparseable": 0, "unmeasurable": 0, "title_changed": 0, "dedicated_lost": 0, "frozen_rewritten": 0}, "still_out": 11, "pot_forked": 0, "pots_frozen": 0, "fresh_frozen": 0, "pot_unforked": 0, "recipe_terms": 30, "stuck_dishes": 0, "stuck_eaters": 0, "fill_absorbed": n
+  box_sizing: {"boxes": 16, "items": 50, "share": {"sized": 0, "no_body": 0, "age_unknown": 0, "no_reference": 1, "restriction_floor": 0, "restriction_unknown": 0}, "sized": 48, "unmet": {"both": 2, "none": 0, "pot_ceiling": 2, "not_anchored": 0, "tub_estimate": 0, "factor_clamped": 0}, "anchor": {"clamped": 2, "no_body": 0, "anchored": 2, "pregnancy": 0, "age_unknown": 0, "no_delivery": 0, "breastfeeding": 0, "common_pot_day": 0, "day_incomplete": 0, "restriction_floor": 0, "restriction_unknown": 0}, "common": 0, "mouths": {"minor": 0, "sized": 1, "no_body": 0, "no_pace": 0, "pregnancy": 0, "age_unknown": 0, "no_direction": 0, "breastfeeding": 0, "restriction_floor": 0, "implausible_factor": 0, "sized_default_pace": 0, "restriction_unknown": 0, "doctrine_no_counting": 0}, "densify": {"skipped": "standard_recipe"}, "activity": {"partial": 0, "answered": 1, "not_asked": 0, "not_answered": 0}, "appetite": {"declared": 1, "not_asked": 0, "not_answered": 0}, "unchanged": 2, "anchor_cap": {"none": 2, "density": 0, "factor_bound": 0, "density_floor": 2, "assumed_density": 0}, "lost_slots": {"slots": 0, "mouth_days": 0, "kcal_lt_200": 0, "kcal_gte_200": 0, "kcal_unknown": 0}, "note_boost": {"detail": [], "applied": 0, "applied_pot": 0, "member_days": 0, "unknown_member": 0, "household_dated": 0}, "pot_growth": {"capped": 0, "passes": 1, "scaled": 4, "shopping": 17, "regrammed": 22, "short_after": 0, "unrewritable": 0}, "pot_shrink": {"kept": 8, "pots": 0, "removed": 0, "unreadable": 0, "unboxed_u
+  plate_bounds: {"per_mouth": [{"n": 1, "max_g": 483, "min_g": 242, "source": "personal", "eater_bucket": "adult_fat_loss"}], "withheld_mouths": 0}
+  plate_load: {"members": [{"n": 1, "meals": 8, "tub_meals": 0, "dish_g_max": 375, "meal_g_max": 775, "unreadable": 0, "eater_bucket": "adult_fat_loss", "dish_g_median": 351, "meal_g_median": 609, "side_share_max": 0.34, "dry_grain_g_max": 47, "veg_under_floor": 7, "side_kcal_median": 75, "veg_raw_g_median": 122, "dishes_over_heavy": 0, "side_share_median": 0.2, "starch_kcal_share": 0.39, "dry_grain_g_median": 7, "fruit_g_per_day_min": 221, "meal_veg_raw_g_median": 308, "fruit_g_per_day_median": 243}], "veg_floor_g": 150, "heavy_dish_g": 550, "withheld_members": 0}
+  hard_ceiling_cells: []
+  boxes: {"boxes": 0, "items": 0, "meals": 12, "names": 0, "capped": 0, "mouths": 1, "refused": 0, "delivery": "none_delivered", "expected": 12, "sum_over": 0, "with_box": 0, "mouth_slots": 0, "sum_checked": 0, "cells_no_box": 16, "preparations": 8, "items_refused": 0, "legacy_folded": 0, "mouths_double": 0, "names_refused": 0, "items_in_grams": 0, "mouths_unboxed": 0, "sum_unverifiable": 0, "mouths_no_box_cell": 16, "mouths_double_model": 0, "items_from_ingredient": 0}
+  traditions: {"declared": 0, "honoured": 0, "not_composed": 0, "out_of_window": 0, "composed_without_label": 0}
+  preference_split: {"pairs": 0, "wanters": 0, "composed": 0, "pairs_fresh": 0, "refuser_clean": 0, "refuser_bitten": 0, "pairs_from_stores": 0}
+  shared_table_relax: {"mouths": 1, "refused": {}, "moved_kcal": 0, "relaxed_days": 0, "shared_slots": 0}
+  swap: {"flagrant": false, "strictest": "vegetarian", "free_mouths": 0, "absent_cells": [], "bound_mouths": 1, "cells_checked": 0, "cells_carrying": 0, "cells_swap_absent": 0}
+  dish_owners: {"asked": 2, "refused": 0, "declared": 2, "attributed": 2, "refused_dropped": 0}
+  vague_portions: {"notes": 0, "vague": 0, "box_ids": 0, "quantified": 0}
+  unquantified_dish_ingredients: {"ingredients": 34, "unquantified": 0}
+  portion_boundary: {"boxes": 16, "meals": 16, "judged": 16, "raised": 0, "shaved": 1, "by_bucket": {"adult_fat_loss": {"kcal": 1, "grams": 1, "meals": 1, "mouths": 1}}, "kcal_shaved": 1, "shave_order": {"starch_first": 1, "largest_first": 0, "least_dense_first": 0}, "grams_raised": 0, "grams_shaved": 1, "still_over_max": 0, "multi_box_meals": 0, "still_under_min": 0, "tubs_not_judged": 0, "already_in_bounds": 15, "kcal_withheld_mouths": 0, "pot_headroom_blocked": 0, "grams_shaved_unpriced": 0, "items_missing_shave_facts": 0}
+  engine_box_belt: {"pairs": 16, "dishes": 16, "placed": 16, "emptied": 0, "held_off": 0, "by_member": {"a4853644-c3fa-4f60-afc5-1e88e300cd7d": {"eaten": 16, "regime": {"checked": 16, "refused": 0}, "exclusion": {"checked": 16, "refused": 0}}}, "off_roster": 0, "regime_checked": 16, "regime_refused": 0, "exclusion_checked": 16, "exclusion_refused": 0}
+
+=== AUTRES {"food_groups": {"lines": 67, "valid": 68, "refused": 0, "declared": 68, "persisted": 67, "conflicting": 0}, "names": {"kept": 18, "dishes": 18, "refused": 0, "declared": 18}, "member_deltas": [], "merged_members": [], "retained_honoured": {"items": 1, "by_ref": 1, "checked": 1, "by_words": 0, "honoured": 1, "violated": 0, "unverifiable": 0, "unverifiable_by_reason": {"no_baseline": 0, "slot_absent": 0, "mouth_absent": 0, "no_plan_surface": 0, "no_searchable_word": 0}}}

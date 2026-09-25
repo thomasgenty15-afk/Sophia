@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/private/tmp/claude-502/-Users-ahmedamara-Dev-Sophia-2/8d4a2db2-7ed3-41c5-a8bc-17716310a301/scratchpad/banc3/checks.py", line 15, in <module>
+    d = json.loads(psql(f"select response::text from student_meal_drafts where id='{D}'"))
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/json/decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/json/decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)

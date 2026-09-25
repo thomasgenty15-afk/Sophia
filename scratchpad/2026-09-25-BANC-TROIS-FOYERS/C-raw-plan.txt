@@ -1,0 +1,248 @@
+EXPLANATION: ['J’ai gardé l’idée du mijoté partagé au four, en le construisant autour de lentilles et de légumes pour qu’il reste commun.']
+
+SESSION {"day": "mon", "preparation_ids": ["prep_breakfast_lentils", "prep_lunch_lentils", "prep_lunch_couscous", "prep_dinner_casserole", "prep_dinner_barley"], "total_minutes": 130, "run_through": "Préchauffe le four à 190 °C pendant 10 min. Pendant ce temps, coupe les légumes et lance les lentilles du petit-déjeuner dans une casserole à feu moyen pendant 25 min, puis les lentilles du déjeuner dans une autre casserole à feu moyen pendant 35 min. Prépare la cocotte et fais-la cuire au four à 190 °C pendant 45 min. Pendant la cuisson, fais mijoter l’orge à feu doux pendant 30 min et le couscous à feu doux pendant 12 min."}
+
+PREP prep_breakfast_lentils « Lentilles mijotées à la tomate » cook_on=mon servings_made=2 total=30 actif=10
+   méthode: Rince les lentilles, puis fais-les mijoter avec la tomate et l’eau à feu moyen pendant 25 min. Ajoute l’huile et mélange.
+   - lentilles sèches [None/legumes] 210 g raw part=main
+   - tomate [None/non_starchy_veg] 200 g raw part=main
+   - eau [None/water] 600 ml None part=main
+   - huile d’olive [None/olive_oil] 30 ml raw part=garnish_fat
+
+PREP prep_lunch_lentils « Lentilles aux légumes » cook_on=mon servings_made=6 total=45 actif=25
+   méthode: Coupe les légumes. Rince les lentilles, puis fais-les mijoter avec les légumes et l’eau à feu moyen pendant 35 min. Ajoute l’huile et mélange.
+   - lentilles sèches [None/legumes] 600 g raw part=main
+   - carotte [None/non_starchy_veg] 240 g raw part=main
+   - champignons de Paris [None/non_starchy_veg] 240 g raw part=main
+   - poivron [None/non_starchy_veg] 240 g raw part=main
+   - tomate [None/non_starchy_veg] 360 g raw part=main
+   - eau [None/water] 1800 ml None part=main
+   - huile d’olive [None/olive_oil] 90 ml raw part=garnish_fat
+
+PREP prep_lunch_couscous « Couscous complet » cook_on=mon servings_made=6 total=15 actif=5
+   méthode: Verse le couscous dans une casserole avec l’eau, puis fais cuire à feu doux pendant 12 min.
+   - couscous complet [None/whole_grain] 360 g raw part=separable_side
+   - eau [None/water] 576 ml None part=separable_side
+
+PREP prep_dinner_casserole « Cocotte de pois chiches et haricots » cook_on=mon servings_made=6 total=60 actif=20
+   méthode: Coupe les légumes et mélange-les aux pois chiches, aux haricots, à l’eau et à l’huile dans un plat allant au four. Couvre et fais cuire à 190 °C pendant 45 min.
+   - pois chiches en conserve égouttés [None/legumes] 900 g cooked part=main
+   - haricots rouges en conserve égouttés [None/legumes] 900 g cooked part=main
+   - tomate [None/non_starchy_veg] 300 g raw part=main
+   - carotte [None/non_starchy_veg] 240 g raw part=main
+   - chou-fleur [None/cruciferous_veg] 300 g raw part=main
+   - poivron [None/non_starchy_veg] 240 g raw part=main
+   - eau [None/water] 300 ml None part=main
+   - huile d’olive [None/olive_oil] 90 ml raw part=garnish_fat
+
+PREP prep_dinner_barley « Orge mondé » cook_on=mon servings_made=6 total=35 actif=5
+   méthode: Verse l’orge dans une casserole avec l’eau et fais mijoter à feu doux pendant 30 min.
+   - orge mondé [None/whole_grain] 360 g raw part=separable_side
+   - eau [None/water] 900 ml None part=separable_side
+
+######## tue
+
+  [breakfast] « Lentilles à la tomate et pain complet » (Lentilles fondantes sur tartine) pour table
+     pourquoi: Les lentilles et la tomate donnent une base salée et nourrissante au petit-déjeuner.
+     méthode: Réchauffe la boîte couverte dans une casserole à feu doux pendant 8 min. Pose le pain à côté. Prépare d’abord la portion partagée sur du matériel propre et ferme sa boîte avant de préparer le café. | same_day {"kind": "reheat_only", "minutes": 8}
+     uses: {"preparation_id": "prep_breakfast_lentils", "servings": 1, "kept": "fridge"}
+     frais: pain complet [None/whole_grain] 40 g part=separable_side
+     autres: {"density_check": 153}
+
+  [breakfast] « Café noir » (Café noir) pour Thomas
+     pourquoi: Le café noir garde ce moment très simple.
+     méthode: Sers le café noir après avoir fermé la boîte du petit-déjeuner partagé. | same_day {"kind": "none", "minutes": 0}
+     autres: {"density_check": 0}
+
+  [snack_am] « Boisson d’avoine, flocons d’avoine, banane et fruits rouges » (Shake banane et fruits rouges) pour Jade
+     pourquoi: Les fruits rouges changent le shake tout en gardant une collation facile à emporter.
+     méthode: Verse la boisson d’avoine sur les flocons, ajoute la banane et les fruits rouges, puis remue jusqu’à obtenir un shake buvable. | same_day {"kind": "assemble", "minutes": 3}
+     frais: flocons d’avoine [None/whole_grain] 30 g part=main
+     frais: boisson d’avoine [None/whole_grain] 150 ml part=main
+     frais: banane [None/other_fruit] 50 g part=main
+     frais: fruits rouges mélangés [None/berries] 30 g part=main
+     autres: {"density_check": 91.3}
+
+  [lunch] « Lentilles aux légumes et couscous complet » (Lentilles et couscous complet) pour table
+     pourquoi: Les lentilles et les légumes en font un déjeuner complet qui se réchauffe facilement.
+     méthode: Réchauffe toute la boîte, couverte, dans une casserole à feu doux pendant 8 min. | same_day {"kind": "reheat_only", "minutes": 8}
+     uses: {"preparation_id": "prep_lunch_lentils", "servings": 1, "kept": "fridge"}
+     uses: {"preparation_id": "prep_lunch_couscous", "servings": 1, "kept": "fridge"}
+     autres: {"density_check": 126}
+
+  [snack_pm] « Pois chiches, fèves, pain complet et pomme » (Petites tartines aux pois chiches) pour table
+     pourquoi: Les légumineuses et le pain donnent du corps à cette petite collation.
+     méthode: Écrase les pois chiches et les fèves à la fourchette, tartine le pain et mange la pomme à côté. | same_day {"kind": "assemble", "minutes": 5}
+     frais: pois chiches en conserve égouttés [None/legumes] 60 g part=main
+     frais: fèves cuites [None/legumes] 30 g part=main
+     frais: pain complet [None/whole_grain] 35 g part=main
+     frais: pomme [None/other_fruit] 60 g part=main
+     autres: {"density_check": 118.4}
+
+  [dinner] « Pois chiches, haricots rouges, légumes et orge » (Cocotte de haricots au four) pour table
+     pourquoi: La cocotte de légumes et légumineuses garde l’esprit d’un mijoté partagé au dîner.
+     méthode: Réchauffe toute la boîte, couverte, dans une casserole à feu doux pendant 10 min. | same_day {"kind": "reheat_only", "minutes": 10}
+     uses: {"preparation_id": "prep_dinner_casserole", "servings": 1, "kept": "fridge"}
+     uses: {"preparation_id": "prep_dinner_barley", "servings": 1, "kept": "fridge"}
+     autres: {"density_check": 116.5}
+
+######## wed
+
+  [breakfast] « Pois chiches, fèves, tomate, flocons d’avoine et pain complet » (Bol croquant aux pois chiches) pour table
+     pourquoi: Les pois chiches, les fèves et l’avoine composent un petit-déjeuner salé qui change des tartines seules.
+     méthode: Écrase les pois chiches et les fèves à la fourchette, mélange-les avec les flocons et la tomate, puis sers avec le pain. Assemble d’abord la portion partagée avec du matériel propre et ferme son contenant avant de préparer le café avec du matériel lavé. | same_day {"kind": "assemble", "minutes": 7}
+     frais: pois chiches en conserve égouttés [None/legumes] 240 g part=main
+     frais: fèves cuites [None/legumes] 30 g part=main
+     frais: flocons d’avoine [None/whole_grain] 60 g part=main
+     frais: pain complet [None/whole_grain] 40 g part=main
+     frais: tomate [None/non_starchy_veg] 100 g part=main
+     frais: huile d’olive [None/olive_oil] 5 ml part=garnish_fat
+     autres: {"density_check": 149}
+
+  [breakfast] « Café noir » (Café noir) pour Thomas
+     pourquoi: Le café noir garde ce moment très simple.
+     méthode: Sers le café noir après avoir fermé le contenant du petit-déjeuner partagé. | same_day {"kind": "none", "minutes": 0}
+     autres: {"density_check": 0}
+
+  [snack_am] « Boisson d’avoine, flocons d’avoine, banane et pêche » (Shake doux à la pêche) pour Jade
+     pourquoi: La pêche apporte une autre note fruitée à cette collation à boire.
+     méthode: Verse la boisson d’avoine sur les flocons, ajoute la banane et la pêche, puis remue jusqu’à obtenir un shake buvable. | same_day {"kind": "assemble", "minutes": 3}
+     frais: flocons d’avoine [None/whole_grain] 35 g part=main
+     frais: boisson d’avoine [None/whole_grain] 150 ml part=main
+     frais: banane [None/other_fruit] 40 g part=main
+     frais: pêche [None/other_fruit] 15 g part=main
+     autres: {"density_check": 99.5}
+
+  [lunch] « Lentilles aux légumes et couscous complet » (Lentilles et couscous complet) pour table
+     pourquoi: Les lentilles et les légumes font un déjeuner consistant qui se réchauffe sans effort.
+     méthode: Réchauffe toute la boîte, couverte, dans une casserole à feu doux pendant 8 min. | same_day {"kind": "reheat_only", "minutes": 8}
+     uses: {"preparation_id": "prep_lunch_lentils", "servings": 1, "kept": "fridge"}
+     uses: {"preparation_id": "prep_lunch_couscous", "servings": 1, "kept": "fridge"}
+     autres: {"density_check": 126}
+
+  [snack_pm] « Haricots blancs, fèves, pain de seigle, flocons d’avoine et prune » (Haricots blancs sur tartine) pour table
+     pourquoi: Le pain de seigle, les légumineuses et la prune rendent la collation différente de la veille.
+     méthode: Écrase les haricots blancs et les fèves, étale-les sur le pain croustillant et mange la prune à côté. Mélange les flocons avec un peu d’eau. | same_day {"kind": "assemble", "minutes": 5}
+     frais: haricots blancs en conserve égouttés [None/legumes] 80 g part=main
+     frais: fèves cuites [None/legumes] 20 g part=main
+     frais: pain croustillant de seigle [None/whole_grain] 20 g part=main
+     frais: flocons d’avoine [None/whole_grain] 14 g part=main
+     frais: prune [None/other_fruit] 50 g part=main
+     autres: {"density_check": 124.5}
+
+  [dinner] « Pois chiches, haricots rouges, légumes et orge » (Cocotte de haricots au four) pour table
+     pourquoi: La cocotte de légumes et légumineuses garde l’esprit d’un mijoté partagé au dîner.
+     méthode: Réchauffe toute la boîte, couverte, dans une casserole à feu doux pendant 10 min. | same_day {"kind": "reheat_only", "minutes": 10}
+     uses: {"preparation_id": "prep_dinner_casserole", "servings": 1, "kept": "fridge"}
+     uses: {"preparation_id": "prep_dinner_barley", "servings": 1, "kept": "fridge"}
+     autres: {"density_check": 116.5}
+
+######## thu
+
+  [breakfast] « Haricots blancs, fèves, flocons d’avoine, tomate et pain complet » (Haricots blancs et avoine) pour table
+     pourquoi: Les haricots, les fèves et l’avoine offrent un petit-déjeuner salé et nourrissant.
+     méthode: Écrase les haricots blancs et les fèves à la fourchette, mélange-les avec les flocons et la tomate, puis sers avec le pain. | same_day {"kind": "assemble", "minutes": 7}
+     frais: haricots blancs en conserve égouttés [None/legumes] 120 g part=main
+     frais: fèves cuites [None/legumes] 150 g part=main
+     frais: flocons d’avoine [None/whole_grain] 50 g part=main
+     frais: pain complet [None/whole_grain] 40 g part=main
+     frais: tomate [None/non_starchy_veg] 100 g part=main
+     frais: huile d’olive [None/olive_oil] 5 ml part=garnish_fat
+     autres: {"density_check": 134}
+
+  [breakfast] « Haricots blancs, fèves, pain complet, tomate et pomme » (Haricots blancs sur tartine) pour table
+     pourquoi: Les haricots et les fèves donnent une base rassasiante à cette tartine du matin.
+     méthode: Écrase les haricots blancs et les fèves à la fourchette, étale-les sur le pain et sers la tomate et la pomme à côté. | same_day {"kind": "assemble", "minutes": 6}
+     frais: haricots blancs en conserve égouttés [None/legumes] 240 g part=main
+     frais: fèves cuites [None/legumes] 30 g part=main
+     frais: pain complet [None/whole_grain] 40 g part=main
+     frais: tomate [None/non_starchy_veg] 100 g part=main
+     frais: pomme [None/other_fruit] 60 g part=main
+     autres: {"density_check": 120}
+
+  [snack_am] « Boisson d’avoine, flocons d’avoine, banane et pêche » (Shake banane et pêche) pour Jade
+     pourquoi: La pomme donne une troisième variation à ce shake fruité.
+     méthode: Verse la boisson d’avoine sur les flocons, ajoute la banane et la pomme, puis remue jusqu’à obtenir un shake buvable. | same_day {"kind": "assemble", "minutes": 3}
+     frais: flocons d’avoine [None/whole_grain] 32 g part=main
+     frais: boisson d’avoine [None/whole_grain] 140 ml part=main
+     frais: banane [None/other_fruit] 45 g part=main
+     frais: pomme [None/other_fruit] 35 g part=main
+     autres: {"density_check": 94.3}
+
+  [lunch] « Haricots blancs, fèves, chou, avocat et pain complet » (Fèves et tartine aux haricots) pour table
+     pourquoi: Cette salade de légumineuses et de chou se prépare sans cuisson le jour même.
+     méthode: Égoutte les pois chiches, mélange-les avec les fèves, le chou et la tomate, puis ajoute l’huile et l’avocat. Sers le pain à côté. | same_day {"kind": "assemble", "minutes": 10}
+     frais: pois chiches en conserve égouttés [None/legumes] 300 g part=main
+     frais: fèves cuites [None/legumes] 150 g part=main
+     frais: chou rouge [None/cruciferous_veg] 150 g part=main
+     frais: tomate [None/non_starchy_veg] 50 g part=main
+     frais: pain complet [None/whole_grain] 80 g part=separable_side
+     frais: huile d’olive [None/olive_oil] 15 ml part=garnish_fat
+     frais: avocat [None/other_added_fat] 100 g part=garnish_fat
+     autres: {"density_check": 125}
+
+  [lunch] « Pois chiches, fèves, chou, tomate, avocat et pain complet » (Salade de pois chiches au chou) pour table
+     pourquoi: Le chou et les légumineuses composent une salade généreuse sans cuisson le jour même.
+     méthode: Égoutte les pois chiches, mélange-les avec les fèves, le chou et la tomate, puis ajoute l’huile et l’avocat. Sers le pain à côté. | same_day {"kind": "assemble", "minutes": 10}
+     frais: pois chiches en conserve égouttés [None/legumes] 300 g part=main
+     frais: fèves cuites [None/legumes] 150 g part=main
+     frais: chou rouge [None/cruciferous_veg] 150 g part=main
+     frais: tomate [None/non_starchy_veg] 50 g part=main
+     frais: pain complet [None/whole_grain] 80 g part=separable_side
+     frais: huile d’olive [None/olive_oil] 15 ml part=garnish_fat
+     frais: avocat [None/other_added_fat] 100 g part=garnish_fat
+     autres: {"density_check": 125}
+
+  [snack_pm] « Flocons d’avoine, boisson d’avoine, fèves, pêche et pain complet » (Fèves sur tartine à la pêche) pour table
+     pourquoi: Les fèves et la pêche apportent une autre association à cette collation simple.
+     méthode: Mélange les flocons avec la boisson d’avoine, ajoute les fèves et la pêche, puis mange le pain à côté. | same_day {"kind": "assemble", "minutes": 5}
+     frais: flocons d’avoine [None/whole_grain] 22 g part=main
+     frais: boisson d’avoine [None/whole_grain] 100 ml part=main
+     frais: fèves cuites [None/legumes] 50 g part=main
+     frais: pêche [None/other_fruit] 50 g part=main
+     frais: pain complet [None/whole_grain] 20 g part=main
+     autres: {"density_check": 100}
+
+  [dinner] « Haricots rouges, fèves, chou, avocat et pain complet » (Fèves et haricots au chou) pour table
+     pourquoi: Les haricots et le chou forment un dîner frais qui ne dépend pas d’une préparation en avance.
+     méthode: Égoutte les haricots, mélange-les avec les fèves et le chou, puis ajoute l’huile et l’avocat. Sers le pain à côté. | same_day {"kind": "assemble", "minutes": 10}
+     frais: haricots rouges en conserve égouttés [None/legumes] 240 g part=main
+     frais: fèves cuites [None/legumes] 150 g part=main
+     frais: chou rouge [None/cruciferous_veg] 150 g part=main
+     frais: pain complet [None/whole_grain] 80 g part=separable_side
+     frais: huile d’olive [None/olive_oil] 15 ml part=garnish_fat
+     frais: avocat [None/other_added_fat] 100 g part=garnish_fat
+     autres: {"density_check": 127}
+
+SIDE COURSES
+   tue lunch Jade dessert pomme None
+   tue lunch Jade bread pain complet None
+   tue lunch Thomas starter carotte râpée None
+   tue lunch Thomas dessert pomme None
+   tue lunch Marc dessert pomme None
+   tue lunch Marc bread pain complet None
+   tue dinner Jade dessert poire None
+   tue dinner Jade bread pain complet None
+   tue dinner Thomas dessert poire None
+   tue dinner Marc cheese comté None
+   wed lunch Jade dessert prune None
+   wed lunch Jade bread pain complet None
+   wed lunch Thomas starter tomate None
+   wed lunch Thomas dessert prune None
+   wed lunch Marc cheese emmental None
+   wed lunch Marc bread pain complet None
+   wed dinner Jade dessert pomme None
+   wed dinner Jade bread pain complet None
+   wed dinner Thomas cheese emmental None
+   wed dinner Marc cheese emmental None
+   thu lunch Jade dessert poire None
+   thu lunch Jade bread pain complet None
+   thu lunch Thomas starter chou rouge émincé None
+   thu lunch Thomas dessert poire None
+   thu lunch Marc dessert poire None
+   thu lunch Marc starter chou rouge émincé None
+   thu lunch Marc bread pain complet None
+   thu dinner Jade dessert prune None
+   thu dinner Jade bread pain complet None
+   thu dinner Thomas dessert prune None
+   thu dinner Marc cheese tomme None

@@ -1,0 +1,125 @@
+=== ① GRILLE: qui a quoi à chaque moment (· = rien servi ; les moments déclarés sont en MAJUSCULES)
+
+  Camille — moments ['breakfast', 'lunch', 'snack_pm', 'dinner']
+    sun 2026-09-27: BREAKFAST: · | LUNCH: · | SNACK_PM: · | DINNER: ·
+    mon 2026-09-28: BREAKFAST: Œuf, épinards, petit-suisse, pain complet et pomme | LUNCH: Tofu, brocoli, carotte, riz et citron vert | SNACK_PM: Yaourt nature et pomme | DINNER: Pois chiches, aubergine, poivron, riz et coriandre
+    tue 2026-09-29: BREAKFAST: Œuf, épinards, petit-suisse, pain complet et pêche | LUNCH: Tofu, brocoli, carotte, riz et concombre | SNACK_PM: Yaourt nature et pêche | DINNER: Pois chiches, aubergine, poivron, riz et citron vert
+    wed 2026-09-30: BREAKFAST: Œuf, flocons d’avoine, petit-suisse et pomme | LUNCH: Lentilles, chou, carotte, pommes de terre et persil | SNACK_PM: Yaourt nature et pomme | DINNER: Haricots blancs, poireau, épinards et pommes de terre
+    thu 2026-10-01: BREAKFAST: Œuf, pain complet, emmental, petit-suisse, clémentine et tomate | LUNCH: Lentilles, chou, carotte, pommes de terre et radis | SNACK_PM: Yaourt nature et clémentine | DINNER: Haricots blancs, poireau, épinards, pommes de terre et citron vert
+
+=== ② CE QUE CHAQUE BOUCHE AVALE (termes et refs, préparations dépliées, à-côtés compris)
+
+  Camille:
+    ail [garlic]  ← mon-dinner, thu-dinner, tue-dinner, wed-dinner
+    aubergine [aubergine]  ← mon-dinner, tue-dinner
+    brocoli [broccoli]  ← mon-lunch, tue-lunch
+    carotte [carrot]  ← mon-lunch, thu-lunch, tue-lunch, wed-lunch
+    carotte râpée [carrot] (à-côté starter)  ← wed-dinner, wed-lunch
+    chou [cabbage]  ← thu-lunch, wed-lunch
+    citron vert [lime]  ← mon-lunch, thu-dinner, tue-dinner
+    clémentine [clementine]  ← thu-breakfast, thu-snack_pm
+    clémentine [clementine] (à-côté dessert)  ← thu-lunch
+    concombre [cucumber]  ← tue-lunch
+    concombre [cucumber] (à-côté starter)  ← mon-dinner, mon-lunch
+    coriandre fraîche [herbs_coriander]  ← mon-dinner, wed-dinner
+    eau [water]  ← mon-dinner, mon-lunch, thu-breakfast, thu-dinner, thu-lunch, tue-dinner, tue-lunch, wed-breakfast, wed-dinner, wed-lunch
+    emmental [emmental]  ← thu-breakfast
+    flocons d’avoine [oats]  ← wed-breakfast
+    gingembre frais [ginger]  ← mon-dinner, mon-lunch, thu-lunch, tue-dinner, tue-lunch, wed-lunch
+    haricots blancs en conserve [white_beans]  ← thu-dinner, wed-dinner
+    huile de colza [rapeseed_oil]  ← mon-breakfast, mon-dinner, mon-lunch, thu-dinner, thu-lunch, tue-breakfast, tue-dinner, tue-lunch, wed-dinner, wed-lunch
+    laitue [lettuce] (à-côté starter)  ← thu-dinner, thu-lunch
+    lentilles vertes sèches [lentils_dry]  ← thu-lunch, wed-lunch
+    pain complet [wholemeal_bread]  ← mon-breakfast, thu-breakfast, tue-breakfast
+    persil [herbs_parsley]  ← wed-lunch
+    petit-suisse nature [petit_suisse_cream_cheese]  ← mon-breakfast, thu-breakfast, tue-breakfast, wed-breakfast
+    poire [pear] (à-côté dessert)  ← wed-lunch
+    poireau [leek]  ← thu-dinner, wed-dinner
+    pois chiches en conserve [chickpeas_tinned]  ← mon-dinner, tue-dinner
+    poivron [bell_pepper]  ← mon-dinner, tue-dinner
+    pomme [apple]  ← mon-breakfast, mon-snack_pm, wed-breakfast, wed-snack_pm
+    pomme [apple] (à-côté dessert)  ← mon-lunch
+    pomme de terre [potato]  ← thu-dinner, thu-lunch, wed-dinner, wed-lunch
+    prune [plum] (à-côté dessert)  ← tue-lunch
+    pêche [peach]  ← tue-breakfast, tue-snack_pm
+    radis [radish]  ← thu-lunch
+    riz blanc [white_rice]  ← mon-dinner, mon-lunch, tue-dinner, tue-lunch
+    sauce soja [soy_sauce]  ← mon-dinner, mon-lunch, thu-dinner, thu-lunch, tue-dinner, tue-lunch, wed-dinner, wed-lunch
+    tofu [tofu]  ← mon-lunch, tue-lunch
+    tomate [tomato]  ← thu-breakfast
+    tomate [tomato] (à-côté starter)  ← tue-dinner, tue-lunch
+    yaourt nature [plain_yogurt]  ← mon-snack_pm, thu-snack_pm, tue-snack_pm, wed-snack_pm
+    épinards [spinach]  ← mon-breakfast, thu-dinner, tue-breakfast, wed-dinner
+    œufs [whole_eggs]  ← mon-breakfast, thu-breakfast, tue-breakfast, wed-breakfast
+
+=== ③ FENÊTRES DE FRIGO (jour de cuisson → jour mangé)
+  prep_breakfast_eggs          cuit sun → mangé mon breakfast J+1 kept=fridge ['eggs']
+  prep_breakfast_eggs          cuit sun → mangé tue breakfast J+2 kept=fridge ['eggs']
+  prep_boiled_eggs             cuit wed → mangé wed breakfast J+0 kept=fridge ['eggs']
+  prep_boiled_eggs             cuit wed → mangé thu breakfast J+1 kept=fridge ['eggs']
+  prep_tofu_ginger             cuit sun → mangé mon lunch   J+1 kept=fridge []
+  prep_rice                    cuit sun → mangé mon lunch   J+1 kept=fridge ['refined_grain']
+  prep_tofu_ginger             cuit sun → mangé tue lunch   J+2 kept=fridge []
+  prep_rice                    cuit sun → mangé tue lunch   J+2 kept=fridge ['refined_grain']
+  prep_lentils                 cuit wed → mangé wed lunch   J+0 kept=fridge []
+  prep_potatoes                cuit wed → mangé wed lunch   J+0 kept=fridge []
+  prep_lentils                 cuit wed → mangé thu lunch   J+1 kept=fridge []
+  prep_potatoes                cuit wed → mangé thu lunch   J+1 kept=fridge []
+  prep_chickpeas_ginger        cuit sun → mangé mon dinner  J+1 kept=fridge []
+  prep_rice                    cuit sun → mangé mon dinner  J+1 kept=fridge ['refined_grain']
+  prep_chickpeas_ginger        cuit sun → mangé tue dinner  J+2 kept=fridge []
+  prep_rice                    cuit sun → mangé tue dinner  J+2 kept=fridge ['refined_grain']
+  prep_white_beans             cuit wed → mangé wed dinner  J+0 kept=fridge []
+  prep_potatoes                cuit wed → mangé wed dinner  J+0 kept=fridge []
+  prep_white_beans             cuit wed → mangé thu dinner  J+1 kept=fridge []
+  prep_potatoes                cuit wed → mangé thu dinner  J+1 kept=fridge []
+
+=== ④ MATÉRIEL NOMMÉ DANS LES TEXTES
+  four               0  []
+  micro-ondes        0  []
+  congél             0  []
+  friteuse à air     0  []
+  autocuiseur        0  []
+  mixeur             0  []
+  plaques           22  ['prep prep_breakfast_eggs', 'prep prep_tofu_ginger', 'prep prep_chickpeas_ginger', 'prep prep_rice', 'prep prep_boiled_eggs', 'prep prep_lentils', 'prep prep_white_beans', 'prep prep_potatoes', 'session sun', 'session wed', 'plat mon breakfast', 'plat tue breakfast']
+
+=== ⑤ COURSES CONTRE PRÉPARATIONS (somme des ingrédients par ref)
+  apple                              besoin      328 g  acheté      328 g ×1.00
+  aubergine                          besoin      136 g  acheté      136 g ×1.00
+  bell_pepper                        besoin      109 g  acheté      109 g ×1.00
+  broccoli                           besoin      150 g  acheté      150 g ×1.00
+  cabbage                            besoin       75 g  acheté       75 g ×1.00
+  carrot                             besoin      475 g  acheté      475 g ×1.00
+  chickpeas_tinned                   besoin      204 g  acheté      204 g ×1.00
+  clementine                         besoin      237 g  acheté      237 g ×1.00
+  cucumber                           besoin      537 g  acheté      537 g ×1.00
+  emmental                           besoin       25 g  acheté       25 g ×1.00
+  garlic                             besoin        6 g  acheté        6 g ×1.00
+  ginger                             besoin       15 g  acheté       15 g ×1.00
+  herbs_coriander                    besoin        4 g  acheté        4 g ×1.00
+  herbs_parsley                      besoin        1 g  acheté        1 g ×1.00
+  leek                               besoin       95 g  acheté       95 g ×1.00
+  lentils_dry                        besoin       50 g  acheté       50 g ×1.00
+  lettuce                            besoin      400 g  acheté        4 unit ×0.01
+  lime                               besoin       42 g  acheté       42 g ×1.00
+  oats                               besoin       45 g  acheté       45 g ×1.00
+  peach                              besoin      104 g  acheté      104 g ×1.00
+  pear                               besoin      150 g  acheté        1 unit ×0.01
+  petit_suisse_cream_cheese          besoin      363 g  acheté      363 g ×1.00
+  plain_yogurt                       besoin      286 g  acheté      286 g ×1.00
+  plum                               besoin      120 g  acheté        2 unit ×0.02
+  potato                             besoin      635 g  acheté      635 g ×1.00
+  radish                             besoin       16 g  acheté       16 g ×1.00
+  rapeseed_oil                       besoin       33 ml  acheté       33 ml ×1.00
+  soy_sauce                          besoin       48 ml  acheté       48 ml ×1.00
+  spinach                            besoin      160 g  acheté      160 g ×1.00
+  tofu                               besoin      190 g  acheté      190 g ×1.00
+  tomato                             besoin      423 g  acheté      423 g ×1.00
+  water                              besoin      824 ml  acheté        0   <<< UTILISÉ, JAMAIS ACHETÉ
+  white_beans                        besoin      160 g  acheté      160 g ×1.00
+  white_rice                         besoin      120 g  acheté      120 g ×1.00
+  whole_eggs                         besoin        3 unit  acheté        3 unit ×1.00
+  wholemeal_bread                    besoin       88 g  acheté       88 g ×1.00
+
+=== ⑥ ACHAT AVANT CUISSON ?
+  (fin)
