@@ -47,6 +47,7 @@
  * `targetKcal: null` ferme donc tout ici, sans une ligne de garde de plus.
  */
 
+import { SHAKE_TEXT_PREFIX } from "./shake_text.ts";
 import { MEAL_KCAL_PER_G_COMPOSED, MEAL_MAX_GRAMS_PER_KG } from "./mouth_anchor.ts";
 
 // ⟳ 2026-09-04: `MEAL_KCAL_PER_G_COMPOSED` vit désormais dans `mouth_anchor.ts`,
@@ -298,7 +299,7 @@ export function shakeHabitTextFor(args: {
   const parts = [base, grain, "a banana", fat].filter((p): p is string =>
     p !== null
   );
-  return `a drinkable shake, one tall glass, no plate: ${parts.join(", ")}`;
+  return `${SHAKE_TEXT_PREFIX}, one tall glass, no plate: ${parts.join(", ")}`;
 }
 
 /**
@@ -310,4 +311,4 @@ export function shakeHabitTextFor(args: {
  * laisse le prompt réclamer un plat dédié dont il ne dit plus rien. Deux
  * littéraux identiques à deux endroits divergeraient au premier mot changé.
  */
-export const SHAKE_TEXT_PREFIX = "a drinkable shake";
+export { SHAKE_TEXT_PREFIX } from "./shake_text.ts";

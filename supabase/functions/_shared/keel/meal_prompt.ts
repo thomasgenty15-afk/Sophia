@@ -834,6 +834,17 @@ export function buildMealPrompt(args: {
         "Everything before their usual day is cooked fresh, not from a batch.",
       ];
     }
+    // ⟳ 2026-09-25 — POSÉS PAR LE MOTEUR, CE NE SONT PAS « leurs » JOURS. La
+    // phrase « they can only cook on » attribuait à la personne une contrainte
+    // qu'elle n'avait pas donnée (banc des trois foyers): elle a dit combien
+    // de fois, le moteur a choisi quand. La consigne garde la règle, sans
+    // l'attribution.
+    if (args.groceryCadence !== null && !args.groceryCadence.cookDaysDeclared) {
+      return [
+        `the cooking days of this plan: ${usable.join(", ")}. Put every cooking ` +
+        "session on those days, and no others.",
+      ];
+    }
     return [
       `they can only cook on: ${usable.join(", ")}. Put every cooking ` +
       "session on those days, and no others.",

@@ -796,7 +796,17 @@ export type { HouseholdRuleHolder, WhyRuleCounts } from "./household_why_rule.ts
 // et lignes de la table, `retained_items_routing.ts#occasionSuffix`). Mesuré
 // sur `31aef694`: « œufs -- ONLY AT breakfast » lu à l'envers. Le bloc
 // d'arbitrage ne bouge pas.
-export const HOUSEHOLD_PROMPT_VERSION = "v48_off_the_table_not_at";
+// ⟳ v49 (2026-09-25) — LA CONSIGNE NE PROMET PLUS CE QUE RIEN NE TIENT (banc
+// des trois foyers). Réchauffage décidé par le moment; exemples de méthode
+// cités retirés; micro-ondes déclaré dit; fenêtre du frigo tirée du nombre du
+// code; « au plus N courses », « le nombre choisi » seulement s'il est égal;
+// jours de cuisine posés par le moteur sans « they can only cook on »; pas de
+// voix de conversation du coach; pas de promesse sans canal sous `portion_v1`;
+// qui tient la ligne n'est plus nommé comme non lié; plus de plancher « par
+// plat »; contrat de moment aux grammes du brief; plat à soi qui suit le
+// calendrier; consigne d'hygiène seulement où deux plats se côtoient; shaker
+// ajouté par le plan dit comme tel. Le bloc d'arbitrage ne bouge pas.
+export const HOUSEHOLD_PROMPT_VERSION = "v49_no_false_promise";
 
 /**
  * ⟳ 2026-09-23 — LA FORME CANONIQUE SERT LES À-CÔTÉS (`served: true`): c'est
@@ -879,6 +889,9 @@ export function buildHouseholdPromptBlocks(
     // la règle sur des plans sans second plat, ou la taire sur des plans qui en
     // ont un.
     dishBearers: input.dishBearers,
+    // ⟳ 2026-09-25 — une personne seule n'a jamais deux plats au même moment.
+    // Plusieurs bouches sans grille (v33): la règle d'avant.
+    twoDishBearers: input.members.length <= 1 ? [] : undefined,
   });
 
   const idLines = input.members.map((m) => `- ${m.displayName} = ${m.memberId}`);
@@ -970,7 +983,13 @@ export function buildHouseholdPromptBlocks(
     // règles de maison; ce bloc n'a pas besoin de cette place — il nomme ses
     // bouches une par une et porte leurs ids — et la lui prendre démoterait la
     // seule consigne qui doit survivre à tout.
-    dedicatedDishBlock(input.dishBearers, input.dedicatedDishesAsked),
+    // ⟳ 2026-09-25 — pas de calendrier en v33: une bouche seule reçoit la
+    // phrase du solo, plusieurs la phrase de la table.
+    dedicatedDishBlock(
+      input.dishBearers,
+      input.dedicatedDishesAsked,
+      input.members.length <= 1 ? "solo" : "table",
+    ),
     preferenceSplitBlock(input.preferenceSplits),
     // JUSTE APRÈS LE BRIEF DE PORTIONS, et avant tout le reste: les deux
     // parlent de la même chose — qui mange quoi. Les séparer par l'envie de la

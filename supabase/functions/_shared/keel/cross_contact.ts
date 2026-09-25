@@ -92,13 +92,14 @@ export interface CrossContactMouth {
 /**
  * Pourquoi le bloc n'est PAS sorti. `null` quand il est sorti.
  *
- * ⛔ LES DEUX SONT EXCLUSIFS ET EXHAUSTIFS, ET L'ORDRE EST UNE DÉCISION :
- * l'absence de contrainte médicale est regardée EN PREMIER. Un foyer sans
+ * ⛔ ILS SONT EXCLUSIFS ET EXHAUSTIFS, ET L'ORDRE EST UNE DÉCISION :
+ * l'absence de contrainte médicale est regardée EN PREMIER, puis l'absence de
+ * plat à soi, puis (⟳ 2026-09-25) l'absence de case à deux plats. Un foyer sans
  * bouche médicale et sans plat dédié compte donc `no_medical`, jamais les deux.
  * Sans cet ordre écrit, deux lecteurs comptent deux populations différentes et
  * la somme des trois cesse d'égaler le nombre de plans.
  */
-export type CrossContactSkip = "no_medical" | "no_dedicated";
+export type CrossContactSkip = "no_medical" | "no_dedicated" | "no_two_dishes";
 
 /** Ce que `crossContactBlock` rend : le texte, la raison, ET LES DEUX PRÉMISSES. */
 export interface CrossContactOutcome {
@@ -130,22 +131,28 @@ export interface CrossContactCounts {
   emitted: number;
   skipped_no_medical: number;
   skipped_no_dedicated: number;
+  /**
+   * ⟳ 2026-09-25 — des plats à soi, mais aucune case où deux plats sont servis
+   * au même moment (une personne seule, ou chacun son plat sans plat de table).
+   */
+  skipped_no_two_dishes: number;
 }
 
 export const CROSS_CONTACT_BLOCK_TAG = "keel.household_meal.cross_contact_block";
 
 export function emptyCrossContactCounts(): CrossContactCounts {
-  return { emitted: 0, skipped_no_medical: 0, skipped_no_dedicated: 0 };
+  return { emitted: 0, skipped_no_medical: 0, skipped_no_dedicated: 0, skipped_no_two_dishes: 0 };
 }
 
 /**
- * Le total des trois. Il DOIT égaler le nombre de plans regardés.
+ * Le total des quatre. Il DOIT égaler le nombre de plans regardés.
  *
- * ⚠️ C'est l'assertion de cardinalité du lot : trois compteurs dont la somme ne
- * fait pas le dénominateur sont trois compteurs dont l'un ne tourne pas.
+ * ⚠️ C'est l'assertion de cardinalité du lot : des compteurs dont la somme ne
+ * fait pas le dénominateur sont des compteurs dont l'un ne tourne pas.
  */
 export function crossContactSeen(counts: CrossContactCounts): number {
-  return counts.emitted + counts.skipped_no_medical + counts.skipped_no_dedicated;
+  return counts.emitted + counts.skipped_no_medical + counts.skipped_no_dedicated +
+    counts.skipped_no_two_dishes;
 }
 
 /** Ajoute UN verdict au tableau. Rend un objet neuf ; n'écrit pas dans l'entrée. */
@@ -156,6 +163,9 @@ export function tallyCrossContact(
   if (outcome.emitted) return { ...counts, emitted: counts.emitted + 1 };
   if (outcome.skipped === "no_medical") {
     return { ...counts, skipped_no_medical: counts.skipped_no_medical + 1 };
+  }
+  if (outcome.skipped === "no_two_dishes") {
+    return { ...counts, skipped_no_two_dishes: counts.skipped_no_two_dishes + 1 };
   }
   return { ...counts, skipped_no_dedicated: counts.skipped_no_dedicated + 1 };
 }
@@ -234,6 +244,15 @@ export function crossContactBlock(input: {
   /** Combien de contraintes médicales n'ont PAS trouvé leur prénom. */
   unnamedMedical: number;
   dishBearers: readonly CrossContactMouth[];
+  /**
+   * ⟳ 2026-09-25 — PARMI `dishBearers`, CEUX DONT UNE CASE PORTE DEUX PLATS OU
+   * PLUS au même moment (`twoDishBearersFromCells`, lu sur la grille). Banc des
+   * trois foyers, plan A: Camille, seule à table, recevait la consigne
+   * d'hygiène « deux plats » pour son plat à elle — il n'y avait pas de second
+   * plat. Absent ⇒ `dishBearers`, la règle d'avant: le bloc ne peut que
+   * rétrécir.
+   */
+  twoDishBearers?: readonly CrossContactMouth[];
 }): CrossContactOutcome {
   const named = input.medicalMouths.filter(
     (m) => String(m.displayName ?? "").trim() !== "",
@@ -253,10 +272,14 @@ export function crossContactBlock(input: {
   if (input.dishBearers.length === 0) {
     return { block: "", emitted: false, skipped: "no_dedicated", ...seen };
   }
+  const beside = input.twoDishBearers ?? input.dishBearers;
+  if (beside.length === 0) {
+    return { block: "", emitted: false, skipped: "no_two_dishes", ...seen };
+  }
 
   const who = named.length > 0 ? nameList(named) : CROSS_CONTACT_UNNAMED_MOUTH;
   const carries = named.length > 1 ? "carry" : "carries";
-  const bearers = nameList(input.dishBearers);
+  const bearers = nameList(beside);
 
   return {
     block: [
@@ -277,6 +300,9 @@ export function crossContactBlock(input: {
       "- one serving spoon per dish, never moved from one to the other;",
       "- each box is closed before the other dish is opened, and no box is ever",
       "  topped up from the other pot.",
+      // ⟳ 2026-09-25 — LA SEULE EXEMPTION ÉCRITE: rien ne se cuit, rien ne se
+      // touche. Pas de matcher: c'est la phrase qui le dit au modèle.
+      "The one exception: a drink poured as it was bought is not a second dish.",
       `Put it in the plan, not only in your answer: the steps of the dish ${who}`,
       "eats say, in the plan's own language, that it is made first and on clean",
       "equipment.",
@@ -287,3 +313,28 @@ export function crossContactBlock(input: {
     ...seen,
   };
 }
+
+/**
+ * ⟳ 2026-09-25 — LES PORTEURS D'UN PLAT À SOI DONT UNE CASE PORTE DEUX PLATS OU
+ * PLUS, lus sur la grille (`householdCells`). Une case sert
+ * `dedicated.length` plats à soi, plus UN plat de table quand au moins un
+ * mangeur n'a pas le sien. PURE.
+ */
+export function twoDishBearersFromCells(
+  dishBearers: readonly CrossContactMouth[],
+  cells: readonly {
+    readonly eaters: readonly string[];
+    readonly dedicated: readonly { readonly memberId: string }[];
+  }[],
+): CrossContactMouth[] {
+  const beside = new Set<string>();
+  for (const cell of cells) {
+    const own = cell.dedicated.length;
+    if (own === 0) continue;
+    const table = cell.eaters.length > own ? 1 : 0;
+    if (own + table < 2) continue;
+    for (const d of cell.dedicated) beside.add(d.memberId);
+  }
+  return dishBearers.filter((b) => beside.has(b.memberId));
+}
+

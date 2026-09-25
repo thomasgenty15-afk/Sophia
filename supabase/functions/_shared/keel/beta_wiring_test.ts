@@ -89,8 +89,16 @@ Deno.test("BÊTA 1A ② — la case passée au parseur porte sa bouche", () => {
   // ⛔ SANS `memberId`, LA PORTE DE CASE EST GRANDE OUVERTE et le point ⑥ de la
   // clôture reste entier: un plat promis à Nils, adressé à Lea, accepté.
   assert(
-    HANDLER.includes("c.dedicated.map((d) => ({\n        day: c.day,\n        slot: c.slot as EatingOccasion,\n        memberId: d.memberId,\n      }))"),
+    HANDLER.includes("c.dedicated.map((d) => ({\n          day: c.day,\n          slot: c.slot as EatingOccasion,\n          memberId: d.memberId,\n        }))"),
     "le budget de composition ne nomme plus la bouche de chaque case",
+  );
+  // ⟳ 2026-09-25 — et sans le jour de cuisine: la consigne n'y commande aucun
+  // plat, la garde finale l'écarte déjà (« 6 extra dishes » pour 5 cases).
+  assert(
+    HANDLER.includes(
+      "const dedicatedCells = householdGrid.cells\n      .filter((c) => cookOnlyDay === null || c.day !== cookOnlyDay)",
+    ),
+    "le budget de composition compte le jour de cuisine",
   );
   // ⚠️ ET LA FUSION GARDE SON `null`, EXPLICITEMENT: une reprise nomme UNE
   // personne, la case n'a personne à départager.

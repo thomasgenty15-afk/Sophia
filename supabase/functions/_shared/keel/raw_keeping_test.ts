@@ -333,7 +333,7 @@ Deno.test("le millésime du TRONC est celui d'aujourd'hui — épinglé ici auss
   // ⟳ LOT C (2026-09-11) — v31: le prompt système ne dit plus le POIDS d'une
   // assiette (« roughly 600 to 750 g »), il dit sa FORME. La version avance avec
   // son texte, sinon un cache servirait l'ancienne consigne sous le nouveau nom.
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v42_off_the_table_not_at");
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v43_no_false_promise");
 });
 
 // ---------------------------------------------------------------------------
@@ -559,7 +559,7 @@ Deno.test("⛔ LOT C — `mealShoppingPayload` rend `freeze_on_purchase`, TOUJOU
 // ═══════════════════════════════════════════════════════════════════════════
 
 Deno.test("⛔ UNE COURSE + CONGÉLATEUR — la consigne dit « congeler à l'achat », plus « racheter la veille »", () => {
-  const lines = rawReachLines(WEEK, { runs: 1, sessions: 3, usesFreezer: true, cookDays: [] }).join("\n");
+  const lines = rawReachLines(WEEK, { runs: 1, sessions: 3, usesFreezer: true, cookDays: [], chosenRuns: null, cookDaysDeclared: false }).join("\n");
   assertStringIncludes(lines, "They shop ONCE, on mon");
   assertStringIncludes(lines, "STRAIGHT INTO THE FREEZER");
   // ⟳ 2026-09-24 — le modèle n'écrit plus « sors-le du congélateur » : l'app le
@@ -575,7 +575,7 @@ Deno.test("⛔ UNE COURSE + CONGÉLATEUR — la consigne dit « congeler à l'ac
 });
 
 Deno.test("deux courses pour trois sessions — la consigne nomme l'écart", () => {
-  const lines = rawReachLines(WEEK, { runs: 2, sessions: 3, usesFreezer: true, cookDays: [] }).join("\n");
+  const lines = rawReachLines(WEEK, { runs: 2, sessions: 3, usesFreezer: true, cookDays: [], chosenRuns: null, cookDaysDeclared: false }).join("\n");
   assertStringIncludes(lines, "2 times for 3 cooking sessions");
   assertStringIncludes(lines, "STRAIGHT INTO THE FREEZER");
 });
@@ -601,9 +601,12 @@ Deno.test("⛔ trois courses, trois sessions: les trois jours, et plus de course
     sessions: 3,
     usesFreezer: false,
     cookDays: ["fri", "sun", "tue"],
+    chosenRuns: 3,
+    cookDaysDeclared: false,
   }).join("\n");
   // La veille (sam., lun.) est trop proche de la course d'avant: le matin même.
-  assertStringIncludes(lines, "their food shops: exactly 3 -- the number they chose -- on fri, sun and tue, and on no other day.");
+  // ⟳ 2026-09-25 — « at most »: le moteur date les lignes, pas le modèle.
+  assertStringIncludes(lines, "their food shops: at most 3 -- the number they chose -- on fri, sun and tue, and on no other day.");
   assertStringIncludes(lines, "- the tue session is fed by the tue shop:");
   // Poisson du mardi: dernier repas jeudi — la fin du plan, donc pas de limite.
   assert(!lines.includes("the app schedules a later shop"), lines);
@@ -616,14 +619,41 @@ Deno.test("⛔ deux courses, trois sessions: la session de mardi n'a plus de poi
     sessions: 3,
     usesFreezer: false,
     cookDays: ["fri", "sun", "tue"],
+    chosenRuns: 2,
+    cookDaysDeclared: false,
   }).join("\n");
-  assertStringIncludes(lines, "exactly 2 -- the number they chose -- on fri and sun");
+  assertStringIncludes(lines, "at most 2 -- the number they chose -- on fri and sun");
   // Acheté dimanche, le poisson se cuisine au plus tard lundi (fenêtre crue 1).
   assertStringIncludes(lines, "- the tue session is fed by the sun shop: no fresh fish and shellfish;");
   // La volaille: cuisinée mardi (dimanche + 2), dernier repas mercredi (+ 3).
   assertStringIncludes(lines, "chicken, turkey, and any minced meat only for meals up to wed");
   // La session de vendredi: poisson jusqu'à dimanche (vendredi + 2).
   assertStringIncludes(lines, "- the fri session is fed by the fri shop: fish and shellfish only for meals up to sun;");
+});
+
+Deno.test("⟳ 2026-09-25 — « the number they chose » seulement si le plan en organise autant", () => {
+  // Banc des trois foyers: une course choisie, deux organisées (pas de
+  // congélateur), et la consigne disait « exactly 2 -- the number they chose ».
+  const lines = rawReachLines(FRI_WEEK, {
+    runs: 2,
+    sessions: 3,
+    usesFreezer: false,
+    cookDays: ["fri", "sun", "tue"],
+    chosenRuns: 1,
+    cookDaysDeclared: false,
+  }).join("\n");
+  assertStringIncludes(lines, "their food shops: at most 2 on fri and sun, and on no other day.");
+  assert(!lines.includes("the number they chose"), lines);
+  // « peu importe » (`null`): aucun nombre choisi à citer.
+  const any = rawReachLines(FRI_WEEK, {
+    runs: 2,
+    sessions: 3,
+    usesFreezer: false,
+    cookDays: ["fri", "sun", "tue"],
+    chosenRuns: null,
+    cookDaysDeclared: false,
+  }).join("\n");
+  assert(!any.includes("the number they chose"), any);
 });
 
 Deno.test("⛔ la cadence est `null` ou complète — un objet sans `usesFreezer` JETTE", () => {
@@ -640,7 +670,7 @@ Deno.test("PROMPT — avec une course et un congélateur, le tronc porte la sort
   const msg = buildMealPrompt({ budgetFloor: null,
     ...PROMPT_BASE,
     hasFreezer: true,
-    groceryCadence: { runs: 1, sessions: 3, usesFreezer: true, cookDays: [] },
+    groceryCadence: { runs: 1, sessions: 3, usesFreezer: true, cookDays: [], chosenRuns: null, cookDaysDeclared: false },
   }).userMessage;
   assertStringIncludes(msg, "They shop ONCE, on mon");
   assertStringIncludes(msg, "STRAIGHT INTO THE FREEZER");
@@ -700,13 +730,13 @@ for (
 // ═══════════════════════════════════════════════════════════════════════════
 
 Deno.test("⛔ UNE COURSE — les feuilles et herbes fraîches ne vont pas dans une session après leur ligne", () => {
-  const one = rawReachLines(WEEK, { runs: 1, sessions: 3, usesFreezer: true, cookDays: [] }).join("\n");
+  const one = rawReachLines(WEEK, { runs: 1, sessions: 3, usesFreezer: true, cookDays: [], chosenRuns: null, cookDaysDeclared: false }).join("\n");
   // WEEK ouvre lundi: les feuilles (5 jours depuis le 2026-09-24) tiennent
   // jusqu'à samedi.
   assertStringIncludes(one, "never put them into a session after sat");
   assertStringIncludes(one, "use dried or frozen herbs");
   // Deux courses: il y a un magasin plus tard, la phrase ne sort pas.
-  const two = rawReachLines(WEEK, { runs: 2, sessions: 3, usesFreezer: true, cookDays: [] }).join("\n");
+  const two = rawReachLines(WEEK, { runs: 2, sessions: 3, usesFreezer: true, cookDays: [], chosenRuns: null, cookDaysDeclared: false }).join("\n");
   assert(!two.includes("never put them into a session"), two);
   assert(!rawReachLines(WEEK, null).join("\n").includes("never put them into a session"));
 });

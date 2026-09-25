@@ -1413,3 +1413,9 @@ import { COOKED_RICE_FRIDGE_DAYS } from "./fridge_window.ts";
 Deno.test("épinglage — COOKED_RICE_FRIDGE_DAYS vaut 2", () =>
   assertEquals(COOKED_RICE_FRIDGE_DAYS, 2));
 
+
+// ⟳ 2026-09-25 — la fenêtre du frigo dite au modèle (v43). Recopiée de
+// `MAX_FRIDGE_DAYS` faute d'import possible; `keeping_window_prompt_test.ts`
+// tient l'égalité, ce littéral tient la valeur.
+import { PROMPT_FRIDGE_DAYS } from "./meal_prompt_text.ts";
+Deno.test("épinglage — PROMPT_FRIDGE_DAYS vaut 3", () => assertEquals(PROMPT_FRIDGE_DAYS, 3));

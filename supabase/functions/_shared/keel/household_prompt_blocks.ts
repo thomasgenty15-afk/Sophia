@@ -515,6 +515,18 @@ export function dedicatedDishBlock(
     ownMealDays?: readonly string[] | null;
   }[],
   dedicatedDishesAsked: number,
+  /**
+   * ⟳ 2026-09-25 — CE QUE LE BLOC PEUT DIRE DE LA TABLE, et c'est le calendrier
+   * qui décide. Banc des trois foyers: « write TWO dishes » partait partout,
+   * alors que le calendrier v34 dit « write NO shared dish » sur une case où
+   * chaque mangeur a le sien (C, goûter de Jade), et qu'une personne seule
+   * n'a pas de « shared pot » (A).
+   *   · `calendar` — structure v34: le bloc renvoie à la ligne de chaque case;
+   *   · `solo` — une seule bouche, pas de table à côté: UN plat;
+   *   · `table` — structure v33 à plusieurs: la phrase d'avant, mot pour mot.
+   * REQUIS: un défaut remettrait la phrase fausse chez qui l'oublie.
+   */
+  frame: "calendar" | "solo" | "table",
 ): string {
   if (dishBearers.length === 0) return "";
   // LE NOMBRE VIENT DE L'APPELANT, ET IL EST LE MÊME QUE CELUI DU BUDGET. Un
@@ -524,11 +536,36 @@ export function dedicatedDishBlock(
   const asked = Number.isFinite(dedicatedDishesAsked)
     ? Math.max(1, Math.floor(dedicatedDishesAsked))
     : 1;
+  const opening = frame === "calendar"
+    ? [
+      "These people eat a dish of their own at the meals the calendar orders one",
+      "for them: write it for that day and that slot, from the same cooking",
+      "sessions and the same shopping. The calendar's line for the cell says",
+      "whether the table also gets a shared dish there -- when every eater has",
+      "their own, it gets none.",
+    ]
+    : frame === "solo"
+    ? [
+      "At the meals listed below, their meal is what they declared: ONE dish,",
+      "written as a dish of their own, and no other dish at that meal.",
+    ]
+    : [
+      "These people cannot be fed from the shared pot. At EVERY meal they eat",
+      "here, write TWO dishes for that day and that slot: the table's dish, and a",
+      "dish of their own — same cooking session, same shopping, different plate.",
+    ];
+  const budget = frame === "table"
+    ? [
+      `That is ${asked} extra dish${asked > 1 ? "es" : ""} on top of the table's`,
+      "meals, and the dish budget above already has room for them. Count them",
+    ]
+    : [
+      `That is ${asked} dish${asked > 1 ? "es" : ""} of their own in this window, and the dish`,
+      "budget above already has room for them. Count them",
+    ];
   return [
     "== A DISH OF THEIR OWN ==",
-    "These people cannot be fed from the shared pot. At EVERY meal they eat",
-    "here, write TWO dishes for that day and that slot: the table's dish, and a",
-    "dish of their own — same cooking session, same shopping, different plate.",
+    ...opening,
     ...dishBearers.map((b) =>
       b.ownMealDays == null
         ? `  ${b.displayName} = ${b.memberId}`
@@ -536,8 +573,7 @@ export function dedicatedDishBlock(
           b.ownMealDays.map(dayProse).join(" and ")
         } ONLY; on every other day they eat the table's dish, and it is sized for them`
     ),
-    `That is ${asked} extra dish${asked > 1 ? "es" : ""} on top of the table's`,
-    "meals, and the dish budget above already has room for them. Count them",
+    ...budget,
     "before you answer: a window where these people have no dish of their own is",
     "a window where they do not eat.",
     'Each of those dishes carries "for_member_id" set to the exact id above. The',
@@ -573,8 +609,15 @@ export function dedicatedDishBlock(
  * compilateur; il n'est pas un prérequis de la consigne.
  *
  * ⚠️ `[]` ⇒ AUCUN BLOC, donc prompt byte-identique à v15. Un foyer qui n'a
- * jamais vu la question, un foyer qui a tout coché, une ligne illisible: les
- * trois rendent la même chose, et c'est le comportement d'avant ce lot.
+ * jamais vu la question, une ligne illisible: les deux rendent la même chose,
+ * et c'est le comportement d'avant ce lot.
+ *
+ * ⟳ 2026-09-25 — SAUF LE MICRO-ONDES DÉCLARÉ, LA SEULE CHOSE QU'ON DIT QU'IL A.
+ * Banc des trois foyers: micro-ondes coché, et 14 méthodes sur 14 réchauffaient
+ * « à la casserole couverte, 8 min » — l'exemple cité par la consigne, recopié.
+ * Un foyer qui a coché le micro-ondes reçoit donc une ligne POSITIVE, et un
+ * foyer qui a tout coché gagne exactement cette ligne. Lu par `includes`
+ * sur la liste DÉCLARÉE: « jamais demandé » (`null`) ne dit rien.
  *
  * ⚠️ TROIS OUTILS ONT UNE CONSÉQUENCE ÉCRITE, LES QUATRE AUTRES SONT SEULEMENT
  * NOMMÉS. Le §2.1 de la conception le dit: `freezer`, `microwave` et `oven`
@@ -600,16 +643,25 @@ export function kitchenBlock(
   // ⚠️ LA TRACE EST RENDUE PAR LA MÊME EXPRESSION QUE LE BLOC. Recalculer
   // `missingKitchenTools` chez l'appelant ferait deux idées de « ce qui a été
   // interdit », et c'est celle qu'on regarde le moins qui garderait l'ancienne.
-  if (missing.length === 0) return { block: "", missing };
+  const hasMicrowave = Array.isArray(equipment) && equipment.includes("microwave");
+  if (missing.length === 0 && !hasMicrowave) return { block: "", missing };
   const gone = new Set<KitchenTool>(missing);
-  const lines = [
-    "== THIS KITCHEN ==",
-    `This household does not have: ${
-      missing.map((tool) => TOOL_PROSE[tool]).join(", ")
-    }.`,
-    "Cook with what is left. Never write a preparation, a cooking session or a",
-    "day-of gesture that needs one of these, and never suggest buying one.",
-  ];
+  const lines = ["== THIS KITCHEN =="];
+  if (missing.length > 0) {
+    lines.push(
+      `This household does not have: ${
+        missing.map((tool) => TOOL_PROSE[tool]).join(", ")
+      }.`,
+      "Cook with what is left. Never write a preparation, a cooking session or a",
+      "day-of gesture that needs one of these, and never suggest buying one.",
+    );
+  }
+  if (hasMicrowave) {
+    lines.push(
+      "This household has a microwave: a dish that is reheated at home is" +
+        " reheated in it, with the minutes that really takes.",
+    );
+  }
   if (gone.has("oven")) {
     lines.push(
       "No oven: nothing roasted, baked, or finished under a grill. The batch" +

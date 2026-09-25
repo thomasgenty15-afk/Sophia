@@ -259,7 +259,7 @@ Deno.test("la version de prompt a bougé avec ce lot", () => {
   // ⟳ LOT C (2026-09-11) — v31: le prompt système ne dit plus le POIDS d'une
   // assiette (« roughly 600 to 750 g »), il dit sa FORME. La version avance avec
   // son texte, sinon un cache servirait l'ancienne consigne sous le nouveau nom.
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v42_off_the_table_not_at");
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v43_no_false_promise");
 });
 
 Deno.test("A1 — l'enveloppe du FOYER ne bouge pas d'un octet", () => {
@@ -280,7 +280,7 @@ Deno.test("A1 — l'enveloppe du FOYER ne bouge pas d'un octet", () => {
   // (message byte-identique à v25), v26 avec.
   // ⟳ 2026-09-23 — v39: les à-côtés en familles (`side_courses_prompt.ts`).
   // ⟳ 2026-09-23 — v40: la table partage ses à-côtés (`side_courses_prompt.ts`).
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v48_off_the_table_not_at");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v49_no_false_promise");
 });
 
 // ---------------------------------------------------------------------------

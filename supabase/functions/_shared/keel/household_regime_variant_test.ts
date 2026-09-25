@@ -260,7 +260,7 @@ Deno.test("les présences DIFFÉRENTES ne dédient que les cases réellement man
 Deno.test("ENSEIGNÉ — la section nomme le porteur, et la clé `for_member_id` sort avec", () => {
   const { baseRegime, outcome } = tableVeganeEtOmnivore(PLUS_DE_PROTEINE);
   const bearers = porteursDe(outcome.cells);
-  const consigne = dedicatedDishBlock(bearers, 4);
+  const consigne = dedicatedDishBlock(bearers, 4, "calendar");
   const schema = dishOwnerSchemaBlock(bearers).join("\n");
   assert(consigne.includes("== A DISH OF THEIR OWN =="));
   assert(consigne.includes(`Max = ${MAX}`), "le porteur n'est pas nommé par son id");
@@ -317,7 +317,7 @@ Deno.test("ENSEIGNÉ — ⛔ SANS SECTION, PAS DE RENVOI: le mensonge du 2026-09
     boxChannelOpen: true,
   });
   assert(!muet.includes("A DISH OF THEIR OWN"));
-  assertEquals(dedicatedDishBlock([], 0), "");
+  assertEquals(dedicatedDishBlock([], 0, "calendar"), "");
   assertEquals(dishOwnerSchemaBlock([]), []);
 });
 
@@ -770,8 +770,27 @@ Deno.test("⟳ 2026-09-19 — le bloc « A DISH OF THEIR OWN » nomme les jours 
   const bloc = dedicatedDishBlock([
     { memberId: "m-fab", displayName: "Fabrice", ownMealDays: ["mon", "thu"] },
     { memberId: "m-tom", displayName: "Tom" },
-  ], 4);
+  ], 4, "table");
   assert(bloc.includes("Fabrice = m-fab -- their own dish on Monday and Thursday ONLY"), bloc);
   assert(bloc.includes("on every other day they eat the table's dish, and it is sized for them"), bloc);
   assert(bloc.includes("  Tom = m-tom\n"), "un porteur sans plafond garde sa ligne d'avant, mot pour mot");
 });
+
+// ⟳ 2026-09-25 — LE BLOC SUIT LE CALENDRIER, ET LE SOLO N'A PAS DE « shared pot ».
+Deno.test("⟳ 2026-09-25 — « A DISH OF THEIR OWN »: le calendrier décide, le solo reçoit UN plat, v33 garde sa phrase", () => {
+  const porteurs = [{ memberId: "m-jade", displayName: "Jade" }];
+  const cal = dedicatedDishBlock(porteurs, 5, "calendar");
+  // Banc des trois foyers, plan C: « write TWO dishes » contre « write NO
+  // shared dish » sur la ligne du goûter de Jade.
+  assert(!cal.includes("write TWO dishes"), cal);
+  assert(cal.includes("The calendar's line for the cell says"), cal);
+  assert(cal.includes("That is 5 dishes of their own in this window"), cal);
+  const solo = dedicatedDishBlock([{ memberId: "m-cam", displayName: "Camille" }], 2, "solo");
+  // Plan A: une personne seule n'a pas de « shared pot ».
+  assert(!solo.includes("shared pot"), solo);
+  assert(solo.includes("their meal is what they declared: ONE dish"), solo);
+  const table = dedicatedDishBlock(porteurs, 3, "table");
+  assert(table.includes("write TWO dishes for that day and that slot"), "v33 à plusieurs: la phrase d'avant");
+  assert(table.includes("That is 3 extra dishes on top of the table's"), table);
+});
+

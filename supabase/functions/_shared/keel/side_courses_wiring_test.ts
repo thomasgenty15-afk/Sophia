@@ -192,7 +192,11 @@ const CONTRACT_COUNT = "sideCoursesTrace.contract.side_slots += contracts.counte
 const DECIDED = "decided: {";
 const DIRECTIONS = "directions: platedMembers.map(";
 const BRIEF = "const slotContract = slotContractBrief({";
-const BRIEF_PROTEIN = 'proteinMinG: plateSlotClassOf(c.slot) === "meal" ? proteinMinG : null,';
+// ⟳ 2026-09-25 — les grammes de la case, lus dans le brief (`briefGramsAt`),
+// plus le plancher « par plat »; toujours sur les seuls repas.
+const BRIEF_PROTEIN = 'proteinMinG: plateSlotClassOf(c.slot) === "meal"\n' +
+  "              ? briefGramsAt(brief, c.slot, c.dayToken)\n" +
+  "              : null,";
 const PROTEIN_DAYS = "proteinBriefDays.set(";
 const SIDE_PROTEIN = "sideProteinG: sideProteinByMouthDay.get(m.memberId)?.get(first.dayToken) ?? 0,";
 const FIXED_PROTEIN = "fixedProteinG: vus === 0 ? null : somme,";

@@ -45,6 +45,7 @@ import { type MealCell, memberMealCells } from "./household_presence.ts";
 import { type ExpectedDish, mouthsFedByDish } from "./box_expected.ts";
 import type { DietaryRegime } from "./dietary_regime.ts";
 import { dietBaseEdible, dietDiverges } from "./household_diet.ts";
+import { OWN_USUAL_CAPPED_SLOTS } from "./household_habits.ts";
 import type { ServingAxisDemands } from "./household_portions.ts";
 import type { AwayDay, EatingOccasionSlot } from "./meal_generation.ts";
 
@@ -180,8 +181,9 @@ export interface HouseholdCell {
    * message transmet est celui du bloc `WHAT THE SHARED BASE MUST RESPECT` —
    * « the BASE the table shares … follows the STRICTEST line declared at this
    * table » (R4). Le calendrier, lui, n'imprime aucun régime par case: l'étape
-   * 1 de la méthode renvoie à « the diet the calendar prints for that cell »,
-   * qui n'existe pas.
+   * 1 de la méthode renvoyait à « the diet the calendar prints for that cell »,
+   * qui n'existe pas. ⟳ 2026-09-25 — elle renvoie désormais au bloc
+   * `WHAT THE SHARED BASE MUST RESPECT`.
    *
    * Résultat mesuré sur le prompt réellement transmis (N=4, 2026-09-13): la
    * section `A DISH OF THEIR OWN` commandait un plat à **Lea**, la végane,
@@ -471,10 +473,13 @@ export function householdCells(
       // n'est pas dédiée, elle mange le plat de la table. `dedicatedInCell` ne
       // connaît pas le jour, et n'a pas à le connaître — on lui présente la
       // bouche telle qu'elle est CE jour-là.
+      // ⟳ 2026-09-25 — SEULS LE DÉJEUNER ET LE DÎNER SONT PLAFONNÉS
+      // (`OWN_USUAL_CAPPED_SLOTS`): hors de ses jours, la bouche garde son
+      // plat déclaré du matin et du goûter.
       const eatersToday = eaters.map((m) =>
         m.ownMealDays === null || m.ownMealDays.includes(day)
           ? m
-          : { ...m, ownMealSlots: [] }
+          : { ...m, ownMealSlots: m.ownMealSlots.filter((s) => !OWN_USUAL_CAPPED_SLOTS.includes(s)) }
       );
       const dedicated = dedicatedInCell(slot, eatersToday, regime);
       const character = cellCharacterFor(slot, eaters);

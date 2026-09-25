@@ -477,16 +477,33 @@ Deno.test("BÊTA 1A ④ — canal des boîtes FERMÉ: aucun ordre de boîte ne p
   assert(!bloc.includes("PER BOX"), bloc);
   assert(!bloc.includes('"boxes"'), bloc);
   assert(!bloc.includes('"grams"'), bloc);
-  // ⚠️ ET LE CANAL QUI RESTE EST NOMMÉ, avec sa clé — cicatrice
-  // `promise-and-schema-key-must-be-adjacent`: une consigne qui interdit sans
-  // nommer la sortie à prendre est une consigne qu'on reprend.
-  assert(bloc.includes("DISH OF THEIR OWN"), bloc);
-  assert(bloc.includes('"for_member_id"'), bloc);
+  // ⚠️ LE CANAL QUI RESTE EST CELUI DE LA GRILLE: la section `A DISH OF THEIR
+  // OWN`, renvoyée par la ligne de Max (elle porte `for_member_id`).
+  assert(bloc.includes("(see A DISH OF THEIR OWN)"), bloc);
+  // ⟳ 2026-09-25 — ET PLUS AUCUNE PROMESSE SANS CANAL (banc des trois foyers,
+  // plan C): ni « extra dish on top », ni « Do NOT drop the animal protein ».
+  assert(!bloc.includes("extra dish on top"), bloc);
+  assert(!bloc.includes("Do NOT drop the"), bloc);
   // La règle de sécurité, elle, ne bouge pas d'un mot.
   assert(bloc.includes("== WHAT THE SHARED BASE MUST RESPECT =="), bloc);
   assert(bloc.includes("follows the STRICTEST line"), bloc);
-  // Et l'anti-flagrant R5 reste entier: Max mange toujours de la viande.
-  assert(bloc.includes("Max are not bound by that line") || bloc.includes("Max is not bound by that line"), bloc);
+});
+
+Deno.test("⟳ 2026-09-25 — canal FERMÉ et personne à qui la grille donne un plat: aucune séparation promise", () => {
+  // Plan C: Jade végane, Marc et Thomas omnivores, table servie végane, aucun
+  // plat à part pour eux. La consigne ne leur promet ni viande ni plat de plus.
+  const bloc = householdDietBlock({
+    strictest: "vegan",
+    heldBy: ["Jade"],
+    freeNames: ["Marc", "Thomas"],
+    divergingNames: [],
+    dedicatedSectionSent: false,
+    boxChannelOpen: false,
+  });
+  assert(!bloc.includes("Marc, Thomas are not bound"), bloc);
+  assert(!bloc.includes("DISH OF THEIR OWN"), bloc);
+  assert(!bloc.includes("for_member_id"), bloc);
+  assert(bloc.includes("This is the line of: Jade."), bloc);
 });
 
 Deno.test("BÊTA 1A ④ — canal OUVERT: le bloc est celui d'avant, mot pour mot", () => {
@@ -513,6 +530,8 @@ Deno.test("BÊTA 1A ④ — sans divergence, les deux canaux rendent le MÊME bl
   // ⛔ ILS DIFFÈRENT, ET C'EST VOULU: la phrase de mécanique part même sans
   // divergence (« When nobody at this table is bound differently, one box »).
   // Ce qu'on épingle est donc que la partie SÉCURITÉ est identique.
-  const tete = (b: string) => b.split("The one component")[0];
+  // ⟳ 2026-09-25 — le canal fermé ne porte plus de phrase de mécanique: la
+  // tête s'arrête à la première ligne qui n'est pas la règle de sécurité.
+  const tete = (b: string) => b.split(/The one component|This is the line of/)[0];
   assertEquals(tete(ouvert), tete(ferme));
 });

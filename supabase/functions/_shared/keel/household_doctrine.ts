@@ -181,6 +181,8 @@ export async function loadHouseholdDoctrine(
 ): Promise<LoadedDoctrine> {
   return await loadPublishedDoctrine(db, args.ownerUserId, {
     tableGoals: args.tableGoals,
+    // ⟳ 2026-09-25 — pas de voix de réponse dans une consigne de plan.
+    voice: false,
   });
 }
 

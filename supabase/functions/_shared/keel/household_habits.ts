@@ -45,6 +45,7 @@ import {
 } from "./plan_draft_note.ts";
 import { type ForbiddenTerm } from "./forbidden_matcher.ts";
 import { slotBearsLight } from "./meal_extras.ts";
+import { SHAKE_TEXT_PREFIX } from "./shake_text.ts";
 // ⟳ 2026-09-23 — LE VOCABULAIRE DES À-CÔTÉS VIENT DU SOCLE, jamais recopié.
 // ✅ `side_courses_types.ts` n'importe qu'un TYPE (`tokens.ts`): le lire ne
 // peut pas fermer le cycle que l'en-tête ci-dessous décrit.
@@ -390,11 +391,30 @@ export function ownMealSlots(
  */
 export const OWN_USUAL_DAYS_PER_WEEK_FAT_LOSS = 2;
 
+/**
+ * ⟳ 2026-09-25 — LE PLAFOND DES JOURS NE VAUT QU'AU DÉJEUNER ET AU DÎNER.
+ *
+ * La décision du 2026-09-19 visait « hamburger frites » et « salades
+ * fromages »: des REPAS. Banc des trois foyers, plan C: Thomas, en perte de
+ * poids, a déclaré « que du café » le matin — il recevait son café deux
+ * matins sur trois et un petit-déjeuner de la table le troisième. On restreint
+ * la règle au moment, en connaissance de cause, jamais au contenu de
+ * l'habitude (aucun matcher maison).
+ */
+export const OWN_USUAL_CAPPED_SLOTS: readonly string[] = Object.freeze(["lunch", "dinner"]);
+
 export function ownUsualDaysFor(
   goal: string | null,
   eatingDays: readonly string[],
+  /**
+   * ⟳ 2026-09-25 — LES MOMENTS OÙ CETTE BOUCHE A DÉCLARÉ SON PLAT
+   * (`ownMealSlots`). Sans déjeuner ni dîner parmi eux, aucun plafond: le café
+   * du matin est servi chaque jour. REQUIS.
+   */
+  ownSlots: readonly string[],
 ): string[] | null {
   if (goal !== "fat_loss") return null;
+  if (!ownSlots.some((slot) => OWN_USUAL_CAPPED_SLOTS.includes(slot))) return null;
   const days = eatingDays.filter((d) => d.trim() !== "");
   if (days.length <= OWN_USUAL_DAYS_PER_WEEK_FAT_LOSS) return [...days];
   const out: string[] = [];
@@ -407,8 +427,16 @@ export function ownUsualDaysFor(
 export function habitFragment(habits: readonly MemberHabit[]): string {
   const own = habits.filter((h) => h.kind === "own_usual" && h.usual.trim().length > 0);
   if (own.length === 0) return "";
-  const parts = own.map((h) => `${SLOT_WORDS[h.slot] ?? h.slot}: ${h.usual}`);
-  return ` — has their own at ${parts.join("; at ")}`;
+  const said = (h: MemberHabit) => `${SLOT_WORDS[h.slot] ?? h.slot}: ${h.usual}`;
+  // ⟳ 2026-09-25 — CE QUE LE PLAN AJOUTE N'EST PAS « leur » HABITUDE. Le
+  // shaker composé (`SHAKE_TEXT_PREFIX`) se lisait « has their own at … » sur
+  // la carte d'une personne qui ne l'avait jamais déclaré.
+  const declared = own.filter((h) => !h.usual.startsWith(SHAKE_TEXT_PREFIX));
+  const added = own.filter((h) => h.usual.startsWith(SHAKE_TEXT_PREFIX));
+  return [
+    declared.length === 0 ? "" : ` — has their own at ${declared.map(said).join("; at ")}`,
+    added.length === 0 ? "" : ` — the plan adds at ${added.map(said).join("; at ")}`,
+  ].join("");
 }
 
 /**
@@ -463,9 +491,9 @@ export function habitNoteFragment(note: string | null): string {
  *      une personne qui ne mange rien.
  */
 export const HABIT_CONSEQUENCE = [
-  'When a person "has their own" at a moment, do NOT serve them the table\'s',
-  "dish then. Cook for the others as usual, and count their own thing in the",
-  "shopping list.",
+  'When a person "has their own" at a moment, or "the plan adds" one there,',
+  "do NOT serve them the table's dish then. Cook for the others as usual, and",
+  "count their own thing in the shopping list.",
   // ── ET ÉCRIS-LE COMME UN PLAT, AVEC SON PROPRIÉTAIRE (2026-08-19) ────────
   // ⛔ CES DEUX LIGNES FERMENT UNE CONTRADICTION MESURÉE. Le bloc disait
   // « ne leur sers pas le plat de la table » et « compte leur truc dans les

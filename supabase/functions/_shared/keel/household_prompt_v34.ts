@@ -80,7 +80,7 @@ import {
 import { buildHouseholdVoices } from "./household_voices.ts";
 import { buildEnvyBlock } from "./household_envies.ts";
 import { traditionBlock } from "./household_traditions.ts";
-import { crossContactBlock } from "./cross_contact.ts";
+import { crossContactBlock, twoDishBearersFromCells } from "./cross_contact.ts";
 import {
   habitFragment,
   habitNoteFragment,
@@ -157,7 +157,10 @@ import {
 // le même jour que `HOUSEHOLD_PROMPT_VERSION` (v47) et pour la même raison.
 // ⟳ 2026-09-25 — `v34_one_starch_one_session` → `v34_off_the_table_not_at`, le
 // même jour que `HOUSEHOLD_PROMPT_VERSION` (v48) et pour la même raison.
-export const HOUSEHOLD_PROMPT_V34_VERSION = "v34_off_the_table_not_at";
+// ⟳ 2026-09-25 — `v34_off_the_table_not_at` → `v34_no_false_promise`, le même
+// jour que `HOUSEHOLD_PROMPT_VERSION` (v49) et pour la même raison; plus, ici,
+// le renvoi du régime au bloc qui le dit (le calendrier n'en imprime aucun).
+export const HOUSEHOLD_PROMPT_V34_VERSION = "v34_no_false_promise";
 
 /**
  * LE PLANCHER DE BOUCHES À PARTIR DUQUEL v34 EST SERVI.
@@ -543,7 +546,9 @@ function methodBlock(anyDedicated: boolean): string {
     "   dish and to every preparation it draws on. A dish of someone's own frees",
     "   only that person. Something a person keeps off their plate applies to",
     "   every dish THEY eat, and not to the others'. The shared dish of a cell",
-    "   follows the diet the calendar prints for that cell. The blocks headed",
+    // ⟳ 2026-09-25 — le calendrier n'imprime aucun régime: le renvoi va au
+    // bloc qui le dit. La liste d'en-têtes de la phrase suivante ne bouge pas.
+    "   follows the diet of WHAT THE SHARED BASE MUST RESPECT. The blocks headed",
     "   WHAT THE SHARED BASE MUST RESPECT, HOUSE RULES and THE SAME KITCHEN,",
     "   TWO DISHES below are the last word on all of this.",
     "",
@@ -671,6 +676,9 @@ export function buildHouseholdPromptBlocksV34(
     medicalMouths: input.medicalMouths,
     unnamedMedical: input.crossContactUnnamedMedical,
     dishBearers: input.dishBearers,
+    // ⟳ 2026-09-25 — seulement ceux dont une case porte deux plats à la fois,
+    // lus sur la grille que le calendrier imprime.
+    twoDishBearers: twoDishBearersFromCells(input.dishBearers, input.cells),
   });
   // ⛔ LA LISTE D'IDS SORT DÈS QUE QUELQUE CHOSE Y RENVOIE — ici le schéma du
   // plat dédié. Même règle qu'en v33: promettre « l'id ci-dessus » sans la
@@ -799,7 +807,8 @@ export function buildHouseholdPromptBlocksV34(
     // La recette renvoie à « (SIDE COURSES) »; ce bloc est le renvoi et porte
     // la clé `side_courses`. `""` sans demande écrite: filtré en fin de tableau.
     sides.block,
-    dedicatedDishBlock(input.dishBearers, input.dedicatedDishesAsked),
+    // ⟳ 2026-09-25 — le calendrier dit, case par case, si la table a aussi un plat.
+    dedicatedDishBlock(input.dishBearers, input.dedicatedDishesAsked, "calendar"),
     workLunch.block,
     traditions.block,
     notes.block,

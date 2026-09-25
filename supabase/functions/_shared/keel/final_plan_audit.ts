@@ -1280,6 +1280,29 @@ export interface ProteinFloorAllocation {
  * `fixedProteinG` vaut `null`. Ce lot ne déplace aucun plancher d'un plan qui
  * ne déclare rien.
  */
+/**
+ * LA PART DE LA JOURNÉE QUE LES CASES COUVERTES PORTENT, bornée à 1.
+ * `null` = cible du jour ou budget couvert illisible.
+ *
+ * ⚠️ LE RAPPORT EST BORNÉ À 1. Une redistribution autorisée peut faire
+ * dépasser le budget couvert de quelques kilocalories la cible du jour; en
+ * tirer « 104 % du plancher » serait durcir une exigence médicale sur un
+ * arrondi.
+ *
+ * ⟳ 2026-09-25 — SORTIE D'`proteinFloorAllocation` pour que le plafond de la
+ * table (`sharedProteinCaps`) proratise la journée partielle par la MÊME
+ * règle: une seule écriture de « quelle part de la journée est à table ».
+ */
+export function coveredDayFraction(
+  dayTargetKcal: number | null,
+  coveredBudgetGrossKcal: number | null,
+): number | null {
+  const day = dayTargetKcal;
+  const covered = coveredBudgetGrossKcal;
+  if (day === null || !(day > 0) || covered === null || !(covered >= 0)) return null;
+  return Math.min(1, covered / day);
+}
+
 export function proteinFloorAllocation(args: {
   /** `envelope.proteinFloorG` — `null` si l'enveloppe est `per_portion`. */
   dayFloorG: number | null;
@@ -1325,9 +1348,8 @@ export function proteinFloorAllocation(args: {
       reason: args.abstention === "protected" ? "protected" : "no_body",
     };
   }
-  const day = args.dayTargetKcal;
-  const covered = args.coveredBudgetGrossKcal;
-  if (day === null || !(day > 0) || covered === null || !(covered >= 0)) {
+  const fraction = coveredDayFraction(args.dayTargetKcal, args.coveredBudgetGrossKcal);
+  if (fraction === null) {
     return {
       ...base,
       coveredFloorG: null,
@@ -1335,11 +1357,6 @@ export function proteinFloorAllocation(args: {
       reason: "coverage_unknown",
     };
   }
-  // ⚠️ LE RAPPORT EST BORNÉ À 1. Une redistribution autorisée peut faire
-  // dépasser le budget couvert de quelques kilocalories la cible du jour; en
-  // tirer « 104 % du plancher » serait durcir une exigence médicale sur un
-  // arrondi.
-  const fraction = Math.min(1, covered / day);
   const gross = args.dayFloorG * fraction;
   const net = args.fixedProteinG === null
     ? gross

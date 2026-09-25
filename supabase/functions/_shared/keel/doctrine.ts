@@ -683,6 +683,14 @@ function contentHash(text: string): string {
 export function compileDoctrineBlock(
   doctrine: CoachDoctrine,
   goal: GoalToken | null,
+  /**
+   * ⟳ 2026-09-25 — LA VOIX EST CELLE D'UNE CONVERSATION, PAS D'UN PLAN.
+   * Banc des trois foyers: le coach maison servait « -- VOICE -- write in
+   * English » et « two or three sentences » dans une consigne de PLAN en
+   * français. La lane du foyer passe `{ voice: false }`
+   * (`loadHouseholdDoctrine`); le défaut garde la conversation telle quelle.
+   */
+  options: { readonly voice: boolean } = { voice: true },
 ): CompiledDoctrine {
   const who = doctrine.coachDisplayName || "the coach";
   const lines: string[] = [];
@@ -848,7 +856,7 @@ export function compileDoctrineBlock(
   if (v.emojis === "none") voiceBits.push("no emojis");
   if (v.emojis === "light") voiceBits.push("at most one emoji");
   if (v.language) voiceBits.push(`write in ${v.language}`);
-  if (voiceBits.length > 0) {
+  if (options.voice && voiceBits.length > 0) {
     lines.push("");
     lines.push("-- VOICE --");
     for (const bit of voiceBits) lines.push(`- ${bit}`);

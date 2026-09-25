@@ -527,3 +527,15 @@ Deno.test("both locks import the same matcher, so their rules cannot diverge", a
     assert(!src.includes("function tokenPattern"), `${name} must not redefine tokenPattern`);
   }
 });
+
+// ⟳ 2026-09-25 — LA VOIX EST CELLE D'UNE CONVERSATION, PAS D'UN PLAN.
+Deno.test("⟳ 2026-09-25 — `{ voice: false }` retire « -- VOICE -- », et seulement lui", () => {
+  const avec = compileDoctrineBlock(doctrine(), null);
+  const sans = compileDoctrineBlock(doctrine(), null, { voice: false });
+  assert(avec.text.includes("-- VOICE --"), avec.text);
+  assert(!sans.text.includes("-- VOICE --"), sans.text);
+  assert(!sans.text.includes("write in fr-FR"), sans.text);
+  // Tout le reste est à l'octet.
+  assertEquals(sans.text, avec.text.slice(0, avec.text.indexOf("\n\n-- VOICE --")));
+});
+

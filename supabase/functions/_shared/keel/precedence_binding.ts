@@ -282,6 +282,15 @@ export const HOUSEHOLD_ARBITRATION_BY_VERSION: Readonly<Record<string, string>> 
   // ⟳ Le jeton de la structure v34, bumpé le même jour pour la même raison.
   v34_off_the_table_not_at:
     "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
+  // ⟳ v49 (2026-09-25) — MÊME EMPREINTE, ET C'EST L'AFFIRMATION. v49 retire de
+  // la consigne ce que rien ne tient (réchauffage, exemples cités, promesses
+  // sans canal, plancher « par plat »…), hors du texte d'arbitrage: la liste
+  // des en-têtes de verrou ne bouge pas.
+  v49_no_false_promise:
+    "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
+  // ⟳ Le jeton de la structure v34, bumpé le même jour pour la même raison.
+  v34_no_false_promise:
+    "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
 };
 
 /** SHA-256 hexadécimal — `crypto.subtle`, standard web, présent en edge. */

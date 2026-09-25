@@ -141,11 +141,27 @@ export interface SharedProteinMouth {
   readonly floorG: number | null;
   readonly days: readonly {
     readonly dayToken: string;
+    /**
+     * ⟳ 2026-09-25 — LA PART DE LA JOURNÉE QUI EST À TABLE
+     * (`coveredDayFraction`). Le plafond et le plancher du JOUR se proratisent
+     * par elle avant d'être divisés par l'énergie des cases couvertes: Inès,
+     * absente mercredi soir, portait tout son plafond sur deux repas (7,50 g
+     * pour 100 kcal au lieu de 4,8). Absent ⇒ 1, la règle d'avant; `null` ⇒
+     * illisible, la bouche ne borne ni ne relève la table ce jour-là.
+     */
+    readonly coveredFraction?: number | null;
     readonly slots: readonly {
       readonly slot: string;
       readonly composeKcal: number | null;
     }[];
   }[];
+  /**
+   * ⟳ 2026-09-25 — LES CASES (`dayToken|slot`) OÙ CETTE BOUCHE MANGE UN PLAT À
+   * ELLE (la grille les lui dédie: régime ou habitude). Elle n'y partage pas
+   * la recette de la table: elle n'y borne personne et n'y est bornée par
+   * personne. Absent = aucune.
+   */
+  readonly ownDishCells?: ReadonlySet<string>;
 }
 
 export interface SharedProteinCaps {
@@ -216,9 +232,13 @@ export function sharedProteinCaps(
     string,
     { memberId: string; composeKcal: number | null }[]
   >();
+  /** `memberId` → `dayToken` → part de la journée à table (`null` = illisible). */
+  const dayFraction = new Map<string, Map<string, number | null>>();
   for (const m of mouths) {
     const totals = new Map<string, number | null>();
+    const fractions = new Map<string, number | null>();
     for (const day of m.days) {
+      fractions.set(day.dayToken, day.coveredFraction === undefined ? 1 : day.coveredFraction);
       let total: number | null = 0;
       for (const s of day.slots) {
         const k = s.composeKcal;
@@ -232,12 +252,15 @@ export function sharedProteinCaps(
       totals.set(day.dayToken, total !== null && total > 0 ? total : null);
       for (const s of day.slots) {
         const key = `${day.dayToken}|${s.slot}`;
+        // ⟳ 2026-09-25 — son plat à elle n'est pas la recette de la table.
+        if (m.ownDishCells?.has(key) === true) continue;
         const list = cellEaters.get(key) ?? [];
         list.push({ memberId: m.memberId, composeKcal: s.composeKcal });
         cellEaters.set(key, list);
       }
     }
     dayTotal.set(m.memberId, totals);
+    dayFraction.set(m.memberId, fractions);
   }
   const ceilingOf = new Map(mouths.map((m) => [m.memberId, m.ceilingG]));
   const floorOf = new Map(mouths.map((m) => [m.memberId, m.floorG]));
@@ -255,14 +278,16 @@ export function sharedProteinCaps(
     for (const e of eaters) {
       const total = dayTotal.get(e.memberId)?.get(dayToken) ?? null;
       if (total === null) continue;
+      const fraction = dayFraction.get(e.memberId)?.get(dayToken) ?? null;
+      if (fraction === null || !(fraction > 0)) continue;
       const ceiling = ceilingOf.get(e.memberId) ?? null;
       if (ceiling !== null && ceiling > 0) {
-        const d = ceiling / total;
+        const d = (ceiling * fraction) / total;
         density = density === null ? d : Math.min(density, d);
       }
       const floor = floorOf.get(e.memberId) ?? null;
       if (floor !== null && floor > 0) {
-        const f = floor / total;
+        const f = (floor * fraction) / total;
         floorDensity = floorDensity === null ? f : Math.max(floorDensity, f);
       }
     }
@@ -375,6 +400,14 @@ export function proteinBriefFor(args: {
    * partagées. `null` = pas de plafond lisible.
    */
   dayCeilingG?: number | null;
+  /**
+   * ⟳ 2026-09-25 — LES CASES (`dayToken|slot`) OÙ CETTE BOUCHE MANGE CE
+   * QU'ELLE A DÉCLARÉ (habitude, `own_meal`): aucune demande de protéines n'y
+   * part. Banc des trois foyers: un chiffre de protéines demandé pour le café
+   * de Thomas et le yaourt de Jade. La case garde sa part de l'énergie du jour
+   * (le plancher n'est PAS reversé sur les autres cases). Absent = aucune.
+   */
+  ownDishCells?: ReadonlySet<string>;
 }): ProteinMouthBrief {
   let cappedSlots = 0;
   let gramsRemoved = 0;
@@ -491,6 +524,8 @@ export function proteinBriefFor(args: {
       // apport fixe (`composeKcal` à 0) : lui demander « au moins 0 g » est du
       // bruit, et le bruit dévalue les lignes qui l'entourent.
       if (grams <= 0) continue;
+      // ⟳ 2026-09-25 — ni ce qu'elle a déclaré manger là.
+      if (args.ownDishCells?.has(`${day.dayToken}|${s.slot}`) === true) continue;
       perDaySlots.push({
         dayToken: day.dayToken,
         slot: s.slot,
@@ -549,6 +584,24 @@ export function proteinBriefFor(args: {
   };
 }
 
+/**
+ * ⟳ 2026-09-25 — LES GRAMMES QUE LE BRIEF DEMANDE À UNE CASE, ou `null`.
+ *
+ * Lu par le contrat de moment (`slotContractBrief`), qui imprimait le
+ * plancher « par plat » (`perMealFloorG`) — le chiffre que `meal_envelope.ts`
+ * dit non affichable. Une seule source pour « combien de protéines ici »: la
+ * carte de la bouche et le contrat de la case disent le même nombre.
+ */
+export function briefGramsAt(
+  brief: ProteinMouthBrief | null | undefined,
+  slot: string,
+  dayToken: string,
+): number | null {
+  if (brief === null || brief === undefined) return null;
+  const ask = brief.slots.find((s) => s.slot === slot && s.days.includes(dayToken));
+  return ask === undefined ? null : ask.gramsPerServing;
+}
+
 /** L'ordre de la journée, le même que `densityFragment`. */
 const SLOT_RANK: Readonly<Record<string, number>> = Object.freeze({
   breakfast: 0,
@@ -587,9 +640,13 @@ export function proteinFragment(brief: ProteinMouthBrief | null): string {
   for (const s of brief.slots) {
     lignesParMoment.set(s.slot, (lignesParMoment.get(s.slot) ?? 0) + 1);
   }
-  const perMeal = brief.perMealFloorG === null
-    ? ""
-    : `, and no main dish under ${brief.perMealFloorG} g`;
+  // ⟳ 2026-09-25 — « and no main dish under N g » RETIRÉ. Banc des trois
+  // foyers, plan B: le plancher « par plat » de Karim (plancher du jour ÷ 3 en
+  // prise de muscle, 46 g) dépassait son PROPRE plafond réparti au déjeuner
+  // (40 g), et ce plafond appliqué à l'énergie d'Inès donnait ses 30 g: une
+  // case où le bas de l'un passait au-dessus du haut de l'autre, 0 plat sur 3
+  // tirs. `meal_envelope.ts` le dit: ce n'est pas une cible affichable. Les
+  // grammes par case (`slots`) suffisent.
   const jours = (s: ProteinSlotAsk) =>
     (lignesParMoment.get(s.slot) ?? 1) >= 2 && s.days.length > 0
       ? ` on ${[...s.days].join("/")}`
@@ -605,7 +662,7 @@ export function proteinFragment(brief: ProteinMouthBrief | null): string {
       const unit = i === 0 ? " g of protein" : " g";
       return `${s.gramsPerServing}${unit} ${where(s)}`;
     });
-    return ` — one serving here carries at least ${parts.join(", ")}${perMeal}`;
+    return ` — one serving here carries at least ${parts.join(", ")}`;
   }
   // ── ⟳ 2026-09-20 — AVEC UNE BORNE HAUTE: une fourchette, ou « not more » ──
   // ⛔ « AT LEAST » SEUL FAISAIT DÉPASSER: 38 g demandés au déjeuner, 63 g
@@ -619,7 +676,7 @@ export function proteinFragment(brief: ProteinMouthBrief | null): string {
     }
     return `${s.gramsPerServing} to ${s.gramsMax}${unit} ${where(s)}`;
   });
-  return ` — one serving here carries ${parts.join(", ")}${perMeal}`;
+  return ` — one serving here carries ${parts.join(", ")}`;
 }
 
 /**

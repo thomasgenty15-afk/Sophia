@@ -334,9 +334,12 @@ Deno.test("C4 CÂBLAGE ⑫ — le brief protéique est calculé AVANT le prompt,
   // ⛔ ET LES DEUX SONT LE MÊME CHEMIN, pas deux calculs. Deux résolutions du
   // même plancher finiraient par diverger, et c'est celle qu'on relit le moins
   // qui partirait au modèle.
+  // ⟳ 2026-09-25 — TROIS LECTEURS DE LA MÊME MAP: les deux constructeurs, et
+  // le contrat de moment (`briefGramsAt`), qui imprimait le plancher « par
+  // plat » à la place des grammes de la case.
   assertEquals(
     SRC.split("proteinBriefByMember.get(m.memberId) ?? null").length - 1,
-    2,
+    3,
   );
 });
 

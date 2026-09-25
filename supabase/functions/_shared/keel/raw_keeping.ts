@@ -251,8 +251,13 @@ function plannedShopLines(window: readonly string[], cadence: RawReachCadence): 
   const shopList = shopDays.length === 1
     ? shopDays[0]
     : `${shopDays.slice(0, -1).join(", ")} and ${shopDays[shopDays.length - 1]}`;
+  // ⟳ 2026-09-25 — « exactly 2 -- the number they chose » a été écrit à
+  // quelqu'un qui en avait choisi 1 (banc des trois foyers). Le plan organise
+  // `shopDays.length` courses; « le nombre choisi » ne se dit que s'il est égal
+  // à la réponse, et « au plus »: le moteur date les lignes, pas le modèle.
+  const chosen = cadence.chosenRuns === shopDays.length ? " -- the number they chose --" : "";
   return [
-    `their food shops: exactly ${shopDays.length} -- the number they chose -- on ${shopList}, and ` +
+    `their food shops: at most ${shopDays.length}${chosen} on ${shopList}, and ` +
     "on no other day. A shop on a cooking day is done that morning, before the session. " +
     "Each session cooks from the last shop on or before its day.",
     "what each session can cook FRESH -- raw fish, meat and salad leaves do not wait:",
@@ -297,6 +302,18 @@ export interface RawReachCadence {
    * pose ensuite.
    */
   readonly cookDays: readonly string[];
+  /**
+   * ⟳ 2026-09-25 — LE NOMBRE DE COURSES QUE LA PERSONNE A RÉPONDU, ou `null`
+   * (« peu importe », ou pas de réponse). REQUIS: c'est lui, et lui seul, qui
+   * autorise « the number they chose ».
+   */
+  readonly chosenRuns: number | null;
+  /**
+   * ⟳ 2026-09-25 — LES JOURS DE CUISINE VIENNENT-ILS DE LA PERSONNE ?
+   * (`CookingPlan.notes` porte `cook_days_declared`). `false` = le moteur les a
+   * posés: la consigne ne dit pas « they can only cook on ».
+   */
+  readonly cookDaysDeclared: boolean;
 }
 
 /**

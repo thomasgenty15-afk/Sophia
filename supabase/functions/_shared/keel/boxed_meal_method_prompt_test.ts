@@ -53,7 +53,8 @@ Deno.test("① le fait du contenant unique est dans `same_day`, à côté de `me
 Deno.test("② deux contenus seulement: chaud ou froid PAR PLAT, puis les ajouts", () => {
   // Les phrases passent à la ligne à 80 colonnes: on compare sans elles.
   const text = section("same_day").replace(/\s+/g, " ");
-  assert(text.includes('EVERY DISH WITH "uses" IS REHEATED, at lunch as at dinner'));
+  // ⟳ v43 — le MOMENT décide: réchauffé au déjeuner et au dîner.
+  assert(text.includes("hot or cold, and the MOMENT decides. At lunch and at dinner the dish is REHEATED"), text);
   assert(text.includes("its title says it is a salad"));
   assert(text.includes("what to do with each food the dish adds fresh that day, if it adds any"));
   assert(text.includes("Never name what is already in the container"));
@@ -136,3 +137,24 @@ Deno.test("⑨ ⟳ v41 : le poisson cuit suit J+2 comme le code; le riz garde sa
   assert(!/seafood/i.test(text), text);
   assert(text.includes("Cooked rice is tighter still: same day or the day after."), text);
 });
+
+Deno.test("⑩ ⟳ v43 : au petit-déjeuner et au goûter, le plat se mange comme sa préparation est faite", () => {
+  // Banc des trois foyers: des œufs durs du matin « réchauffés 8 min à la
+  // casserole couverte » — la règle v40 (« tout plat en boîte se réchauffe »)
+  // appliquée à un petit-déjeuner froid.
+  const text = section("same_day").replace(/\s+/g, " ");
+  assert(text.includes("At breakfast and at a snack, the dish is eaten the way its preparation was made to be eaten"), text);
+  assert(text.includes("made to be eaten cold, it gets no reheating step"), text);
+  assert(!text.includes("at lunch as at dinner"), "la règle v40 est revenue");
+});
+
+Deno.test("⑪ ⟳ v43 : aucun geste de réchauffage cité en exemple, nulle part", () => {
+  // Mesuré: « tip it into a covered pan, 8 min on low » recopié sur tous les
+  // plats, micro-ondes coché. Un exemple cité est recopié.
+  for (const key of ["same_day", "cook_vs_eat", "minutes"]) {
+    const text = section(key).replace(/\s+/g, " ");
+    assert(!/covered pan, 8 min/i.test(text), `${key}: ${text}`);
+    assert(!/reheat 8 min/i.test(text), `${key}: ${text}`);
+  }
+});
+

@@ -8,6 +8,7 @@ import {
   crossContactSeen,
   emptyCrossContactCounts,
   tallyCrossContact,
+  twoDishBearersFromCells,
 } from "./cross_contact.ts";
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -207,7 +208,7 @@ Deno.test("C1 ⑤ — les TROIS populations sont atteintes, et la somme fait le 
 
 Deno.test("C1 ⑤ bis — `emptyCrossContactCounts` part de zéro, `tally` n'écrit pas dans l'entrée", () => {
   const zero = emptyCrossContactCounts();
-  assertEquals(zero, { emitted: 0, skipped_no_medical: 0, skipped_no_dedicated: 0 });
+  assertEquals(zero, { emitted: 0, skipped_no_medical: 0, skipped_no_dedicated: 0, skipped_no_two_dishes: 0 });
   assertEquals(crossContactSeen(zero), 0);
   const after = tallyCrossContact(
     zero,
@@ -255,3 +256,52 @@ Deno.test("C1 ⑥ MUTATION — le bloc sort SUR LES DEUX PRÉMISSES ET SUR ELLES
   // CARDINALITÉ du tableau: six cas, et retirer une ligne se voit.
   assertEquals(seen, 6);
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-25 — LE BLOC NE SORT QUE LÀ OÙ DEUX PLATS SE CÔTOIENT
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("⟳ 2026-09-25 — twoDishBearersFromCells: plat à soi à côté du plat de table, ou de deux plats à soi", () => {
+  const cells = [
+    // Malo a son plat, Anouk mange celui de la table: deux plats.
+    { eaters: ["m-anouk", "m-malo"], dedicated: [{ memberId: "m-malo" }] },
+  ];
+  assertEquals(twoDishBearersFromCells([MALO], cells), [MALO]);
+  // Malo seul avec son plat: un seul plat servi, pas de seconde poêle.
+  assertEquals(twoDishBearersFromCells([MALO], [{ eaters: ["m-malo"], dedicated: [{ memberId: "m-malo" }] }]), []);
+  // Chacun son plat, deux plats à soi: deux plats servis au même moment.
+  assertEquals(
+    twoDishBearersFromCells([ANOUK, MALO], [{
+      eaters: ["m-anouk", "m-malo"],
+      dedicated: [{ memberId: "m-anouk" }, { memberId: "m-malo" }],
+    }]),
+    [ANOUK, MALO],
+  );
+});
+
+Deno.test("⟳ 2026-09-25 — une personne seule avec son plat: pas de bloc, et la raison est comptée", () => {
+  const out = crossContactBlock({
+    medicalMouths: [ANOUK],
+    unnamedMedical: 0,
+    dishBearers: [ANOUK],
+    twoDishBearers: [],
+  });
+  assertEquals(out.emitted, false);
+  assertEquals(out.skipped, "no_two_dishes");
+  assertEquals(tallyCrossContact(emptyCrossContactCounts(), out).skipped_no_two_dishes, 1);
+  // Et le cas qui mord garde sa phrase, avec l'exemption de la boisson.
+  const mord = crossContactBlock({
+    medicalMouths: [ANOUK],
+    unnamedMedical: 0,
+    dishBearers: [MALO],
+    twoDishBearers: [MALO],
+  });
+  assertEquals(mord.emitted, true);
+  assert(mord.block.includes("The one exception: a drink poured as it was bought is not a second dish."));
+  // Absent: la règle d'avant (le bloc ne peut que rétrécir).
+  assertEquals(
+    crossContactBlock({ medicalMouths: [ANOUK], unnamedMedical: 0, dishBearers: [MALO] }).emitted,
+    true,
+  );
+});
+

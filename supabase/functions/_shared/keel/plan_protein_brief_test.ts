@@ -235,10 +235,12 @@ Deno.test("C4 ② — la phrase porte des NOMBRES, jamais « une protéine dans 
     phrase,
     // ⟳ 2026-09-21 — l'énergie de la part est écrite à côté des grammes
     // (614 → 615, arrondi à 5).
+    // ⟳ 2026-09-25 — plus de « and no main dish under N g »: le plancher « par
+    // plat » passait au-dessus du plafond d'une autre bouche (banc, plan B).
     " — one serving here carries at least 44 g of protein per 615 kcal in the breakfast dish, " +
-      "70 g per 980 kcal in the lunch dish, 62 g per 860 kcal in the dinner dish, " +
-      "and no main dish under 44 g",
+      "70 g per 980 kcal in the lunch dish, 62 g per 860 kcal in the dinner dish",
   );
+  assert(!phrase.includes("no main dish under"), phrase);
   // ⛔ L'UNITÉ EST ÉCRITE UNE FOIS, SUR LA PREMIÈRE ENTRÉE — la même règle que
   // `densityFragment`, parce qu'un brief qui répète cesse d'être lu.
   assertEquals(phrase.split("g of protein").length - 1, 1);

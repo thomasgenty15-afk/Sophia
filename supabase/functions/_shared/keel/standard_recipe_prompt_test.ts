@@ -307,7 +307,7 @@ Deno.test("la version dit le lot, et l'arbitrage l'a suivie", () => {
   // seul ou partagé (voir le ⑥ en fin de fichier).
   // ⟳ 2026-09-23 — v39: les à-côtés en familles (`side_courses_prompt.ts`).
   // ⟳ 2026-09-23 — v40: la table partage ses à-côtés (`side_courses_prompt.ts`).
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v48_off_the_table_not_at");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v49_no_false_promise");
 });
 
 // ═══════════════════════════════════════════════════════════════════════════

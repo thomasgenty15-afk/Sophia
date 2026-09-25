@@ -403,5 +403,28 @@ Deno.test("le millésime du TRONC est celui d'aujourd'hui — épinglé ici auss
   // ⟳ LOT C (2026-09-11) — v31: le prompt système ne dit plus le POIDS d'une
   // assiette (« roughly 600 to 750 g »), il dit sa FORME. La version avance avec
   // son texte, sinon un cache servirait l'ancienne consigne sous le nouveau nom.
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v42_off_the_table_not_at");
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v43_no_false_promise");
 });
+
+// ⟳ 2026-09-25 — DES JOURS POSÉS PAR LE MOTEUR NE SONT PAS « leurs » JOURS.
+Deno.test("⟳ 2026-09-25 — jours de cuisine dérivés: la règle reste, « they can only cook on » part", () => {
+  const cadence = {
+    runs: 1,
+    sessions: 1,
+    usesFreezer: false,
+    cookDays: ["sun"],
+    chosenRuns: 1,
+    cookDaysDeclared: false,
+  };
+  const derive = buildMealPrompt({ budgetFloor: null, ...PROMPT_BASE, groceryCadence: cadence }).userMessage;
+  assert(!derive.includes("they can only cook on"), derive);
+  assertStringIncludes(derive, "the cooking days of this plan: sun. Put every cooking session on those days, and no others.");
+  // Déclarés par la personne: la phrase d'avant.
+  const declare = buildMealPrompt({
+    budgetFloor: null,
+    ...PROMPT_BASE,
+    groceryCadence: { ...cadence, cookDaysDeclared: true },
+  }).userMessage;
+  assertStringIncludes(declare, "they can only cook on: sun");
+});
+

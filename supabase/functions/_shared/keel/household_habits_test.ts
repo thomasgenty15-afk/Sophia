@@ -8,7 +8,11 @@
 
 import { assert, assertEquals } from "jsr:@std/assert@1";
 
-import { OWN_USUAL_DAYS_PER_WEEK_FAT_LOSS, ownUsualDaysFor } from "./household_habits.ts";
+import {
+  OWN_USUAL_CAPPED_SLOTS,
+  OWN_USUAL_DAYS_PER_WEEK_FAT_LOSS,
+  ownUsualDaysFor,
+} from "./household_habits.ts";
 import {
   gateMemberHabits,
   HABIT_CONSEQUENCE,
@@ -27,6 +31,7 @@ import {
 } from "./household_habits.ts";
 import { EATING_OCCASIONS } from "./meal_generation.ts";
 import { DRAFT_NOTE_MAX_CHARS } from "./plan_draft_note.ts";
+import { SHAKE_TEXT_PREFIX } from "./shake_text.ts";
 import {
   buildPortionBrief,
   cookingShapeLines,
@@ -710,23 +715,39 @@ Deno.test("une forme illisible rend `{}`, jamais une exception", () => {
 
 Deno.test("⟳ 2026-09-19 — en perte de poids, l'habitude vaut deux jours répartis ; sinon tous les jours", () => {
   const semaine = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+  const midi = ["lunch"];
   assertEquals(OWN_USUAL_DAYS_PER_WEEK_FAT_LOSS, 2);
-  assertEquals(ownUsualDaysFor("fat_loss", semaine), ["mon", "thu"]);
-  assertEquals(ownUsualDaysFor("fat_loss", ["sun", "mon", "tue", "wed", "thu", "fri"]), ["sun", "wed"]);
+  assertEquals(ownUsualDaysFor("fat_loss", semaine, midi), ["mon", "thu"]);
+  assertEquals(ownUsualDaysFor("fat_loss", ["sun", "mon", "tue", "wed", "thu", "fri"], midi), ["sun", "wed"]);
   // Fenêtre plus courte que le plafond : tous les jours, sans dépasser.
-  assertEquals(ownUsualDaysFor("fat_loss", ["mon", "tue"]), ["mon", "tue"]);
-  assertEquals(ownUsualDaysFor("fat_loss", ["mon"]), ["mon"]);
+  assertEquals(ownUsualDaysFor("fat_loss", ["mon", "tue"], midi), ["mon", "tue"]);
+  assertEquals(ownUsualDaysFor("fat_loss", ["mon"], midi), ["mon"]);
   // Tout autre objectif — ou aucun — n'est pas plafonné : `null`, jamais `[]`.
-  assertEquals(ownUsualDaysFor("muscle_gain", semaine), null);
-  assertEquals(ownUsualDaysFor("maintenance", semaine), null);
-  assertEquals(ownUsualDaysFor(null, semaine), null);
+  assertEquals(ownUsualDaysFor("muscle_gain", semaine, midi), null);
+  assertEquals(ownUsualDaysFor("maintenance", semaine, midi), null);
+  assertEquals(ownUsualDaysFor(null, semaine, midi), null);
+});
+
+Deno.test("⟳ 2026-09-25 — le plafond ne vaut qu'au déjeuner et au dîner: le café du matin est servi chaque jour", () => {
+  const trois = ["tue", "wed", "thu"];
+  // Banc des trois foyers, plan C: Thomas, perte de poids, « que du café » le matin.
+  assertEquals(ownUsualDaysFor("fat_loss", trois, ["breakfast"]), null);
+  assertEquals(ownUsualDaysFor("fat_loss", trois, ["snack_am", "snack_pm"]), null);
+  assertEquals(ownUsualDaysFor("fat_loss", trois, ["dinner"]), ["tue", "wed"]);
+  // Un dîner plafonné suffit à plafonner la bouche; la grille ne retire alors
+  // que le déjeuner et le dîner hors de ses jours (`household_cells_test`).
+  assertEquals(ownUsualDaysFor("fat_loss", trois, ["breakfast", "dinner"]), ["tue", "wed"]);
+  assertEquals(OWN_USUAL_CAPPED_SLOTS, ["lunch", "dinner"]);
 });
 
 Deno.test("⛔ CÂBLAGE — les jours plafonnés sont calculés UNE fois et lus par la grille ET par les porteurs", async () => {
   const src = await sourceFamily(
     new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
   );
-  assert(src.includes("ownUsualDaysFor(m.goal, eatingDayTokens)"), "le plafond n'est plus calculé depuis l'objectif de la bouche");
+  assert(
+    src.includes("ownUsualDaysFor(m.goal, eatingDayTokens, ownMealSlots(m.habits ?? []))"),
+    "le plafond n'est plus calculé depuis l'objectif ET les moments de la bouche",
+  );
   assertEquals(
     (src.match(/ownMealDays: ownUsualDaysByMember\.get\(m\.memberId\) \?\? null,/g) ?? []).length,
     2,
@@ -830,3 +851,22 @@ Deno.test("à-côtés — le « léger » et la prose du même moment se lisent 
   assertEquals(parseMemberHabits(slots).map((h) => h.usual), ["une soupe"]);
   assertEquals(parseMemberSideCourses(slots), { dinner: { dessert: false } });
 });
+
+// ⟳ 2026-09-25 — CE QUE LE PLAN AJOUTE N'EST PAS « leur » HABITUDE.
+Deno.test("⟳ 2026-09-25 — le shaker composé par le plan se dit « the plan adds », pas « has their own »", () => {
+  const frag = habitFragment([
+    { slot: "breakfast", kind: "own_usual", usual: "que du café" },
+    { slot: "snack_pm", kind: "own_usual", usual: `${SHAKE_TEXT_PREFIX}, one tall glass, no plate: oats` },
+  ]);
+  assert(frag.includes(" — has their own at breakfast: que du café"), frag);
+  assert(frag.includes(" — the plan adds at "), frag);
+  assert(!frag.includes("has their own at breakfast: que du café; at"), "le shaker n'est plus rangé avec ce qu'elle a déclaré");
+  // Seul le shaker: aucun « has their own ».
+  const seul = habitFragment([
+    { slot: "snack_pm", kind: "own_usual", usual: `${SHAKE_TEXT_PREFIX}, one tall glass, no plate: oats` },
+  ]);
+  assert(!seul.includes("has their own"), seul);
+  // Et la conséquence couvre les deux marqueurs.
+  assert(HABIT_CONSEQUENCE.join(" ").includes('or "the plan adds" one there'));
+});
+

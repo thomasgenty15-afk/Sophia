@@ -675,7 +675,12 @@ export const SOLO_BOX_BLOCK = [
 // breakfast » a été lu « des œufs, seulement au petit-déjeuner » (`31aef694`,
 // trois petits-déjeuners aux œufs; `6ef02747`, trois au tofu). La ligne dit
 // maintenant « -- NOT at breakfast; the other meals may keep it ».
-export const MEAL_PROMPT_VERSION = "meal.en.v42_off_the_table_not_at";
+// ⟳ v43 (2026-09-25) — LE GESTE DU JOUR DÉCIDÉ PAR LE MOMENT, SANS EXEMPLE
+// CITÉ, ET LA FENÊTRE DU FRIGO DITE DEPUIS LE NOMBRE DU CODE. Banc des trois
+// foyers: des œufs durs du matin « réchauffés 8 min à la casserole couverte »
+// (l'exemple cité, recopié partout, micro-ondes coché), et « Cooked on
+// Thursday means eaten by Sunday » pendant que le code jetait le dimanche.
+export const MEAL_PROMPT_VERSION = "meal.en.v43_no_false_promise";
 
 /**
  * ③ — CE QUE `severity` VEUT DIRE, posé JUSTE SOUS la liste qui le porte.
@@ -927,6 +932,43 @@ export interface MealPromptSection {
 }
 
 /** Les sections, dans l'ordre où le prompt de composition les rend. */
+/**
+ * ⟳ 2026-09-25 — LA FENÊTRE DU FRIGO DITE AU MODÈLE, DEPUIS LE NOMBRE DU CODE.
+ *
+ * La phrase disait « within THREE DAYS … Cooked on Thursday means eaten by
+ * Sunday » pendant que le code (`cookedWindowVerdict`, `gap >= 3` ⇒ trop tard)
+ * jetait le plat du dimanche: 24 plats écartés sur 8 plans, 9 sur 5 brouillons.
+ *
+ * ⚠️ `MAX_FRIDGE_DAYS` (`meal_budget.ts`) NE PEUT PAS ÊTRE IMPORTÉ ICI:
+ * `meal_budget.ts` importe (de loin) ce module, et les sections sont
+ * évaluées au chargement. Le nombre est recopié UNE fois, ici, et
+ * `keeping_window_prompt_test.ts` vérifie qu'il est égal à `MAX_FRIDGE_DAYS`.
+ */
+export const PROMPT_FRIDGE_DAYS = 3;
+
+const WEEKDAYS_EN = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+] as const;
+const SMALL_NUMBERS_EN = ["no", "one", "two", "three", "four", "five", "six"] as const;
+
+/** La phrase de conservation, pour une fenêtre de `days` jours (jour de cuisson compris). */
+export function keepingWindowLine(days: number): string {
+  const after = Math.max(0, Math.floor(days) - 1);
+  const lastDay = WEEKDAYS_EN[(3 + after) % 7];
+  const following = after === 0
+    ? "on the day it is cooked"
+    : `on the day it is cooked or on one of the next ${SMALL_NUMBERS_EN[after] ?? String(after)} days`;
+  return `A cooked batch is eaten ${following}. Cooked on\nThursday means eaten by ${lastDay}, and that is the end of it.`;
+}
+
+const KEEPING_WINDOW_LINE = keepingWindowLine(PROMPT_FRIDGE_DAYS);
+
 export const MEAL_PROMPT_SECTIONS: readonly MealPromptSection[] = [
   {
     key: "opening",
@@ -1024,8 +1066,8 @@ Rules that follow:
     nuts — are plain dishes with no \`uses\`, made fresh, quantities for one
     plate.
   - a dish that draws on a preparation does NOT repeat its recipe. Its method is
-    what you do at that meal: "tip the container into a covered pan, 8 min on
-    low", then what the dish adds fresh.
+    what you do at that meal: how it is reheated, when it is, then what the dish
+    adds fresh.
   - vary what you build from the same preparation. Same protein, different meal.`,
   },
   {
@@ -1049,8 +1091,7 @@ follow.`,
     key: "keeping_window",
     text: `== NOTHING SITS IN THE FRIDGE FOR A WEEK ==
 
-A cooked batch is eaten within THREE DAYS of the day it was cooked. Cooked on
-Thursday means eaten by Sunday, and that is the end of it. Beyond that it is not
+${KEEPING_WINDOW_LINE} Beyond that it is not
 a meal plan, it is a plan to throw food away or to get somebody ill.
 
 Cooked rice is tighter still: same day or the day after.
@@ -1064,7 +1105,7 @@ stretch it in silence.
 The freezer is not prose: it is a field. When a portion is taken from the
 freezer rather than the fridge, write \`\"kept\": \"freezer\"\` on that entry of the
 dish's \`uses\`, and say in the method that it comes out the night before. A
-frozen portion has no three-day limit; a portion you only DESCRIBE as frozen
+frozen portion has no fridge limit; a portion you only DESCRIBE as frozen
 still has one, because nothing reads a description. Only claim the freezer when
 this kitchen has one -- the section above says what it does not have.`,
   },
@@ -1123,8 +1164,8 @@ in their country (°C in France and most of the world, °F in the United States)
 the hob level as a word (low, medium, high); and the minutes that step takes.
 "Roast 25 min at 200 °C", "simmer 15 min on low, lid on", "sear 3 min a side on
 high". "Cook until done" is a plate somebody burns or undercooks. The same goes
-for the day-of gesture of a "cook_fresh" or "reheat_only" dish: "reheat 8 min in
-a covered pan on low" tells them what to do; "reheat" alone does not.`,
+for the day-of gesture of a "cook_fresh" or "reheat_only" dish: the appliance,
+the heat and the minutes tell them what to do; "reheat" alone does not.`,
   },
   {
     key: "same_day",
@@ -1157,11 +1198,14 @@ preparation that dish draws on -- the main and its starch -- goes into the same
 container, side by side. On the day that container comes out whole: nothing
 cooked is left to bring together. So the "method" of a dish with "uses" says
 two things and only two:
-  - hot or cold. EVERY DISH WITH "uses" IS REHEATED, at lunch as at dinner:
-    say how and how long ("tip it into a covered pan, 8 min on low, with a
-    spoon of water"). The one exception is a dish composed as a cold salad from
-    the start, and then its title says it is a salad. Say it is eaten cold, and
-    nothing about what is in the container;
+  - hot or cold, and the MOMENT decides. At lunch and at dinner the dish is
+    REHEATED: say with which appliance of this kitchen and for how long. The
+    one exception is a dish composed as a cold salad from the start, and then
+    its title says it is a salad. At breakfast and at a snack, the dish is
+    eaten the way its preparation was made to be eaten: made to be eaten cold,
+    it gets no reheating step; made to be eaten hot, it is reheated like a
+    lunch. When it is eaten cold, say so, and nothing about what is in the
+    container;
   - what to do with each food the dish adds fresh that day, if it adds any:
     how it is prepared and when it goes on the plate.
 Never name what is already in the container, and never split it again: "put

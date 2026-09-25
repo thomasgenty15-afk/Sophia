@@ -105,8 +105,8 @@ Deno.test("① ter — ⟳ 2026-09-23 : les deux jetons du lot « assiettes norm
   // ⟳ 2026-09-23 — v39: les à-côtés viennent en familles (table, deux jours).
   // ⟳ 2026-09-23 — v40: la table partage ses à-côtés (la prise suit la table,
   // le nom exact, le pain hors de la règle des deux jours).
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v48_off_the_table_not_at");
-  assertEquals(HOUSEHOLD_PROMPT_V34_VERSION, "v34_off_the_table_not_at");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v49_no_false_promise");
+  assertEquals(HOUSEHOLD_PROMPT_V34_VERSION, "v34_no_false_promise");
   // Et les entrées d'avant restent: ce sont des affirmations sur des lignes
   // déjà en base.
   for (

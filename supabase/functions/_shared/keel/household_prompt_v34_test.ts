@@ -341,6 +341,9 @@ Deno.test("les trois en-têtes de verrou sont VERBATIM — l'arbitrage les cite"
     medicalMouths: [{ memberId: "m-a", displayName: "Julie" }],
     dishBearers: [{ memberId: "m-b", displayName: "Marc" }],
     dedicatedDishesAsked: 1,
+    // ⟳ 2026-09-25 — le bloc d'hygiène ne sort plus que là où deux plats se
+    // côtoient: Marc a son déjeuner à lui, Julie mange celui de la table.
+    cells: gridFor([{ memberId: "m-a" }, { memberId: "m-b", ownMealSlots: ["lunch"] }]),
   });
   for (const header of [
     "WHAT THE SHARED BASE MUST RESPECT",
@@ -494,8 +497,14 @@ Deno.test("CÂBLAGE — v34 est servi sur le chemin armé, et UNE SEULE liste de
     src.includes("      dishBearers: promptDishBearers,"),
     "le champ du prompt ne lit plus la liste unique",
   );
+  // ⟳ 2026-09-25 — la même liste, moins qui tient la ligne (banc des trois
+  // foyers, plan A): son plat à elle suit sa ligne.
   assert(
-    src.includes("        divergingNames: promptDishBearers.map((m) => m.displayName),"),
+    src.includes(
+      "        divergingNames: promptDishBearers\n" +
+        "          .filter((m) => !strictestHeldBy.includes(m.displayName))\n" +
+        "          .map((m) => m.displayName),",
+    ),
     "le bloc de régime nomme d'autres bouches que celles qu'on enseigne",
   );
   assert(
@@ -829,7 +838,7 @@ Deno.test("⟳ 2026-09-23 — v38: la recette de v34 porte la règle UNIQUE du f
   // bloc des à-côtés (la prise suit la table, le nom exact, le pain hors des deux jours).
   // ⟳ 2026-09-23 — v34_what_came_back_is_named: la ligne « à éviter » suit l'envie.
   // ⟳ 2026-09-24 — v34_what_they_turned_down: la ligne des plats refusés la suit.
-  assertEquals(b.promptVersion, "v34_off_the_table_not_at");
+  assertEquals(b.promptVersion, "v34_no_false_promise");
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -862,3 +871,26 @@ Deno.test("v34 — sans liste, la consigne est celle d'avant à l'octet près", 
   }
   assertEquals(sans.avoidLineUsed, false);
 });
+
+// ⟳ 2026-09-25 — LA CONSIGNE D'HYGIÈNE NE SORT QUE LÀ OÙ DEUX PLATS SE CÔTOIENT.
+Deno.test("⟳ 2026-09-25 — bloc « THE SAME KITCHEN, TWO DISHES »: une case à deux plats l'ouvre, sinon il se tait", () => {
+  const avec = build({
+    medicalMouths: [{ memberId: "m-a", displayName: "Julie" }],
+    dishBearers: [{ memberId: "m-b", displayName: "Marc" }],
+    dedicatedDishesAsked: 1,
+    cells: gridFor([{ memberId: "m-a" }, { memberId: "m-b", ownMealSlots: ["lunch"] }]),
+  });
+  assert(avec.userSuffix.includes("== THE SAME KITCHEN, TWO DISHES =="), avec.userSuffix);
+  assert(avec.userSuffix.includes("a drink poured as it was bought is not a second dish"), avec.userSuffix);
+  // Personne ne mange à côté du plat à part: pas de seconde poêle, pas de bloc.
+  const seul = build({
+    members: [MARC],
+    medicalMouths: [{ memberId: "m-b", displayName: "Marc" }],
+    dishBearers: [{ memberId: "m-b", displayName: "Marc" }],
+    dedicatedDishesAsked: 1,
+    cells: gridFor([{ memberId: "m-b", ownMealSlots: ["lunch"] }]),
+  });
+  assert(!seul.userSuffix.includes("THE SAME KITCHEN, TWO DISHES"), seul.userSuffix);
+  assertEquals(seul.crossContact.skipped, "no_two_dishes");
+});
+

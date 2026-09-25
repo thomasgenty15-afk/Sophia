@@ -615,6 +615,7 @@ import {
 // qui écrit le bloc. Voir l'en-tête de `kitchenBlock`.
 import {
   hasFreezerDeclared,
+  missingKitchenTools,
   readKitchenEquipment,
 } from "../_shared/keel/kitchen_equipment.ts";
 // ⟳ A2 (2026-09-03) — « COMMENT VOULEZ-VOUS CUISINER » ET « COMBIEN DE
@@ -949,6 +950,7 @@ import {
 // compose. Le module ne calcule aucun barème: il rappelle `proteinFloorAllocation`
 // et répartit au prorata de `composeKcal`.
 import {
+  briefGramsAt,
   PROTEIN_BRIEF_SILENCES,
   type ProteinBriefDay,
   proteinBriefFor,
@@ -972,6 +974,7 @@ import { loadPreviousHouseholdPlans } from "../_shared/keel/plan_avoid_list_io.t
 import {
   type AuditCell,
   cellNutritionTable,
+  coveredDayFraction,
   dayNutritionTable,
   mouthEnergyTable,
   proteinFloorAllocation,
@@ -5593,7 +5596,14 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
     // ⛔ ET ON NE PIÉTINE JAMAIS UNE HABITUDE EXISTANTE. Si la bouche a déjà
     // dit ce qu'elle prend à ce moment-là, c'est SA phrase qui gouverne: la
     // nôtre est un défaut, pas une correction.
-    const shakeTally = { compose: 0, declared: 0, not_applicable: 0, taken: 0 };
+    const shakeTally = { compose: 0, declared: 0, not_applicable: 0, taken: 0, no_blender: 0 };
+    // ⟳ 2026-09-25 — PAS DE MIXEUR DÉCLARÉ, PAS DE SHAKER COMPOSÉ. Banc des trois
+    // foyers, plan C: « Shake banane et pêche » chaque matin chez un foyer qui
+    // avait décoché le mixeur; la méthode disait « remue jusqu'à obtenir un
+    // shake buvable ». Lu par `missingKitchenTools`, le seul chemin qui décide
+    // d'une interdiction (voir l'en-tête de `kitchenBlock`): « jamais demandé »
+    // ne retire rien. Réversible: c'est une décision de produit du 2026-09-25.
+    const shakeWithoutBlender = missingKitchenTools(kitchenEquipment).includes("blender");
     const shakeHabitFor = (m: typeof members[number]): MemberHabit | null => {
       const structure = structureByMember.get(m.memberId);
       const state = shakeDecisionFor({
@@ -5602,6 +5612,10 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
         hasFixedIntake: (fixedIntakeLoad.byMouth[m.memberId] ?? 0) > 0,
       });
       if (state !== "compose") return null;
+      if (shakeWithoutBlender) {
+        shakeTally.no_blender += 1;
+        return null;
+      }
       // ⟳ 2026-09-07 — LE PREMIER MOMENT DE COLLATION **DÉCLARÉ**, plus le
       // premier moment OUVERT. Le générateur n'ajoute plus aucun moment;
       // poser le shaker sur un moment que la personne n'a pas déclaré en
@@ -6082,7 +6096,9 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
     // deux calculs promettraient un plat que l'autre lecteur ne compte pas.
     const eatingDayTokens = daysToFill.filter((d) => d !== cookOnlyDay);
     const ownUsualDaysByMember = new Map(
-      platedMembers.map((m) => [m.memberId, ownUsualDaysFor(m.goal, eatingDayTokens)] as const),
+      platedMembers.map((m) =>
+        [m.memberId, ownUsualDaysFor(m.goal, eatingDayTokens, ownMealSlots(m.habits ?? []))] as const
+      ),
     );
     const householdGrid = householdCells({
       mouths: platedMembers.map((m) => ({
@@ -6294,13 +6310,19 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
     // ⟳ 2026-09-14 · BÊTA 1A ② — LA CASE **ET** LA BOUCHE. Le `map(() => …)`
     // d'avant jetait le seul renseignement qui permet au parseur de refuser un
     // plat adressé à quelqu'un que CETTE case n'attend pas.
-    const dedicatedCells = householdGrid.cells.flatMap((c) =>
-      c.dedicated.map((d) => ({
-        day: c.day,
-        slot: c.slot as EatingOccasion,
-        memberId: d.memberId,
-      }))
-    );
+    // ⟳ 2026-09-25 — SANS LE JOUR DE CUISINE. La grille le garde (compté,
+    // `cook_day_cells`), mais la consigne interdit d'y écrire un plat, et la
+    // garde finale l'écarte déjà de ses obligations: le compter ici annonçait
+    // « 6 extra dishes » pour 5 cases commandées (banc des trois foyers, C).
+    const dedicatedCells = householdGrid.cells
+      .filter((c) => cookOnlyDay === null || c.day !== cookOnlyDay)
+      .flatMap((c) =>
+        c.dedicated.map((d) => ({
+          day: c.day,
+          slot: c.slot as EatingOccasion,
+          memberId: d.memberId,
+        }))
+      );
     const compositionBudget: MergedEater | null = dishBearingMembers.length === 0
       ? null
       : {
@@ -7193,6 +7215,10 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
         // ⟳ 2026-09-25 — les jours de cuisine prévus: la consigne en tire les
         // jours de courses, la même règle que le moteur (`plannedShopRanks`).
         cookDays: capacity.plan.cookDays,
+        // ⟳ 2026-09-25 — la réponse elle-même, à part: « the number they
+        // chose » ne se dit que si le plan en organise autant.
+        chosenRuns: typeof groceryRunsAnswer === "number" ? groceryRunsAnswer : null,
+        cookDaysDeclared: capacity.plan.notes.includes("cook_days_declared"),
       },
       // ⛔ DÉJÀ TRANCHÉ par `withCookDayBefore`. `null` = pas de veille, et le
       // prompt est alors byte-identique à celui d'avant ce lot.
@@ -8167,6 +8193,26 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
         }),
       );
     }
+    // ⟳ 2026-09-25 — LES CASES OÙ UNE BOUCHE MANGE SON PLAT À ELLE, lues sur la
+    // grille (`householdGrid.cells[].dedicated`), en clés `dayToken|slot`.
+    // Toutes raisons confondues pour le plafond de la table (elle n'y partage
+    // pas la recette); `own_meal` seulement pour le brief (ce qu'elle a
+    // déclaré manger n'a pas de demande de protéines ni de densité).
+    const dedicatedCellsByMember = new Map<string, Set<string>>();
+    const declaredOwnCellsByMember = new Map<string, Set<string>>();
+    for (const cell of householdGrid.cells) {
+      for (const d of cell.dedicated) {
+        const key = `${cell.day}|${cell.slot}`;
+        const all = dedicatedCellsByMember.get(d.memberId) ?? new Set<string>();
+        all.add(key);
+        dedicatedCellsByMember.set(d.memberId, all);
+        if (d.reason === "own_meal") {
+          const own = declaredOwnCellsByMember.get(d.memberId) ?? new Set<string>();
+          own.add(key);
+          declaredOwnCellsByMember.set(d.memberId, own);
+        }
+      }
+    }
     const tableProteinCaps = sharedProteinCaps(
       [...proteinBriefDays].map(([memberId, days]) => {
         const envelope = envelopeByMouth.get(memberId) ?? null;
@@ -8177,7 +8223,14 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
           // partagée, c'est le plancher le plus exigeant qui écrit la
           // recette quand les deux se croisent. Voir `sharedProteinCaps`.
           floorG: envelope?.mode === "per_kg" ? envelope.proteinFloorG : null,
-          days: days.map((d) => ({ dayToken: d.dayToken, slots: d.slots })),
+          // ⟳ 2026-09-25 — la journée partielle se proratise (même règle que
+          // `proteinFloorAllocation`), et le plat à soi ne partage rien.
+          days: days.map((d) => ({
+            dayToken: d.dayToken,
+            coveredFraction: coveredDayFraction(d.dayTargetKcal, d.coveredBudgetGrossKcal),
+            slots: d.slots,
+          })),
+          ownDishCells: dedicatedCellsByMember.get(memberId) ?? new Set<string>(),
         };
       }),
     );
@@ -8204,6 +8257,7 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
         slotCapG: tableProteinCaps.byMember.get(m.memberId),
         tableFloorCells: tableProteinCaps.floorCells,
         dayCeilingG: proteinCeilingByMouth.get(m.memberId) ?? null,
+        ownDishCells: declaredOwnCellsByMember.get(m.memberId) ?? new Set<string>(),
       });
       proteinBriefByMember.set(m.memberId, brief);
       proteinBriefCounters.capped_slots += brief.capped.slots;
@@ -8459,7 +8513,14 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
         // sentence above » et renvoie à `A DISH OF THEIR OWN`; nommer ici des
         // bouches que la section n'enseigne pas est exactement ce qui s'est
         // produit le 2026-09-13, dans les deux sens, sur deux foyers.
-        divergingNames: promptDishBearers.map((m) => m.displayName),
+        // ⟳ 2026-09-25 — SAUF QUI TIENT LA LIGNE. Banc des trois foyers, plan
+        // A: Camille, végétarienne, avec son plat à elle, lisait que ce plat
+        // n'était « pas tenu » par sa ligne ET qu'elle ne mangeait « aucun de
+        // ces plats ». Son plat à elle suit sa ligne; la section `A DISH OF
+        // THEIR OWN` (`dishBearers`) le lui sert quand même.
+        divergingNames: promptDishBearers
+          .filter((m) => !strictestHeldBy.includes(m.displayName))
+          .map((m) => m.displayName),
         // ⟳ 2026-09-13 — LA SECTION EST-ELLE VRAIMENT ÉMISE ? Voir le pavé de
         // `dedicatedSectionSent` dans `household_diet.ts`. On lit la MÊME
         // liste que le champ `dishBearers` juste au-dessus, et c'est elle qui
@@ -9314,12 +9375,12 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
     // journal pour que ce coût soit lisible, et le bloc est plafonné.
     const slotContract = slotContractBrief({
       lines: platedMembers.flatMap((m) => {
-        const env = envelopeByMouth.get(m.memberId) ?? null;
-        // ⛔ `per_kg` SEUL PORTE UN PLANCHER PAR REPAS. Les deux autres modes
-        // s'abstiennent, et `null` dit « pas de plancher », jamais zéro.
-        const proteinMinG = env !== null && env.mode === "per_kg"
-          ? env.proteinPerMealG
-          : null;
+        // ⟳ 2026-09-25 — LES GRAMMES DE LA CASE, PAS LE PLANCHER « PAR PLAT ».
+        // Le contrat imprimait `envelope.proteinPerMealG` (46 g pour Karim, au-
+        // dessus de son propre plafond réparti au déjeuner): il lit désormais
+        // la demande du brief pour CETTE case, le même nombre que la carte.
+        const brief = proteinBriefByMember.get(m.memberId) ?? null;
+        const ownCells = declaredOwnCellsByMember.get(m.memberId);
         return [...contractsByKey.values()]
           .filter((c) => c.memberId === m.memberId)
           .map((c) => ({
@@ -9339,9 +9400,15 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
             // ⛔ UN COULOIR DÉCLARÉ INCOMPATIBLE N'EST PAS UN COULOIR. Le
             // rendre ferait promettre au modèle une densité qu'aucune assiette
             // ne peut tenir — la même abstention que `auditCells`.
-            densityMin: c.corridor?.incompatible ? null : c.corridor?.minPer100G ?? null,
-            densityMax: c.corridor?.incompatible ? null : c.corridor?.maxPer100G ?? null,
-            densityAim: c.corridor?.incompatible
+            // ⟳ 2026-09-25 — ni densité ni protéines sur ce qu'elle a déclaré
+            // manger (`own_meal`): c'est son plat, pas une cible à composer.
+            densityMin: c.corridor?.incompatible || ownCells?.has(`${c.dayToken}|${c.slot}`) === true
+              ? null
+              : c.corridor?.minPer100G ?? null,
+            densityMax: c.corridor?.incompatible || ownCells?.has(`${c.dayToken}|${c.slot}`) === true
+              ? null
+              : c.corridor?.maxPer100G ?? null,
+            densityAim: c.corridor?.incompatible || ownCells?.has(`${c.dayToken}|${c.slot}`) === true
               ? null
               : c.corridor?.preferredPer100G ?? null,
             // ⟳ 2026-09-23 — LE MINIMUM PAR REPAS NE VAUT QUE POUR UN REPAS.
@@ -9350,7 +9417,9 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
             // `plateSlotClassOf` est la frontière des bornes d'assiette
             // (petit-déjeuner, déjeuner, dîner); une collation rend `null`,
             // « pas de plancher », jamais zéro.
-            proteinMinG: plateSlotClassOf(c.slot) === "meal" ? proteinMinG : null,
+            proteinMinG: plateSlotClassOf(c.slot) === "meal"
+              ? briefGramsAt(brief, c.slot, c.dayToken)
+              : null,
           }));
       }),
     });
@@ -19072,13 +19141,20 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
       // ⟳ 2026-09-25 — LE NOMBRE CHOISI CONTRE LE NOMBRE FAIT, sur les dates
       // finales. Il sort même quand ils sont égaux: « tenu » et « pas mesuré »
       // ne doivent pas rendre le même silence.
+      // ⟳ 2026-09-25 (soir) — TROIS NOMBRES, PLUS DEUX. « asked » portait le
+      // nombre ORGANISÉ par le plan (`capacity.plan.runs`), pas la réponse de
+      // la personne — les deux divergent quand le moteur relève « 1 » faute de
+      // congélateur (banc des trois foyers). La réponse est lue à part.
       if (capacity.plan !== null) {
         const faites = new Set(
           meal.shopping_list.map((l) => l.buy_on).filter((d): d is string =>
             typeof d === "string" && d !== ""
           ),
         ).size;
-        issues.push(`shopping_runs: asked ${capacity.plan.runs}, made ${faites}`);
+        const choisies = typeof groceryRunsAnswer === "number" ? groceryRunsAnswer : null;
+        issues.push(
+          `shopping_runs: chosen ${choisies ?? "any"}, planned ${capacity.plan.runs}, made ${faites}`,
+        );
       }
 
       // ── ③ LES JOURS, LES VAGUES ÉCRITES ET LA PROSE, RECOMPOSÉS ────────
@@ -20644,6 +20720,8 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
         emitted: household.crossContact.emitted ? 1 : 0,
         skipped_no_medical: household.crossContact.skipped === "no_medical" ? 1 : 0,
         skipped_no_dedicated: household.crossContact.skipped === "no_dedicated" ? 1 : 0,
+        // ⟳ 2026-09-25 — des plats à soi, mais jamais deux au même moment.
+        skipped_no_two_dishes: household.crossContact.skipped === "no_two_dishes" ? 1 : 0,
       },
       // ── ⛔ `D3′` · OÙ EST L'ARBITRAGE, ET SUR QUOI IL PORTE ──────────────
       //
@@ -20894,6 +20972,20 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
       // `household` parce que `for_member_id`, LUI, n'est demandé que par
       // l'enveloppe foyer.
       same_day: meal.same_day_counts,
+      // ⟳ 2026-09-25 — LE GESTE DU JOUR, PAR MOMENT. La consigne v49 fait
+      // décider le MOMENT (réchauffé au déjeuner et au dîner; au petit-déjeuner
+      // et au goûter, comme la préparation se mange). Sans ce compte, « les
+      // petits-déjeuners ne se réchauffent plus » ne se lit nulle part.
+      same_day_kinds: (() => {
+        const bySlot: Record<string, Record<string, number>> = {};
+        for (const d of meal.dishes) {
+          const slot = String(d.slot ?? "unknown");
+          const kind = d.sameDay?.kind ?? "undeclared";
+          bySlot[slot] = bySlot[slot] ?? {};
+          bySlot[slot][kind] = (bySlot[slot][kind] ?? 0) + 1;
+        }
+        return bySlot;
+      })(),
       // L7 ③ — MÊME ARBITRAGE, MÊME PLACE QUE `same_day`, ET POUR LA
       // MÊME RAISON: `name` est demandé par le schéma du tronc, donc son
       // taux n'a de sens que lu sur toute la population.

@@ -340,3 +340,194 @@ Deno.test("plancher gagne — LE CAS QUI PASSE: sans plancher lisible, rien ne c
   assertEquals(sans.floorCells.size, 0);
   assertEquals(sans.byMember.get("fabrice")!.get("mon|lunch"), 37, "la borne d'avant, au gramme");
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-25 — LA JOURNÉE PARTIELLE, LE PLAT À SOI, ET LE BAS SOUS LE HAUT
+// ═══════════════════════════════════════════════════════════════════════════
+// Banc des trois foyers, plan B: Inès absente mercredi soir portait tout son
+// plafond du jour sur ses deux repas (7,50 g pour 100 kcal au lieu de 4,8), et
+// sur la case partagée le bas de Karim passait au-dessus de son haut à elle.
+
+Deno.test("⟳ 2026-09-25 — journée partielle: le plafond du jour se proratise avant d'être divisé", () => {
+  // Inès: plafond 120 g, présente seulement au petit-déjeuner et au déjeuner
+  // (1 000 kcal composés, 50 % de son jour). Karim: plafond 300 g sur 3 400.
+  const ines = {
+    memberId: "ines",
+    ceilingG: 120,
+    floorG: null,
+    days: [{
+      dayToken: "wed",
+      coveredFraction: 0.5,
+      slots: [{ slot: "breakfast", composeKcal: 400 }, { slot: "lunch", composeKcal: 600 }],
+    }],
+  };
+  const karim = {
+    memberId: "karim",
+    ceilingG: 300,
+    floorG: null,
+    days: [{
+      dayToken: "wed",
+      coveredFraction: 1,
+      slots: [
+        { slot: "breakfast", composeKcal: 900 },
+        { slot: "lunch", composeKcal: 1300 },
+        { slot: "dinner", composeKcal: 1200 },
+      ],
+    }],
+  };
+  // Proratisé: 120 × 0,5 / 1 000 = 6,0 g pour 100 kcal, sous Karim (8,82):
+  // Inès borne la table, 600 × 0,06 = 36 g au déjeuner.
+  assertEquals(sharedProteinCaps([ines, karim]).byMember.get("ines")!.get("wed|lunch"), 36);
+  // La règle d'avant divisait tout le plafond par deux repas (12,0): Karim
+  // bornait, 600 × 0,0882 = 52 g — la moitié de trop pour elle.
+  const avant = sharedProteinCaps([
+    { ...ines, days: [{ ...ines.days[0], coveredFraction: undefined }] },
+    karim,
+  ]);
+  assertEquals(avant.byMember.get("ines")!.get("wed|lunch"), 52);
+  // Une part illisible: Inès ne borne personne ce jour-là.
+  const illisible = sharedProteinCaps([
+    { ...ines, days: [{ ...ines.days[0], coveredFraction: null }] },
+    karim,
+  ]);
+  assertEquals(illisible.byMember.get("ines")!.get("wed|lunch"), 52);
+});
+
+Deno.test("⟳ 2026-09-25 — journée partielle: un plancher proratisé ne gagne plus à tort", () => {
+  // Inès en prise: plancher 100 g sur le jour, présente à 50 %. Sans prorata,
+  // 100 / 1 000 = 10 g pour 100 kcal gagnait sur le plafond de Karim (5,88).
+  const ines = {
+    memberId: "ines",
+    ceilingG: null,
+    floorG: 100,
+    days: [{
+      dayToken: "wed",
+      coveredFraction: 0.5,
+      slots: [{ slot: "breakfast", composeKcal: 400 }, { slot: "lunch", composeKcal: 600 }],
+    }],
+  };
+  const karim = {
+    memberId: "karim",
+    ceilingG: 200,
+    floorG: null,
+    days: [{
+      dayToken: "wed",
+      coveredFraction: 1,
+      slots: [
+        { slot: "breakfast", composeKcal: 900 },
+        { slot: "lunch", composeKcal: 1300 },
+        { slot: "dinner", composeKcal: 1200 },
+      ],
+    }],
+  };
+  const avec = sharedProteinCaps([ines, karim]);
+  assertEquals(avec.floorWins, 0, "5 g pour 100 kcal proratisés ne dépassent pas 5,88");
+  const sans = sharedProteinCaps([
+    { ...ines, days: [{ ...ines.days[0], coveredFraction: undefined }] },
+    karim,
+  ]);
+  assertEquals(sans.floorWins, 2, "la règle d'avant: le plancher entier sur deux repas gagnait");
+});
+
+Deno.test("⟳ 2026-09-25 — le plat à soi ne partage pas la recette de la table", () => {
+  const caps = sharedProteinCaps([
+    { ...TABLE[0], ownDishCells: new Set(["mon|breakfast"]) },
+    TABLE[1],
+    TABLE[2],
+  ]);
+  // Thomas mange son plat à lui au petit-déjeuner: il ne borne plus Fabrice
+  // ni Christèle à cette case (Christèle, 116 / 1 981 = 58,6 g/1 000 kcal, la
+  // borne désormais: 548 × 0,05856 = 32,09 → 32).
+  assertEquals(caps.byMember.get("fabrice")!.get("mon|breakfast"), 32);
+  assertEquals(caps.byMember.get("thomas")!.get("mon|breakfast"), undefined, "sa case n'est plus partagée");
+});
+
+Deno.test("⟳ 2026-09-25 — aucune demande de protéines sur ce qu'une bouche a déclaré manger", () => {
+  const brief = proteinBriefFor({
+    memberId: "christele",
+    dayFloorG: 70,
+    perMealFloorG: null,
+    abstention: "none",
+    days: [CHRISTELE],
+    ownDishCells: new Set(["mon|breakfast"]),
+  });
+  const grammes = Object.fromEntries(brief.slots.map((s) => [s.slot, s.gramsPerServing]));
+  // Le petit-déjeuner garde sa part du jour (non reversée): 70 × 793/1981 = 28,
+  // 70 × 693/1981 = 24.
+  assertEquals(grammes, { lunch: 28, dinner: 24 });
+});
+
+Deno.test("⟳ 2026-09-25 — sur une case partagée, aucun bas de convive au-dessus du haut d'un autre", () => {
+  // La propriété du plan B, sur un décor à deux: Karim (prise, plancher 150 g,
+  // plafond 180 g, 3 000 kcal) et Inès (perte, plafond 110 g, 1 600 kcal,
+  // absente au dîner: 62,5 % du jour).
+  const karimDay = {
+    date: "2026-09-30",
+    dayToken: "wed",
+    dayTargetKcal: 3000,
+    coveredBudgetGrossKcal: 3000,
+    fixedProteinG: null,
+    sideProteinG: 0,
+    slots: [
+      { slot: "breakfast", composeKcal: 750 },
+      { slot: "lunch", composeKcal: 1200 },
+      { slot: "dinner", composeKcal: 1050 },
+    ],
+  };
+  const inesDay = {
+    date: "2026-09-30",
+    dayToken: "wed",
+    dayTargetKcal: 1600,
+    coveredBudgetGrossKcal: 1000,
+    fixedProteinG: null,
+    sideProteinG: 0,
+    slots: [{ slot: "breakfast", composeKcal: 400 }, { slot: "lunch", composeKcal: 600 }],
+  };
+  const frac = (d: typeof karimDay) => Math.min(1, d.coveredBudgetGrossKcal / d.dayTargetKcal);
+  const caps = sharedProteinCaps([
+    {
+      memberId: "karim",
+      ceilingG: 180,
+      floorG: 150,
+      days: [{ dayToken: "wed", coveredFraction: frac(karimDay), slots: karimDay.slots }],
+    },
+    {
+      memberId: "ines",
+      ceilingG: 110,
+      floorG: 70,
+      days: [{ dayToken: "wed", coveredFraction: frac(inesDay), slots: inesDay.slots }],
+    },
+  ]);
+  const karim = proteinBriefFor({
+    memberId: "karim",
+    dayFloorG: 150,
+    perMealFloorG: 50,
+    abstention: "none",
+    days: [karimDay],
+    slotCapG: caps.byMember.get("karim"),
+    tableFloorCells: caps.floorCells,
+    dayCeilingG: 180,
+  });
+  const ines = proteinBriefFor({
+    memberId: "ines",
+    dayFloorG: 70,
+    perMealFloorG: null,
+    abstention: "none",
+    days: [inesDay],
+    slotCapG: caps.byMember.get("ines"),
+    tableFloorCells: caps.floorCells,
+    dayCeilingG: 110,
+  });
+  for (const slot of ["breakfast", "lunch"]) {
+    const k = karim.slots.find((s) => s.slot === slot)!;
+    const i = ines.slots.find((s) => s.slot === slot)!;
+    // En densité (g pour 100 kcal): le bas de l'un ne dépasse pas le haut de
+    // l'autre, à 1 g d'arrondi près ramené à la part.
+    const bas = (a: typeof k) => a.gramsPerServing / a.kcalPerServing;
+    const haut = (a: typeof k) => (a.gramsMax ?? Infinity) / a.kcalPerServing;
+    assert(bas(k) <= haut(i) + 1 / i.kcalPerServing, `${slot}: Karim ${k.gramsPerServing}/${k.kcalPerServing} > Inès max ${i.gramsMax}/${i.kcalPerServing}`);
+    assert(bas(i) <= haut(k) + 1 / k.kcalPerServing, `${slot}: Inès ${i.gramsPerServing}/${i.kcalPerServing} > Karim max ${k.gramsMax}/${k.kcalPerServing}`);
+  }
+  // Et plus aucun « no main dish under » dans la phrase de Karim.
+  assert(!proteinFragment(karim).includes("no main dish under"), proteinFragment(karim));
+});

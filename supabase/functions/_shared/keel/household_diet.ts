@@ -522,8 +522,10 @@ export function householdDietBlock(args: {
    * l'exemple parfait de « deux modes dont un détruit les ingrédients
    * silencieusement ».
    *
-   * `false` ⇒ la séparation passe par le PLAT À PART, qui est le canal
-   * réellement servi sur ce chemin. On ne demande pas une sortie qu'on jette.
+   * `false` ⇒ ⟳ 2026-09-25: ce bloc ne promet AUCUNE séparation. Le plat à
+   * part n'existe sur ce chemin que si la grille l'ouvre, et c'est la section
+   * `A DISH OF THEIR OWN` (lignes `divergingNames`) qui le dit. On ne demande
+   * pas une sortie qu'on jette, ni un plat que rien ne prévoit.
    *
    * ⛔ REQUIS, jamais `?`. Un défaut à `true` remettrait l'ordre mort chez
    * tout appelant qui l'oublie — c'est-à-dire exactement l'état d'avant.
@@ -572,7 +574,14 @@ export function householdDietBlock(args: {
     // c'est ce qu'il a fait onze fois sur douze quand le plat dédié a été
     // introduit, et une consigne qui interdit sans nommer la sortie qu'on prend
     // à sa place est une consigne qu'on reprend.
-    ...(args.freeNames.filter((n) => String(n ?? "").trim()).length > 0
+    // ⟳ 2026-09-25 — SANS CANAL, PAS DE PROMESSE. Sous `portion_v1`
+    // (`boxChannelOpen` faux), rien ne sert à part la protéine de qui n'est pas
+    // lié: ni boîte, ni plat à part hors de la grille (`A DISH OF THEIR OWN`,
+    // dite plus bas par `divergingNames`). Banc des trois foyers, plan C: « Do
+    // NOT drop the animal protein » et « that extra dish on top » dans la même
+    // consigne qu'une table servie entièrement végane — deux ordres qu'aucun
+    // chemin du moteur ne tient.
+    ...(args.boxChannelOpen && args.freeNames.filter((n) => String(n ?? "").trim()).length > 0
       ? [
         // ⛔ LA PHRASE QUI MANQUAIT, ET ELLE PRÉCÈDE LA MÉCANIQUE. Dire
         // comment séparer ne sert à rien tant que le modèle ne sait pas qu'il
@@ -593,17 +602,9 @@ export function householdDietBlock(args: {
         "poultry or fish); one box for everyone else with the original. When nobody",
         "at this table is bound differently, one box.",
       ]
-      : [
-        // ⛔ LE MÊME ORDRE, SUR LE CANAL QUI EXISTE. Voir `boxChannelOpen`.
-        // La forme change, la règle ne change pas: la base reste commune, et
-        // ce que cette ligne refuse est cuit à part pour qui n'est pas lié.
-        "The one component that line refuses is served in a DISH OF THEIR OWN,",
-        "cooked apart, with its own recipe and its own \"for_member_id\" -- never a",
-        "portion_note, never a second helping written into the shared dish. The",
-        "shared dish stays exactly as the line above requires, and everyone eats",
-        "it; the people that line does NOT bind get that extra dish on top. When",
-        "nobody at this table is bound differently, there is no extra dish.",
-      ]),
+      // ⟳ 2026-09-25 — LE PLAT À PART N'EST PROMIS QUE PAR LA GRILLE
+      // (`A DISH OF THEIR OWN`, et les lignes `divergingNames` plus bas).
+      : []),
     // ══════════════════════════════════════════════════════════════════════
     // ⟳ 2026-09-13 — LA CLÉ DE L'ITEM, COLLÉE À L'ORDRE QUI LE RÉCLAME.
     // ══════════════════════════════════════════════════════════════════════

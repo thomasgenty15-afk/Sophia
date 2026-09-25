@@ -189,6 +189,13 @@ export interface DoctrineLoadOptions {
    * désarme.
    */
   goalOverride?: GoalToken | null;
+  /**
+   * ⟳ 2026-09-25 — LA SECTION `-- VOICE --` DU BLOC. Absente ⇒ `true`, le
+   * comportement d'avant pour la conversation. La lane du foyer passe `false`
+   * (`loadHouseholdDoctrine`): une consigne de PLAN n'a pas de voix de
+   * réponse, et « write in English » y contredisait la langue du foyer.
+   */
+  voice?: boolean;
 }
 
 /**
@@ -659,7 +666,7 @@ export async function loadPublishedDoctrine(
     foods: { discouraged: excludedFoods },
     coach_display_name: coachDisplayName,
   });
-  const compiled = compileDoctrineBlock(doctrine, goal);
+  const compiled = compileDoctrineBlock(doctrine, goal, { voice: options.voice ?? true });
   // LOT C ① — CE QUE LA VARIANTE DU TITULAIRE A LAISSÉ TOMBER, ET QUI VISE
   // QUELQU'UN D'AUTRE À CETTE TABLE. `[]` hors foyer ⇒ `{block: "", ...}`, et le
   // reste de cette fonction est alors byte-identique à celui d'avant ce lot.

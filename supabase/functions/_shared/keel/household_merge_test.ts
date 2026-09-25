@@ -3016,7 +3016,7 @@ Deno.test("C8 ③ — LA LANE INDIVIDUELLE GARDE SA VERSION DE PROMPT", () => {
   // ⟳ LOT C (2026-09-11) — v31: le prompt système ne dit plus le POIDS d'une
   // assiette (« roughly 600 to 750 g »), il dit sa FORME. La version avance avec
   // son texte, sinon un cache servirait l'ancienne consigne sous le nouveau nom.
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v42_off_the_table_not_at");
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v43_no_false_promise");
   // ⚠️ v10 DEPUIS LE LOT G (2026-08-14), ET C'EST LA MOITIÉ DU LOT QUI COMPTE
   // ICI: le TRONC ne bouge toujours pas (la ligne au-dessus le tient), la lane
   // du FOYER si. Deux populations neuves y voient une consigne différente —
@@ -3097,7 +3097,7 @@ Deno.test("C8 ③ — LA LANE INDIVIDUELLE GARDE SA VERSION DE PROMPT", () => {
   // (message byte-identique à v25), v26 avec.
   // ⟳ 2026-09-23 — v39: les à-côtés en familles (`side_courses_prompt.ts`).
   // ⟳ 2026-09-23 — v40: la table partage ses à-côtés (`side_courses_prompt.ts`).
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v48_off_the_table_not_at");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v49_no_false_promise");
 });
 
 Deno.test("C7 ③ — LA LIGNE DE COURSES D'UN PLAT JETÉ NE PART PLUS AU MAGASIN", () => {
@@ -3796,7 +3796,8 @@ Deno.test("LOT B — les TROIS bouts qui promettent un plat lisent la forme SERV
   // laisserait une fusion promettre un plat à personne dans le même message qui
   // en commande un à la personne reprise.
   assert(
-    /divergingNames: promptDishBearers\.map/.test(src),
+    /divergingNames: promptDishBearers\s*\.filter\(\(m\) => !strictestHeldBy\.includes\(m\.displayName\)\)\s*\.map/
+      .test(src),
     "le bloc de régime nomme d'autres bouches que celles à qui la section " +
       "`A DISH OF THEIR OWN` enseigne la forme.",
   );

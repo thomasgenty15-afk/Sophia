@@ -1924,7 +1924,7 @@ Deno.test("LOT 4 — la version de la lane foyer a bougé d'UN cran", () => {
   // ⟳ 2026-09-23 — `v39_side_courses_come_in_families`: le bloc SIDE COURSES
   // dit la table, son exception, les deux jours et le dessert d'un aliment.
   // ⟳ 2026-09-23 — v40: la table partage ses à-côtés (`side_courses_prompt.ts`).
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v48_off_the_table_not_at");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v49_no_false_promise");
 });
 
 // ===========================================================================
@@ -1968,8 +1968,8 @@ const KITCHEN_BASE = {
 Deno.test("L7 ① — jamais demandé: prompt BYTE-IDENTIQUE, et c'est 175 comptes sur 175", () => {
   const jamais = buildHouseholdPromptBlocks(KITCHEN_BASE);
   // ⛔ LE CAS QUI PASSE. Un foyer qui a TOUT coché n'a rien à interdire non
-  // plus: les deux doivent rendre exactement le même prompt, sinon `null` est
-  // en train de vouloir dire quelque chose.
+  // plus. ⟳ 2026-09-25 — il gagne EXACTEMENT la ligne du micro-ondes (v49), et
+  // rien d'autre: `null` ne veut toujours rien dire.
   const tout = buildHouseholdPromptBlocks({
     ...KITCHEN_BASE,
     kitchenEquipment: [
@@ -1982,7 +1982,14 @@ Deno.test("L7 ① — jamais demandé: prompt BYTE-IDENTIQUE, et c'est 175 compt
       "blender",
     ],
   });
-  assertEquals(jamais.userSuffix, tout.userSuffix);
+  const micro = "== THIS KITCHEN ==\nThis household has a microwave: a dish that is reheated" +
+    " at home is reheated in it, with the minutes that really takes.";
+  assert(tout.userSuffix.includes(micro), tout.userSuffix);
+  // Le bloc est retiré avec UN séparateur, qu'il soit au milieu ou en dernier.
+  const sansMicro = tout.userSuffix.includes(`${micro}\n\n`)
+    ? tout.userSuffix.replace(`${micro}\n\n`, "")
+    : tout.userSuffix.replace(`\n\n${micro}`, "");
+  assertEquals(sansMicro, jamais.userSuffix);
   assert(!jamais.userSuffix.includes("THIS KITCHEN"), jamais.userSuffix);
   assertEquals(jamais.kitchenMissing, []);
   assertEquals(tout.kitchenMissing, []);
@@ -2553,7 +2560,7 @@ Deno.test("v41 — la ligne « à éviter » suit l'envie, et précède les règ
   const rule = u.indexOf("- Léa: never serve nutella");
   assert(rule > 0 && u.indexOf(AVOID_LINE) < rule, "la ligne passe après une règle de maison");
   assertEquals(b.avoidLineUsed, true);
-  assertEquals(b.promptVersion, "v48_off_the_table_not_at");
+  assertEquals(b.promptVersion, "v49_no_false_promise");
 });
 
 Deno.test("v41 — sans liste, la consigne est celle d'avant à l'octet près", () => {

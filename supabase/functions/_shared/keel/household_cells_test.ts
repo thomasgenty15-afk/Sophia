@@ -964,6 +964,27 @@ Deno.test("⟳ 2026-09-19 — l'habitude d'une bouche ne vaut que SES jours : d�
   assertEquals(sans.cells.map((c) => c.dedicated.length), [1, 1]);
 });
 
+Deno.test("⟳ 2026-09-25 — hors de ses jours, seul le déjeuner/dîner déclaré redevient le plat de la table; le café du matin reste", () => {
+  // Banc des trois foyers, plan C: « que du café » le matin ET un dîner à lui,
+  // plafonné à deux jours. Le troisième jour, il garde son café.
+  const out = householdCells({
+    mouths: [
+      mouth({ memberId: "julie" }),
+      mouth({ memberId: "thomas", ownMealSlots: ["breakfast", "dinner"], ownMealDays: ["tue", "wed"] }),
+    ],
+    baseRegime: null,
+    houseRhythm: [{ slot: "breakfast", size: null }, { slot: "dinner", size: null }],
+    windowDays: ["tue", "wed", "thu"],
+    gridSlots: ["breakfast", "dinner"],
+    spentSlots: NO_SPENT,
+    cookOnlyDay: null,
+  });
+  const at = (day: string, slot: string) => out.cells.find((c) => c.day === day && c.slot === slot)!;
+  assertEquals(at("thu", "breakfast").dedicated.map((d) => d.memberId), ["thomas"], "le café, chaque matin");
+  assertEquals(at("thu", "dinner").dedicated, [], "le dîner plafonné: le plat de la table");
+  assertEquals(at("tue", "dinner").dedicated.map((d) => d.memberId), ["thomas"]);
+});
+
 // ---------------------------------------------------------------------------
 // ⑪ ⟳ 2026-09-23 — LA CEINTURE SUR LES BOÎTES DU MOTEUR (`heldOff`)
 // ---------------------------------------------------------------------------
