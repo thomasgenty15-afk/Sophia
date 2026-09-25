@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Lance les générations UNE À LA FOIS et attend chaque brouillon.   python3 run.py A B C"""
-import json, sys, time, uuid, pathlib, urllib.request, urllib.error
+import json, os, sys, time, uuid, pathlib, urllib.request, urllib.error
 from cas import CAS
 from fixtures import API, ANON, psql, login
 
@@ -46,7 +46,8 @@ def run(name):
         if status not in ("running", "queued", "pending"):
             break
     if draft:
-        (HERE / f"draft-{name}.txt").write_text(draft)
+        # BANC_TAG: garde les pointeurs de référence (draft-A.txt…) intacts.
+        (HERE / f"draft-{name}{os.environ.get('BANC_TAG', '')}.txt").write_text(draft)
         print(f"[{name}] brouillon {draft} en {int(time.time()-t0)}s", flush=True)
 
 

@@ -363,3 +363,26 @@ Deno.test("LOT E ③ — un compte qui GROSSIT n'est jamais une amélioration", 
   assertEquals(v.magnitude.comparable, false);
   assertEquals(v.magnitude.note, "count_differs");
 });
+
+// ⟳ 2026-09-25 — À NOMBRE ÉGAL, UNE NATURE PLUS GRAVE QUI BAISSE ADOPTE.
+Deno.test("⟳ 2026-09-25 — un repas manquant réparé contre des écarts de taille: ADOPTÉ, même incomparable", () => {
+  // Banc des trois foyers, plan C (tir 2): 4 `missing_meal` → 0, 3 `sizing` de
+  // plus, 18 = 18, cases différentes. Le juge jetait la candidate.
+  const avant = [
+    defaut({ kind: "missing_meal", slot: "lunch", magnitude: null }),
+    defaut({ kind: "missing_meal", slot: "lunch", day: "tue", magnitude: null }),
+    defaut({ kind: "sizing", slot: "dinner", magnitude: 10 }),
+  ];
+  const apres = [
+    defaut({ kind: "sizing", slot: "dinner", magnitude: 10 }),
+    defaut({ kind: "sizing", slot: "lunch", magnitude: 12 }),
+    defaut({ kind: "sizing", slot: "lunch", day: "tue", magnitude: 9 }),
+  ];
+  const v = judgeCandidate({ beforeRefusals: [], afterRefusals: [], beforeDefects: avant, afterDefects: apres });
+  assertEquals(v.verdict, "adopt");
+  assertEquals(v.magnitude.comparable, false);
+  // ⛔ LE SENS INVERSE REJETTE TOUJOURS: remplir la taille en vidant un repas.
+  const inverse = judgeCandidate({ beforeRefusals: [], afterRefusals: [], beforeDefects: apres, afterDefects: avant });
+  assertEquals(inverse.verdict, "no_improvement");
+});
+

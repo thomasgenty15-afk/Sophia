@@ -68,3 +68,15 @@ Deno.test("ARRÊT ④ — chaque tour et l'écriture laissent une marque journal
     "journalisée aussi",
   );
 });
+
+Deno.test("ARRÊT ⑤ — l'écouteur libère aussi les verrous de génération tenus (sinon la relance prend un 409)", () => {
+  // Tir réel C-2 du banc: brouillon fermé à la seconde, relance à la minute,
+  // 409 `generation_in_flight` sur le verrou encore frais, relance perdue.
+  const i = SRC.indexOf('addEventListener("beforeunload", (event) => {');
+  const corps = SRC.slice(i, i + 2400);
+  assert(corps.includes('.rpc("keel_household_release_generation", {'), "le verrou est rendu");
+  assert(corps.includes("p_lease: lock.leaseToken,"), "avec son jeton de bail");
+  assert(SRC.includes("locksInFlight.set(requestId, generationLockHeld);"), "le verrou pris entre dans l'ensemble");
+  assert(SRC.includes("locksInFlight.delete(held.requestId);"), "et en sort à sa libération normale");
+});
+

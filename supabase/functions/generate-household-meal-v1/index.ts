@@ -1309,18 +1309,41 @@ function logWorkTime(req: Request, status: number, draftId: string | null): void
  * jamais défait.
  */
 const draftsInFlight = new Set<string>();
+/**
+ * ⟳ 2026-09-25 (soir) — ET LES VERROUS DE GÉNÉRATION QUE CE WORKER TIENT.
+ *
+ * Mesuré au tir réel C-2 du banc: l'écouteur fermait le brouillon à la
+ * seconde, la réclamation relançait à la minute suivante — et la relance
+ * prenait un 409 `generation_in_flight`, parce que le verrou du foyer (bail de
+ * `PLAN_REQUEST_BUDGET_MS` + marge) était encore frais. `relaunched_at` étant
+ * posé, la mère n'était plus jamais relancée. Avant l'écouteur, la réclamation
+ * n'arrivait qu'après l'échéance du bail, et le verrou était périmé.
+ * On libère donc le verrou en même temps qu'on ferme la ligne.
+ */
+const locksInFlight = new Map<string, { householdId: string; requestId: string; leaseToken: string }>();
 addEventListener("beforeunload", (event) => {
-  if (draftsInFlight.size === 0) return;
+  if (draftsInFlight.size === 0 && locksInFlight.size === 0) return;
   const reason = String(
     (event as CustomEvent<{ reason?: string } | undefined>).detail?.reason ?? "unknown",
   );
   const ids = [...draftsInFlight];
+  const locks = [...locksInFlight.values()];
   console.warn(JSON.stringify({
     tag: "keel.household_meal.worker_unload",
     reason,
     drafts: ids,
+    locks: locks.map((l) => l.requestId),
   }));
   const admin = adminClient();
+  for (const lock of locks) {
+    admin
+      .rpc("keel_household_release_generation", {
+        p_household: lock.householdId,
+        p_request: lock.requestId,
+        p_lease: lock.leaseToken,
+      })
+      .then(() => {}, () => {});
+  }
   for (const id of ids) {
     admin
       .from("student_meal_drafts")
@@ -1514,6 +1537,7 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
     const held = generationLockHeld;
     if (held === null) return;
     generationLockHeld = null;
+    locksInFlight.delete(held.requestId);
     try {
       const { data } = await adminClient().rpc(
         "keel_household_release_generation",
@@ -1900,6 +1924,8 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
           }, { status: 503 });
         }
         generationLockHeld = { householdId, requestId, leaseToken };
+        // ⟳ 2026-09-25 — connu de l'écouteur d'arrêt (`locksInFlight`).
+        locksInFlight.set(requestId, generationLockHeld);
         if (takeoverAsked) {
           console.log(JSON.stringify({
             tag: "keel.household_meal.generation_taken_over",

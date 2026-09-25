@@ -812,36 +812,52 @@ export function judgeCandidate(args: {
   if (apres < avant || safety.removed.length > 0) {
     return { verdict: "adopt", safety, magnitude };
   }
-  // ── L'AMPLEUR, À NOMBRE ÉGAL ─────────────────────────────────────────────
+  // ── À NOMBRE ÉGAL, LA NATURE D'ABORD, L'AMPLEUR ENSUITE ─────────────────
   // ⛔ UNE NATURE PLUS GRAVE QUI GROSSIT REJETTE, avant même de regarder les
   // nombres. `REPAIR_DEFECT_KINDS` est ordonnée du plus grave au moins grave;
   // un défaut qui remonte cette liste n'est pas « plus faible ».
-  if (apres === avant && magnitude.comparable && magnitude.gain !== null) {
-    if (worseKindGrew(args.beforeDefects, args.afterDefects)) {
-      return { verdict: "no_improvement", safety, magnitude };
-    }
-    const before = magnitude.before ?? 0;
-    if (before > 0 && magnitude.gain >= before * REPAIR_MAGNITUDE_MIN_GAIN) {
-      return { verdict: "adopt", safety, magnitude };
+  //
+  // ⟳ 2026-09-25 — ET UNE NATURE PLUS GRAVE QUI BAISSE ADOPTE, même quand
+  // l'ampleur n'est pas comparable. Banc des trois foyers, plan C (tir 2):
+  // la réparation remplissait le déjeuner manquant de mardi (4 `missing_meal`
+  // → 0) au prix de 3 écarts de taille; 18 défauts avant, 18 après, cases
+  // différentes (`cells_differ`) ⇒ `no_improvement`, candidate jetée, retour à
+  // la meilleure et refinalisation — deux fois —, puis la mort sous la limite
+  // CPU à l'écriture. La règle était écrite (« une nature qui a BAISSÉ ne peut
+  // plus être compensée par une plus faible qui monte: c'est un progrès ») et
+  // n'était consultée que derrière `magnitude.comparable`.
+  if (apres === avant) {
+    const shift = severityShift(args.beforeDefects, args.afterDefects);
+    if (shift === "worse") return { verdict: "no_improvement", safety, magnitude };
+    if (shift === "better") return { verdict: "adopt", safety, magnitude };
+    if (magnitude.comparable && magnitude.gain !== null) {
+      const before = magnitude.before ?? 0;
+      if (before > 0 && magnitude.gain >= before * REPAIR_MAGNITUDE_MIN_GAIN) {
+        return { verdict: "adopt", safety, magnitude };
+      }
     }
   }
   return { verdict: "no_improvement", safety, magnitude };
 }
 
-/** Une nature PLUS GRAVE est-elle plus nombreuse après qu'avant ? */
-function worseKindGrew(
+/**
+ * LE DÉPLACEMENT DE GRAVITÉ ENTRE DEUX JEUX DE DÉFAUTS, lu dans l'ordre de
+ * `REPAIR_DEFECT_KINDS`: la première nature dont le compte change décide.
+ * Plus nombreuse ⇒ `worse`; moins nombreuse ⇒ `better` (une nature qui a
+ * BAISSÉ ne peut plus être compensée par une plus faible qui monte); aucune ⇒
+ * `same`, et c'est l'ampleur qui tranche.
+ */
+function severityShift(
   before: readonly RepairDefect[],
   after: readonly RepairDefect[],
-): boolean {
+): "better" | "worse" | "same" {
   const count = (ds: readonly RepairDefect[], kind: RepairDefectKind) =>
     ds.filter((d) => d.kind === kind).length;
   for (const kind of REPAIR_DEFECT_KINDS) {
-    if (count(after, kind) > count(before, kind)) return true;
-    // Une nature qui a BAISSÉ ne peut plus être compensée par une plus faible
-    // qui monte: c'est un progrès, et on sort avant de le condamner.
-    if (count(after, kind) < count(before, kind)) return false;
+    if (count(after, kind) > count(before, kind)) return "worse";
+    if (count(after, kind) < count(before, kind)) return "better";
   }
-  return false;
+  return "same";
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
