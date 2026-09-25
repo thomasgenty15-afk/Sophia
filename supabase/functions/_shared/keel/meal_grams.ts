@@ -21,6 +21,7 @@ import {
   type CompositionState,
   type CompositionUnit,
   gramsRawOf,
+  isEggsBoiledInWater,
   resolveCompositionLine,
   yieldFactorOf,
 } from "./food_composition.ts";
@@ -221,10 +222,13 @@ export function preparationReadyGrams(
     if (!ref) return null;
     refs.push({ ref, gramsRaw: ing.gramsRaw });
   }
-  const absorbs = refs.some(({ ref }) => ref.yieldClass === "grain_absorbs");
+  // ⟳ 2026-09-25 — et l'eau d'une casserole d'œufs, qui se jette: la même
+  // règle que `preparation_mass.ts`, lue au même endroit (`isEggsBoiledInWater`).
+  const dropWater = refs.some(({ ref }) => ref.yieldClass === "grain_absorbs") ||
+    isEggsBoiledInWater(refs);
   let total = 0;
   for (const { ref, gramsRaw } of refs) {
-    if (absorbs && ref.foodGroupRef === "water") continue;
+    if (dropWater && ref.foodGroupRef === "water") continue;
     total += gramsRaw * yieldFactorOf(ref);
   }
   return total;
@@ -271,9 +275,10 @@ export function preparationReadyKcal(
     if (!ref) return null;
     refs.push({ ref, gramsRaw: ing.gramsRaw });
   }
-  const absorbs = refs.some(({ ref }) => ref.yieldClass === "grain_absorbs");
+  const dropWater = refs.some(({ ref }) => ref.yieldClass === "grain_absorbs") ||
+    isEggsBoiledInWater(refs);
   for (const { ref, gramsRaw } of refs) {
-    if (absorbs && ref.foodGroupRef === "water") continue;
+    if (dropWater && ref.foodGroupRef === "water") continue;
     // ⚠️ `energyKcal` EST POUR 100 g CRUS, et `gramsRaw` est cru: les deux se
     // touchent sans facteur de rendement. C'est le rendement qui change la
     // MASSE servie, pas l'énergie — une casserole ne gagne pas de calories en

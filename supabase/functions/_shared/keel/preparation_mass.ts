@@ -45,10 +45,12 @@
  * ⛔ AUCUN MATCHER MAISON SUR LA PROSE DE LA MÉTHODE. Ce dépôt a mesuré 12 faux
  * positifs sur 12 avec un matcher artisanal (« lait » vit dans « laitue »), et
  * la mémoire `never-hand-roll-a-matcher-here` en fait une règle. `discarded` ne
- * s'obtient donc QUE d'une déclaration structurée portée par la casserole
- * (`waterTreatment`). Aujourd'hui **personne ne l'écrit**: le champ n'existe pas
- * encore dans le parseur, donc l'état est atteignable, testé, et jamais deviné.
- * Trois états honnêtes valent mieux que quatre dont un ment.
+ * s'obtient donc que de deux façons, et aucune ne lit la prose: une déclaration
+ * structurée portée par la casserole (`waterTreatment` — aujourd'hui **personne
+ * ne l'écrit**, le champ n'existe pas encore dans le parseur), ou ⟳ 2026-09-25
+ * une casserole que les GROUPES du référentiel disent faite d'œufs et d'eau
+ * (`isEggsBoiledInWater`, `food_composition.ts`). Trois états honnêtes valent
+ * mieux que quatre dont un ment.
  *
  * ⛔ ET `legume_absorbs` N'EST PAS TRAITÉ COMME `grain_absorbs`. Des lentilles
  * sèches mijotées dans une eau qui reste au fond de la casserole ne sont pas du
@@ -62,6 +64,7 @@
 import {
   type CompositionIndex,
   type CompositionInput,
+  isEggsBoiledInWater,
   isFriedMethod,
   type NutrientsOrUnknown,
   nutrientsOf,
@@ -220,7 +223,14 @@ function waterFrom(
   // la ligne d'eau l'ajoutait une seconde fois — un riz à 0,77 kcal/g au lieu
   // de ~1,3, donc plus de grammes déplacés pour la même énergie.
   const absorbs = r.resolved.some(({ ref }) => ref.yieldClass === "grain_absorbs");
-  if (declared === null) return absorbs ? "absorbed" : "kept";
+  if (declared === null) {
+    if (absorbs) return "absorbed";
+    // ⟳ 2026-09-25 — des œufs dans l'eau : l'eau se jette (`isEggsBoiledInWater`).
+    // Un terme inconnu pourrait être n'importe quoi : on ne conclut rien.
+    return r.unresolvedTerms.length === 0 && isEggsBoiledInWater(r.resolved)
+      ? "discarded"
+      : "kept";
+  }
   return absorbs ? "undetermined" : declared;
 }
 

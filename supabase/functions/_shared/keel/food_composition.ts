@@ -118,6 +118,51 @@ export function yieldResolutionOf(ref: CompositionRef): "per_food" | "per_class"
   return ref.yieldFactor === null ? "per_class" : "per_food";
 }
 
+/**
+ * ⟳ 2026-09-25 — UNE CASSEROLE D'ŒUFS DANS L'EAU : CETTE EAU SE JETTE.
+ *
+ * ── LE DÉFAUT, MESURÉ ─────────────────────────────────────────────────────
+ * Banc des trois foyers, plan A (`deed7ddf`) : « Œufs durs » = 1 œuf + 300 ml
+ * d'eau. Sans déclaration, l'eau restait dans le poids prêt : 344 g pour un œuf
+ * de 55 g, deux boîtes « Œufs durs 185 g » et « 168 g » pour un demi-œuf
+ * chacune, et une assiette du matin rognée par son plafond de poids sur de
+ * l'eau.
+ *
+ * ⛔ AUCUN MOT DE LA MÉTHODE N'EST LU : la règle lit les GROUPES du
+ * référentiel. Une casserole dont tout ce qui n'est pas de l'eau est un œuf —
+ * ou un condiment pesé par convention (`condimentGrams`, la pincée de sel) —
+ * est une cuisson à l'eau (dur, mollet, poché), et cette eau ne se sert jamais.
+ * Un vinaigre, un bouillon, un légume : la règle ne s'applique plus, et l'eau
+ * garde le traitement d'avant.
+ *
+ * ⚠️ LES TROIS LECTEURS DE L'EAU PASSENT PAR ICI (`preparation_mass.ts`,
+ * `preparationReadyGrams`, `preparationReadyKcal`) : deux règles donneraient
+ * deux poids à la même casserole, et la croissance des casseroles ne mesurerait
+ * pas comme leur réconciliation.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function isEggsBoiledInWater(
+  lines: readonly { ref: CompositionRef; gramsRaw: number }[],
+): boolean {
+  let eggs = false;
+  let water = false;
+  for (const { ref, gramsRaw } of lines) {
+    if (!(gramsRaw > 0)) continue;
+    if (ref.foodGroupRef === "water") {
+      water = true;
+      continue;
+    }
+    if (ref.foodGroupRef === "eggs") {
+      eggs = true;
+      continue;
+    }
+    if (ref.condimentGrams !== null) continue;
+    return false;
+  }
+  return eggs && water;
+}
+
 // ---------------------------------------------------------------------------
 // LES UNITÉS
 // ---------------------------------------------------------------------------

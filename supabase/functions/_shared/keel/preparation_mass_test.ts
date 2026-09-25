@@ -28,6 +28,7 @@ import {
 } from "./preparation_mass.ts";
 import { weighedReadyGrams } from "./box_densify.ts";
 import { standardPortionOf } from "./portion_sizing.ts";
+import { preparationReadyGrams, preparationReadyKcal } from "./meal_grams.ts";
 
 // ---------------------------------------------------------------------------
 // LE RÉFÉRENTIEL — dix lignes, copiées de la base, pas inventées
@@ -299,7 +300,9 @@ Deno.test("② `discarded` ne se DEVINE pas — il se déclare, et rien ne le d�
     "kept",
     "sans déclaration structurée, on ne retire rien: trois états honnêtes valent mieux que quatre dont un ment",
   );
-  // Le champ existe, il est atteignable, et c'est le SEUL chemin vers `discarded`.
+  // Le champ existe, il est atteignable, et c'est le seul chemin DÉCLARÉ vers
+  // `discarded`. ⟳ 2026-09-25 — l'autre est structurel et ne lit pas la prose:
+  // une casserole d'œufs et d'eau (voir « ⑥ » plus bas).
   assertEquals(
     waterTreatmentOf(INDEX, { ...pates, waterTreatment: "discarded" as const }),
     "discarded",
@@ -445,4 +448,87 @@ Deno.test("④ un terme inconnu éteint la protéine même quand sa borne laisse
   const m = measurePreparation(INDEX, pot);
   assert(m.kcal !== null, "la borne de groupe laisse passer l'énergie");
   assertEquals(m.proteinG, null, "mais pas la protéine");
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⑥ ⟳ 2026-09-25 — DES ŒUFS DANS L'EAU : L'EAU SE JETTE
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Banc des trois foyers, plan A (`deed7ddf`) : « Œufs durs » = 1 œuf + 300 ml
+// d'eau, mesurés 344 g « prêts » — deux boîtes « Œufs durs 185 g » et « 168 g »
+// pour un demi-œuf chacune. La règle lit les GROUPES du référentiel, jamais la
+// méthode (`isEggsBoiledInWater`, `food_composition.ts`).
+
+const OEUFS_INDEX = buildCompositionIndex([
+  ref({ slug: "whole_eggs", foodGroupRef: "eggs", energyKcal: 145, proteinG: 12.6, fatG: 10, unitGrams: 55 }),
+  ref({ slug: "water", foodGroupRef: "water", condimentGrams: 1 }),
+  ref({ slug: "salt", foodGroupRef: "sauce_dressing", condimentGrams: 0.5 }),
+  ref({ slug: "vinegar", foodGroupRef: "sauce_dressing", energyKcal: 20 }),
+  ref({ slug: "spinach", foodGroupRef: "leafy_greens", energyKcal: 29, proteinG: 2.6 }),
+], [
+  { alias: "œufs", slug: "whole_eggs" },
+  { alias: "eau", slug: "water" },
+  { alias: "sel", slug: "salt" },
+  { alias: "vinaigre", slug: "vinegar" },
+  { alias: "épinards", slug: "spinach" },
+]);
+const OEUFS_DURS = {
+  id: "prep_boiled_eggs",
+  method: "Porte l'eau à ébullition, ajoute les œufs et cuis-les 10 min.",
+  ingredients: [
+    { term: "œufs", amount: 1, unit: "unit", state: "raw" },
+    { term: "eau", amount: 300, unit: "ml", state: null },
+  ],
+};
+
+Deno.test("⑥ des œufs et de l'eau : l'eau se jette, la casserole pèse ses œufs", () => {
+  assertEquals(waterTreatmentOf(OEUFS_INDEX, OEUFS_DURS), "discarded");
+  // Nombres dérivés à la main : 1 œuf × 55 g × rendement neutre 1,0.
+  assertEquals(measurePreparation(OEUFS_INDEX, OEUFS_DURS).readyG, 55);
+});
+
+Deno.test("⑥ la pincée de sel ne change rien : c'est un condiment pesé par convention", () => {
+  const avecSel = {
+    ...OEUFS_DURS,
+    ingredients: [...OEUFS_DURS.ingredients, { term: "sel", amount: null, unit: null, state: "raw" }],
+  };
+  assertEquals(waterTreatmentOf(OEUFS_INDEX, avecSel), "discarded");
+});
+
+Deno.test("⑥ un vinaigre, un légume, un terme inconnu : l'eau garde le traitement d'avant", () => {
+  const plus = (term: string, amount: number | null, unit: string | null) => ({
+    ...OEUFS_DURS,
+    ingredients: [...OEUFS_DURS.ingredients, { term, amount, unit, state: "raw" }],
+  });
+  assertEquals(waterTreatmentOf(OEUFS_INDEX, plus("vinaigre", 15, "ml")), "kept");
+  assertEquals(waterTreatmentOf(OEUFS_INDEX, plus("épinards", 65, "g")), "kept");
+  assertEquals(
+    waterTreatmentOf(OEUFS_INDEX, plus("ingrédient que personne ne connaît", 20, "g")),
+    "kept",
+    "un terme inconnu pourrait être n'importe quoi : on ne conclut rien",
+  );
+  // Une soupe reste une soupe.
+  assertEquals(
+    waterTreatmentOf(OEUFS_INDEX, {
+      ingredients: [
+        { term: "épinards", amount: 200, unit: "g", state: "raw" },
+        { term: "eau", amount: 500, unit: "ml", state: null },
+      ],
+    }),
+    "kept",
+  );
+});
+
+Deno.test("⑥ la même casserole pèse pareil pour les deux mesures (croissance et réconciliation)", () => {
+  // `preparationReadyGrams` (croissance des casseroles) et `measurePreparation`
+  // (réconciliation) lisent la même règle : deux poids pour la même casserole
+  // feraient grossir une casserole pour la réduire ensuite.
+  const lignes = [
+    { term: "œufs", ref: "whole_eggs", quantity: null, gramsRaw: 55, in_pantry: false },
+    { term: "eau", ref: "water", quantity: null, gramsRaw: 300, in_pantry: false },
+    // deno-lint-ignore no-explicit-any
+  ] as any[];
+  assertEquals(preparationReadyGrams(lignes, OEUFS_INDEX), 55);
+  assertEquals(preparationReadyKcal(lignes, OEUFS_INDEX), (55 * 145) / 100);
+  assertEquals(measurePreparation(OEUFS_INDEX, OEUFS_DURS).readyG, preparationReadyGrams(lignes, OEUFS_INDEX));
 });
