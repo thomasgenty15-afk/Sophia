@@ -692,6 +692,32 @@ Deno.test("grammes — sans poids à l'unité: aux 5 g, et la borne du type tien
   assertEquals([baguette.grams, baguette.unitCount], [35, null]);
 });
 
+Deno.test("⟳ 2026-09-25 — grammes: la laitue se PÈSE, la tomate se compte toujours", () => {
+  // Banc des trois foyers, plan A: le référentiel donne 100 g à « une » laitue;
+  // l'entrée de 200 g sortait « 2 × laitue » et les courses en achetaient 4.
+  const laitue = sideGramsFor({
+    kcal: 30,
+    kind: "starter",
+    kcalPer100g: 14.7,
+    proteinPer100g: 1.3,
+    unitGrams: 100,
+    group: "leafy_greens",
+  });
+  // 30 ÷ 14,7 × 100 = 204,1 g ⇒ 205 g aux 5 g, dans la borne de l'entrée.
+  assertEquals([laitue.grams, laitue.unitCount], [205, null]);
+  // ⛔ LA RÈGLE EST SUR LE GROUPE, PAS SUR LE POIDS À L'UNITÉ: la même unité
+  // de 100 g dans un autre groupe se compte encore (« 2 tomates »).
+  const tomate = sideGramsFor({
+    kcal: 30,
+    kind: "starter",
+    kcalPer100g: 14.7,
+    proteinPer100g: 1.3,
+    unitGrams: 100,
+    group: "non_starchy_veg",
+  });
+  assertEquals([tomate.grams, tomate.unitCount], [200, 2]);
+});
+
 Deno.test("⟳ 2026-09-23 — grammes: l'arrondi ne franchit jamais le plafond du type (pain 200, fromage 160)", () => {
   // Mesuré (campagne E2): le pain en tranches de 40 g arrondissait à 2 tranches
   // = 209,6 kcal > 200 ⇒ refusé. ⟳ 2026-09-23 (v40): le pain se PÈSE. Baguette

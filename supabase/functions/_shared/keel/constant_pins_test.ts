@@ -1398,3 +1398,10 @@ Deno.test("épinglage — DISH_MATCH_TERMS_PER_DISH vaut 8", () =>
 import { OWN_USUAL_EMPTY_MAX_KCAL } from "./declared_empty_own_dish.ts";
 Deno.test("épinglage — OWN_USUAL_EMPTY_MAX_KCAL vaut 30", () =>
   assertEquals(OWN_USUAL_EMPTY_MAX_KCAL, 30));
+
+// ⟳ 2026-09-25 — le minimum nommé d'un élément frais servi: en dessous, un
+// fruit ou un légume que le facteur a rogné est une miette, et se compte
+// (`ApplyCounts.fresh_crumbs`). Compté seulement, rien n'est refusé.
+import { FRESH_ITEM_CRUMB_BELOW_G } from "./portion_sizing_apply.ts";
+Deno.test("épinglage — FRESH_ITEM_CRUMB_BELOW_G vaut 30", () =>
+  assertEquals(FRESH_ITEM_CRUMB_BELOW_G, 30));

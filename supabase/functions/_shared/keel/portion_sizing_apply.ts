@@ -28,6 +28,7 @@ import type { EnergyPreparation } from "./plan_energy.ts";
 import { weighedReadyGrams } from "./box_densify.ts";
 import { ANCHOR_REASONS, type AnchorReason } from "./mouth_anchor.ts";
 import type { PlateBounds } from "./portion_plate_bounds.ts";
+import type { FoodGroupRef } from "./tokens.ts";
 import {
   lidPlanFor,
   potFactorOf,
@@ -69,6 +70,13 @@ export interface ApplyCounts {
   recipe_shares: number;
   /** ⟳ LOT 1 — la même population, ventilée par motif d'abstention. */
   recipe_shares_by: Record<string, number>;
+  /**
+   * ⟳ 2026-09-25 — LES MIETTES QUE LE FACTEUR FABRIQUE: items de boîte frais
+   * (fruit, légume) que la recette écrite portait à `FRESH_ITEM_CRUMB_BELOW_G`
+   * ou plus, et que la part a fait passer dessous (zéro compris). Compté,
+   * jamais corrigé ici.
+   */
+  fresh_crumbs: number;
 }
 
 export function applyCounts(): ApplyCounts {
@@ -86,7 +94,52 @@ export function applyCounts(): ApplyCounts {
     eaters_unsized: 0,
     recipe_shares: 0,
     recipe_shares_by: {},
+    fresh_crumbs: 0,
   };
+}
+
+/**
+ * ⟳ 2026-09-25 — LE MINIMUM NOMMÉ D'UN ÉLÉMENT FRAIS SERVI.
+ *
+ * ── LE DÉFAUT, MESURÉ ─────────────────────────────────────────────────────
+ * Banc des trois foyers, plan A: « pomme 15 g » et « tomate 23 g » dans les
+ * boîtes de Camille — des fruits et légumes que la recette écrivait bien
+ * plus lourds, rognés par le facteur de sa part.
+ *
+ * ── CE QUE CE SEUIL FAIT, ET NE FAIT PAS ──────────────────────────────────
+ * Il COMPTE (`ApplyCounts.fresh_crumbs`), il ne refuse ni ne corrige rien:
+ * on mesure combien il en reste avant d'écrire une règle de produit. Ce que
+ * le modèle écrit déjà petit (2 g de coriandre, un filet de citron vert)
+ * n'est pas une miette du moteur, et n'est pas compté.
+ */
+export const FRESH_ITEM_CRUMB_BELOW_G = 30;
+
+/** Les groupes d'un élément frais: fruits et légumes. */
+const FRESH_CRUMB_GROUPS: ReadonlySet<FoodGroupRef> = new Set<FoodGroupRef>([
+  "berries",
+  "citrus",
+  "other_fruit",
+  "leafy_greens",
+  "cruciferous_veg",
+  "non_starchy_veg",
+]);
+
+/**
+ * `true` quand le facteur a fait d'un élément frais une miette: écrit à
+ * `FRESH_ITEM_CRUMB_BELOW_G` ou plus, servi en dessous.
+ */
+function isShrunkCrumb(
+  index: CompositionIndex,
+  ing: ScalableIngredient,
+  writtenG: number,
+  servedG: number,
+): boolean {
+  if (!(writtenG >= FRESH_ITEM_CRUMB_BELOW_G) || !(servedG < FRESH_ITEM_CRUMB_BELOW_G)) {
+    return false;
+  }
+  const slug = typeof ing.ref === "string" ? ing.ref : "";
+  const group = slug === "" ? undefined : index.bySlug.get(slug)?.foodGroupRef;
+  return group !== undefined && FRESH_CRUMB_GROUPS.has(group);
 }
 /**
  * ⟳ LOT A (2026-09-11) — L'ITEM DE CONTENANT QUE LE MOTEUR ÉCRIT.
@@ -570,6 +623,7 @@ export function applySizingForEaters(args: {
           continue;
         }
         const grams = Math.round(ready * fOf(null));
+        if (isShrunkCrumb(args.index, ing, ready, grams)) counts.fresh_crumbs++;
         if (grams <= 0) continue;
         items.push({
           preparationId: null,
@@ -827,6 +881,7 @@ export function applySizing(args: {
         continue;
       }
       const grams = Math.round(ready * f);
+      if (isShrunkCrumb(args.index, ing, ready, grams)) counts.fresh_crumbs++;
       if (grams <= 0) continue;
       // ⟳ LOT A (2026-09-11) — L'IDENTITÉ DE LA LIGNE SUIT DANS LA BOÎTE.
       items.push({

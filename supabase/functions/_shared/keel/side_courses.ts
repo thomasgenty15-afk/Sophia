@@ -663,6 +663,8 @@ export interface SideCourseGrams {
  *   · de `SIDE_COURSE_DESSERT_COUNTED_FROM_G` (50 g) à 99 g: au plus
  *     `SIDE_COURSE_MAX_UNITS` (deux clémentines, deux kiwis);
  *   · sous 50 g (datte, pruneau: 8 g): il se PÈSE, comme en ②.
+ *   ⟳ 2026-09-25 — LA SALADE NE SE COMPTE JAMAIS (`leafy_greens`), comme le
+ *   pain: elle se pèse en ②.
  * ② SINON, l'à-côté se PÈSE: arrondi aux 5 g, borné par
  *   `SIDE_COURSE_GRAMS_BOUNDS[kind]`.
  *   ⟳ 2026-09-23 — UN DESSERT DENSE (plus de
@@ -739,8 +741,13 @@ export function sideGramsFor(args: {
   // franchit le plafond du pain (200), donc le pain de la prise ne pouvait pas
   // reprendre le manque du dessert, et « 1 × pain complet » se lisait « un pain ».
   // Pesé, il grossit jusqu'à son plafond et s'affiche « pain complet ~75 g ».
+  // ⟳ 2026-09-25 — LA SALADE SE PÈSE AUSSI. Banc des trois foyers, plan A:
+  // le référentiel donne 100 g à « une » laitue, l'entrée de 200 g sortait
+  // « 2 × laitue » — deux salades entières à lire — et la liste de courses en
+  // achetait « 4 ». Des feuilles ne se comptent pas: « laitue 200 g ».
   const counted = unit !== null && Number.isFinite(unit) && unit > 0 &&
     kind !== "bread" &&
+    args.group !== "leafy_greens" &&
     !(dessert && unit < SIDE_COURSE_DESSERT_COUNTED_FROM_G);
   if (counted) {
     const minUnits = Math.max(1, Math.ceil(bounds.min / unit));

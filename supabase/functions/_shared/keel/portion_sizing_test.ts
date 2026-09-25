@@ -3662,3 +3662,79 @@ Deno.test("LOT C — la casserole-féculent suit SON facteur, le reste suit le p
   // Et la boîte de Claire ne bouge pas d'un gramme.
   assertEquals(boxOf(split, "claire").items, boxOf(uniforme, "claire").items);
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-25 — LES MIETTES QUE LE FACTEUR FABRIQUE (`fresh_crumbs`)
+// ═══════════════════════════════════════════════════════════════════════════
+// Banc des trois foyers, plan A: « pomme 15 g », « tomate 23 g » dans les
+// boîtes de Camille. Compté, jamais corrigé: on mesure avant d'écrire une règle.
+
+const INDEX_FRAIS = buildCompositionIndex(
+  [
+    ref({ slug: "apple", foodGroupRef: "other_fruit", energyKcal: 52 }),
+    ref({ slug: "herbs_coriander", foodGroupRef: "leafy_greens", energyKcal: 23 }),
+    ref({ slug: "oats", foodGroupRef: "whole_grain", energyKcal: 370 }),
+  ],
+  [
+    { alias: "pomme", slug: "apple" },
+    { alias: "coriandre", slug: "herbs_coriander" },
+    { alias: "flocons", slug: "oats" },
+  ],
+);
+const frais = (term: string, slug: string, amount: number) => ({ ...ing(term, amount), ref: slug });
+function planCollation() {
+  return {
+    dishes: [{
+      day: "mon",
+      slot: "snack_am",
+      title: "Collation",
+      method: "servir",
+      ingredients: [
+        frais("pomme", "apple", 60),
+        // Écrits petits par le modèle: jamais des miettes du moteur.
+        frais("coriandre", "herbs_coriander", 2),
+        frais("flocons", "oats", 20),
+      ],
+      uses: [],
+      boxes: [],
+    }],
+    preparations: [],
+  };
+}
+
+Deno.test("miettes — une bouche: la pomme écrite à 60 g, servie à 15 g, est comptée; ce qui était écrit petit ne l'est pas", () => {
+  const row = (factor: number): SizingRowForApply => ({
+    dishIndex: 0,
+    factor,
+    sized: true,
+    recipeShare: null,
+    starchSide: null,
+  });
+  const quart = applySizing({ index: INDEX_FRAIS, memberId: "m", meal: planCollation(), rows: [row(0.25)] });
+  const pomme = quart.dishes[0].boxes[0].items.find((i: { ref: string | null }) => i.ref === "apple");
+  assertEquals(pomme.grams, 15);
+  assertEquals(quart.counts.fresh_crumbs, 1, "la pomme seule: la coriandre (2 g) et les flocons (20 g) étaient écrits petits");
+  // ⛔ « SOUS » EST STRICT: 30 g n'est pas une miette.
+  const moitie = applySizing({ index: INDEX_FRAIS, memberId: "m", meal: planCollation(), rows: [row(0.5)] });
+  assertEquals(moitie.counts.fresh_crumbs, 0);
+  const entier = applySizing({ index: INDEX_FRAIS, memberId: "m", meal: planCollation(), rows: [row(1)] });
+  assertEquals(entier.counts.fresh_crumbs, 0);
+});
+
+Deno.test("miettes — plusieurs bouches: compté par contenant (boîte à soi rognée, bac non)", () => {
+  const out = applySizingForEaters({
+    meal: planCollation(),
+    rows: [
+      { dishIndex: 0, memberId: "paul", factor: 0.25, sized: true, recipeShare: null, starchSide: null },
+      { dishIndex: 0, memberId: "claire", factor: 0.25, sized: true, recipeShare: null, starchSide: null },
+      { dishIndex: 0, memberId: "leo", factor: 0.25, sized: true, recipeShare: null, starchSide: null },
+    ],
+    weighed: new Set(["paul"]),
+    index: INDEX_FRAIS,
+  });
+  // Boîte de Paul: 60 × 0,25 = 15 g (miette). Bac de Claire et Léo: 60 × 0,5 = 30 g.
+  assertEquals(out.counts.own_authored, 1);
+  assertEquals(out.counts.tubs_authored, 1);
+  assertEquals(out.counts.fresh_crumbs, 1);
+});
+

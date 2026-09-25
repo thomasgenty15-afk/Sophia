@@ -149,6 +149,7 @@ export {
   applySizingForEaters,
   FINAL_PORTION_REASONS,
   finalPortionCheck,
+  FRESH_ITEM_CRUMB_BELOW_G,
   partFactorOf,
   RECIPE_SHARE_REASONS,
   recipeShareReasonFor,
