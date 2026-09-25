@@ -453,3 +453,15 @@ Deno.test("§ 2.3 ③ — la DÉCISION ne sait pas ce qu'est une bouche: le plaf
   assert(signature.includes("readonly callsMade: number;"), signature);
   assert(signature.includes("readonly maxCalls: number;"), signature);
 });
+
+Deno.test("⟳ 2026-09-25 — un contexte trop grand est recomposé avec le plus grave seul, et c'est journalisé", () => {
+  const i = SRC.indexOf("if (c4Composed?.tooLarge === true) {");
+  assert(i > 0, "le repli existe");
+  const bloc = SRC.slice(i, i + 900);
+  assert(bloc.includes("const narrow = defectsNarrowedForSize(c4RepairDefects);"));
+  assert(bloc.includes("c4RepairDefects = narrow;"), "la suite (appel, juge) voit les défauts rétrécis");
+  assert(SRC.includes("narrowed_for_size: c4NarrowedForSize,"), "le journal le dit");
+  // ⛔ ET LA GARDE « TROP GRAND » RESTE: si même le plus grave ne tient pas, on s'arrête.
+  assert(SRC.includes('c4Note("plan_repair_context_too_large");'));
+});
+

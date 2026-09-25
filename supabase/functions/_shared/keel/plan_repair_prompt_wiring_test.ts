@@ -88,7 +88,9 @@ Deno.test("④ la table des sessions est bâtie sur LE MÊME plan que les unité
   // texte source. Un étage oublié rendrait `S1` muet à cet endroit-là.
   for (const site of [
     "sessions: c4Sessions,\n        defects: c4RepairDefects,",
-    "sessions: c4Sessions,\n          scope: c4Scope,",
+    // ⟳ 2026-09-25 — le message reçoit le périmètre en paramètre
+    // (`composeRepairFor`, repli « trop grand »).
+    "sessions: c4Sessions,\n          scope,",
     "sessions: c4Sessions,\n                  scope: c4Scope,",
     "sessions: c4Sessions,\n                    rewrittenSessionIds:",
   ]) {
@@ -97,11 +99,13 @@ Deno.test("④ la table des sessions est bâtie sur LE MÊME plan que les unité
 });
 
 Deno.test("⑤ un périmètre fait de SESSIONS SEULES fait partir l'appel", () => {
-  const i = SRC.indexOf("const c4Composed = c4Scope.unitIds.length === 0 &&");
+  // ⟳ 2026-09-25 — la garde vit dans `composeRepairFor`, appelée pour le
+  // périmètre complet puis, si trop grand, pour le périmètre rétréci.
+  const i = SRC.indexOf("const composeRepairFor = (");
   assert(i > 0, "la garde de périmètre vide a changé de forme");
-  const bloc = SRC.slice(i, i + 220);
+  const bloc = SRC.slice(i, i + 300);
   assert(
-    bloc.includes("c4Scope.sessionIds.length === 0"),
+    bloc.includes("scope.sessionIds.length === 0"),
     `une session seule en défaut rendrait « périmètre vide »: ${bloc}`,
   );
 });

@@ -302,7 +302,9 @@ Deno.test("CÂBLAGE ⑬ — le patch précède l'application, et rejoue la CEINT
   );
   // ⛔ ET LE BUDGET EST CONSULTÉ APRÈS LE CONTEXTE, pas avant: un périmètre
   // vide ou un contexte trop gros ne doit plus brûler une tentative.
-  const contexte = SRC.indexOf("const c4Composed = c4Scope.unitIds.length === 0 &&");
+  // ⟳ 2026-09-25 — le contexte est composé par `composeRepairFor` (repli
+  // « trop grand »); le premier appel est celui-ci.
+  const contexte = SRC.indexOf("let c4Composed = composeRepairFor(c4RepairDefects, c4Scope);");
   const budget = SRC.indexOf('planBudget.askRepair(');
   assert(contexte > 0 && budget > contexte, "le budget est consulté avant le contexte");
 });
@@ -607,7 +609,9 @@ Deno.test("⛔ CÂBLAGE ㉔ — la réparation n'applique que les unités autori
   assert(bloc.includes("baseVersion: c4BaseVersion,"), "la version du plan n'est plus contrôlée");
   // ⛔ ET LE PÉRIMÈTRE VIENT DES DÉFAUTS, jamais d'une règle globale.
   assert(
-    SRC.includes("const c4Scope = repairScopeOf({"),
+    // ⟳ 2026-09-25 — `let`: le repli « trop grand » le recalcule sur les
+    // défauts rétrécis, toujours depuis des défauts.
+    SRC.includes("let c4Scope = repairScopeOf({"),
     "le périmètre n'est plus calculé depuis les défauts",
   );
 });

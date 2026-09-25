@@ -1623,7 +1623,11 @@ Deno.test("⑪ la lane passe l'index RÉEL, celui du périmètre et de la projec
   const args = src.slice(appel, appel + 800);
   assert(args.includes("index: c4Units,"), "le message reçoit une AUTRE table\n" + args);
   assert(args.includes("sessions: c4Sessions,"), args);
-  assert(args.includes("scope: c4Scope,"), args);
+  // ⟳ 2026-09-25 — le message est composé par `composeRepairFor(défauts,
+  // périmètre)` (repli « trop grand »): le périmètre arrive en paramètre, et
+  // le premier appel lui donne `c4Scope`.
+  assert(args.includes("scope,"), args);
+  assert(src.includes("let c4Composed = composeRepairFor(c4RepairDefects, c4Scope);"), "le premier message ne lit plus le périmètre");
 });
 
 Deno.test("⑪ bis — un contexte incomplet ARRÊTE la lane avant de consommer le budget", () => {

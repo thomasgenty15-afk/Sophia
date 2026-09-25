@@ -22,6 +22,7 @@ import {
   magnitudeComparison,
   REPAIR_MAGNITUDE_MIN_GAIN,
   type RepairDefect,
+  defectsNarrowedForSize,
 } from "./plan_repair_loop.ts";
 import type { GateRefusal } from "./final_plan_gate.ts";
 
@@ -384,5 +385,19 @@ Deno.test("⟳ 2026-09-25 — un repas manquant réparé contre des écarts de t
   // ⛔ LE SENS INVERSE REJETTE TOUJOURS: remplir la taille en vidant un repas.
   const inverse = judgeCandidate({ beforeRefusals: [], afterRefusals: [], beforeDefects: apres, afterDefects: avant });
   assertEquals(inverse.verdict, "no_improvement");
+});
+
+// ⟳ 2026-09-25 — TROP GRAND: LE PLUS GRAVE SEUL.
+Deno.test("⟳ 2026-09-25 — defectsNarrowedForSize: sécurité et repas manquants seuls; sinon la nature la plus grave", () => {
+  const cru = defaut({ kind: "safety", slot: "lunch", day: "tue" });
+  const taille = [defaut({ kind: "sizing" }), defaut({ kind: "sizing", slot: "dinner" })];
+  const proteine = defaut({ kind: "protein", slot: "dinner" });
+  // Banc B, tir 3: un maquereau cru + 89 écarts de taille ⇒ le cru seul.
+  assertEquals(defectsNarrowedForSize([...taille, cru, proteine]), [cru]);
+  // Sans sécurité ni repas manquant: la nature la plus grave présente.
+  assertEquals(defectsNarrowedForSize([proteine, ...taille]).map((d) => d.kind), ["sizing", "sizing"]);
+  // Rien ne rétrécit: `[]`, l'appelant garde son « trop grand ».
+  assertEquals(defectsNarrowedForSize(taille), []);
+  assertEquals(defectsNarrowedForSize([cru]), []);
 });
 

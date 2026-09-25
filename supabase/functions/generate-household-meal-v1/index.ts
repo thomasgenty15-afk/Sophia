@@ -886,6 +886,7 @@ import {
   // séparés par 150 lignes.
   PLAN_REPAIR_MAX_CALLS,
   defectsForRepairAttempt,
+  defectsNarrowedForSize,
   planRepairDecision,
   repairRoundOutcome,
 } from "../_shared/keel/plan_repair_loop.ts";
@@ -22294,7 +22295,7 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
       // avec rien à réparer. La table des unités adresse aussi les DEUX plats
       // dédiés d'un même créneau (défaut ②) et les portions ATTENDUES ET
       // ABSENTES, qui n'avaient d'adresse nulle part.
-      const c4RepairDefects = defectsForRepairAttempt(
+      let c4RepairDefects = defectsForRepairAttempt(
         c4EditRepair ? c4Pass.defects.filter(c4InEdit) : c4Pass.defects,
       );
       const c4Units = buildRepairUnits({
@@ -22330,7 +22331,7 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
           runThrough: x.runThrough,
         })),
       });
-      const c4Scope = repairScopeOf({
+      let c4Scope = repairScopeOf({
         plan: meal,
         index: c4Units,
         sessions: c4Sessions,
@@ -22346,17 +22347,21 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
       // ne lisait que les unités et les casseroles : une consigne de cuisine
       // dangereuse, seule en défaut, rendait « périmètre vide » et la
       // réparation ne partait jamais.
-      const c4Composed = c4Scope.unitIds.length === 0 &&
-          c4Scope.preparationIds.length === 0 &&
-          c4Scope.sessionIds.length === 0
-        ? null
-        : planRepairMessage({
-          defects: c4RepairDefects,
+      const composeRepairFor = (
+        defects: readonly RepairDefect[],
+        scope: typeof c4Scope,
+      ) =>
+        scope.unitIds.length === 0 &&
+          scope.preparationIds.length === 0 &&
+          scope.sessionIds.length === 0
+          ? null
+          : planRepairMessage({
+          defects,
           days: c4ProteinContexts(),
           plan: meal,
           index: c4Units,
           sessions: c4Sessions,
-          scope: c4Scope,
+          scope,
           // ══════════════════════════════════════════════════════════════
           // ⟳ 2026-09-13 · LOT 2 — LES CONTRATS DE TOUTES LES BOUCHES D'UN
           //                LOT COMMUN, Y COMPRIS CELLES DÉJÀ CONFORMES
@@ -22388,6 +22393,29 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
           // note avait retiré.
           household: repairHousehold,
         });
+      let c4Composed = composeRepairFor(c4RepairDefects, c4Scope);
+      // ⟳ 2026-09-25 — TROP GRAND: ON RECOMPOSE AVEC LE PLUS GRAVE SEUL
+      // (`defectsNarrowedForSize`). Banc B: 26 980 et 32 621 caractères pour
+      // un seul défaut bloquant, aucun appel, plan refusé.
+      let c4NarrowedForSize: { from: number; to: number } | null = null;
+      if (c4Composed?.tooLarge === true) {
+        const narrow = defectsNarrowedForSize(c4RepairDefects);
+        if (narrow.length > 0) {
+          const narrowScope = repairScopeOf({
+            plan: meal,
+            index: c4Units,
+            sessions: c4Sessions,
+            defects: narrow,
+          });
+          const narrowComposed = composeRepairFor(narrow, narrowScope);
+          if (narrowComposed !== null) {
+            c4NarrowedForSize = { from: c4RepairDefects.length, to: narrow.length };
+            c4RepairDefects = narrow;
+            c4Scope = narrowScope;
+            c4Composed = narrowComposed;
+          }
+        }
+      }
       console.log(JSON.stringify({
         tag: "keel.household_meal.plan_repair_context",
         catalog_lines: catalog?.lines.length ?? 0,
@@ -22406,6 +22434,8 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
         shared_preparations: c4Scope.sharedPreparations.length,
         ...(c4Composed?.projection.counters ?? {}),
         too_large: c4Composed?.tooLarge ?? null,
+        // ⟳ 2026-09-25 — recomposé avec le plus grave seul (`null` = non).
+        narrowed_for_size: c4NarrowedForSize,
         // ⟳ 2026-09-13 · LOT 1 — CE QUI MANQUE À L'INSTRUCTION, EN NOMBRES.
         // `blocks` compte les adresses composées, `dropped` celles que le
         // plafond a laissées dehors, `ownerless` les objectifs individuels sans

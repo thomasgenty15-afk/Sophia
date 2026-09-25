@@ -302,6 +302,36 @@ export function defectsForRepairAttempt(
   );
 }
 
+/**
+ * ⟳ 2026-09-25 — QUAND LE CONTEXTE NE TIENT PAS, ON RÉPARE D'ABORD LE PLUS GRAVE.
+ *
+ * Tirs réels du banc des trois foyers, plan B (4 bouches, 7 jours): le
+ * message de réparation faisait 26 980 puis 32 621 caractères, au-delà du
+ * plafond dur (`PLAN_PROJECTION_HARD_CHARS`), pour UN défaut qui interdisait
+ * la livraison (un maquereau cru jamais cuit, un plat à part manquant) — parce
+ * que 89 écarts de taille voyageaient avec lui. `plan_repair_context_too_large`:
+ * aucun appel, plan refusé.
+ *
+ * Même règle que `defectsForRepairAttempt` pour un repas absent, étendue au
+ * dépassement: la sécurité et les repas manquants seuls; sans eux, la seule
+ * nature la plus grave présente. Les défauts laissés reviennent au tour
+ * suivant, remesurés. Rend `[]` quand rien ne rétrécit (l'appelant garde alors
+ * son constat « trop grand »).
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function defectsNarrowedForSize(
+  defects: readonly RepairDefect[],
+): RepairDefect[] {
+  const severe = defects.filter((d) => d.kind === "safety" || d.kind === "missing_meal");
+  let kept: readonly RepairDefect[] = severe;
+  if (kept.length === 0) {
+    const first = REPAIR_DEFECT_KINDS.find((k) => defects.some((d) => d.kind === k));
+    kept = first === undefined ? [] : defects.filter((d) => d.kind === first);
+  }
+  return kept.length > 0 && kept.length < defects.length ? orderDefects(kept) : [];
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // ② LA RÉGRESSION DE SÉCURITÉ — PAR IDENTITÉ, JAMAIS PAR COMPTE
 // ═══════════════════════════════════════════════════════════════════════════
