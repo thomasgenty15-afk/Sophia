@@ -1321,14 +1321,27 @@ const draftsInFlight = new Set<string>();
  * n'arrivait qu'après l'échéance du bail, et le verrou était périmé.
  * On libère donc le verrou en même temps qu'on ferme la ligne.
  */
-const locksInFlight = new Map<string, { householdId: string; requestId: string; leaseToken: string }>();
+//
+// ⟳ 2026-09-25 (nuit) — ⛔ L'OBJET DU VERROU, PAS SON `request_id`: deux
+// demandes du même `request_id` sur un même worker (le chemin « reused »)
+// s'écraseraient dans une table indexée par l'identifiant, et la seconde, en
+// sortant, effacerait le verrou de la première. Chaque site qui cesse de tenir
+// le verrou passe par `forgetGenerationLock` (dans le handler).
+const locksInFlight = new Set<{ householdId: string; requestId: string; leaseToken: string }>();
 addEventListener("beforeunload", (event) => {
   if (draftsInFlight.size === 0 && locksInFlight.size === 0) return;
   const reason = String(
     (event as CustomEvent<{ reason?: string } | undefined>).detail?.reason ?? "unknown",
   );
   const ids = [...draftsInFlight];
-  const locks = [...locksInFlight.values()];
+  const locks = [...locksInFlight];
+  // ⟳ 2026-09-25 (nuit) — ⛔ VIDÉS AVANT D'ÉCRIRE. Hors du runtime edge (un
+  // rejeu, un script Deno qui importe ce handler), `beforeunload` est émis à
+  // chaque fois que la boucle d'événements se vide; les écritures lancées
+  // ci-dessous la remplissent, et l'écouteur se relançait sans fin (225 898
+  // lignes en dix minutes, rejeu du tir C-3). Un seul passage par ligne.
+  draftsInFlight.clear();
+  locksInFlight.clear();
   console.warn(JSON.stringify({
     tag: "keel.household_meal.worker_unload",
     reason,
@@ -1534,11 +1547,22 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
     requestId: string;
     leaseToken: string;
   } | null = null;
+  /**
+   * ⟳ 2026-09-25 (nuit) — CE WORKER NE TIENT PLUS LE VERROU, POUR L'ÉCOUTEUR
+   * D'ARRÊT AUSSI. ⛔ LE SEUL SITE QUI EFFACE `generationLockHeld`: les trois
+   * sorties où une RPC a consommé le bail (brouillon enregistré, plan publié)
+   * ou où il n'a jamais été acquis (`reused`) l'effaçaient à la main, et le
+   * verrou restait dans `locksInFlight` — l'écouteur le rendait ensuite à
+   * chaque arrêt du worker, et bouclait hors du runtime edge.
+   */
+  const forgetGenerationLock = (): void => {
+    if (generationLockHeld !== null) locksInFlight.delete(generationLockHeld);
+    generationLockHeld = null;
+  };
   const releaseGenerationLock = async (why: string): Promise<void> => {
     const held = generationLockHeld;
     if (held === null) return;
-    generationLockHeld = null;
-    locksInFlight.delete(held.requestId);
+    forgetGenerationLock();
     try {
       const { data } = await adminClient().rpc(
         "keel_household_release_generation",
@@ -1926,7 +1950,7 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
         }
         generationLockHeld = { householdId, requestId, leaseToken };
         // ⟳ 2026-09-25 — connu de l'écouteur d'arrêt (`locksInFlight`).
-        locksInFlight.set(requestId, generationLockHeld);
+        locksInFlight.add(generationLockHeld);
         if (takeoverAsked) {
           console.log(JSON.stringify({
             tag: "keel.household_meal.generation_taken_over",
@@ -8818,7 +8842,7 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
             // un second appel modèle. Le verrou SQL v1 rend aussi `ok:true`
             // au même request_id ; nous ne l'avons donc PAS acquis et le
             // `finally` ne doit surtout pas libérer celui du premier worker.
-            generationLockHeld = null;
+            forgetGenerationLock();
             console.log(JSON.stringify({
               tag: "keel.household_meal.draft_store",
               user_id: userId,
@@ -23664,7 +23688,7 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
             request_id: requestId,
           }, { status: stored.reason === "generation_lease_lost" ? 409 : 503 });
         }
-        generationLockHeld = null;
+        forgetGenerationLock();
       }
       return jsonResponse(req, draftBody);
     }
@@ -23725,7 +23749,7 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
 
     // La transaction de publication a consommé le bail. Le `finally` ne doit
     // pas tenter de le rendre une seconde fois.
-    generationLockHeld = null;
+    forgetGenerationLock();
 
     // ⟳ 2026-09-10 · LOT 2 — L'UNITÉ EST MÉRITÉE. Le plan existe: à partir
     // d'ici, plus aucune sortie ne doit la rendre, ni le `catch` extérieur.

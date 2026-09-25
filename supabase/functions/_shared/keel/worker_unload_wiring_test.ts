@@ -76,7 +76,34 @@ Deno.test("ARRÊT ⑤ — l'écouteur libère aussi les verrous de génération 
   const corps = SRC.slice(i, i + 2400);
   assert(corps.includes('.rpc("keel_household_release_generation", {'), "le verrou est rendu");
   assert(corps.includes("p_lease: lock.leaseToken,"), "avec son jeton de bail");
-  assert(SRC.includes("locksInFlight.set(requestId, generationLockHeld);"), "le verrou pris entre dans l'ensemble");
-  assert(SRC.includes("locksInFlight.delete(held.requestId);"), "et en sort à sa libération normale");
+  assert(SRC.includes("locksInFlight.add(generationLockHeld);"), "le verrou pris entre dans l'ensemble");
+  assert(
+    SRC.includes("if (generationLockHeld !== null) locksInFlight.delete(generationLockHeld);"),
+    "et en sort quand ce worker cesse de le tenir",
+  );
+});
+
+Deno.test("ARRÊT ⑥ — toute sortie qui cesse de tenir le verrou le retire de l'ensemble (un seul site)", () => {
+  // Rejeu du tir C-3 (2026-09-25, nuit): brouillon enregistré, verrou consommé
+  // par la RPC, mais resté dans `locksInFlight` — l'écouteur le « rendait » à
+  // chaque arrêt, et bouclait sans fin hors du runtime edge (225 898 lignes).
+  const effacements = SRC.split("generationLockHeld = null;").length - 1;
+  assert(effacements === 1, `un seul site efface le verrou, trouvé ${effacements}`);
+  const i = SRC.indexOf("const forgetGenerationLock = (): void => {");
+  assert(i > 0, "le site unique existe");
+  assert(SRC.slice(i, i + 200).includes("generationLockHeld = null;"), "et c'est lui qui efface");
+  const appels = SRC.split("forgetGenerationLock();").length - 1;
+  // libération normale + brouillon réutilisé + brouillon enregistré + plan publié
+  assert(appels >= 4, `les quatre sorties passent par lui, trouvé ${appels}`);
+});
+
+Deno.test("ARRÊT ⑦ — l'écouteur vide ses deux ensembles AVANT d'écrire (un seul passage par ligne)", () => {
+  const i = SRC.indexOf('addEventListener("beforeunload", (event) => {');
+  const corps = SRC.slice(i, i + 2400);
+  const vide = corps.indexOf("draftsInFlight.clear();");
+  const videVerrous = corps.indexOf("locksInFlight.clear();");
+  const ecrit = corps.indexOf('.rpc("keel_household_release_generation"');
+  assert(vide > 0 && videVerrous > 0 && ecrit > 0, "vidage et écriture présents");
+  assert(vide < ecrit && videVerrous < ecrit, "vidés avant la première écriture");
 });
 
