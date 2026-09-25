@@ -325,7 +325,12 @@ import {
 // ⟳ 2026-09-25 — le plafond de temps de l'ajustement des proportions.
 import { ADJUST_TIME_BUDGET_MS } from "../_shared/keel/proportion_adjust.ts";
 // ⟳ 2026-09-25 — le travail de la composition, hors attente du modèle.
-import { markWorkPhase, startWorkClock, takeWorkTimeReport } from "../_shared/model_wait.ts";
+import {
+  markWorkPhase,
+  peekWorkMs,
+  startWorkClock,
+  takeWorkTimeReport,
+} from "../_shared/model_wait.ts";
 // ⟳ 2026-09-22 · LOT B — LE PLAFOND PROTÉIQUE, SUR LES PLATS MANGÉS SEUL.
 // ⛔ `CeilingMouthDay` porte la JOURNÉE ENTIÈRE (partagé compris) et marque
 // case par case ce qui est mangé seul: c'est la seule forme où la mesure du
@@ -1261,6 +1266,66 @@ function logWorkTime(req: Request, status: number, draftId: string | null): void
   }));
 }
 
+/**
+ * ⟳ 2026-09-25 — LES BROUILLONS QUE CE WORKER COMPOSE EN CE MOMENT, et ce qu'on
+ * en dit quand le runtime l'arrête.
+ *
+ * ── LE DÉFAUT, MESURÉ ─────────────────────────────────────────────────────
+ * Plan C du banc des trois foyers : le worker tué par la limite CPU n'exécute
+ * plus rien, ni `catch` ni `finally`. La ligne restait `running` : la mère
+ * jusqu'à l'échéance du bail (440 s) avant sa relance, la relance jusqu'au
+ * balayage HORAIRE — pendant que l'écran attendait jusqu'à 970 s un échec
+ * certain.
+ *
+ * ── CE QUE FAIT L'ÉCOUTEUR ───────────────────────────────────────────────
+ * Le runtime edge émet `beforeunload` avant d'arrêter un worker (raisons
+ * `cpu`, `memory`, `wall_clock`, `early_drop`, `termination`). On marque alors
+ * chaque brouillon encore en vol `failed / timed_out` : la réclamation du cron
+ * (`keel_claim_meal_drafts_for_relaunch`) relance une MÈRE ainsi marquée dès la
+ * minute suivante, et l'écran, qui relit la ligne toutes les 2 s, suit la
+ * relance ou affiche l'échec d'une relance tout de suite.
+ *
+ * ── MESURÉ SUR LE RUNTIME LOCAL (sonde jetable, 2026-09-25) ──────────────
+ * Un worker qui rend la main entre la limite CPU douce et la limite dure
+ * reçoit l'événement (raison `cpu`), et une requête PostgREST lancée dedans
+ * aboutit (200 en 47 ms) avant l'arrêt dur. Une boucle qui ne rend JAMAIS la
+ * main (5 s de calcul sans `await`) ne le reçoit pas.
+ *
+ * ⚠️ AU MIEUX : l'écriture part sans être attendue, le worker s'arrête. Si
+ * elle n'arrive pas, rien n'a changé par rapport à avant — l'échéance du bail
+ * et la fermeture à la minute des relances mortes
+ * (`keel_close_dead_relaunches`) restent les filets. Le statut n'est touché
+ * que sur une ligne encore `pending` ou `running` : un brouillon écrit n'est
+ * jamais défait.
+ */
+const draftsInFlight = new Set<string>();
+addEventListener("beforeunload", (event) => {
+  if (draftsInFlight.size === 0) return;
+  const reason = String(
+    (event as CustomEvent<{ reason?: string } | undefined>).detail?.reason ?? "unknown",
+  );
+  const ids = [...draftsInFlight];
+  console.warn(JSON.stringify({
+    tag: "keel.household_meal.worker_unload",
+    reason,
+    drafts: ids,
+  }));
+  const admin = adminClient();
+  for (const id of ids) {
+    admin
+      .from("student_meal_drafts")
+      .update({
+        status: "failed",
+        error_code: "timed_out",
+        error: `runtime: worker arrêté (${reason}) avant la fin`,
+        finished_at: new Date().toISOString(),
+      })
+      .eq("id", id)
+      .in("status", ["pending", "running"])
+      .then(() => {}, () => {});
+  }
+});
+
 Deno.serve((req) => {
   const wrapperT0 = performance.now();
   let settleEarly: ((early: { response: Response; draftId: string }) => void) | null = null;
@@ -1316,12 +1381,15 @@ Deno.serve((req) => {
       }
       return winner.response;
     }
+    draftsInFlight.add(winner.draftId);
     const kept = keepWorking(work.then(async (late) => {
       logWorkTime(req, late.status, winner.draftId);
       await foldLateOutcome(winner.draftId, late, Math.round(performance.now() - wrapperT0));
       if (isPlanRefusal(late.status, true) || ctx.refused !== null) {
         await journalRefusalWithBody(late, "async", winner.draftId);
       }
+    }).finally(() => {
+      draftsInFlight.delete(winner.draftId);
     }));
     console.log(JSON.stringify({
       tag: "keel.household_meal.accepted",
@@ -1363,6 +1431,13 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
   const planBudget = createPlanBudget({
     now: () => performance.now(),
     startedAtMs: wallT0,
+    // ⟳ 2026-09-25 — UNE RELANCE N'A QU'UNE RÉPARATION. La mère est morte
+    // (souvent sous la limite CPU, pendant ses tours de réparation: plan C du
+    // banc des trois foyers); la fille refait le même chemin déterministe, et
+    // chaque réparation en coûte une passe de finition complète. Lu ici sur
+    // l'en-tête brut, avant sa validation plus bas: un en-tête forgé ne peut
+    // que retirer une réparation à qui l'envoie.
+    repairs: (req.headers.get("x-relaunch-of") ?? "").trim() !== "" ? 1 : undefined,
   });
 
   const requestId = getRequestId(req);
@@ -14057,6 +14132,15 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
       return outcome;
     };
     for (let c4Round = 0;; c4Round++) {
+    // ⟳ 2026-09-25 — UNE MARQUE PAR TOUR, JOURNALISÉE TOUT DE SUITE: un worker
+    // tué par la limite CPU laisse ainsi son dernier chiffre (`peekWorkMs`).
+    markWorkPhase(requestId, `round_${c4Round}`);
+    console.log(JSON.stringify({
+      tag: "keel.household_meal.work_mark",
+      request_id: requestId,
+      stage: `round_${c4Round}`,
+      work_ms: peekWorkMs(requestId),
+    }));
     // ⛔ LE GARDE-FOU DUR. Deux réparations font au plus quatre tours (deux
     // candidates + un retour à la meilleure + le tour de livraison). Au-delà,
     // quelque chose s'est mal passé et une boucle infinie dans une fonction
@@ -23313,6 +23397,12 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
           };
         // ⟳ 2026-09-15 · LOT B — dernier stade avant que la ligne devienne `done`.
         markWorkPhase(requestId, "writing");
+        console.log(JSON.stringify({
+          tag: "keel.household_meal.work_mark",
+          request_id: requestId,
+          stage: "writing",
+          work_ms: peekWorkMs(requestId),
+        }));
         await markStage(admin, draftId, "writing");
         const storedRpc = await admin.rpc("keel_household_complete_draft_generation", {
           p_household: held.householdId,

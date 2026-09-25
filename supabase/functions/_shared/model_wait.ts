@@ -128,3 +128,19 @@ export function takeWorkTimeReport(requestId: string | null | undefined): WorkTi
     phases,
   };
 }
+
+/**
+ * ⟳ 2026-09-25 — LE TRAVAIL DÉJÀ DÉPENSÉ, SANS CLORE LE BILAN.
+ *
+ * `takeWorkTimeReport` n'est lu qu'en FIN de requête : un worker tué par la
+ * limite CPU ne laissait donc aucun chiffre (plan C du banc des trois foyers,
+ * deux morts, zéro ligne `work_time`). Cette lecture sert aux marques
+ * journalisées pendant la composition (`keel.household_meal.work_mark`) : le
+ * dernier chiffre écrit est celui qu'on retrouve après une mort.
+ */
+export function peekWorkMs(requestId: string | null | undefined): number | null {
+  const id = String(requestId ?? "").trim();
+  const c = id ? clocks.get(id) : undefined;
+  if (!c) return null;
+  return Math.max(0, Math.round((now() - c.t0) - modelWaitMs(id)));
+}
