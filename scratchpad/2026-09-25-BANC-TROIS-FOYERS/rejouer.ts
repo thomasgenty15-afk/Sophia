@@ -286,6 +286,7 @@ try {
     "final_served",
     "pot_reconcile",
     "cross_contact",
+    "declared_empty",
   ];
   const ecrire = (niveau: string, parts: unknown[]) => {
     const ligne = parts.map((p) => (typeof p === "string" ? p : JSON.stringify(p))).join(" ");

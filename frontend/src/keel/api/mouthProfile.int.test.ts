@@ -1102,6 +1102,8 @@ describe("⛔ C1 · l'apport fixe traverse jusqu'à la CIBLE, et une seule fois"
         // l'octet. Écrit ici plutôt que laissé au repli `?? null` du module,
         // que tsc ne voit pas depuis ce fichier.
         sides: null,
+        // ⟳ 2026-09-25 — requis lui aussi : aucun moment déclaré vide.
+        emptySlots: [],
       }],
       lightSlots: [],
       ageYears: 36,

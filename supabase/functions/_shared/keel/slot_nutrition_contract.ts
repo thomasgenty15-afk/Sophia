@@ -179,6 +179,15 @@ export const SLOT_CONTRACT_STATUSES = [
    * ce qui RESTE impossible une fois ce déplacement fait.
    */
   "density_infeasible",
+  /**
+   * ⟳ 2026-09-25 — UN MOMENT OÙ LA PERSONNE A DÉCLARÉ NE RIEN MANGER.
+   *
+   * « Que du café » écrit dans sa fiche : le modèle rend un plat à son nom que
+   * le référentiel mesure à ~0 kcal (`declared_empty_own_dish.ts`). Ce moment
+   * n'attend ni boîte ni portion, et sa part de la journée est portée par ses
+   * autres moments (`ContractDay.emptySlots`). `composeKcal` vaut 0.
+   */
+  "declared_empty",
 ] as const;
 export type SlotContractStatus = (typeof SLOT_CONTRACT_STATUSES)[number];
 
@@ -254,6 +263,19 @@ export interface ContractDay {
    * L'entrée vient du planificateur des à-côtés (flux A, `planSideCourses`).
    */
   sides: ReadonlyMap<SideCourseSlot, SideCourseSlotInput> | null;
+  /**
+   * ⟳ 2026-09-25 — LES MOMENTS OÙ CETTE PERSONNE A DÉCLARÉ NE RIEN MANGER CE
+   * JOUR-LÀ (« que du café », mesuré ~0 kcal, `declared_empty_own_dish.ts`).
+   *
+   * Ils sortent du rythme ET de la couverture de la journée : la répartition
+   * existante porte alors la journée sur les autres moments — exactement comme
+   * si le moment n'avait pas été coché. Chacun reçoit un contrat
+   * `declared_empty` à 0 kcal.
+   *
+   * ⛔ REQUIS, jamais `?`, même règle que `sides` : `[]` = le contrat d'avant, à
+   * l'octet.
+   */
+  emptySlots: readonly string[];
 }
 
 /**
@@ -436,8 +458,30 @@ export interface SlotContractCounters {
  * faut refaire.
  */
 
+/**
+ * ⟳ 2026-09-25 — LA FORME DES ENTRÉES DE `slotContractsFor`, nommée pour
+ * pouvoir la garder (`SlotContractSet.input`). Les commentaires de chaque champ
+ * vivent sur la signature de la fonction, qui reste la référence.
+ */
+export interface SlotContractsInput {
+  mouth: AnchorMouth;
+  coachCounting: CountingStance;
+  rhythmSlots: readonly string[];
+  days: readonly ContractDay[];
+  lightSlots: readonly string[];
+  ageYears: number | null;
+}
+
 export interface SlotContractSet {
   memberId: string;
+  /**
+   * ⟳ 2026-09-25 — LES ENTRÉES EXACTES DE CE CALCUL, pour le refaire à
+   * l'identique quand un moment se révèle « déclaré vide » après le modèle
+   * (`ContractDay.emptySlots`, boucle de finition du générateur de foyer).
+   * `null` sur un jeu RECOLLÉ (`mergeSlotContractSets`): plusieurs calculs
+   * n'ont pas une entrée unique, et on ne les refait pas.
+   */
+  input: SlotContractsInput | null;
   contracts: readonly SlotNutritionContract[];
   /** `memberId|date|slot` → le contrat. La seule clé, et elle est datée. */
   byKey: ReadonlyMap<string, SlotNutritionContract>;
@@ -747,9 +791,45 @@ export function slotContractsFor(args: {
   });
 
   for (const d of args.days) {
-    const covered = [...new Set(d.coveredSlots)];
-    if (covered.length === 0) continue;
-    const rhythm = rhythmOfDay(args.rhythmSlots, covered);
+    // ⟳ 2026-09-25 — UN MOMENT DÉCLARÉ VIDE SORT DE LA COUVERTURE ET DU RYTHME
+    // (voir `ContractDay.emptySlots`): la journée se répartit sur les autres.
+    // ⚠️ `?? []` pour les appelants que vitest lit sans typer, même règle que
+    // `sides` plus bas.
+    const empty = new Set(d.emptySlots ?? []);
+    const allCovered = [...new Set(d.coveredSlots)];
+    const covered = allCovered.filter((slot) => !empty.has(slot));
+    const emptyCovered = allCovered.filter((slot) => empty.has(slot));
+    const rhythm = rhythmOfDay(args.rhythmSlots, covered).filter((slot) => !empty.has(slot));
+    const pushEmpty = (budget: { covered: number | null; gross: number | null }) => {
+      for (const slot of emptyCovered) {
+        contracts.push({
+          memberId: args.mouth.memberId,
+          date: d.date,
+          dayToken: d.dayToken,
+          slot,
+          rhythmSlots: rhythm,
+          coveredSlots: covered,
+          lockedSlots: [...d.lockedSlots],
+          dayTargetKcal: day.kcal,
+          coveredBudgetKcal: budget.covered,
+          coveredBudgetGrossKcal: budget.gross,
+          fixedKcal: 0,
+          mealTargetKcal: 0,
+          composeKcal: 0,
+          ...NO_SIDE,
+          redistributedKcal: 0,
+          bounds: null,
+          corridor: null,
+          status: "declared_empty",
+          abstainReason: null,
+          light: light.has(slot),
+        });
+      }
+    };
+    if (covered.length === 0) {
+      pushEmpty({ covered: null, gross: null });
+      continue;
+    }
     // ⟳ 2026-09-23 — ⚠️ `?? null` NE REND PAS LE CHAMP OPTIONNEL: le type
     // l'exige, et tout appelant typé casse sans lui. Il protège les appelants
     // qui ne passent pas par un compilateur (vitest lit ce module sans vérifier
@@ -787,6 +867,7 @@ export function slotContractsFor(args: {
           light: light.has(slot),
         });
       }
+      pushEmpty({ covered: null, gross: null });
       continue;
     }
 
@@ -1100,12 +1181,14 @@ export function slotContractsFor(args: {
           : "computed",
       });
     }
+    pushEmpty({ covered: coveredBudget, gross: coveredBudgetGross });
   }
 
   const byKey = new Map<string, SlotNutritionContract>();
   for (const c of contracts) byKey.set(contractKey(c.memberId, c.date, c.slot), c);
   return {
     memberId: args.mouth.memberId,
+    input: args,
     contracts,
     byKey,
     dayTargetKcal: day.kcal,
@@ -1238,6 +1321,7 @@ export function mergeSlotContractSets(
   if (first === undefined) {
     return {
       memberId: "",
+      input: null,
       contracts: [],
       byKey: new Map(),
       dayTargetKcal: null,
@@ -1280,6 +1364,7 @@ export function mergeSlotContractSets(
   for (const c of contracts) byKey.set(contractKey(c.memberId, c.date, c.slot), c);
   return {
     memberId: first.memberId,
+    input: null,
     contracts,
     byKey,
     dayTargetKcal: first.dayTargetKcal,
@@ -1519,6 +1604,7 @@ export function requiredDensityFor(args: {
       // ⟳ 2026-09-23 — ⚠️ CETTE PORTE NE CONNAÎT PAS LES À-CÔTÉS: elle rend
       // le couloir d'avant. La voie du foyer passe par `slotContractsFor`.
       sides: null,
+      emptySlots: [],
     })),
     lightSlots: args.lightSlots,
     ageYears: args.ageYears,

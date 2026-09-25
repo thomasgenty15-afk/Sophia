@@ -108,6 +108,8 @@ function jour(
     // ⟳ 2026-09-23 — le contrat d'avant: aucun à-côté. Les tests des à-côtés
     // le remplacent par une `Map`.
     sides: null,
+    // ⟳ 2026-09-25 — aucun moment déclaré vide: le contrat d'avant, à l'octet.
+    emptySlots: [],
     ...over,
   };
 }
@@ -926,6 +928,7 @@ Deno.test("BÊTA 1B ⑤ — à six moments, « ajoute un créneau » n'est plus 
   const base = caseDe(journeeEtranglee(), "sat", "lunch");
   const large: SlotContractSet = {
     memberId: "m-paul",
+    input: null,
     contracts: [{ ...base, rhythmSlots: six }],
     byKey: new Map(),
     dayTargetKcal: base.dayTargetKcal,
@@ -1536,4 +1539,40 @@ Deno.test("⛔ À-CÔTÉS — recoller deux journées additionne les compteurs n
   assertEquals(tout.counters.side_capped, 2);
   assertEquals(tout.counters.overflow_to_snacks_kcal, 202);
   assertEquals(tout.counters.overflow_to_dish, 0);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-25 — UN MOMENT DÉCLARÉ VIDE (« que du café ») : LA JOURNÉE PASSE
+//                AUX AUTRES MOMENTS
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("⟳ 2026-09-25 — petit-déjeuner déclaré vide : déjeuner et dîner portent la journée entière", () => {
+  for (const rhythmSlots of [["breakfast", "lunch", "dinner"], []]) {
+    const avant = contrats({ rhythmSlots });
+    const apres = contrats({
+      rhythmSlots,
+      days: [jour("sat", "2026-09-12", ["breakfast", "lunch", "dinner"], { emptySlots: ["breakfast"] })],
+    });
+    const cafe = caseDe(apres, "sat", "breakfast");
+    assertEquals(cafe.status, "declared_empty");
+    assertEquals(cafe.composeKcal, 0);
+    assertEquals(cafe.bounds, null);
+    const midi = caseDe(apres, "sat", "lunch");
+    const soir = caseDe(apres, "sat", "dinner");
+    assertEquals(midi.rhythmSlots, ["lunch", "dinner"]);
+    // Nombres dérivés à la main : 2 413 × 0,40/0,75 et × 0,35/0,75.
+    assertAlmostEquals(midi.mealTargetKcal!, 2413 * 0.40 / 0.75, 0.01);
+    assertAlmostEquals(soir.mealTargetKcal!, 2413 * 0.35 / 0.75, 0.01);
+    assertAlmostEquals(midi.coveredBudgetKcal!, 2413, 0.01);
+    assertAlmostEquals(cafe.coveredBudgetKcal!, 2413, 0.01, "le contrat vide porte le budget du jour, comme ses voisins");
+    // Et sans moment vide, rien ne bouge : le quart du matin reste au matin.
+    assert(caseDe(avant, "sat", "breakfast").mealTargetKcal! > 500);
+  }
+});
+
+Deno.test("⟳ 2026-09-25 — `emptySlots: []` rend le contrat d'avant, à l'octet", () => {
+  assertEquals(
+    JSON.stringify(contrats().contracts),
+    JSON.stringify(contrats({ days: [jour("sat", "2026-09-12", ["breakfast", "lunch", "dinner"], { emptySlots: [] })] }).contracts),
+  );
 });

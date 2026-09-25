@@ -89,6 +89,7 @@ function vendredi(sides: ContractDay["sides"]): ContractDay {
     lockedSlots: [],
     fixedKcalBySlot: null,
     sides,
+    emptySlots: [],
   };
 }
 

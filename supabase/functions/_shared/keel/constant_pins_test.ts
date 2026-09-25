@@ -1391,3 +1391,10 @@ import { DISH_MATCH_MAX, DISH_MATCH_TERMS_PER_DISH } from "./dish_match.ts";
 Deno.test("épinglage — DISH_MATCH_MAX vaut 12", () => assertEquals(DISH_MATCH_MAX, 12));
 Deno.test("épinglage — DISH_MATCH_TERMS_PER_DISH vaut 8", () =>
   assertEquals(DISH_MATCH_TERMS_PER_DISH, 8));
+
+// ⟳ 2026-09-25 — « QUE DU CAFÉ » (`declared_empty_own_dish.ts`): un plat à soi
+// mesuré sans lacune à au plus 30 kcal est un moment déclaré vide — sa part de
+// la journée passe aux autres moments. Un café au lait passe, une tartine non.
+import { OWN_USUAL_EMPTY_MAX_KCAL } from "./declared_empty_own_dish.ts";
+Deno.test("épinglage — OWN_USUAL_EMPTY_MAX_KCAL vaut 30", () =>
+  assertEquals(OWN_USUAL_EMPTY_MAX_KCAL, 30));

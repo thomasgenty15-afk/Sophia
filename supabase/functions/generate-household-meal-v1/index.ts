@@ -507,6 +507,11 @@ import {
   densityFromComposition,
   weighedReadyGrams,
 } from "../_shared/keel/box_densify.ts";
+import {
+  declaredEmptyOwnCells,
+  type DeclaredEmptyOutcome,
+  ownMealCellKey,
+} from "../_shared/keel/declared_empty_own_dish.ts";
 // ⟳ 2026-09-09 — LA CHIRURGIE LOCALE : une case refaite, le reste intact par
 // construction. Module pur ; le générateur tient le brouillon de départ, le
 // modèle, et rejoue ses ceintures sur le plan fusionné.
@@ -7735,6 +7740,10 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
           // à-côtés s'appliquent, ce jour n'en porte aucun ».
           sides: sidePlan.get(dayToken) ??
             new Map<SideCourseSlot, SideCourseSlotInput>(),
+          // ⟳ 2026-09-25 — aucun moment déclaré vide AVANT le modèle: on ne le
+          // sait qu'en mesurant son plat (`declaredEmptyOwnCells`, dans la
+          // boucle de finition, qui recalcule alors ces contrats-ci).
+          emptySlots: [],
         })),
         lightSlots: m.lightSlots,
         ageYears: body?.ageYears ?? null,
@@ -13970,6 +13979,83 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
 
       return out;
     };
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-25 — « QUE DU CAFÉ » : UN MOMENT DÉCLARÉ SANS ÉNERGIE
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // Plan C du banc des trois foyers : « un café noir, rien d'autre » dans la
+    // fiche de Thomas, un plat « Café noir » à son nom mesuré 0 kcal, puis
+    // `cell_without_portion` (cause chassée), deux appels de réparation, cinq
+    // passes de finition, et la mort sous la limite CPU; ses jours « café » à
+    // 66–67 % de sa cible. Voir `declared_empty_own_dish.ts` pour la règle.
+    //
+    // ⚠️ RECALCULÉ À CHAQUE TOUR, parce qu'une réparation peut réécrire le plat.
+    // Les contrats d'une bouche sont refaits avec LES MÊMES entrées qu'avant le
+    // modèle (`SlotContractSet.input`), plus ses moments vides; une bouche qui
+    // n'en a plus retrouve exactement ses contrats d'origine.
+    const ownMealCellKeys = new Set<string>();
+    for (const cell of householdGrid.cells) {
+      for (const d of cell.dedicated) {
+        if (d.reason === "own_meal") {
+          ownMealCellKeys.add(ownMealCellKey(d.memberId, cell.day, cell.slot));
+        }
+      }
+    }
+    const contractsRewritten = new Set<string>();
+    const applyDeclaredEmptyContracts = (): DeclaredEmptyOutcome => {
+      const index = composition;
+      const outcome = declaredEmptyOwnCells({
+        dishes: meal.dishes,
+        ownMealCells: index === null ? new Set<string>() : ownMealCellKeys,
+        // Seuls les plats SANS casserole sont mesurés (le module écarte les
+        // autres avant): la part standard ne dépend donc d'aucun tirage.
+        measure: (i) => {
+          if (index === null) return { kcal: null, gaps: ["composition_unavailable"] };
+          const s = standardPortionOf({
+            index,
+            dish: meal.dishes[i],
+            uses: [],
+            preparations: [],
+            drawsByPrep: new Map(),
+          });
+          return { kcal: s.kcal, gaps: s.gaps };
+        },
+      });
+      let rewritten = 0;
+      for (const [memberId, origin] of contractSets) {
+        const empties = outcome.byMember.get(memberId);
+        if (empties === undefined && !contractsRewritten.has(memberId)) continue;
+        if (origin.input === null) continue;
+        const input = origin.input;
+        // Les MÊMES entrées que le calcul d'avant le modèle (`SlotContractSet.input`),
+        // plus les moments vides de ce tour: une bouche qui n'en a plus retrouve
+        // exactement ses contrats d'origine.
+        const set = slotContractsFor({
+          ...input,
+          days: input.days.map((d) => ({ ...d, emptySlots: empties?.get(d.dayToken) ?? [] })),
+        });
+        for (const key of [...contractsByKey.keys()]) {
+          if (key.startsWith(`${memberId}|`)) contractsByKey.delete(key);
+        }
+        for (const c of set.contracts) {
+          contractsByKey.set(contractKey(c.memberId, c.date, c.slot), c);
+        }
+        if (empties === undefined) contractsRewritten.delete(memberId);
+        else {
+          contractsRewritten.add(memberId);
+          rewritten++;
+        }
+      }
+      console.log(JSON.stringify({
+        tag: "keel.household_meal.declared_empty",
+        user_id: userId,
+        request_id: requestId,
+        own_meal_cells: ownMealCellKeys.size,
+        ...outcome.counters,
+        mouths_rewritten: rewritten,
+      }));
+      return outcome;
+    };
     for (let c4Round = 0;; c4Round++) {
     // ⛔ LE GARDE-FOU DUR. Deux réparations font au plus quatre tours (deux
     // candidates + un retour à la meilleure + le tour de livraison). Au-delà,
@@ -14108,6 +14194,10 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
       sideCoursesTrace.pots = pots.counters;
     }
 
+    // ⟳ 2026-09-25 — « QUE DU CAFÉ »: les moments déclarés vides de CE tour
+    // (`declared_empty_own_dish.ts`), et les contrats effectifs qui en
+    // découlent, AVANT que le dimensionnement et l'audit ne les lisent.
+    applyDeclaredEmptyContracts();
     // ⟳ 2026-09-23 — l'« avant » de l'énergie servie appartient à CE tour.
     engineServedByMouthDay = new Map();
     const portionSizing = await (async () => {
@@ -21227,14 +21317,17 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
     /** Les cases attendues, avec la cible et les bornes DU CONTRAT (lot B). */
     const auditCells: AuditCell[] = composition === null ? [] : householdGrid.byMouth.flatMap(
       (mouth) =>
-        mouth.cells.map((cell) => {
+        mouth.cells.flatMap((cell) => {
           // ⚠️ `contratDeLaCase` ET PAS `contract`: ce site est un TROISIÈME
           // lecteur du contrat (la MESURE finale), pas un site de
           // dimensionnement. Le test de câblage ㉔ compte les deux sites qui
           // DIMENSIONNENT (`const contract = contractAt(`); lui emprunter son
           // nom rendrait ce compteur faux en silence.
           const contratDeLaCase = contractAt(mouth.memberId, String(cell.day), String(cell.slot));
-          return {
+          // ⟳ 2026-09-25 — un moment déclaré vide (« que du café ») n'attend ni
+          // portion ni énergie: sa part est portée par les autres moments.
+          if (contratDeLaCase?.status === "declared_empty") return [];
+          return [{
             memberId: mouth.memberId,
             day: String(cell.day),
             date: contratDeLaCase?.date ?? contractDates[String(cell.day)] ?? String(cell.day),
@@ -21259,7 +21352,7 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
             densityMaxExact: contratDeLaCase?.corridor?.incompatible
               ? null
               : contratDeLaCase?.corridor?.maxExactPer100G ?? null,
-          };
+          }];
         }),
     );
     const auditCellRows = composition === null ? [] : cellNutritionTable({
