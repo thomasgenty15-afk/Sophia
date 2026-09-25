@@ -98,6 +98,7 @@ import {
   SIDE_COURSE_MIN_ADDED_KCAL,
   SIDE_COURSE_REFUSALS,
   SIDE_COURSE_SLOTS,
+  type SideCourseAlloc,
   type SideCourseAsk,
   type SideCourseGoal,
   type SideCourseKind,
@@ -124,6 +125,52 @@ import {
  */
 export function sideCourseKey(memberId: string, dayToken: string, slot: string): string {
   return `${memberId}|${dayToken}|${slot}`;
+}
+
+/**
+ * ⟳ 2026-09-25 (nuit) — LA DEMANDE D'À-CÔTÉS D'UN CONTRAT DE CASE, ET LE REPAS
+ * ENTIER DE CETTE CASE (plat + à-côtés). `null`: pas un moment d'à-côté, ou
+ * aucun à-côté à plus de 0 kcal (le modèle nommerait un aliment que le moteur
+ * ne pèserait à rien).
+ *
+ * ⛔ LA SEULE CONSTRUCTION. Le générateur de foyer l'appelle dans sa boucle des
+ * contrats (avant le modèle) ET quand il réécrit les contrats d'une personne
+ * dont un moment est déclaré vide (« que du café », après le modèle). Mesuré
+ * au rejeu du tir C-3 du banc des trois foyers : les contrats de Thomas
+ * étaient réécrits (déjeuner 1 008 kcal, dont 353 d'à-côtés) pendant que le
+ * registre pesait encore les demandes d'avant le modèle — ses jours à 76, 82
+ * et 80 % de sa cible.
+ *
+ * `dayIndexOf` n'est appelé que pour une demande retenue : le compteur des
+ * jours hors fenêtre de l'appelant ne voit que les cases qui en portent une.
+ */
+export function sideAskOfContract(
+  contract: {
+    memberId: string;
+    dayToken: string;
+    slot: string;
+    sideCourses: readonly SideCourseAlloc[];
+    composeKcal: number | null;
+    sideKcal: number;
+  },
+  goal: SideCourseGoal,
+  dayIndexOf: (dayToken: string) => number,
+): { ask: SideCourseAsk; mealKcal: number } | null {
+  const slot = SIDE_COURSE_SLOTS.find((s) => s === contract.slot);
+  if (slot === undefined) return null;
+  const courses = contract.sideCourses.filter((x) => x.kcal > 0);
+  if (courses.length === 0) return null;
+  return {
+    ask: {
+      memberId: contract.memberId,
+      dayToken: contract.dayToken,
+      slot,
+      dayIndex: dayIndexOf(contract.dayToken),
+      goal,
+      courses,
+    },
+    mealKcal: (contract.composeKcal ?? 0) + contract.sideKcal,
+  };
 }
 
 /** La clé d'une personne pour une journée: `${memberId}|${dayToken}`. */

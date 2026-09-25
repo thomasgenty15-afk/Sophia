@@ -819,6 +819,7 @@ import {
   type SideCourseEngineLedger,
   // ⟳ 2026-09-24 — la clé d'un repas, pour le manque venu de la borne d'assiette.
   sideCourseKey,
+  sideAskOfContract,
   type SideCourseExtractStatus,
   sideCourseGoalFor,
   sideDrawsByPreparation,
@@ -832,6 +833,7 @@ import {
   SIDE_COURSE_KINDS,
   SIDE_COURSE_SLOTS,
   type SideCourseAsk,
+  type SideCourseGoal,
   type SideCourseKind,
   type SideCourseModelCounters,
   type SideCourseSlot,
@@ -7700,6 +7702,11 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
       }
       return i;
     };
+    // ⟳ 2026-09-25 (nuit) — la demande d'à-côtés d'un contrat: une seule
+    // construction (`sideAskOfContract`), avant le modèle et à la réécriture
+    // des moments déclarés vides.
+    /** La rotation d'à-côtés de chaque bouche, relue par la réécriture. */
+    const sideGoalByMember = new Map<string, SideCourseGoal>();
     for (const m of platedMembers) {
       densityCounters.mouths += 1;
       // ⚠️ `composition === null` ⇒ ON NE DIT RIEN. Sans référentiel, le
@@ -7935,28 +7942,20 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
           contracts.counters.overflow_to_snacks_kcal;
       }
       const sideProteinByDay = new Map<string, number>();
+      sideGoalByMember.set(m.memberId, sideGoal);
       for (const c of contracts.contracts) {
-        const slot = SIDE_COURSE_SLOTS.find((s) => s === c.slot);
-        if (slot === undefined) continue;
-        // ⚠️ UN À-CÔTÉ À 0 kcal N'EST PAS DEMANDÉ: le modèle nommerait un
-        // aliment que le moteur ne pèserait à rien.
-        const courses = c.sideCourses.filter((x) => x.kcal > 0);
-        if (courses.length === 0) continue;
-        // ⟳ 2026-09-24 — le repas entier de cette case (plat + à-côtés).
-        sideMealKcalByKey.set(
-          sideCourseKey(m.memberId, c.dayToken, slot),
-          (c.composeKcal ?? 0) + c.sideKcal,
-        );
-        sideCourseAsks.push({
-          memberId: m.memberId,
-          dayToken: c.dayToken,
-          slot,
+        const asked = sideAskOfContract(
+          c,
+          sideGoal,
           // Le MÊME indice que la rotation qui a choisi ces types.
-          dayIndex: sideDays.find((d) => d.dayToken === c.dayToken)?.dayIndex ??
-            sideDayIndexOf(c.dayToken),
-          goal: sideGoal,
-          courses,
-        });
+          (dayToken) =>
+            sideDays.find((d) => d.dayToken === dayToken)?.dayIndex ??
+              sideDayIndexOf(dayToken),
+        );
+        if (asked === null) continue;
+        const { slot, courses } = asked.ask;
+        sideMealKcalByKey.set(sideCourseKey(m.memberId, c.dayToken, slot), asked.mealKcal);
+        sideCourseAsks.push(asked.ask);
         sideCoursesTrace.plan.asks += 1;
         for (const x of courses) {
           sideCoursesTrace.plan.courses += 1;
@@ -14242,6 +14241,38 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
         for (const c of set.contracts) {
           contractsByKey.set(contractKey(c.memberId, c.date, c.slot), c);
         }
+        // ⟳ 2026-09-25 (nuit) — ET SES À-CÔTÉS AVEC. Le moment vide rend sa
+        // part aux autres; ce que l'assiette ne tient pas part aux à-côtés du
+        // contrat réécrit (`sideBudgetFor`), et c'est le registre qui les pèse
+        // (`buildSideLedgerFor`, lu juste après cet appel). ⚠️ EN PLACE, À LA
+        // PLACE DES ANCIENNES: l'ordre des demandes des autres ne bouge pas.
+        // La consigne de réparation n'est pas touchée: sa répartition des
+        // à-côtés est écrite une fois, avant le modèle (`repairHousehold`).
+        const goal = sideGoalByMember.get(memberId);
+        if (goal !== undefined) {
+          for (const key of [...sideMealKcalByKey.keys()]) {
+            if (key.startsWith(`${memberId}|`)) sideMealKcalByKey.delete(key);
+          }
+          const fresh: SideCourseAsk[] = [];
+          for (const c of set.contracts) {
+            // ⛔ `sideDayIndex.get`, pas `sideDayIndexOf`: ces jours ont déjà
+            // été comptés avant le modèle (même indice, sans second compte).
+            const asked = sideAskOfContract(c, goal, (dayToken) => sideDayIndex.get(dayToken) ?? 0);
+            if (asked === null) continue;
+            fresh.push(asked.ask);
+            sideMealKcalByKey.set(sideCourseKey(memberId, c.dayToken, asked.ask.slot), asked.mealKcal);
+          }
+          const at = sideCourseAsks.findIndex((a) => a.memberId === memberId);
+          const kept = sideCourseAsks.filter((a) => a.memberId !== memberId);
+          const insertAt = at < 0 ? kept.length : at;
+          sideCourseAsks.splice(
+            0,
+            sideCourseAsks.length,
+            ...kept.slice(0, insertAt),
+            ...fresh,
+            ...kept.slice(insertAt),
+          );
+        }
         if (empties === undefined) contractsRewritten.delete(memberId);
         else {
           contractsRewritten.add(memberId);
@@ -14352,6 +14383,13 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
     // ⟳ 2026-09-24 — les à-côtés de CE texte (candidate réparée, ou relecture)
     // passent par la même identification ; les plats l'ont déjà eue.
     await identifyFoods({ withPlanLines: false, source: "side_course_identify" });
+    // ⟳ 2026-09-25 — « QUE DU CAFÉ »: les moments déclarés vides de CE tour
+    // (`declared_empty_own_dish.ts`), et les contrats effectifs qui en
+    // découlent, AVANT que le dimensionnement et l'audit ne les lisent.
+    // ⟳ 2026-09-25 (nuit) — ⛔ ET AVANT LE REGISTRE DES À-CÔTÉS: la réécriture
+    // refait aussi les demandes d'à-côtés de la personne, et le registre
+    // construit juste en dessous doit peser celles-là.
+    applyDeclaredEmptyContracts();
     sideLedger = buildSideLedgerFor(meal, NO_BOUNDARY_DEFICIT);
     sideCoursesTrace.model = sideLedger.counters;
     sideCoursesTrace.variety = sideLedger.variety;
@@ -14405,10 +14443,6 @@ async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
       sideCoursesTrace.pots = pots.counters;
     }
 
-    // ⟳ 2026-09-25 — « QUE DU CAFÉ »: les moments déclarés vides de CE tour
-    // (`declared_empty_own_dish.ts`), et les contrats effectifs qui en
-    // découlent, AVANT que le dimensionnement et l'audit ne les lisent.
-    applyDeclaredEmptyContracts();
     // ⟳ 2026-09-23 — l'« avant » de l'énergie servie appartient à CE tour.
     engineServedByMouthDay = new Map();
     const portionSizing = await (async () => {

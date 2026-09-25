@@ -181,7 +181,9 @@ const SIDE_PLAN_TERMS = "const sidePlanExclusionTerms = new Map<string, readonly
 /** Ce que le planificateur ne doit JAMAIS lire: tout ce qui attend la note fraîche. */
 const FRESH_NOTE_READERS = /\b(memberExclusionTerms|householdExclusionTerms|beltItems|noteBelt|draftNoteEarly)\b/;
 const SIDES_FIELD = "sides: sidePlan.get(dayToken) ??";
-const ASKS_PUSH = "sideCourseAsks.push({";
+// ⟳ 2026-09-25 (nuit) — la demande est construite par `sideAskOfContract`
+// (une seule construction, relue à la réécriture des moments déclarés vides).
+const ASKS_PUSH = "sideCourseAsks.push(asked.ask);";
 const PROMPT_INPUT = "const householdPromptInput = {";
 const PROMPT_FIELD = "sideCourses: sideCourseAsks,";
 const HOUSEHOLD = "const household = useV34";
@@ -489,7 +491,7 @@ Deno.test("CÂBLAGE — chaque jonction coupée fait ROUGIR, elle seule", () => 
       (s) => replaceAt(s, "...sidePlanTableTerms,", "", s.indexOf(SIDE_PLAN_TERMS)),
     ],
     ["sides_not_passed", (s) => s.replace(SIDES_FIELD, "sides: null ??")],
-    ["asks_not_built", (s) => s.replace(ASKS_PUSH, "void ({")],
+    ["asks_not_built", (s) => s.replace(ASKS_PUSH, "void asked.ask;")],
     ["asks_not_prompted", (s) => s.replace(PROMPT_FIELD, "sideCourses: [],")],
     ["prompt_counts_dropped", (s) => s.replace(PROMPT_COUNTS, "")],
     ["trace_not_written", (s) => s.replace(TRACE_FIELD, "")],
